@@ -34,6 +34,9 @@
 #define ATTR_NAME_ARRAY_SIZE 16
 #define TAG_STACK_SIZE 256
 #define MAX_DEPTH 255
+#define MAX_TOKEN_LENGTH ((1<<20)-1)
+#define MAX_PREFIX_LENGTH ((1<<9)-1)
+#define MAX_QNAME_LENGTH ((1<<11)-1)
 
 typedef struct vTDGen {
 	int ns;
