@@ -100,7 +100,7 @@ public class VTDNav {
 
 	//private int recentNS; // most recently visited NS node, experiment for now
 	// Hierarchical representation is an array of integers addressing elements tokens 
-	private ContextBuffer2 contextStack;
+	private ContextBuffer contextStack;
 
 	// the document encoding	     
 	private int encoding;
@@ -180,7 +180,7 @@ public class VTDNav {
 		}
 		currentOffset = 0;
 		//contextStack = new ContextBuffer(1024, nestingLevel + 7);
-		contextStack = new ContextBuffer2(10, nestingLevel + 7);
+		contextStack = new ContextBuffer(10, nestingLevel + 7);
 		stackTemp = new int[nestingLevel + 7];
 
 		// initial state of LC variables
