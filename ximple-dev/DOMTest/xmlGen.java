@@ -198,7 +198,43 @@ public class xmlGen {
 				"<note>\n" + "<to>Tove</to>\n" + "<from>Jani</from>\n"
 				+ "<heading><![CDATA[aaaa\u0019]]>Reminder</heading>\n"
 				+ "<body>Don't forget me this weekend!</body>\n"
-				+ "</note>"			
+				+ "</note>",
+				
+				"contains invalid char in comment at the end of xml for all encodings",				
+				"<note>\n" + "<to>Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading>Reminder</heading>\n"
+				+ "<body>Don't forget me this weekend!</body>\n"
+				+ "</note><!--\u0002aaaa-->",
+					
+				"contains invalid char in comment at the end of xml common to utf-8 and utf-16",
+				"<note>\n" + "<to>Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading>Reminder</heading>\n"
+				+ "<body>Don't forget me this weekend!</body>\n"
+				+ "</note><!--\u0019aaaaaaaaaaaaa-->",
+				
+				"contains invalid char in PI target at the end of xml for all encodings",				
+				"<note>\n" + "<to>Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading>Reminder</heading>\n"
+				+ "<body>Don't forget me this weekend!</body>\n"
+				+ "</note><?1ab ?>",
+					
+				"contains invalid char in PI target at the end of xml common to utf-8 and utf-16",
+				"<note>\n" + "<to>Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading>Reminder</heading>\n"
+				+ "<body>Don't forget me this weekend!</body>\n"
+				+ "</note><?\u1234asb fskfs?>",
+				
+				"contains invalid char in PI value at the end of doc for all encodings",				
+				"<note>\n" + "<to>Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading>Reminder</heading>\n"
+				+ "<body>Don't forget me this weekend!</body>\n"
+				+ "</note><?pi aaa\u0003?>",
+					
+				"contains invalid char in PI value at the end of doc common to utf-8 and utf-16",
+				"<note>\n" + "<to>Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading>Reminder</heading>\n"
+				+ "<body>Don't forget me this weekend!</body>\n"
+				+ "</note><?pi aaa\u0017?>",
 				};
 		
 		
@@ -312,8 +348,32 @@ public class xmlGen {
 				"random error5",
 				"<note>\n" + "<to > <?fsb ? >Tove</to>\n" + "<from>Jani</from>\n"
 				+ "<heading = '1'/heading>\n"
-				+ "<![CDATA[abc]]> <body>Don't <forget me this weekend!</body>\n"
+				+ "<![CDATA[abc]]> <body>Don't forget me this weekend!</body>\n"
 				+ "</note>",
+				
+				"random error6",
+				"<note>\n" + "<to >Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading a= '1'></heading>\n"
+				+ "<![CDATA[abc]]> <body>Don't forget me this weekend!</body>\n"
+				+ "</note> sjfksjkf",
+				
+				"random error7",
+				"bad character data<note>\n" + "<to >Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading a= '1'></heading>\n"
+				+ "<![CDATA[abc]]> <body>Don't forget me this weekend!</body>\n"
+				+ "</note>",
+				
+				"random error8",
+				" <![CDATA[abc]]><note><to>Tove</to>\n" +  "<from>Jani</from>\n"
+				+ "<heading a= '1'></heading>\n"
+				+ "<![CDATA[abc]]> <body>Don't forget me this weekend!</body>\n"
+				+ "</note>",
+				
+				"random error9",
+				" <?fsb ?>  <note>\n" + "<to >Tove</to>\n" + "<from>Jani</from>\n"
+				+ "<heading a= '1'></heading>\n"
+				+ "<![CDATA[abc]]> <body>Don't forget me this weekend!</body>\n"
+				+ "</note><![CDATA[abc]]>",
 		};
 		
 		// invalid entities
@@ -341,6 +401,8 @@ public class xmlGen {
 				+ "<heading>Remi &#123nder</heading>\n"
 				+ "<![CDATA[abc]]><body>Don't forget me this weekend!</body>\n"
 				+ "</note>",
+				
+				
 		};
 		
 		// token length and depth overflow 
