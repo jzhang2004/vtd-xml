@@ -876,11 +876,12 @@ public class VTDNav {
 		int depth;
 		int val;
 		int len = 0;
-		long l = vtdBuffer.longAt(index);
+		long l;
 		switch (type) {
 			case TOKEN_ATTR_NAME :
 			case TOKEN_ATTR_NS :
 			case TOKEN_STARTING_TAG :
+				l = vtdBuffer.longAt(index);
 				return (ns == false)
 					? (int) ((l & MASK_TOKEN_QN_LEN) >> 32)
 					: ((int) ((l & MASK_TOKEN_QN_LEN)
@@ -894,8 +895,8 @@ public class VTDNav {
 				depth = getTokenDepth(index);
 				do{
 					len = len +  (int)
-					((l	& MASK_TOKEN_FULL_LEN) >> 32);
-					index++;						
+					((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 32);
+					index++;		
 					}
 				while(index < vtdSize && depth == getTokenDepth(index) 
 						&& type == getTokenType(index));
@@ -903,7 +904,7 @@ public class VTDNav {
 				return len;
 			default :
 				return (int)
-					((l & MASK_TOKEN_FULL_LEN) >> 32);
+					((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
 		}
 		/*if (encoding<3)
 		 return val;
