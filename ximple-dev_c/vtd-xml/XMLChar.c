@@ -217,7 +217,7 @@ void XMLChar_init()
     // set valid characters
     unsigned int i;
 	int j;
-#if BIG_ENDIAN
+
 	MASK_VALID= 0x01;
 	MASK_SPACE= 0x01<<1;
 	MASK_NAME_START= 0x01<<2;
@@ -226,100 +226,98 @@ void XMLChar_init()
 	MASK_CONTENT= 0x01<<5;
 	MASK_NCNAME_START= 0x01 << 6;
 	MASK_NCNAME= 0x01 << 7;
-#else
-	// small endian go here
-#endif
+
     for (i = 0; i < LENGTH(charRange,int); i += 2)
 	{
         for ( j = charRange[i]; j <= charRange[i + 1]; j++)
 		{
-            CHARS[j] |= MASK_VALID | MASK_CONTENT;
-        }
-    }
+			CHARS[j] |= MASK_VALID | MASK_CONTENT;
+		}
+	}
 
-    // remove special characters
-    for (i = 0; i < LENGTH(specialChar,int); i++)
+	// remove special characters
+	for (i = 0; i < LENGTH(specialChar,int); i++)
 	{
-        CHARS[specialChar[i]] = (unsigned char)(CHARS[specialChar[i]] & 
-~MASK_CONTENT);
-    }
+		CHARS[specialChar[i]] = (unsigned char)(CHARS[specialChar[i]] & 
+			~MASK_CONTENT);
+	}
 
-    // set space characters
-    for (i = 0; i < LENGTH(spaceChar,int); i++)
+	// set space characters
+	for (i = 0; i < LENGTH(spaceChar,int); i++)
 	{
-        CHARS[spaceChar[i]] |= MASK_SPACE;
-    }
+		CHARS[spaceChar[i]] |= MASK_SPACE;
+	}
 
-    // set name start characters
-    for (i = 0; i < LENGTH(nameStartChar,int); i++)
+	// set name start characters
+	for (i = 0; i < LENGTH(nameStartChar,int); i++)
 	{
-        CHARS[nameStartChar[i]] |= MASK_NAME_START | MASK_NAME |
-                                   MASK_NCNAME_START | MASK_NCNAME;
-    }
-    for (i = 0; i < LENGTH(letterRange,int); i += 2)
+		CHARS[nameStartChar[i]] |= MASK_NAME_START | MASK_NAME |
+			MASK_NCNAME_START | MASK_NCNAME;
+	}
+	for (i = 0; i < LENGTH(letterRange,int); i += 2)
 	{
-        for ( j = letterRange[i]; j <= letterRange[i + 1]; j++)
+		for ( j = letterRange[i]; j <= letterRange[i + 1]; j++)
 		{
-            CHARS[j] |= MASK_NAME_START | MASK_NAME |
-                        MASK_NCNAME_START | MASK_NCNAME;
-        }
-    }
-    for (i = 0; i < LENGTH(letterChar,int); i++)
+			CHARS[j] |= MASK_NAME_START | MASK_NAME |
+				MASK_NCNAME_START | MASK_NCNAME;
+		}
+	}
+	for (i = 0; i < LENGTH(letterChar,int); i++)
 	{
-        CHARS[letterChar[i]] |= MASK_NAME_START | MASK_NAME |
-                                MASK_NCNAME_START | MASK_NCNAME;
-    }
+		CHARS[letterChar[i]] |= MASK_NAME_START | MASK_NAME |
+			MASK_NCNAME_START | MASK_NCNAME;
+	}
 
-    // set name characters
-    for (i = 0; i < LENGTH(nameChar,int); i++)
+	// set name characters
+	for (i = 0; i < LENGTH(nameChar,int); i++)
 	{
-        CHARS[nameChar[i]] |= MASK_NAME | MASK_NCNAME;
-    }
-    for (i = 0; i < LENGTH(digitRange,int); i += 2)
+		CHARS[nameChar[i]] |= MASK_NAME | MASK_NCNAME;
+	}
+	for (i = 0; i < LENGTH(digitRange,int); i += 2)
 	{
-        for (j = digitRange[i]; j <= digitRange[i + 1]; j++)
+		for (j = digitRange[i]; j <= digitRange[i + 1]; j++)
 		{
-            CHARS[j] |= MASK_NAME | MASK_NCNAME;
-        }
-    }
-    for (i = 0; i < LENGTH(combiningCharRange,int); i += 2)
+			CHARS[j] |= MASK_NAME | MASK_NCNAME;
+		}
+	}
+	for (i = 0; i < LENGTH(combiningCharRange,int); i += 2)
 	{
-        for ( j = combiningCharRange[i]; j <= combiningCharRange[i + 1]; 
-j++)
+		for ( j = combiningCharRange[i]; j <= combiningCharRange[i + 1]; 
+			j++)
 		{
-            CHARS[j] |= MASK_NAME | MASK_NCNAME;
-        }
-    }
-    for (i = 0; i < LENGTH(combiningCharChar,int); i++)
+			CHARS[j] |= MASK_NAME | MASK_NCNAME;
+		}
+	}
+	for (i = 0; i < LENGTH(combiningCharChar,int); i++)
 	{
-        CHARS[combiningCharChar[i]] |= MASK_NAME | MASK_NCNAME;
-    }
-    for (i = 0; i < LENGTH(extenderRange,int); i += 2)
+		CHARS[combiningCharChar[i]] |= MASK_NAME | MASK_NCNAME;
+	}
+	for (i = 0; i < LENGTH(extenderRange,int); i += 2)
 	{
-        for ( j = extenderRange[i]; j <= extenderRange[i + 1]; j++)
+		for ( j = extenderRange[i]; j <= extenderRange[i + 1]; j++)
 		{
-            CHARS[j] |= MASK_NAME | MASK_NCNAME;
-        }
-    }
-    for (i = 0; i < LENGTH(extenderChar,int); i++) {
-        CHARS[extenderChar[i]] |= MASK_NAME | MASK_NCNAME;
-    }
+			CHARS[j] |= MASK_NAME | MASK_NCNAME;
+		}
+	}
+	for (i = 0; i < LENGTH(extenderChar,int); i++) {
+		CHARS[extenderChar[i]] |= MASK_NAME | MASK_NCNAME;
+	}
 
-    // remove ':' from allowable MASK_NCNAME_START and MASK_NCNAME chars
-    CHARS[':'] &= ~(MASK_NCNAME_START | MASK_NCNAME);
+	// remove ':' from allowable MASK_NCNAME_START and MASK_NCNAME chars
+	CHARS[':'] &= ~(MASK_NCNAME_START | MASK_NCNAME);
 
-    // set Pubid characters
-    for (i = 0; i < LENGTH(pubidChar,int); i++)
+	// set Pubid characters
+	for (i = 0; i < LENGTH(pubidChar,int); i++)
 	{
-        CHARS[pubidChar[i]] |= MASK_PUBID;
-    }
-    for (i = 0; i < LENGTH(pubidRange,int); i += 2)
+		CHARS[pubidChar[i]] |= MASK_PUBID;
+	}
+	for (i = 0; i < LENGTH(pubidRange,int); i += 2)
 	{
-        for ( j = pubidRange[i]; j <= pubidRange[i + 1]; j++)
-			{
-            CHARS[j] |= MASK_PUBID;
-        }
-    }
+		for ( j = pubidRange[i]; j <= pubidRange[i + 1]; j++)
+		{
+			CHARS[j] |= MASK_PUBID;
+		}
+	}
 	// Initialize Character
 	init_Character();
 

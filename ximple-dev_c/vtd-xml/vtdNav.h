@@ -33,8 +33,9 @@
 #define MASK_TOKEN_TYPE  0xf000000000000000L
 #define MASK_TOKEN_DEPTH  0x0ff0000000000000L
 #define MASK_TOKEN_NS_MARK 0x00000000c0000000L
-#elif
+#else
 //define MASKS for small endians
+#define MASK_TOKEN_NS_MARK_LE 0x000000c000000000L
 #endif
 //#define ROOT 0
 //#define PARENT 1
@@ -164,7 +165,7 @@ inline int getTokenOffset(VTDNav *vn, int index){
 #if BIG_ENDIAN
 	return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
 #else
-
+	return swap_bytes((int)((longAt(vn->vtdBuffer,index) & (0x3fffffffL << 32)) >> 32));
 #endif
 }
 // Get the XML document 
@@ -176,7 +177,7 @@ inline	 tokenType getTokenType(VTDNav *vn, int index){
 #if BIG_ENDIAN
 	return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
 #else
-
+	return (tokenType) ((longAt(vn->vtdBuffer, index) & 0xf0) >> 4);
 #endif
 }
 //Test whether current element has an attribute with the matching name.

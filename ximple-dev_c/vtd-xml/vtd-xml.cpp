@@ -23,9 +23,10 @@
 struct exception_context the_exception_context[1];
 int main()
 {   
-   int test =6;
+   int test = 7;
    if (test ==1){
-	int i,a,k; 
+	int i,a;
+	unsigned int k; 
 	Long l;
 	UCS2Char *string;
 	exception e;
@@ -185,7 +186,7 @@ int main()
 		   VTDNav *vn = NULL;
 		   char* ca= "<abc> <ab a = '1sfsf' b=\" \"> cde <!-- abcd --></ab> </abc>";
 		   Byte *ba = (Byte *)ca;
-		   int len = strlen(ca);
+		   unsigned int len = strlen(ca);
 		   while(TRUE){
 			   ba = (Byte *)malloc(sizeof(Byte)*len);
 			   memcpy(ba,ca,len);
@@ -209,8 +210,7 @@ int main()
 
    if (test == 6){ 
 	   exception e;
-	   Try{	
-		  
+	   Try{			  
 		   int i = Character_digit('a',16);
 	   	   printf("i 's val is %d \n", i);
 		   printf("i << 2 is %d \n", i<<2);
@@ -221,11 +221,108 @@ int main()
    if (test == 7){
 	   int i;
 	   int a=0x0a0b0c0d;
+	   unsigned int d;
+	   
 	   Byte* b = malloc(4);
+	   a= 0x0a0b0c0d;
+
+	   //============================
+	   // to encode token type 
+	   // type << 4
+
+	   // to decode token type
+	   // record & 0xf0 >> 4
+	   
+	   //============================
+	   // to encode nesting depth
+	   // ((depth & 0x0f) <<8) | (a&0xf)
+
+	   // to decode nesting depth
+	   // (record & 0x0f) | ((record & 0xf000)>>8) 
+
+	   //============================
+	   // to encode offset
+	   // ((os & 0xff) <<24) | 
+	   // ((os & 0xff00)<<8) | 
+	   // ((os & 0xff0000)>>8) | 
+	   // ((os & 0xff000000) >> 24)
+
+	   // to decode 
+	   // first cast record(64 bit) into a 32-bit integer i
+	   // then 
+	   // os = ((i & 0xff) <<24) |
+	   //      ((i & 0xff00)<<8) |
+	   //	   ((i & 0xff0000) >> 8) | 
+	   //      ((i & 0xff000000) >> 24);
+
+	   //=============================
+	   // to encode prefix length and qname length
+	   // qname length part
+	   // ((qlen & 0xff) << 24) | ((qlen & 0x700) << 8)
+	   // prefix length part
+	   // ((plen & 0x1f) << 19) |((plen & 0x1e0) << 3
+	   
+	   // to decode prefix length and qname length
+	   // vtd1 = (vtd & 0xff070000);
+	   // vtd2 = (vtd & 0xf8070000);
+	   // qlen = ((vtd1 & 0xff000000) >> 24) | ((vtd1 & 0x70000) >> 8);
+	   // prefix len
+	   // plen = ((vtd2 & 0xf00) >> 3) | ((vtd2 & 0xf80000) >> 19); 
+
+	
+	   //==============================
+	   // to encode ns bits
+	   // ns << 34
+	   // to decode ns bits
+       // (vtd & (0xc0>> 32)) << 34  
+	   //d= ((a&0xf0)<<8)|(a&0xf);
+
 	   memcpy(b,(&a),4);
 	   for (i=0;i<4;i++){
-		   printf(" %x \n", *(b+i));
+		   printf(" %x ", (unsigned char) *(b+i));
 	   }
+	   d = ((a & 0xff) <<24) | 
+		   ((a & 0xff00) << 8) |
+		   ((a & 0xff0000) >> 8) |
+		   ((a & 0xff000000) >> 24);
+	   memcpy(b,(&d),4);
+	   for (i=0;i<4;i++){
+		   printf(" %x ", (unsigned char) *(b+i));
+	   }
+
+	   printf("\n");
+	   d = 0x3fffffff;
+	   //d = (d&0x0f)|((d&0xf000)>>8);
+	   d = (d & 0x3f) | ((d & 0x3fffffc0)<<2);
+	   d = ((d & 0xff) <<24) | 
+		   ((d & 0xff00) << 8) |
+		   ((d & 0xff0000) >> 8) |
+		   ((d & 0xff000000) >> 24);
+	   memcpy(b,(&d),4);
+	   for (i=0;i<4;i++){
+		   printf(" %x ", (unsigned char) *(b+i));
+	   }
+
+	   printf(" \n");
+	   d = (d & 0x3f) | ((d& 0xffffff00)>>2);
+	   d = ((d & 0xff) <<24) | 
+		   ((d & 0xff00) << 8) |
+		   ((d & 0xff0000) >> 8) |
+		   ((d & 0xff000000) >> 24);
+	   memcpy(b,(&d),4);
+	   for (i=0;i<4;i++){
+		   printf(" %x ", (unsigned char) *(b+i));
+	   }
+   }
+
+   if (test == 8){
+	   unsigned int i = 0xffffffff;
+	   Long l=0x8fffffff7fffffff;
+	   i=(unsigned int)(l>>32);
+	   //i = 0x7fffffff>>31;
+	   //i = (unsigned int)l;
+	   //i = i>>28;
+	   printf("shifted i is %x",i>>1);
    }
 	return 0;
 }

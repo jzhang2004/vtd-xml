@@ -31,7 +31,7 @@
 #define MAXLONG 0x7fffffffffffffff
 #define MINLONG 0x8000000000000001
 
-#define BIG_ENDIAN 1 // big endian   --> 1
+#define BIG_ENDIAN 0 // big endian   --> 1
 					 // small endian --> 0
 
 #define inline __inline
@@ -96,4 +96,10 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 					define_exception_type(exception);
 					extern struct exception_context the_exception_context[1];
 
+					inline int swap_bytes(int i){
+						return (((i & 0xff) << 24) |
+							((i & 0xff00) <<8) |
+							((i & 0xff0000) >> 8) |
+							((i & 0xff000000) >> 24));
+					}
 #endif

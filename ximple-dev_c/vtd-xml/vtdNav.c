@@ -1,20 +1,20 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+* Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
 
 #include "vtdNav.h"
 
@@ -41,7 +41,7 @@ static Boolean resolveNS2(VTDNav *vn, UCS2Char *URL, int offset, int len); //UCS
 VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 Byte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len){
-                         						
+
 						 exception e;
 						 VTDNav* vn = NULL;
 						 int i;
@@ -286,7 +286,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						Throw e;
 					}
 					//throw new NavException("UTF 8 encoding error: should never happen");
-					val = val | ((temp & 0x3f) << i);
+					val = val | ((temp & 0x3f) << ((i<<2)+ (i<<1)));
 					i--;
 				}
 				vn->currentOffset += a + 1;
@@ -533,7 +533,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Get the depth (>=0) of the current element.
 					 /*inline int getCurrentDepth(VTDNav *vn){
-						 return vn->context[0];
+					 return vn->context[0];
 					 }*/
 
 					 // Get the index value of the current element.
@@ -650,7 +650,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 return ((Long) length) << 32 | so;
 						 else
 							 return ((Long) length) << 33 | (so << 1);
-						 }
+					 }
 
 					 /**
 					 * Get the encoding of the XML document.
@@ -660,19 +660,19 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 * <pre>   3  UTF-16BE    </pre>
 					 * <pre>   4  UTF-16LE    </pre>
 					 */
-					/* inline encoding getEncoding(VTDNav *vn){
-						 return vn->encoding;
+					 /* inline encoding getEncoding(VTDNav *vn){
+					 return vn->encoding;
 					 }*/
 
 					 // Get the maximum nesting depth of the XML document (>0).
 					 // max depth is nestingLevel -1
 					 /*inline int getNestingLevel(VTDNav *vn){
-						 return vn->nestingLevel;
+					 return vn->nestingLevel;
 					 }*/
 
 					 // Get root index value.
-					/* inline int getRootIndex(VTDNav *vn){
-						 return vn->rootIndex;
+					 /* inline int getRootIndex(VTDNav *vn){
+					 return vn->rootIndex;
 					 }*/
 
 
@@ -709,14 +709,17 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Get total number of VTD tokens for the current XML document.
 					 /*inline int getTokenCount(VTDNav *vn){
-						 return vn->vtdSize;
+					 return vn->vtdSize;
 					 }*/
 
 					 //Get the depth value of a token (>=0)
 					 int getTokenDepth(VTDNav *vn, int index){
+						 int i;
 #if BIG_ENDIAN
-						 int i = (int) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_DEPTH) >> 52);
+						 i = (int) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_DEPTH) >> 52);
 #else
+						 i = (int) longAt(vn->vtdBuffer,index);
+						 i = ((i & 0x0f) << 4) | ((i & 0xf000)>> 12); 
 #endif
 						 if (i != 255)
 							 return i;
@@ -726,53 +729,83 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Get the token length at the given index value
 					 //please refer to VTD spec for more details
 					 int getTokenLength(VTDNav *vn, int index){
+						 Long i = 0;
+						 int j=0;
+						 int depth;
+						 int len = 0;
 						 int type = getTokenType(vn,index);
 						 //int val;
 						 switch (type) {
 			case TOKEN_ATTR_NAME :
 			case TOKEN_ATTR_NS :
 			case TOKEN_STARTING_TAG :
-				return (vn->ns == FALSE)
+				i = longAt(vn->vtdBuffer, index);
 #if BIG_ENDIAN
-					? (int) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_QN_LEN) >> 32)
-					: ((int) ((longAt(vn->vtdBuffer, index) & MASK_TOKEN_QN_LEN)
+				return (vn->ns == FALSE)
+					? (int) ((i & MASK_TOKEN_QN_LEN) >> 32)
+					: ((int) ((i & MASK_TOKEN_QN_LEN)
 					>> 32)
-					| ((int) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_PRE_LEN)
+					| ((int) ((i & MASK_TOKEN_PRE_LEN)
 					>> 32)
 					<< 5));
 #else
+				j = swap_bytes(i);
+				return (vn->ns== FALSE)
+					? j & 0xfffff
+					: ((j & 0xfc0) << 16) | (j & 0x1ff);
 #endif
+				break;
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_CDATA_VAL:
+			case TOKEN_COMMENT: // make sure this is total length
+				depth = getTokenDepth(vn,index);
+				do{
+#if BIG_ENDIAN
+					len = len +  (int)
+						((longAt(vn->vtdBuffer, index) 
+						& MASK_TOKEN_FULL_LEN) >> 32);
+#else
+					len = len + (swap_bytes(longAt(vn->vtdBuffer, index)) & 0xfffff);
+#endif
+					index++;						
+				}
+				while(index < vn->vtdSize && depth == getTokenDepth(vn,index) 
+					&& type == getTokenType(vn,index));
+				//if (int k=0)
+				return len;
 			default :
 #if BIG_ENDIAN
 				return (int)
 					((longAt(vn->vtdBuffer,index) & MASK_TOKEN_FULL_LEN) >> 32);
 #else
+				return swap_bytes(longAt(vn->vtdBuffer, index)) & 0xfffff;
 #endif
+				break;
 						 }
 					 }
 
 					 //Get the starting offset of the token at the given index.
-//					 int getTokenOffset(VTDNav *vn, int index){
-//#if BIG_ENDIAN
-//                         return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
-//#else
-//
-//#endif
-//					 }
+					 //					 int getTokenOffset(VTDNav *vn, int index){
+					 //#if BIG_ENDIAN
+					 //                         return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
+					 //#else
+					 //
+					 //#endif
+					 //					 }
 
 					 //Get the XML document 
 					 /*inline Byte* getXML(VTDNav *vn){
-						 return vn->XMLDoc;
+					 return vn->XMLDoc;
 					 }*/
 
-//					 //Get the token type of the token at the given index value.
-//					 tokenType getTokenType(VTDNav *vn, int index){
-//#if BIG_ENDIAN
-//						 return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
-//#else
-//
-//#endif
-//					 }
+					 //					 //Get the token type of the token at the given index value.
+					 //					 tokenType getTokenType(VTDNav *vn, int index){
+					 //#if BIG_ENDIAN
+					 //						 return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
+					 //#else
+					 //
+					 //#endif
+					 //					 }
 
 					 //Test whether current element has an attribute with the matching name.
 					 Boolean hasAttr(VTDNav *vn, UCS2Char *an){
@@ -839,6 +872,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 return (((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
 							 == TOKEN_STARTING_TAG;
 #else
+						 return ( (longAt(vn->vtdBuffer,index) & 0xf) == TOKEN_STARTING_TAG );
 #endif
 					 }
 
@@ -1000,7 +1034,11 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 Throw e;
 						 }
 						 //throw new IllegalArgumentException("string can't be null");
+#if BIG_ENDIAN
 						 len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 32);
+#else
+						 len = swap_bytes(l) & 0xfffff;
+#endif
 						 // a little hardcode is always bad
 						 vn->currentOffset = (int) l;
 						 return matchRawTokenString1(vn, vn->currentOffset, len, s);
@@ -1092,8 +1130,11 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 Throw e;
 						 }
 						 //	 throw new IllegalArgumentException("string can't be null");
+#if BIG_ENDIAN
 						 len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 32);
-						 // a little hardcode is always bad
+#else
+						 len = swap_bytes(l) & 0xfffff;
+#endif						 // a little hardcode is always bad
 						 vn->currentOffset = (int) l;
 						 return matchRawTokenString1(vn,vn->currentOffset, len, s);
 					 }
@@ -1125,8 +1166,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 //Evaluate the namespace indicator in bit 31 and bit 30.
-					 static inline int NSval(VTDNav *vn, int i){		
+					 static inline int NSval(VTDNav *vn, int i){
+#if BIG_ENDIAN
 						 return (int) (longAt(vn->vtdBuffer,i) & MASK_TOKEN_NS_MARK);
+#else
+						 return (int) (longAt(vn->vtdBuffer,i) & MASK_TOKEN_NS_MARK_LE);
+#endif
 					 }
 
 					 //Convert a vtd token into a double.
@@ -1242,7 +1287,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 Throw e;
 								 //throw new NavException("Empty string");
 							 }
-							// throw new NavException(toString(index));
+							 // throw new NavException(toString(index));
 
 							 ch = getCharResolved(vn);
 						 }
@@ -1284,7 +1329,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 e.msg = " empty string for parseFloat";
 							 Throw e;
 						 }
-							 //throw new NavException("Empty string");
+						 //throw new NavException("Empty string");
 
 						 neg = (ch == '-');
 
@@ -1357,7 +1402,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 e.msg = " parseFloat failed, invalid format, no digits after +/-";
 								 Throw e;
 							 }
-							//	 throw new NavException(toString(index));
+							 //	 throw new NavException(toString(index));
 							 //found a invalid number like 1.23E
 
 							 if (expneg)
@@ -1371,7 +1416,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 e.msg = " parseFloat failed, invalid format, invalid char encountered";
 								 Throw e;
 							 }
-							// throw new NavException(toString(index));
+							 // throw new NavException(toString(index));
 
 							 ch = getCharResolved(vn);
 						 }
@@ -1448,7 +1493,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 e.msg = " integer value over(under) flow";
 							 Throw e;
 						 }
-							// throw new NumberFormatException("Overflow: " + toString(index));
+						 // throw new NumberFormatException("Overflow: " + toString(index));
 
 						 // take care of the trailing
 						 while (vn->currentOffset <= endOffset && isWS(c)) {
@@ -1466,7 +1511,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Convert a vtd token into a long
 					 Long parseLong(VTDNav *vn, int index){
-						return parseLong2(vn, index, 10);
+						 return parseLong2(vn, index, 10);
 					 }
 
 					 //Convert a vtd token into a long according to given radix.
@@ -1514,7 +1559,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 e.msg = " long value over(under) flow";
 							 Throw e;
 						 }
-						// throw new NumberFormatException("Overflow: " + toString(index));
+						 // throw new NumberFormatException("Overflow: " + toString(index));
 
 						 // take care of the trailing
 						 while (vn->currentOffset <= endOffset && isWS(c)) {
@@ -1791,7 +1836,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 							if (type == TOKEN_ATTR_NS) {
 								// Get the token length
-								
+
 								int temp = getTokenLength(vn, k);
 								int preLen = ((temp >> 16) & 0xffff);
 								int fullLen = temp & 0xffff;
@@ -1801,9 +1846,15 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								if (temp == 5 && len == 0) {
 									l = longAt(vn->vtdBuffer,s);
 									hasNS = FALSE;
+#if BIG_ENDIAN
 									modifyEntryFLB(vn->vtdBuffer,
 										s,
 										l | 0x00000000c0000000L);
+#else
+									modifyEntryFLB(vn->vtdBuffer,
+										s,
+										l | 0x000000c000000000L);
+#endif
 									if (URL != NULL) {
 										return matchRawTokenString(vn,s + 1, URL);
 									} else { //xmlns is found but shouldn't be
@@ -1823,9 +1874,15 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 									if (a == TRUE) {
 										l = longAt(vn->vtdBuffer,s);
 										//hasNS = false;
+#if BIG_ENDIAN
 										modifyEntryFLB(vn->vtdBuffer,
 											s,
 											l | 0x00000000c0000000L);
+#else
+										modifyEntryFLB(vn->vtdBuffer,
+											s,
+											l | 0x000000c000000000L);
+#endif
 										return (URL != NULL)
 											? matchTokenString(vn, k + 1, URL)
 											: FALSE;
@@ -1837,12 +1894,21 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							type = getTokenType(vn,k);
 						}
 						l = longAt(vn->vtdBuffer, s);
+#if BIG_ENDIAN
 						if (hasNS) {
 							hasNS = FALSE;
-							modifyEntryFLB(vn->vtdBuffer,s, l | 0x00000000c0000000L);
+							modifyEntryFLB(vn->vtdBuffer, s, l | 0x00000000c0000000L);
 						} else {
 							modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000000080000000L);
 						}
+#else
+						if (hasNS) {
+							hasNS = FALSE;
+							modifyEntryFLB(vn->vtdBuffer, s, l | 0x000000c000000000L);
+						} else {
+							modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000008000000000L);
+						}
+#endif
 						break;
 							 }
 						 }
@@ -1948,13 +2014,23 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					index = vn->context[vn->context[0]] + 1;
 					while (index < size) {
 						Long temp = longAt(vn->vtdBuffer,index);
-						int token_type =
+						int token_type;
+#if BIG_ENDIAN
+						token_type =
 							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
+#else
+						token_type = ((int)temp & 0xf0) >> 4;
+#endif
 
 						if (token_type == TOKEN_STARTING_TAG) {
+#if BIG_ENDIAN
 							int depth =
 								(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+#else
+							int depth = (((int) temp & 0x0f)<<4)
+								| (((int) temp & 0xf000)>> 12);
+#endif
 							if (depth <= vn->context[0]) {
 								return FALSE;
 							} else if (depth == (vn->context[0] + 1)) {
@@ -1973,12 +2049,22 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					size = vn->vtdBuffer->size;
 					while (index < size) {
 						Long temp = longAt(vn->vtdBuffer,index);
-						int depth =
+						int token_type;
+						int depth;
+#if BIG_ENDIAN
+						depth =
 							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						int token_type =
+#else
+						depth = (((int)temp & 0x0f) <<4) | (((int) temp & 0xf000) >> 12);
+#endif
+						
+#if BIG_ENDIAN
+						token_type =
 							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
-
+#else
+						token_type = ((int)temp & 0xf0) >> 4;
+#endif
 						if (token_type == TOKEN_STARTING_TAG) {
 							if (depth <= vn->context[0]) {
 								break;
@@ -1986,9 +2072,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								last_index = index;
 							}
 						}
-
 						index++;
 					}
+
 					if (last_index == -1) {
 						return FALSE;
 					} else {
@@ -2055,13 +2141,22 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					int size = vn->vtdBuffer->size;
 					while (index < size) {
 						Long temp = longAt(vn->vtdBuffer,index);
-						int token_type =
+						int token_type;
+#if BIG_ENDIAN
+						token_type =
 							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
-
+#else
+						token_type = ((int) temp & 0xf0) >> 4;
+#endif
 						if (token_type == TOKEN_STARTING_TAG) {
+#if BIG_ENDIAN
 							int depth =
 								(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+#else
+							int depth = (((int)temp & 0x0f) <<4) 
+								| (((int) temp & 0xf000) >> 12);
+#endif
 							if (depth < vn->context[0]) {
 								return FALSE;
 							} else if (depth == (vn->context[0])) {
@@ -2077,13 +2172,21 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					while (index > vn->context[vn->context[0] - 1]) {
 						// scan backforward
 						Long temp =longAt(vn->vtdBuffer,index);
-						int token_type =
+#if BIG_ENDIAN
+						tokenType token_type =
 							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
-
+#else
+						tokenType token_type =
+							((int) temp & 0xf0)>>4;
+#endif
 						if (token_type == TOKEN_STARTING_TAG) {
+#if BIG_ENDIAN
 							int depth =
 								(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+#else			
+							int depth = (((int)temp & 0x0f) <<4) | (((int) temp & 0xf000) >> 12);
+#endif
 							/*if (depth < vn->context[0]) {
 							return false;
 							} else */
@@ -2304,7 +2407,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 Boolean d;
 						 UCS2Char *s = NULL;
 
-						 
+
 						 if (type == TOKEN_STARTING_TAG
 							 || type == TOKEN_ATTR_NAME
 							 || type == TOKEN_ATTR_NS)
@@ -2319,11 +2422,11 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 e.msg = " string allocation failed in toString ";
 							 Throw e;							
 						 }
-						 
+
 						 vn->currentOffset = getTokenOffset(vn ,index);
 						 endOffset = len + vn->currentOffset - 1; // point to the last character
-						 
-						 
+
+
 						 // trim off the leading whitespaces
 
 						 while (TRUE) {
@@ -2344,7 +2447,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 } else {
 								 if (d == FALSE)
 									 //sb.append((char) ch); // java only supports 16 bit unicode
-								     s[k++] = ch;
+									 s[k++] = ch;
 								 else {
 									 //sb.append(' ');
 									 s[k++] = (UCS2Char) ' ';
@@ -2366,7 +2469,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 tokenType type = getTokenType(vn,index);
 						 int len;
 						 UCS2Char *s = NULL;
-						 
+
 						 if (type == TOKEN_STARTING_TAG
 							 || type == TOKEN_ATTR_NAME
 							 || type == TOKEN_ATTR_NS)
@@ -2378,7 +2481,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->currentOffset = getTokenOffset(vn,index);
 						 endOffset = len + vn->currentOffset;
 						 //StringBuffer sb = new StringBuffer(len);
-	
+
 						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*len);
 						 if (s == NULL)
 						 {
@@ -2413,13 +2516,13 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 len = getTokenLength(vn,index) & 0xffff;
 						 else 
 							 len = getTokenLength(vn,index);
-						 
+
 						 offset = getTokenOffset(vn,index);
 
 						 vn->currentOffset = getTokenOffset(vn,index);
 						 endOffset = len + vn->currentOffset;
 						 //StringBuffer sb = new StringBuffer(len);
-	
+
 						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*len);
 						 if (s == NULL)
 						 {
