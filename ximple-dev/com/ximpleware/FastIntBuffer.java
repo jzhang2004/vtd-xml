@@ -1,3 +1,9 @@
+/*
+ * Created on Sep 28, 2004
+ *
+ * TODO To change the template for this generated file go to
+ * Window - Preferences - Java - Code Style - Code Templates
+ */
 package com.ximpleware;
 
 /* 
@@ -25,7 +31,6 @@ import java.util.ArrayList;
 /**
  * A fast, unsynchronized, chunk-based int buffer 
  * 
- * Creation date: (7/17/03 6:07:28 PM)
  */
 
 public class FastIntBuffer implements IIntBuffer {
@@ -43,35 +48,40 @@ public class FastIntBuffer implements IIntBuffer {
     * Page size of the incremental growth of the Int Buffer
     */
     private int pageSize;
+    
     /**
     * Total number of integers in the IntBuffer
     */
     private int size;
+    private int exp;
+    private int r;
     /**
      * FastIntBuffer constructor comment.
      */
     public FastIntBuffer() {
         size = 0;
-        capacity = 1024;
+        capacity = 0;
         pageSize = 1024;
+        exp = 10;
+        r = 1023;
         bufferArrayList = new ArrayList();
     }
     /**
      * Constructor with adjustable buffer page size of the value bfz
-     * Creation date: (7/13/03 8:50:36 PM)
      * @param bfz int  is the size of the internal buffer
      */
-    public FastIntBuffer(int bfz) {
-        if (bfz <= 0) {
+    public FastIntBuffer(int e) {
+        if (e < 0) {
             throw new IllegalArgumentException();
         }
-        size = 0;
-        capacity = pageSize = bfz;
+        capacity = size = 0;
+        pageSize = 1<<e;
+        exp = e;
+        r = pageSize -1;
         bufferArrayList = new ArrayList();
     }
 /**
  * Append an int array to the end of this buffer instance
- * Creation date: (7/17/03 6:31:50 PM)
  * @param int_array int[]
  */
 public void append(int[] int_array) {
@@ -98,20 +108,27 @@ public void append(int[] int_array) {
             int_array,
             0,
             lastBuffer,
-            size % pageSize,
+            //size % pageSize,
+            size & r,
             int_array.length);
         size += int_array.length;
     } else // new buffers needed
         {
 
         // compute the number of additional buffers needed
+//        int n =
+//            ((int) ((int_array.length + size) / pageSize))
+//                + (((int_array.length + size) % pageSize) > 0 ? 1 : 0)
+//                - (int) (capacity / pageSize);
         int n =
-            ((int) ((int_array.length + size) / pageSize))
-                + (((int_array.length + size) % pageSize) > 0 ? 1 : 0)
-                - (int) (capacity / pageSize);
+              ((int_array.length + size) >> exp)
+                + (((int_array.length + size) &r) > 0 ? 1 : 0)
+                -  (capacity >> exp);
         // create these buffers
         // add to bufferArrayList
-        System.arraycopy(int_array, 0, lastBuffer, size % pageSize, capacity - size);
+
+        //System.arraycopy(int_array, 0, lastBuffer, size % pageSize, capacity - size);
+        System.arraycopy(int_array, 0, lastBuffer, size& r, capacity - size);
 
         for (int i = 0; i < n; i++) {
             int[] newBuffer = new int[pageSize];
@@ -142,8 +159,7 @@ public void append(int[] int_array) {
     }
 }
 /**
- * Append a single int to the end of this buffer Instance.
- * Creation date: (7/17/03 6:32:16 PM)
+ * Append a single int to the end of this buffer Instance
  * @param i int
  */
 public void append(int i) {
@@ -161,7 +177,8 @@ public void append(int i) {
         //obtain the starting offset in that buffer to which the data is to be copied
         //update length
         //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
-        lastBuffer[size % pageSize] = i;
+        lastBuffer[size & r] = i;
+//        lastBuffer[size % pageSize] = i;
         size += 1;
     } else // new buffers needed
         {
@@ -174,7 +191,6 @@ public void append(int i) {
 }
 /**
  * Returns the total allocated capacity of this buffer instance.
- * Creation date: (7/17/03 6:34:55 PM)
  * @return int
  */
 public int getCapacity() {
@@ -182,7 +198,6 @@ public int getCapacity() {
 }
 /**
  * Returns a single int array representing every int in this buffer instance
- * Creation date: (7/17/03 6:36:37 PM)
  * @return int[]  (null if there isn't anything left in the buffer   
  * @param startingOffset int
  * @param length int
@@ -196,9 +211,14 @@ public int[] getIntArray(int startingOffset, int len) {
     }
     int[] result = new int[len]; // allocate result array
 
-    int first_index = (int) (startingOffset / pageSize);
-    int last_index = (int) ((startingOffset + len) / pageSize);
-    if ((startingOffset + len) % pageSize == 0) {
+//    int first_index = (int) (startingOffset / pageSize);
+//    int last_index = (int) ((startingOffset + len) / pageSize);
+//    if ((startingOffset + len) % pageSize == 0) {
+//        last_index--;
+//    }
+    int first_index = startingOffset >> exp;
+    int last_index = (startingOffset + len)>> exp;
+    if (((startingOffset + len) & r) == 0) {
         last_index--;
     }
 
@@ -206,7 +226,8 @@ public int[] getIntArray(int startingOffset, int len) {
         // to see if there is a need to go across buffer boundry
         System.arraycopy(
             (int[]) (bufferArrayList.get(first_index)),
-            startingOffset % pageSize,
+//            startingOffset % pageSize,
+            startingOffset & r,
             result,
             0,
             len);
@@ -218,11 +239,14 @@ public int[] getIntArray(int startingOffset, int len) {
                 {
                 System.arraycopy(
                     currentChunk,
-                    startingOffset % pageSize,
+//                  startingOffset % pageSize,
+                    startingOffset & r,
                     result,
                     0,
-                    pageSize - (startingOffset % pageSize));
-                int_array_offset += pageSize - (startingOffset) % pageSize;
+//                  pageSize - (startingOffset % pageSize));
+                    pageSize - (startingOffset & r));
+//                int_array_offset += pageSize - (startingOffset) % pageSize;
+                int_array_offset += pageSize - (startingOffset & r);
             } else if (i == last_index) // last sections
                 {
                 System.arraycopy(
@@ -250,39 +274,39 @@ public int getPageSize() {
 }
 /**
  * Get the int at the location specified by index.
- * Creation date: (7/17/03 6:38:41 PM)
  * @return int
  * @param index int
  */
 public int intAt(int index) {
-    if (index < 0 || index > size()) {
+    if (index < 0 || index > size()-1) {
         throw new IndexOutOfBoundsException();
     }
-    int pageNum = (int) index / pageSize;
+//    int pageNum = (int) index / pageSize;
+    int pageNum = index>>exp;
     //System.out.println("page Number is "+pageNum); 
-    int offset = index % pageSize;
+//    int offset = index % pageSize;
+    int offset = index & r;
     return ((int[]) bufferArrayList.get(pageNum))[offset];
 }
 /**
  * Assigns a new int value to location index of the buffer instance.
- * Creation date: (7/17/03 6:40:33 PM)
  * @param index int
  * @param newValue int
  * @Exception  Throws IndexOutOfBoundsException
  */
 public void modifyEntry(int index, int newValue) {
 	
-        if (index < 0 || index > size + 1) {
+        if (index < 0 || index > size - 1) {
             throw new IndexOutOfBoundsException();
         }
 
-        ((int[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
+//        ((int[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
+        ((int[]) bufferArrayList.get((index >> exp)))[index & r] =
             newValue;
 	
 	}
 /**
  * Returns the total number of int values in the buffer instance
- * Creation date: (7/17/03 6:39:42 PM)
  * @return int
  */
 public int size() {
@@ -290,7 +314,6 @@ public int size() {
 }
 /**
  * Returns the int array corresponding to all int values in this buffer instance
- * Creation date: (7/17/03 6:41:11 PM)
  * @return int[] (null if the buffer is empty)
  */
 public int[] toIntArray() {
@@ -304,7 +327,8 @@ public int[] toIntArray() {
                 0,
                 resultArray,
                 array_offset,
-                (i == (bufferArrayList.size() - 1)) ? size() % pageSize : pageSize);
+                (i == (bufferArrayList.size() - 1)) ? (size& r) : pageSize);
+//            (i == (bufferArrayList.size() - 1)) ? size() % pageSize : pageSize);
             array_offset += pageSize;
         }
         return resultArray;

@@ -45,32 +45,52 @@ public class FastLongBuffer implements ILongBuffer {
     	 * Total number of integers in the IntBuffer
     */
     private int size;
+    private int exp;
+    private int r;
 
     /**
      * FastLongBuffer constructor comment.
      */
     public FastLongBuffer() {
         size = 0;
-        capacity = 1024;
+        capacity = 0;
         pageSize = 1024;
+        exp = 10;
+        r = 1023;
         bufferArrayList = new ArrayList();
     }
 /**
  * Construct a FastLongBuffer instance with specified page size
- * Creation date: (7/17/03 7:35:56 PM)
- * @param bfz int
+ * @param e int (so that pageSize = (1<<e)) 
  */
-public FastLongBuffer(int bfz) {
-    if (bfz <= 0) {
+public FastLongBuffer(int e) {
+    if (e <= 0) {
         throw new IllegalArgumentException();
     }
-    size = 0;
-    capacity = pageSize = bfz;
+    capacity = size = 0;
+    pageSize = (1<<e);
+    exp = e;
+    r = pageSize -1;
     bufferArrayList = new ArrayList();
+}
+
+/**
+ * Construct a FastLongBuffer instance with specified page size
+ * @param e int (so that pageSize = (1<<e))
+ * @param c int (suggest initial capacity of  ArrayList
+ */
+public FastLongBuffer(int e,int c) {
+    if (e <= 0) {
+        throw new IllegalArgumentException();
+    }
+    capacity = size = 0;
+    pageSize = (1<<e);
+    exp = e;
+    r = pageSize -1;
+    bufferArrayList = new ArrayList(c);
 }
 /**
  * Append single long to the end of array buffer.
- * Creation date: (7/17/03 7:37:34 PM)
  * @param long_array long[]
  */
 public void append(long[] long_array) {
@@ -97,20 +117,26 @@ public void append(long[] long_array) {
             long_array,
             0,
             lastBuffer,
-            size % pageSize,
+			// size % pageSize,
+            size& r,
             long_array.length);
         size += long_array.length;
     } else // new buffers needed
         {
 
         // compute the number of additional buffers needed
-        int n =
-            ((int) ((long_array.length + size) / pageSize))
-                + (((long_array.length + size) % pageSize) > 0 ? 1 : 0)
-                - (int) (capacity / pageSize);
+//        int n =
+//            ((int) ((long_array.length + size) / pageSize))
+//                + (((long_array.length + size) % pageSize) > 0 ? 1 : 0)
+//                - (int) (capacity / pageSize);
+    	int n =
+    		    ((long_array.length + size) >> exp)
+                + (((long_array.length + size)&r) > 0 ? 1 : 0)
+                -  (capacity >> exp);
         // create these buffers
         // add to bufferArrayList
-        System.arraycopy(long_array, 0, lastBuffer, size % pageSize, capacity - size);
+        //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, capacity - size);
+        System.arraycopy(long_array, 0, lastBuffer, size & r, capacity - size);
 
         for (int i = 0; i < n; i++) {
             long[] newBuffer = new long[pageSize];
@@ -142,7 +168,6 @@ public void append(long[] long_array) {
 }
 /**
  * Append an integer to the end of this array buffer
- * Creation date: (7/17/03 7:37:54 PM)
  * @param a long
  */
 public void append(long i) {
@@ -154,12 +179,13 @@ public void append(long i) {
     } else {
         lastBuffer = (long[]) bufferArrayList.get(bufferArrayList.size() - 1);
     }
-    if ((this.size + 1) <= this.capacity) {
+    if (this.size  < this.capacity) {
         //get the last buffer from the bufferListArray
         //obtain the starting offset in that buffer to which the data is to be copied
         //update length
         //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
-        lastBuffer[size % pageSize] = i;
+        //lastBuffer[size % pageSize] = i;
+        lastBuffer[size & r] = i;
         size += 1;
     } else // new buffers needed
         {
@@ -172,7 +198,6 @@ public void append(long i) {
 }
 /**
  * Get the capacity of the buffer.
- * Creation date: (7/17/03 7:38:30 PM)
  * @return int
  */
 public int getCapacity() {
@@ -180,7 +205,6 @@ public int getCapacity() {
 }
 /**
  * Return a selected chuck of long buffer as a long array.
- * Creation date: (7/17/03 7:39:55 PM)
  * @return long[]
  * @param startingOffset int
  * @param length int
@@ -195,10 +219,11 @@ public long[] getLongArray(int startingOffset, int len) {
 
     long[] result = new long[len]; // allocate result array
 
-    int first_index = (int) (startingOffset / pageSize);
-    int last_index = (int) ((startingOffset + len) / pageSize);
+    int first_index =  (startingOffset >> exp);
+    int last_index = ((startingOffset + len) >>exp);
 
-    if ((startingOffset + len) % pageSize == 0) {
+    //if ((startingOffset + len) % pageSize == 0) {
+    if (((startingOffset + len) & r) == 0) {
         last_index--;
     }
 
@@ -206,7 +231,8 @@ public long[] getLongArray(int startingOffset, int len) {
         // to see if there is a need to go across buffer boundry
         System.arraycopy(
             (long[]) (bufferArrayList.get(first_index)),
-            startingOffset % pageSize,
+//            startingOffset % pageSize,
+			startingOffset & r,
             result,
             0,
             len);
@@ -218,11 +244,13 @@ public long[] getLongArray(int startingOffset, int len) {
                 {
                 System.arraycopy(
                     currentChunk,
-                    startingOffset % pageSize,
+//                  startingOffset % pageSize,
+        			startingOffset & r,
                     result,
                     0,
-                    pageSize - (startingOffset % pageSize));
-                long_array_offset += pageSize - (startingOffset) % pageSize;
+//                  pageSize - (startingOffset % r));
+					pageSize - (startingOffset & r));
+                long_array_offset += pageSize - (startingOffset & r);
             } else if (i == last_index) // last sections
                 {
                 System.arraycopy(
@@ -243,7 +271,6 @@ public long[] getLongArray(int startingOffset, int len) {
 }
 /**
  * Get the buffer page size.
- * Creation date: (7/17/03 7:50:38 PM)
  * @return int
  */
 public int getPageSize() {
@@ -251,7 +278,6 @@ public int getPageSize() {
 }
 /**
  * Get the long val at given index value.
- * Creation date: (7/17/03 7:41:21 PM)
  * @return long
  * @param index int
  */
@@ -259,13 +285,13 @@ public long longAt(int index) {
     /*if (index < 0 || index > size()) {
         throw new IndexOutOfBoundsException();
     }*/
-    int pageNum = (int) index / pageSize;
-    int offset = index % pageSize;
+    int pageNum = (index >> exp);
+    // int offset = index % r;
+    int offset = index &r;
     return ((long[]) bufferArrayList.get(pageNum))[offset];
 }
 /**
  * Get the lower 32 bit of the integer at the given index.
- * Creation date: (7/17/03 7:46:48 PM)
  * @return int
  * @param i int
  */
@@ -273,13 +299,13 @@ public long longAt(int index) {
     if (index < 0 || index > size()) {
         throw new IndexOutOfBoundsException();
     }
-    int pageNum = (int) index / pageSize;
-    int offset = index % pageSize;
+    int pageNum =  (index >> exp);
+    // int offset = index % pageSize;
+    int offset = index & r;
     return (int) ((long[]) bufferArrayList.get(pageNum))[offset];
 }
 /**
  * Modify the value at the index to a new val.
- * Creation date: (7/17/03 7:48:22 PM)
  * @param index int
  * @param value long
  */
@@ -288,13 +314,12 @@ public void modifyEntry(int index, long newValue) {
     if (index < 0 || index > size + 1) {
         throw new IndexOutOfBoundsException();
     }
-
-    ((long[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
+    //((long[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
+    ((long[]) bufferArrayList.get(index >> exp))[index & r] =
         newValue;
 }
 /**
  * Get the total number of longs in the buffer.
- * Creation date: (7/17/03 7:38:57 PM)
  * @return int
  */
 public int size() {
@@ -302,7 +327,6 @@ public int size() {
 }
 /**
  * Convert all longs into a long array.
- * Creation date: (7/17/03 7:47:36 PM)
  * @return long[]
  */
 public long[] toLongArray() {
@@ -316,7 +340,8 @@ public long[] toLongArray() {
                 0,
                 resultArray,
                 array_offset,
-                (i == (bufferArrayList.size() - 1)) ? size() % pageSize : pageSize);
+                //(i == (bufferArrayList.size() - 1)) ? size - ((size>>exp)<<exp) : pageSize);
+                (i == (bufferArrayList.size() - 1)) ? (size & r) : pageSize);
             array_offset += pageSize;
         }
         return resultArray;
@@ -325,7 +350,6 @@ public long[] toLongArray() {
 }
 /**
  * Return the upper 32 bit of the long at the index.
- * Creation date: (7/17/03 7:49:36 PM)
  * @return int
  * @param index int
  */
@@ -333,10 +357,11 @@ public int upper32At(int index) {
     if (index < 0 || index > size()) {
         throw new IndexOutOfBoundsException();
     }
-    int pageNum = (int) index / pageSize;
-    int offset = index % pageSize;
+    int pageNum = (index >>exp);
+    int offset = index & r;
     return (int)
         ((((long[]) bufferArrayList.get(pageNum))[offset] & (0xffffffffL << 32)) >> 32);
 
 }
 }
+
