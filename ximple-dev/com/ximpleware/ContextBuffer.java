@@ -29,12 +29,14 @@ import java.util.ArrayList;
  * ContextBuffer.
  * Creation date: (11/16/03 4:30:45 PM)
  */
-public class ContextBuffer {
+public class ContextBuffer{
     private java.util.ArrayList bufferArrayList;
     private int capacity;
     private int pageSize;
     private int size;
     private int incSize;
+    private int n; // for fast divide
+    private int r; // mask for remainder
 /**
  * ContextBuffer constructor comment.
  * inc is the # of int to be pushed/pop to/from the underlying storage
@@ -43,24 +45,26 @@ public class ContextBuffer {
 public ContextBuffer(int i) {
 	super();
 	pageSize =1024;
+	n = 10; //1<<10 == 1024
+	r = pageSize - 1;
 	incSize = i;
-	capacity =0;
 	if (incSize<0)
 	  throw new IllegalArgumentException();
-	bufferArrayList = new ArrayList();
-	
+	bufferArrayList = new ArrayList();	
 }
 /**
  * ContextBuffer constructor comment.
  * incSize is the # of int to be pushed/pop to/from the underlying storage
  * Creation date: (11/16/03 8:02:21 PM)
- * @param pageSize int
- * @param incSize int
+ * @param p int (pageSize equals (1<<p)
+ * @param i int
  */
 public ContextBuffer(int p, int i) {
-    pageSize = p;
+	if (p<0)throw new IllegalArgumentException("invalid Buffer size");
+    pageSize = (1<<p);
+    r = pageSize - 1;
+    n = p;
     incSize = i;
-    capacity = 0;
     if (incSize < 0)
         throw new IllegalArgumentException("context buffer's incremental size must be greater than zero");
     bufferArrayList = new ArrayList();
@@ -80,14 +84,15 @@ public boolean load(int[] output){
     int startingOffset = size - incSize;
     int len = incSize;
 
-    if ((startingOffset + len) > size) {
-        throw (new IndexOutOfBoundsException());
-    }
+
     //int[] result = new int[len]; // allocate result array
     //if (pageSize != 1) {
-    int first_index = (int) (startingOffset / pageSize);
-    int last_index = (int) ((startingOffset + len) / pageSize);
-    if ((startingOffset + len) % pageSize == 0) {
+    //int first_index = (int) (startingOffset / pageSize);
+    //int last_index = (int) ((startingOffset + len) / pageSize);
+    //if ((startingOffset + len) % pageSize == 0) {
+    int first_index = (startingOffset >> n);
+    int last_index = ((startingOffset + len) >>n);
+    if (((startingOffset + len)& r)== 0) {
         last_index--;
     }
 
@@ -95,7 +100,8 @@ public boolean load(int[] output){
         // to see if there is a need to go across buffer boundry
         System.arraycopy(
             (int[]) (bufferArrayList.get(first_index)),
-            startingOffset % pageSize,
+			//startingOffset % pageSize,
+            startingOffset & r,
             output,
             0,
             len);
@@ -107,11 +113,14 @@ public boolean load(int[] output){
                 {
                 System.arraycopy(
                     currentChunk,
-                    startingOffset % pageSize,
+                    //startingOffset % pageSize
+                    startingOffset & r,
                     output,
                     0,
-                    pageSize - (startingOffset % pageSize));
-                int_array_offset += pageSize - (startingOffset) % pageSize;
+                  //  pageSize - (startingOffset % pageSize));
+                    pageSize - (startingOffset & r));
+                //int_array_offset += pageSize - (startingOffset) % pageSize;
+                int_array_offset += pageSize - (startingOffset &r);
             } else if (i == last_index) // last sections
                 {
                 System.arraycopy(
@@ -140,19 +149,18 @@ public static void main(String[] args) {
     try {
         int[] ia = new int[10];
 
-        ContextBuffer cb = new ContextBuffer(16, 10);
-        for (int i = 0; i < 10; i++) {
+        ContextBuffer cb = new ContextBuffer(3, 10);
+        for (int i = 0; i < 30; i++) {
             for (int j = 0; j < 10; j++) {
                 ia[j] = i;
             }
             cb.store(ia);
         }
         //cb.store(ia);
-        for (int i = 9; i >= 0; i--) {
+        for (int i = 29; i >= 0; i--) {
             cb.load(ia);
-            //System.out.println(""+ia);
+            System.out.println(""+ia[0]);
             for (int j = 9; j >= 0; j--) {
-            	System.out.println("j  ==>"+j);
                 if (ia[j] != i) {
                     System.out.println(" store error " + i + " " + j + " " + ia[j]);
                 }
@@ -201,23 +209,27 @@ public void store(int[] input){
         //obtain the starting offset in that buffer to which the data is to be copied
         //update length
 
-        System.arraycopy(input, 0, lastBuffer, size % pageSize, input.length);
+        //System.arraycopy(input, 0, lastBuffer, size % pageSize, input.length);
+        System.arraycopy(input, 0, lastBuffer, size & r, input.length);
         size += input.length;
     } else // new buffers needed
         {
 
         // compute the number of additional buffers needed
-        int n =
-            ((int) ((input.length + size) / pageSize))
-                + (((input.length + size) % pageSize) > 0 ? 1 : 0)
-                - (int) (capacity / pageSize);
+        int k =
+            //((int) ((input.length + size) / pageSize))
+                ((input.length + size) >>n)
+                //+ (((input.length + size) % pageSize) > 0 ? 1 : 0)
+                + (((input.length + size) & r ) > 0 ? 1 : 0)
+                -  (capacity >> n);
         // create these buffers
         // add to bufferArrayList
-        System.arraycopy(input, 0, lastBuffer, size % pageSize, capacity - size);
+        //System.arraycopy(input, 0, lastBuffer, size % pageSize, capacity - size);
+        System.arraycopy(input, 0, lastBuffer, size & r, capacity - size);
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < k; i++) {
             int[] newBuffer = new int[pageSize];
-            if (i < n - 1) {
+            if (i < k - 1) {
                 // full copy 
                 System.arraycopy(input, pageSize * i + capacity - size, newBuffer, 0, pageSize);
             } else {
@@ -234,7 +246,7 @@ public void store(int[] input){
         // update length
         size += input.length;
         // update capacity
-        capacity += n * pageSize;
+        capacity += (k <<n);
         // update
     }
 }
