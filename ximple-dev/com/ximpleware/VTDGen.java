@@ -1741,10 +1741,7 @@ public class VTDGen {
 						}
 						length1 = offset - temp_offset - 3 * increment;
 						if (encoding < FORMAT_UTF_16BE){
-							if (length1 > MAX_TOKEN_LENGTH)
-								  throw new ParseException("Token Length Error:"
-											  +" CDATA val too long (>0xfffff)"
-											  + formatLineNumber());
+						
 							writeVTD(
 								temp_offset,
 								length1,
@@ -1752,10 +1749,7 @@ public class VTDGen {
 								depth);
 						}
 						else{
-							if (length1 > (MAX_TOKEN_LENGTH << 1))
-								  throw new ParseException("Token Length Error:"
-											  +" CDATA val too long (>0xfffff)"
-											  + formatLineNumber());
+							
 							writeVTD(
 								temp_offset >> 1,
 								length1 >> 1,
