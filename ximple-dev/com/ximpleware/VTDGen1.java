@@ -117,7 +117,7 @@ public class VTDGen1 {
 	public final static int MAX_TOKEN_LENGTH = (1<<20) -1;
 
 
-	public final static int MAX_DEPTH = 255; // maximum depth value
+	public final static int MAX_DEPTH = 254; // maximum depth value
 	class UTF8Reader implements IReader {
 		public UTF8Reader() {
 		}
@@ -249,27 +249,30 @@ public class VTDGen1 {
 			int val = 0;
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			int temp = XMLDoc[offset] << 8 | XMLDoc[offset + 1];
-			if ((temp < 0xd800) || (temp >= 0xdc00)) { // not a high surrogate
+			int temp = (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+			if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
 				offset += 2;
 				return temp;
 			} else {
+				if (temp<0xd800 || temp>0xdbff)				
+					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				val = temp;
-				temp = XMLDoc[offset + 2] << 8 | XMLDoc[offset + 3];
-				if (temp < 0xdc00 | temp > 0xdfff) {
+				temp = (XMLDoc[offset + 2]&0xff) << 8 | (XMLDoc[offset + 3]&0xff);
+				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be a low surrogate here
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				}
 				val = ((val - 0xd800)<<10) + (temp - 0xdc00) + 0x10000;
 				offset += 4;
 				return val;
+				
 			}
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
 			// implement UTF-16BE to UCS4 conversion
-			int temp = XMLDoc[offset] << 8 | XMLDoc[offset + 1];
-			if ((temp < 0xd800) || (temp >= 0xdc00)) { // not a high surrogate
+			int temp = (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+			if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
 				//offset += 2;
 				if (temp == ch) {
 					offset += 2;
@@ -277,9 +280,11 @@ public class VTDGen1 {
 				} else
 					return false;
 			} else {
+				if (temp<0xd800 || temp>0xdbff)				
+					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				int val = temp;
-				temp = XMLDoc[offset + 2] << 8 | XMLDoc[offset + 3];
-				if (temp < 0xdc00 | temp > 0xdfff) {
+				temp = (XMLDoc[offset + 2]&0xff) << 8 | (XMLDoc[offset + 3]&0xff);
+				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be a low surrogate here
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				}
@@ -301,18 +306,20 @@ public class VTDGen1 {
 			int val = 0;
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			int temp = XMLDoc[offset + 1] << 8 | XMLDoc[offset];
-			if (temp < 0xdc00 | temp > 0xdfff) { // check for low surrogate
+			int temp = (XMLDoc[offset + 1] &0xff) << 8 | (XMLDoc[offset]& 0xff);
+			if (temp < 0xd800 || temp > 0xdfff) { // check for low surrogate
 				offset += 2;
 				return temp;
 			} else {
+				if (temp<0xd800 || temp>0xdbff)				
+					throw new EncodingException("UTF 16 LE encoding error: should never happen");
 				val = temp;
-				temp = XMLDoc[offset + 3] << 8 | XMLDoc[offset + 2];
-				if (temp < 0xd800 | temp > 0xdc00) {
+				temp = (XMLDoc[offset + 3] &0xff) << 8 | (XMLDoc[offset + 2]&0xff);
+				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be high surrogate
-					throw new EncodingException("UTF 16 BE encoding error: should never happen");
+					throw new EncodingException("UTF 16 LE encoding error: should never happen");
 				}
-				val = ((temp - 0xd800) <<10) + (val - 0xdc00) + 0x10000;
+				val = ((val - 0xd800) <<10) + (temp - 0xdc00) + 0x10000;
 				offset += 4;
 				return val;
 			}
@@ -320,8 +327,8 @@ public class VTDGen1 {
 		public boolean skipChar(int ch)
 			throws EOFException, EncodingException, ParseException {
 
-			int temp = XMLDoc[offset + 1] << 8 | XMLDoc[offset];
-			if (temp < 0xdc00 | temp > 0xdfff) { // check for low surrogate
+			int temp = (XMLDoc[offset + 1]&0xff) << 8 | (XMLDoc[offset]&0xff);
+			if (temp < 0xd800 ||temp > 0xdfff) { // check for low surrogate
 				if (temp == ch) {
 					offset += 2;
 					return true;
@@ -329,13 +336,15 @@ public class VTDGen1 {
 					return false;
 				}
 			} else {
+				if (temp<0xd800 || temp>0xdbff)				
+					throw new EncodingException("UTF 16 LE encoding error: should never happen");
 				int val = temp;
-				temp = XMLDoc[offset + 3] << 8 | XMLDoc[offset + 2];
-				if (temp < 0xd800 | temp > 0xdc00) {
+				temp = (XMLDoc[offset + 3] &0xff)<< 8 | (XMLDoc[offset + 2]&0xff);
+				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be high surrogate
-					throw new EncodingException("UTF 16 BE encoding error: should never happen");
+					throw new EncodingException("UTF 16 LE encoding error: should never happen");
 				}
-				val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
+				val = ((val - 0xd800)<<10) + (temp - 0xdc00) + 0x10000;
 				if (val == ch) {
 					offset += 4;
 					return true;
@@ -351,10 +360,16 @@ public class VTDGen1 {
 		}
 		public int getChar()
 			throws EOFException, ParseException, EncodingException {
-
+			int a;
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
-			return XMLDoc[offset++];
+				throw new EOFException("Permature EOF reached, XML document incomplete");
+			a= XMLDoc[offset++];
+			if (a>=0)
+				return a;
+			else{
+			    throw new EncodingException("Invalid char for ASCII encoding"
+						+formatLineNumber());
+			}
 		}
 		public boolean skipChar(int ch)
 			throws ParseException, EOFException, EncodingException {
@@ -512,7 +527,7 @@ public class VTDGen1 {
 	 */
 	private String formatLineNumber() {
 		int so = docOffset;
-		int lineNumber = 0;
+		int lineNumber = 1;
 		int lineOffset = 0;
 		int end = offset;
 
@@ -545,7 +560,7 @@ public class VTDGen1 {
 			}
 			lineOffset = (offset - lineOffset) >> 1;
 		}
-		return "Line Number: " + lineNumber + " Offset: " + lineOffset;
+		return "\nLine Number: " + lineNumber + " Offset: " + lineOffset;
 	}
 	/**
 	 * The entity ignorant version of getCharAfterS.
@@ -847,8 +862,8 @@ public class VTDGen1 {
 	
 	public static void main(String[] argv){
 		VTDGen vg = new VTDGen();
-		vg.setDoc("<this><?abc?> aaaabbbbccccdddd</this>".getBytes());
 		try{
+			vg.setDoc("<?xml version=\"1.0\" encoding=\"ascii\"?><this><?abc?> aaaabbbbccccdddd</this>".getBytes("UTF-8"));
 			vg.parse(false);
 			System.out.println("A success");
 			VTDNav vn = vg.getNav();
@@ -892,6 +907,8 @@ public class VTDGen1 {
 			docEnd = false,
 			firstLT = true;
 		char char_temp; //holds the ' or " indicating start of attr val
+		boolean must_utf_8 = false;
+		boolean BOM_detected = false;
 
 		//long[] tag_stack = new long[256];
 		//long[] attr_name_array = new long[512]; // 512 attributes limit
@@ -899,24 +916,58 @@ public class VTDGen1 {
 		//
 		//int[] scratch_buffer = new int[10];
 
-		// first check first 2 bytes BOM to determine if encoding is UTF16
+		// first check first several bytes BOM to determine if encoding is UTF16
 		if (XMLDoc[offset] == -2) {
 			increment = 2;
 			if (XMLDoc[offset + 1] == -1) {
 				offset += 2;
 				encoding = FORMAT_UTF_16BE;
+				BOM_detected = true;
 				r = new UTF16BEReader();
+				//increment = 2;
 			} else
-				throw new EncodingException("Unknown Character encoding");
+				throw new EncodingException("Unknown Character encoding: not UTF-16LE");
 		} else if (XMLDoc[offset] == -1) {
 			increment = 2;
 			if (XMLDoc[offset + 1] == -2) {
 				offset += 2;
+				//increment = 2;
 				encoding = FORMAT_UTF_16LE;
+				BOM_detected = true;
 				r = new UTF16LEReader();
 			} else
-				throw new EncodingException("Unknown Character encoding");
+				throw new EncodingException("Unknown Character encoding: not UTF-16LE");
+		} else if (XMLDoc[offset] == -17){
+		    if (XMLDoc[offset+1] == -69 && XMLDoc[offset+2]==-65){
+		      offset +=3;
+		      must_utf_8= true;
+		    }
+		    else 
+		    	throw new EncodingException("Unknown Character encoding: not UTF-8");
 		}
+		else if (XMLDoc[offset]==0){
+			if (XMLDoc[offset+1] == 0x3c 
+					&& XMLDoc[offset+2] == 0 
+					&& XMLDoc[offset+3] == 0x3f){
+				encoding = FORMAT_UTF_16BE;
+				increment = 2;
+				r = new UTF16BEReader();
+				}
+			else
+				throw new EncodingException("Unknown Character encoding: not UTF-16BE");
+		}
+		else if (XMLDoc[offset]==0x3c){
+			if (XMLDoc[offset+1] == 0 
+					&& XMLDoc[offset+2] == 0x3f 
+					&& XMLDoc[offset+3] == 0){
+				increment = 2;
+				encoding = FORMAT_UTF_16LE;
+				
+				r = new UTF16LEReader();
+				}
+			
+		}
+
 		// check for max file size exception
 		if (encoding < FORMAT_UTF_16BE) {
 			if ((offset + docLen) >= 1L << 30)
@@ -1523,9 +1574,13 @@ public class VTDGen1 {
 												&& (r.skipChar('i')
 													|| r.skipChar('I'))
 												&& r.skipChar(ch_temp)) {
+												
 												if (encoding != FORMAT_UTF_16LE
 													&& encoding
 														!= FORMAT_UTF_16BE) {
+													if (must_utf_8)
+														throw new EncodingException("Can't switch from UTF-8"
+																+ formatLineNumber());
 													encoding = FORMAT_ASCII;
 													r = new ASCIIReader();
 													/*System.out.println(
@@ -1569,6 +1624,9 @@ public class VTDGen1 {
 												if (encoding != FORMAT_UTF_16LE
 													&& encoding
 														!= FORMAT_UTF_16BE) {
+													if (must_utf_8)
+														throw new EncodingException("Can't switch from UTF-8"
+																+ formatLineNumber());
 													encoding = FORMAT_ISO_8859;
 													r = new ISO8859Reader();
 													/*System.out.println(
@@ -1615,6 +1673,9 @@ public class VTDGen1 {
 														!= FORMAT_UTF_16LE
 														&& encoding
 															!= FORMAT_UTF_16BE) {
+														if (must_utf_8)
+															throw new EncodingException("Can't switch from UTF-8"
+																	+ formatLineNumber());
 														encoding = FORMAT_ASCII;
 														r = new ASCIIReader();
 														//System.out.println(
@@ -1685,6 +1746,9 @@ public class VTDGen1 {
 															== FORMAT_UTF_16LE
 															|| encoding
 																== FORMAT_UTF_16BE) {
+															if (!BOM_detected)
+																throw new EncodingException("BOM not detected for UTF-16"
+																		+ formatLineNumber());
 															/*System.out.println(
 															    " " + (temp_offset) + " " + 6 + " dec attr val (encoding) " + depth);*/
 															if (encoding
@@ -1967,10 +2031,7 @@ public class VTDGen1 {
 						}
 						length1 = offset - temp_offset - 3 * increment;
 						if (encoding < FORMAT_UTF_16BE){
-							if (length1 > MAX_TOKEN_LENGTH)
-								  throw new ParseException("Token Length Error:"
-											  +"CDATA val too long (>0xfffff)"
-											  + formatLineNumber());
+							
 							writeVTD(
 								temp_offset,
 								length1,
@@ -1978,10 +2039,7 @@ public class VTDGen1 {
 								depth);
 						}
 						else {
-							if (length1 > (MAX_TOKEN_LENGTH<<1))
-								  throw new ParseException("Token Length Error:"
-											  +"CDATA val too long (>0xfffff)"
-											  + formatLineNumber());
+							
 							writeVTD(
 								temp_offset >> 1,
 								length1 >> 1,
@@ -2452,7 +2510,7 @@ public class VTDGen1 {
 							//parser_state = STATE_DOC_END;
 						} else
 							throw new ParseException("Error in PI: invalid char in PI target"
-									+ formatLineNumber());
+									+formatLineNumber());
 						break;
 
 					case STATE_END_COMMENT :
@@ -2492,7 +2550,9 @@ public class VTDGen1 {
 							"Error in comment: '-->' expected"
 								+ formatLineNumber());
 					default :
-						throw new ParseException("Other error: invalid parser state");
+						throw new ParseException(
+							"Other error: invalid parser state"
+								+formatLineNumber());
 				}
 			}
 		} catch (EOFException e) {
@@ -2534,8 +2594,8 @@ public class VTDGen1 {
 	 * Set the XMLDoc container. Also set the offset and len of the document 
 	 * with respect to the container.
 	 * @param ba byte[]
-	 * @param os int (offset in byte)
-	 * @param len int (length in byte)
+	 * @param os int (in byte)
+	 * @param len int (in byte)
 	 */
 	public void setDoc(byte[] ba, int os, int len) {
 
