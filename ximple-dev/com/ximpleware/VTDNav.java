@@ -337,11 +337,32 @@ public class VTDNav {
 
 		switch (encoding) {
 			case FORMAT_ASCII : // ascii is compatible with UTF-8, the offset value is bytes
+				temp = XMLDoc.byteAt(currentOffset);
+				if (temp == '\r') {
+					if (XMLDoc.byteAt(currentOffset + 1) == '\n') {
+						currentOffset += 2;
+						return '\n';
+					} else {
+						currentOffset++;
+						return '\n';
+					}
+				}
+				currentOffset++;
+				return temp;
 			case FORMAT_UTF8 :
 				temp = XMLDoc.byteAt(currentOffset) & 0xff;
 
 				switch (UTF8Char.byteCount(temp)) {
 					case 1 :
+						if (temp == '\r') {
+							if (XMLDoc.byteAt(currentOffset + 1) == '\n') {
+								currentOffset += 2;
+								return '\n';
+							} else {
+								currentOffset++;
+								return '\n';
+							}
+						}
 						currentOffset++;
 						return temp;
 					case 2 :
@@ -387,6 +408,15 @@ public class VTDNav {
 
 			case FORMAT_ISO_8859 :
 				temp = XMLDoc.byteAt(currentOffset);
+				if (temp == '\r') {
+					if (XMLDoc.byteAt(currentOffset + 1) == '\n') {
+						currentOffset += 2;
+						return '\n';
+					} else {
+						currentOffset++;
+						return '\n';
+					}
+				}
 				currentOffset++;
 				return temp & 0xff;
 
@@ -397,7 +427,17 @@ public class VTDNav {
 						<< 8) | XMLDoc.byteAt((currentOffset << 1) + 1);
 				if ((temp < 0xd800)
 					|| (temp >= 0xdc00)) { // not a high surrogate
-					currentOffset += 1;
+					if (temp == '\r') {
+						if (XMLDoc.byteAt((currentOffset << 1) + 3) == '\n'
+							&& XMLDoc.byteAt((currentOffset << 1) + 2) == 0) {
+							currentOffset += 2;
+							return '\n';
+						} else {
+							currentOffset++;
+							return '\n';
+						}
+					}
+					currentOffset++;
 					return temp;
 				} else {
 					val = temp;
@@ -419,7 +459,17 @@ public class VTDNav {
 					XMLDoc.byteAt((currentOffset << 1) + 1)
 						<< 8 | XMLDoc.byteAt(currentOffset << 1);
 				if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
-					currentOffset += 1;
+					if (temp == '\r') {
+						if (XMLDoc.byteAt((currentOffset << 1) + 2) == '\n'
+							&& XMLDoc.byteAt((currentOffset << 1) + 3) == 0) {
+							currentOffset += 2;
+							return '\n';
+						} else {
+							currentOffset++;
+							return '\n';
+						}
+					}
+					currentOffset++;
 					return temp;
 				} else {
 					val = temp;
@@ -2533,6 +2583,7 @@ public class VTDNav {
 	 * The leading and trailing white space characters will be stripped.
 	 * The entity and character references will be resolved
 	 * Multiple whitespaces char will be collapsed into one.
+	 * Whitespaces via entities will nonetheless be preserved.
 	 * Creation date: (12/8/03 1:57:10 PM)
 	 * @return java.lang.String
 	 * @param index int
@@ -2540,13 +2591,17 @@ public class VTDNav {
 	 */
 	public String toNormalizedString(int index) throws NavException {
 		int type = getTokenType(index);
-		int len = getTokenLength(index);
-		/*if (type == TOKEN_STARTING_TAG
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			return toRawString(index); 
+		
+		int len;
+		if (type == TOKEN_STARTING_TAG
 			|| type == TOKEN_ATTR_NAME
 			|| type == TOKEN_ATTR_NS)
 			len = getTokenLength(index) & 0xffff;
 		else
-			len = getTokenLength(index);*/
+			len = getTokenLength(index);
 		if (len == 0)
 			return "";
 		currentOffset = getTokenOffset(index);
@@ -2559,7 +2614,8 @@ public class VTDNav {
 
 		while (true) {
 			int temp = currentOffset;
-			ch = getCharResolved();
+			ch = getChar();
+
 			if (!isWS(ch)) {
 				currentOffset = temp;
 				break;
@@ -2569,7 +2625,7 @@ public class VTDNav {
 		boolean d = false;
 		while (currentOffset <= endOffset) {
 			ch = getCharResolved();
-			if (isWS(ch)) {
+			if (isWS(ch) && getCharUnit(currentOffset - 1) != ';') {
 				d = true;
 			} else {
 				if (d == false)
@@ -2581,6 +2637,7 @@ public class VTDNav {
 				}
 			}
 		}
+
 		return sb.toString();
 	}
 
@@ -2595,12 +2652,12 @@ public class VTDNav {
 	public String toRawString(int index) throws NavException {
 		int type = getTokenType(index);
 		int len;
-		/*if (type == TOKEN_STARTING_TAG
+		if (type == TOKEN_STARTING_TAG
 			|| type == TOKEN_ATTR_NAME
 			|| type == TOKEN_ATTR_NS)
 			len = getTokenLength(index) & 0xffff;
-		else*/
-		len = getTokenLength(index);
+		else
+			len = getTokenLength(index);
 		int offset = getTokenOffset(index);
 
 		currentOffset = getTokenOffset(index);
@@ -2624,21 +2681,26 @@ public class VTDNav {
 	 */
 	public String toString(int index) throws NavException {
 		int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			return toRawString(index); 
 		int len;
-		/*if (type == TOKEN_STARTING_TAG
+		if (type == TOKEN_STARTING_TAG
 			|| type == TOKEN_ATTR_NAME
 			|| type == TOKEN_ATTR_NS)
 			len = getTokenLength(index) & 0xffff;
-		else*/
-		len = getTokenLength(index);
+		else
+			len = getTokenLength(index);
 		currentOffset = getTokenOffset(index);
 		int endOffset = len + currentOffset;
 		StringBuffer sb = new StringBuffer(len);
 		String s = null;
+
 		while (currentOffset < endOffset) {
 			char c = (char) getCharResolved();
 			sb.append(c); // java only support 16 bit unit code
 		}
+
 		return sb.toString();
 	}
 }
