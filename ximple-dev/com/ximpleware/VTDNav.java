@@ -1398,8 +1398,10 @@ public class VTDNav {
 	 * machine such as a load-balancer.
 	 */
 	public double parseDouble(int index) throws NavException {
+		//if (matchTokenString()
 		currentOffset = getTokenOffset(index);
 		int end = currentOffset + getTokenLength(index);
+		boolean expneg = false;
 		//past the last one by one
 
 		int ch = getCharResolved();
@@ -1457,7 +1459,7 @@ public class VTDNav {
 		long exp = 0;
 		if (ch == 'E' || ch == 'e') {
 			ch = getCharResolved();
-			boolean expneg = (ch == '-'); //sign for exp
+			expneg = (ch == '-'); //sign for exp
 			if (ch == '+' || ch == '-')
 				ch = getCharResolved(); //skip the +/- sign
 
@@ -1480,8 +1482,8 @@ public class VTDNav {
 				throw new NavException(toString(index));
 			//found a invalid number like 1.23E
 
-			if (expneg)
-				exp = (-exp);
+			//if (expneg)
+			//	exp = (-exp);
 		}
 
 		//anything left must be space
@@ -1497,10 +1499,11 @@ public class VTDNav {
 			v += ((double) right) / (double) scale;
 
 		if (exp != 0)
-			v = v * Math.pow(10, exp);
+			v = (expneg)? v /(Math.pow(10,exp)): v*Math.pow(10,exp);
 
 		return ((neg) ? (-v) : v);
 	}
+
 	/**
 	 * Convert a vtd token into a float.
 	 * we assume token type to be attr val or character data
@@ -1614,17 +1617,17 @@ public class VTDNav {
 
 		if (exp != 0)
 			v = v * Math.pow(10, exp);
-		if (neg)
-			v = -v;
+		
 
 		float f = (float) v;
 
 		//try to handle overflow/underflow
-		if (v >= Float.MAX_VALUE)
+		if (v >= (double)Float.MAX_VALUE)
 			f = Float.MAX_VALUE;
-		else if (v <= Float.MIN_VALUE)
+		else if (v <= (double)Float.MIN_VALUE)
 			f = Float.MIN_VALUE;
-
+		if (neg)
+			f = -f;
 		return f;
 	}
 	/**
@@ -1776,7 +1779,7 @@ public class VTDNav {
 			c = getCharResolved();
 		}
 		if (currentOffset == (endOffset + 1))
-			return (int) ((neg) ? (-result) : result);
+			return (long) ((neg) ? (-result) : result);
 		else
 			throw new NumberFormatException(toString(index));
 	}
