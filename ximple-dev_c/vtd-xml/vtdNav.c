@@ -1447,8 +1447,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 if (exp != 0)
 							 v = v * pow(10, (double)exp);
-						 if (neg)
-							 v = -v;
+						 
 
 						 f = (float) v;
 
@@ -1458,6 +1457,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 else if (v <= MINFLOAT)
 							 f = MINFLOAT;
 
+						 if (neg)
+							 f = -f;
 						 return f;
 						 //return 1.0;
 					 }
@@ -1586,7 +1587,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 c = getCharResolved(vn);
 						 }
 						 if (vn->currentOffset == (endOffset + 1))
-							 return (int) ((neg) ? (-result) : result);
+							 return  ((neg) ? (-result) : result);
 						 else{// all whitespace
 							 e.et = number_format_exception;
 							 e.msg = " invalid char during parseLong2";
@@ -2527,7 +2528,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 else 
 							 len = getTokenLength(vn,index);
 
-						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*len);
+						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*(len+1));
 						 if (s == NULL)
 						 {
 							 e.et = out_of_mem;
@@ -2569,6 +2570,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 }
 							 }
 						 }
+						 s[k] = 0;
 						 return s;
 					 }
 
@@ -2594,7 +2596,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 endOffset = len + vn->currentOffset;
 						 //StringBuffer sb = new StringBuffer(len);
 
-						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*len);
+						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*(len+1));
 						 if (s == NULL)
 						 {
 							 e.et = out_of_mem;
@@ -2606,6 +2608,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 UCS2Char c = (UCS2Char) getChar(vn);
 							 s[k++] = c;; // java only support 16 bit unit code
 						 }
+						 s[k] = 0;
 						 return s;
 					 }
 
@@ -2635,7 +2638,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 endOffset = len + vn->currentOffset;
 						 //StringBuffer sb = new StringBuffer(len);
 
-						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*len);
+						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*(len+1));
 						 if (s == NULL)
 						 {
 							 e.et = out_of_mem;
@@ -2647,5 +2650,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 UCS2Char c = (UCS2Char) getCharResolved(vn);
 							 s[k++] = c;; // java only support 16 bit unit code
 						 }
+						 s[k]= 0;
 						 return s;
 					 }
