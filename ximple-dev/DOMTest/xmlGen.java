@@ -26,7 +26,7 @@ public class xmlGen {
 	public static FileWriter fw;
 	public static FileOutputStream fos0, fos1, fos2, fos3, fos4;
 	
-	public static void xmlGen1(String xml1, int i, String msg) throws Exception {
+	public static void composeXML1(String xml1, int i, String msg) throws Exception {
 		byte[] ba0 = null, ba1 = null, ba2 = null, ba3 = null, ba4 = null;
 		ba0 = (enc_ascii+"<!--"+ msg+"-->" + xml1).getBytes("ascii");
 		ba1 = (enc_8859 +"<!--"+ msg+"-->" + xml1).getBytes("iso-8859-1");
@@ -63,7 +63,7 @@ public class xmlGen {
 		fos4.close();
 	}  
 	
-	public static void xmlGen2(String xml1, int i, String msg) throws Exception {
+	public static void composeXML2(String xml1, int i, String msg) throws Exception {
 		byte[] ba0 = null, ba1 = null, ba2 = null, ba3 = null, ba4 = null;
 		//ba0 = (enc_ascii+"<!--"+ msg+"-->" + xml1).getBytes("ascii");
 		//ba1 = (enc_8859 +"<!--"+ msg+"-->" + xml1).getBytes("iso-8859-1");
@@ -429,6 +429,12 @@ public class xmlGen {
 		for(int z = 0;z<256;z++)
 			sb1.append("</a>");
 		String s03 = sb1.toString();
+		String s04 ="";
+		for (int t=0;t<277;t++){
+			
+		  s04 = s04+" a"+t+"='abc'";
+		}
+		s04 = s04 + " a0='abc'";
 		
 		String s1 = sb1.toString();
 		String[] xmls5 = {
@@ -476,6 +482,9 @@ public class xmlGen {
 								
 				"depth overflow",
 				s03,
+				
+				"nonunique attr name",
+				"<abc"+ s04+">"+"</abc>",
 				};
 		
 		String xml1;
@@ -486,15 +495,15 @@ public class xmlGen {
 			fw = new FileWriter(rf);
 			// generating xmls with illegal chars
 			for (i=0;i<(xmls1.length>>2);i++){
-				xmlGen1(xmls1[i*4+1],2*i,xmls1[i*4]);
-				xmlGen2(xmls1[i*4+3],2*i+1,xmls1[i*4+2]);
+				composeXML1(xmls1[i*4+1],2*i,xmls1[i*4]);
+				composeXML2(xmls1[i*4+3],2*i+1,xmls1[i*4+2]);
 			}
 			// illegal char sequences
 			int k = 2*i;
 			fw.write("\n");
 			System.out.println(" i val is "+i*2);
 			for (i = 0;i<((xmls2.length)>>1);i++){
-				xmlGen1(xmls2[i*2+1],i+k,xmls2[i*2]);
+				composeXML1(xmls2[i*2+1],i+k,xmls2[i*2]);
 			}
 			
 			// bad structures
@@ -502,14 +511,14 @@ public class xmlGen {
 			fw.write("\n");
 			System.out.println(" i val is "+i);
 			for (i = 0;i<((xmls3.length)>>1);i++){
-				xmlGen1(xmls3[i*2+1],i+k,xmls3[i*2]);
+				composeXML1(xmls3[i*2+1],i+k,xmls3[i*2]);
 			}
 			// invalid entities
 			k = k + i;
 			fw.write("\n");
 			System.out.println(" i val is "+i);
 			for (i = 0;i<((xmls4.length)>>1);i++){
-				xmlGen1(xmls4[i*2+1],i+k,xmls4[i*2]);
+				composeXML1(xmls4[i*2+1],i+k,xmls4[i*2]);
 			}
 			
 			// various overflow
@@ -517,7 +526,7 @@ public class xmlGen {
 			fw.write("\n");
 			System.out.println(" i val is "+i);
 			for (i = 0;i<((xmls5.length)>>1);i++){
-				xmlGen1(xmls5[i*2+1],i+k,xmls5[i*2]);
+				composeXML1(xmls5[i*2+1],i+k,xmls5[i*2]);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
