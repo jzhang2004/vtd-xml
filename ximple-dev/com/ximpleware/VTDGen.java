@@ -87,14 +87,11 @@ public class VTDGen {
 	protected int prev_offset;
 	protected int rootIndex;
 	protected byte[] XMLDoc;
-	protected FastLongBuffer2 VTDBuffer;
-	protected FastLongBuffer2 l1Buffer;
-	protected FastLongBuffer2 l2Buffer;
-	protected FastIntBuffer2 l3Buffer;
-//	protected FastLongBuffer VTDBuffer;
-//	protected FastLongBuffer l1Buffer;
-//	protected FastLongBuffer l2Buffer;
-//	protected FastIntBuffer l3Buffer;
+	protected FastLongBuffer VTDBuffer;
+	protected FastLongBuffer l1Buffer;
+	protected FastLongBuffer l2Buffer;
+	protected FastIntBuffer l3Buffer;
+
 	int vtdSize;
 	int l1Size;
 	int l2Size;
@@ -2408,10 +2405,10 @@ public class VTDGen {
 		//l1Buffer = new FastLongBuffer(128);
 		//l2Buffer = new FastLongBuffer(512);
 		//l3Buffer = new FastIntBuffer(2048);
-		VTDBuffer = new FastLongBuffer2(a, ba.length >> (a+1));
-		l1Buffer = new FastLongBuffer2(7);
-		l2Buffer = new FastLongBuffer2(9);
-		l3Buffer = new FastIntBuffer2(11);
+		VTDBuffer = new FastLongBuffer(a, ba.length >> (a+1));
+		l1Buffer = new FastLongBuffer(7);
+		l2Buffer = new FastLongBuffer(9);
+		l3Buffer = new FastIntBuffer(11);
 		vtdSize = l1Size = l2Size = l3Size = 0;
 	}
 	/**
@@ -2442,10 +2439,10 @@ public class VTDGen {
 //		l2Buffer = new FastLongBuffer(512);
 //		l3Buffer = new FastIntBuffer(2048);
 		
-		VTDBuffer = new FastLongBuffer2(a, len>>(a+1));
-		l1Buffer = new FastLongBuffer2(7);
-		l2Buffer = new FastLongBuffer2(9);
-		l3Buffer = new FastIntBuffer2(11);
+		VTDBuffer = new FastLongBuffer(a, len>>(a+1));
+		l1Buffer = new FastLongBuffer(7);
+		l2Buffer = new FastLongBuffer(9);
+		l3Buffer = new FastIntBuffer(11);
 		vtdSize = l1Size = l2Size = l3Size = 0;
 	}
 	/**
