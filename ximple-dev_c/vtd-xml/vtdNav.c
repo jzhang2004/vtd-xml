@@ -39,7 +39,7 @@ static Boolean resolveNS2(VTDNav *vn, UCS2Char *URL, int offset, int len); //UCS
 //Create VTDNav object
 
 VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
-					 Byte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
+					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len){
 
 						 exception e;
@@ -78,6 +78,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->XMLDoc = x;
 
 						 vn->encoding = enc;
+						 vn->rootIndex = r;
 						 vn->nestingLevel = depth +1;
 
 						 vn->ns = ns;
@@ -89,7 +90,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 Throw e;
 						 }
 						 vn->context[0] = 0;
-						 for (i=0;i<vn->nestingLevel;i++){
+						 for (i=1;i<vn->nestingLevel;i++){
 							 vn->context[i] = -1;
 						 }
 						 vn->currentOffset = 0;
@@ -159,20 +160,25 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 int size = vn->vtdBuffer->size;
 						 int index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 
-						 int type = getTokenType(vn,index);
+						 tokenType type;
+						 if(index<vn->vtdSize)
+							 type = getTokenType(vn,index);
+						 else 
+							 return -1;
+
 						 if (vn->ns == FALSE) {
-							 while (index < size
-								 && (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+							 while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 									 if (matchRawTokenString(vn,index,
 										 an)) { // ns node visible only ns is disabled
 											 return index + 1;
 										 }
 										 index += 2;
+										 if (index>=vn->vtdSize)
+											 return -1;
 										 type = getTokenType(vn,index);
 								 }
 						 } else {
-							 while (index < size
-								 && (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+							 while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 									 if (type == TOKEN_ATTR_NAME
 										 && matchRawTokenString(vn,
 										 index,
@@ -180,6 +186,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 											 return index + 1;
 										 }
 										 index += 2;
+										 if (index>=vn->vtdSize)
+											 return -1;
 										 type = getTokenType(vn,index);
 								 }
 						 }
@@ -200,9 +208,13 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 size = vn->vtdBuffer->size;
 						 index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 						 // point to the token next to the element tag
-						 type = getTokenType(vn,index);
-						 while (index < size
-							 && (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+						 
+						 if(index<vn->vtdSize)
+							 type = getTokenType(vn,index);
+						 else 
+							 return -1;
+
+						 while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 								 int i = getTokenLength(vn, index);
 								 int offset = getTokenOffset(vn, index);
 								 int preLen = (i >> 16) & 0xffff;
@@ -217,6 +229,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 										 return index + 1;
 									 }
 									 index += 2;
+									 if (index >=vn->vtdSize)
+										 return -1;
 									 type = getTokenType(vn,index);
 							 }
 							 return -1;
@@ -236,7 +250,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 switch (vn->encoding) {
 			case FORMAT_ASCII : // ascii is compatible with UTF-8, the offset value is bytes
 			case FORMAT_UTF8 :
-				temp = vn->XMLDoc[vn->currentOffset] & 0xff;
+				temp = vn->XMLDoc[vn->currentOffset];
 
 				switch (UTF8Char_byteCount(temp)) {
 			case 1 :
@@ -295,7 +309,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 			case FORMAT_ISO_8859 :
 				temp = vn->XMLDoc[vn->currentOffset];
 				vn->currentOffset++;
-				return temp & 0xff;
+				return temp;
 
 			case FORMAT_UTF_16BE :
 				// implement UTF-16BE to UCS4 conversion
@@ -682,9 +696,13 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 int index = (vn->context[0] != 0) ? 
 							 vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 						 int depth = getCurrentDepth(vn);
-						 tokenType type = getTokenType(vn,index);
+						 tokenType type;
+						 if (index<vn->vtdSize)
+						     type= getTokenType(vn,index);
+						 else
+							 return -1;
 
-						 while (index < vn->vtdSize) {
+						 while (TRUE) {
 							 if (type == TOKEN_CHARACTER_DATA || type == TOKEN_CDATA_VAL) {
 								 if (depth == getTokenDepth(vn,index))
 									 return index;
@@ -702,6 +720,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 										 return -1;
 								 } else
 									 return -1;
+								 if (index >= vn->vtdSize) 
+									 break;
 								 type = getTokenType(vn, index);
 						 }
 						 return -1;
@@ -1786,6 +1806,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 switch (NSval(vn,s)) { // checked the ns marking
 				case 0xc0000000 :
 					s = s + 1;
+					if (s>=size)
+						break;
 					type = getTokenType(vn,s);
 
 					while (s < size
@@ -1830,10 +1852,11 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					break;
 				default : // check the ns existence, mark bit 31:30 to 11 or 10
 					k = s + 1;
+					if (k>=size)
+						break;
 					type = getTokenType(vn,k);
 
-					while (k < size
-						&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+					while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 							if (type == TOKEN_ATTR_NS) {
 								// Get the token length
 
@@ -1856,7 +1879,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 										l | 0x000000c000000000L);
 #endif
 									if (URL != NULL) {
-										return matchRawTokenString(vn,s + 1, URL);
+										return matchRawTokenString(vn,k + 1, URL);
 									} else { //xmlns is found but shouldn't be
 										return FALSE;
 									}
@@ -1891,6 +1914,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							}
 							//return (URL != null) ? true : false;
 							k += 2;
+							if (k>=size)
+								break;
 							type = getTokenType(vn,k);
 						}
 						l = longAt(vn->vtdBuffer, s);
@@ -1991,7 +2016,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				}
 				vn->context[0] = 3;
 				size = vn->l2Buffer->size;
-				vn->l3upper = size - 1;
+				vn->l3upper = vn->l3Buffer->size - 1;
 
 				for (i = vn->l2index + 1; i < size; i++) {
 					int temp = lower32At(vn->l2Buffer,i);
@@ -2226,6 +2251,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 Boolean toElement2(VTDNav *vn, navDir direction, UCS2Char *en){
 						 //int size;
 						 int temp;
+						 int d;
+						 int val = 0;
 						 exception e;
 						 if (en == NULL){
 							 e.et = invalid_argument;
@@ -2274,27 +2301,62 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					return TRUE;
 
 			case NEXT_SIBLING :
-				temp = vn->context[vn->context[0]]; // store the current position
-				if (vn->context[0] == 0)
+				d = vn->context[0];
+				temp = vn->context[d]; // store the current position
+
+				switch(d)
+				{
+				  case 1: val = vn->l1index; break;
+				  case 2: val = vn->l2index; break;
+				  case 3: val = vn->l3index; break;
+				  	default:
+						break;
+				}
+				if (d == 0)
 					return FALSE;
 				while (toElement(vn,NEXT_SIBLING)) {
 					if (matchElement(vn,en)) {
 						return TRUE;
 					}
 				}
-				vn->context[vn->context[0]] = temp;
+				switch(d)
+				{
+				  case 1: vn->l1index = val; break;
+				  case 2: vn->l2index = val; break;
+				  case 3: vn->l3index = val; break;
+				  	default:
+						break;
+				}
+				vn->context[d] = temp;
 				return FALSE;
 
 			case PREV_SIBLING :
-				temp = vn->context[vn->context[0]]; // store the current position
-				if (vn->context[0] == 0)
+				d = vn->context[0];
+				temp = vn->context[d]; // store the current position
+				switch(d)
+				{
+				  case 1: val = vn->l1index; break;
+				  case 2: val = vn->l2index; break;
+				  case 3: val = vn->l3index; break;
+				  	default:
+						break;
+				}
+				if (d == 0)
 					return FALSE;
 				while (toElement(vn,PREV_SIBLING)) {
 					if (matchElement(vn,en)) {
 						return TRUE;
 					}
 				}
-				vn->context[vn->context[0]] = temp;
+				switch(d)
+				{
+				  case 1: vn->l1index = val; break;
+				  case 2: vn->l2index = val; break;
+				  case 3: vn->l3index = val; break;
+				  	default:
+						break;
+				}
+				vn->context[d] = temp;
 				return FALSE;
 
 			default :
@@ -2323,6 +2385,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 Boolean toElementNS(VTDNav *vn, navDir direction, UCS2Char *URL, UCS2Char *ln){
 						 //int size;
 						 int temp;
+						 int d;
+						 int val = 0;
 						 if (vn->ns == FALSE)
 							 return FALSE;
 						 switch (direction) {
@@ -2364,27 +2428,61 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					return TRUE;
 
 			case NEXT_SIBLING :
-				temp = vn->context[vn->context[0]]; // store the current position
-				if (vn->context[0] == 0)
+				d = vn->context[0];
+				temp = vn->context[d]; // store the current position
+				switch(d)
+				{
+				  case 1: val = vn->l1index; break;
+				  case 2: val = vn->l2index; break;
+				  case 3: val = vn->l3index; break;
+				  	default:
+						break;
+				}
+				if (d == 0)
 					return FALSE;
 				while (toElement(vn,NEXT_SIBLING)) {
 					if (matchElementNS(vn,URL, ln)) {
 						return TRUE;
 					}
 				}
-				vn->context[vn->context[0]] = temp;
+				switch(d)
+				{
+				  case 1: vn->l1index = val; break;
+				  case 2: vn->l2index = val; break;
+				  case 3: vn->l3index = val; break;
+				  	default:
+						break;
+				}
+				vn->context[d] = temp;
 				return FALSE;
 
 			case PREV_SIBLING :
-				temp = vn->context[vn->context[0]]; // store the current position
-				if (vn->context[0] == 0)
+				d = vn->context[0];
+				temp = vn->context[d]; // store the current position
+				switch(d)
+				{
+				  case 1: val = vn->l1index; break;
+				  case 2: val = vn->l2index; break;
+				  case 3: val = vn->l3index; break;
+				  	default:
+						break;
+				}
+				if (d == 0)
 					return FALSE;
 				while (toElement(vn,PREV_SIBLING)) {
 					if (matchElementNS(vn,URL, ln)) {
 						return TRUE;
 					}
 				}
-				vn->context[vn->context[0]] = temp;
+				switch(d)
+				{
+				  case 1: vn->l1index = val; break;
+				  case 2: vn->l2index = val; break;
+				  case 3: vn->l3index = val; break;
+				  	default:
+						break;
+				}
+				vn->context[d] = temp;
 				return FALSE;
 
 			default :
