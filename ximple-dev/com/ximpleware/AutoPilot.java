@@ -69,8 +69,8 @@ public boolean iterate() throws PilotException, NavException {
             if (ft == false)
                 return vn.iterate(depth, elementName);
             else {
-                if (vn.matchElement(elementName)) {
-                    ft = false;
+            	ft = false;
+                if (vn.matchElement(elementName)) {                	
                     return true;
                 } else
                     return vn.iterate(depth, elementName);
@@ -82,9 +82,9 @@ public boolean iterate() throws PilotException, NavException {
             if (ft == false)
                 return vn.iterateNS(depth, URL, localName);
             else {
+            	ft = false;
                 if (vn.matchElementNS(URL, localName)) {
-                    ft = false;
-                    return true;
+                	return true;
                 } else
                     return vn.iterateNS(depth, URL, localName);
             }
