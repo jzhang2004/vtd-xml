@@ -22,7 +22,7 @@ import com.ximpleware.parser.XMLChar;
 import com.ximpleware.parser.UTF8Char;
 //import java.io.*;
 /**
- * VTD Generator implementation
+ * VTD Generator implementation.
  * Current support built-in entities only
  * It parses DTD, but doesn't resolve declared entities
  */
@@ -406,7 +406,6 @@ public class VTDGen1 {
 	protected int docOffset;
 	/**
 	 * VTDGen constructor method.
-	 * 
 	 */
 	public VTDGen1() {
 		attr_name_array = new long[ATTR_NAME_ARRAY_SIZE];
@@ -428,8 +427,6 @@ public class VTDGen1 {
 		l1Size = l2Size = l3Size = VTDDepth = 0;
 		last_depth = last_l1_index = last_l2_index = 0;
 		rootIndex = 0;
-		//ns = false;
-
 	}
 	/**
 	 * This method will detect whether the entity is valid or not and increment offset.
@@ -523,16 +520,16 @@ public class VTDGen1 {
 	/**
 	 * Format the string indicating the position (line number:offset)of the offset if 
 	 * there is an exception.
-	 * @return java.lang.String
+	 * @return java.lang.String indicating the line number and offset of the exception
 	 */
 	private String formatLineNumber() {
 		int so = docOffset;
-		int lineNumber = 1;
+		int lineNumber = 0;
 		int lineOffset = 0;
 		int end = offset;
 
-		if (encoding < 3) {
-			while (so <= offset) {
+		if (encoding < FORMAT_UTF_16BE) {
+			while (so <= offset-1) {
 				if (XMLDoc[so] == '\n') {
 					lineNumber++;
 					lineOffset = so;
@@ -541,8 +538,8 @@ public class VTDGen1 {
 				so++;
 			}
 			lineOffset = offset - lineOffset;
-		} else if (encoding == 3) {
-			while (so <= offset) {
+		} else if (encoding == FORMAT_UTF_16BE) {
+			while (so <= offset-2) {
 				if (XMLDoc[so + 1] == '\n' && XMLDoc[so] == 0) {
 					lineNumber++;
 					lineOffset = so;
@@ -551,7 +548,7 @@ public class VTDGen1 {
 			}
 			lineOffset = (offset - lineOffset) >> 1;
 		} else {
-			while (so <= offset) {
+			while (so <= offset-2) {
 				if (XMLDoc[so] == '\n' && XMLDoc[so + 1] == 0) {
 					lineNumber++;
 					lineOffset = so;
@@ -560,31 +557,32 @@ public class VTDGen1 {
 			}
 			lineOffset = (offset - lineOffset) >> 1;
 		}
-		return "\nLine Number: " + lineNumber + " Offset: " + lineOffset;
+		return "\nLine Number: " + (lineNumber+1) + " Offset: " + (lineOffset-1);
 	}
 	/**
 	 * The entity ignorant version of getCharAfterS.
 	 * @return int
 	 * @throws ParseException 
-	 * @throws EncodingException
+	 * @throws EncodingException 
 	 * @throws com.ximpleware.EOFException 
 	 */
 	private int getCharAfterS()
 		throws ParseException, EncodingException, EOFException {
-		int n, k;
-		n = r.getChar();
-		while (n == ' ' || n == '\t' || n == '\n' || n == '\r') {
+		int n;
+		while (true) {
 			n = r.getChar();
+			if (n == ' ' || n == '\t' || n == '\n' || n == '\r') {
+			} else
+				return n;
 		}
-		return n;
 		//throw new EOFException("should never come here");
 	}
 	/**
 	 * The entity aware version of getCharAfterS
 	 * @return int
-	 * @throws ParseException 
-	 * @throws EncodingException
-	 * @throws com.ximpleware.EOFException
+	 * @throws ParseException Super class for any exception during parsing.
+	 * @throws EncodingException UTF/native encoding exception.
+	 * @throws com.ximpleware.EOFException End of file exception.
 	 */
 	private int getCharAfterSe()
 		throws ParseException, EncodingException, EOFException {
@@ -893,7 +891,6 @@ public class VTDGen1 {
 		throws EncodingException, EOFException, EntityException, ParseException {
 
 		// define internal variables	
-
 		ns = NS;
 		int temp_offset = 0, length1 = 0, length2 = 0, increment = 1;
 		int depth = -1, attr_count = 0, ch = 0, ch_temp = 0;
@@ -906,17 +903,16 @@ public class VTDGen1 {
 			hasDecl = false,
 			docEnd = false,
 			firstLT = true;
-		char char_temp; //holds the ' or " indicating start of attr val
+		//char char_temp; //holds the ' or " indicating start of attr val
 		boolean must_utf_8 = false;
 		boolean BOM_detected = false;
-
 		//long[] tag_stack = new long[256];
 		//long[] attr_name_array = new long[512]; // 512 attributes limit
 		//ASCII UTF-8 UTF-16 UTF-16BE UTF-16LE ISO-8859-1
 		//
 		//int[] scratch_buffer = new int[10];
 
-		// first check first several bytes BOM to determine if encoding is UTF16
+		// first check first several bytes to figure out the encoding
 		if (XMLDoc[offset] == -2) {
 			increment = 2;
 			if (XMLDoc[offset + 1] == -1) {
@@ -924,14 +920,12 @@ public class VTDGen1 {
 				encoding = FORMAT_UTF_16BE;
 				BOM_detected = true;
 				r = new UTF16BEReader();
-				//increment = 2;
 			} else
-				throw new EncodingException("Unknown Character encoding: not UTF-16LE");
+				throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
 		} else if (XMLDoc[offset] == -1) {
 			increment = 2;
 			if (XMLDoc[offset + 1] == -2) {
 				offset += 2;
-				//increment = 2;
 				encoding = FORMAT_UTF_16LE;
 				BOM_detected = true;
 				r = new UTF16LEReader();
@@ -961,13 +955,10 @@ public class VTDGen1 {
 					&& XMLDoc[offset+2] == 0x3f 
 					&& XMLDoc[offset+3] == 0){
 				increment = 2;
-				encoding = FORMAT_UTF_16LE;
-				
+				encoding = FORMAT_UTF_16LE;				
 				r = new UTF16LEReader();
-				}
-			
+				}			
 		}
-
 		// check for max file size exception
 		if (encoding < FORMAT_UTF_16BE) {
 			if ((offset + docLen) >= 1L << 30)
@@ -976,7 +967,6 @@ public class VTDGen1 {
 			if ((offset - 2 + docLen) >= 1L << 31)
 				throw new ParseException("Other error: file size too large ");
 		}
-
 		// enter the main finite state machine
 		try {
 			while (main_loop) {
@@ -1057,10 +1047,8 @@ public class VTDGen1 {
 									if (XMLChar.isNameStartChar(ch)) {
 										//temp_offset = offset;
 										if ((ch == 'x' || ch == 'X')
-											&& (r.skipChar('m')
-												|| r.skipChar('M'))
-											&& (r.skipChar('l')
-												|| r.skipChar('L'))) {
+											&& (r.skipChar('m')	|| r.skipChar('M'))
+											&& (r.skipChar('l')	|| r.skipChar('L'))) {
 											ch = r.getChar();
 											if (ch == '?'
 												|| XMLChar.isSpaceChar(ch))
@@ -1170,7 +1158,7 @@ public class VTDGen1 {
 						//writeVTD(offset, TOKEN_STARTING_TAG, length2:length1, depth)
 						long x = ((long) length1 << 32) + temp_offset;
 						tag_stack[depth] = x;
-
+						
 						// System.out.println(
 						//     " " + (temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
 						if (depth > VTDDepth)
@@ -1185,13 +1173,14 @@ public class VTDGen1 {
 								(temp_offset),
 								(length2 << 11) | length1,
 								TOKEN_STARTING_TAG,
-								depth);}
+								depth);
+							}
 						else{
-							if (length2>(MAX_PREFIX_LENGTH<<1)
-									|| (length1 > MAX_QNAME_LENGTH<<1))
+							if (length2>(MAX_PREFIX_LENGTH <<1)
+									|| length1 > (MAX_QNAME_LENGTH<<1))
 								throw new ParseException(
 										"Token Length Error: Starting tag prefix or qname length too long"
-										+ formatLineNumber());
+										+formatLineNumber());
 							writeVTD(
 								(temp_offset) >> 1,
 								(length2 << 10) | (length1 >> 1),
@@ -1225,7 +1214,6 @@ public class VTDGen1 {
 												- temp_offset
 												- 2 * increment;
 										if (length1 > 0) {
-
 											if (encoding < FORMAT_UTF_16BE)
 												writeVTD(
 													(temp_offset),
@@ -1238,7 +1226,6 @@ public class VTDGen1 {
 													(length1 >> 1),
 													TOKEN_CHARACTER_DATA,
 													depth);
-											//offset += length1;
 										}
 										parser_state = STATE_END_TAG;
 										break;
@@ -1251,7 +1238,17 @@ public class VTDGen1 {
 									//temp_offset = offset;
 									entityIdentifier();
 									parser_state = STATE_TEXT;
-								} else
+								} else if (ch == ']') {
+									if (r.skipChar(']')) {
+										while (r.skipChar(']')) {
+										}
+										if (r.skipChar('>'))
+											throw new ParseException(
+												"Error in text content: ]]> in text content"
+													+ formatLineNumber());
+									}
+									parser_state = STATE_TEXT;
+								}else
 									throw new ParseException(
 										"Error in text content: Invalid char"
 											+ formatLineNumber());
@@ -1281,8 +1278,6 @@ public class VTDGen1 {
 									throw new ParseException(
 										"Ending tag error: Start/ending tag mismatch"
 											+ formatLineNumber());
-								// System.out.println(
-								//     " " + (char) XMLDoc[sos + i] + "<==> " + (char) XMLDoc[temp_offset + i]);
 							}
 						} else
 							throw new ParseException(
@@ -1307,7 +1302,17 @@ public class VTDGen1 {
 									//has_amp = true;
 									entityIdentifier();
 									parser_state = STATE_TEXT;
-								} else
+								} else if (ch == ']') {
+									if (r.skipChar(']')) {
+										while (r.skipChar(']')) {
+										}
+										if (r.skipChar('>'))
+											throw new ParseException(
+												"Error in text content: ]]> in text content"
+													+ formatLineNumber());
+									}
+									parser_state = STATE_TEXT;
+								}else
 									throw new ParseException(
 										"Other Error: Invalid char in xml"
 											+ formatLineNumber());
@@ -1348,10 +1353,10 @@ public class VTDGen1 {
 								depth);
 						}
 						else{
-							if (length1 > (MAX_TOKEN_LENGTH<<1))
-								  throw new ParseException("Token Length Error:"
-											  +" PI name too long (>0xfffff)"
-											  + formatLineNumber());
+							if(length1 > (MAX_TOKEN_LENGTH<<1))
+								throw new ParseException("Token Length Error:"
+											+" PI name too long (>0xfffff)"
+											+ formatLineNumber());
 							writeVTD(
 								(temp_offset) >> 1,
 								(length1 >> 1),
@@ -1375,7 +1380,17 @@ public class VTDGen1 {
 									//has_amp = true;
 									entityIdentifier();
 									parser_state = STATE_TEXT;
-								} else
+								} else if (ch == ']') {
+									if (r.skipChar(']')) {
+										while (r.skipChar(']')) {
+										}
+										if (r.skipChar('>'))
+											throw new ParseException(
+												"Error in text content: ]]> in text content"
+													+ formatLineNumber());
+									}
+									parser_state = STATE_TEXT;
+								}else
 									throw new ParseException(
 										"Error in text content: Invalid char"
 											+ formatLineNumber());
@@ -1418,7 +1433,7 @@ public class VTDGen1 {
 						if (encoding < FORMAT_UTF_16BE){
 							if (length1 > MAX_TOKEN_LENGTH)
 								  throw new ParseException("Token Length Error:"
-											  +" PI val too long (>0xfffff)"
+											  +"PI VAL too long (>0xfffff)"
 											  + formatLineNumber());
 							writeVTD(temp_offset,
 									length1, 
@@ -1428,7 +1443,7 @@ public class VTDGen1 {
 						else{
 							if (length1 > (MAX_TOKEN_LENGTH<<1))
 								  throw new ParseException("Token Length Error:"
-											  +" PI val too long (>0xfffff)"
+											  +"PI VAL too long (>0xfffff)"
 											  + formatLineNumber());
 							writeVTD(
 								temp_offset >> 1,
@@ -1450,7 +1465,18 @@ public class VTDGen1 {
 							//temp_offset = offset;
 							entityIdentifier();
 							parser_state = STATE_TEXT;
-						} else
+						} else if (ch == ']') {
+							if (r.skipChar(']')) {
+								while (r.skipChar(']')) {
+								}
+								if (r.skipChar('>'))
+									throw new ParseException(
+										"Error in text content: ]]> in text content"
+											+ formatLineNumber());
+								
+								parser_state = STATE_TEXT;
+							}
+						}else
 							throw new ParseException(
 								"Error in text content: Invalid char"
 									+ formatLineNumber());
@@ -1476,7 +1502,7 @@ public class VTDGen1 {
 										depth);
 								else
 									writeVTD(
-										(temp_offset - 2) >> 1,
+										(temp_offset -2) >> 1,
 										7,
 										TOKEN_DEC_ATTR_NAME,
 										depth);
@@ -1573,8 +1599,7 @@ public class VTDGen1 {
 													|| r.skipChar('I'))
 												&& (r.skipChar('i')
 													|| r.skipChar('I'))
-												&& r.skipChar(ch_temp)) {
-												
+												&& r.skipChar(ch_temp)) {												
 												if (encoding != FORMAT_UTF_16LE
 													&& encoding
 														!= FORMAT_UTF_16BE) {
@@ -1749,8 +1774,6 @@ public class VTDGen1 {
 															if (!BOM_detected)
 																throw new EncodingException("BOM not detected for UTF-16"
 																		+ formatLineNumber());
-															/*System.out.println(
-															    " " + (temp_offset) + " " + 6 + " dec attr val (encoding) " + depth);*/
 															if (encoding
 																< FORMAT_UTF_16BE)
 																writeVTD(
@@ -1774,10 +1797,8 @@ public class VTDGen1 {
 														(r.skipChar('l')
 															|| r.skipChar('L'))
 															&& (r.skipChar('e')
-																|| r.skipChar(
-																	'E'))
-															&& r.skipChar(
-																ch_temp)) {
+																|| r.skipChar('E'))
+															&& r.skipChar(ch_temp)) {
 														if (encoding
 															== FORMAT_UTF_16LE) {
 															/*System.out.println(
@@ -1805,10 +1826,8 @@ public class VTDGen1 {
 														(r.skipChar('b')
 															|| r.skipChar('B'))
 															&& (r.skipChar('e')
-																|| r.skipChar(
-																	'E'))
-															&& r.skipChar(
-																ch_temp)) {
+																|| r.skipChar('E'))
+															&& r.skipChar(ch_temp)) {
 														if (encoding
 															== FORMAT_UTF_16BE) {
 															/*System.out.println(
@@ -2002,7 +2021,17 @@ public class VTDGen1 {
 								//temp_offset = offset;
 								entityIdentifier();
 								parser_state = STATE_TEXT;
-							} else
+							} else if (ch == ']') {
+								if (r.skipChar(']')) {
+									while (r.skipChar(']')) {
+									}
+									if (r.skipChar('>'))
+										throw new ParseException(
+											"Error in text content: ]]> in text content"
+												+ formatLineNumber());
+								}
+								parser_state = STATE_TEXT;
+							}else
 								throw new ParseException(
 									"Error in text content: Invalid char"
 										+ formatLineNumber());
@@ -2059,8 +2088,20 @@ public class VTDGen1 {
 							entityIdentifier();
 							parser_state = STATE_TEXT;
 							//temp_offset = offset;
-						} else
-							throw new ParseException("Other Error: Invalid char in xml");
+						} else if (ch == ']') {
+							if (r.skipChar(']')) {
+								while (r.skipChar(']')) {
+								}
+								if (r.skipChar('>'))
+									throw new ParseException(
+										"Error in text content: ]]> in text content"
+											+ formatLineNumber());
+							}
+							parser_state = STATE_TEXT;
+						}else
+							throw new ParseException(
+								"Other Error: Invalid char in xml"
+									+ formatLineNumber());
 						break;
 					case STATE_DOCTYPE :
 						int z = 1;
@@ -2213,19 +2254,17 @@ public class VTDGen1 {
 									+ formatLineNumber());
 						unique = true;
 						if (attr_count < attr_name_array.length) {
-							//System.out.println("attr_count is "+ attr_count);
-							//System.out.println("attr_name_array.length is " +attr_name_array.length);
 							attr_name_array[attr_count] =
 								((long) (temp_offset) << 32) + length1;
 							attr_count++;
 						} else // grow the attr_name_array by 16
 							{
 							long[] temp_array = attr_name_array;
-							System.out.println(
+							/*System.out.println(
 								"size increase from "
 									+ temp_array.length
 									+ "  to "
-									+ (attr_count + 16));
+									+ (attr_count + 16));*/
 							attr_name_array =
 								new long[attr_count + ATTR_NAME_ARRAY_SIZE];
 							for (int i = 0; i < attr_count; i++) {
@@ -2242,8 +2281,8 @@ public class VTDGen1 {
 								if (length2>MAX_PREFIX_LENGTH
 										|| length1 > MAX_QNAME_LENGTH)
 									throw new ParseException(
-											"Token Length Error: Attr ns prefix or qname length too long"
-											+ formatLineNumber());
+											"Token length overflow error: Attr NS tag prefix or qname length too long"
+											+formatLineNumber());
 								writeVTD(
 									temp_offset,
 									(length2 << 11) | length1,
@@ -2254,7 +2293,7 @@ public class VTDGen1 {
 								if (length2>(MAX_PREFIX_LENGTH << 1)
 										|| length1 > (MAX_QNAME_LENGTH <<1))
 									throw new ParseException(
-											"Token Length Error: Attr ns prefix or qname length too long"
+											"Token length overflow error: Attr NS prefix or qname length too long"
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
@@ -2268,7 +2307,7 @@ public class VTDGen1 {
 								if (length2>MAX_PREFIX_LENGTH
 										|| length1 > MAX_QNAME_LENGTH)
 									throw new ParseException(
-											"Token Length Error: attr name prefix or qname length too long"
+											"Token Length Error: Attr name prefix or qname length too long"
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset,
@@ -2280,7 +2319,7 @@ public class VTDGen1 {
 								if (length2>(MAX_PREFIX_LENGTH<<1)
 										|| length1 > (MAX_QNAME_LENGTH<<1))
 									throw new ParseException(
-											"Token Length Error: Attr name prefix or qname length too long" 
+											"Token Length overflow error: Attr name prefix or qname length too long" 
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
@@ -2342,7 +2381,7 @@ public class VTDGen1 {
 								depth);
 						}
 						else{
-							if (length1 > MAX_TOKEN_LENGTH <<1)
+							if (length1 > (MAX_TOKEN_LENGTH <<1))
 								  throw new ParseException("Token Length Error:"
 											  +" Attr val too long (>0xfffff)"
 											  + formatLineNumber());
@@ -2352,9 +2391,6 @@ public class VTDGen1 {
 								TOKEN_ATTR_VAL,
 								depth);
 						}
-						//System.out.println(" " + temp_offset + " " + length1 + " attr val " + depth);
-						//has_amp = false;
-						//length1 = 0;
 						ch = r.getChar();
 						if (XMLChar.isSpaceChar(ch)) {
 							ch = getCharAfterS();
@@ -2385,7 +2421,17 @@ public class VTDGen1 {
 									//temp_offset = offset;
 									entityIdentifier();
 									parser_state = STATE_TEXT;
-								} else
+								} else if (ch == ']') {
+									if (r.skipChar(']')) {
+										while (r.skipChar(']')) {
+										}
+										if (r.skipChar('>'))
+											throw new ParseException(
+												"Error in text content: ]]> in text content"
+													+ formatLineNumber());
+									}
+									parser_state = STATE_TEXT;
+								}else
 									throw new ParseException(
 										"Error in text content: Invalid char"
 											+ formatLineNumber());
@@ -2528,7 +2574,6 @@ public class VTDGen1 {
 										+ formatLineNumber());
 						}
 						if (r.getChar() == '>') {
-
 							//System.out.println(" " + temp_offset + " " + length1 + " comment " + depth);
 							if (encoding < FORMAT_UTF_16BE)
 								writeVTD(
@@ -2618,7 +2663,7 @@ public class VTDGen1 {
 //		l2Buffer = new FastLongBuffer(512);
 //		l3Buffer = new FastIntBuffer(2048);
 		
-		VTDBuffer = new FastLongBuffer2(a, ba.length >> (a+1));
+		VTDBuffer = new FastLongBuffer2(a, len>> (a+1));
 		l1Buffer = new FastLongBuffer2(7);
 		l2Buffer = new FastLongBuffer2(9);
 		l3Buffer = new FastIntBuffer2(11);
@@ -2632,13 +2677,13 @@ public class VTDGen1 {
 	 * @param depth int
 	 */
 	private void writeVTD(int offset, int length, int token_type, int depth) {
-		//static boolean withChild;
-		switch (token_type) {
-		case TOKEN_CHARACTER_DATA:
-		case TOKEN_CDATA_VAL:
-		case TOKEN_COMMENT:
 
-			if (length > 0xfffff) {
+			switch (token_type) {
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_CDATA_VAL:
+			case TOKEN_COMMENT:
+
+			if (length > MAX_TOKEN_LENGTH) {
 				int k;
 				int r_offset = offset;
 				for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
