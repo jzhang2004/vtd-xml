@@ -560,6 +560,19 @@ public class VTDGen1 {
 		return "\nLine Number: " + (lineNumber+1) + " Offset: " + (lineOffset-1);
 	}
 	/**
+	 * Write the remaining portion of LC info
+	 *
+	 */
+	private void finishUp(){
+		if (last_depth == 1) {
+			l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
+		} else if (last_depth == 2) {
+			l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+		}
+	}
+	
+	
+	/**
 	 * The entity ignorant version of getCharAfterS.
 	 * @return int
 	 * @throws ParseException 
@@ -2603,6 +2616,7 @@ public class VTDGen1 {
 		} catch (EOFException e) {
 			if (parser_state != STATE_DOC_END)
 				throw e;
+			finishUp();
 		}
 	}
 	/**
@@ -2701,7 +2715,8 @@ public class VTDGen1 {
 						| offset);
 			}
 			break;
-
+			
+			//case TOKEN_ENDING_TAG: break;
 		default:
 			VTDBuffer.append(((long) ((token_type << 28)
 					| ((depth & 0xff) << 20) | length) << 32)
@@ -2745,12 +2760,12 @@ public class VTDGen1 {
 			//rootIndex = VTDBuffer.size() - 1;
 			}
 
-		} else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
+		} /*else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
 			if (last_depth == 1) {
 				l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
 			} else if (last_depth == 2) {
 				l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
 			}
-		}
+		}*/
 	}
 }

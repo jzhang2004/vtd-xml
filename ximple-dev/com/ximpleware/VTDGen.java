@@ -535,6 +535,17 @@ public class VTDGen {
 		}
 	}
 	/**
+	 * Write the remaining portion of LC info
+	 *
+	 */
+	private void finishUp(){
+		if (last_depth == 1) {
+			l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
+		} else if (last_depth == 2) {
+			l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+		}
+	}
+	/**
 	* Testing purposes.
 	* @param args java.lang.String[]
 	*/
@@ -2371,6 +2382,7 @@ public class VTDGen {
 		} catch (EOFException e) {
 			if (parser_state != STATE_DOC_END)
 				throw e;
+			finishUp();
 		}
 	}
 	/**
@@ -2593,7 +2605,41 @@ public class VTDGen {
 	 * @param depth int
 	 */
 	private void writeVTD(int offset, int length, int token_type, int depth) {
-
+		  /* long l = ((long) ((token_type << 28)
+				| ((depth & 0xff) << 20) | length) << 32)
+				| offset;*/
+		/*if (token_type!= TOKEN_ENDING_TAG)
+		   System.out.println(" offset --> "+offset+" ;"
+		   		+" length -->" + length +" ; tokenType --> "
+				+ token_type + " ; depth --> "+ depth);*/
+		   /*System.out.print("vtd value ==>");
+		   long[] lt = {((l&0xff00000000000000L)>>56)&0xff,
+		   		(l&0x00ff000000000000L)>>48,
+				(l&0x0000ff0000000000L)>>40,
+				(l&0x000000ff00000000L)>>32,
+				(l&0x00000000ff000000L)>>24,
+				(l&0x0000000000ff0000L)>>16,
+				(l&0x000000000000ff00L)>>8,
+				(l&0x00000000000000ffL)
+		   };
+		   for (int i = 0; i < lt.length; i++)
+			if (lt[i] == 0)
+				System.out.print("00 ");
+			else if (lt[i] < 0x10)
+				System.out.print("0" + Long.toHexString(lt[i]) + " ");
+			else
+				System.out.print("" + Long.toHexString(lt[i]) + " ");*/
+		  /* System.out.print(""+Long.toHexString(((l&0xff00000000000000L)>>56)&0xff));
+		   System.out.print(""+Long.toHexString((l&0x00ff000000000000L)>>48));
+		   System.out.print(""+Long.toHexString((l&0x0000ff0000000000L)>>40));
+		   System.out.print(""+Long.toHexString((l&0x000000ff00000000L)>>32));
+		   System.out.print(""+Long.toHexString((l&0x00000000ff000000L)>>24));
+		   System.out.print(""+Long.toHexString((l&0x0000000000ff0000L)>>16));
+		   System.out.print(""+Long.toHexString((l&0x000000000000ff00L)>>8));
+		   System.out.println(""+Long.toHexString((l&0x00000000000000ffL)));*/
+		   
+		  //System.out.println("");
+		   
 			switch (token_type) {
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
@@ -2617,11 +2663,14 @@ public class VTDGen {
 						| offset);
 			}
 			break;
-
+			//case TOKEN_ENDING_TAG: break;
 		default:
+
+		
 			VTDBuffer.append(((long) ((token_type << 28)
 					| ((depth & 0xff) << 20) | length) << 32)
 					| offset);
+		
 		}
 		// remember VTD depth start from zero
 		if (token_type == TOKEN_STARTING_TAG) {
@@ -2664,12 +2713,12 @@ public class VTDGen {
 					//rootIndex = VTDBuffer.size() - 1;
 			}
 
-		} else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
+		} /*else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
 			if (last_depth == 1) {
 				l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
 			} else if (last_depth == 2) {
 				l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
 			}
-		}
+		}*/
 	}
 }

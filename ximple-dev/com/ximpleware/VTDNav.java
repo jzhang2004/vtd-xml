@@ -245,23 +245,27 @@ public class VTDNav {
 	 * @exception IllegalArguementException if an is null
 	 */
 	public int getAttrVal(String an) throws NavException {
-		int size = vtdBuffer.size();
+		//int size = vtdBuffer.size();
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
-
-		int type = getTokenType(index);
+		
+		int type;
+		if (index<vtdSize)
+		   type= getTokenType(index);
+		else
+			return -1;
 		if (ns == false) {
-			while (index < size
-				&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+			while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 				if (matchRawTokenString(index,
 					an)) { // ns node visible only ns is disabled
 					return index + 1;
 				}
 				index += 2;
+				if (index >= vtdSize)
+					break;
 				type = getTokenType(index);
 			}
 		} else {
-			while (index < size
-				&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+			while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 				if (type == TOKEN_ATTR_NAME
 					&& matchRawTokenString(
 						index,
@@ -269,6 +273,8 @@ public class VTDNav {
 					return index + 1;
 				}
 				index += 2;
+				if (index>=vtdSize)
+					break;
 				type = getTokenType(index);
 			}
 		}
@@ -296,7 +302,11 @@ public class VTDNav {
 		int size = vtdBuffer.size();
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		// point to the token next to the element tag
-		int type = getTokenType(index);
+		int type;
+		if (index<vtdSize)
+			type = getTokenType(index);
+		else 
+			return -1;
 		while (index < size
 			&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 			int i = getTokenLength(index);
@@ -313,6 +323,8 @@ public class VTDNav {
 				return index + 1;
 			}
 			index += 2;
+			if (index>=vtdSize)
+				break;
 			type = getTokenType(index);
 		}
 		return -1;
@@ -423,10 +435,10 @@ public class VTDNav {
 			case FORMAT_UTF_16BE :
 				// implement UTF-16BE to UCS4 conversion
 				temp =
-					(XMLDoc.byteAt(currentOffset << 1)
-						<< 8) | XMLDoc.byteAt((currentOffset << 1) + 1);
+					((XMLDoc.byteAt(currentOffset << 1) & 0xff)	<< 8) 
+							|(XMLDoc.byteAt((currentOffset << 1) + 1)& 0xff);
 				if ((temp < 0xd800)
-					|| (temp >= 0xdc00)) { // not a high surrogate
+					|| (temp > 0xdfff)) { // not a high surrogate
 					if (temp == '\r') {
 						if (XMLDoc.byteAt((currentOffset << 1) + 3) == '\n'
 							&& XMLDoc.byteAt((currentOffset << 1) + 2) == 0) {
@@ -440,15 +452,17 @@ public class VTDNav {
 					currentOffset++;
 					return temp;
 				} else {
+					if (temp<0xd800 || temp>0xdbff)				
+						throw new NavException("UTF 16 BE encoding error: should never happen");
 					val = temp;
 					temp =
-						(XMLDoc.byteAt((currentOffset << 1) + 2)
-							<< 8) | XMLDoc.byteAt((currentOffset << 1 )+ 3);
+						((XMLDoc.byteAt((currentOffset << 1) + 2) & 0xff)
+							<< 8) | (XMLDoc.byteAt((currentOffset << 1 )+ 3) & 0xff);
 					if (temp < 0xdc00 || temp > 0xdfff) {
 						// has to be a low surrogate here
 						throw new NavException("UTF 16 BE encoding error: should never happen");
 					}
-					val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+					val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
 					currentOffset += 2;
 					return val;
 				}
@@ -456,8 +470,8 @@ public class VTDNav {
 			case FORMAT_UTF_16LE :
 				// implement UTF-16LE to UCS4 conversion
 				temp =
-					XMLDoc.byteAt((currentOffset << 1) + 1)
-						<< 8 | XMLDoc.byteAt(currentOffset << 1);
+					(XMLDoc.byteAt((currentOffset << 1) + 1 ) & 0xff)
+						<< 8 | (XMLDoc.byteAt(currentOffset << 1) & 0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
 					if (temp == '\r') {
 						if (XMLDoc.byteAt((currentOffset << 1) + 2) == '\n'
@@ -472,11 +486,13 @@ public class VTDNav {
 					currentOffset++;
 					return temp;
 				} else {
+					if (temp<0xd800 || temp>0xdbff)				
+						throw new NavException("UTF 16 LE encoding error: should never happen");
 					val = temp;
 					temp =
-						XMLDoc.byteAt((currentOffset << 1) + 3)
-							<< 8 | XMLDoc.byteAt((currentOffset << 1) + 2);
-					if (temp < 0xd800 || temp > 0xdc00) {
+						(XMLDoc.byteAt((currentOffset << 1) + 3)&0xff)
+							<< 8 | (XMLDoc.byteAt((currentOffset << 1) + 2) & 0xff);
+					if (temp < 0xdc00 || temp > 0xdfff) {
 						// has to be high surrogate
 						throw new NavException("UTF 16 LE encoding error: should never happen");
 					}
@@ -797,9 +813,13 @@ public class VTDNav {
 	public int getText() {
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		int depth = getCurrentDepth();
-		int type = getTokenType(index);
+		int type; 
+		if (index<vtdSize)
+			type = getTokenType(index);
+		else 
+			return -1;
 
-		while (index < vtdSize) {
+		while (true) {
 			if (type == TOKEN_CHARACTER_DATA || type == TOKEN_CDATA_VAL) {
 				if (depth == getTokenDepth(index))
 					return index;
@@ -817,6 +837,8 @@ public class VTDNav {
 					return -1;
 			} else
 				return -1;
+			if (index >= vtdSize)
+				break;
 			type = getTokenType(index);
 		}
 		return -1;
@@ -854,15 +876,16 @@ public class VTDNav {
 		int depth;
 		int val;
 		int len = 0;
+		long l = vtdBuffer.longAt(index);
 		switch (type) {
 			case TOKEN_ATTR_NAME :
 			case TOKEN_ATTR_NS :
 			case TOKEN_STARTING_TAG :
 				return (ns == false)
-					? (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_QN_LEN) >> 32)
-					: ((int) ((vtdBuffer.longAt(index) & MASK_TOKEN_QN_LEN)
+					? (int) ((l & MASK_TOKEN_QN_LEN) >> 32)
+					: ((int) ((l & MASK_TOKEN_QN_LEN)
 						>> 32)
-						| ((int) ((vtdBuffer.longAt(index) & MASK_TOKEN_PRE_LEN)
+						| ((int) ((l & MASK_TOKEN_PRE_LEN)
 							>> 32)
 							<< 5));
 			case TOKEN_CHARACTER_DATA:
@@ -871,8 +894,7 @@ public class VTDNav {
 				depth = getTokenDepth(index);
 				do{
 					len = len +  (int)
-					((vtdBuffer.longAt(index) 
-							& MASK_TOKEN_FULL_LEN) >> 32);
+					((l	& MASK_TOKEN_FULL_LEN) >> 32);
 					index++;						
 					}
 				while(index < vtdSize && depth == getTokenDepth(index) 
@@ -881,7 +903,7 @@ public class VTDNav {
 				return len;
 			default :
 				return (int)
-					((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
+					((l & MASK_TOKEN_FULL_LEN) >> 32);
 		}
 		/*if (encoding<3)
 		 return val;
@@ -2027,8 +2049,7 @@ public class VTDNav {
 					s = s + 1;
 					int type = getTokenType(s);
 
-					while (s < size
-						&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+					while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 						if (type == TOKEN_ATTR_NS) {
 							// Get the token length
 							int temp = getTokenLength(s);
@@ -2061,6 +2082,8 @@ public class VTDNav {
 						}
 						//return (URL != null) ? true : false;
 						s += 2;
+						if (s>=size)
+							break;
 						type = getTokenType(s);
 					}
 					break;
@@ -2070,8 +2093,7 @@ public class VTDNav {
 					int k = s + 1;
 					type = getTokenType(k);
 
-					while (k < size
-						&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+					while ( (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
 						if (type == TOKEN_ATTR_NS) {
 							// Get the token length
 							hasNS = true;
@@ -2087,7 +2109,7 @@ public class VTDNav {
 									s,
 									l | 0x00000000c0000000L);
 								if (URL != null) {
-									return matchRawTokenString(s + 1, URL);
+									return matchRawTokenString(k + 1, URL);
 								} else { //xmlns is found but shouldn't be
 									return false;
 								}
@@ -2115,6 +2137,8 @@ public class VTDNav {
 						}
 						//return (URL != null) ? true : false;
 						k += 2;
+						if (k>=size) 
+							break;
 						type = getTokenType(k);
 					}
 					l = vtdBuffer.longAt(s);
@@ -2410,6 +2434,8 @@ public class VTDNav {
 	public boolean toElement(int direction, String en) throws NavException {
 		int size;
 		int temp;
+		int d;
+		int val=0;
 		if (en == null)
 			throw new IllegalArgumentException(" Element name can't be null ");
 		if (en.equals("*"))
@@ -2453,27 +2479,57 @@ public class VTDNav {
 					return true;
 
 			case NEXT_SIBLING :
-				temp = context[context[0]]; // store the current position
-				if (context[0] == 0)
+				d = context[0];
+				switch(d)
+				{
+				  case 1: val = l1index; break;
+				  case 2: val = l2index; break;
+				  case 3: val = l3index; break;
+				  	default:
+				}
+				temp = context[d]; // store the current position
+				if (d == 0)
 					return false;
 				while (toElement(NEXT_SIBLING)) {
 					if (matchElement(en)) {
 						return true;
 					}
 				}
-				context[context[0]] = temp;
+				switch(d)
+				{
+				  case 1: l1index = val; break;
+				  case 2: l2index = val; break;
+				  case 3: l3index = val; break;
+				  	default:
+				}
+				context[d] = temp;
 				return false;
 
 			case PREV_SIBLING :
-				temp = context[context[0]]; // store the current position
-				if (context[0] == 0)
+				d = context[0];
+				switch(d)
+				{
+				  case 1: val = l1index; break;
+				  case 2: val = l2index; break;
+				  case 3: val = l3index; break;
+				  	default:
+				}
+				temp = context[d]; // store the current position
+				if (d == 0)
 					return false;
 				while (toElement(PREV_SIBLING)) {
 					if (matchElement(en)) {
 						return true;
 					}
 				}
-				context[context[0]] = temp;
+				switch(d)
+				{
+				  case 1: l1index = val; break;
+				  case 2: l2index = val; break;
+				  case 3: l3index = val; break;
+				  	default:
+				}
+				context[d] = temp;
 				return false;
 
 			default :
@@ -2509,6 +2565,8 @@ public class VTDNav {
 		throws NavException {
 		int size;
 		int temp;
+		int val=0;
+		int d; // temp location
 		if (ns == false)
 			return false;
 		switch (direction) {
@@ -2550,27 +2608,57 @@ public class VTDNav {
 					return true;
 
 			case NEXT_SIBLING :
-				temp = context[context[0]]; // store the current position
-				if (context[0] == 0)
+				d = context[0];
+				temp = context[d]; // store the current position
+				switch(d)
+				{
+				  case 1: val = l1index; break;
+				  case 2: val = l2index; break;
+				  case 3: val = l3index; break;
+				  	default:
+				}
+				if (d == 0)
 					return false;
 				while (toElement(NEXT_SIBLING)) {
 					if (matchElementNS(URL, ln)) {
 						return true;
 					}
 				}
-				context[context[0]] = temp;
+				switch(d)
+				{
+				  case 1: l1index = val; break;
+				  case 2: l2index = val; break;
+				  case 3: l3index = val; break;
+				  	default:
+				}
+				context[d] = temp;
 				return false;
 
 			case PREV_SIBLING :
-				temp = context[context[0]]; // store the current position
-				if (context[0] == 0)
+				d = context[0];
+				temp = context[d]; // store the current position
+				switch(d)
+				{
+				  case 1: val = l1index; break;
+				  case 2: val = l2index; break;
+				  case 3: val = l3index; break;
+				  	default:
+				}
+				if (d == 0)
 					return false;
 				while (toElement(PREV_SIBLING)) {
 					if (matchElementNS(URL, ln)) {
 						return true;
 					}
 				}
-				context[context[0]] = temp;
+				switch(d)
+				{
+				  case 1: l1index = val; break;
+				  case 2: l2index = val; break;
+				  case 3: l3index = val; break;
+				  	default:
+				}
+				context[d] = temp;
 				return false;
 
 			default :
