@@ -319,7 +319,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 									Throw e;
 									//throw new NavException("UTF 16 BE encoding error: should never happen");
 								}
-								val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
+								val = ((val - 0xd800) <<10) + (temp - 0xdc00) + 0x10000;
 								vn->currentOffset += 2;
 								return val;
 						}
@@ -345,7 +345,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								Throw e;
 								//throw new NavException("UTF 16 BE encoding error: should never happen");
 							}
-							val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
+							val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
 							vn->currentOffset += 2;
 							return val;
 					}
@@ -2304,7 +2304,14 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 Boolean d;
 						 UCS2Char *s = NULL;
 
-						 len = getTokenLength(vn,index);
+						 
+						 if (type == TOKEN_STARTING_TAG
+							 || type == TOKEN_ATTR_NAME
+							 || type == TOKEN_ATTR_NS)
+							 len = getTokenLength(vn,index) & 0xffff;
+						 else 
+							 len = getTokenLength(vn,index);
+
 						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*len);
 						 if (s == NULL)
 						 {
@@ -2312,8 +2319,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 e.msg = " string allocation failed in toString ";
 							 Throw e;							
 						 }
-						 if (len == 0)
-							 return "";
+						 
 						 vn->currentOffset = getTokenOffset(vn ,index);
 						 endOffset = len + vn->currentOffset - 1; // point to the last character
 						 
@@ -2322,7 +2328,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 while (TRUE) {
 							 int temp = vn->currentOffset;
-							 ch = getCharResolved(vn);
+							 ch = getChar(vn);
 							 if (!isWS(ch)) {
 								 vn->currentOffset = temp;
 								 break;
@@ -2333,7 +2339,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 k = 0;
 						 while (vn->currentOffset <= endOffset) {
 							 ch = getCharResolved(vn);
-							 if (isWS(ch)) {
+							 if (isWS(ch)&& getCharUnit(vn,vn->currentOffset - 1) != ';') {
 								 d = TRUE;
 							 } else {
 								 if (d == FALSE)
@@ -2341,7 +2347,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								     s[k++] = ch;
 								 else {
 									 //sb.append(' ');
-									 s[k++] = (UCS2Char) ch;
+									 s[k++] = (UCS2Char) ' ';
 									 //sb.append((char) ch);
 									 s[k++] = (UCS2Char) ch;
 									 d = FALSE;
@@ -2361,7 +2367,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 int len;
 						 UCS2Char *s = NULL;
 						 
-						 len = getTokenLength(vn,index);
+						 if (type == TOKEN_STARTING_TAG
+							 || type == TOKEN_ATTR_NAME
+							 || type == TOKEN_ATTR_NS)
+							 len = getTokenLength(vn,index) & 0xffff;
+						 else
+							 len = getTokenLength(vn,index);
 						 offset = getTokenOffset(vn,index);
 
 						 vn->currentOffset = getTokenOffset(vn,index);
@@ -2390,8 +2401,19 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 exception e;
 						 int k, offset, endOffset;
 						 tokenType type = getTokenType(vn,index);
-						 int len = getTokenLength(vn,index);
+						 int len;
 						 UCS2Char *s = NULL;
+						 if (type!=TOKEN_CHARACTER_DATA &&
+							 type!= TOKEN_ATTR_VAL)
+							 return toRawString(vn,index);
+
+						 if (type == TOKEN_STARTING_TAG
+							 || type == TOKEN_ATTR_NAME
+							 || type == TOKEN_ATTR_NS)
+							 len = getTokenLength(vn,index) & 0xffff;
+						 else 
+							 len = getTokenLength(vn,index);
+						 
 						 offset = getTokenOffset(vn,index);
 
 						 vn->currentOffset = getTokenOffset(vn,index);
