@@ -126,7 +126,8 @@ public class VTDGen1 {
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
 			int temp = XMLDoc[offset];
-			int a = 0, c = 0, d = 0, val = 0;
+			//int a = 0, c = 0, d = 0, val = 0;
+			int a,c,d,val;
 			if (temp >= 0) {
 				offset++;
 				return temp;
@@ -364,12 +365,7 @@ public class VTDGen1 {
 			if (offset >= endOffset)
 				throw new EOFException("Permature EOF reached, XML document incomplete");
 			a= XMLDoc[offset++];
-			if (a>=0)
-				return a;
-			else{
-			    throw new EncodingException("Invalid char for ASCII encoding"
-						+formatLineNumber());
-			}
+			return a&0x7f;
 		}
 		public boolean skipChar(int ch)
 			throws ParseException, EOFException, EncodingException {
@@ -1276,66 +1272,57 @@ public class VTDGen1 {
 
 					case STATE_END_TAG :
 						temp_offset = offset;
-						while (true) {
-							ch = r.getChar();
-							if (!XMLChar.isNameChar(ch)) {
-								break;
-							}
-						}
-						length1 = offset - temp_offset - increment;
 						int sos = (int) tag_stack[depth];
 						int sl = (int) (tag_stack[depth] >> 32);
-						if (sl == length1) {
-							for (int i = 0; i < length1; i++) {
-								if (XMLDoc[sos + i] != XMLDoc[temp_offset + i])
-									throw new ParseException(
-										"Ending tag error: Start/ending tag mismatch"
-											+ formatLineNumber());
-							}
-						} else
-							throw new ParseException(
-								"Ending tag error: Start/ending tag mismatch, length different"
+						
+						offset = temp_offset+sl;
+						
+						if (offset>= endOffset)
+							throw new EOFException("permature EOF reached, XML document incomplete");
+						for (int i = 0; i < sl; i++) {
+							if (XMLDoc[sos + i] != XMLDoc[temp_offset + i])
+								throw new ParseException(
+									"Ending tag error: Start/ending tag mismatch"
 									+ formatLineNumber());
-						//System.out.println(" " + temp_offset + " " + length1 + " ending tag " + depth);
-						//writeVTD(temp_offset, length1, TOKEN_ENDING_TAG, depth);
-						depth--;
-						if (XMLChar.isSpaceChar(ch)) {
-							ch = getCharAfterS();
 						}
-
-						if (ch == '>') {
-							if (depth != -1) {
-								temp_offset = offset;
-								ch = getCharAfterS();
-								if (ch == '<')
-									parser_state = STATE_LT_SEEN;
-								else if (XMLChar.isContentChar(ch)) {
-									parser_state = STATE_TEXT;
-								} else if (ch == '&') {
-									//has_amp = true;
-									entityIdentifier();
-									parser_state = STATE_TEXT;
-								} else if (ch == ']') {
-									if (r.skipChar(']')) {
-										while (r.skipChar(']')) {
-										}
-										if (r.skipChar('>'))
-											throw new ParseException(
-												"Error in text content: ]]> in text content"
-													+ formatLineNumber());
-									}
-									parser_state = STATE_TEXT;
-								}else
-									throw new ParseException(
-										"Other Error: Invalid char in xml"
-											+ formatLineNumber());
-							} else
-								parser_state = STATE_DOC_END;
-							break;
-						} else
+						depth--;
+						ch = getCharAfterS();
+						if(ch != '>')
 							throw new ParseException(
-								"Other Error: Invalid char in ending tag"
+								"Ending tag error: Invalid char in ending tag "
+								+ formatLineNumber()); 
+						
+						if (depth != -1) {
+							temp_offset = offset;
+							ch = getCharAfterS();
+							if (ch == '<')
+								parser_state = STATE_LT_SEEN;
+							else if (XMLChar.isContentChar(ch)) {
+								parser_state = STATE_TEXT;
+							} 
+							else if (ch == '&') {
+								//has_amp = true;
+								entityIdentifier();
+								parser_state = STATE_TEXT;
+							} 
+							else if (ch == ']') {
+								if (r.skipChar(']')) {
+									while (r.skipChar(']')) {
+									}
+									if (r.skipChar('>'))
+										throw new ParseException(
+										"Error in text content: ]]> in text content"
+										+ formatLineNumber());
+								}
+									parser_state = STATE_TEXT;
+							}else
+								throw new ParseException(
+									"Other Error: Invalid char in xml"
 									+ formatLineNumber());
+						} else
+							parser_state = STATE_DOC_END;
+						break;
+						
 					case STATE_UNRECORDED_TEXT :
 						break;
 					case STATE_PI_TAG :
