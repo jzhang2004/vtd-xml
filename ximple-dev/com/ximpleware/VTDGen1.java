@@ -68,6 +68,7 @@ public class VTDGen1 {
 
 	// tag_stack size
 	private final static int TAG_STACK_SIZE = 256;
+	
 
 	// encoding format
 	public final static int FORMAT_UTF8 = 2;
@@ -106,6 +107,15 @@ public class VTDGen1 {
 	protected int endOffset;
 	protected long[] tag_stack;
 	public long[] attr_name_array;
+	
+	// max prefix length
+	public final static int MAX_PREFIX_LENGTH = (1<<9) -1;
+	
+	// max Qname length
+	public final static int MAX_QNAME_LENGTH = (1<<11) -1;
+	
+	public final static int MAX_TOKEN_LENGTH = (1<<20) -1;
+
 
 	public final static int MAX_DEPTH = 255; // maximum depth value
 	class UTF8Reader implements IReader {
@@ -250,7 +260,7 @@ public class VTDGen1 {
 					// has to be a low surrogate here
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				}
-				val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
+				val = ((val - 0xd800)<<10) + (temp - 0xdc00) + 0x10000;
 				offset += 4;
 				return val;
 			}
@@ -273,7 +283,7 @@ public class VTDGen1 {
 					// has to be a low surrogate here
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				}
-				val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
+				val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
 				if (val == ch) {
 					offset += 4;
 					return true;
@@ -302,7 +312,7 @@ public class VTDGen1 {
 					// has to be high surrogate
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				}
-				val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
+				val = ((temp - 0xd800) <<10) + (val - 0xdc00) + 0x10000;
 				offset += 4;
 				return val;
 			}
@@ -325,7 +335,7 @@ public class VTDGen1 {
 					// has to be high surrogate
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				}
-				val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
+				val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
 				if (val == ch) {
 					offset += 4;
 					return true;
@@ -398,6 +408,7 @@ public class VTDGen1 {
 		l1Buffer = null;
 		l2Buffer = null;
 		l3Buffer = null;
+		XMLDoc = null;
 		offset = 0;
 		l1Size = l2Size = l3Size = VTDDepth = 0;
 		last_depth = last_l1_index = last_l2_index = 0;
@@ -833,6 +844,28 @@ public class VTDGen1 {
 	//			}
 	//		}
 	//	}
+	
+	public static void main(String[] argv){
+		VTDGen vg = new VTDGen();
+		vg.setDoc("<this><?abc?> aaaabbbbccccdddd</this>".getBytes());
+		try{
+			vg.parse(false);
+			System.out.println("A success");
+			VTDNav vn = vg.getNav();
+			vg.clear();
+			int size = vn.getTokenCount();
+			for(int i=0;i<size;i++){
+				System.out.print(" type --> "+vn.getTokenType(i));
+				System.out.print(" length -->"+vn.getTokenLength(i));
+				System.out.println("  offset -->"+vn.getTokenOffset(i));
+				System.out.println(" i -->"+i);
+			}
+			System.out.println(vn.toString(vn.getText()));
+		}
+		catch(Exception e){
+			System.out.println(e);
+		}		
+	}
 	/**
 	 * Generating VTD tokens and Location cache info.
 	 * @param NS boolean Enable namespace or not
@@ -1091,18 +1124,29 @@ public class VTDGen1 {
 						//     " " + (temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
 						if (depth > VTDDepth)
 							VTDDepth = depth;
-						if (encoding < FORMAT_UTF_16BE)
+						if (encoding < FORMAT_UTF_16BE){
+							if (length2>MAX_PREFIX_LENGTH
+									|| length1 > MAX_QNAME_LENGTH)
+								throw new ParseException(
+										"Token Length Error: Starting tag prefix or qname length too long"					
+										+ formatLineNumber());
 							writeVTD(
 								(temp_offset),
 								(length2 << 11) | length1,
 								TOKEN_STARTING_TAG,
-								depth);
-						else
+								depth);}
+						else{
+							if (length2>(MAX_PREFIX_LENGTH<<1)
+									|| (length1 > MAX_QNAME_LENGTH<<1))
+								throw new ParseException(
+										"Token Length Error: Starting tag prefix or qname length too long"
+										+ formatLineNumber());
 							writeVTD(
 								(temp_offset) >> 1,
 								(length2 << 10) | (length1 >> 1),
 								TOKEN_STARTING_TAG,
 								depth);
+						}
 						//offset += length1;
 						length2 = 0;
 						if (XMLChar.isSpaceChar(ch)) {
@@ -1194,7 +1238,7 @@ public class VTDGen1 {
 								"Ending tag error: Start/ending tag mismatch, length different"
 									+ formatLineNumber());
 						//System.out.println(" " + temp_offset + " " + length1 + " ending tag " + depth);
-						writeVTD(temp_offset, length1, TOKEN_ENDING_TAG, depth);
+						//writeVTD(temp_offset, length1, TOKEN_ENDING_TAG, depth);
 						depth--;
 						if (XMLChar.isSpaceChar(ch)) {
 							ch = getCharAfterS();
@@ -1241,18 +1285,28 @@ public class VTDGen1 {
 						        + length1
 						        + " PI Target "
 						        + depth); */
-						if (encoding < FORMAT_UTF_16BE)
+						if (encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH)
+								  throw new ParseException("Token Length Error:"
+											  +" PI name too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								(temp_offset),
 								length1,
-								TOKEN_STARTING_TAG,
+								TOKEN_PI_NAME,
 								depth);
-						else
+						}
+						else{
+							if (length1 > (MAX_TOKEN_LENGTH<<1))
+								  throw new ParseException("Token Length Error:"
+											  +" PI name too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								(temp_offset) >> 1,
 								(length1 >> 1),
-								TOKEN_STARTING_TAG,
+								TOKEN_PI_NAME,
 								depth);
+						}
 						//length1 = 0;
 						temp_offset = offset;
 						if (XMLChar.isSpaceChar(ch)) {
@@ -1310,16 +1364,31 @@ public class VTDGen1 {
 						        + length1
 						        + " PI val "
 						        + depth);*/
-						if (encoding < FORMAT_UTF_16BE)
-							writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
-						else
+						if (encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH)
+								  throw new ParseException("Token Length Error:"
+											  +" PI val too long (>0xfffff)"
+											  + formatLineNumber());
+							writeVTD(temp_offset,
+									length1, 
+									TOKEN_PI_VAL,
+									depth);
+						}
+						else{
+							if (length1 > (MAX_TOKEN_LENGTH<<1))
+								  throw new ParseException("Token Length Error:"
+											  +" PI val too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_PI_VAL,
 								depth);
+						}
 						//length1 = 0;
+						temp_offset = offset;
 						ch = getCharAfterSe();
+						
 						if (ch == '<') {
 							parser_state = STATE_LT_SEEN;
 						} else if (XMLChar.isContentChar(ch)) {
@@ -1897,18 +1966,28 @@ public class VTDGen1 {
 										+ formatLineNumber());
 						}
 						length1 = offset - temp_offset - 3 * increment;
-						if (encoding < FORMAT_UTF_16BE)
+						if (encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH)
+								  throw new ParseException("Token Length Error:"
+											  +"CDATA val too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								temp_offset,
 								length1,
 								TOKEN_CDATA_VAL,
 								depth);
-						else
+						}
+						else {
+							if (length1 > (MAX_TOKEN_LENGTH<<1))
+								  throw new ParseException("Token Length Error:"
+											  +"CDATA val too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_CDATA_VAL,
 								depth);
+						}
 						//System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
 						ch = getCharAfterSe();
 						if (ch == '<') {
@@ -1944,18 +2023,28 @@ public class VTDGen1 {
 						length1 = offset - temp_offset - increment;
 						/*System.out.println(
 						    " " + (temp_offset) + " " + length1 + " DOCTYPE val " + depth);*/
-						if (encoding < FORMAT_UTF_16BE)
+						if (encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH)
+								  throw new ParseException("Token Length Error:"
+											  +" DTD val too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								temp_offset,
 								length1,
 								TOKEN_DTD_VAL,
 								depth);
-						else
+						}
+						else{
+							if (length1 > (MAX_TOKEN_LENGTH<<1))
+								  throw new ParseException("Token Length Error:"
+											  +" DTD val too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_DTD_VAL,
 								depth);
+						}
 						ch = getCharAfterS();
 						if (ch == '<') {
 							parser_state = STATE_LT_SEEN;
@@ -2091,32 +2180,56 @@ public class VTDGen1 {
 
 						// after checking, write VTD
 						if (is_ns) {
-							if (encoding < FORMAT_UTF_16BE)
+							if (encoding < FORMAT_UTF_16BE){
+								if (length2>MAX_PREFIX_LENGTH
+										|| length1 > MAX_QNAME_LENGTH)
+									throw new ParseException(
+											"Token Length Error: Attr ns prefix or qname length too long"
+											+ formatLineNumber());
 								writeVTD(
 									temp_offset,
 									(length2 << 11) | length1,
 									TOKEN_ATTR_NS,
 									depth);
-							else
+							}
+							else{
+								if (length2>(MAX_PREFIX_LENGTH << 1)
+										|| length1 > (MAX_QNAME_LENGTH <<1))
+									throw new ParseException(
+											"Token Length Error: Attr ns prefix or qname length too long"
+											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
 									(length2 << 10) | (length1 >> 1),
 									TOKEN_ATTR_NS,
 									depth);
+							}
 							is_ns = false;
 						} else {
-							if (encoding < FORMAT_UTF_16BE)
+							if (encoding < FORMAT_UTF_16BE){
+								if (length2>MAX_PREFIX_LENGTH
+										|| length1 > MAX_QNAME_LENGTH)
+									throw new ParseException(
+											"Token Length Error: attr name prefix or qname length too long"
+											+ formatLineNumber());
 								writeVTD(
 									temp_offset,
 									(length2 << 11) | length1,
 									TOKEN_ATTR_NAME,
 									depth);
-							else
+							}
+							else{
+								if (length2>(MAX_PREFIX_LENGTH<<1)
+										|| length1 > (MAX_QNAME_LENGTH<<1))
+									throw new ParseException(
+											"Token Length Error: Attr name prefix or qname length too long" 
+											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
 									(length2 << 10) | (length1 >> 1),
 									TOKEN_ATTR_NAME,
 									depth);
+							}
 						}
 						/*System.out.println(
 						    " " + temp_offset + " " + length2 + ":" + length1 + " attr name " + depth);*/
@@ -2159,18 +2272,28 @@ public class VTDGen1 {
 						}
 
 						length1 = offset - temp_offset - increment;
-						if (encoding < FORMAT_UTF_16BE)
+						if (encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH)
+								  throw new ParseException("Token Length Error:"
+											  +" Attr val too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								temp_offset,
 								length1,
 								TOKEN_ATTR_VAL,
 								depth);
-						else
+						}
+						else{
+							if (length1 > MAX_TOKEN_LENGTH <<1)
+								  throw new ParseException("Token Length Error:"
+											  +" Attr val too long (>0xfffff)"
+											  + formatLineNumber());
 							writeVTD(
 								temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_ATTR_VAL,
 								depth);
+						}
 						//System.out.println(" " + temp_offset + " " + length1 + " attr val " + depth);
 						//has_amp = false;
 						//length1 = 0;
@@ -2251,18 +2374,28 @@ public class VTDGen1 {
 							        + length1
 							        + " PI Target "
 							        + depth);*/
-							if (encoding < FORMAT_UTF_16BE)
+							if (encoding < FORMAT_UTF_16BE){
+								if (length1 > MAX_TOKEN_LENGTH)
+									  throw new ParseException("Token Length Error:"
+												  +"PI name too long (>0xfffff)"
+												  + formatLineNumber());
 								writeVTD(
 									temp_offset,
 									length1,
 									TOKEN_PI_NAME,
 									depth);
-							else
+							}
+							else{
+								if (length1 > (MAX_TOKEN_LENGTH<<1))
+								  throw new ParseException("Token Length Error:"
+										  +"PI name too long (>0xfffff)"
+										  + formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
 									length1 >> 1,
 									TOKEN_PI_NAME,
 									depth);
+							}
 							//length1 = 0;
 							temp_offset = offset;
 							if (XMLChar.isSpaceChar(ch)) {
@@ -2285,18 +2418,28 @@ public class VTDGen1 {
 									ch = r.getChar();
 								}
 								length1 = offset - temp_offset - 2 * increment;
-								if (encoding < FORMAT_UTF_16BE)
+								if (encoding < FORMAT_UTF_16BE){
+									if (length1 > MAX_TOKEN_LENGTH)
+										  throw new ParseException("Token Length Error:"
+													  +"PI val too long (>0xfffff)"
+													  + formatLineNumber());
 									writeVTD(
 										temp_offset,
 										length1,
-										TOKEN_PI_NAME,
+										TOKEN_PI_VAL,
 										depth);
-								else
+								}
+								else{
+									if (length1 > (MAX_TOKEN_LENGTH<<1))
+										  throw new ParseException("Token Length Error:"
+													  +"PI val too long (>0xfffff)"
+													  + formatLineNumber());
 									writeVTD(
 										temp_offset >> 1,
 										length1 >> 1,
-										TOKEN_PI_NAME,
+										TOKEN_PI_VAL,
 										depth);
+								}
 								//System.out.println(" " + temp_offset + " " + length1 + " PI val " + depth);
 							} else {
 								if ((ch == '?') && r.skipChar('>')) {
@@ -2308,7 +2451,8 @@ public class VTDGen1 {
 							}
 							//parser_state = STATE_DOC_END;
 						} else
-							throw new ParseException("");
+							throw new ParseException("Error in PI: invalid char in PI target"
+									+ formatLineNumber());
 						break;
 
 					case STATE_END_COMMENT :
@@ -2429,51 +2573,71 @@ public class VTDGen1 {
 	 */
 	private void writeVTD(int offset, int length, int token_type, int depth) {
 		//static boolean withChild;
-		//
-		if (token_type != TOKEN_ENDING_TAG)
-			VTDBuffer.append(
-				((long) ((token_type << 28) | ((depth & 0xff) << 20) | length)
-					<< 32)
+		switch (token_type) {
+		case TOKEN_CHARACTER_DATA:
+		case TOKEN_CDATA_VAL:
+		case TOKEN_COMMENT:
+
+			if (length > 0xfffff) {
+				int k;
+				int r_offset = offset;
+				for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
+					VTDBuffer.append(((long) ((token_type << 28)
+							| ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32)
+							| r_offset);
+					r_offset += MAX_TOKEN_LENGTH;
+				}
+				VTDBuffer.append(((long) ((token_type << 28)
+						| ((depth & 0xff) << 20) | k) << 32)
+						| r_offset);
+			} else {
+				VTDBuffer.append(((long) ((token_type << 28)
+						| ((depth & 0xff) << 20) | length) << 32)
+						| offset);
+			}
+			break;
+
+		default:
+			VTDBuffer.append(((long) ((token_type << 28)
+					| ((depth & 0xff) << 20) | length) << 32)
 					| offset);
+		}
 		// remember VTD depth start from zero
 		if (token_type == TOKEN_STARTING_TAG) {
 			switch (depth) {
-				case 0 :
-					rootIndex = VTDBuffer.size() - 1;
-					break;
-				case 1 :
-					if (last_depth == 1) {
-						l1Buffer.append(
-							((long) last_l1_index << 32) | 0xffffffffL);
-					} else if (last_depth == 2) {
-						l2Buffer.append(
-							((long) last_l2_index << 32) | 0xffffffffL);
-					}
-					last_l1_index = VTDBuffer.size() - 1;
-					last_depth = 1;
-					break;
-				case 2 :
-					if (last_depth == 1) {
-						l1Buffer.append(
-							((long) last_l1_index << 32) + l2Buffer.size());
-					} else if (last_depth == 2) {
-						l2Buffer.append(
-							((long) last_l2_index << 32) | 0xffffffffL);
-					}
-					last_l2_index = VTDBuffer.size() - 1;
-					last_depth = 2;
-					break;
+			case 0:
+				rootIndex = VTDBuffer.size() - 1;
+				break;
+			case 1:
+				if (last_depth == 1) {
+					l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
+				} else if (last_depth == 2) {
+					l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+				}
+				last_l1_index = VTDBuffer.size() - 1;
+				last_depth = 1;
+				break;
+			case 2:
+				if (last_depth == 1) {
+					l1Buffer.append(((long) last_l1_index << 32)
+							+ l2Buffer.size());
+				} else if (last_depth == 2) {
+					l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+				}
+				last_l2_index = VTDBuffer.size() - 1;
+				last_depth = 2;
+				break;
 
-				case 3 :
-					l3Buffer.append(VTDBuffer.size() - 1);
-					if (last_depth == 2) {
-						l2Buffer.append(
-							((long) last_l2_index << 32) + l3Buffer.size() - 1);
-					}
-					last_depth = 3;
-					break;
-				default :
-					//rootIndex = VTDBuffer.size() - 1;
+			case 3:
+				l3Buffer.append(VTDBuffer.size() - 1);
+				if (last_depth == 2) {
+					l2Buffer.append(((long) last_l2_index << 32)
+							+ l3Buffer.size() - 1);
+				}
+				last_depth = 3;
+				break;
+			default:
+			//rootIndex = VTDBuffer.size() - 1;
 			}
 
 		} else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
