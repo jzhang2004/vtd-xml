@@ -425,7 +425,7 @@ static int getChar(VTDGen *vg){
 							Throw e;
 							//throw new EncodingException("UTF 16 BE encoding error: should never happen");
 						}
-						val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
+						val = ((val - 0xd800) <<10) + (temp - 0xdc00) + 0x10000;
 						vg->offset += 4;
 						return val;
 					}
@@ -445,7 +445,7 @@ static int getChar(VTDGen *vg){
 						Throw e;
 						//throw new EncodingException("UTF 16 LE encoding error: should never happen");
 					}
-					val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
+					val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
 					vg->offset += 4;
 					return val;
 				}
@@ -912,18 +912,44 @@ void parse(VTDGen *vg, Boolean ns){
 						//     " " + (temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
 						if (depth > vg->VTDDepth)
 							vg->VTDDepth = depth;
-						if (vg->encoding < FORMAT_UTF_16BE)
+						if (vg->encoding < FORMAT_UTF_16BE){
+							/*if (length2>MAX_PREFIX_LENGTH
+									|| length1 > MAX_QNAME_LENGTH)
+								throw new ParseException(
+										"Token Length Error: Starting tag prefix or qname length too long"
+										+formatLineNumber()); */
+							if (length2<MAX_PREFIX_LENGTH 
+								|| length1 > MAX_QNAME_LENGTH){
+									e.et = parse_exception;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg="Token Length Error: Starting tag prefix or qname length too long";
+									Throw e;
+								}
 							writeVTD(vg,
 							(temp_offset),
 							(length2 << 11) | length1,
 							TOKEN_STARTING_TAG,
 							depth);
-						else
+						}
+						else{
+							/*if (length2>MAX_PREFIX_LENGTH<<1
+									|| length1 > MAX_QNAME_LENGTH<<1)
+								throw new ParseException(
+										"Token Length Error: Starting tag prefix or qname length too long"
+										+formatLineNumber()); */
+							if ((length2<(MAX_PREFIX_LENGTH<<1)) 
+								|| (length1 > (MAX_QNAME_LENGTH <<1))){
+									e.et = parse_exception;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg="Token Length Error: Starting tag prefix or qname length too long";
+									Throw e;
+								}
 							writeVTD(vg,
 							(temp_offset) >> 1,
 							(length2 << 10) | (length1 >> 1),
 							TOKEN_STARTING_TAG,
 							depth);
+						}
 						//offset += length1;
 						length2 = 0;
 						if (XMLChar_isSpaceChar(ch)) {
@@ -1035,7 +1061,7 @@ void parse(VTDGen *vg, Boolean ns){
 						"Ending tag error: Start/ending tag mismatch, length different"
 						+ formatLineNumber());*/
 						//System.out.println(" " + temp_offset + " " + length1 + " ending tag " + depth);
-						writeVTD(vg,temp_offset, length1, TOKEN_ENDING_TAG, depth);
+						//writeVTD(vg,temp_offset, length1, TOKEN_ENDING_TAG, depth);
 						depth--;
 						if (XMLChar_isSpaceChar(ch)) {
 							ch = getCharAfterS(vg);
@@ -1091,18 +1117,32 @@ void parse(VTDGen *vg, Boolean ns){
 						+ length1
 						+ " PI Target "
 						+ depth); */
-						if (vg->encoding < FORMAT_UTF_16BE)
+						if (vg->encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH){
+								e.et = parse_exception;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg="Token Length Error: PI_TAG length too long";
+								Throw e;
+							}
 							writeVTD(vg,
 							(temp_offset),
 							length1,
-							TOKEN_STARTING_TAG,
+							TOKEN_PI_NAME,
 							depth);
-						else
+						}
+						else{													
+							if (length1 > (MAX_TOKEN_LENGTH << 1)){
+								e.et = parse_exception;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg="Token Length Error: PI_TAG length too long";
+								Throw e;
+							}
 							writeVTD(vg,
 							(temp_offset) >> 1,
 							(length1 >> 1),
-							TOKEN_STARTING_TAG,
+							TOKEN_PI_NAME,
 							depth);
+						}
 						//length1 = 0;
 						temp_offset = vg->offset;
 						if (XMLChar_isSpaceChar(ch)) {
@@ -1182,15 +1222,30 @@ void parse(VTDGen *vg, Boolean ns){
 						+ length1
 						+ " PI val "
 						+ depth);*/
-						if (vg->encoding < FORMAT_UTF_16BE)
+						if (vg->encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH){
+								e.et = parse_exception;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg="Token Length Error: PI_VAL length too long";
+								Throw e;
+							}
 							writeVTD(vg,temp_offset, length1, TOKEN_PI_VAL, depth);
-						else
+						}
+						else{
+							if (length1 > (MAX_TOKEN_LENGTH << 1)){
+								e.et = parse_exception;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg="Token Length Error: PI_VAL length too long";
+								Throw e;
+							}
 							writeVTD(vg,
-							temp_offset >> 1,
-							length1 >> 1,
-							TOKEN_PI_VAL,
-							depth);
+								temp_offset >> 1,
+								length1 >> 1,
+								TOKEN_PI_VAL,
+								depth);
+						}
 						//length1 = 0;
+						temp_offset = vg->offset;
 						ch = getCharAfterSe(vg);
 						if (ch == '<') {
 							parser_state = STATE_LT_SEEN;
@@ -1224,21 +1279,27 @@ void parse(VTDGen *vg, Boolean ns){
 							&& skipChar(vg,'n')) {
 								ch = getCharAfterS(vg);
 								if (ch == '=') {
+									
 									/*System.out.println(
 									" " + (temp_offset - 1) + " " + 7 + " dec attr name version " + depth);*/
-									if (vg->encoding < FORMAT_UTF_16BE)
+									if (vg->encoding < FORMAT_UTF_16BE){
+										
 										writeVTD(vg,
-										temp_offset - increment,
-										7,
-										TOKEN_DEC_ATTR_NAME,
-										depth);
-									else
+											temp_offset - increment,
+											7,
+											TOKEN_DEC_ATTR_NAME,
+											depth);
+									}
+									else{
+										
 										writeVTD(vg,
-										(temp_offset - increment) >> 1,
-										7,
-										TOKEN_DEC_ATTR_NAME,
-										depth);
-								} else
+											(temp_offset - increment) >> 1,
+											7,
+											TOKEN_DEC_ATTR_NAME,
+											depth);
+									}
+								} 
+								else
 								{		
 									e.et = parse_exception;
 									e.msg = "Parse Exception in parse()";
@@ -1275,18 +1336,22 @@ void parse(VTDGen *vg, Boolean ns){
 								&& (skipChar(vg,'0') || skipChar(vg,'1'))) {
 									/*System.out.println(
 									" " + temp_offset + " " + 3 + " dec attr val (version)" + depth);*/
-									if (vg->encoding < FORMAT_UTF_16BE)
+									if (vg->encoding < FORMAT_UTF_16BE){
+
 										writeVTD(vg,
-										temp_offset,
-										3,
-										TOKEN_DEC_ATTR_VAL,
-										depth);
-									else
+											temp_offset,
+											3,
+											TOKEN_DEC_ATTR_VAL,
+											depth);
+									}
+									else{
+
 										writeVTD(vg,
-										temp_offset >> 1,
-										3,
-										TOKEN_DEC_ATTR_VAL,
-										depth);
+											temp_offset >> 1,
+											3,
+											TOKEN_DEC_ATTR_VAL,
+											depth);
+									}
 								} else
 							{		
 								e.et = parse_exception;
@@ -1326,18 +1391,22 @@ void parse(VTDGen *vg, Boolean ns){
 											if (ch == '=') {
 												/*System.out.println(
 												" " + (temp_offset) + " " + 8 + " dec attr name (encoding) " + depth);*/
-												if (vg->encoding < FORMAT_UTF_16BE)
+												if (vg->encoding < FORMAT_UTF_16BE){
+													
 													writeVTD(vg,
-													temp_offset,
-													8,
-													TOKEN_DEC_ATTR_NAME,
-													depth);
-												else
+														temp_offset,
+														8,
+														TOKEN_DEC_ATTR_NAME,
+														depth);
+												}
+												else{
+													
 													writeVTD(vg,
-													temp_offset >> 1,
-													8,
-													TOKEN_DEC_ATTR_NAME,
-													depth);
+														temp_offset >> 1,
+														8,
+														TOKEN_DEC_ATTR_NAME,
+														depth);
+												}
 											} else{		
 												e.et = parse_exception;
 												e.msg = "Parse Exception in parse()";
@@ -1379,18 +1448,20 @@ void parse(VTDGen *vg, Boolean ns){
 										/*System.out.println(
 										" " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
 										if (vg->encoding
-											< FORMAT_UTF_16BE)
+											< FORMAT_UTF_16BE){
+												writeVTD(vg,
+													temp_offset,
+													5,
+													TOKEN_DEC_ATTR_VAL,
+													depth);
+											}
+										else{
 											writeVTD(vg,
-											temp_offset,
-											5,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
-										else
-											writeVTD(vg,
-											temp_offset >> 1,
-											5,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
+												temp_offset >> 1,
+												5,
+												TOKEN_DEC_ATTR_VAL,
+												depth);
+										}
 										break;
 									} else
 								{		
@@ -1433,18 +1504,20 @@ void parse(VTDGen *vg, Boolean ns){
 										/*System.out.println(
 										" " + (temp_offset) + " " + 10 + " dec attr val (encoding) " + depth);*/
 										if (vg->encoding
-											< FORMAT_UTF_16BE)
+											< FORMAT_UTF_16BE){
+												writeVTD(vg,
+													temp_offset,
+													10,
+													TOKEN_DEC_ATTR_VAL,
+													depth);
+											}
+										else{
 											writeVTD(vg,
-											temp_offset,
-											10,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
-										else
-											writeVTD(vg,
-											temp_offset >> 1,
-											10,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
+												temp_offset >> 1,
+												10,
+												TOKEN_DEC_ATTR_VAL,
+												depth);
+										}
 										break;
 									} else
 								{		
@@ -1490,19 +1563,21 @@ void parse(VTDGen *vg, Boolean ns){
 											//System.out.println(
 											//    " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);
 											if (vg->encoding
-												< FORMAT_UTF_16BE)
+												< FORMAT_UTF_16BE){
 												writeVTD(vg,
 												temp_offset,
 												5,
 												TOKEN_DEC_ATTR_VAL,
 												depth);
-											else
+												}
+											else{
 												writeVTD(vg,
 												temp_offset
 												>> 1,
 												5,
 												TOKEN_DEC_ATTR_VAL,
 												depth);
+											}
 											break;
 
 										} else
@@ -1541,18 +1616,22 @@ void parse(VTDGen *vg, Boolean ns){
 														" " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
 														if (vg->encoding
 															< FORMAT_UTF_16BE)
+														{
 															writeVTD(vg,
 															temp_offset,
 															5,
 															TOKEN_DEC_ATTR_VAL,
 															depth);
+														}
 														else
+														{
 															writeVTD(vg,
 															temp_offset
 															>> 1,
 															5,
 															TOKEN_DEC_ATTR_VAL,
 															depth);
+														}
 														break;
 													} else
 												{		
@@ -1576,18 +1655,21 @@ void parse(VTDGen *vg, Boolean ns){
 																" " + (temp_offset) + " " + 6 + " dec attr val (encoding) " + depth);*/
 																if (vg->encoding
 																	< FORMAT_UTF_16BE)
+																{
 																	writeVTD(vg,
 																	temp_offset,
 																	6,
 																	TOKEN_DEC_ATTR_VAL,
 																	depth);
-																else
+																}
+																else{
 																	writeVTD(vg,
 																	temp_offset
 																	>> 1,
 																	6,
 																	TOKEN_DEC_ATTR_VAL,
 																	depth);
+																}
 																break;
 															}
 
@@ -1611,18 +1693,22 @@ void parse(VTDGen *vg, Boolean ns){
 																	" " + (temp_offset) + " " + 7 + " dec attr val (encoding) " + depth);*/
 																	if (vg->encoding
 																		< FORMAT_UTF_16BE)
+																	{
 																		writeVTD(vg,
 																		temp_offset,
 																		7,
 																		TOKEN_DEC_ATTR_VAL,
 																		depth);
+																	}
 																	else
+																	{
 																		writeVTD(vg,
 																		temp_offset
 																		>> 1,
 																		7,
 																		TOKEN_DEC_ATTR_VAL,
 																		depth);
+																	}
 																	break;
 																}
 																e.et = parse_exception;
@@ -1644,18 +1730,21 @@ void parse(VTDGen *vg, Boolean ns){
 																		" " + (temp_offset) + " " + 7 + " dec attr val (encoding) " + depth);*/
 																		if (vg->encoding
 																			< FORMAT_UTF_16BE)
+																		{
 																			writeVTD(vg,
 																			temp_offset,
 																			7,
 																			TOKEN_DEC_ATTR_VAL,
 																			depth);
-																		else
+																		}
+																		else{
 																			writeVTD(vg,
 																			temp_offset
 																			>> 1,
 																			7,
 																			TOKEN_DEC_ATTR_VAL,
 																			depth);
+																		}
 																		break;
 																	}
 																	e.et = parse_exception;
@@ -1723,18 +1812,20 @@ void parse(VTDGen *vg, Boolean ns){
 											+ formatLineNumber());*/
 											/*System.out.println(
 											" " + temp_offset + " " + 3 + " dec attr name (standalone) " + depth);*/
-											if (vg->encoding < FORMAT_UTF_16BE)
+											if (vg->encoding < FORMAT_UTF_16BE){
 												writeVTD(vg,
 												temp_offset,
 												10,
 												TOKEN_DEC_ATTR_NAME,
 												depth);
-											else
+											}
+											else{
 												writeVTD(vg,
 												temp_offset >> 1,
 												10,
 												TOKEN_DEC_ATTR_NAME,
 												depth);
+											}
 											ch_temp = getCharAfterS(vg);
 											temp_offset = vg->offset;
 											if (ch_temp != '"' && ch_temp != '\''){		
@@ -1754,7 +1845,6 @@ void parse(VTDGen *vg, Boolean ns){
 											//		/*System.out.println(
 											//		    " " + (temp_offset) + " " + 3 + " dec attr val (standalone) " + depth);*/
 											//		if (vg->encoding < FORMAT_UTF_16BE)
-											//			writeVTD(vg,
 											//				temp_offset,
 											//				3,
 											//				TOKEN_DEC_ATTR_VAL,
@@ -1869,18 +1959,20 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 						if (getChar(vg) == '>') {
 							//System.out.println(" " + (temp_offset) + " " + length1 + " comment " + depth);
-							if (vg->encoding < FORMAT_UTF_16BE)
+							if (vg->encoding < FORMAT_UTF_16BE){
 								writeVTD(vg,
 								temp_offset,
 								length1,
 								TOKEN_COMMENT,
 								depth);
-							else
+							}
+							else{
 								writeVTD(vg,
 								temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_COMMENT,
 								depth);
+							}
 							//length1 = 0;
 							temp_offset = vg->offset;
 							ch = getCharAfterSe(vg);
@@ -1942,18 +2034,20 @@ void parse(VTDGen *vg, Boolean ns){
 							+ formatLineNumber());*/
 						}
 						length1 = vg->offset - temp_offset - 3 * increment;
-						if (vg->encoding < FORMAT_UTF_16BE)
+						if (vg->encoding < FORMAT_UTF_16BE){
 							writeVTD(vg,
 							temp_offset,
 							length1,
 							TOKEN_CDATA_VAL,
 							depth);
-						else
+						}
+						else{
 							writeVTD(vg,
 							temp_offset >> 1,
 							length1 >> 1,
 							TOKEN_CDATA_VAL,
 							depth);
+						}
 						//System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
 						ch = getCharAfterSe(vg);
 						if (ch == '<') {
@@ -2001,18 +2095,32 @@ void parse(VTDGen *vg, Boolean ns){
 						length1 = vg->offset - temp_offset - increment;
 						/*System.out.println(
 						" " + (temp_offset) + " " + length1 + " DOCTYPE val " + depth);*/
-						if (vg->encoding < FORMAT_UTF_16BE)
+						if (vg->encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH){
+								e.et = parse_exception;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg="Token Length Error: DTD_VAL length too long";
+								Throw e;
+							}
 							writeVTD(vg,
-							temp_offset,
-							length1,
-							TOKEN_DTD_VAL,
-							depth);
-						else
+								temp_offset,
+								length1,
+								TOKEN_DTD_VAL,
+								depth);
+						}
+						else{
+							if (length1 > (MAX_TOKEN_LENGTH<<1)){
+								e.et = parse_exception;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg="Token Length Error: DTD_VAL length too long";
+								Throw e;
+							}
 							writeVTD(vg,
-							temp_offset >> 1,
-							length1 >> 1,
-							TOKEN_DTD_VAL,
-							depth);
+								temp_offset >> 1,
+								length1 >> 1,
+								TOKEN_DTD_VAL,
+								depth);
+						}
 						ch = getCharAfterS(vg);
 						if (ch == '<') {
 							parser_state = STATE_LT_SEEN;
@@ -2083,19 +2191,20 @@ void parse(VTDGen *vg, Boolean ns){
 						//if (has_amp) {
 						/*System.out.println(
 						" " + temp_offset + " " + length1 + " text with amp " + depth);*/
-						if (vg->encoding < FORMAT_UTF_16BE)
+						if (vg->encoding < FORMAT_UTF_16BE){
 							writeVTD(vg,
 							temp_offset,
 							length1,
 							TOKEN_CHARACTER_DATA,
 							depth);
-						else
+						}
+						else{
 							writeVTD(vg,
 							temp_offset >> 1,
 							length1 >> 1,
 							TOKEN_CHARACTER_DATA,
 							depth);
-
+						}
 						//} else {
 						//System.out.println(" " + temp_offset + " " + length1 + " text " + depth);
 						//  if (encoding < 3)
@@ -2214,32 +2323,85 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 						// after checking, write VTD
 						if (is_ns) {
-							if (vg->encoding < FORMAT_UTF_16BE)
+							if (vg->encoding < FORMAT_UTF_16BE){
+
+								/*if (length2>MAX_PREFIX_LENGTH
+									|| length1 > MAX_QNAME_LENGTH)
+								throw new ParseException(
+										"Token Length Error: Starting tag prefix or qname length too long"
+										+formatLineNumber()); */	
+								if (length2<MAX_PREFIX_LENGTH 
+								|| length1 > MAX_QNAME_LENGTH){
+									e.et = parse_exception;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg="Token Length Error: Attr NS prefix or qname length too long";
+									Throw e;
+								}
 								writeVTD(vg,
 								temp_offset,
 								(length2 << 11) | length1,
 								TOKEN_ATTR_NS,
 								depth);
-							else
+							}
+							else{
+								/*if (length2>MAX_PREFIX_LENGTH<<1
+									|| length1 > MAX_QNAME_LENGTH<<1 )
+								throw new ParseException(
+										"Token Length Error: Starting tag prefix or qname length too long"
+										+formatLineNumber()); */
+								if (length2<(MAX_PREFIX_LENGTH<<1) 
+								|| length1 >(MAX_QNAME_LENGTH<<1)){
+									e.et = parse_exception;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg="Token Length Error: Attr ns prefix or qname length too long";
+									Throw e;
+								}
 								writeVTD(vg,
 								temp_offset >> 1,
 								(length2 << 10) | (length1 >> 1),
 								TOKEN_ATTR_NS,
 								depth);
+							}
 							is_ns = FALSE;
 						} else {
-							if (vg->encoding < FORMAT_UTF_16BE)
+							if (vg->encoding < FORMAT_UTF_16BE){
+								/*if (length2>MAX_PREFIX_LENGTH
+									|| length1 > MAX_QNAME_LENGTH)
+								throw new ParseException(
+										"Token Length Error: Starting tag prefix or qname length too long"
+										+formatLineNumber()); */
+								if (length2<MAX_PREFIX_LENGTH 
+								|| length1 > MAX_QNAME_LENGTH){
+									e.et = parse_exception;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg="Token Length Error: Attr name prefix or qname length too long";
+									Throw e;
+								}
 								writeVTD(vg,
 								temp_offset,
 								(length2 << 11) | length1,
 								TOKEN_ATTR_NAME,
 								depth);
-							else
+							}
+							else {
+								/*if (length2>MAX_PREFIX_LENGTH<<1
+									|| length1 > MAX_QNAME_LENGTH <<1 )
+								throw new ParseException(
+										"Token Length Error: Starting tag prefix or qname length too long"
+										+formatLineNumber()); */
+								if (length2< (MAX_PREFIX_LENGTH <<1)
+								|| length1 > (MAX_QNAME_LENGTH<<1)){
+									e.et = parse_exception;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg="Token Length Error: Attr name prefix or qname length too long";
+									Throw e;
+								}
 								writeVTD(vg,
 								temp_offset >> 1,
 								(length2 << 10) | (length1 >> 1),
 								TOKEN_ATTR_NAME,
 								depth);
+							}
 						}
 						/*System.out.println(
 						" " + temp_offset + " " + length2 + ":" + length1 + " attr name " + depth);*/
@@ -2303,19 +2465,32 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 
 						length1 = vg->offset - temp_offset - increment;
-						if (vg->encoding < FORMAT_UTF_16BE)
+						if (vg->encoding < FORMAT_UTF_16BE){
+							if (length1 > MAX_TOKEN_LENGTH){
+								e.et = parse_exception;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg="Token Length Error: ATTR_VAL length too long";
+								Throw e;
+							}
 							writeVTD(vg,
 							temp_offset,
 							length1,
 							TOKEN_ATTR_VAL,
 							depth);
-						else
+						}
+						else{
+							if (length1 > (MAX_TOKEN_LENGTH << 1)){
+								e.et = parse_exception;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg="Token Length Error: ATTR_VAL length too long";
+								Throw e;
+							}
 							writeVTD(vg,
 							temp_offset >> 1,
 							length1 >> 1,
 							TOKEN_ATTR_VAL,
 							depth);
-
+						}
 						ch = getChar(vg);
 						if (XMLChar_isSpaceChar(ch)) {
 							ch = getCharAfterS(vg);
@@ -2408,18 +2583,32 @@ void parse(VTDGen *vg, Boolean ns){
 								+ length1
 								+ " PI Target "
 								+ depth);*/
-								if (vg->encoding < FORMAT_UTF_16BE)
+								if (vg->encoding < FORMAT_UTF_16BE){
+									if (length1 > MAX_TOKEN_LENGTH){
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg="Token Length Error: PI_NAME length too long";
+										Throw e;
+									}
 									writeVTD(vg,
-									temp_offset,
-									length1,
-									TOKEN_PI_NAME,
-									depth);
-								else
+										temp_offset,
+										length1,
+										TOKEN_PI_NAME,
+										depth);
+								}
+								else{
+									if (length1 > (MAX_TOKEN_LENGTH<<1)){
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg="Token Length Error: PI_NAME length too long";
+										Throw e;
+									}
 									writeVTD(vg,
-									temp_offset >> 1,
-									length1 >> 1,
-									TOKEN_PI_NAME,
-									depth);
+										temp_offset >> 1,
+										length1 >> 1,
+										TOKEN_PI_NAME,
+										depth);
+								}
 								//length1 = 0;
 								temp_offset = vg->offset;
 								if (XMLChar_isSpaceChar(ch)) {
@@ -2452,18 +2641,32 @@ void parse(VTDGen *vg, Boolean ns){
 										ch = getChar(vg);
 									}
 									length1 = vg->offset - temp_offset - 2 * increment;
-									if (vg->encoding < FORMAT_UTF_16BE)
+									if (vg->encoding < FORMAT_UTF_16BE){
+										if (length1 > MAX_TOKEN_LENGTH){
+											e.et = parse_exception;
+											e.msg = "Parse Exception in parse()";
+											e.sub_msg="Token Length Error: PI_VAL length too long";
+											Throw e;
+										}
 										writeVTD(vg,
-										temp_offset,
-										length1,
-										TOKEN_PI_NAME,
-										depth);
-									else
+											temp_offset,
+											length1,
+											TOKEN_PI_VAL,
+											depth);
+									}
+									else{
+										if (length1 > (MAX_TOKEN_LENGTH << 1)){
+											e.et = parse_exception;
+											e.msg = "Parse Exception in parse()";
+											e.sub_msg="Token Length Error: PI_VAL length too long";
+											Throw e;
+										}
 										writeVTD(vg,
-										temp_offset >> 1,
-										length1 >> 1,
-										TOKEN_PI_NAME,
-										depth);
+											temp_offset >> 1,
+											length1 >> 1,
+											TOKEN_PI_VAL,
+											depth);
+									}
 									//System.out.println(" " + temp_offset + " " + length1 + " PI val " + depth);
 								} else {
 									if ((ch == '?') && skipChar(vg,'>')) {
@@ -2508,18 +2711,21 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 						if (getChar(vg) == '>') {
 							//System.out.println(" " + temp_offset + " " + length1 + " comment " + depth);
-							if (vg->encoding < FORMAT_UTF_16BE)
+							if (vg->encoding < FORMAT_UTF_16BE){
 								writeVTD(vg,
-								temp_offset,
-								length1,
-								TOKEN_COMMENT,
-								depth);
+									temp_offset,
+									length1,
+									TOKEN_COMMENT,
+									depth);
+							}
 							else
+							{
 								writeVTD(vg,
-								temp_offset >> 1,
-								length1 >> 1,
-								TOKEN_COMMENT,
-								depth);
+									temp_offset >> 1,
+									length1 >> 1,
+									TOKEN_COMMENT,
+									depth);
+							}
 							//length1 = 0;
 							parser_state = STATE_DOC_END;
 							break;
@@ -2786,15 +2992,53 @@ static Boolean skipChar(VTDGen *vg, int ch){
 // needs to take care byte endian
 static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth){
 	printf(" offset --> %d ; length -->%d ; tokenType ---> %d ; depth --> %d \n", offset, length, token_type, depth);
-	if (token_type != TOKEN_ENDING_TAG)
-#if BIG_ENDIAN
-		appendLong(vg->VTDBuffer,
-		((Long) ((token_type << 28) | 
-		((depth & 0xff) << 20) | length)<< 32)
-		| vg->offset);
-#else
+	switch (token_type) {
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_CDATA_VAL:
+			case TOKEN_COMMENT:
 
+				if (length > MAX_TOKEN_LENGTH) {
+					int k;
+					int r_offset = offset;
+					for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
+#if BIG_ENDIAN
+
+						appendLong(vg->VTDBuffer,((long) ((token_type << 28)
+							| ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32)
+							| r_offset);
+#else
 #endif
+
+						r_offset += MAX_TOKEN_LENGTH;
+					}
+#if BIG_ENDIAN
+
+					appendLong(vg->VTDBuffer,((long) ((token_type << 28)
+						| ((depth & 0xff) << 20) | k) << 32)
+						| r_offset);
+#else
+#endif
+				} else {
+#if BIG_ENDIAN
+					appendLong(vg->VTDBuffer,((long) ((token_type << 28)
+						| ((depth & 0xff) << 20) | length) << 32)
+						| offset);
+#else
+#endif
+				}
+				break;
+
+			default:
+#if BIG_ENDIAN
+
+				appendLong(vg->VTDBuffer,((long) ((token_type << 28)
+					| ((depth & 0xff) << 20) | length) << 32)
+					| offset);
+#else
+#endif
+	}
+
+
 	// remember VTD depth start from zero
 	if (token_type == TOKEN_STARTING_TAG) {
 		switch (depth) {
