@@ -192,7 +192,7 @@ static int  entityIdentifier(VTDGen *vg){
 						} else{
 							e.et = parse_exception;
 							e.msg = "Parse exception in entityIdentifier";
-							e.sub_msg = "Errors in char reference: Illegal char following &#x.";
+							e.sub_msg = "Errors in char reference: Illegal char following &#.";
 							Throw e;
 						}
 						//throw new EntityException("Errors in char reference: Illegal char following &#.");
@@ -298,7 +298,7 @@ static void printLineNumber(VTDGen *vg){
 	int end = vg->offset;
 
 	if (vg->encoding < FORMAT_UTF_16BE) {
-		while (so <= vg->offset) {
+		while (so <= vg->offset-1) {
 			if (vg->XMLDoc[so] == '\n') {
 				lineNumber++;
 				lineOffset = so;
@@ -308,7 +308,7 @@ static void printLineNumber(VTDGen *vg){
 		}
 		lineOffset = vg->offset - lineOffset;
 	} else if (vg->encoding == FORMAT_UTF_16BE) {
-		while (so <= vg->offset) {
+		while (so <= vg->offset-2) {
 			if (vg->XMLDoc[so + 1] == '\n' && vg->XMLDoc[so] == 0) {
 				lineNumber++;
 				lineOffset = so;
@@ -317,7 +317,7 @@ static void printLineNumber(VTDGen *vg){
 		}
 		lineOffset = (vg->offset - lineOffset) >> 1;
 	} else {
-		while (so <= vg->offset) {
+		while (so <= vg->offset-2) {
 			if (vg->XMLDoc[so] == '\n' && vg->XMLDoc[so + 1] == 0) {
 				lineNumber++;
 				lineOffset = so;
@@ -327,7 +327,7 @@ static void printLineNumber(VTDGen *vg){
 		lineOffset = (vg->offset - lineOffset) >> 1;
 	}
 	//return "\nLine Number: " + lineNumber + " Offset: " + lineOffset;
-	printf("\nLine Number: %d  Offset: %d ",lineNumber, lineOffset);
+	printf("\nLine Number: %d  Offset: %d \n",lineNumber+1, lineOffset-1);
 }
 
 // This method automatically converts the underlying byte 
@@ -346,16 +346,22 @@ static int getChar(VTDGen *vg){
 	switch (vg->encoding) {
 			case FORMAT_ASCII :
 				temp = vg->XMLDoc[vg->offset];
+				if (temp>127){
+					e.et = parse_exception;
+					e.msg = "Parse exception in getChar";
+					e.sub_msg = "Invalid char for ASCII encoding";
+					Throw e;
+				}
 				vg->offset++;
 				return temp;
 			case FORMAT_UTF8 :
 
 				temp = vg->XMLDoc[vg->offset];
-				if (temp >= 0) {
+				if (temp <128) {
 					vg->offset++;
 					return temp;
 				}
-				temp = temp & 0xff;
+				//temp = temp & 0xff;
 				switch (UTF8Char_byteCount(temp)) { // handle multi-byte code
 			case 2 :
 				c = 0x1f;
@@ -411,10 +417,16 @@ static int getChar(VTDGen *vg){
 				// implement UTF-16BE to UCS4 conversion
 				temp = vg->XMLDoc[vg->offset] << 8 | vg->XMLDoc[vg->offset + 1];
 				if ((temp < 0xd800)
-					|| (temp >= 0xdc00)) { // not a high surrogate
+					|| (temp > 0xdfff)) { // not a high surrogate
 						vg->offset += 2;
 						return temp;
 					} else {
+						if(temp<0xd800 || temp>0xdbff){
+							e.et = parse_exception;
+							e.msg = "Parse exception in getChar";
+							e.sub_msg = "UTF 16 BE encoding error: should never happen";
+							Throw e;
+						}
 						val = temp;
 						temp = vg->XMLDoc[vg->offset + 2] << 8 | vg->XMLDoc[vg->offset + 3];
 						if (temp < 0xdc00 || temp > 0xdfff) {
@@ -431,13 +443,19 @@ static int getChar(VTDGen *vg){
 					}
 			case FORMAT_UTF_16LE :
 				temp = vg->XMLDoc[vg->offset + 1] << 8 | vg->XMLDoc[vg->offset];
-				if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
+				if (temp < 0xd800 || temp > 0xdfff) { // check for low surrogate
 					vg->offset += 2;
 					return temp;
 				} else {
+					if(temp<0xd800 || temp>0xdbff){
+						e.et = parse_exception;
+						e.msg = "Parse exception in getChar";
+						e.sub_msg = "UTF 16 LE encoding error: should never happen";
+						Throw e;
+					}
 					val = temp;
 					temp = vg->XMLDoc[vg->offset + 3] << 8 | vg->XMLDoc[vg->offset + 2];
-					if (temp < 0xd800 || temp > 0xdc00) {
+					if (temp < 0xdc00 || temp > 0xdfff) {
 						// has to be high surrogate
 						e.et = parse_exception;
 						e.msg = "Parse exception in getChar";
@@ -452,7 +470,7 @@ static int getChar(VTDGen *vg){
 			case FORMAT_ISO_8859 :
 				temp = vg->XMLDoc[vg->offset];
 				vg->offset++;
-				return temp & 0xff;
+				return temp;
 			default :
 				e.et = parse_exception;
 				e.msg = "Parse exception in getChar";
@@ -587,9 +605,11 @@ void parse(VTDGen *vg, Boolean ns){
 	int i,j,z;
 	parseState parser_state = STATE_DOC_START;
 	//boolean has_amp = false; 
-	Boolean is_ns = ns;
+	Boolean is_ns = FALSE;
 	Boolean unique;
 	Boolean unequal;
+	Boolean BOM_detected = FALSE;
+	Boolean must_utf_8 = FALSE;
 	Long x;
 	Boolean main_loop = TRUE,
 		hasDTD = FALSE,
@@ -614,6 +634,7 @@ void parse(VTDGen *vg, Boolean ns){
 		if (vg->XMLDoc[vg->offset + 1] == -1) {
 			vg->offset += 2;
 			vg->encoding = FORMAT_UTF_16BE;
+			BOM_detected = TRUE;
 			//r = new UTF16BEReader();
 		} else{
 			e.et = parse_exception;
@@ -627,6 +648,7 @@ void parse(VTDGen *vg, Boolean ns){
 		if (vg->XMLDoc[vg->offset + 1] == -2) {
 			vg->offset += 2;
 			vg->encoding = FORMAT_UTF_16LE;
+			BOM_detected = TRUE;
 			//r = new UTF16LEReader();
 		} else{
 			e.et = parse_exception;
@@ -635,9 +657,44 @@ void parse(VTDGen *vg, Boolean ns){
 			Throw e;
 		}
 		//throw new EncodingException("Unknown Character encoding");
+	} else if (vg->XMLDoc[vg->offset] == -17) {
+		if (vg->XMLDoc[vg->offset+1] == -69 && vg->XMLDoc[vg->offset+2]==-65){
+		      vg->offset +=3;
+		      must_utf_8= TRUE;
+		    }
+		else {
+			e.et = parse_exception;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Unknown Character encoding: not UTF-8";
+			Throw e;
+		}
+		 //	throw new EncodingException("Unknown Character encoding: not UTF-8");
+	
+	} else if (vg->XMLDoc[vg->offset] == 0) {
+		if (vg->XMLDoc[vg->offset+1] == 0x3c 
+			&& vg->XMLDoc[vg->offset+2] == 0 
+			&& vg->XMLDoc[vg->offset+3] == 0x3f){
+				vg->encoding = FORMAT_UTF_16BE;
+				increment = 2;
+			}
+		else{
+			e.et = parse_exception;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Unknown Character encoding: not UTF-16BE";
+			Throw e;
+		}
+		//	throw new EncodingException("Unknown Character encoding: not UTF-16BE");
+	} else if (vg->XMLDoc[vg->offset] == 0x3c) {
+		if (vg->XMLDoc[vg->offset+1] == 0 
+			&& vg->XMLDoc[vg->offset+2] == 0x3f 
+			&& vg->XMLDoc[vg->offset+3] == 0x0){
+				increment = 2;
+				vg->encoding = FORMAT_UTF_16LE;
+			}
 	}
+
 	if (vg->encoding < FORMAT_UTF_16BE) {
-		if ((vg->offset + vg->docLen) >= 1L << 30){
+		if ((unsigned int)(vg->offset + vg->docLen) >= (((unsigned int)1) << 30)){
 			e.et = parse_exception;
 			e.msg = "Parse Exception in parse()";
 			e.sub_msg = "Other error: file size too large";
@@ -645,7 +702,7 @@ void parse(VTDGen *vg, Boolean ns){
 		}
 		//throw new ParseException("Other error: file size too large ");
 	} else {
-		if ((vg->offset - 2 + vg->docLen) >= 1L << 31){
+		if ((unsigned int)(vg->offset - 2 + vg->docLen) >= (((unsigned int) 1) << 31)){
 			e.et = parse_exception;
 			e.msg = "Parse Exception in parse()";
 			e.sub_msg = "Other error: file size too large";
@@ -658,7 +715,7 @@ void parse(VTDGen *vg, Boolean ns){
 		while (main_loop) {
 			switch (parser_state) {
 					case STATE_DOC_START :
-						if (getCharAfterS(vg) == '<') {
+						if (getChar(vg) == '<') {
 							temp_offset = vg->offset;
 							// xml decl has to be right after the start of the document
 							if (skipChar(vg,'?')
@@ -918,7 +975,7 @@ void parse(VTDGen *vg, Boolean ns){
 							throw new ParseException(
 							"Token Length Error: Starting tag prefix or qname length too long"
 							+formatLineNumber()); */
-							if (length2<MAX_PREFIX_LENGTH 
+							if (length2>MAX_PREFIX_LENGTH 
 								|| length1 > MAX_QNAME_LENGTH){
 									e.et = parse_exception;
 									e.msg = "Parse Exception in parse()";
@@ -945,7 +1002,7 @@ void parse(VTDGen *vg, Boolean ns){
 							throw new ParseException(
 							"Token Length Error: Starting tag prefix or qname length too long"
 							+formatLineNumber()); */
-							if ((length2<(MAX_PREFIX_LENGTH<<1)) 
+							if ((length2>(MAX_PREFIX_LENGTH<<1)) 
 								|| (length1 > (MAX_QNAME_LENGTH <<1))){
 									e.et = parse_exception;
 									e.msg = "Parse Exception in parse()";
@@ -1011,7 +1068,22 @@ void parse(VTDGen *vg, Boolean ns){
 									//temp_offset = offset;
 									entityIdentifier(vg);
 									parser_state = STATE_TEXT;
-								} else{		
+								} else if (ch == ']') {
+								if (skipChar(vg,']')) {
+									while (skipChar(vg,']')) {
+									}
+									if (skipChar(vg,'>')){		
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg = "Error in text content: ]]> in text content";
+										Throw e;
+									}
+									/*throw new ParseException(
+									"Error in text content: ]]> in text content"
+									+ formatLineNumber());*/
+								}
+								parser_state = STATE_TEXT;
+							   } else{		
 									e.et = parse_exception;
 									e.msg = "Parse Exception in parse()";
 									e.sub_msg = "Error in text content: Invalid char";
@@ -1028,7 +1100,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 						e.et = parse_exception;
 						e.msg = "Parse Exception in parse()";
-						e.sub_msg = "Error in PI: [xX][mM][lL] not a valid PI targetname";
+						e.sub_msg = "Starting tag Error: Invalid char in starting tag";
 						Throw e;
 						/*throw new ParseException(
 						"Starting tag Error: Invalid char in starting tag"
@@ -1088,7 +1160,23 @@ void parse(VTDGen *vg, Boolean ns){
 									//has_amp = true;
 									entityIdentifier(vg);
 									parser_state = STATE_TEXT;
-								} else
+								} else if (ch == ']') {
+								if (skipChar(vg,']')) {
+									while (skipChar(vg,']')) {
+									}
+									if (skipChar(vg,'>')){		
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg = "Error in text content: ]]> in text content";
+										Throw e;
+									}
+									/*throw new ParseException(
+									"Error in text content: ]]> in text content"
+									+ formatLineNumber());*/
+								}
+								parser_state = STATE_TEXT;
+							   }
+								else
 								{	e.et = parse_exception;
 								e.msg = "Parse Exception in parse()";
 								e.sub_msg = "Other Error: Invalid char in xml";
@@ -1169,7 +1257,22 @@ void parse(VTDGen *vg, Boolean ns){
 									//has_amp = true;
 									entityIdentifier(vg);
 									parser_state = STATE_TEXT;
-								} else
+								} else if (ch == ']') {
+								if (skipChar(vg,']')) {
+									while (skipChar(vg,']')) {
+									}
+									if (skipChar(vg,'>')){		
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg = "Error in text content: ]]> in text content";
+										Throw e;
+									}
+									/*throw new ParseException(
+									"Error in text content: ]]> in text content"
+									+ formatLineNumber());*/
+								}
+								parser_state = STATE_TEXT;
+							   }else
 								{		
 									e.et = parse_exception;
 									e.msg = "Parse Exception in parse()";
@@ -1266,8 +1369,23 @@ void parse(VTDGen *vg, Boolean ns){
 							//temp_offset = offset;
 							entityIdentifier(vg);
 							parser_state = STATE_TEXT;
-						} else
-						{		
+						} else if (ch == ']') {
+								if (skipChar(vg,']')) {
+									while (skipChar(vg,']')) {
+									}
+									if (skipChar(vg,'>')){		
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg = "Error in text content: ]]> in text content";
+										Throw e;
+									}
+									/*throw new ParseException(
+									"Error in text content: ]]> in text content"
+									+ formatLineNumber());*/
+								}
+								parser_state = STATE_TEXT;
+							   }
+						else{		
 							e.et = parse_exception;
 							e.msg = "Parse Exception in parse()";
 							e.sub_msg = "Error in text content: Invalid char";
@@ -1453,6 +1571,12 @@ void parse(VTDGen *vg, Boolean ns){
 								if (vg->encoding != FORMAT_UTF_16LE
 									&& vg->encoding
 									!= FORMAT_UTF_16BE) {
+										if (must_utf_8){
+											e.et = parse_exception;
+											e.msg = "Parse Exception in parse()";
+											e.sub_msg = "Can't switch from UTF-8";
+											Throw e;
+										}
 										vg->encoding = FORMAT_ASCII;
 										/*System.out.println(
 										" " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
@@ -1509,6 +1633,12 @@ void parse(VTDGen *vg, Boolean ns){
 								if (vg->encoding != FORMAT_UTF_16LE
 									&& vg->encoding
 									!= FORMAT_UTF_16BE) {
+										if (must_utf_8){
+											e.et = parse_exception;
+											e.msg = "Parse Exception in parse()";
+											e.sub_msg = "Can't switch from UTF-8";
+											Throw e;
+										}
 										vg->encoding = FORMAT_ISO_8859;
 										/*System.out.println(
 										" " + (temp_offset) + " " + 10 + " dec attr val (encoding) " + depth);*/
@@ -1568,6 +1698,12 @@ void parse(VTDGen *vg, Boolean ns){
 										!= FORMAT_UTF_16LE
 										&& vg->encoding
 										!= FORMAT_UTF_16BE) {
+											if (must_utf_8){
+												e.et = parse_exception;
+												e.msg = "Parse Exception in parse()";
+												e.sub_msg = "Can't switch from UTF-8";
+												Throw e;
+											}
 											vg->encoding = FORMAT_ASCII;
 											//System.out.println(
 											//    " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);
@@ -1662,6 +1798,12 @@ void parse(VTDGen *vg, Boolean ns){
 															== FORMAT_UTF_16BE) {
 																/*System.out.println(
 																" " + (temp_offset) + " " + 6 + " dec attr val (encoding) " + depth);*/
+																if (BOM_detected == FALSE){
+																	e.et = parse_exception;
+																	e.msg = "Parse Exception in parse()";
+																	e.sub_msg = "BOM not detected for UTF-16";
+																	Throw e;
+																}
 																if (vg->encoding
 																	< FORMAT_UTF_16BE)
 																{
@@ -1995,7 +2137,23 @@ void parse(VTDGen *vg, Boolean ns){
 								//temp_offset = offset;
 								entityIdentifier(vg);
 								parser_state = STATE_TEXT;
-							} else{		
+							} else if (ch == ']') {
+								if (skipChar(vg,']')) {
+									while (skipChar(vg,']')) {
+									}
+									if (skipChar(vg,'>')){		
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg = "Error in text content: ]]> in text content";
+										Throw e;
+									}
+									/*throw new ParseException(
+									"Error in text content: ]]> in text content"
+									+ formatLineNumber());*/
+								}
+								parser_state = STATE_TEXT;
+							   }
+							else{		
 								e.et = parse_exception;
 								e.msg = "Parse Exception in parse()";
 								e.sub_msg = "XML decl error";
@@ -2025,7 +2183,7 @@ void parse(VTDGen *vg, Boolean ns){
 									} else{		
 										e.et = parse_exception;
 										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in comment: Invalid terminating sequence";
+										e.sub_msg = "Error in CDATA: Invalid terminating sequence";
 										Throw e;
 									}
 									/*throw new ParseException(
@@ -2070,7 +2228,23 @@ void parse(VTDGen *vg, Boolean ns){
 							entityIdentifier(vg);
 							parser_state = STATE_TEXT;
 							//temp_offset = offset;
-						} else{		
+						} else if (ch == ']') {
+								if (skipChar(vg,']')) {
+									while (skipChar(vg,']')) {
+									}
+									if (skipChar(vg,'>')){		
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg = "Error in text content: ]]> in text content";
+										Throw e;
+									}
+									/*throw new ParseException(
+									"Error in text content: ]]> in text content"
+									+ formatLineNumber());*/
+								}
+								parser_state = STATE_TEXT;
+							   }
+						else{		
 							e.et = parse_exception;
 							e.msg = "Parse Exception in parse()";
 							e.sub_msg = "Other Error: Invalid char in xml";
@@ -2339,7 +2513,7 @@ void parse(VTDGen *vg, Boolean ns){
 								throw new ParseException(
 								"Token Length Error: Starting tag prefix or qname length too long"
 								+formatLineNumber()); */	
-								if (length2<MAX_PREFIX_LENGTH 
+								if (length2>MAX_PREFIX_LENGTH 
 									|| length1 > MAX_QNAME_LENGTH){
 										e.et = parse_exception;
 										e.msg = "Parse Exception in parse()";
@@ -2352,6 +2526,7 @@ void parse(VTDGen *vg, Boolean ns){
 										(length2 << 11) | length1,
 										TOKEN_ATTR_NS,
 										depth);
+
 							}
 							else{
 								/*if (length2>MAX_PREFIX_LENGTH<<1
@@ -2360,11 +2535,11 @@ void parse(VTDGen *vg, Boolean ns){
 								"Token Length Error: Starting tag prefix or qname length too long"
 								+formatLineNumber()); */
 
-								if (length2<(MAX_PREFIX_LENGTH<<1) 
+								if (length2>(MAX_PREFIX_LENGTH<<1) 
 									|| length1 >(MAX_QNAME_LENGTH<<1)){
 										e.et = parse_exception;
 										e.msg = "Parse Exception in parse()";
-										e.sub_msg="Token Length Error: Attr ns prefix or qname length too long";
+										e.sub_msg="Token Length Error: Attr NS prefix or qname length too long";
 										Throw e;
 									}
 
@@ -2383,7 +2558,7 @@ void parse(VTDGen *vg, Boolean ns){
 								throw new ParseException(
 								"Token Length Error: Starting tag prefix or qname length too long"
 								+formatLineNumber()); */
-								if (length2<MAX_PREFIX_LENGTH 
+								if (length2>MAX_PREFIX_LENGTH 
 									|| length1 > MAX_QNAME_LENGTH){
 										e.et = parse_exception;
 										e.msg = "Parse Exception in parse()";
@@ -2403,7 +2578,7 @@ void parse(VTDGen *vg, Boolean ns){
 								throw new ParseException(
 								"Token Length Error: Starting tag prefix or qname length too long"
 								+formatLineNumber()); */
-								if (length2< (MAX_PREFIX_LENGTH <<1)
+								if (length2> (MAX_PREFIX_LENGTH <<1)
 									|| length1 > (MAX_QNAME_LENGTH<<1)){
 										e.et = parse_exception;
 										e.msg = "Parse Exception in parse()";
@@ -2537,7 +2712,23 @@ void parse(VTDGen *vg, Boolean ns){
 									//temp_offset = offset;
 									entityIdentifier(vg);
 									parser_state = STATE_TEXT;
-								} else{		
+								} else if (ch == ']') {
+								if (skipChar(vg,']')) {
+									while (skipChar(vg,']')) {
+									}
+									if (skipChar(vg,'>')){		
+										e.et = parse_exception;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg = "Error in text content: ]]> in text content";
+										Throw e;
+									}
+									/*throw new ParseException(
+									"Error in text content: ]]> in text content"
+									+ formatLineNumber());*/
+								}
+								parser_state = STATE_TEXT;
+							   }
+								else{		
 									e.et = parse_exception;
 									e.msg = "Parse Exception in parse()";
 									e.sub_msg = "Error in text content: Invalid char";
@@ -2766,8 +2957,10 @@ void parse(VTDGen *vg, Boolean ns){
 		}
 	} 
 	Catch (e) {
-		if (parser_state != STATE_DOC_END)
+		if (parser_state != STATE_DOC_END){
+			printLineNumber(vg);		
 			Throw e;
+		}
 		//else {
 		//	if (e.et == parse_exception){
 		//		printf(e.msg);
@@ -2782,7 +2975,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 
 // Set the XMLDoc container.
-void setDoc(VTDGen *vg, Byte *ba, int len){
+void setDoc(VTDGen *vg, UByte *ba, int len){
 	int a;
 	vg->XMLDoc = ba;
 	vg->docOffset = vg->offset = 0;
@@ -2809,7 +3002,7 @@ void setDoc(VTDGen *vg, Byte *ba, int len){
 }
 
 // Set the XMLDoc container.Also set the offset and len of the document 
-void setDoc2(VTDGen *vg, Byte *ba, int len, int os, int docLen){
+void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	int a;
 	vg->XMLDoc = ba;
 	vg->docOffset = vg->offset = os;
@@ -2850,6 +3043,12 @@ static Boolean skipChar(VTDGen *vg, int ch){
 	switch (vg->encoding) {
 			case FORMAT_ASCII :
 				temp = vg->XMLDoc[vg->offset];
+				if (temp>127){
+					e.et = parse_exception;
+					e.msg = "Parse exception in getChar";
+					e.sub_msg = "Invalid char for ASCII encoding";
+					Throw e;
+				}
 				if (ch == temp) {
 					vg->offset++;
 					return TRUE;
@@ -2858,7 +3057,7 @@ static Boolean skipChar(VTDGen *vg, int ch){
 				}
 			case FORMAT_UTF8 :
 				temp = vg->XMLDoc[vg->offset];
-				if (temp >= 0)
+				if (temp <128)
 					if (ch == temp) {
 						vg->offset++;
 						return TRUE;
@@ -2866,7 +3065,7 @@ static Boolean skipChar(VTDGen *vg, int ch){
 						return FALSE;
 					}
 
-					temp = temp & 0xff;
+					//temp = temp & 0xff;
 
 					switch (UTF8Char_byteCount(temp)) { // handle multi-byte code
 
@@ -3010,7 +3209,7 @@ static Boolean skipChar(VTDGen *vg, int ch){
 // LCs are not swapped, so when they got persisted, byte swap may be needed
 
 static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth){
-	printf(" offset --> %d ; length -->%d ; tokenType ---> %d ; depth --> %d \n", offset, length, token_type, depth);
+	//printf(" offset --> %d ; length -->%d ; tokenType ---> %d ; depth --> %d \n", offset, length, token_type, depth);
 	switch (token_type) {
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:

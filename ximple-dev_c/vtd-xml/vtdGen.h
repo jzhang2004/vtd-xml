@@ -33,7 +33,7 @@
 
 #define ATTR_NAME_ARRAY_SIZE 16
 #define TAG_STACK_SIZE 256
-#define MAX_DEPTH 255
+#define MAX_DEPTH 254
 #define MAX_TOKEN_LENGTH ((1<<20)-1)
 #define MAX_PREFIX_LENGTH ((1<<9)-1)
 #define MAX_QNAME_LENGTH ((1<<11)-1)
@@ -49,7 +49,7 @@ typedef struct vTDGen {
 	int offset;
 	int prev_offset;
 	int rootIndex;
-	Byte* XMLDoc; // byte buffer containing
+	UByte* XMLDoc; // byte buffer containing
 	int docLen; // length of XML (can be a segment of XMLDoc)
 	int bufLen; // length of XMLDoc (possibly bigger than docLen)
 
@@ -92,9 +92,9 @@ VTDNav *getNav(VTDGen *vg);
 void parse(VTDGen *vg, Boolean ns);
 
 // Set the XMLDoc container.
-void setDoc(VTDGen *vg, Byte *byteArray, int arrayLen);
+void setDoc(VTDGen *vg, UByte *byteArray, int arrayLen);
 
 // Set the XMLDoc container.Also set the offset and len of the document 
-void setDoc2(VTDGen *vg, Byte *byteArray, int arrayLen, int offset, int docLen);
+void setDoc2(VTDGen *vg, UByte *byteArray, int arrayLen, int offset, int docLen);
 
 #endif
