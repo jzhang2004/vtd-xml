@@ -28,5 +28,6 @@
 // TODO: reference additional headers your program requires here
 #include "vtdGen.h"
 #include "vtdNav.h"
+#include "autoPilot.h"
 #include "cexcept.h"
 #include <stdio.h>

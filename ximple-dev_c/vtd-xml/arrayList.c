@@ -69,7 +69,7 @@
 
 	for (i=0;i<initialCapacity;i++)
 		al->storage[i] = NULL;
-    al->capacity = 10;
+    al->capacity = initialCapacity;
     al->size = 0;
     return al;
 }

@@ -892,7 +892,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 return (((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
 							 == TOKEN_STARTING_TAG;
 #else
-						 return ( (longAt(vn->vtdBuffer,index) & 0xf) == TOKEN_STARTING_TAG );
+						 return ( ((longAt(vn->vtdBuffer,index) & 0xf0)>>4) == TOKEN_STARTING_TAG );
 #endif
 					 }
 
@@ -913,7 +913,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 									 vn->context[0] = depth;
 									 vn->context[depth] = index;
 									 if (matchElement(vn, en)) {
-										 if (depth < 4)
+										 if (dp < 4)
 											 resolveLC(vn);
 										 return TRUE;
 									 }
@@ -949,7 +949,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 									 vn->context[0] = depth;
 									 vn->context[depth] = index;
 									 if (matchElementNS(vn,URL, ln)) {
-										 if (depth < 4)
+										 if (dp < 4)
 											 resolveLC(vn);
 										 return TRUE;
 									 }
@@ -1641,10 +1641,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 static void resolveLC(VTDNav *vn){	
 						 int temp;
 						 int i,k;
-						 switch (vn->context[0]) {
-			case 1 :
-			case 2 :
-			case 3 :
+					
 				if (vn->l1index < 0
 					|| vn->l1index >= vn->l1Buffer->size
 					|| vn->context[1] != upper32At(vn->l1Buffer, vn->l1index)) {
@@ -1675,7 +1672,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						// for iterations, l1index+1 is the logical next value for l1index
 					}
 					if (vn->context[0] == 1)
-						break;
+						return;
 
 					temp = lower32At(vn->l1Buffer,vn->l1index);
 					if (vn->l2lower != temp) {
@@ -1726,7 +1723,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						}
 
 						if (vn->context[0] == 2)
-							break;
+							return;
 						temp = lower32At(vn->l2Buffer,vn->l2index);
 						k = vn->l2Buffer->size;
 						if (vn->l3lower != temp) {
@@ -1775,9 +1772,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 							/*if (vn->context[0] == 3)
 							break;*/
-			default : // do nothing here
-				return;
-						 }
+			
+						 return;
 					 }
 
 					 //Test whether the URL is defined in the document.
@@ -1939,6 +1935,24 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 						 return (URL != NULL) ? FALSE : TRUE;
 						 //return FALSE;
+					 }
+
+					 void sampleState(VTDNav *vn, FastIntBuffer *fib){
+						 if (vn->context[0]>=1)							
+							 appendInt(fib, vn->l1index);
+
+						 if (vn->context[0]>=2){
+							 appendInt(fib,vn->l2index);
+							 appendInt(fib,vn->l2upper);
+							 appendInt(fib,vn->l2lower);
+						 }
+
+						 if (vn->context[0]>=3){
+							 appendInt(fib,vn->l3index);
+							 appendInt(fib,vn->l3upper);
+							 appendInt(fib,vn->l3lower);
+						 }
+
 					 }
 					 // A generic navigation method.
 					 // Move the current to the element according to the direction constants

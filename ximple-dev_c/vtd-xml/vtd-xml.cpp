@@ -20,10 +20,508 @@
 
 #include "stdafx.h"
 #include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "fcntl.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <io.h>
+
 struct exception_context the_exception_context[1];
-int main()
+Boolean APTest(char *fn){
+	exception e;
+	int i = 0;
+	int ii;
+	FILE *f = NULL;
+	UByte *xml = NULL;
+	VTDGen *vg = NULL;
+	VTDNav *vn = NULL;
+	AutoPilot *ap = NULL;
+
+	f = fopen(fn,"r");
+	//f = fopen("d://ximple-dev//testcases//VTDGen//bad//nt_8_2.xml","r");
+	ii=(int)_filelength(f->_file);
+	//printf("size of the file is %d \n",ii);
+	xml = (UByte *)malloc(sizeof(UByte)*ii); 
+	fread(xml,sizeof(UByte),ii,f);
+	Try{
+		FastIntBuffer *fib1 = createFastIntBuffer();
+		FastIntBuffer *fib2 = createFastIntBuffer();
+		int z = 0;
+		vg = createVTDGen();
+		setDoc(vg,xml,ii);
+		parse(vg,TRUE);
+		vn = getNav(vg);
+		if (toElement(vn,FIRST_CHILD)){
+			do{
+				z++;
+				sampleState(vn,fib1);
+			}
+			while(toElement(vn,NEXT_SIBLING));
+		}
+		z = 0;
+		toElement(vn,ROOT);
+
+		if (toElement(vn,FIRST_CHILD)){
+			do{
+				if (toElement(vn,FIRST_CHILD)){
+					do{
+						z++;
+						sampleState(vn,fib1);
+					}
+					while(toElement(vn,NEXT_SIBLING));
+					toElement(vn, PARENT);
+				}
+			}
+			while(toElement(vn,NEXT_SIBLING));
+		}
+
+		z = 0;
+		toElement(vn,ROOT);
+
+		if (toElement(vn,FIRST_CHILD)){
+			do{
+				if (toElement(vn,FIRST_CHILD)){
+					do{
+						if (toElement(vn,FIRST_CHILD)){
+							do{
+								z++;
+								sampleState(vn,fib1);
+							}
+							while(toElement(vn,NEXT_SIBLING));
+							toElement(vn, PARENT);
+						}
+					}
+					while(toElement(vn,NEXT_SIBLING));
+					toElement(vn, PARENT);
+				}
+			}
+			while(toElement(vn,NEXT_SIBLING));
+		}
+
+
+		z = 0;
+		toElement(vn,ROOT);
+
+		if (toElement(vn,FIRST_CHILD)){
+			do{
+				if (toElement(vn,FIRST_CHILD)){
+					do{
+						if (toElement(vn,FIRST_CHILD)){
+							do{
+								if (toElement(vn,FIRST_CHILD)){
+									do{
+										z++;
+										sampleState(vn,fib1);
+									}
+									while(toElement(vn,NEXT_SIBLING));
+									toElement(vn, PARENT);
+								}
+							}
+							while(toElement(vn,NEXT_SIBLING));
+							toElement(vn, PARENT);
+						}
+					}
+					while(toElement(vn,NEXT_SIBLING));
+					toElement(vn, PARENT);
+				}
+			}
+			while(toElement(vn,NEXT_SIBLING));
+		}
+
+		z = 0;
+		toElement(vn,ROOT);
+		
+		ap = createAutoPilot(vn);
+		selectElement(ap,"level1:level1");
+		while(iterateAP(ap)){
+			z++;
+			sampleState(vn,fib2);
+		}
+
+		z = 0;
+		toElement(vn,ROOT);
+
+		selectElement(ap,"level2:level2");
+		while(iterateAP(ap)){
+			z++;
+			sampleState(vn,fib2);
+		}
+
+		z = 0;
+		toElement(vn,ROOT);
+
+		selectElement(ap,"level3:level3");
+		while(iterateAP(ap)){
+			z++;
+			sampleState(vn,fib2);
+		}
+
+		z = 0;
+		toElement(vn,ROOT);
+
+		selectElement(ap,"level4:level4");
+		while(iterateAP(ap)){
+			z++;
+			sampleState(vn,fib2);
+		}
+
+		if (fib1->size != fib2->size){
+			return FALSE;
+		}
+
+		for (i = 0;i < fib1->size;i++){
+			if (intAt(fib1,i)!=intAt(fib2,i)){
+				return FALSE;
+			}
+		}
+
+		return TRUE;
+}
+Catch(e){
+	printf("exception %s \n",e.msg);
+	return FALSE;
+}
+}
+
+
+Boolean NavTestNS(char* fn){
+	exception e;
+	//struct _stat fs;
+
+	int ii = 0;
+	FILE *f = NULL;
+	UByte *xml = NULL;
+	VTDGen *vg = NULL;
+	VTDNav *vn = NULL;
+
+	f = fopen(fn,"r");
+	//f = fopen("d://ximple-dev//testcases//VTDGen//bad//nt_8_2.xml","r");
+	ii=(int)_filelength(f->_file);
+	//printf("size of the file is %d \n",ii);
+	xml = (UByte *)malloc(sizeof(UByte)*ii); 
+	fread(xml,sizeof(UByte),ii,f);
+	Try{
+		int i,i1;
+		vg = createVTDGen();
+		setDoc(vg,xml,ii);
+		parse(vg,TRUE);
+		vn = getNav(vg);
+		i= parseInt(vn,getAttrVal(vn,"attr"));
+		i1 = 0;
+		if(toElement(vn,FIRST_CHILD)){ // to level 1
+			//i1++;
+			do {
+				int j = parseInt(vn,getAttrVal(vn,"attr"));
+				int j1 = 0;
+				if (matchElementNS(vn,"level1","level1")==FALSE){
+					return FALSE;
+				}
+				if (toElement(vn,FIRST_CHILD)){ // to level 2
+					//j1++;
+					do {						
+						int k = parseInt(vn,getAttrVal(vn,"attr"));
+						int k1 = 0;
+						if (matchElementNS(vn,"level2","level2")==FALSE)
+							return FALSE;
+						if (toElement(vn,FC)){ // level 3
+							//k1++;
+							do{									
+								int l = parseInt(vn,getAttrVal(vn,"attr"));
+								int l1 = 0;
+								if (matchElementNS(vn,"level3","level3")==FALSE)
+									return FALSE;
+								if (toElement(vn,FIRST_CHILD)){ // level 4
+									//l1++;
+									do {											
+										int m = parseInt(vn,getAttrVal(vn,"attr"));
+										int m1 = 0;
+										if (matchElementNS(vn,"level4","level4")==FALSE)
+											return FALSE;
+										if (toElement(vn,FC)){ // level 5
+											m1++;
+											do {
+												if (matchElement(vn,"level5")==FALSE)
+													return FALSE;
+												m1++;
+											}while(toElement(vn,NS));
+											toElement(vn,P);
+										}
+										if (m!=m1)
+											return FALSE;
+										if (m!=0)
+											return FALSE;
+										l1++;
+									}while(toElement(vn,NS));
+									toElement(vn,P);
+								}
+								if (l!=l1)
+									return FALSE;
+								k1++;
+							}while(toElement(vn,NS));
+							toElement(vn,P);
+						}
+						if (k1 != k)
+							return FALSE;
+						j1++;
+					}while(toElement(vn,NS));
+					toElement(vn,P);
+				}
+				if (j1 != j)
+					return FALSE;
+				i1++;
+			}while(toElement(vn,NS));				
+		}
+		if (i1!=i)
+			return FALSE;
+		toElement(vn,ROOT);
+		i= parseInt(vn,getAttrVal(vn,"attr"));
+		i1 = 0;
+		if(toElement(vn,LAST_CHILD)){ // to level 1
+			//i1++;
+			do {
+				int j = parseInt(vn,getAttrVal(vn,"attr"));
+				int j1 = 0;
+				if (matchElementNS(vn,"level1","level1")==FALSE){
+					return FALSE;
+				}
+				if (toElement(vn,LAST_CHILD)){ // to level 2
+					//j1++;
+					do {						
+						int k = parseInt(vn,getAttrVal(vn,"attr"));
+						int k1 = 0;
+						if (matchElementNS(vn,"level2","level2")==FALSE)
+							return FALSE;
+						if (toElement(vn,LC)){ // level 3
+							//k1++;
+							do{									
+								int l = parseInt(vn,getAttrVal(vn,"attr"));
+								int l1 = 0;
+								if (matchElementNS(vn,"level3","level3")==FALSE)
+									return FALSE;
+								if (toElement(vn,LAST_CHILD)){ // level 4
+									//l1++;
+									do {											
+										int m = parseInt(vn,getAttrVal(vn,"attr"));
+										int m1 = 0;
+										if (matchElementNS(vn,"level4","level4")==FALSE)
+											return FALSE;
+										if (toElement(vn,LC)){ // level 5
+											m1++;
+											do {
+												if (matchElement(vn,"level5")==FALSE)
+													return FALSE;
+												m1++;
+											}while(toElement(vn,PS));
+											toElement(vn,P);
+										}
+										if (m!=m1)
+											return FALSE;
+										if (m!=0)
+											return FALSE;
+										l1++;
+									}while(toElement(vn,PS));
+									toElement(vn,P);
+								}
+								if (l!=l1)
+									return FALSE;
+								k1++;
+							}while(toElement(vn,PS));
+							toElement(vn,P);
+						}
+						if (k1 != k)
+							return FALSE;
+						j1++;
+					}while(toElement(vn,PS));
+					toElement(vn,P);
+				}
+				if (j1 != j)
+					return FALSE;
+				i1++;
+			}while(toElement(vn,PS));				
+		}
+		if (i1!=i)
+			return FALSE;
+	}
+	Catch (e){
+		if (e.et == parse_exception)
+			printf("exception e ==> %s \n %s\n", e.msg,e.sub_msg);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+Boolean NavTest(char* fn){
+	exception e;
+	//struct _stat fs;
+
+	int ii = 0;
+	FILE *f = NULL;
+	UByte *xml = NULL;
+	VTDGen *vg = NULL;
+	VTDNav *vn = NULL;
+
+	f = fopen(fn,"r");
+	//f = fopen("d://ximple-dev//testcases//VTDGen//bad//nt_8_2.xml","r");
+	ii=(int)_filelength(f->_file);
+	//printf("size of the file is %d \n",ii);
+	xml = (UByte *)malloc(sizeof(UByte)*ii); 
+	fread(xml,sizeof(UByte),ii,f);
+	Try{
+		int i,i1;
+		vg = createVTDGen();
+		setDoc(vg,xml,ii);
+		parse(vg,TRUE);
+		vn = getNav(vg);
+		i= parseInt(vn,getAttrVal(vn,"attr"));
+		i1 = 0;
+		if(toElement(vn,FIRST_CHILD)){ // to level 1
+			//i1++;
+			do {
+				int j = parseInt(vn,getAttrVal(vn,"attr"));
+				int j1 = 0;
+				if (matchElement(vn,"level1")==FALSE){
+					return FALSE;
+				}
+				if (toElement(vn,FIRST_CHILD)){ // to level 2
+					//j1++;
+					do {						
+						int k = parseInt(vn,getAttrVal(vn,"attr"));
+						int k1 = 0;
+						if (matchElement(vn,"level2")==FALSE)
+							return FALSE;
+						if (toElement(vn,FC)){ // level 3
+							//k1++;
+							do{									
+								int l = parseInt(vn,getAttrVal(vn,"attr"));
+								int l1 = 0;
+								if (matchElement(vn,"level3")==FALSE)
+									return FALSE;
+								if (toElement(vn,FIRST_CHILD)){ // level 4
+									//l1++;
+									do {											
+										int m = parseInt(vn,getAttrVal(vn,"attr"));
+										int m1 = 0;
+										if (matchElement(vn,"level4")==FALSE)
+											return FALSE;
+										if (toElement(vn,FC)){ // level 5
+											m1++;
+											do {
+												if (matchElement(vn,"level5")==FALSE)
+													return FALSE;
+												m1++;
+											}while(toElement(vn,NS));
+											toElement(vn,P);
+										}
+										if (m!=m1)
+											return FALSE;
+										if (m!=0)
+											return FALSE;
+										l1++;
+									}while(toElement(vn,NS));
+									toElement(vn,P);
+								}
+								if (l!=l1)
+									return FALSE;
+								k1++;
+							}while(toElement(vn,NS));
+							toElement(vn,P);
+						}
+						if (k1 != k)
+							return FALSE;
+						j1++;
+					}while(toElement(vn,NS));
+					toElement(vn,P);
+				}
+				if (j1 != j)
+					return FALSE;
+				i1++;
+			}while(toElement(vn,NS));				
+		}
+		if (i1!=i)
+			return FALSE;
+		toElement(vn,ROOT);
+		i= parseInt(vn,getAttrVal(vn,"attr"));
+		i1 = 0;
+		if(toElement(vn,LAST_CHILD)){ // to level 1
+			//i1++;
+			do {
+				int j = parseInt(vn,getAttrVal(vn,"attr"));
+				int j1 = 0;
+				if (matchElement(vn,"level1")==FALSE){
+					return FALSE;
+				}
+				if (toElement(vn,LAST_CHILD)){ // to level 2
+					//j1++;
+					do {						
+						int k = parseInt(vn,getAttrVal(vn,"attr"));
+						int k1 = 0;
+						if (matchElement(vn,"level2")==FALSE)
+							return FALSE;
+						if (toElement(vn,LC)){ // level 3
+							//k1++;
+							do{									
+								int l = parseInt(vn,getAttrVal(vn,"attr"));
+								int l1 = 0;
+								if (matchElement(vn,"level3")==FALSE)
+									return FALSE;
+								if (toElement(vn,LAST_CHILD)){ // level 4
+									//l1++;
+									do {											
+										int m = parseInt(vn,getAttrVal(vn,"attr"));
+										int m1 = 0;
+										if (matchElement(vn,"level4")==FALSE)
+											return FALSE;
+										if (toElement(vn,LC)){ // level 5
+											m1++;
+											do {
+												if (matchElement(vn,"level5")==FALSE)
+													return FALSE;
+												m1++;
+											}while(toElement(vn,PS));
+											toElement(vn,P);
+										}
+										if (m!=m1)
+											return FALSE;
+										if (m!=0)
+											return FALSE;
+										l1++;
+									}while(toElement(vn,PS));
+									toElement(vn,P);
+								}
+								if (l!=l1)
+									return FALSE;
+								k1++;
+							}while(toElement(vn,PS));
+							toElement(vn,P);
+						}
+						if (k1 != k)
+							return FALSE;
+						j1++;
+					}while(toElement(vn,PS));
+					toElement(vn,P);
+				}
+				if (j1 != j)
+					return FALSE;
+				i1++;
+			}while(toElement(vn,NS));				
+		}
+		if (i1!=i)
+			return FALSE;
+	}
+	Catch (e){
+		if (e.et == parse_exception)
+			printf("exception e ==> %s \n %s\n", e.msg,e.sub_msg);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+int main(int argc, char *argv[])
 {   
-   int test = 7;
+   int test = 11;
+  
    if (test ==1){
 	int i,a;
 	unsigned int k; 
@@ -76,7 +574,7 @@ int main()
 		printf(" string value of s is * \n");
    }
    if (test ==2){
-	   int i,j;
+	   int i,j,z;
 	   exception e;
     Try {
         int* ia = malloc(10*sizeof(int));
@@ -88,8 +586,16 @@ int main()
             }
             store(cb,ia);
         }
+		/*for ( i=0;i<7;i++){
+			int* p = cb->al->storage[i];
+			printf("%d%d%d%d %d%d%d%d %d%d%d%d %d%d%d%d \n",
+				p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9],p[10],p[11],p[12],p[13],p[14],p[15]);
+		}*/
         //cb.store(ia);
         for (i = 9; i >= 0; i--) {
+			for (z=0;z<10;z++){
+				ia[z] = 0;
+			}
             load(cb,ia);
             //System.out.println(""+ia[0]);
             for (j = 9; j >= 0; j--) {
@@ -324,6 +830,74 @@ int main()
 	   //i = i>>28;
 	   printf("shifted i is %x",i>>1);
    }
-	return 0;
+
+if (test==9){
+		exception e;
+		UByte a = -1;
+		int i = a;
+		//struct _stat fs;
+		FILE *f = NULL;
+		UByte *xml = NULL;
+		VTDGen *vg = NULL;
+		VTDNav *vn = NULL;
+		//printf(" i  equals %d \n",i);
+		char *dir = "d://ximple-dev//testcases//VTDGen//bad//";
+		char *fullname = (char *)malloc(sizeof(char)*50);
+		sprintf(fullname,"%s%s",dir,argv[1]);
+		f = fopen(fullname,"r");
+		//f = fopen("d://ximple-dev//testcases//VTDGen//bad//nt_8_2.xml","r");
+		i=(int)_filelength(f->_file);
+		printf("size of the file is %d \n",i);
+		xml = (UByte *)malloc(sizeof(UByte)*i); 
+		fread(xml,sizeof(UByte),i,f);
+		Try{
+			vg = createVTDGen();
+			setDoc(vg,xml,i);
+			parse(vg,TRUE);
+			vn = getNav(vg);
+			for (i=0;i<vn->vtdSize;i++)
+			{
+				printf("offset is --> %d; ",getTokenOffset(vn,i));
+				printf("length is --> %d; ",getTokenLength(vn,i));
+				
+				printf("type is --> %d; ", getTokenType(vn,i));
+				printf("depth is --> %d \n",getTokenDepth(vn,i));
+			}
+		}
+		Catch (e){
+			if (e.et == parse_exception)
+			printf("exception e ==> %s \n %s\n", e.msg,e.sub_msg);
+		}
+   }
+
+
+if (test ==10){
+	
+	exception e;
+	//struct _stat fs;
+	
+	FILE *f = NULL;
+	UByte *xml = NULL;
+	VTDGen *vg = NULL;
+	VTDNav *vn = NULL;
+	char *dir = "d://ximple-dev//testcases//VTDNav//";
+	char *fullname = (char *)malloc(sizeof(char)*50);
+	sprintf(fullname,"%s%s",dir,argv[1]);
+    if (NavTestNS(fullname)==TRUE)
+		printf("%s passed \n", fullname);
+}
+
+if (test == 11){
+	FILE *f = NULL;
+	UByte *xml = NULL;
+	VTDGen *vg = NULL;
+	VTDNav *vn = NULL;
+	char *dir = "d://ximple-dev//testcases//AutoPilot//";
+	char *fullname = (char *)malloc(sizeof(char)*50);
+	sprintf(fullname,"%s%s",dir,argv[1]);
+	if (APTest(fullname)==TRUE)
+		printf("%s passed \n", fullname);
+}
+return 0;
 }
 

@@ -40,6 +40,7 @@ ContextBuffer *createContextBuffer(int i){
 	cb->n = 10;
 	cb->r = cb->pageSize -1;
 	cb->incSize = i;
+	cb->size = 0;
 
 	cb->al = al;
 	return cb;
@@ -70,6 +71,7 @@ ContextBuffer *createContextBuffer2(int exp, int i){
 	cb->r = cb->pageSize -1;
 	cb->incSize = i;
 
+	cb->size = 0;
 	cb->al = al;
 	return cb;
 }
@@ -114,7 +116,7 @@ Boolean load(ContextBuffer *cb, int* output){
             0,
             len);*/
 		memcpy(output,
-			((int *)get(cb->al,first_index))+(startingOffset & cb->r),
+			((int *)get(cb->al,first_index))+((startingOffset & cb->r)),
 			len<<2);
     } else {
         int int_array_offset = 0;
@@ -123,7 +125,7 @@ Boolean load(ContextBuffer *cb, int* output){
             if (i == first_index) // first section
                 {
 					memcpy(output,
-						currentChunk+ (startingOffset+cb->r),
+						currentChunk+ ((startingOffset&cb->r)),
 						(cb->pageSize - (startingOffset & cb->r))<<2);
                 /*System.arraycopy(
                     currentChunk,
@@ -209,7 +211,7 @@ void store(ContextBuffer *cb, int *input){
         // add to bufferArrayList
         //System.arraycopy(input, 0, lastBuffer, size % pageSize, capacity - size);
         //System.arraycopy(input, 0, lastBuffer, size & r, capacity - size);
-		memcpy(lastBuffer+(cb->size&cb->r),input, (cb->capacity-cb->size)<<2);
+		memcpy(lastBuffer+((cb->size&cb->r)),input, (cb->capacity-cb->size)<<2);
 
         for (i = 0; i < k; i++) {
             //int[] newBuffer = new int[pageSize];
@@ -223,8 +225,8 @@ void store(ContextBuffer *cb, int *input){
                 // full copy 
                 //System.arraycopy(input, pageSize * i + capacity - size, newBuffer, 0, pageSize);
 				memcpy(newBuffer, 
-					input + cb->pageSize*i + cb->capacity - cb->size,
-					cb->pageSize);
+					input + ((cb->pageSize*i + cb->capacity - cb->size)),
+					cb->pageSize<<2);
 					
             } else {
                 // last page
@@ -235,7 +237,7 @@ void store(ContextBuffer *cb, int *input){
                 //    0,
                 //    (input.length + size) - pageSize * i - capacity);
 				memcpy(newBuffer,
-					input + cb->pageSize * i + cb->capacity - cb->size, 
+					input + ((cb->pageSize * i + cb->capacity - cb->size)), 
 					(cb->incSize+cb->size - cb->pageSize*i - cb->capacity)<<2);
             }
             //bufferArrayList.add(newBuffer);

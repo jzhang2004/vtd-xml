@@ -28,7 +28,7 @@ AutoPilot *createAutoPilot(VTDNav *v){
 	}
 
 	ap = (AutoPilot *)malloc(sizeof(AutoPilot));
-	if (ap = NULL){
+	if (ap == NULL){
 		e.et = out_of_mem;
 		e.msg = "createAutoPilot failed";
 		Throw e;
@@ -83,11 +83,12 @@ Boolean iterateAP(AutoPilot *ap){
 				Throw e;
 			}
 			//	throw new PilotException(" Element name not set ");
+
 			if (ap->ft == FALSE)
 				return iterate(ap->vn, ap->depth, ap->elementName);
 			else {
+				ap->ft = FALSE;
 				if (matchElement(ap->vn, ap->elementName)) {
-					ap->ft = FALSE;
 					return TRUE;
 				} else
 					return iterate(ap->vn, ap->depth, ap->elementName);
@@ -102,8 +103,9 @@ Boolean iterateAP(AutoPilot *ap){
 			if (ap->ft == FALSE)
 				return iterateNS(ap->vn, ap->depth, ap->URL, ap->localName);
 			else {
+				ap->ft = FALSE;
 				if (matchElementNS(ap->vn, ap->URL, ap->localName)) {
-					ap->ft = FALSE;
+					
 					return TRUE;
 				} else
 					return iterateNS(ap->vn, ap->depth, ap->URL, ap->localName);

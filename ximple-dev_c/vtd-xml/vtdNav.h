@@ -233,6 +233,7 @@ Boolean pop(VTDNav *vn);
 //Info saved including LC and current state of the context 
 Boolean push(VTDNav *vn);
 
+void sampleState(VTDNav *vn, FastIntBuffer *fib);
 
 // A generic navigation method.
 // Move the current to the element according to the direction constants

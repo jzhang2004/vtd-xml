@@ -96,7 +96,7 @@ inline int upper32At(FastLongBuffer *flb, int index){
     }
     pageNum = (index >>flb->exp);
     offset = index & flb->r;
- 	return (int) ((((Long *)get(flb->al,pageNum))[offset] & (0xffffffffL<<32))>>32);
+ 	return (int) ((((Long *)get(flb->al,pageNum))[offset] & (((Long)0xffffffffL)<<32))>>32);
 }
 
 // replace the entry at the index position of FastLongBuffer with l
