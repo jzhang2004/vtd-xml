@@ -357,14 +357,7 @@ static int getChar(VTDGen *vg){
 	//throw new EOFException("permature EOF reached, XML document incomplete");
 	switch (vg->encoding) {
 			case FORMAT_ASCII :
-				temp = vg->XMLDoc[vg->offset];
-				if (temp>127){
-					e.et = parse_exception;
-					e.subtype = 0;
-					e.msg = "Parse exception in getChar";
-					e.sub_msg = "Invalid char for ASCII encoding";
-					Throw e;
-				}
+				temp = vg->XMLDoc[vg->offset] & 0x7f;
 				vg->offset++;
 				return temp;
 			case FORMAT_UTF8 :
@@ -1147,61 +1140,53 @@ void parse(VTDGen *vg, Boolean ns){
 
 					case STATE_END_TAG :
 						temp_offset = vg->offset;
-						while (TRUE) {
-							ch = getChar(vg);
-							if (!XMLChar_isNameChar(ch)) {
-								break;
-							}
-						}
-						length1 = vg->offset - temp_offset - increment;
+						
 						sos = (int) vg->tag_stack[depth];
 						sl = (int) (vg->tag_stack[depth] >> 32);
-						if (sl == length1) {
-							int i;
-							for (i = 0; i < length1; i++) {
-								if (vg->XMLDoc[sos + i] != vg->XMLDoc[temp_offset + i]){
-									e.et = parse_exception;
-									e.subtype = 0;
-									e.msg = "Parse Exception in parse()";
-									e.sub_msg = "Ending tag error: Start/ending tag mismatch";
-									Throw e;
-								}
-								//throw new ParseException(
-								//	"Ending tag error: Start/ending tag mismatch"
-								//		+ formatLineNumber());
-								// System.out.println(
-								//     " " + (char) XMLDoc[sos + i] + "<==> " + (char) XMLDoc[temp_offset + i]);
+						vg->offset = temp_offset + sl;
+						if (vg->offset >= vg->endOffset){
+							e.et = parse_exception;
+							e.subtype = 0;
+							e.msg = "Parse exception in parse()";
+							e.sub_msg = "Premature EOF reached, XML document incomplete";
+							Throw e;
+						}
+
+						 
+						for (i = 0; i < sl; i++) {
+							if (vg->XMLDoc[sos + i] != vg->XMLDoc[temp_offset + i]){
+								e.et = parse_exception;
+								e.subtype = 0;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg = "Ending tag error: Start/ending tag mismatch";
+								Throw e;
 							}
-						} else{
+						}
+							
+						depth--;
+						ch = getCharAfterS(vg);
+						
+						if (ch!='>'){
 							e.et = parse_exception;
 							e.subtype = 0;
 							e.msg = "Parse Exception in parse()";
-							e.sub_msg = "Ending tag error: Start/ending tag mismatch, length different";
+							e.sub_msg = "Ending tag error: Invalid char in end tag";
 							Throw e;
 						}
-						/*	throw new ParseException(
-						"Ending tag error: Start/ending tag mismatch, length different"
-						+ formatLineNumber());*/
-						//System.out.println(" " + temp_offset + " " + length1 + " ending tag " + depth);
-						//writeVTD(vg,temp_offset, length1, TOKEN_ENDING_TAG, depth);
-						depth--;
-						if (XMLChar_isSpaceChar(ch)) {
-							ch = getCharAfterS(vg);
-						}
 
-						if (ch == '>') {
-							if (depth != -1) {
-								temp_offset = vg->offset;
-								ch = getCharAfterS(vg);
-								if (ch == '<')
-									parser_state = STATE_LT_SEEN;
-								else if (XMLChar_isContentChar(ch)) {
-									parser_state = STATE_TEXT;
-								} else if (ch == '&') {
-									//has_amp = true;
-									entityIdentifier(vg);
-									parser_state = STATE_TEXT;
-								} else if (ch == ']') {
+						
+						if (depth != -1) {
+							temp_offset = vg->offset;
+							ch = getCharAfterS(vg);
+							if (ch == '<')
+								parser_state = STATE_LT_SEEN;
+							else if (XMLChar_isContentChar(ch)) {
+								parser_state = STATE_TEXT;
+							} else if (ch == '&') {
+								//has_amp = true;
+								entityIdentifier(vg);
+								parser_state = STATE_TEXT;
+							} else if (ch == ']') {
 								if (skipChar(vg,']')) {
 									while (skipChar(vg,']')) {
 									}
@@ -1212,34 +1197,25 @@ void parse(VTDGen *vg, Boolean ns){
 										e.sub_msg = "Error in text content: ]]> in text content";
 										Throw e;
 									}
-									/*throw new ParseException(
-									"Error in text content: ]]> in text content"
-									+ formatLineNumber());*/
+									
 								}
 								parser_state = STATE_TEXT;
-							   }
-								else
-								{	e.et = parse_exception;
+							}
+							else
+							{	e.et = parse_exception;
 								e.subtype = 0;
 								e.msg = "Parse Exception in parse()";
 								e.sub_msg = "Other Error: Invalid char in xml";
 								Throw e;
-								}
-								/*throw new ParseException(
-								"Other Error: Invalid char in xml"
-								+ formatLineNumber());*/
-							} else
-								parser_state = STATE_DOC_END;
-							break;
-						} else{	e.et = parse_exception;
-						e.subtype = 0;
-						e.msg = "Parse Exception in parse()";
-						e.sub_msg = "Other Error: Invalid char in ending tag";
-						Throw e;
+							}
+							
+						} else
+							parser_state = STATE_DOC_END;
+						break;
 
 						/*	throw new ParseException(
 						"Other Error: Invalid char in ending tag"
-						+ formatLineNumber());*/}
+						+ formatLineNumber());*/
 					case STATE_UNRECORDED_TEXT :
 						break;
 					case STATE_PI_TAG :
