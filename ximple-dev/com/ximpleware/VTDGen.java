@@ -17,8 +17,8 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-import com.ximpleware.VTDGen1.UTF16BEReader;
-import com.ximpleware.VTDGen1.UTF16LEReader;
+//import com.ximpleware.VTDGen1.UTF16BEReader;
+//import com.ximpleware.VTDGen1.UTF16LEReader;
 import com.ximpleware.parser.XMLChar;
 import com.ximpleware.parser.UTF8Char;
 //import java.io.*;
@@ -640,19 +640,27 @@ public class VTDGen {
 		VTDGen vg = new VTDGen();
 
 		try{
-			vg.setDoc("\ufeff<this><!--afasf-->&#xab; aaaabbbbccccdddd</this>".getBytes("UTF-8"));
+			int k = 0x1fffff;
+			StringBuffer sb = new StringBuffer(k);
+			for (int z=0;z<k;z++){
+				sb.append('z');
+			}
+			vg.setDoc(("\ufeff<this><!--"+ sb.toString()+"--></this>").getBytes("UTF-8"));
 			vg.parse(false);
 			System.out.println("A success");
 			VTDNav vn = vg.getNav();
 			vg.clear();
-			int size = vn.getTokenCount();
+			/*int size = vn.getTokenCount();
 			for(int i=0;i<size;i++){
 				System.out.print(" type --> "+vn.getTokenType(i));
 				System.out.print(" length -->"+vn.getTokenLength(i));
 				System.out.println("  offset -->"+vn.getTokenOffset(i));
 				System.out.println(" i -->"+i);
-			}
-			System.out.println(vn.toString(vn.getText()));
+			}*/
+			//int l = vn.getText();
+			System.out.println("type ===> "+vn.getTokenType(1));
+			//if (l!=-1)
+			System.out.println(Integer.toHexString(vn.getTokenLength(1)));
 		}
 		catch(Exception e){
 			System.out.println(e);
@@ -2382,35 +2390,7 @@ public class VTDGen {
 			finishUp();
 		}
 	}
-	/**
-	 * Set the XMLDoc container.
-	 * @param ba byte[]
-	 */
-	public void setDoc(byte[] ba) {
-		int a;
-		XMLDoc = ba;
-		docOffset = offset = 0;
-		docLen = ba.length;
-		endOffset = docLen;
-		if (docLen <= 1024) {
-			a = 1024; //set the floor
-		} else if (docLen <= 1024 * 16 * 4) {
-			a = 2048;
-		} else if (docLen <= 1024 * 256) {
-			a = 1024 * 4;
-		} else {
-			a = 1 << 15;
-		}
-		//VTDBuffer = new FastLongBuffer(a);
-		//l1Buffer = new FastLongBuffer(128);
-		//l2Buffer = new FastLongBuffer(512);
-		//l3Buffer = new FastIntBuffer(2048);
-		VTDBuffer = new FastLongBuffer(a, ba.length >> (a+1));
-		l1Buffer = new FastLongBuffer(7);
-		l2Buffer = new FastLongBuffer(9);
-		l3Buffer = new FastIntBuffer(11);
-		vtdSize = l1Size = l2Size = l3Size = 0;
-	}
+	
 	/**
 	 * Set the XMLDoc container. Also set the offset and len of the document 
 	 * with respect to the container.
@@ -2426,25 +2406,63 @@ public class VTDGen {
 		docLen = len;
 		endOffset = os + len;
 		if (docLen <= 1024) {
-			a = 1024; //set the floor
+			//a = 1024; //set the floor
+			a = 10;
 		} else if (docLen <= 1024 * 16 * 4) {
-			a = 2048;
+			//a = 2048;
+			a = 11;
 		} else if (docLen <= 1024 * 256) {
-			a = 1024 * 4;
+			//a = 1024 * 4;
+			a = 12;
 		} else {
-			a = 1 << 15;
+			//a = 1 << 15;
+			a = 15;
 		}
 //		VTDBuffer = new FastLongBuffer(a);
 //		l1Buffer = new FastLongBuffer(128);
 //		l2Buffer = new FastLongBuffer(512);
 //		l3Buffer = new FastIntBuffer(2048);
 		
-		VTDBuffer = new FastLongBuffer(a, len>>(a+1));
+		VTDBuffer = new FastLongBuffer(a, len>> (a+1));
 		l1Buffer = new FastLongBuffer(7);
 		l2Buffer = new FastLongBuffer(9);
 		l3Buffer = new FastIntBuffer(11);
 		vtdSize = l1Size = l2Size = l3Size = 0;
 	}
+	/**
+	 * Set the XMLDoc container.
+	 * @param ba byte[]
+	 */
+	public void setDoc(byte[] ba) {
+		int a;
+		XMLDoc = ba;
+		docOffset = offset = 0;
+		docLen = ba.length;
+		endOffset = docLen;
+		if (docLen <= 1024) {
+			//a = 1024; //set the floor
+			a = 10;
+		} else if (docLen <= 1024 * 16 * 4) {
+			//a = 2048;
+			a = 11;
+		} else if (docLen <= 1024 * 256) {
+			//a = 1024 * 4;
+			a = 12;
+		} else {
+			//a = 1 << 15;
+			a = 15;
+		}
+		//VTDBuffer = new FastLongBuffer(a);
+		//l1Buffer = new FastLongBuffer(128);
+		//l2Buffer = new FastLongBuffer(512);
+		//l3Buffer = new FastIntBuffer(2048);
+		VTDBuffer = new FastLongBuffer(a, ba.length >> (a+1));
+		l1Buffer = new FastLongBuffer(7);
+		l2Buffer = new FastLongBuffer(9);
+		l3Buffer = new FastIntBuffer(11);
+		vtdSize = l1Size = l2Size = l3Size = 0;
+	}
+	
 	/**
 	 * Write the VTD and LC into their storage container.
 	 * @param offset int

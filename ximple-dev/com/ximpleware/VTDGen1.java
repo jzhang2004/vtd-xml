@@ -2619,6 +2619,7 @@ public class VTDGen1 {
 			finishUp();
 		}
 	}
+	
 	/**
 	 * Set the XMLDoc container.
 	 * @param ba byte[]
@@ -2630,13 +2631,17 @@ public class VTDGen1 {
 		docLen = ba.length;
 		endOffset = docLen;
 		if (docLen <= 1024) {
-			a = 1024; //set the floor
+			//a = 1024; //set the floor
+			a = 10;
 		} else if (docLen <= 1024 * 16 * 4) {
-			a = 2048;
+			//a = 2048;
+			a = 11;
 		} else if (docLen <= 1024 * 256) {
-			a = 1024 * 4;
+			//a = 1024 * 4;
+			a = 12;
 		} else {
-			a = 1 << 15;
+			//a = 1 << 15;
+			a = 15;
 		}
 //		VTDBuffer = new FastLongBuffer(a);
 //		l1Buffer = new FastLongBuffer(128);
@@ -2664,13 +2669,17 @@ public class VTDGen1 {
 		docLen = len;
 		endOffset = os + len;
 		if (docLen <= 1024) {
-			a = 1024; //set the floor
+			//a = 1024; //set the floor
+			a = 10;
 		} else if (docLen <= 1024 * 16 * 4) {
-			a = 2048;
+			//a = 2048;
+			a = 11;
 		} else if (docLen <= 1024 * 256) {
-			a = 1024 * 4;
+			//a = 1024 * 4;
+			a = 12;
 		} else {
-			a = 1 << 15;
+			//a = 1 << 15;
+			a = 15;
 		}
 //		VTDBuffer = new FastLongBuffer(a);
 //		l1Buffer = new FastLongBuffer(128);
