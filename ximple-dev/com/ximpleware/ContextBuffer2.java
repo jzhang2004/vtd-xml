@@ -84,9 +84,7 @@ public boolean load(int[] output){
     int startingOffset = size - incSize;
     int len = incSize;
 
-    if ((startingOffset + len) > size) {
-        throw (new IndexOutOfBoundsException());
-    }
+
     //int[] result = new int[len]; // allocate result array
     //if (pageSize != 1) {
     //int first_index = (int) (startingOffset / pageSize);

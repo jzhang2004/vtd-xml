@@ -53,7 +53,7 @@ public class FastLongBuffer2 implements ILongBuffer {
      */
     public FastLongBuffer2() {
         size = 0;
-        capacity = 1024;
+        capacity = 0;
         pageSize = 1024;
         exp = 10;
         r = 1023;
@@ -67,8 +67,8 @@ public FastLongBuffer2(int e) {
     if (e <= 0) {
         throw new IllegalArgumentException();
     }
-    size = 0;
-    capacity = pageSize = (1<<e);
+    capacity = size = 0;
+    pageSize = (1<<e);
     exp = e;
     r = pageSize -1;
     bufferArrayList = new ArrayList();
@@ -83,11 +83,11 @@ public FastLongBuffer2(int e,int c) {
     if (e <= 0) {
         throw new IllegalArgumentException();
     }
-    size = 0;
-    capacity = pageSize = (1<<e);
+    capacity = size = 0;
+    pageSize = (1<<e);
     exp = e;
     r = pageSize -1;
-    bufferArrayList = new ArrayList();
+    bufferArrayList = new ArrayList(c);
 }
 /**
  * Append single long to the end of array buffer.
@@ -179,7 +179,7 @@ public void append(long i) {
     } else {
         lastBuffer = (long[]) bufferArrayList.get(bufferArrayList.size() - 1);
     }
-    if ((this.size + 1) <= this.capacity) {
+    if (this.size  < this.capacity) {
         //get the last buffer from the bufferListArray
         //obtain the starting offset in that buffer to which the data is to be copied
         //update length

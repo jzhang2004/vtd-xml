@@ -60,7 +60,7 @@ public class FastIntBuffer2 implements IIntBuffer {
      */
     public FastIntBuffer2() {
         size = 0;
-        capacity = 1024;
+        capacity = 0;
         pageSize = 1024;
         exp = 10;
         r = 1023;
@@ -74,8 +74,8 @@ public class FastIntBuffer2 implements IIntBuffer {
         if (e < 0) {
             throw new IllegalArgumentException();
         }
-        size = 0;
-        capacity = pageSize = 1<<e;
+        capacity = size = 0;
+        pageSize = 1<<e;
         exp = e;
         r = pageSize -1;
         bufferArrayList = new ArrayList();
@@ -278,7 +278,7 @@ public int getPageSize() {
  * @param index int
  */
 public int intAt(int index) {
-    if (index < 0 || index > size()) {
+    if (index < 0 || index > size()-1) {
         throw new IndexOutOfBoundsException();
     }
 //    int pageNum = (int) index / pageSize;
@@ -296,7 +296,7 @@ public int intAt(int index) {
  */
 public void modifyEntry(int index, int newValue) {
 	
-        if (index < 0 || index > size + 1) {
+        if (index < 0 || index > size - 1) {
             throw new IndexOutOfBoundsException();
         }
 

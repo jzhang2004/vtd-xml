@@ -44,6 +44,7 @@ public ContextBuffer(int i) {
 	super();
 	pageSize =1024;
 	incSize = i;
+	capacity =0;
 	if (incSize<0)
 	  throw new IllegalArgumentException();
 	bufferArrayList = new ArrayList();
@@ -59,6 +60,7 @@ public ContextBuffer(int i) {
 public ContextBuffer(int p, int i) {
     pageSize = p;
     incSize = i;
+    capacity = 0;
     if (incSize < 0)
         throw new IllegalArgumentException("context buffer's incremental size must be greater than zero");
     bufferArrayList = new ArrayList();

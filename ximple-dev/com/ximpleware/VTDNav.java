@@ -400,7 +400,7 @@ public class VTDNav {
 					temp = XMLDoc.byteAt(currentOffset + a - i);
 					if ((temp & 0xc0) != 0x80)
 						throw new NavException("UTF 8 encoding error: should never happen");
-					val = val | ((temp & 0x3f) << i);
+					val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
 					i--;
 				}
 				currentOffset += a + 1;
@@ -448,7 +448,7 @@ public class VTDNav {
 						// has to be a low surrogate here
 						throw new NavException("UTF 16 BE encoding error: should never happen");
 					}
-					val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
+					val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
 					currentOffset += 2;
 					return val;
 				}
@@ -480,7 +480,7 @@ public class VTDNav {
 						// has to be high surrogate
 						throw new NavException("UTF 16 LE encoding error: should never happen");
 					}
-					val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
+					val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
 					currentOffset += 2;
 					return val;
 				}
@@ -1847,7 +1847,7 @@ public class VTDNav {
 	/**
 	 * Sync up the current context with location cache.
 	 * This operation includes finding out l1index, l2index, 
-	 * l3index and respect upper and lower bound info
+	 * l3index and restores upper and lower bound info
 	 * To improve efficieny this method employs some heuristic search algorithm.
 	 * The result is that it is quite close to direct access.
 	 * Creation date: (11/16/03 7:44:53 PM)

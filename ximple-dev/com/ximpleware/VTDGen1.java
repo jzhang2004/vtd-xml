@@ -168,7 +168,7 @@ public class VTDGen1 {
 				temp = XMLDoc[offset + a - i];
 				if ((temp & 0xc0) != 0x80)
 					throw new ParseException("UTF 8 encoding error: should never happen");
-				val = val | ((temp & 0x3f) << (i * 6));
+				val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
 				i--;
 			}
 			offset += a + 1;
@@ -227,7 +227,7 @@ public class VTDGen1 {
 				temp = XMLDoc[offset + a - i];
 				if ((temp & 0xc0) != 0x80)
 					throw new ParseException("UTF 8 encoding error: should never happen");
-				val = val | ((temp & 0x3f) << (i * 6));
+				val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
 				i--;
 			}
 

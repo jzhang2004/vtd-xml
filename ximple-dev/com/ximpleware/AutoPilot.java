@@ -19,7 +19,7 @@ package com.ximpleware;
  */
 /**
  * XimpleWare's AutoPilot implementation.
- * Current it emulates the behavior of DOM's document-order node iterator.
+ * Currently it emulates the behavior of DOM's document-order node iterator.
  * When the element name is specified, an instance of this class automatically
  * moves the cursor across element nodes that satify the criteria (e.g. specified name).
  * Creation date: (11/24/03 2:36:21 PM)
@@ -98,21 +98,23 @@ public boolean iterate() throws PilotException, NavException {
  * Creation date: (12/4/03 5:51:31 PM)
  * @param en java.lang.String
  */
-public void selectElement(String en) {
-    iter_type = SIMPLE;
-    depth = vn.getCurrentDepth();
-    startIndex = vn.getCurrentIndex();
-    elementName = en;
-    ft = true;
-}
+	public void selectElement(String en) {
+		iter_type = SIMPLE;
+		depth = vn.getCurrentDepth();
+		startIndex = vn.getCurrentIndex();
+		elementName = en;
+		ft = true;
+	}
 /**
- * Select the element name (name space version) before iterating.
- * URL, if set to *, matches every namespace
- * URL, if set to null, indicates the namespace is undefined.
- * localname, if set to *, matches any localname
- * Creation date: (12/4/03 6:05:19 PM)
- * @param URL java.lang.String
- * @param ln java.lang.String
+ * Select the element name (name space version) before iterating. URL, if set to *,
+ * matches every namespace URL, if set to null, indicates the namespace is
+ * undefined. localname, if set to *, matches any localname Creation date:
+ * (12/4/03 6:05:19 PM)
+ * 
+ * @param URL
+ *            java.lang.String
+ * @param ln
+ *            java.lang.String
  */
 public void selectElementNS(String ns_URL, String ln) {
     iter_type = SIMPLE_NS;
