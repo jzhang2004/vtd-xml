@@ -33,8 +33,11 @@
 
 unsigned char CHARS[1<<16];// = unsigned Byte[1<<16];
 
+char Character[1<<8]; // = 
+
 Boolean isReady;// = FALSE;
 
+Boolean isCharacterReady;
 
 void XMLChar_init();
    /**
@@ -203,6 +206,7 @@ void XMLChar_init();
         return c < 0x10000 && (CHARS[c] & MASK_PUBID) != 0;
     } // isPubid(int):boolean
 
+	int Character_digit(int ch, int radix);
 
     /*
      * [5] Name ::= (Letter | '_' | ':') (NameChar)*

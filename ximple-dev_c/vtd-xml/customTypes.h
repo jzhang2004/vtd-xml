@@ -25,6 +25,15 @@
 #define MAXFLOAT 3.402823466e+38F
 #define MINFLOAT 1.175494351e-38F
 
+#define MAXINT  0x7fffffff
+#define MININT 0x80000001
+
+#define MAXLONG 0x7fffffffffffffff
+#define MINLONG 0x8000000000000001
+
+#define BIG_ENDIAN 1 // big endian   --> 1
+					 // small endian --> 0
+
 #define inline __inline
 #define _unicode
 
@@ -50,6 +59,7 @@ typedef enum XMLencoding {FORMAT_ASCII,
 						  FORMAT_UTF_16BE,
 						  FORMAT_UTF_16LE} 
 					encoding;
+
 typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 						   TOKEN_ENDING_TAG,
 						   TOKEN_ATTR_NAME,
@@ -70,6 +80,7 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 										 array_out_of_bound,
 										 parse_exception,
 										 nav_exception,
+										 number_format_exception,
 										 other};
 
 					typedef struct vtd_exception {

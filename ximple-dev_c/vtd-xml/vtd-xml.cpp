@@ -23,12 +23,12 @@
 struct exception_context the_exception_context[1];
 int main()
 {   
-   int test =5;
+   int test =7;
    if (test ==1){
 	int i,a,k; 
 	Long l;
 	UCS2Char *string;
-	struct vtd_exception volatile e;
+	exception e;
 	/*ArrayList *al = createArrayList();
 	for (int i=0;i<1000;i++)
 	{
@@ -207,7 +207,24 @@ int main()
 	   }
    }
 
-   if (test == 6){
+   if (test == 6){ 
+	   exception e;
+	   Try{	
+		  
+		   int i = Character_digit('a',16);
+	   	   printf("i 's val is %d \n", i);
+	   }Catch (e){
+		   printf(e.msg);
+	   }
+   }
+   if (test == 7){
+	   int i;
+	   int a=0x0a0b0c0d;
+	   Byte* b = malloc(4);
+	   memcpy(b,(&a),4);
+	   for (i=0;i<4;i++){
+		   printf(" %x \n", *(b+i));
+	   }
    }
 	return 0;
 }

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #include "XMLChar.h"
+static void init_Character();
+
 
 void XMLChar_init()
 {
@@ -215,7 +217,7 @@ void XMLChar_init()
     // set valid characters
     unsigned int i;
 	int j;
-
+#if BIG_ENDIAN
 	MASK_VALID= 0x01;
 	MASK_SPACE= 0x01<<1;
 	MASK_NAME_START= 0x01<<2;
@@ -224,7 +226,9 @@ void XMLChar_init()
 	MASK_CONTENT= 0x01<<5;
 	MASK_NCNAME_START= 0x01 << 6;
 	MASK_NCNAME= 0x01 << 7;
-
+#else
+	// small endian go here
+#endif
     for (i = 0; i < LENGTH(charRange,int); i += 2)
 	{
         for ( j = charRange[i]; j <= charRange[i + 1]; j++)
@@ -316,7 +320,47 @@ j++)
             CHARS[j] |= MASK_PUBID;
         }
     }
+	// Initialize Character
+	init_Character();
 
 	isReady = TRUE;
 	}
 } 
+
+static void init_Character()
+{
+	// initialize Character
+	if (isCharacterReady == FALSE){
+		int i;
+	for (i=0;i<0x100;i++){
+		if ( i>='0' && i<='9' ){
+			Character[i] = i - 48;
+		} else if (i>='a' && i<='z'){
+			Character[i] = i - 87;
+		} else if (i>='A' && i<='Z'){
+			Character[i] = i - 55;
+		}
+		else
+			Character[i]= -1;		
+	}
+		isCharacterReady = TRUE;
+	}
+}
+
+int Character_digit(int ch, int radix){
+	exception e;
+	int i;
+	if (radix <= 1 || radix >36){
+		e.et = invalid_argument;
+		e.msg = "radix out of range ( <2 or > 36 )";
+		Throw e;
+	}
+	if (isCharacterReady == FALSE)
+		init_Character();
+
+	i = Character[ch & 0xff];
+	if (i > radix - 1){
+		return -1;
+	}
+	return Character[ch&0xff];
+}

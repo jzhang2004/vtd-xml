@@ -22,9 +22,10 @@
 #include "fastLongBuffer.h"
 #include "contextBuffer.h"
 #include "UTF8Char.h"
+#include "XMLChar.h"
 #include <math.h>
 
-
+#if BIG_ENDIAN
 #define MASK_TOKEN_FULL_LEN 0x000fffff00000000L
 #define MASK_TOKEN_PRE_LEN 0x000ff80000000000L
 #define MASK_TOKEN_QN_LEN  0x000007ff00000000L
@@ -32,7 +33,9 @@
 #define MASK_TOKEN_TYPE  0xf000000000000000L
 #define MASK_TOKEN_DEPTH  0x0ff0000000000000L
 #define MASK_TOKEN_NS_MARK 0x00000000c0000000L
-
+#elif
+//define MASKS for small endians
+#endif
 //#define ROOT 0
 //#define PARENT 1
 //#define FIRST_CHILD 2

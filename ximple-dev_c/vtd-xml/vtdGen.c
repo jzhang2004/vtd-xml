@@ -287,136 +287,8 @@ static int  entityIdentifier(VTDGen *vg){
 	}
 }
 
-/*static int getChar(VTDGen *vg){
-exception e;
-int temp = 0;
-int a = 0, c = 0, d = 0, val = 0, i=0;
-if (vg->offset >= vg->endOffset){
-e.et = parse_exception;
-e.msg = "Parse exception in getChar";
-e.sub_msg = "Premature EOF reached, XML document incomplete";
-Throw e;			
-}
-//throw new EOFException("permature EOF reached, XML document incomplete");
-switch (vg->encoding) {
-case FORMAT_ASCII :
-temp = vg->XMLDoc[vg->offset];
-vg->offset++;
-return temp;
-case FORMAT_UTF8 :
 
-temp = vg->XMLDoc[vg->offset];
-if (temp >= 0) {
-vg->offset++;
-return temp;
-}
-temp = temp & 0xff;
-switch (UTF8Char.byteCount(temp)) { // handle multi-byte code
-case 2 :
-c = 0x1f;
-// A mask determine the val portion of the first byte
-d = 6; // 
-a = 1; //
-break;
-case 3 :
-c = 0x0f;
-d = 12;
-a = 2;
-break;
-case 4 :
-c = 0x07;
-d = 18;
-a = 3;
-break;
-case 5 :
-c = 0x03;
-d = 24;
-a = 4;
-break;
-case 6 :
-c = 0x01;
-d = 30;
-a = 5;
-break;
-default :
-e.et = parse_exception;
-e.msg = "Parse exception in getChar";
-e.sub_msg = "UTF 8 encoding error: should never happen";
-Throw e;
-//throw new ParseException("UTF 8 encoding error: should never happen");
-}
-val = (temp & c) << d;
-i = a - 1;
-while (i >= 0) {
-temp = vg->XMLDoc[vg->offset + a - i];
-if ((temp & 0xc0) != 0x80){
-e.et = parse_exception;
-e.msg = "Parse exception in getChar";
-e.sub_msg = "UTF 8 encoding error: should never happen";
-Throw e;
-}
-//throw new ParseException("UTF 8 encoding error: should never happen");
-val = val | ((temp & 0x3f) << (i * 6));
-i--;
-}
-vg->offset += a + 1;
-return val;
 
-case FORMAT_UTF_16BE :
-// implement UTF-16BE to UCS4 conversion
-temp = vg->XMLDoc[vg->offset] << 8 | vg->XMLDoc[vg->offset + 1];
-if ((temp < 0xd800)
-|| (temp >= 0xdc00)) { // not a high surrogate
-vg->offset += 2;
-return temp;
-} else {
-val = temp;
-temp = vg->XMLDoc[vg->offset + 2] << 8 | vg->XMLDoc[vg->offset + 3];
-if (temp < 0xdc00 || temp > 0xdfff) {
-// has to be a low surrogate here
-e.et = parse_exception;
-e.msg = "Parse exception in getChar";
-e.sub_msg = "UTF 16 BE encoding error: should never happen";
-Throw e;
-//throw new EncodingException("UTF 16 BE encoding error: should never happen");
-}
-val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
-vg->offset += 4;
-return val;
-}
-case FORMAT_UTF_16LE :
-temp = vg->XMLDoc[vg->offset + 1] << 8 | vg->XMLDoc[vg->offset];
-if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
-vg->offset += 2;
-return temp;
-} else {
-val = temp;
-temp = vg->XMLDoc[vg->offset + 3] << 8 | vg->XMLDoc[vg->offset + 2];
-if (temp < 0xd800 || temp > 0xdc00) {
-// has to be high surrogate
-e.et = parse_exception;
-e.msg = "Parse exception in getChar";
-e.sub_msg = "UTF 16 LE encoding error: should never happen";
-Throw e;
-//throw new EncodingException("UTF 16 LE encoding error: should never happen");
-}
-val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
-vg->offset += 4;
-return val;
-}
-case FORMAT_ISO_8859 :
-temp = vg->XMLDoc[vg->offset];
-vg->offset++;
-return temp & 0xff;
-default :
-e.et = parse_exception;
-e.msg = "Parse exception in getChar";
-e.sub_msg = "Unknown encoding";
-Throw e;
-//	throw new EncodingException("Unknown encoding");
-}
-}
-*/
 // The string indicating the position (line number:offset) 
 // of the offset if there is an exception.
 static void printLineNumber(VTDGen *vg){
@@ -2915,10 +2787,14 @@ static Boolean skipChar(VTDGen *vg, int ch){
 static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth){
 	printf(" offset --> %d ; length -->%d ; tokenType ---> %d ; depth --> %d \n", offset, length, token_type, depth);
 	if (token_type != TOKEN_ENDING_TAG)
+#if BIG_ENDIAN
 		appendLong(vg->VTDBuffer,
 		((Long) ((token_type << 28) | 
 		((depth & 0xff) << 20) | length)<< 32)
 		| vg->offset);
+#else
+
+#endif
 	// remember VTD depth start from zero
 	if (token_type == TOKEN_STARTING_TAG) {
 		switch (depth) {
@@ -2928,33 +2804,48 @@ static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, i
 					break;
 				case 1 :
 					if (vg->last_depth == 1) {
+#if BIG_ENDIAN
 						appendLong(vg->l1Buffer,
 							((Long) vg->last_l1_index << 32) | 0xffffffffL);
+#else
+#endif
 					} else if (vg->last_depth == 2) {
+#if BIG_ENDIAN
 						appendLong(vg->l2Buffer,
 							((Long) vg->last_l2_index << 32) | 0xffffffffL);
+#else
+#endif
 					}
 					vg->last_l1_index = vg->VTDBuffer->size - 1;
 					vg->last_depth = 1;
 					break;
 				case 2 :
 					if (vg->last_depth == 1) {
+#if BIG_ENDIAN
 						appendLong(vg->l1Buffer,
 							((Long) vg->last_l1_index << 32) + vg->l2Buffer->size);
+#else
+#endif
 					} else if (vg->last_depth == 2) {
+#if BIG_ENDIAN
 						appendLong(vg->l2Buffer,
 							((Long) vg->last_l2_index << 32) | 0xffffffffL);
+#else
+#endif
 					}
 					vg->last_l2_index = vg->VTDBuffer->size - 1;
 					vg->last_depth = 2;
 					break;
 
 				case 3 :
+#if BIG_ENDIAN
 					appendInt(vg->l3Buffer, vg->VTDBuffer->size - 1);
 					if (vg->last_depth == 2) {
 						appendLong(vg->l2Buffer,
 							((Long)vg->last_l2_index << 32) + vg->l3Buffer->size - 1);
 					}
+#else
+#endif
 					vg->last_depth = 3;
 					break;
 				default :
@@ -2964,11 +2855,17 @@ static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, i
 
 	} else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
 		if (vg->last_depth == 1) {
+#if BIG_ENDIAN
 			appendLong(
 				vg->l1Buffer, ((Long) vg->last_l1_index << 32) | 0xffffffffL);
+#else
+#endif
 		} else if (vg->last_depth == 2) {
+#if BIG_ENDIAN
 			appendLong(
 				vg->l2Buffer, ((Long) vg->last_l2_index << 32) | 0xffffffffL);
+#else
+#endif
 		}
 	}
 }
