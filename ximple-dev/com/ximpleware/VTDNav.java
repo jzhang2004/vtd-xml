@@ -1063,8 +1063,8 @@ public class VTDNav {
 					context[0] = depth;
 					context[depth] = index;
 					if (matchElement(en)) {
-						if (depth < 4)
-							resolveLC();
+						if (dp< 4)
+						resolveLC();
 						return true;
 					}
 				} else {
@@ -1112,7 +1112,7 @@ public class VTDNav {
 					context[0] = depth;
 					context[depth] = index;
 					if (matchElementNS(URL, ln)) {
-						if (depth < 4)
+						if (dp < 4)
 							resolveLC();
 						return true;
 					}
@@ -1867,6 +1867,27 @@ public class VTDNav {
 
 		contextStack.store(stackTemp);
 	}
+	
+	public void sampleState(FastIntBuffer fib){
+//		for(int i=0;i<context.)
+//			context[i] = -1;
+//		fib.append(context);
+		if (context[0]>=1)
+			fib.append(l1index);
+		
+		
+		if (context[0]>=2){
+			fib.append(l2index);
+			fib.append(l2lower);
+			fib.append(l2upper);				
+		}
+		
+		if (context[0]>=3){
+		   fib.append(l3index);
+		   fib.append(l3lower);
+		   fib.append(l3upper);
+		}
+	}
 	/**
 	 * Sync up the current context with location cache.
 	 * This operation includes finding out l1index, l2index, 
@@ -1878,145 +1899,129 @@ public class VTDNav {
 	 */
 	private void resolveLC() {
 		int temp;
-		switch (context[0]) {
-			case 1 :
-			case 2 :
-			case 3 :
-				if (l1index < 0
-					|| l1index >= l1Buffer.size()
-					|| context[1] != l1Buffer.upper32At(l1index)) {
-					if (l1index >= l1Buffer.size()) {
-						l1index = 0;
+
+		if (l1index < 0 || l1index >= l1Buffer.size()
+				|| context[1] != l1Buffer.upper32At(l1index)) {
+			if (l1index >= l1Buffer.size()) {
+				l1index = 0;
+			}
+			if (context[1] != l1Buffer.upper32At(l1index + 1)) {
+				int init_guess = (int) (l1Buffer.size() * ((float) context[1] / vtdBuffer
+						.size()));
+				if (l1Buffer.upper32At(init_guess) > context[1]) {
+					while (l1Buffer.upper32At(init_guess) != context[1]) {
+						init_guess--;
 					}
-					if (context[1] != l1Buffer.upper32At(l1index + 1)) {
-						int init_guess =
-							(int) (l1Buffer.size()
-								* ((float) context[1] / vtdBuffer.size()));
-						if (l1Buffer.upper32At(init_guess) > context[1]) {
-							while (l1Buffer.upper32At(init_guess)
-								!= context[1]) {
-								init_guess--;
-							}
-						} else if (
-							l1Buffer.upper32At(init_guess) < context[1]) {
-							while (l1Buffer.upper32At(init_guess)
-								!= context[1]) {
-								init_guess++;
-							}
-						}
-						l1index = init_guess;
-					} else
-						l1index = l1index + 1;
-					// for iterations, l1index+1 is the logical next value for l1index
-				}
-				if (context[0] == 1)
-					break;
-
-				temp = l1Buffer.lower32At(l1index);
-				if (l2lower != temp) {
-					l2lower = temp;
-					// l2lower shouldn't be -1 !!!!  l2lower and l2upper always get resolved simultaneously
-					l2index = l2lower;
-					l2upper = l2Buffer.size() - 1;
-					for (int i = l1index + 1; i < l1Buffer.size(); i++) {
-						temp = l1Buffer.lower32At(i);
-						if (temp != 0xffffffff) {
-							l2upper = temp - 1;
-							break;
-						}
-					}
-				} // intelligent guess again ??
-
-				if (l2index < 0
-					|| l2index >= l2Buffer.size()
-					|| context[2] != l2Buffer.upper32At(l2index)) {
-					if (l2index >= l2Buffer.size())
-						l2index = l2lower;
-					if (context[2] == l2Buffer.upper32At(l2index + 1))
-						l2index = l2index + 1;
-					else if (l2upper - l2lower >= 16) {
-						int init_guess =
-							l2lower
-								+ (int) ((l2upper - l2lower)
-									* ((float) context[2]
-										- l2Buffer.upper32At(l2lower))
-									/ (l2Buffer.upper32At(l2upper)
-										- l2Buffer.upper32At(l2lower)));
-						if (l2Buffer.upper32At(init_guess) > context[2]) {
-							while (context[2]
-								!= l2Buffer.upper32At(init_guess))
-								init_guess--;
-						} else if (
-							l2Buffer.upper32At(init_guess) < context[2]) {
-							while (context[2]
-								!= l2Buffer.upper32At(init_guess))
-								init_guess++;
-						}
-						l2index = init_guess;
-					} else
-						while (context[2] != l2Buffer.upper32At(l2index)) {
-							l2index++;
-						}
-				}
-
-				if (context[0] == 2)
-					break;
-				temp = l2Buffer.lower32At(l2index);
-				if (l3lower != temp) {
-					//l3lower and l3upper are always together
-					l3lower = temp;
-					// l3lower shouldn't be -1
-					l3index = l3lower;
-					l3upper = l3Buffer.size() - 1;
-					for (int i = l2index + 1; i < l2Buffer.size(); i++) {
-						temp = l2Buffer.lower32At(i);
-						if (temp != 0xffffffff) {
-							l3upper = temp - 1;
-							break;
-						}
+				} else if (l1Buffer.upper32At(init_guess) < context[1]) {
+					while (l1Buffer.upper32At(init_guess) != context[1]) {
+						init_guess++;
 					}
 				}
-
-				if (l3index < 0
-					|| l3index >= l3Buffer.size()
-					|| context[3] != l3Buffer.intAt(l3index)) {
-					if (l3index >= l3Buffer.size())
-						l3index = l3lower;
-					if (context[3] == l3Buffer.intAt(l3index + 1))
-						l3index = l3index + 1;
-					else if (l3upper - l3lower >= 16) {
-						int init_guess =
-							l3lower
-								+ (int) ((l3upper - l3lower)
-									* ((float) (context[3]
-										- l3Buffer.intAt(l3lower))
-										/ (l3Buffer.intAt(l3upper)
-											- l3Buffer.intAt(l3lower))));
-						if (l3Buffer.intAt(init_guess) > context[3]) {
-							while (context[3] != l3Buffer.intAt(init_guess))
-								init_guess--;
-						} else if (l3Buffer.intAt(init_guess) < context[3]) {
-							while (context[3] != l3Buffer.intAt(init_guess))
-								init_guess++;
-						}
-						l3index = init_guess;
-					} else
-						while (context[3] != l3Buffer.intAt(l3index)) {
-							l3index++;
-						}
-				}
-
-				/*if (context[0] == 3)
-				    break;*/
-			default : // do nothing here
+				l1index = init_guess;
+			} else
+				l1index = l1index + 1;
+			// for iterations, l1index+1 is the logical next value for l1index
 		}
+		if (context[0] == 1)
+			return;
+
+		temp = l1Buffer.lower32At(l1index);
+		if (l2lower != temp) {
+			l2lower = temp;
+			// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+			// resolved simultaneously
+			l2index = l2lower;
+			l2upper = l2Buffer.size() - 1;
+			for (int i = l1index + 1; i < l1Buffer.size(); i++) {
+				temp = l1Buffer.lower32At(i);
+				if (temp != 0xffffffff) {
+					l2upper = temp - 1;
+					break;
+				}
+			}
+		} // intelligent guess again ??
+
+		if (l2index < 0 || l2index >= l2Buffer.size()
+				|| context[2] != l2Buffer.upper32At(l2index)) {
+			if (l2index >= l2Buffer.size())
+				l2index = l2lower;
+			if (context[2] == l2Buffer.upper32At(l2index + 1))
+				l2index = l2index + 1;
+			else if (l2upper - l2lower >= 16) {
+				int init_guess = l2lower
+						+ (int) ((l2upper - l2lower)
+								* ((float) context[2] - l2Buffer
+										.upper32At(l2lower)) / (l2Buffer
+								.upper32At(l2upper) - l2Buffer
+								.upper32At(l2lower)));
+				if (l2Buffer.upper32At(init_guess) > context[2]) {
+					while (context[2] != l2Buffer.upper32At(init_guess))
+						init_guess--;
+				} else if (l2Buffer.upper32At(init_guess) < context[2]) {
+					while (context[2] != l2Buffer.upper32At(init_guess))
+						init_guess++;
+				}
+				l2index = init_guess;
+			} else
+				while (context[2] != l2Buffer.upper32At(l2index)) {
+					l2index++;
+				}
+		}
+
+		if (context[0] == 2)
+			return;
+		temp = l2Buffer.lower32At(l2index);
+		if (l3lower != temp) {
+			//l3lower and l3upper are always together
+			l3lower = temp;
+			// l3lower shouldn't be -1
+			l3index = l3lower;
+			l3upper = l3Buffer.size() - 1;
+			for (int i = l2index + 1; i < l2Buffer.size(); i++) {
+				temp = l2Buffer.lower32At(i);
+				if (temp != 0xffffffff) {
+					l3upper = temp - 1;
+					break;
+				}
+			}
+		}
+
+		if (l3index < 0 || l3index >= l3Buffer.size()
+				|| context[3] != l3Buffer.intAt(l3index)) {
+			if (l3index >= l3Buffer.size())
+				l3index = l3lower;
+			if (context[3] == l3Buffer.intAt(l3index + 1))
+				l3index = l3index + 1;
+			else if (l3upper - l3lower >= 16) {
+				int init_guess = l3lower
+						+ (int) ((l3upper - l3lower) * ((float) (context[3] - l3Buffer
+								.intAt(l3lower)) / (l3Buffer.intAt(l3upper) - l3Buffer
+								.intAt(l3lower))));
+				if (l3Buffer.intAt(init_guess) > context[3]) {
+					while (context[3] != l3Buffer.intAt(init_guess))
+						init_guess--;
+				} else if (l3Buffer.intAt(init_guess) < context[3]) {
+					while (context[3] != l3Buffer.intAt(init_guess))
+						init_guess++;
+				}
+				l3index = init_guess;
+			} else
+				while (context[3] != l3Buffer.intAt(l3index)) {
+					l3index++;
+				}
+		}
+
 	}
 	/**
-	 * Test whether the URL is defined in the document.
-	 * Null is allowed to indicate the name space is undefined.
-	 * Creation date: (11/16/03 7:54:01 PM)
-	 * @param URL java.lang.String
-	 * @exception com.ximpleware.NavException When there is any encoding conversion error or unknown entity.
+	 * Test whether the URL is defined in the document. Null is allowed to
+	 * indicate the name space is undefined. Creation date: (11/16/03 7:54:01
+	 * PM)
+	 * 
+	 * @param URL
+	 *            java.lang.String
+	 * @exception com.ximpleware.NavException
+	 *                When there is any encoding conversion error or unknown
+	 *                entity.
 	 */
 	private boolean resolveNS(String URL) throws NavException {
 		int i =
