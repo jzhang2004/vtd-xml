@@ -1024,19 +1024,12 @@ void parse(VTDGen *vg, Boolean ns){
 									e.sub_msg="Token Length Error: Starting tag prefix or qname length too long";
 									Throw e;
 								}
-#if BIG_ENDIAN
+
 								writeVTD(vg,
 									(temp_offset),
 									(length2 << 11) | length1,
 									TOKEN_STARTING_TAG,
 									depth);
-#else
-								writeVTD(vg,
-									(temp_offset),
-									(length2 << 16) | length1,
-									TOKEN_STARTING_TAG,
-									depth);
-#endif
 						}
 						else{
 							/*if (length2>MAX_PREFIX_LENGTH<<1
@@ -3149,13 +3142,17 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->docLen = len;
 	vg->endOffset = os + len;
 	if (docLen <= 1024) {
-		a = 1024; //set the floor
+		//a = 1024; //set the floor
+		a = 10;
 	} else if (docLen <= 1024 * 16 * 4) {
-		a = 2048;
+		//a = 2048;
+		a = 11;
 	} else if (docLen <= 1024 * 256) {
-		a = 1024 * 4;
+		//a = 1024 * 4;
+		a = 12;
 	} else {
-		a = 1 << 15;
+		//a = 1 << 15;
+		a = 15;
 	}
 	//VTDBuffer = new FastLongBuffer(a);
 	//l1Buffer = new FastLongBuffer(128);
