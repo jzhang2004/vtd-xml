@@ -70,7 +70,7 @@ typedef struct vTDNav{
 	FastLongBuffer *l1Buffer;
 	FastLongBuffer *l2Buffer;
 	FastIntBuffer *l3Buffer;
-	Byte* XMLDoc;
+	UByte* XMLDoc;
     
 	ContextBuffer *contextBuf;
 
@@ -90,7 +90,7 @@ typedef struct vTDNav{
 //Create VTDNav object
 
 VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
-					 Byte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
+					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len);
 
 //Free VTDNav object
@@ -165,11 +165,11 @@ inline int getTokenOffset(VTDNav *vn, int index){
 #if BIG_ENDIAN
 	return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
 #else
-	return swap_bytes((int)((longAt(vn->vtdBuffer,index) & (0x3fffffffL << 32)) >> 32));
+	return swap_bytes((int)((longAt(vn->vtdBuffer,index) & 0xffffff3f00000000L) >> 32));
 #endif
 }
 // Get the XML document 
-inline Byte* getXML(VTDNav *vn){
+inline UByte* getXML(VTDNav *vn){
 	return vn->XMLDoc;
 }
 //Get the token type of the token at the given index value.

@@ -772,7 +772,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				j = swap_bytes(i);
 				return (vn->ns== FALSE)
 					? j & 0xfffff
-					: ((j & 0xfc0) << 16) | (j & 0x1ff);
+					: ((j & 0xff800) << 5) | (j & 0x7ff);
 #endif
 				break;
 			case TOKEN_CHARACTER_DATA:
