@@ -23,7 +23,7 @@
 struct exception_context the_exception_context[1];
 int main()
 {   
-   int test =7;
+   int test =6;
    if (test ==1){
 	int i,a,k; 
 	Long l;
@@ -213,6 +213,7 @@ int main()
 		  
 		   int i = Character_digit('a',16);
 	   	   printf("i 's val is %d \n", i);
+		   printf("i << 2 is %d \n", i<<2);
 	   }Catch (e){
 		   printf(e.msg);
 	   }

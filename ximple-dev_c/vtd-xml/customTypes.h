@@ -40,10 +40,12 @@
 typedef _TCHAR UCS2Char;
 typedef long long Long;
 typedef char Byte;
+// VTD-XML's own definition of Boolean
 typedef enum Bool {FALSE, 
 					  TRUE} 
 					Boolean;
 
+// VTD navigation parameters
 typedef enum direction {ROOT,
 						PARENT,
 						FIRST_CHILD,
@@ -80,6 +82,7 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 										 array_out_of_bound,
 										 parse_exception,
 										 nav_exception,
+										 pilot_exception,
 										 number_format_exception,
 										 other};
 

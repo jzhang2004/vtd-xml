@@ -108,11 +108,13 @@ int getAttrValNS(VTDNav *vn, UCS2Char* URL, UCS2Char *localName);
 
 
 //Get the depth (>=0) of the current element.
-inline int getCurrentDepth(VTDNav *vn);
-
+inline int getCurrentDepth(VTDNav *vn){
+	return vn->context[0];
+}
 // Get the index value of the current element.
-int getCurrentIndex(VTDNav *vn);
-
+inline int getCurrentIndex(VTDNav *vn){
+	return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
+}
 // Get the starting offset and length of an element
 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
 Long getElementFragment(VTDNav *vn);
@@ -125,23 +127,30 @@ Long getElementFragment(VTDNav *vn);
  * <pre>   3  UTF-16BE    </pre>
  * <pre>   4  UTF-16LE    </pre>
  */
-inline encoding getEncoding(VTDNav *vn);
+inline encoding getEncoding(VTDNav *vn){
+	return vn->encoding;
+}
 
 // Get the maximum nesting depth of the XML document (>0).
 // max depth is nestingLevel -1
-inline int getNestingLevel(VTDNav *vn);
 
+// max depth is nestingLevel -1
+inline int getNestingLevel(VTDNav *vn){
+	return vn->nestingLevel;
+}
 // Get root index value.
-inline int getRootIndex(VTDNav *vn);
-
+inline int getRootIndex(VTDNav *vn){
+	return vn->rootIndex;
+}
 
 // This function returns of the token index of the type character data or CDATA.
 // Notice that it is intended to support data orient XML (not mixed-content XML).
 int getText(VTDNav *vn);
 
 //Get total number of VTD tokens for the current XML document.
-inline int getTokenCount(VTDNav *vn);
-
+inline int getTokenCount(VTDNav *vn){
+	return vn->vtdSize;
+}
 //Get the depth value of a token (>=0)
 int getTokenDepth(VTDNav *vn, int index);
 
@@ -150,14 +159,26 @@ int getTokenDepth(VTDNav *vn, int index);
 int getTokenLength(VTDNav *vn, int index);
 
 //Get the starting offset of the token at the given index.
-int getTokenOffset(VTDNav *vn, int index);
 
-//Get the XML document 
-inline Byte* getXML(VTDNav *vn);
+inline int getTokenOffset(VTDNav *vn, int index){
+#if BIG_ENDIAN
+	return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
+#else
 
+#endif
+}
+// Get the XML document 
+inline Byte* getXML(VTDNav *vn){
+	return vn->XMLDoc;
+}
 //Get the token type of the token at the given index value.
-tokenType getTokenType(VTDNav *vn, int index);
+inline	 tokenType getTokenType(VTDNav *vn, int index){
+#if BIG_ENDIAN
+	return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
+#else
 
+#endif
+}
 //Test whether current element has an attribute with the matching name.
 Boolean hasAttr(VTDNav *vn, UCS2Char *attrName);
 

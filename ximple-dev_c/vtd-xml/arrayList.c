@@ -125,6 +125,7 @@
 // get the object pointer at the index position
 //(user program has to perform out-of-range checking)
 
- void *get(ArrayList *al, int index){
+/* void *get(ArrayList *al, int index){
 	return al->storage[index];
-}
+}*/
+//#define get(al, index) al->storage[index]

@@ -22,7 +22,7 @@ static int getChar(VTDNav *vn);
 static int getCharResolved(VTDNav *vn);
 static int getCharUnit(VTDNav *vn, int index);
 static inline Boolean isElement(VTDNav  *vn, int index);
-static inline Boolean isWS(VTDNav *vn, int ch);
+static inline Boolean isWS(int ch);
 static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCS2Char *s);
 static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCS2Char *s);
 static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCS2Char *s);
@@ -532,18 +532,125 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 //Get the depth (>=0) of the current element.
-					 inline int getCurrentDepth(VTDNav *vn){
+					 /*inline int getCurrentDepth(VTDNav *vn){
 						 return vn->context[0];
-					 }
+					 }*/
 
 					 // Get the index value of the current element.
-					 int getCurrentIndex(VTDNav *vn){
-						 return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
-					 }
+					 /* int getCurrentIndex(VTDNav *vn){
+					 return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
+					 }*/
 
 					 // Get the starting offset and length of an element
 					 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
-					 Long getElementFragment(VTDNav *vn);
+					 Long getElementFragment(VTDNav *vn){
+						 // a little scanning is needed
+						 // has next sibling case
+						 // if not
+						 int depth = getCurrentDepth(vn);
+						 int so = getTokenOffset(vn,getCurrentIndex(vn)) - 1;
+						 int length = 0;
+						 int temp;
+						 int size, so2, d, i;
+
+						 // for an element with next sibling
+						 if (toElement(vn,NEXT_SIBLING)) {
+
+							 int temp = getCurrentIndex(vn);
+							 int so2;
+							 // rewind 
+							 while (getTokenDepth(vn,temp) < depth) {
+								 temp--;
+							 }
+							 //temp++;
+							 so2 = getTokenOffset(vn,temp) - 1;
+							 // look for the first '>'
+							 while (getCharUnit(vn,so2) != '>') {
+								 so2--;
+							 }
+							 length = so2 - so + 1;
+							 toElement(vn, PREV_SIBLING);
+							 if (vn->encoding < 3)
+								 return ((Long) length) << 32 | so;
+							 else
+								 return ((Long) length) << 33 | (so << 1);
+						 }
+
+						 // for root element
+						 if (depth == 0) {
+							 int temp = vn->vtdBuffer->size - 1;
+							 Boolean b = FALSE;
+							 int so2 = 0;
+							 while (getTokenDepth(vn,temp) == -1) {
+								 temp--; // backward scan
+								 b = TRUE;
+							 }
+							 if (b == FALSE)
+								 so2 =
+								 (vn->encoding < 3)
+								 ? (vn->offset + vn->docLen - 1)
+								 : ((vn->offset + vn->docLen) << 1) - 1;
+							 else
+								 so2 = getTokenOffset(vn,temp + 1);
+							 while (getCharUnit(vn,so2) != '>') {
+								 so2--;
+							 }
+							 length = so2 - so + 1;
+							 if (vn->encoding < 3)
+								 return ((Long) length) << 32 | so;
+							 else
+								 return ((Long) length) << 33 | (so << 1);
+						 }
+						 // for a non-root element with no next sibling
+						 temp = getCurrentIndex(vn) + 1;
+						 size = vn->vtdBuffer->size;
+						 // temp is not the last entry in VTD buffer
+						 if (temp < size - 1) {
+							 while (temp < size && getTokenDepth(vn,temp) >= depth) {
+								 temp++;
+							 }
+							 if (temp != size) {
+								 int d =
+									 depth
+									 - getTokenDepth(vn,temp)
+									 + ((getTokenType(vn, temp) == TOKEN_STARTING_TAG) ? 1 : 0);
+								 int so2 = getTokenOffset(vn,temp) - 1;
+								 int i = 0;
+								 // scan backward
+								 while (i < d) {
+									 if (getCharUnit(vn,so2) == '>')
+										 i++;
+									 so2--;
+								 }
+								 length = so2 - so + 2;
+								 if (vn->encoding < 3)
+									 return ((Long) length) << 32 | so;
+								 else
+									 return ((Long) length) << 33 | (so << 1);
+							 }
+						 }
+						 // temp is the last entry
+						 // scan forward search for /> or </cc>
+						 so2 =
+							 (vn->encoding < 3)
+							 ? (vn->offset + vn->docLen - 1)
+							 : ((vn->offset + vn->docLen) << 1) - 1;
+						 d = depth + 1;
+						 i = 0;
+						 while (i < d) {
+							 if (getCharUnit(vn,so2) == '>') {
+								 i++;
+							 }
+							 so2--;
+						 }
+
+						 length = so2 - so + 2;
+
+						 if (vn->encoding < 3)
+							 return ((Long) length) << 32 | so;
+						 else
+							 return ((Long) length) << 33 | (so << 1);
+						 }
 
 					 /**
 					 * Get the encoding of the XML document.
@@ -553,30 +660,57 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 * <pre>   3  UTF-16BE    </pre>
 					 * <pre>   4  UTF-16LE    </pre>
 					 */
-					 inline encoding getEncoding(VTDNav *vn){
+					/* inline encoding getEncoding(VTDNav *vn){
 						 return vn->encoding;
-					 }
+					 }*/
 
 					 // Get the maximum nesting depth of the XML document (>0).
 					 // max depth is nestingLevel -1
-					 inline int getNestingLevel(VTDNav *vn){
+					 /*inline int getNestingLevel(VTDNav *vn){
 						 return vn->nestingLevel;
-					 }
+					 }*/
 
 					 // Get root index value.
-					 inline int getRootIndex(VTDNav *vn){
+					/* inline int getRootIndex(VTDNav *vn){
 						 return vn->rootIndex;
-					 }
+					 }*/
 
 
 					 // This function returns of the token index of the type character data or CDATA.
 					 // Notice that it is intended to support data orient XML (not mixed-content XML).
-					 int getText(VTDNav *vn);
+					 int getText(VTDNav *vn){
+						 int index = (vn->context[0] != 0) ? 
+							 vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
+						 int depth = getCurrentDepth(vn);
+						 tokenType type = getTokenType(vn,index);
+
+						 while (index < vn->vtdSize) {
+							 if (type == TOKEN_CHARACTER_DATA || type == TOKEN_CDATA_VAL) {
+								 if (depth == getTokenDepth(vn,index))
+									 return index;
+								 else
+									 return -1;
+							 } else if (type == TOKEN_ATTR_NS || type == TOKEN_ATTR_NAME) {
+								 index += 2; // assuming a single token for attr val
+							 } else if (
+								 type == TOKEN_PI_NAME
+								 || type == TOKEN_PI_VAL
+								 || type == TOKEN_COMMENT) {
+									 if (depth == getTokenDepth(vn,index)) {
+										 index += 1;
+									 } else
+										 return -1;
+								 } else
+									 return -1;
+								 type = getTokenType(vn, index);
+						 }
+						 return -1;
+					 }
 
 					 //Get total number of VTD tokens for the current XML document.
-					 inline int getTokenCount(VTDNav *vn){
+					 /*inline int getTokenCount(VTDNav *vn){
 						 return vn->vtdSize;
-					 }
+					 }*/
 
 					 //Get the depth value of a token (>=0)
 					 int getTokenDepth(VTDNav *vn, int index){
@@ -618,27 +752,27 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 //Get the starting offset of the token at the given index.
-					 int getTokenOffset(VTDNav *vn, int index){
-#if BIG_ENDIAN
-                         return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
-#else
-
-#endif
-					 }
+//					 int getTokenOffset(VTDNav *vn, int index){
+//#if BIG_ENDIAN
+//                         return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
+//#else
+//
+//#endif
+//					 }
 
 					 //Get the XML document 
-					 inline Byte* getXML(VTDNav *vn){
+					 /*inline Byte* getXML(VTDNav *vn){
 						 return vn->XMLDoc;
-					 }
+					 }*/
 
-					 //Get the token type of the token at the given index value.
-					 tokenType getTokenType(VTDNav *vn, int index){
-#if BIG_ENDIAN
-						 return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
-#else
-
-#endif
-					 }
+//					 //Get the token type of the token at the given index value.
+//					 tokenType getTokenType(VTDNav *vn, int index){
+//#if BIG_ENDIAN
+//						 return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
+//#else
+//
+//#endif
+//					 }
 
 					 //Test whether current element has an attribute with the matching name.
 					 Boolean hasAttr(VTDNav *vn, UCS2Char *an){
@@ -709,7 +843,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 //Test whether ch is a white space character or not.
-					 static inline Boolean isWS(VTDNav *vn, int ch){
+					 static inline Boolean isWS(int ch){
 						 return (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
 					 }
 					 //This method is similar to getElementByName in DOM except it doesn't
@@ -1010,7 +1144,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 ch = getCharResolved(vn);
 
 						 while (vn->currentOffset <= end) { // trim leading whitespaces
-							 if (!isWS(vn,ch))
+							 if (!isWS(ch))
 								 break;
 							 ch = getCharResolved(vn);
 						 }
@@ -1102,7 +1236,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 //anything left must be space
 						 while (vn->currentOffset <= end) {
-							 if (!isWS(vn,ch)){// all whitespace
+							 if (!isWS(ch)){// all whitespace
 								 e.et = nav_exception;
 								 e.msg = " parseDouble failed, invalid char found";
 								 Throw e;
@@ -1140,7 +1274,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 ch = getCharResolved(vn);
 
 						 while (vn->currentOffset <= end) { // trim leading whitespaces
-							 if (!isWS(vn,ch))
+							 if (!isWS(ch))
 								 break;
 							 ch = getCharResolved(vn);
 						 }
@@ -1232,7 +1366,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 //anything left must be space
 						 while (vn->currentOffset <= end) {
-							 if (!isWS(vn,ch)){// all whitespace
+							 if (!isWS(ch)){// all whitespace
 								 e.et = number_format_exception;
 								 e.msg = " parseFloat failed, invalid format, invalid char encountered";
 								 Throw e;
@@ -1317,7 +1451,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							// throw new NumberFormatException("Overflow: " + toString(index));
 
 						 // take care of the trailing
-						 while (vn->currentOffset <= endOffset && isWS(vn,c)) {
+						 while (vn->currentOffset <= endOffset && isWS(c)) {
 							 c = getCharResolved(vn);
 						 }
 						 if (vn->currentOffset == (endOffset + 1))
@@ -1383,7 +1517,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						// throw new NumberFormatException("Overflow: " + toString(index));
 
 						 // take care of the trailing
-						 while (vn->currentOffset <= endOffset && isWS(vn,c)) {
+						 while (vn->currentOffset <= endOffset && isWS(c)) {
 							 c = getCharResolved(vn);
 						 }
 						 if (vn->currentOffset == (endOffset + 1))
@@ -2189,7 +2323,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 while (TRUE) {
 							 int temp = vn->currentOffset;
 							 ch = getCharResolved(vn);
-							 if (!isWS(vn,ch)) {
+							 if (!isWS(ch)) {
 								 vn->currentOffset = temp;
 								 break;
 							 }
@@ -2199,7 +2333,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 k = 0;
 						 while (vn->currentOffset <= endOffset) {
 							 ch = getCharResolved(vn);
-							 if (isWS(vn,ch)) {
+							 if (isWS(ch)) {
 								 d = TRUE;
 							 } else {
 								 if (d == FALSE)

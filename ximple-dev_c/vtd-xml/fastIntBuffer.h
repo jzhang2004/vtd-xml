@@ -47,24 +47,41 @@ void appendInt(FastIntBuffer *fib, int i);
 void appendIntArray(FastIntBuffer *fib, int* i, int len);
 
 // Get the capacity of FastIntBuffer
-int getCapacityFIB(FastIntBuffer *fib);
-
+//int getCapacityFIB(FastIntBuffer *fib);
+#define getCapacityFIB(fib) fib->capacity
 // Get the int array corresponding to content of FastIntBuffer 
 // with the starting offset and len
 int *getIntArray(FastIntBuffer *fib, int offset, int len);
 
 // Get the page size of FastIntBuffer
-int getPageSizeFIB(FastIntBuffer *fib);
-
+//int getPageSizeFIB(FastIntBuffer *fib);
+#define getPageSizeFIB(fib) fib->pageSize
 // Get the int at the index position of FastIntBuffer
-int intAt(FastIntBuffer *fib, int index);
+inline int intAt(FastIntBuffer *fib, int index){
+	exception e;	    
+	if (index < 0 || index > fib->size - 1) {
+        e.et = invalid_argument;
+		e.msg = "index out of range for modifyEntryFIB in FastIntBuffer";
+		Throw e;
+    }
+	return ((int *) get(fib->al,index>>fib->exp))[index & fib->r];
+}
 
 // Replace the value at the index position of FastIntBuffer 
 // with newVal
- void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal);
+inline void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){
+	exception e;	    
+	if (index < 0 || index > fib->size - 1) {
+        e.et = invalid_argument;
+		e.msg = "index out of range for modifyEntryFIB in FastIntBuffer";
+		Throw e;
+    }
+	((int *) get(fib->al,index>>fib->exp))[index & fib->r] = newVal;
+}
 
  // Get the size of the FastIntBuffer
-int sizeFIB(FastIntBuffer *fib);
+//int sizeFIB(FastIntBuffer *fib);
+//#define sizeFIB(fib) fib->size
 
 // convert the content of FastIntBuffer to int *
 int* toIntArray(FastIntBuffer *fib);

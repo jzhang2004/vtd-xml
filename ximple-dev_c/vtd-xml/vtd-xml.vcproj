@@ -129,6 +129,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\autoPilot.c">
+			</File>
+			<File
 				RelativePath=".\contextBuffer.c">
 			</File>
 			<File
@@ -171,6 +174,9 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
 				RelativePath=".\arrayList.h">
+			</File>
+			<File
+				RelativePath=".\autoPilot.h">
 			</File>
 			<File
 				RelativePath=".\cexcept.h">

@@ -290,9 +290,9 @@ void appendLong(FastLongBuffer *flb, Long i){
 
 
 // get the capacity of FastLongBuffer
-int getCapacityFLB(FastLongBuffer *flb){
+/*int getCapacityFLB(FastLongBuffer *flb){
 	return flb->capacity;
-}
+}*/
 
 
 // Return a selected chuck of long buffer as a long array.
@@ -399,12 +399,14 @@ Long *getLongArray(FastLongBuffer *flb, int offset, int len){
 
 
 // get the page size of FastLongBuffer
-int getPageSizeFLB(FastLongBuffer *flb){
+// changed in macro
+/*int getPageSizeFLB(FastLongBuffer *flb){
 	return flb->pageSize;
-}
+}*/
 
 
 // get the long at the index position from FastLongBuffer
+// inlined in .h
 /*Long longAt(FastLongBuffer *flb, int index){
 	int pageNum = (index >>flb->exp);
     // int offset = index % r;
@@ -415,7 +417,8 @@ int getPageSizeFLB(FastLongBuffer *flb){
 
 
 // get the lower 32 bits from the index position from FastLongBuffer
-int lower32At(FastLongBuffer *flb, int index){
+// inlined in .h
+/*int lower32At(FastLongBuffer *flb, int index){
 	exception e;
 	int pageNum,offset;
     if (index < 0 || index > flb->size) {
@@ -430,11 +433,12 @@ int lower32At(FastLongBuffer *flb, int index){
     //return (int) ((Long[]) bufferArrayList.get(pageNum))[offset];
 	return (int)((Long *)get(flb->al,pageNum))[offset];
 //	return 0;
-}
+}*/
 
 
 // get the upper 32 bits from the index position from FastLongBuffer 
-int upper32At(FastLongBuffer *flb, int index){
+// inlined in .h
+/*int upper32At(FastLongBuffer *flb, int index){
 	exception e;
 	int pageNum, offset;
     if (index < 0 || index > flb->size) {
@@ -449,10 +453,11 @@ int upper32At(FastLongBuffer *flb, int index){
     //    ((((long[]) bufferArrayList.get(pageNum))[offset] & (0xffffffffL << 32)) >> 32);
 	return (int) ((((Long *)get(flb->al,pageNum))[offset] & (0xffffffffL<<32))>>32);
 //	return 0;
-}
+}*/
 
 // replace the entry at the index position of FastLongBuffer with l
-void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
+// inlined in .h
+/*void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
 	exception e;
 	//int pageNum, offset;
     if (index < 0 || index > flb->size) {
@@ -464,7 +469,7 @@ void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
     //((long[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
     //((long[]) bufferArrayList.get(index >> exp))[index & r] = l;
 	((Long *)get(flb->al,index>>flb->exp))[index & flb->r] = l;
-}
+}*/
 
 
 // convert FastLongBuffer into a Long array 

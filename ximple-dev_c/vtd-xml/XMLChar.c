@@ -332,17 +332,17 @@ static void init_Character()
 	// initialize Character
 	if (isCharacterReady == FALSE){
 		int i;
-	for (i=0;i<0x100;i++){
-		if ( i>='0' && i<='9' ){
-			Character[i] = i - 48;
-		} else if (i>='a' && i<='z'){
-			Character[i] = i - 87;
-		} else if (i>='A' && i<='Z'){
-			Character[i] = i - 55;
+		for (i=0;i<0x100;i++){
+			if ( i>='0' && i<='9' ){
+				Character[i] = i - 48;
+			} else if (i>='a' && i<='z'){
+				Character[i] = i - 87;
+			} else if (i>='A' && i<='Z'){
+				Character[i] = i - 55;
+			}
+			else
+				Character[i]= -1;		
 		}
-		else
-			Character[i]= -1;		
-	}
 		isCharacterReady = TRUE;
 	}
 }
