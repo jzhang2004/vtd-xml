@@ -2047,6 +2047,8 @@ public class VTDNav {
 			switch (NSval(s)) { // checked the ns marking
 				case 0xc0000000 :
 					s = s + 1;
+					if (s>=size)
+						break;
 					int type = getTokenType(s);
 
 					while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
@@ -2091,6 +2093,8 @@ public class VTDNav {
 					break;
 				default : // check the ns existence, mark bit 31:30 to 11 or 10
 					int k = s + 1;
+				    if (k>=size)
+				    	break;
 					type = getTokenType(k);
 
 					while ( (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
