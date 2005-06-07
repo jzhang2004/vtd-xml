@@ -17,15 +17,15 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-//import com.ximpleware.VTDGen1.UTF16BEReader;
-//import com.ximpleware.VTDGen1.UTF16LEReader;
+
 import com.ximpleware.parser.XMLChar;
 import com.ximpleware.parser.UTF8Char;
 
 //import java.io.*;
 /**
- * VTD Generator implementation. Current support built-in entities only It
- * parses DTD, but doesn't resolve declared entities
+ * VTD Generator implementation.
+ * Current support built-in entities only
+ * It parses DTD, but doesn't resolve declared entities
  */
 public class VTDGen {
 	// internal parser state
@@ -47,7 +47,6 @@ public class VTDGen {
 	private final static int STATE_END_COMMENT = 15;
 	// comment appear after the last ending tag
 	private final static int STATE_END_PI = 16;
-
 	//private final static int STATE_END_PI_VAL = 17;
 
 	// token type
@@ -80,25 +79,29 @@ public class VTDGen {
 	private int last_l1_index;
 	private int last_l2_index;
 	private int last_l3_index;
-	protected int offset;
+	private int increment;
+	private boolean BOM_detected;
+	private boolean must_utf_8;
+	private int ch;
+	private int ch_temp;
+	protected int offset;	// this is byte offset, not char offset as encoded in VTD
+	private int temp_offset;
+	private int depth;
 
-	// this is byte offset, not char offset as encoded in VTD
+
 	protected int prev_offset;
 	protected int rootIndex;
 	protected byte[] XMLDoc;
-
 	protected FastLongBuffer VTDBuffer;
 	protected FastLongBuffer l1Buffer;
 	protected FastLongBuffer l2Buffer;
 	protected FastIntBuffer l3Buffer;
 	int vtdSize;
-
 	int l1Size;
 	int l2Size;
 	int l3Size;
 
 	protected int docLen;
-
 	// again, in terms of byte, not char as encoded in VTD
 	protected int endOffset;
 	protected long[] tag_stack;
@@ -125,6 +128,7 @@ public class VTDGen {
 		tag_stack = new long[TAG_STACK_SIZE];
 		//scratch_buffer = new int[10];
 		VTDDepth = 0;
+		//increment  =1;
 	}
 
 	/**
@@ -136,26 +140,27 @@ public class VTDGen {
 		l2Buffer = null;
 		l3Buffer = null;
 		XMLDoc = null;
-		offset = 0;
+		offset = temp_offset =0;
 		l1Size = l2Size = l3Size = VTDDepth = 0;
 		last_depth = last_l1_index = last_l2_index = 0;
 		rootIndex = 0;
+		
+		depth = -1;
+		increment =1;
+		BOM_detected = false;
+		must_utf_8 = false;
+		ch = ch_temp = 0;
+	
 	}
 
 	/**
-	 * This method will detect whether the entity is valid or not and increment
-	 * offset.
-	 * 
+	 * This method will detect whether the entity is valid or not and increment offset.
 	 * @return int
-	 * @throws com.ximpleware.ParseException
-	 *             Super class for any exception during parsing.
-	 * @throws com.ximpleware.EncodingException
-	 *             UTF/native encoding exception.
-	 * @throws com.ximpleware.EOFException
-	 *             End of file exception.
+	 * @throws com.ximpleware.ParseException Super class for any exception during parsing.
+	 * @throws com.ximpleware.EncodingException UTF/native encoding exception.
+	 * @throws com.ximpleware.EOFException End of file exception.
 	 */
-	private int entityIdentifier() throws EntityException, EncodingException,
-			EOFException, ParseException {
+	private int entityIdentifier() throws EntityException, EncodingException,EOFException, ParseException {
 		int ch = getChar();
 		int val = 0;
 
@@ -174,8 +179,7 @@ public class VTDGen {
 					} else if (ch == ';') {
 						return val;
 					} else
-						throw new EntityException(
-								"Errors in char reference: Illegal char following &#x.");
+						throw new EntityException("Errors in char reference: Illegal char following &#x.");
 				}
 			} else {
 				while (true) {
@@ -184,17 +188,15 @@ public class VTDGen {
 					} else if (ch == ';') {
 						break;
 					} else
-						throw new EntityException(
-								"Errors in char reference: Illegal char following &#.");
+						throw new EntityException("Errors in char reference: Illegal char following &#.");
 					ch = getChar();
 				}
 			}
 			if (!XMLChar.isValidChar(val)) {
-				throw new EntityException(
-						"Errors in entity reference: Invalid XML char.");
+				throw new EntityException("Errors in entity reference: Invalid XML char.");
 			}
 			return val;
-		//break;
+			//break;
 
 		case 'a':
 			ch = getChar();
@@ -243,9 +245,8 @@ public class VTDGen {
 	}
 
 	/**
-	 * Format the string indicating the position (line number:offset)of the
-	 * offset if there is an exception.
-	 * 
+	 * Format the string indicating the position (line number:offset)of the offset if 
+	 * there is an exception.
 	 * @return java.lang.String indicating the line number and offset of the
 	 *         exception
 	 */
@@ -256,7 +257,7 @@ public class VTDGen {
 		int end = offset;
 
 		if (encoding < FORMAT_UTF_16BE) {
-			while (so <= offset - 1) {
+			while (so <= offset-1) {
 				if (XMLDoc[so] == '\n') {
 					lineNumber++;
 					lineOffset = so;
@@ -266,7 +267,7 @@ public class VTDGen {
 			}
 			lineOffset = offset - lineOffset;
 		} else if (encoding == FORMAT_UTF_16BE) {
-			while (so <= offset - 2) {
+			while (so <= offset-2) {
 				if (XMLDoc[so + 1] == '\n' && XMLDoc[so] == 0) {
 					lineNumber++;
 					lineOffset = so;
@@ -275,7 +276,7 @@ public class VTDGen {
 			}
 			lineOffset = (offset - lineOffset) >> 1;
 		} else {
-			while (so <= offset - 2) {
+			while (so <= offset-2) {
 				if (XMLDoc[so] == '\n' && XMLDoc[so + 1] == 0) {
 					lineNumber++;
 					lineOffset = so;
@@ -284,8 +285,7 @@ public class VTDGen {
 			}
 			lineOffset = (offset - lineOffset) >> 1;
 		}
-		return "\nLine Number: " + (lineNumber + 1) + " Offset: "
-				+ (lineOffset - 1);
+		return "\nLine Number: " + (lineNumber+1) + " Offset: " + (lineOffset - 1);
 	}
 
 	/**
@@ -707,44 +707,12 @@ public class VTDGen {
 			System.out.println(e);
 		}
 	}
-
 	/**
-	 * Generating VTD tokens and Location cache info. One specifies whether the
-	 * parsing is namespace aware or not.
-	 * 
-	 * @param NS
-	 *            boolean
-	 * @throws ParseException
-	 *             Super class for any exception during parsing.
-	 * @throws EOFException
-	 *             End of file exception.
-	 * @throws EntityException
-	 *             Entity resolution exception.
+	 * A private method that detects the BOM and decides document encoding
 	 * @throws EncodingException
-	 *             UTF/native encoding exception.
+	 * @throws ParseException
 	 */
-	public void parse(boolean NS) throws EncodingException, EOFException,
-			EntityException, ParseException {
-
-		// define internal variables
-		ns = NS;
-		int temp_offset = 0, length1 = 0, length2 = 0, increment = 1;
-		int depth = -1, attr_count = 0, ch = 0, ch_temp = 0;
-		int prev_ch = 0, prev2_ch = 0, parser_state = STATE_DOC_START;
-		//boolean has_amp = false;
-		boolean is_ns = false;
-		encoding = FORMAT_UTF8;
-		boolean main_loop = true, hasDTD = false, hasDecl = false, docEnd = false, firstLT = true;
-		//char char_temp; //holds the ' or " indicating start of attr val
-		boolean must_utf_8 = false;
-		boolean BOM_detected = false;
-		//long[] tag_stack = new long[256];
-		//long[] attr_name_array = new long[512]; // 512 attributes limit
-		//ASCII UTF-8 UTF-16 UTF-16BE UTF-16LE ISO-8859-1
-		//
-		//int[] scratch_buffer = new int[10];
-
-		// first check first several bytes to figure out the encoding
+	private void decide_encoding() throws EncodingException,ParseException {
 		if (XMLDoc[offset] == -2) {
 			increment = 2;
 			if (XMLDoc[offset + 1] == -1) {
@@ -796,6 +764,49 @@ public class VTDGen {
 			if ((offset - 2 + docLen) >= 1L << 31)
 				throw new ParseException("Other error: file size too large ");
 		}
+	
+	}
+	/**
+	 * Generating VTD tokens and Location cache info. One specifies whether the
+	 * parsing is namespace aware or not.
+	 * 
+	 * @param NS
+	 *            boolean
+	 * @throws ParseException
+	 *             Super class for any exception during parsing.
+	 * @throws EOFException
+	 *             End of file exception.
+	 * @throws EntityException
+	 *             Entity resolution exception.
+	 * @throws EncodingException
+	 *             UTF/native encoding exception.
+	 */
+	public void parse(boolean NS) throws EncodingException, EOFException,
+			EntityException, ParseException {
+
+		// define internal variables
+		ns = NS;
+		int length1 = 0, length2 = 0;
+		int  attr_count = 0  /*, ch = 0 , ch_temp = 0;*/;
+		int prev_ch = 0, prev2_ch = 0, parser_state = STATE_DOC_START;
+		//boolean has_amp = false;
+		boolean is_ns = false;
+		encoding = FORMAT_UTF8;
+		boolean main_loop = true, hasDTD = false, hasDecl = false, docEnd = false, firstLT = true;
+		//char char_temp; //holds the ' or " indicating start of attr val
+		//boolean must_utf_8 = false;
+		
+		//long[] tag_stack = new long[256];
+		//long[] attr_name_array = new long[512]; // 512 attributes limit
+		//ASCII UTF-8 UTF-16 UTF-16BE UTF-16LE ISO-8859-1
+		//
+		//int[] scratch_buffer = new int[10];
+
+		// first check first several bytes to figure out the encoding
+		// decide encoding
+		// 
+		decide_encoding();
+
 		// enter the main finite state machine
 		try {
 			while (main_loop) {
@@ -1123,714 +1134,32 @@ public class VTDGen {
 
 				case STATE_UNRECORDED_TEXT:
 					break;
+					
 				case STATE_PI_TAG:
-					while (true) {
-						ch = getChar();
-						if (!XMLChar.isNameChar(ch))
-							break;
-					}
-
-					length1 = offset - temp_offset - increment;
-					/*
-					 * System.out.println( ((char) XMLDoc[temp_offset]) + " " +
-					 * (temp_offset) + " " + length1 + " PI Target " + depth);
-					 */
-					if (encoding < FORMAT_UTF_16BE) {
-						if (length1 > MAX_TOKEN_LENGTH)
-							throw new ParseException("Token Length Error:"
-									+ " PI name too long (>0xfffff)"
-									+ formatLineNumber());
-						writeVTD((temp_offset), length1, TOKEN_PI_NAME, depth);
-					} else {
-						if (length1 > (MAX_TOKEN_LENGTH << 1))
-							throw new ParseException("Token Length Error:"
-									+ " PI name too long (>0xfffff)"
-									+ formatLineNumber());
-						writeVTD((temp_offset) >> 1, (length1 >> 1),
-								TOKEN_PI_NAME, depth);
-					}
-					//length1 = 0;
-					temp_offset = offset;
-					if (XMLChar.isSpaceChar(ch)) {
-						ch = getChar();
-					}
-					if (ch == '?') {
-						if (skipChar('>')) {
-							temp_offset = offset;
-							ch = getCharAfterSe();
-							if (ch == '<') {
-								parser_state = STATE_LT_SEEN;
-							} else if (XMLChar.isContentChar(ch)) {
-								parser_state = STATE_TEXT;
-							} else if (ch == '&') {
-								//has_amp = true;
-								entityIdentifier();
-								parser_state = STATE_TEXT;
-							} else if (ch == ']') {
-								if (skipChar(']')) {
-									while (skipChar(']')) {
-									}
-									if (skipChar('>'))
-										throw new ParseException(
-												"Error in text content: ]]> in text content"
-														+ formatLineNumber());
-								}
-								parser_state = STATE_TEXT;
-							} else
-								throw new ParseException(
-										"Error in text content: Invalid char"
-												+ formatLineNumber());
-							break;
-						} else
-							throw new ParseException(
-									"Error in PI: invalid termination sequence"
-											+ formatLineNumber());
-					}
-					parser_state = STATE_PI_VAL;
+					parser_state = process_pi_tag();
 					break;
+					
 				//throw new ParseException("Error in PI: Invalid char");
 				case STATE_PI_VAL:
-					//temp_offset = offset;
-					while (true) {
-						if (XMLChar.isValidChar(ch)) {
-							//System.out.println(""+(char)ch);
-							if (ch == '?')
-								if (skipChar('>')) {
-									break;
-								} else
-									throw new ParseException(
-											"Error in PI: invalid termination sequence for PI"
-													+ formatLineNumber());
-						} else
-							throw new ParseException(
-									"Errors in PI: Invalid char in PI val"
-											+ formatLineNumber());
-						ch = getChar();
-					}
-					length1 = offset - temp_offset - 2 * increment;
-					/*
-					 * System.out.println( ((char) XMLDoc[temp_offset]) + " " +
-					 * (temp_offset) + " " + length1 + " PI val " + depth);
-					 */
-					if (encoding < FORMAT_UTF_16BE) {
-						if (length1 > MAX_TOKEN_LENGTH)
-							throw new ParseException("Token Length Error:"
-									+ "PI VAL too long (>0xfffff)"
-									+ formatLineNumber());
-						writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
-					} else {
-						if (length1 > (MAX_TOKEN_LENGTH << 1))
-							throw new ParseException("Token Length Error:"
-									+ "PI VAL too long (>0xfffff)"
-									+ formatLineNumber());
-						writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL,
-								depth);
-					}
-					//length1 = 0;
-					temp_offset = offset;
-					ch = getCharAfterSe();
-
-					if (ch == '<') {
-						parser_state = STATE_LT_SEEN;
-					} else if (XMLChar.isContentChar(ch)) {
-						//temp_offset = offset;
-						parser_state = STATE_TEXT;
-					} else if (ch == '&') {
-						//has_amp = true;
-						//temp_offset = offset;
-						entityIdentifier();
-						parser_state = STATE_TEXT;
-					} else if (ch == ']') {
-						if (skipChar(']')) {
-							while (skipChar(']')) {
-							}
-							if (skipChar('>'))
-								throw new ParseException(
-										"Error in text content: ]]> in text content"
-												+ formatLineNumber());
-						}
-						parser_state = STATE_TEXT;
-					} else
-						throw new ParseException(
-								"Error in text content: Invalid char"
-										+ formatLineNumber());
+					parser_state = process_pi_val();
 					break;
-
+			
 				case STATE_DEC_ATTR_NAME:
-					if (ch == 'v' && skipChar('e') && skipChar('r')
-							&& skipChar('s') && skipChar('i') && skipChar('o')
-							&& skipChar('n')) {
-						ch = getCharAfterS();
-						if (ch == '=') {
-							/*
-							 * System.out.println( " " + (temp_offset - 1) + " " +
-							 * 7 + " dec attr name version " + depth);
-							 */
-							if (encoding < FORMAT_UTF_16BE)
-								writeVTD(temp_offset - 1, 7,
-										TOKEN_DEC_ATTR_NAME, depth);
-							else
-								writeVTD((temp_offset - 2) >> 1, 7,
-										TOKEN_DEC_ATTR_NAME, depth);
-						} else
-							throw new ParseException(
-									"XML decl error: Invalid char"
-											+ formatLineNumber());
-					} else
-						throw new ParseException(
-								"XML decl error: should be version"
-										+ formatLineNumber());
-					ch_temp = getCharAfterS();
-					if (ch_temp != '\'' && ch_temp != '"')
-						throw new ParseException(
-								"XML decl error: Invalid char to start attr name"
-										+ formatLineNumber());
-					temp_offset = offset;
-					// support 1.0 or 1.1
-					if (skipChar('1') && skipChar('.')
-							&& (skipChar('0') || skipChar('1'))) {
-						/*
-						 * System.out.println( " " + temp_offset + " " + 3 + "
-						 * dec attr val (version)" + depth);
-						 */
-						if (encoding < FORMAT_UTF_16BE)
-							writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
-						else
-							writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL,
-									depth);
-					} else
-						throw new ParseException(
-								"XML decl error: Invalid version(other than 1.0 or 1.1) detected"
-										+ formatLineNumber());
-					if (!skipChar(ch_temp))
-						throw new ParseException(
-								"XML decl error: version not terminated properly"
-										+ formatLineNumber());
-					ch = getChar();
-					//? space or e
-					if (XMLChar.isSpaceChar(ch)) {
-						ch = getCharAfterS();
-						temp_offset = offset - increment;
-						if (ch == 'e') {
-							if (skipChar('n') && skipChar('c') && skipChar('o')
-									&& skipChar('d') && skipChar('i')
-									&& skipChar('n') && skipChar('g')) {
-								ch = getChar();
-								if (XMLChar.isSpaceChar(ch))
-									ch = getCharAfterS();
-								if (ch == '=') {
-									/*
-									 * System.out.println( " " + (temp_offset) + " " +
-									 * 8 + " dec attr name (encoding) " +
-									 * depth);
-									 */
-									if (encoding < FORMAT_UTF_16BE)
-										writeVTD(temp_offset, 8,
-												TOKEN_DEC_ATTR_NAME, depth);
-									else
-										writeVTD(temp_offset >> 1, 8,
-												TOKEN_DEC_ATTR_NAME, depth);
-								} else
-									throw new ParseException(
-											"XML decl error: Invalid char"
-													+ formatLineNumber());
-								ch_temp = getCharAfterS();
-								if (ch_temp != '"' && ch_temp != '\'')
-									throw new ParseException(
-											"XML decl error: Invalid char to start attr name"
-													+ formatLineNumber());
-								temp_offset = offset;
-								ch = getChar();
-								switch (ch) {
-								case 'a':
-								case 'A':
-									if ((skipChar('s') || skipChar('S'))
-											&& (skipChar('c') || skipChar('C'))
-											&& (skipChar('i') || skipChar('I'))
-											&& (skipChar('i') || skipChar('I'))
-											&& skipChar(ch_temp)) {
-										if (encoding != FORMAT_UTF_16LE
-												&& encoding != FORMAT_UTF_16BE) {
-											if (must_utf_8)
-												throw new EncodingException(
-														"Can't switch from UTF-8"
-																+ formatLineNumber());
-											encoding = FORMAT_ASCII;
-											/*
-											 * System.out.println( " " +
-											 * (temp_offset) + " " + 5 + " dec
-											 * attr val (encoding) " + depth);
-											 */
-											if (encoding < FORMAT_UTF_16BE)
-												writeVTD(temp_offset, 5,
-														TOKEN_DEC_ATTR_VAL,
-														depth);
-											else
-												writeVTD(temp_offset >> 1, 5,
-														TOKEN_DEC_ATTR_VAL,
-														depth);
-											break;
-										} else
-											throw new ParseException(
-													"XML decl error: Can't switch encoding to ASCII"
-															+ formatLineNumber());
-									}
-									throw new ParseException(
-											"XML decl error: Invalid Encoding"
-													+ formatLineNumber());
-								case 'i':
-								case 'I':
-									if ((skipChar('s') || skipChar('S'))
-											&& (skipChar('o') || skipChar('O'))
-											&& skipChar('-') && skipChar('8')
-											&& skipChar('8') && skipChar('5')
-											&& skipChar('9') && skipChar('-')
-											&& skipChar('1')
-											&& skipChar(ch_temp)) {
-										if (encoding != FORMAT_UTF_16LE
-												&& encoding != FORMAT_UTF_16BE) {
-											if (must_utf_8)
-												throw new EncodingException(
-														"Can't switch from UTF-8"
-																+ formatLineNumber());
-											encoding = FORMAT_ISO_8859;
-											/*
-											 * System.out.println( " " +
-											 * (temp_offset) + " " + 10 + " dec
-											 * attr val (encoding) " + depth);
-											 */
-											if (encoding < FORMAT_UTF_16BE)
-												writeVTD(temp_offset, 10,
-														TOKEN_DEC_ATTR_VAL,
-														depth);
-											else
-												writeVTD(temp_offset >> 1, 10,
-														TOKEN_DEC_ATTR_VAL,
-														depth);
-											break;
-										} else
-											throw new ParseException(
-													"XML decl error: Can't switch encoding to ISO-8859"
-															+ formatLineNumber());
-									}
-									throw new ParseException(
-											"XML decl error: Invalid Encoding"
-													+ formatLineNumber());
-								case 'u':
-								case 'U':
-									if ((skipChar('s') || skipChar('S')))
-										if (skipChar('-')
-												&& (skipChar('a') || skipChar('A'))
-												&& (skipChar('s') || skipChar('S'))
-												&& (skipChar('c') || skipChar('C'))
-												&& (skipChar('i') || skipChar('I'))
-												&& (skipChar('i') || skipChar('I'))
-												&& skipChar(ch_temp)) {
-											if (encoding != FORMAT_UTF_16LE
-													&& encoding != FORMAT_UTF_16BE) {
-												if (must_utf_8)
-													throw new EncodingException(
-															"Can't switch from UTF-8"
-																	+ formatLineNumber());
-												encoding = FORMAT_ASCII;
-												//System.out.println(
-												//    " " + (temp_offset) + " " + 5
-												// + " dec attr val (encoding) "
-												// + depth);
-												if (encoding < FORMAT_UTF_16BE)
-													writeVTD(temp_offset, 5,
-															TOKEN_DEC_ATTR_VAL,
-															depth);
-												else
-													writeVTD(temp_offset >> 1,
-															5,
-															TOKEN_DEC_ATTR_VAL,
-															depth);
-												break;
-
-											} else
-												throw new ParseException(
-														"XML decl error: Can't switch encoding to US-ASCII"
-																+ formatLineNumber());
-										} else
-											throw new ParseException(
-													"XML decl error: Invalid Encoding"
-															+ formatLineNumber());
-
-									if ((skipChar('t') || skipChar('T'))
-											&& (skipChar('f') || skipChar('F'))
-											&& skipChar('-')) {
-										if (skipChar('8') && skipChar(ch_temp)) {
-											if (encoding != FORMAT_UTF_16LE
-													&& encoding != FORMAT_UTF_16BE) {
-												//encoding = FORMAT_UTF8;
-												/*
-												 * System.out.println( " " +
-												 * (temp_offset) + " " + 5 + "
-												 * dec attr val (encoding) " +
-												 * depth);
-												 */
-												if (encoding < FORMAT_UTF_16BE)
-													writeVTD(temp_offset, 5,
-															TOKEN_DEC_ATTR_VAL,
-															depth);
-												else
-													writeVTD(temp_offset >> 1,
-															5,
-															TOKEN_DEC_ATTR_VAL,
-															depth);
-												break;
-											} else
-												throw new ParseException(
-														"XML decl error: Can't switch encoding to UTF-8"
-																+ formatLineNumber());
-										}
-										if (skipChar('1') && skipChar('6')) {
-											if (skipChar(ch_temp)) {
-												if (encoding == FORMAT_UTF_16LE
-														|| encoding == FORMAT_UTF_16BE) {
-													if (!BOM_detected)
-														throw new EncodingException(
-																"BOM not detected for UTF-16"
-																		+ formatLineNumber());
-													if (encoding < FORMAT_UTF_16BE)
-														writeVTD(
-																temp_offset,
-																6,
-																TOKEN_DEC_ATTR_VAL,
-																depth);
-													else
-														writeVTD(
-																temp_offset >> 1,
-																6,
-																TOKEN_DEC_ATTR_VAL,
-																depth);
-													break;
-												}
-												throw new ParseException(
-														"XML decl error: Can't switch encoding to UTF-16"
-																+ formatLineNumber());
-											} else if ((skipChar('l') || skipChar('L'))
-													&& (skipChar('e') || skipChar('E'))
-													&& skipChar(ch_temp)) {
-												if (encoding == FORMAT_UTF_16LE) {
-													/*
-													 * System.out.println( " " +
-													 * (temp_offset) + " " + 7 + "
-													 * dec attr val (encoding) " +
-													 * depth);
-													 */
-													if (encoding < FORMAT_UTF_16BE)
-														writeVTD(
-																temp_offset,
-																7,
-																TOKEN_DEC_ATTR_VAL,
-																depth);
-													else
-														writeVTD(
-																temp_offset >> 1,
-																7,
-																TOKEN_DEC_ATTR_VAL,
-																depth);
-													break;
-												}
-												throw new ParseException(
-														"XML del error: Can't switch encoding to UTF-16LE"
-																+ formatLineNumber());
-											} else if ((skipChar('b') || skipChar('B'))
-													&& (skipChar('e') || skipChar('E'))
-													&& skipChar(ch_temp)) {
-												if (encoding == FORMAT_UTF_16BE) {
-													/*
-													 * System.out.println( " " +
-													 * (temp_offset) + " " + 7 + "
-													 * dec attr val (encoding) " +
-													 * depth);
-													 */
-													if (encoding < FORMAT_UTF_16BE)
-														writeVTD(
-																temp_offset,
-																7,
-																TOKEN_DEC_ATTR_VAL,
-																depth);
-													else
-														writeVTD(
-																temp_offset >> 1,
-																7,
-																TOKEN_DEC_ATTR_VAL,
-																depth);
-													break;
-												}
-												throw new ParseException(
-														"XML del error: Can't swtich encoding to UTF-16BE"
-																+ formatLineNumber());
-											}
-
-											throw new ParseException(
-													"XML decl error: Invalid encoding"
-															+ formatLineNumber());
-										}
-									}
-								default:
-									throw new ParseException(
-											"XML decl Error: invalid encoding"
-													+ formatLineNumber());
-								}
-								ch = getChar();
-								if (XMLChar.isSpaceChar(ch))
-									ch = getCharAfterS();
-								temp_offset = offset - increment;
-							} else
-								throw new ParseException(
-										"XML decl Error: Invalid char"
-												+ formatLineNumber());
-						}
-
-						if (ch == 's') {
-							if (skipChar('t') && skipChar('a') && skipChar('n')
-									&& skipChar('d') && skipChar('a')
-									&& skipChar('l') && skipChar('o')
-									&& skipChar('n') && skipChar('e')) {
-
-								ch = getCharAfterS();
-								if (ch != '=')
-									throw new ParseException(
-											"XML decl error: Invalid char"
-													+ formatLineNumber());
-								/*
-								 * System.out.println( " " + temp_offset + " " +
-								 * 3 + " dec attr name (standalone) " + depth);
-								 */
-								if (encoding < FORMAT_UTF_16BE)
-									writeVTD(temp_offset, 10,
-											TOKEN_DEC_ATTR_NAME, depth);
-								else
-									writeVTD(temp_offset >> 1, 10,
-											TOKEN_DEC_ATTR_NAME, depth);
-								ch_temp = getCharAfterS();
-								temp_offset = offset;
-								if (ch_temp != '"' && ch_temp != '\'')
-									throw new ParseException(
-											"XML decl error: Invalid char to start attr name"
-													+ formatLineNumber());
-								ch = getChar();
-								if (ch == 'y') {
-									if (skipChar('e') && skipChar('s')
-											&& skipChar(ch_temp)) {
-										/*
-										 * System.out.println( " " +
-										 * (temp_offset) + " " + 3 + " dec attr
-										 * val (standalone) " + depth);
-										 */
-										if (encoding < FORMAT_UTF_16BE)
-											writeVTD(temp_offset, 3,
-													TOKEN_DEC_ATTR_VAL, depth);
-										else
-											writeVTD(temp_offset >> 1, 3,
-													TOKEN_DEC_ATTR_VAL, depth);
-									} else
-										throw new ParseException(
-												"XML decl error: invalid val for standalone"
-														+ formatLineNumber());
-								} else if (ch == 'n') {
-									if (skipChar('o') && skipChar(ch_temp)) {
-										/*
-										 * System.out.println( " " +
-										 * (temp_offset) + " " + 2 + " dec attr
-										 * val (standalone)" + depth);
-										 */
-										if (encoding < FORMAT_UTF_16BE)
-											writeVTD(temp_offset, 2,
-													TOKEN_DEC_ATTR_VAL, depth);
-										else
-											writeVTD(temp_offset >> 1, 2,
-													TOKEN_DEC_ATTR_VAL, depth);
-									} else
-										throw new ParseException(
-												"XML decl error: invalid val for standalone"
-														+ formatLineNumber());
-								} else
-									throw new ParseException(
-											"XML decl error: invalid val for standalone"
-													+ formatLineNumber());
-							} else
-								throw new ParseException("XML decl error"
-										+ formatLineNumber());
-							ch = getChar();
-							if (XMLChar.isSpaceChar(ch))
-								ch = getCharAfterS();
-						}
-					}
-
-					if (ch == '?' && skipChar('>')) {
-						temp_offset = offset;
-						ch = getCharAfterS();
-						if (ch == '<') {
-							parser_state = STATE_LT_SEEN;
-						} else
-							throw new ParseException(
-									"Other Error: Invalid Char in XML"
-											+ formatLineNumber());
-					} else
-						throw new ParseException(
-								"XML decl Error: Invalid termination sequence"
-										+ formatLineNumber());
+					parser_state = process_dec_attr();
 					break;
+				
 				case STATE_COMMENT:
-					while (true) {
-						ch = getChar();
-						if (XMLChar.isValidChar(ch)) {
-							if (ch == '-' && skipChar('-')) {
-								length1 = offset - temp_offset - 2 * increment;
-								break;
-							}
-						} else
-							throw new ParseException(
-									"Error in comment: Invalid Char"
-											+ formatLineNumber());
-					}
-					if (getChar() == '>') {
-						//System.out.println(" " + (temp_offset) + " " +
-						// length1 + " comment " + depth);
-						if (encoding < FORMAT_UTF_16BE)
-							writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
-						else
-							writeVTD(temp_offset >> 1, length1 >> 1,
-									TOKEN_COMMENT, depth);
-						//length1 = 0;
-						temp_offset = offset;
-						ch = getCharAfterSe();
-						if (ch == '<') {
-							parser_state = STATE_LT_SEEN;
-						} else if (XMLChar.isContentChar(ch)) {
-							//temp_offset = offset;
-							parser_state = STATE_TEXT;
-						} else if (ch == '&') {
-							//has_amp = true;
-							//temp_offset = offset;
-							entityIdentifier();
-							parser_state = STATE_TEXT;
-						} else if (ch == ']') {
-							if (skipChar(']')) {
-								while (skipChar(']')) {
-								}
-								if (skipChar('>'))
-									throw new ParseException(
-											"Error in text content: ]]> in text content"
-													+ formatLineNumber());
-							}
-							parser_state = STATE_TEXT;
-						} else
-							throw new ParseException(
-									"Error in text content: Invalid char"
-											+ formatLineNumber());
-						break;
-					} else
-						throw new ParseException(
-								"Error in comment: Invalid terminating sequence"
-										+ formatLineNumber());
+					parser_state = process_comment();
+					break;
+					
 				case STATE_CDATA:
-					while (true) {
-						ch = getChar();
-						if (XMLChar.isValidChar(ch)) {
-							if (ch == ']' && skipChar(']')) {
-								while (skipChar(']'))
-									;
-								if (skipChar('>')) {
-									break;
-								} else
-									throw new ParseException(
-											"Error in CDATA: Invalid termination sequence"
-													+ formatLineNumber());
-							}
-						} else
-							throw new ParseException(
-									"Error in CDATA: Invalid Char"
-											+ formatLineNumber());
-					}
-					length1 = offset - temp_offset - 3 * increment;
-					if (encoding < FORMAT_UTF_16BE) {
-
-						writeVTD(temp_offset, length1, TOKEN_CDATA_VAL, depth);
-					} else {
-
-						writeVTD(temp_offset >> 1, length1 >> 1,
-								TOKEN_CDATA_VAL, depth);
-					}
-					//System.out.println(" " + (temp_offset) + " " + length1 +
-					// " CDATA " + depth);
-					temp_offset = offset;
-					ch = getCharAfterSe();
-					if (ch == '<') {
-						parser_state = STATE_LT_SEEN;
-					} else if (XMLChar.isContentChar(ch)) {
-						//temp_offset = offset;
-						parser_state = STATE_TEXT;
-					} else if (ch == '&') {
-						//has_amp = true;
-						//temp_offset = offset;
-						entityIdentifier();
-						parser_state = STATE_TEXT;
-						//temp_offset = offset;
-					} else if (ch == ']') {
-						if (skipChar(']')) {
-							while (skipChar(']')) {
-							}
-							if (skipChar('>'))
-								throw new ParseException(
-										"Error in text content: ]]> in text content"
-												+ formatLineNumber());
-						}
-						parser_state = STATE_TEXT;
-					} else
-						throw new ParseException(
-								"Other Error: Invalid char in xml"
-										+ formatLineNumber());
+					parser_state = process_cdata();
 					break;
+					
 				case STATE_DOCTYPE:
-					int z = 1;
-					while (true) {
-						ch = getChar();
-						if (XMLChar.isValidChar(ch)) {
-							if (ch == '>')
-								z--;
-							else if (ch == '<')
-								z++;
-							if (z == 0)
-								break;
-						} else
-							throw new ParseException(
-									"Error in DOCTYPE: Invalid char"
-											+ formatLineNumber());
-					}
-					length1 = offset - temp_offset - increment;
-					/*
-					 * System.out.println( " " + (temp_offset) + " " + length1 + "
-					 * DOCTYPE val " + depth);
-					 */
-					if (encoding < FORMAT_UTF_16BE) {
-						if (length1 > MAX_TOKEN_LENGTH)
-							throw new ParseException("Token Length Error:"
-									+ " DTD val too long (>0xfffff)"
-									+ formatLineNumber());
-						writeVTD(temp_offset, length1, TOKEN_DTD_VAL, depth);
-					} else {
-						if (length1 > (MAX_TOKEN_LENGTH << 1))
-							throw new ParseException("Token Length Error:"
-									+ " DTD val too long (>0xfffff)"
-									+ formatLineNumber());
-						writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_DTD_VAL,
-								depth);
-					}
-					ch = getCharAfterS();
-					if (ch == '<') {
-						parser_state = STATE_LT_SEEN;
-					} else
-						throw new ParseException(
-								"Other Error: Invalid char in xml"
-										+ formatLineNumber());
+					parser_state = process_doc_type();
 					break;
-
+					
 				case STATE_TEXT:
 					if (depth == -1)
 						throw new ParseException(
@@ -2000,6 +1329,7 @@ public class VTDGen {
 					temp_offset = offset;
 					parser_state = STATE_ATTR_VAL;
 					break;
+					
 				case STATE_ATTR_VAL:
 					while (true) {
 						ch = getChar();
@@ -2092,131 +1422,13 @@ public class VTDGen {
 									+ formatLineNumber());
 
 				case STATE_END_PI:
-					ch = getChar();
-					if (XMLChar.isNameStartChar(ch)) {
-						if ((ch == 'x' || ch == 'X')
-								&& (skipChar('m') || skipChar('M'))
-								&& (skipChar('l') && skipChar('L'))) {
-							//temp_offset = offset;
-							ch = getChar();
-							if (XMLChar.isSpaceChar(ch) || ch == '?')
-								throw new ParseException(
-										"Error in PI: [xX][mM][lL] not a valid PI target"
-												+ formatLineNumber());
-							//offset = temp_offset;
-						}
-
-						while (true) {
-							//ch = getChar();
-							if (!XMLChar.isNameChar(ch)) {
-								break;
-							}
-							ch = getChar();
-						}
-
-						length1 = offset - temp_offset - increment;
-						/*
-						 * System.out.println( "" + (char) XMLDoc[temp_offset] + " " +
-						 * (temp_offset) + " " + length1 + " PI Target " +
-						 * depth);
-						 */
-						if (encoding < FORMAT_UTF_16BE) {
-							if (length1 > MAX_TOKEN_LENGTH)
-								throw new ParseException("Token Length Error:"
-										+ "PI name too long (>0xfffff)"
-										+ formatLineNumber());
-							writeVTD(temp_offset, length1, TOKEN_PI_NAME, depth);
-						} else {
-							if (length1 > (MAX_TOKEN_LENGTH << 1))
-								throw new ParseException("Token Length Error:"
-										+ "PI name too long (>0xfffff)"
-										+ formatLineNumber());
-							writeVTD(temp_offset >> 1, length1 >> 1,
-									TOKEN_PI_NAME, depth);
-						}
-						//length1 = 0;
-						temp_offset = offset;
-						if (XMLChar.isSpaceChar(ch)) {
-							ch = getCharAfterS();
-
-							while (true) {
-								if (XMLChar.isValidChar(ch)) {
-									if (ch == '?')
-										if (skipChar('>')) {
-											parser_state = STATE_DOC_END;
-											break;
-										} else
-											throw new ParseException(
-													"Error in PI: invalid termination sequence"
-															+ formatLineNumber());
-								} else
-									throw new ParseException(
-											"Error in PI: Invalid char in PI val"
-													+ formatLineNumber());
-								ch = getChar();
-							}
-							length1 = offset - temp_offset - 2 * increment;
-							if (encoding < FORMAT_UTF_16BE) {
-								if (length1 > MAX_TOKEN_LENGTH)
-									throw new ParseException(
-											"Token Length Error:"
-													+ "PI val too long (>0xfffff)"
-													+ formatLineNumber());
-								writeVTD(temp_offset, length1, TOKEN_PI_VAL,
-										depth);
-							} else {
-								if (length1 > (MAX_TOKEN_LENGTH << 1))
-									throw new ParseException(
-											"Token Length Error:"
-													+ "PI val too long (>0xfffff)"
-													+ formatLineNumber());
-								writeVTD(temp_offset >> 1, length1 >> 1,
-										TOKEN_PI_VAL, depth);
-							}
-							//System.out.println(" " + temp_offset + " " +
-							// length1 + " PI val " + depth);
-						} else {
-							if ((ch == '?') && skipChar('>')) {
-								parser_state = STATE_DOC_END;
-							} else
-								throw new ParseException(
-										"Error in PI: invalid termination sequence"
-												+ formatLineNumber());
-						}
-						//parser_state = STATE_DOC_END;
-					} else
-						throw new ParseException(
-								"Error in PI: invalid char in PI target"
-										+ formatLineNumber());
+					parser_state = process_end_pi();
 					break;
 
 				case STATE_END_COMMENT:
-					while (true) {
-						ch = getChar();
-						if (XMLChar.isValidChar(ch)) {
-							if (ch == '-' && skipChar('-')) {
-								length1 = offset - temp_offset - 2 * increment;
-								break;
-							}
-						} else
-							throw new ParseException(
-									"Error in comment: Invalid Char"
-											+ formatLineNumber());
-					}
-					if (getChar() == '>') {
-						//System.out.println(" " + temp_offset + " " + length1
-						// + " comment " + depth);
-						if (encoding < FORMAT_UTF_16BE)
-							writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
-						else
-							writeVTD(temp_offset >> 1, length1 >> 1,
-									TOKEN_COMMENT, depth);
-						//length1 = 0;
-						parser_state = STATE_DOC_END;
-						break;
-					}
-					throw new ParseException("Error in comment: '-->' expected"
-							+ formatLineNumber());
+					parser_state = process_end_comment();
+					break;
+					
 				default:
 					throw new ParseException(
 							"Other error: invalid parser state"
@@ -2229,7 +1441,912 @@ public class VTDGen {
 			finishUp();
 		}
 	}
+	
+	
+	/**
+	 * This private method processes declaration attributes
+	 * @return the parser state after which the parser loop jumps to
+	 * @throws ParseException
+	 * @throws EncodingException
+	 * @throws EOFException
+	 */
+	private int process_dec_attr() throws ParseException, EncodingException, EOFException{
+		int length1;
+		int parser_state;
+		if (ch == 'v' && skipChar('e') && skipChar('r')
+				&& skipChar('s') && skipChar('i') && skipChar('o')
+				&& skipChar('n')) {
+			ch = getCharAfterS();
+			if (ch == '=') {
+				/*
+				 * System.out.println( " " + (temp_offset - 1) + " " +
+				 * 7 + " dec attr name version " + depth);
+				 */
+				if (encoding < FORMAT_UTF_16BE)
+					writeVTD(temp_offset - 1, 7,
+							TOKEN_DEC_ATTR_NAME, depth);
+				else
+					writeVTD((temp_offset - 2) >> 1, 7,
+							TOKEN_DEC_ATTR_NAME, depth);
+			} else
+				throw new ParseException(
+						"XML decl error: Invalid char"
+								+ formatLineNumber());
+		} else
+			throw new ParseException(
+					"XML decl error: should be version"
+							+ formatLineNumber());
+		ch_temp = getCharAfterS();
+		if (ch_temp != '\'' && ch_temp != '"')
+			throw new ParseException(
+					"XML decl error: Invalid char to start attr name"
+							+ formatLineNumber());
+		temp_offset = offset;
+		// support 1.0 or 1.1
+		if (skipChar('1') && skipChar('.')
+				&& (skipChar('0') || skipChar('1'))) {
+			/*
+			 * System.out.println( " " + temp_offset + " " + 3 + "
+			 * dec attr val (version)" + depth);
+			 */
+			if (encoding < FORMAT_UTF_16BE)
+				writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
+			else
+				writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL,
+						depth);
+		} else
+			throw new ParseException(
+					"XML decl error: Invalid version(other than 1.0 or 1.1) detected"
+							+ formatLineNumber());
+		if (!skipChar(ch_temp))
+			throw new ParseException(
+					"XML decl error: version not terminated properly"
+							+ formatLineNumber());
+		ch = getChar();
+		//? space or e
+		if (XMLChar.isSpaceChar(ch)) {
+			ch = getCharAfterS();
+			temp_offset = offset - increment;
+			if (ch == 'e') {
+				if (skipChar('n') && skipChar('c') && skipChar('o')
+						&& skipChar('d') && skipChar('i')
+						&& skipChar('n') && skipChar('g')) {
+					ch = getChar();
+					if (XMLChar.isSpaceChar(ch))
+						ch = getCharAfterS();
+					if (ch == '=') {
+						/*
+						 * System.out.println( " " + (temp_offset) + " " +
+						 * 8 + " dec attr name (encoding) " +
+						 * depth);
+						 */
+						if (encoding < FORMAT_UTF_16BE)
+							writeVTD(temp_offset, 8,
+									TOKEN_DEC_ATTR_NAME, depth);
+						else
+							writeVTD(temp_offset >> 1, 8,
+									TOKEN_DEC_ATTR_NAME, depth);
+					} else
+						throw new ParseException(
+								"XML decl error: Invalid char"
+										+ formatLineNumber());
+					ch_temp = getCharAfterS();
+					if (ch_temp != '"' && ch_temp != '\'')
+						throw new ParseException(
+								"XML decl error: Invalid char to start attr name"
+										+ formatLineNumber());
+					temp_offset = offset;
+					ch = getChar();
+					switch (ch) {
+					case 'a':
+					case 'A':
+						if ((skipChar('s') || skipChar('S'))
+								&& (skipChar('c') || skipChar('C'))
+								&& (skipChar('i') || skipChar('I'))
+								&& (skipChar('i') || skipChar('I'))
+								&& skipChar(ch_temp)) {
+							if (encoding != FORMAT_UTF_16LE
+									&& encoding != FORMAT_UTF_16BE) {
+								if (must_utf_8)
+									throw new EncodingException(
+											"Can't switch from UTF-8"
+													+ formatLineNumber());
+								encoding = FORMAT_ASCII;
+								/*
+								 * System.out.println( " " +
+								 * (temp_offset) + " " + 5 + " dec
+								 * attr val (encoding) " + depth);
+								 */
+								if (encoding < FORMAT_UTF_16BE)
+									writeVTD(temp_offset, 5,
+											TOKEN_DEC_ATTR_VAL,
+											depth);
+								else
+									writeVTD(temp_offset >> 1, 5,
+											TOKEN_DEC_ATTR_VAL,
+											depth);
+								break;
+							} else
+								throw new ParseException(
+										"XML decl error: Can't switch encoding to ASCII"
+												+ formatLineNumber());
+						}
+						throw new ParseException(
+								"XML decl error: Invalid Encoding"
+										+ formatLineNumber());
+					case 'i':
+					case 'I':
+						if ((skipChar('s') || skipChar('S'))
+								&& (skipChar('o') || skipChar('O'))
+								&& skipChar('-') && skipChar('8')
+								&& skipChar('8') && skipChar('5')
+								&& skipChar('9') && skipChar('-')
+								&& skipChar('1')
+								&& skipChar(ch_temp)) {
+							if (encoding != FORMAT_UTF_16LE
+									&& encoding != FORMAT_UTF_16BE) {
+								if (must_utf_8)
+									throw new EncodingException(
+											"Can't switch from UTF-8"
+													+ formatLineNumber());
+								encoding = FORMAT_ISO_8859;
+								/*
+								 * System.out.println( " " +
+								 * (temp_offset) + " " + 10 + " dec
+								 * attr val (encoding) " + depth);
+								 */
+								if (encoding < FORMAT_UTF_16BE)
+									writeVTD(temp_offset, 10,
+											TOKEN_DEC_ATTR_VAL,
+											depth);
+								else
+									writeVTD(temp_offset >> 1, 10,
+											TOKEN_DEC_ATTR_VAL,
+											depth);
+								break;
+							} else
+								throw new ParseException(
+										"XML decl error: Can't switch encoding to ISO-8859"
+												+ formatLineNumber());
+						}
+						throw new ParseException(
+								"XML decl error: Invalid Encoding"
+										+ formatLineNumber());
+					case 'u':
+					case 'U':
+						if ((skipChar('s') || skipChar('S')))
+							if (skipChar('-')
+									&& (skipChar('a') || skipChar('A'))
+									&& (skipChar('s') || skipChar('S'))
+									&& (skipChar('c') || skipChar('C'))
+									&& (skipChar('i') || skipChar('I'))
+									&& (skipChar('i') || skipChar('I'))
+									&& skipChar(ch_temp)) {
+								if (encoding != FORMAT_UTF_16LE
+										&& encoding != FORMAT_UTF_16BE) {
+									if (must_utf_8)
+										throw new EncodingException(
+												"Can't switch from UTF-8"
+														+ formatLineNumber());
+									encoding = FORMAT_ASCII;
+									//System.out.println(
+									//    " " + (temp_offset) + " " + 5
+									// + " dec attr val (encoding) "
+									// + depth);
+									if (encoding < FORMAT_UTF_16BE)
+										writeVTD(temp_offset, 5,
+												TOKEN_DEC_ATTR_VAL,
+												depth);
+									else
+										writeVTD(temp_offset >> 1,
+												5,
+												TOKEN_DEC_ATTR_VAL,
+												depth);
+									break;
 
+								} else
+									throw new ParseException(
+											"XML decl error: Can't switch encoding to US-ASCII"
+													+ formatLineNumber());
+							} else
+								throw new ParseException(
+										"XML decl error: Invalid Encoding"
+												+ formatLineNumber());
+
+						if ((skipChar('t') || skipChar('T'))
+								&& (skipChar('f') || skipChar('F'))
+								&& skipChar('-')) {
+							if (skipChar('8') && skipChar(ch_temp)) {
+								if (encoding != FORMAT_UTF_16LE
+										&& encoding != FORMAT_UTF_16BE) {
+									//encoding = FORMAT_UTF8;
+									/*
+									 * System.out.println( " " +
+									 * (temp_offset) + " " + 5 + "
+									 * dec attr val (encoding) " +
+									 * depth);
+									 */
+									if (encoding < FORMAT_UTF_16BE)
+										writeVTD(temp_offset, 5,
+												TOKEN_DEC_ATTR_VAL,
+												depth);
+									else
+										writeVTD(temp_offset >> 1,
+												5,
+												TOKEN_DEC_ATTR_VAL,
+												depth);
+									break;
+								} else
+									throw new ParseException(
+											"XML decl error: Can't switch encoding to UTF-8"
+													+ formatLineNumber());
+							}
+							if (skipChar('1') && skipChar('6')) {
+								if (skipChar(ch_temp)) {
+									if (encoding == FORMAT_UTF_16LE
+											|| encoding == FORMAT_UTF_16BE) {
+										if (!BOM_detected)
+											throw new EncodingException(
+													"BOM not detected for UTF-16"
+															+ formatLineNumber());
+										if (encoding < FORMAT_UTF_16BE)
+											writeVTD(
+													temp_offset,
+													6,
+													TOKEN_DEC_ATTR_VAL,
+													depth);
+										else
+											writeVTD(
+													temp_offset >> 1,
+													6,
+													TOKEN_DEC_ATTR_VAL,
+													depth);
+										break;
+									}
+									throw new ParseException(
+											"XML decl error: Can't switch encoding to UTF-16"
+													+ formatLineNumber());
+								} else if ((skipChar('l') || skipChar('L'))
+										&& (skipChar('e') || skipChar('E'))
+										&& skipChar(ch_temp)) {
+									if (encoding == FORMAT_UTF_16LE) {
+										/*
+										 * System.out.println( " " +
+										 * (temp_offset) + " " + 7 + "
+										 * dec attr val (encoding) " +
+										 * depth);
+										 */
+										if (encoding < FORMAT_UTF_16BE)
+											writeVTD(
+													temp_offset,
+													7,
+													TOKEN_DEC_ATTR_VAL,
+													depth);
+										else
+											writeVTD(
+													temp_offset >> 1,
+													7,
+													TOKEN_DEC_ATTR_VAL,
+													depth);
+										break;
+									}
+									throw new ParseException(
+											"XML del error: Can't switch encoding to UTF-16LE"
+													+ formatLineNumber());
+								} else if ((skipChar('b') || skipChar('B'))
+										&& (skipChar('e') || skipChar('E'))
+										&& skipChar(ch_temp)) {
+									if (encoding == FORMAT_UTF_16BE) {
+										/*
+										 * System.out.println( " " +
+										 * (temp_offset) + " " + 7 + "
+										 * dec attr val (encoding) " +
+										 * depth);
+										 */
+										if (encoding < FORMAT_UTF_16BE)
+											writeVTD(
+													temp_offset,
+													7,
+													TOKEN_DEC_ATTR_VAL,
+													depth);
+										else
+											writeVTD(
+													temp_offset >> 1,
+													7,
+													TOKEN_DEC_ATTR_VAL,
+													depth);
+										break;
+									}
+									throw new ParseException(
+											"XML del error: Can't swtich encoding to UTF-16BE"
+													+ formatLineNumber());
+								}
+
+								throw new ParseException(
+										"XML decl error: Invalid encoding"
+												+ formatLineNumber());
+							}
+						}
+					default:
+						throw new ParseException(
+								"XML decl Error: invalid encoding"
+										+ formatLineNumber());
+					}
+					ch = getChar();
+					if (XMLChar.isSpaceChar(ch))
+						ch = getCharAfterS();
+					temp_offset = offset - increment;
+				} else
+					throw new ParseException(
+							"XML decl Error: Invalid char"
+									+ formatLineNumber());
+			}
+
+			if (ch == 's') {
+				if (skipChar('t') && skipChar('a') && skipChar('n')
+						&& skipChar('d') && skipChar('a')
+						&& skipChar('l') && skipChar('o')
+						&& skipChar('n') && skipChar('e')) {
+
+					ch = getCharAfterS();
+					if (ch != '=')
+						throw new ParseException(
+								"XML decl error: Invalid char"
+										+ formatLineNumber());
+					/*
+					 * System.out.println( " " + temp_offset + " " +
+					 * 3 + " dec attr name (standalone) " + depth);
+					 */
+					if (encoding < FORMAT_UTF_16BE)
+						writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_NAME, depth);
+					else
+						writeVTD(temp_offset >> 1, 10,
+								TOKEN_DEC_ATTR_NAME, depth);
+					ch_temp = getCharAfterS();
+					temp_offset = offset;
+					if (ch_temp != '"' && ch_temp != '\'')
+						throw new ParseException(
+								"XML decl error: Invalid char to start attr name"
+										+ formatLineNumber());
+					ch = getChar();
+					if (ch == 'y') {
+						if (skipChar('e') && skipChar('s')
+								&& skipChar(ch_temp)) {
+							/*
+							 * System.out.println( " " +
+							 * (temp_offset) + " " + 3 + " dec attr
+							 * val (standalone) " + depth);
+							 */
+							if (encoding < FORMAT_UTF_16BE)
+								writeVTD(temp_offset, 3,
+										TOKEN_DEC_ATTR_VAL, depth);
+							else
+								writeVTD(temp_offset >> 1, 3,
+										TOKEN_DEC_ATTR_VAL, depth);
+						} else
+							throw new ParseException(
+									"XML decl error: invalid val for standalone"
+											+ formatLineNumber());
+					} else if (ch == 'n') {
+						if (skipChar('o') && skipChar(ch_temp)) {
+							/*
+							 * System.out.println( " " +
+							 * (temp_offset) + " " + 2 + " dec attr
+							 * val (standalone)" + depth);
+							 */
+							if (encoding < FORMAT_UTF_16BE)
+								writeVTD(temp_offset, 2,
+										TOKEN_DEC_ATTR_VAL, depth);
+							else
+								writeVTD(temp_offset >> 1, 2,
+										TOKEN_DEC_ATTR_VAL, depth);
+						} else
+							throw new ParseException(
+									"XML decl error: invalid val for standalone"
+											+ formatLineNumber());
+					} else
+						throw new ParseException(
+								"XML decl error: invalid val for standalone"
+										+ formatLineNumber());
+				} else
+					throw new ParseException("XML decl error"
+							+ formatLineNumber());
+				ch = getChar();
+				if (XMLChar.isSpaceChar(ch))
+					ch = getCharAfterS();
+			}
+		}
+
+		if (ch == '?' && skipChar('>')) {
+			temp_offset = offset;
+			ch = getCharAfterS();
+			if (ch == '<') {
+				parser_state = STATE_LT_SEEN;
+			} else
+				throw new ParseException(
+						"Other Error: Invalid Char in XML"
+								+ formatLineNumber());
+		} else
+			throw new ParseException(
+					"XML decl Error: Invalid termination sequence"
+							+ formatLineNumber());
+		return parser_state;
+	}
+	/**
+	 * This private method processes PI tag
+	 * @return the parser state after which the parser loop jumps to
+	 * @throws ParseException
+	 * @throws EncodingException
+	 * @throws EOFException
+	 */
+	private int process_pi_tag() throws ParseException, EncodingException, EOFException{
+		int length1;
+		int parser_state;
+		while (true) {
+			ch = getChar();
+			if (!XMLChar.isNameChar(ch))
+				break;
+		}
+
+		length1 = offset - temp_offset - increment;
+		/*
+		 * System.out.println( ((char) XMLDoc[temp_offset]) + " " +
+		 * (temp_offset) + " " + length1 + " PI Target " + depth);
+		 */
+		if (encoding < FORMAT_UTF_16BE) {
+			if (length1 > MAX_TOKEN_LENGTH)
+				throw new ParseException("Token Length Error:"
+						+ " PI name too long (>0xfffff)"
+						+ formatLineNumber());
+			writeVTD((temp_offset), length1, TOKEN_PI_NAME, depth);
+		} else {
+			if (length1 > (MAX_TOKEN_LENGTH << 1))
+				throw new ParseException("Token Length Error:"
+						+ " PI name too long (>0xfffff)"
+						+ formatLineNumber());
+			writeVTD((temp_offset) >> 1, (length1 >> 1),
+					TOKEN_PI_NAME, depth);
+		}
+		//length1 = 0;
+		temp_offset = offset;
+		if (XMLChar.isSpaceChar(ch)) {
+			ch = getChar();
+		}
+		if (ch == '?') {
+			if (skipChar('>')) {
+				temp_offset = offset;
+				ch = getCharAfterSe();
+				if (ch == '<') {
+					parser_state = STATE_LT_SEEN;
+				} else if (XMLChar.isContentChar(ch)) {
+					parser_state = STATE_TEXT;
+				} else if (ch == '&') {
+					//has_amp = true;
+					entityIdentifier();
+					parser_state = STATE_TEXT;
+				} else if (ch == ']') {
+					if (skipChar(']')) {
+						while (skipChar(']')) {
+						}
+						if (skipChar('>'))
+							throw new ParseException(
+									"Error in text content: ]]> in text content"
+											+ formatLineNumber());
+					}
+					parser_state = STATE_TEXT;
+				} else
+					throw new ParseException(
+							"Error in text content: Invalid char"
+									+ formatLineNumber());
+				return parser_state;
+			} else
+				throw new ParseException(
+						"Error in PI: invalid termination sequence"
+								+ formatLineNumber());
+		}
+		parser_state = STATE_PI_VAL;
+		return parser_state;
+	}
+	/**
+	 * This private method processes PI val 
+	 * @return the parser state after which the parser loop jumps to
+	 * @throws ParseException
+	 * @throws EncodingException
+	 * @throws EOFException
+	 */
+	private int process_pi_val() throws ParseException, EncodingException, EOFException{
+		int length1;
+		int parser_state;
+		while (true) {
+			if (XMLChar.isValidChar(ch)) {
+				//System.out.println(""+(char)ch);
+				if (ch == '?')
+					if (skipChar('>')) {
+						break;
+					} else
+						throw new ParseException(
+								"Error in PI: invalid termination sequence for PI"
+										+ formatLineNumber());
+			} else
+				throw new ParseException(
+						"Errors in PI: Invalid char in PI val"
+								+ formatLineNumber());
+			ch = getChar();
+		}
+		length1 = offset - temp_offset - 2 * increment;
+		/*
+		 * System.out.println( ((char) XMLDoc[temp_offset]) + " " +
+		 * (temp_offset) + " " + length1 + " PI val " + depth);
+		 */
+		if (encoding < FORMAT_UTF_16BE) {
+			if (length1 > MAX_TOKEN_LENGTH)
+				throw new ParseException("Token Length Error:"
+						+ "PI VAL too long (>0xfffff)"
+						+ formatLineNumber());
+			writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
+		} else {
+			if (length1 > (MAX_TOKEN_LENGTH << 1))
+				throw new ParseException("Token Length Error:"
+						+ "PI VAL too long (>0xfffff)"
+						+ formatLineNumber());
+			writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL,
+					depth);
+		}
+		//length1 = 0;
+		temp_offset = offset;
+		ch = getCharAfterSe();
+
+		if (ch == '<') {
+			parser_state = STATE_LT_SEEN;
+		} else if (XMLChar.isContentChar(ch)) {
+			//temp_offset = offset;
+			parser_state = STATE_TEXT;
+		} else if (ch == '&') {
+			//has_amp = true;
+			//temp_offset = offset;
+			entityIdentifier();
+			parser_state = STATE_TEXT;
+		} else if (ch == ']') {
+			if (skipChar(']')) {
+				while (skipChar(']')) {
+				}
+				if (skipChar('>'))
+					throw new ParseException(
+							"Error in text content: ]]> in text content"
+									+ formatLineNumber());
+			}
+			parser_state = STATE_TEXT;
+		} else
+			throw new ParseException(
+					"Error in text content: Invalid char"
+							+ formatLineNumber());
+		return parser_state;
+	}
+	/**
+	 * This private method process comment
+	 * @return the parser state after which the parser loop jumps to
+	 * @throws ParseException
+	 * @throws EncodingException
+	 * @throws EOFException
+	 */
+	private int process_comment() throws ParseException, EncodingException, EOFException{
+		int length1;
+		int parser_state;
+		while (true) {
+			ch = getChar();
+			if (XMLChar.isValidChar(ch)) {
+				if (ch == '-' && skipChar('-')) {
+					length1 = offset - temp_offset - 2 * increment;
+					break;
+				}
+			} else
+				throw new ParseException(
+						"Error in comment: Invalid Char"
+								+ formatLineNumber());
+		}
+		if (getChar() == '>') {
+			//System.out.println(" " + (temp_offset) + " " +
+			// length1 + " comment " + depth);
+			if (encoding < FORMAT_UTF_16BE)
+				writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
+			else
+				writeVTD(temp_offset >> 1, length1 >> 1,
+						TOKEN_COMMENT, depth);
+			//length1 = 0;
+			temp_offset = offset;
+			ch = getCharAfterSe();
+			if (ch == '<') {
+				parser_state = STATE_LT_SEEN;
+			} else if (XMLChar.isContentChar(ch)) {
+				//temp_offset = offset;
+				parser_state = STATE_TEXT;
+			} else if (ch == '&') {
+				//has_amp = true;
+				//temp_offset = offset;
+				entityIdentifier();
+				parser_state = STATE_TEXT;
+			} else if (ch == ']') {
+				if (skipChar(']')) {
+					while (skipChar(']')) {
+					}
+					if (skipChar('>'))
+						throw new ParseException(
+								"Error in text content: ]]> in text content"
+										+ formatLineNumber());
+				}
+				parser_state = STATE_TEXT;
+			} else
+				throw new ParseException(
+						"Error in text content: Invalid char"
+								+ formatLineNumber());
+			return parser_state;
+		} else
+			throw new ParseException(
+					"Error in comment: Invalid terminating sequence"
+							+ formatLineNumber());
+		//return 1;
+	}
+	
+	
+	/**
+	 * This private method processes CDATA section
+	 * @return the parser state after which the parser loop jumps to
+	 * @throws ParseException
+	 * @throws EncodingException
+	 * @throws EOFException
+	 */
+	private int process_cdata() throws ParseException, EncodingException, EOFException{
+		int length1;
+		while (true) {
+			ch = getChar();
+			if (XMLChar.isValidChar(ch)) {
+				if (ch == ']' && skipChar(']')) {
+					while (skipChar(']'))
+						;
+					if (skipChar('>')) {
+						break;
+					} else
+						throw new ParseException(
+								"Error in CDATA: Invalid termination sequence"
+										+ formatLineNumber());
+				}
+			} else
+				throw new ParseException(
+						"Error in CDATA: Invalid Char"
+								+ formatLineNumber());
+		}
+		length1 = offset - temp_offset - 3 * increment;
+		if (encoding < FORMAT_UTF_16BE) {
+
+			writeVTD(temp_offset, length1, TOKEN_CDATA_VAL, depth);
+		} else {
+
+			writeVTD(temp_offset >> 1, length1 >> 1,
+					TOKEN_CDATA_VAL, depth);
+		}
+		//System.out.println(" " + (temp_offset) + " " + length1 +
+		// " CDATA " + depth);
+		temp_offset = offset;
+		ch = getCharAfterSe();
+		if (ch == '<') {
+			return STATE_LT_SEEN;
+		} else if (XMLChar.isContentChar(ch)) {
+			//temp_offset = offset;
+			return STATE_TEXT;
+		} else if (ch == '&') {
+			//has_amp = true;
+			//temp_offset = offset;
+			entityIdentifier();
+			return STATE_TEXT;
+			//temp_offset = offset;
+		} else if (ch == ']') {
+			if (skipChar(']')) {
+				while (skipChar(']')) {
+				}
+				if (skipChar('>'))
+					throw new ParseException(
+							"Error in text content: ]]> in text content"
+									+ formatLineNumber());
+			}
+			return STATE_TEXT;
+		} else
+			throw new ParseException(
+					"Other Error: Invalid char in xml"
+							+ formatLineNumber());
+	}
+	/**
+	 * This private method process DTD
+	 * @return the parser state after which the parser loop jumps to
+	 * @throws ParseException
+	 * @throws EncodingException
+	 * @throws EOFException
+	 */
+	private int process_doc_type() throws ParseException,EncodingException, EOFException{
+		int z = 1;
+		int length1;
+		while (true) {
+			ch = getChar();
+			if (XMLChar.isValidChar(ch)) {
+				if (ch == '>')
+					z--;
+				else if (ch == '<')
+					z++;
+				if (z == 0)
+					break;
+			} else
+				throw new ParseException(
+						"Error in DOCTYPE: Invalid char"
+								+ formatLineNumber());
+		}
+		length1 = offset - temp_offset - increment;
+		/*
+		 * System.out.println( " " + (temp_offset) + " " + length1 + "
+		 * DOCTYPE val " + depth);
+		 */
+		if (encoding < FORMAT_UTF_16BE) {
+			if (length1 > MAX_TOKEN_LENGTH)
+				throw new ParseException("Token Length Error:"
+						+ " DTD val too long (>0xfffff)"
+						+ formatLineNumber());
+			writeVTD(temp_offset, length1, TOKEN_DTD_VAL, depth);
+		} else {
+			if (length1 > (MAX_TOKEN_LENGTH << 1))
+				throw new ParseException("Token Length Error:"
+						+ " DTD val too long (>0xfffff)"
+						+ formatLineNumber());
+			writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_DTD_VAL,
+					depth);
+		}
+		ch = getCharAfterS();
+		if (ch == '<') {
+			return STATE_LT_SEEN;
+		} else
+			throw new ParseException(
+					"Other Error: Invalid char in xml"
+							+ formatLineNumber());
+	}
+	
+	/**
+	 * This private method processes PI after root document 
+	 * @return the parser state after which the parser loop jumps to
+	 * @throws ParseException
+	 * @throws EncodingException
+	 * @throws EOFException
+	 */
+	private int process_end_pi() throws ParseException,EncodingException, EOFException{
+		int length1;
+		ch = getChar();
+		if (XMLChar.isNameStartChar(ch)) {
+			if ((ch == 'x' || ch == 'X')
+					&& (skipChar('m') || skipChar('M'))
+					&& (skipChar('l') && skipChar('L'))) {
+				//temp_offset = offset;
+				ch = getChar();
+				if (XMLChar.isSpaceChar(ch) || ch == '?')
+					throw new ParseException(
+							"Error in PI: [xX][mM][lL] not a valid PI target"
+									+ formatLineNumber());
+				//offset = temp_offset;
+			}
+
+			while (true) {
+				//ch = getChar();
+				if (!XMLChar.isNameChar(ch)) {
+					break;
+				}
+				ch = getChar();
+			}
+
+			length1 = offset - temp_offset - increment;
+			/*
+			 * System.out.println( "" + (char) XMLDoc[temp_offset] + " " +
+			 * (temp_offset) + " " + length1 + " PI Target " +
+			 * depth);
+			 */
+			if (encoding < FORMAT_UTF_16BE) {
+				if (length1 > MAX_TOKEN_LENGTH)
+					throw new ParseException("Token Length Error:"
+							+ "PI name too long (>0xfffff)"
+							+ formatLineNumber());
+				writeVTD(temp_offset, length1, TOKEN_PI_NAME, depth);
+			} else {
+				if (length1 > (MAX_TOKEN_LENGTH << 1))
+					throw new ParseException("Token Length Error:"
+							+ "PI name too long (>0xfffff)"
+							+ formatLineNumber());
+				writeVTD(temp_offset >> 1, length1 >> 1,
+						TOKEN_PI_NAME, depth);
+			}
+			//length1 = 0;
+			temp_offset = offset;
+			if (XMLChar.isSpaceChar(ch)) {
+				ch = getCharAfterS();
+
+				while (true) {
+					if (XMLChar.isValidChar(ch)) {
+						if (ch == '?')
+							if (skipChar('>')) {
+								break;
+							} else
+								throw new ParseException(
+										"Error in PI: invalid termination sequence"
+												+ formatLineNumber());
+					} else
+						throw new ParseException(
+								"Error in PI: Invalid char in PI val"
+										+ formatLineNumber());
+					ch = getChar();
+				}
+				length1 = offset - temp_offset - 2 * increment;
+				if (encoding < FORMAT_UTF_16BE) {
+					if (length1 > MAX_TOKEN_LENGTH)
+						throw new ParseException(
+								"Token Length Error:"
+										+ "PI val too long (>0xfffff)"
+										+ formatLineNumber());
+					writeVTD(temp_offset, length1, TOKEN_PI_VAL,
+							depth);
+				} else {
+					if (length1 > (MAX_TOKEN_LENGTH << 1))
+						throw new ParseException(
+								"Token Length Error:"
+										+ "PI val too long (>0xfffff)"
+										+ formatLineNumber());
+					writeVTD(temp_offset >> 1, length1 >> 1,
+							TOKEN_PI_VAL, depth);
+				}
+				return STATE_DOC_END;
+				//System.out.println(" " + temp_offset + " " +
+				// length1 + " PI val " + depth);
+			} else {
+				if ((ch == '?') && skipChar('>')) {
+					return STATE_DOC_END;
+				} else
+					throw new ParseException(
+							"Error in PI: invalid termination sequence"
+									+ formatLineNumber());
+			}
+			//parser_state = STATE_DOC_END;
+		} else
+			throw new ParseException(
+					"Error in PI: invalid char in PI target"
+							+ formatLineNumber());
+	}
+	/**
+	 * This private method process the comment after the root document
+	 * @return the parser state after which the parser loop jumps to
+	 * @throws ParseException
+	 */
+	private int process_end_comment()throws ParseException {
+		int length1;
+		while (true) {
+			ch = getChar();
+			if (XMLChar.isValidChar(ch)) {
+				if (ch == '-' && skipChar('-')) {
+					length1 = offset - temp_offset - 2 * increment;
+					break;
+				}
+			} else
+				throw new ParseException(
+						"Error in comment: Invalid Char"
+								+ formatLineNumber());
+		}
+		if (getChar() == '>') {
+			//System.out.println(" " + temp_offset + " " + length1
+			// + " comment " + depth);
+			if (encoding < FORMAT_UTF_16BE)
+				writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
+			else
+				writeVTD(temp_offset >> 1, length1 >> 1,
+						TOKEN_COMMENT, depth);
+			//length1 = 0;
+			return STATE_DOC_END;
+			//break;
+		}
+		throw new ParseException("Error in comment: '-->' expected"
+				+ formatLineNumber());
+	}
 	/**
 	 * Set the XMLDoc container. Also set the offset and len of the document
 	 * with respect to the container.
@@ -2244,6 +2361,12 @@ public class VTDGen {
 	public void setDoc(byte[] ba, int os, int len) {
 
 		int a;
+		depth = -1;
+		increment =1;
+		BOM_detected = false;
+		must_utf_8 = false;
+		ch = ch_temp = 0;
+		temp_offset = 0;
 		XMLDoc = ba;
 		docOffset = offset = os;
 		docLen = len;
@@ -2281,7 +2404,13 @@ public class VTDGen {
 	 */
 	public void setDoc(byte[] ba) {
 		int a;
+		increment = 1;
+		depth = -1;
+		BOM_detected = false;
+		must_utf_8 = false;
+		ch = ch_temp = 0;
 		XMLDoc = ba;
+		temp_offset = 0;
 		docOffset = offset = 0;
 		docLen = ba.length;
 		endOffset = docLen;
