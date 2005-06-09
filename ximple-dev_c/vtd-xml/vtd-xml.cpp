@@ -26,8 +26,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
-
 struct exception_context the_exception_context[1];
+#if 1
+
+
 Boolean APTest(char *fn){
 	exception e;
 	int i = 0;
@@ -350,6 +352,90 @@ Boolean NavTestNS(char* fn){
 	}
 	return TRUE;
 }
+Boolean MiscTest(char *fn){
+	exception e;
+	int ii = 0;
+	FILE *f = NULL;
+	UByte *xml = NULL;
+	VTDGen *vg = NULL;
+	VTDNav *vn = NULL;
+
+	f = fopen(fn,"r");
+	//f = fopen("d://ximple-dev//testcases//VTDGen//bad//nt_8_2.xml","r");
+	ii=(int)_filelength(f->_file);
+	//printf("size of the file is %d \n",ii);
+	xml = (UByte *)malloc(sizeof(UByte)*ii); 
+	fread(xml,sizeof(UByte),ii,f);
+	Try{
+		int i,i1;
+		vg = createVTDGen();
+		setDoc(vg,xml,ii);
+		parse(vg,TRUE);
+		vn = getNav(vg);
+		i = getText(vn);
+		if (toElement(vn,FIRST_CHILD)){
+				if (matchElement(vn,"float")){
+					do {
+						float f1 = (float)atof(toString(vn,getText(vn)));
+						float f2 = parseFloat(vn,getText(vn));
+						if (f1 != f2)
+							return FALSE;						
+					}while(toElement(vn,NS));
+					return TRUE;
+				}else if (matchElement(vn,"double")){
+					do {
+						double d1 = atof(toString(vn,getText(vn)));
+						double d2 = parseDouble(vn,getText(vn));
+						if (d1 != d2)
+							return FALSE;						
+					}while(toElement(vn,NS));
+					return TRUE;
+				}else if (matchElement(vn,"int")){
+					do {
+						int i1 = atoi(toString(vn,getText(vn)));
+						int i2 = parseInt(vn,getText(vn));
+						if (i1 != i2)
+							return FALSE;						
+					}while(toElement(vn,NS));
+					return TRUE;
+				}else if (matchElement(vn,"long")){
+					do {
+						Long l1 = _atoi64(toString(vn,getText(vn)));
+						Long l2 = parseLong(vn, getText(vn));
+						if (l1 != l2)
+							return FALSE;						
+					}while(toElement(vn,NS));
+					return TRUE;
+				}
+				return FALSE;				
+			}else {
+				if (i==-1){
+					i = getCurrentIndex(vn)+3;
+					if (getTokenType(vn,i)== TOKEN_COMMENT
+							|| getTokenLength(vn,i) == parseInt(vn,getAttrVal(vn,"len")))
+						return TRUE;
+						
+					return FALSE;
+				}
+				if (getTokenType(vn,i)== TOKEN_CDATA_VAL
+						|| getTokenType(vn,i) == TOKEN_CHARACTER_DATA){
+					int z = getAttrVal(vn,"len");
+					if (z!=-1){
+						int i4 = parseInt(vn,z);
+						if (i4!= getTokenLength(vn,i)){
+							return FALSE;
+						}
+						return TRUE;
+					}
+					return TRUE;
+				}
+				return FALSE;			
+			}
+	}Catch (e){
+
+	}
+	return FALSE;
+}
 
 Boolean NavTest(char* fn){
 	exception e;
@@ -504,7 +590,7 @@ Boolean NavTest(char* fn){
 				if (j1 != j)
 					return FALSE;
 				i1++;
-			}while(toElement(vn,NS));				
+			}while(toElement(vn,PS));				
 		}
 		if (i1!=i)
 			return FALSE;
@@ -520,7 +606,7 @@ Boolean NavTest(char* fn){
 
 int main(int argc, char *argv[])
 {   
-   int test = 11;
+   int test = 10;
   
    if (test ==1){
 	int i,a;
@@ -883,7 +969,7 @@ if (test ==10){
 	char *dir = "d://ximple-dev//testcases//VTDNav//";
 	char *fullname = (char *)malloc(sizeof(char)*50);
 	sprintf(fullname,"%s%s",dir,argv[1]);
-    if (NavTestNS(fullname)==TRUE)
+    if (NavTest(fullname)==TRUE)
 		printf("%s passed \n", fullname);
 }
 
@@ -898,6 +984,160 @@ if (test == 11){
 	if (APTest(fullname)==TRUE)
 		printf("%s passed \n", fullname);
 }
+
+if (test==12){
+	FILE *f = NULL;
+	UByte *xml = NULL;
+	VTDGen *vg = NULL;
+	VTDNav *vn = NULL;
+	char *dir = "d://ximple-dev//testcases//VTDNav//";
+	char *fullname = (char *)malloc(sizeof(char)*50);
+	sprintf(fullname,"%s%s",dir,argv[1]);
+	if (MiscTest(fullname)==TRUE)
+		printf("%s passed \n", fullname);
+}
+
+if (test == 13){
+	exception e;
+	FILE *f = NULL;
+	FILE *fo = NULL;
+	int i = 0;
+	
+	Long l = 0;
+	int len = 0;
+	int offset = 0;
+	
+	char* filename = "c://soap2.xml";
+
+	UByte *xml = NULL; // this is the buffer containing the XML content, UByte means unsigned byte
+	VTDGen *vg = NULL; // This is the VTDGen that parses XML
+	VTDNav *vn = NULL; // This is the VTDNav that navigates the VTD records
+	UByte *sm = "\n================\n";
+
+	// allocate a piece of buffer then reads in the document content
+	// assume "c:\soap2.xml" is the name of the file
+	f = fopen(filename,"r");
+	fo = fopen("c://out.txt","w");
+
+	i = (int) _filelength(f->_file);
+	printf("size of thefile is %d \n",i);
+	xml = (UByte *)malloc(sizeof(UByte) *i);
+	fread(xml,sizeof(UByte),i,f);
+	Try{
+		vg = createVTDGen();
+		setDoc(vg,xml,i);
+		parse(vg,TRUE);
+		vn = getNav(vg);
+		if (toElementNS(vn,FC,"http://www.w3.org/2003/05/soap-envelope","Header")) //nav to soap header
+		{
+			if (toElement(vn,FC))
+			{
+				do{
+					if (hasAttrNS(vn,"http://www.w3.org/2003/05/soap-envelope","mustUnderstand")){
+						printf(toString(vn,getCurrentIndex(vn)));
+
+						printf("\n");
+						l = getElementFragment(vn);
+						offset = (int) l;
+						len = (int) (l>>32);
+						fwrite((char *)(xml+offset),sizeof(UByte),len,fo);
+						fwrite((char *) sm,sizeof(UByte),strlen(sm),fo);
+					}
+				}
+				while(toElement(vn,NS));
+			}
+			else 
+				printf("Header has no child elements \n");
+		}
+		else
+			printf("XML has no header \n");
+		fclose(f);
+		fclose(fo);
+
+	}
+	Catch (e) {
+		if (e.et == parse_exception)
+			printf("parse exception e ==> %s \n %s\n", e.msg, e.sub_msg);		
+	}
+	
+}
 return 0;
 }
+#endif
+
+#if 0
+int main(){
+
+	exception e;
+	FILE *f = NULL;
+	FILE *fo = NULL;
+	int i = 0;
+	
+	Long l = 0;
+	int len = 0;
+	int offset = 0;
+	
+	char* filename = "c://soap2.xml";
+
+	UByte *xml = NULL; // this is the buffer containing the XML content, UByte means unsigned byte
+	VTDGen *vg = NULL; // This is the VTDGen that parses XML
+	VTDNav *vn = NULL; // This is the VTDNav that navigates the VTD records
+	UByte *sm = "\n================\n";
+
+	// allocate a piece of buffer then reads in the document content
+	// assume "c:\soap2.xml" is the name of the file
+	f = fopen(filename,"r");
+	fo = fopen("c://out.txt","w");
+
+	i = (int) _filelength(f->_file);
+	printf("size of thefile is %d \n",i);
+	xml = (UByte *)malloc(sizeof(UByte) *i);
+	fread(xml,sizeof(UByte),i,f);
+	Try{
+		vg = createVTDGen();
+		setDoc(vg,xml,i);
+		parse(vg,TRUE);
+		vn = getNav(vg);
+		if (toElementNS(vn,FC,"http://www.w3.org/2003/05/soap-envelope","Header")) //nav to soap header
+		{
+			if (toElement(vn,FC))
+			{
+				do{
+					if (hasAttrNS(vn,"http://www.w3.org/2003/05/soap-envelope","mustUnderstand")){
+						printf(toString(vn,getCurrentIndex(vn)));
+
+						printf("\n");
+						l = getElementFragment(vn);
+						offset = (int) l;
+						len = (int) (l>>32);
+						fwrite((char *)(xml+offset),sizeof(UByte),len,fo);
+						fwrite((char *) sm,sizeof(UByte),strlen(sm),fo);
+					}
+				}
+				while(toElement(vn,NS));
+			}
+			else 
+				printf("Header has no child elements \n");
+		}
+		else
+			printf("XML has no header \n");
+		fclose(f);
+		fclose(fo);
+		// remember C has no automatic garbage collector
+		// needs to deallocate manually.
+		freeVTDNav(vn);
+		freeVTDGen(vg);
+
+	}
+	Catch (e) {
+		if (e.et == parse_exception)
+			printf("parse exception e ==> %s \n %s\n", e.msg, e.sub_msg);	
+		// manual garbage collection here
+		freeVTDGen(vg);
+	}
+  return 0;
+}	
+
+
+#endif
 

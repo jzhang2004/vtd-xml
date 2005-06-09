@@ -65,6 +65,16 @@ static Boolean skipChar(VTDGen *vg, int ch);
 static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth);
 static void finishUp(VTDGen *vg);
 
+static void decide_encoding(VTDGen *vg);
+static int process_end_pi(VTDGen *vg);
+static int process_end_comment(VTDGen *vg);
+static int process_comment(VTDGen *vg);
+static int process_doc_type(VTDGen *vg);
+static int process_cdata(VTDGen *vg);
+static int process_pi_val(VTDGen *vg);
+static int process_pi_tag(VTDGen *vg);
+static int process_dec_attr(VTDGen *vg);
+
 // create VTDGen
 VTDGen *createVTDGen(){
 	exception e;
@@ -152,8 +162,15 @@ void clear(VTDGen *vg){
 	vg->l1Size = vg->l2Size = vg->l3Size = vg->VTDDepth = 0;
 	vg->last_depth = vg->last_l1_index = 
 		vg->last_l2_index = vg->last_i3_index =0;
-	vg->offset = 0;
+	vg->offset = vg->temp_offset = 0;
 	vg->rootIndex = 0;
+	
+	vg->depth = -1;
+	vg->increment = 1;
+	vg->BOM_detected = FALSE;
+	vg->must_utf_8 = FALSE;
+	vg->ch = vg->ch_temp = 0;
+	
 }
 
 //detect whether the entity is valid or not and increment offset.
@@ -613,17 +630,17 @@ void parse(VTDGen *vg, Boolean ns){
 	// define internal variables	
 	exception e;
 
-	int temp_offset = 0, length1 = 0, length2 = 0, increment = 1;
-	int depth = -1, attr_count = 0, ch = 0, ch_temp = 0;
+	int length1 = 0, length2 = 0;
+	int attr_count = 0 /*, ch = 0, ch_temp = 0*/;
 	int prev_ch = 0, prev2_ch = 0;
-	int i,j,z;
+	int i,j;
 	parseState parser_state = STATE_DOC_START;
 	//boolean has_amp = false; 
 	Boolean is_ns = FALSE;
 	Boolean unique;
 	Boolean unequal;
-	Boolean BOM_detected = FALSE;
-	Boolean must_utf_8 = FALSE;
+	//Boolean BOM_detected = FALSE;
+	//Boolean must_utf_8 = FALSE;
 	Long x;
 	Boolean main_loop = TRUE,
 		hasDTD = FALSE,
@@ -643,100 +660,15 @@ void parse(VTDGen *vg, Boolean ns){
 	//int[] scratch_buffer = new int[10];
 
 	// first check first 2 bytes BOM to determine if encoding is UTF16
-	if (vg->XMLDoc[vg->offset] == -2) {
-		increment = 2;
-		if (vg->XMLDoc[vg->offset + 1] == -1) {
-			vg->offset += 2;
-			vg->encoding = FORMAT_UTF_16BE;
-			BOM_detected = TRUE;
-			//r = new UTF16BEReader();
-		} else{
-			e.et = parse_exception;
-			e.subtype = 0;
-			e.msg = "Parse Exception in parse()";
-			e.sub_msg = "Unknown Character encoding: should be 0xff 0xfe";
-			Throw e;
-		}
-		//	throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
-	} else if (vg->XMLDoc[vg->offset] == -1) {
-		increment = 2;
-		if (vg->XMLDoc[vg->offset + 1] == -2) {
-			vg->offset += 2;
-			vg->encoding = FORMAT_UTF_16LE;
-			BOM_detected = TRUE;
-			//r = new UTF16LEReader();
-		} else{
-			e.et = parse_exception;
-			e.subtype = 0;
-			e.msg = "Parse Exception in parse()";
-			e.sub_msg = "Unknown Character encoding";
-			Throw e;
-		}
-		//throw new EncodingException("Unknown Character encoding");
-	} else if (vg->XMLDoc[vg->offset] == -17) {
-		if (vg->XMLDoc[vg->offset+1] == -69 && vg->XMLDoc[vg->offset+2]==-65){
-		      vg->offset +=3;
-		      must_utf_8= TRUE;
-		    }
-		else {
-			e.et = parse_exception;
-			e.subtype = 0;
-			e.msg = "Parse Exception in parse()";
-			e.sub_msg = "Unknown Character encoding: not UTF-8";
-			Throw e;
-		}
-		 //	throw new EncodingException("Unknown Character encoding: not UTF-8");
-	
-	} else if (vg->XMLDoc[vg->offset] == 0) {
-		if (vg->XMLDoc[vg->offset+1] == 0x3c 
-			&& vg->XMLDoc[vg->offset+2] == 0 
-			&& vg->XMLDoc[vg->offset+3] == 0x3f){
-				vg->encoding = FORMAT_UTF_16BE;
-				increment = 2;
-			}
-		else{
-			e.et = parse_exception;
-			e.subtype = 0;
-			e.msg = "Parse Exception in parse()";
-			e.sub_msg = "Unknown Character encoding: not UTF-16BE";
-			Throw e;
-		}
-		//	throw new EncodingException("Unknown Character encoding: not UTF-16BE");
-	} else if (vg->XMLDoc[vg->offset] == 0x3c) {
-		if (vg->XMLDoc[vg->offset+1] == 0 
-			&& vg->XMLDoc[vg->offset+2] == 0x3f 
-			&& vg->XMLDoc[vg->offset+3] == 0x0){
-				increment = 2;
-				vg->encoding = FORMAT_UTF_16LE;
-			}
-	}
+	decide_encoding(vg);
 
-	if (vg->encoding < FORMAT_UTF_16BE) {
-		if ((unsigned int)(vg->offset + vg->docLen) >= (((unsigned int)1) << 30)){
-			e.et = parse_exception;
-			e.subtype = 0;
-			e.msg = "Parse Exception in parse()";
-			e.sub_msg = "Other error: file size too large";
-			Throw e;
-		}
-		//throw new ParseException("Other error: file size too large ");
-	} else {
-		if ((unsigned int)(vg->offset - 2 + vg->docLen) >= (((unsigned int) 1) << 31)){
-			e.et = parse_exception;
-			e.subtype = 0;
-			e.msg = "Parse Exception in parse()";
-			e.sub_msg = "Other error: file size too large";
-			Throw e;
-		}
-		//throw new ParseException("Other error: file size too large ");
-	}
 	// enter the main finite state machine
 	Try {
 		while (main_loop) {
 			switch (parser_state) {
 					case STATE_DOC_START :
 						if (getChar(vg) == '<') {
-							temp_offset = vg->offset;
+							vg->temp_offset = vg->offset;
 							// xml decl has to be right after the start of the document
 							if (skipChar(vg,'?')
 								&& (skipChar(vg,'x') || skipChar(vg,'X'))
@@ -746,8 +678,8 @@ void parse(VTDGen *vg, Boolean ns){
 										|| skipChar(vg,'\t')
 										|| skipChar(vg,'\n')
 										|| skipChar(vg,'\r')) {
-											ch = getCharAfterS(vg);
-											temp_offset = vg->offset;
+											vg->ch = getCharAfterS(vg);
+											vg->temp_offset = vg->offset;
 											parser_state = STATE_DEC_ATTR_NAME;
 											break;
 										} else if (skipChar(vg,'?')){
@@ -761,7 +693,7 @@ void parse(VTDGen *vg, Boolean ns){
 										"Error in XML decl: premature ending"
 										+ formatLineNumber());*/
 								}
-								vg->offset = temp_offset;
+								vg->offset = vg->temp_offset;
 								parser_state = STATE_LT_SEEN;
 								break;
 						}
@@ -776,13 +708,13 @@ void parse(VTDGen *vg, Boolean ns){
 						+ formatLineNumber()); */
 					case STATE_DOC_END :
 						docEnd = TRUE;
-						ch = getCharAfterS(vg);
+						vg->ch = getCharAfterS(vg);
 						// eof exception should be thrown here for premature ending
-						if (ch == '<') {
+						if (vg->ch == '<') {
 
 							if (skipChar(vg,'?')) {
 								// processing instruction after end tag of root element
-								temp_offset = vg->offset;
+								vg->temp_offset = vg->offset;
 								parser_state = STATE_END_PI;
 								break;
 							} else if (
@@ -790,7 +722,7 @@ void parse(VTDGen *vg, Boolean ns){
 								&& skipChar(vg,'-')
 								&& skipChar(vg,'-')) {
 									// comments allowed after the end tag of the root element
-									temp_offset = vg->offset;
+									vg->temp_offset = vg->offset;
 									parser_state = STATE_END_COMMENT;
 									break;
 								}
@@ -806,31 +738,31 @@ void parse(VTDGen *vg, Boolean ns){
 
 					case STATE_LT_SEEN : //if (depth < -1)
 						//    throw new ParseException("Other Errors: Invalid depth");
-						temp_offset = vg->offset;
-						ch = getChar(vg);
-						if (XMLChar_isNameStartChar(ch)) {
-							//temp_offset = offset;
+						vg->temp_offset = vg->offset;
+						vg->ch = getChar(vg);
+						if (XMLChar_isNameStartChar(vg->ch)) {
+							//vg->temp_offset = offset;
 							//length1++;
-							depth++;
+							vg->depth++;
 							//if (ch == ':')
 							//   length2 = 0;
 							parser_state = STATE_START_TAG;
 						} else {
-							switch (ch) {
+							switch (vg->ch) {
 					case '/' :
 						parser_state = STATE_END_TAG;
 						break;
 					case '?' :
-						temp_offset = vg->offset;
-						ch = getChar(vg);
-						if (XMLChar_isNameStartChar(ch)) {
-							//temp_offset = offset;
-							if ((ch == 'x' || ch == 'X')
+						vg->temp_offset = vg->offset;
+						vg->ch = getChar(vg);
+						if (XMLChar_isNameStartChar(vg->ch)) {
+							//vg->temp_offset = offset;
+							if ((vg->ch == 'x' || vg->ch == 'X')
 								&& (skipChar(vg,'m') || skipChar(vg,'M'))
 								&& (skipChar(vg,'l') || skipChar(vg,'L'))) {
-									ch = getChar(vg);
-									if (ch == '?'
-										|| XMLChar_isSpaceChar(ch)){
+									vg->ch = getChar(vg);
+									if (vg->ch == '?'
+										|| XMLChar_isSpaceChar(vg->ch)){
 											e.et = parse_exception;
 											e.subtype = 0;
 											e.msg = "Parse Exception in parse()";
@@ -856,11 +788,11 @@ void parse(VTDGen *vg, Boolean ns){
 						+ formatLineNumber()); */
 
 					case '!' : // three possibility (comment, CDATA, DOCTYPE)
-						ch = getChar(vg);
-						switch (ch) {
+						vg->ch = getChar(vg);
+						switch (vg->ch) {
 					case '-' :
 						if (skipChar(vg,'-')) {
-							temp_offset = vg->offset;
+							vg->temp_offset = vg->offset;
 							parser_state = STATE_COMMENT;
 							break;
 						} else
@@ -881,12 +813,12 @@ void parse(VTDGen *vg, Boolean ns){
 							&& skipChar(vg,'T')
 							&& skipChar(vg,'A')
 							&& skipChar(vg,'[')
-							&& (depth != -1)) {
-								temp_offset = vg->offset;
+							&& (vg->depth != -1)) {
+								vg->temp_offset = vg->offset;
 								parser_state = STATE_CDATA;
 								break;
 							} else {
-								if (depth == -1){
+								if (vg->depth == -1){
 									e.et = parse_exception;
 									e.subtype = 0;
 									e.msg = "Parse Exception in parse()";
@@ -913,10 +845,10 @@ void parse(VTDGen *vg, Boolean ns){
 							&& skipChar(vg,'Y')
 							&& skipChar(vg,'P')
 							&& skipChar(vg,'E')
-							&& (depth == -1)
+							&& (vg->depth == -1)
 							&& !hasDTD) {
 								hasDTD = TRUE;
-								temp_offset = vg->offset;
+								vg->temp_offset = vg->offset;
 								parser_state = STATE_DOCTYPE;
 								break;
 							} else {
@@ -930,7 +862,7 @@ void parse(VTDGen *vg, Boolean ns){
 								/*	throw new ParseException(
 								"Error for DOCTYPE: Only DOCTYPE allowed"
 								+ formatLineNumber()); */
-								if (depth != -1){
+								if (vg->depth != -1){
 									e.et = parse_exception;
 									e.subtype = 0;
 									e.msg = "Parse Exception in parse()";
@@ -977,19 +909,19 @@ void parse(VTDGen *vg, Boolean ns){
 
 					case STATE_START_TAG : //name space is handled by
 						while (TRUE) {
-							ch = getChar(vg);
-							if (XMLChar_isNameChar(ch)) {
-								if (ch == ':') {
-									length2 = vg->offset - temp_offset - increment;
+							vg->ch = getChar(vg);
+							if (XMLChar_isNameChar(vg->ch)) {
+								if (vg->ch == ':') {
+									length2 = vg->offset - vg->temp_offset - vg->increment;
 								}
 							} else
 								break;
 						}
-						length1 = vg->offset - temp_offset - increment;
+						length1 = vg->offset - vg->temp_offset - vg->increment;
 						//writeVTD(offset, TOKEN_STARTING_TAG, length2:length1, depth)
-						x = ((Long) length1 << 32) + temp_offset;
-						vg->tag_stack[depth] = x;
-						if (depth > MAX_DEPTH) {
+						x = ((Long) length1 << 32) + vg->temp_offset;
+						vg->tag_stack[vg->depth] = x;
+						if (vg->depth > MAX_DEPTH) {
 							e.et = parse_exception;
 							e.subtype = 0;
 							e.msg = "Parse Exception in parse()";
@@ -1000,9 +932,9 @@ void parse(VTDGen *vg, Boolean ns){
 							+ formatLineNumber());*/
 						}
 						// System.out.println(
-						//     " " + (temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
-						if (depth > vg->VTDDepth)
-							vg->VTDDepth = depth;
+						//     " " + (vg->temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
+						if (vg->depth > vg->VTDDepth)
+							vg->VTDDepth = vg->depth;
 						if (vg->encoding < FORMAT_UTF_16BE){
 							/*if (length2>MAX_PREFIX_LENGTH
 							|| length1 > MAX_QNAME_LENGTH)
@@ -1019,10 +951,10 @@ void parse(VTDGen *vg, Boolean ns){
 								}
 
 								writeVTD(vg,
-									(temp_offset),
+									(vg->temp_offset),
 									(length2 << 11) | length1,
 									TOKEN_STARTING_TAG,
-									depth);
+									vg->depth);
 						}
 						else{
 							/*if (length2>MAX_PREFIX_LENGTH<<1
@@ -1040,64 +972,64 @@ void parse(VTDGen *vg, Boolean ns){
 								}
 
 								writeVTD(vg,
-									(temp_offset) >> 1,
+									(vg->temp_offset) >> 1,
 									(length2 << 10) | (length1 >> 1),
 									TOKEN_STARTING_TAG,
-									depth);
+									vg->depth);
 						}
 						//offset += length1;
 						length2 = 0;
-						if (XMLChar_isSpaceChar(ch)) {
-							ch = getCharAfterS(vg);
-							if (XMLChar_isNameStartChar(ch)) {
+						if (XMLChar_isSpaceChar(vg->ch)) {
+							vg->ch = getCharAfterS(vg);
+							if (XMLChar_isNameStartChar(vg->ch)) {
 								// seen an attribute here
-								temp_offset = getPrevOffset(vg);
+								vg->temp_offset = getPrevOffset(vg);
 								parser_state = STATE_ATTR_NAME;
 								break;
 							}
 						}
-						if (ch == '/') {
-							depth--;
-							ch = getChar(vg);
+						if (vg->ch == '/') {
+							vg->depth--;
+							vg->ch = getChar(vg);
 						}
-						if (ch == '>') {
-							if (depth != -1) {
-								temp_offset = vg->offset;
-								ch = getCharAfterSe(vg); // consume WSs
-								if (ch == '<') {
+						if (vg->ch == '>') {
+							if (vg->depth != -1) {
+								vg->temp_offset = vg->offset;
+								vg->ch = getCharAfterSe(vg); // consume WSs
+								if (vg->ch == '<') {
 									parser_state = STATE_LT_SEEN;
 									if (skipChar(vg,'/')) {
 										length1 =
 											vg->offset
-											- temp_offset
-											- 2 * increment;
+											- vg->temp_offset
+											- (vg->increment<<1);
 										if (length1 > 0) {
 											if (vg->encoding < FORMAT_UTF_16BE)
 												writeVTD(vg,
-												(temp_offset),
+												(vg->temp_offset),
 												length1,
 												TOKEN_CHARACTER_DATA,
-												depth);
+												vg->depth);
 											else
 												writeVTD(vg,
-												(temp_offset) >> 1,
+												(vg->temp_offset) >> 1,
 												(length1 >> 1),
 												TOKEN_CHARACTER_DATA,
-												depth);
+												vg->depth);
 										}
 										//offset += length1;
 										parser_state = STATE_END_TAG;
 										break;
 									}
-								} else if (XMLChar_isContentChar(ch)) {
-									//temp_offset = offset;
+								} else if (XMLChar_isContentChar(vg->ch)) {
+									//vg->temp_offset = offset;
 									parser_state = STATE_TEXT;
-								} else if (ch == '&') {
+								} else if (vg->ch == '&') {
 									//has_amp = true;
-									//temp_offset = offset;
+									//vg->temp_offset = offset;
 									entityIdentifier(vg);
 									parser_state = STATE_TEXT;
-								} else if (ch == ']') {
+								} else if (vg->ch == ']') {
 								if (skipChar(vg,']')) {
 									while (skipChar(vg,']')) {
 									}
@@ -1139,11 +1071,11 @@ void parse(VTDGen *vg, Boolean ns){
 						+ formatLineNumber());*/
 
 					case STATE_END_TAG :
-						temp_offset = vg->offset;
+						vg->temp_offset = vg->offset;
 						
-						sos = (int) vg->tag_stack[depth];
-						sl = (int) (vg->tag_stack[depth] >> 32);
-						vg->offset = temp_offset + sl;
+						sos = (int) vg->tag_stack[vg->depth];
+						sl = (int) (vg->tag_stack[vg->depth] >> 32);
+						vg->offset = vg->temp_offset + sl;
 						if (vg->offset >= vg->endOffset){
 							e.et = parse_exception;
 							e.subtype = 0;
@@ -1154,7 +1086,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 						 
 						for (i = 0; i < sl; i++) {
-							if (vg->XMLDoc[sos + i] != vg->XMLDoc[temp_offset + i]){
+							if (vg->XMLDoc[sos + i] != vg->XMLDoc[vg->temp_offset + i]){
 								e.et = parse_exception;
 								e.subtype = 0;
 								e.msg = "Parse Exception in parse()";
@@ -1163,10 +1095,10 @@ void parse(VTDGen *vg, Boolean ns){
 							}
 						}
 							
-						depth--;
-						ch = getCharAfterS(vg);
+						vg->depth--;
+						vg->ch = getCharAfterS(vg);
 						
-						if (ch!='>'){
+						if (vg->ch!='>'){
 							e.et = parse_exception;
 							e.subtype = 0;
 							e.msg = "Parse Exception in parse()";
@@ -1175,18 +1107,18 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 
 						
-						if (depth != -1) {
-							temp_offset = vg->offset;
-							ch = getCharAfterS(vg);
-							if (ch == '<')
+						if (vg->depth != -1) {
+							vg->temp_offset = vg->offset;
+							vg->ch = getCharAfterS(vg);
+							if (vg->ch == '<')
 								parser_state = STATE_LT_SEEN;
-							else if (XMLChar_isContentChar(ch)) {
+							else if (XMLChar_isContentChar(vg->ch)) {
 								parser_state = STATE_TEXT;
-							} else if (ch == '&') {
+							} else if (vg->ch == '&') {
 								//has_amp = true;
 								entityIdentifier(vg);
 								parser_state = STATE_TEXT;
-							} else if (ch == ']') {
+							} else if (vg->ch == ']') {
 								if (skipChar(vg,']')) {
 									while (skipChar(vg,']')) {
 									}
@@ -1218,1180 +1150,37 @@ void parse(VTDGen *vg, Boolean ns){
 						+ formatLineNumber());*/
 					case STATE_UNRECORDED_TEXT :
 						break;
-					case STATE_PI_TAG :
-						while (TRUE) {
-							ch = getChar(vg);
-							if (!XMLChar_isNameChar(ch))
-								break;
-						}
 
-						length1 = vg->offset - temp_offset - increment;
-						/*System.out.println(
-						((char) XMLDoc[temp_offset])
-						+ " "
-						+ (temp_offset)
-						+ " "
-						+ length1
-						+ " PI Target "
-						+ depth); */
-						if (vg->encoding < FORMAT_UTF_16BE){
-							if (length1 > MAX_TOKEN_LENGTH){
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg="Token Length Error: PI_TAG length too long";
-								Throw e;
-							}
-							writeVTD(vg,
-								(temp_offset),
-								length1,
-								TOKEN_PI_NAME,
-								depth);
-						}
-						else{													
-							if (length1 > (MAX_TOKEN_LENGTH << 1)){
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg="Token Length Error: PI_TAG length too long";
-								Throw e;
-							}
-							writeVTD(vg,
-								(temp_offset) >> 1,
-								(length1 >> 1),
-								TOKEN_PI_NAME,
-								depth);
-						}
-						//length1 = 0;
-						temp_offset = vg->offset;
-						if (XMLChar_isSpaceChar(ch)) {
-							ch = getChar(vg);
-						}
-						if (ch == '?') {
-							if (skipChar(vg,'>')) {
-								temp_offset = vg->offset;
-								ch = getCharAfterSe(vg);
-								if (ch == '<') {
-									parser_state = STATE_LT_SEEN;
-								} else if (XMLChar_isContentChar(ch)) {
-									parser_state = STATE_TEXT;
-								} else if (ch == '&') {
-									//has_amp = true;
-									entityIdentifier(vg);
-									parser_state = STATE_TEXT;
-								} else if (ch == ']') {
-								if (skipChar(vg,']')) {
-									while (skipChar(vg,']')) {
-									}
-									if (skipChar(vg,'>')){		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in text content: ]]> in text content";
-										Throw e;
-									}
-									/*throw new ParseException(
-									"Error in text content: ]]> in text content"
-									+ formatLineNumber());*/
-								}
-								parser_state = STATE_TEXT;
-							   }else
-								{		
-									e.et = parse_exception;
-									e.subtype = 0;
-									e.msg = "Parse Exception in parse()";
-									e.sub_msg = "Error in text content: Invalid char";
-									Throw e;
-								}
-								/*throw new ParseException(
-								"Error in text content: Invalid char"
-								+ formatLineNumber());*/
-								break;
-							} else
-							{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "Error in PI: invalid termination sequence";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"Error in PI: invalid termination sequence"
-							+ formatLineNumber());*/
-						}
-						parser_state = STATE_PI_VAL;
+					case STATE_PI_TAG :
+						parser_state = process_pi_tag(vg);
 						break;
+
 						//throw new ParseException("Error in PI: Invalid char");
 					case STATE_PI_VAL :
-						//temp_offset = offset;
-						while (TRUE) {
-							if (XMLChar_isValidChar(ch)) {
-								//System.out.println(""+(char)ch);
-								if (ch == '?')
-									if (skipChar(vg,'>')) {
-										break;
-									} else{		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in PI: invalid termination sequence for PI";
-										Throw e;
-									}
-									/*	throw new ParseException(
-									"Error in PI: invalid termination sequence for PI"
-									+ formatLineNumber());*/
-							} else{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "Errors in PI: Invalid char in PI val";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"Errors in PI: Invalid char in PI val"
-							+ formatLineNumber());*/
-							ch = getChar(vg);
-						}
-						length1 = vg->offset - temp_offset - 2 * increment;
-						/*System.out.println(
-						((char) XMLDoc[temp_offset])
-						+ " "
-						+ (temp_offset)
-						+ " "
-						+ length1
-						+ " PI val "
-						+ depth);*/
-						if (vg->encoding < FORMAT_UTF_16BE){
-							if (length1 > MAX_TOKEN_LENGTH){
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg="Token Length Error: PI_VAL length too long";
-								Throw e;
-							}
-							writeVTD(vg,temp_offset, length1, TOKEN_PI_VAL, depth);
-						}
-						else{
-							if (length1 > (MAX_TOKEN_LENGTH << 1)){
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg="Token Length Error: PI_VAL length too long";
-								Throw e;
-							}
-							writeVTD(vg,
-								temp_offset >> 1,
-								length1 >> 1,
-								TOKEN_PI_VAL,
-								depth);
-						}
-						//length1 = 0;
-						temp_offset = vg->offset;
-						ch = getCharAfterSe(vg);
-						if (ch == '<') {
-							parser_state = STATE_LT_SEEN;
-						} else if (XMLChar_isContentChar(ch)) {
-							//temp_offset = offset;
-							parser_state = STATE_TEXT;
-						} else if (ch == '&') {
-							//has_amp = true;
-							//temp_offset = offset;
-							entityIdentifier(vg);
-							parser_state = STATE_TEXT;
-						} else if (ch == ']') {
-								if (skipChar(vg,']')) {
-									while (skipChar(vg,']')) {
-									}
-									if (skipChar(vg,'>')){		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in text content: ]]> in text content";
-										Throw e;
-									}
-									/*throw new ParseException(
-									"Error in text content: ]]> in text content"
-									+ formatLineNumber());*/
-								}
-								parser_state = STATE_TEXT;
-							   }
-						else{		
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse Exception in parse()";
-							e.sub_msg = "Error in text content: Invalid char";
-							Throw e;
-						}
-						/*throw new ParseException(
-						"Error in text content: Invalid char"
-						+ formatLineNumber());*/
+						parser_state = process_pi_val(vg);
 						break;
+
 
 					case STATE_DEC_ATTR_NAME :
-						if (ch == 'v'
-							&& skipChar(vg,'e')
-							&& skipChar(vg,'r')
-							&& skipChar(vg,'s')
-							&& skipChar(vg,'i')
-							&& skipChar(vg,'o')
-							&& skipChar(vg,'n')) {
-								ch = getCharAfterS(vg);
-								if (ch == '=') {
-
-									/*System.out.println(
-									" " + (temp_offset - 1) + " " + 7 + " dec attr name version " + depth);*/
-									if (vg->encoding < FORMAT_UTF_16BE){
-
-										writeVTD(vg,
-											temp_offset - increment,
-											7,
-											TOKEN_DEC_ATTR_NAME,
-											depth);
-									}
-									else{
-
-										writeVTD(vg,
-											(temp_offset - increment) >> 1,
-											7,
-											TOKEN_DEC_ATTR_NAME,
-											depth);
-									}
-								} 
-								else
-								{		
-									e.et = parse_exception;
-									e.subtype = 0;
-									e.msg = "Parse Exception in parse()";
-									e.sub_msg = "XML decl error: Invalid char";
-									Throw e;
-								}
-								/*throw new ParseException(
-								"XML decl error: Invalid char"
-								+ formatLineNumber());*/
-							} else{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "XML decl error: should be version";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"XML decl error: should be version"
-							+ formatLineNumber());*/
-							ch_temp = getCharAfterS(vg);
-							if (ch_temp != '\'' && ch_temp != '"')
-							{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "XML decl error: Invalid char to start attr name";
-								Throw e;
-							}
-							/*	throw new ParseException(
-							"XML decl error: Invalid char to start attr name"
-							+ formatLineNumber());*/
-							temp_offset = vg->offset;
-							// support 1.0 or 1.1
-							if (skipChar(vg,'1')
-								&& skipChar(vg,'.')
-								&& (skipChar(vg,'0') || skipChar(vg,'1'))) {
-									/*System.out.println(
-									" " + temp_offset + " " + 3 + " dec attr val (version)" + depth);*/
-									if (vg->encoding < FORMAT_UTF_16BE){
-
-										writeVTD(vg,
-											temp_offset,
-											3,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
-									}
-									else{
-
-										writeVTD(vg,
-											temp_offset >> 1,
-											3,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
-									}
-								} else
-							{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "XML decl error: Invalid version(other than 1.0 or 1.1) detected";
-								Throw e;
-							}
-							/*	throw new ParseException(
-							"XML decl error: Invalid version(other than 1.0 or 1.1) detected"
-							+ formatLineNumber());*/
-							if (!skipChar(vg,ch_temp))
-							{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "XML decl error: version not terminated properly";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"XML decl error: version not terminated properly"
-							+ formatLineNumber());*/
-							ch = getChar(vg);
-							//? space or e 
-							if (XMLChar_isSpaceChar(ch)) {
-								ch = getCharAfterS(vg);
-								temp_offset = vg->offset - increment;
-								if (ch == 'e') {
-									if (skipChar(vg,'n')
-										&& skipChar(vg,'c')
-										&& skipChar(vg,'o')
-										&& skipChar(vg,'d')
-										&& skipChar(vg,'i')
-										&& skipChar(vg,'n')
-										&& skipChar(vg,'g')) {
-											ch = getChar(vg);
-											if (XMLChar_isSpaceChar(ch))
-												ch = getCharAfterS(vg);
-											if (ch == '=') {
-												/*System.out.println(
-												" " + (temp_offset) + " " + 8 + " dec attr name (encoding) " + depth);*/
-												if (vg->encoding < FORMAT_UTF_16BE){
-
-													writeVTD(vg,
-														temp_offset,
-														8,
-														TOKEN_DEC_ATTR_NAME,
-														depth);
-												}
-												else{
-
-													writeVTD(vg,
-														temp_offset >> 1,
-														8,
-														TOKEN_DEC_ATTR_NAME,
-														depth);
-												}
-											} else{		
-												e.et = parse_exception;
-												e.subtype = 0;
-												e.msg = "Parse Exception in parse()";
-												e.sub_msg = "XML decl error: Invalid char";
-												Throw e;
-											}
-											/*	throw new ParseException(
-											"XML decl error: Invalid char"
-											+ formatLineNumber());*/
-											ch_temp = getCharAfterS(vg);
-											if (ch_temp != '"' && ch_temp != '\'')
-											{		
-												e.et = parse_exception;
-												e.subtype = 0;
-												e.msg = "Parse Exception in parse()";
-												e.sub_msg = "XML decl error: Invalid char to start attr name";
-												Throw e;
-											}
-											/*	throw new ParseException(
-											"XML decl error: Invalid char to start attr name"
-											+ formatLineNumber());*/
-											temp_offset = vg->offset;
-											ch = getChar(vg);
-											switch (ch) {
-					case 'a' :
-					case 'A' :{
-						if ((skipChar(vg,'s')
-							|| skipChar(vg,'S'))
-							&& (skipChar(vg,'c')
-							|| skipChar(vg,'C'))
-							&& (skipChar(vg,'i')
-							|| skipChar(vg,'I'))
-							&& (skipChar(vg,'i')
-							|| skipChar(vg,'I'))
-							&& skipChar(vg,ch_temp)) {
-								if (vg->encoding != FORMAT_UTF_16LE
-									&& vg->encoding
-									!= FORMAT_UTF_16BE) {
-										if (must_utf_8){
-											e.et = parse_exception;
-											e.subtype = 0;
-											e.msg = "Parse Exception in parse()";
-											e.sub_msg = "Can't switch from UTF-8";
-											Throw e;
-										}
-										vg->encoding = FORMAT_ASCII;
-										/*System.out.println(
-										" " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
-										if (vg->encoding
-											< FORMAT_UTF_16BE){
-												writeVTD(vg,
-													temp_offset,
-													5,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-											}
-										else{
-											writeVTD(vg,
-												temp_offset >> 1,
-												5,
-												TOKEN_DEC_ATTR_VAL,
-												depth);
-										}
-										break;
-									} else
-								{		
-									e.et = parse_exception;
-									e.subtype = 0;
-									e.msg = "Parse Exception in parse()";
-									e.sub_msg = "XML decl error: Can't switch encoding to ASCII";
-									Throw e;
-								}
-								/*throw new ParseException(
-								"XML decl error: Can't switch encoding to ASCII"
-								+ formatLineNumber());*/
-							}
-
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse Exception in parse()";
-							e.sub_msg = "XML decl error: Invalid Encoding";
-							Throw e;
-							  }
-							  //throw new ParseException(
-							  //	"XML decl error: Invalid Encoding"
-							  //		+ formatLineNumber());
-					case 'i' :
-					case 'I' :{
-						if ((skipChar(vg,'s')
-							|| skipChar(vg,'S'))
-							&& (skipChar(vg,'o')
-							|| skipChar(vg,'O'))
-							&& skipChar(vg,'-')
-							&& skipChar(vg,'8')
-							&& skipChar(vg,'8')
-							&& skipChar(vg,'5')
-							&& skipChar(vg,'9')
-							&& skipChar(vg,'-')
-							&& skipChar(vg,'1')
-							&& skipChar(vg,ch_temp)) {
-								if (vg->encoding != FORMAT_UTF_16LE
-									&& vg->encoding
-									!= FORMAT_UTF_16BE) {
-										if (must_utf_8){
-											e.et = parse_exception;
-											e.subtype = 0;
-											e.msg = "Parse Exception in parse()";
-											e.sub_msg = "Can't switch from UTF-8";
-											Throw e;
-										}
-										vg->encoding = FORMAT_ISO_8859;
-										/*System.out.println(
-										" " + (temp_offset) + " " + 10 + " dec attr val (encoding) " + depth);*/
-										if (vg->encoding
-											< FORMAT_UTF_16BE){
-												writeVTD(vg,
-													temp_offset,
-													10,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-											}
-										else{
-											writeVTD(vg,
-												temp_offset >> 1,
-												10,
-												TOKEN_DEC_ATTR_VAL,
-												depth);
-										}
-										break;
-									} else
-								{		
-									e.et = parse_exception;
-									e.subtype = 0;
-									e.msg = "Parse Exception in parse()";
-									e.sub_msg = "XML decl error: Can't switch encoding to ISO-8859";
-									Throw e;
-								}
-								/*	throw new ParseException(
-								"XML decl error: Can't switch encoding to ISO-8859"
-								+ formatLineNumber());*/
-							}
-
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse Exception in parse()";
-							e.sub_msg = "XML decl error: Invalid Encoding";
-							Throw e;
-							  }
-							  /*	throw new ParseException(
-							  "XML decl error: Invalid Encoding"
-							  + formatLineNumber());*/
-					case 'u' :
-					case 'U' :{
-						if ((skipChar(vg,'s')
-							|| skipChar(vg,'S')))
-							if (skipChar(vg,'-')
-								&& (skipChar(vg,'a')
-								|| skipChar(vg,'A'))
-								&& (skipChar(vg,'s')
-								|| skipChar(vg,'S'))
-								&& (skipChar(vg,'c')
-								|| skipChar(vg,'C'))
-								&& (skipChar(vg,'i')
-								|| skipChar(vg,'I'))
-								&& (skipChar(vg,'i')
-								|| skipChar(vg,'I'))
-								&& skipChar(vg,ch_temp)) {
-									if (vg->encoding
-										!= FORMAT_UTF_16LE
-										&& vg->encoding
-										!= FORMAT_UTF_16BE) {
-											if (must_utf_8){
-												e.et = parse_exception;
-												e.subtype = 0;
-												e.msg = "Parse Exception in parse()";
-												e.sub_msg = "Can't switch from UTF-8";
-												Throw e;
-											}
-											vg->encoding = FORMAT_ASCII;
-											//System.out.println(
-											//    " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);
-											if (vg->encoding
-												< FORMAT_UTF_16BE){
-													writeVTD(vg,
-														temp_offset,
-														5,
-														TOKEN_DEC_ATTR_VAL,
-														depth);
-												}
-											else{
-												writeVTD(vg,
-													temp_offset
-													>> 1,
-													5,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-											}
-											break;
-
-										} else
-									{		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "XML decl error: Can't switch encoding to US-ASCII";
-										Throw e;
-									}
-									/*throw new ParseException(
-									"XML decl error: Can't switch encoding to US-ASCII"
-									+ formatLineNumber());*/
-								} else{		
-									e.et = parse_exception;
-									e.subtype = 0;
-									e.msg = "Parse Exception in parse()";
-									e.sub_msg = "XML decl error: Invalid Encoding";
-									Throw e;
-								}
-								/*throw new ParseException(
-								"XML decl error: Invalid Encoding"
-								+ formatLineNumber());*/
-
-								if ((skipChar(vg,'t')
-									|| skipChar(vg,'T'))
-									&& (skipChar(vg,'f')
-									|| skipChar(vg,'F'))
-									&& skipChar(vg,'-')) {
-										if (skipChar(vg,'8')
-											&& skipChar(vg,ch_temp)) {
-												if (vg->encoding
-													!= FORMAT_UTF_16LE
-													&& vg->encoding
-													!= FORMAT_UTF_16BE) {
-														//encoding = FORMAT_UTF8;
-														/*System.out.println(
-														" " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
-														if (vg->encoding
-															< FORMAT_UTF_16BE)
-														{
-															writeVTD(vg,
-																temp_offset,
-																5,
-																TOKEN_DEC_ATTR_VAL,
-																depth);
-														}
-														else
-														{
-															writeVTD(vg,
-																temp_offset
-																>> 1,
-																5,
-																TOKEN_DEC_ATTR_VAL,
-																depth);
-														}
-														break;
-													} else
-												{		
-													e.et = parse_exception;
-													e.subtype = 0;
-													e.msg = "Parse Exception in parse()";
-													e.sub_msg = "XML decl error: Can't switch encoding to UTF-8";
-													Throw e;
-												}
-												/*throw new ParseException(
-												"XML decl error: Can't switch encoding to UTF-8"
-												+ formatLineNumber());*/
-											}
-											if (skipChar(vg,'1')
-												&& skipChar(vg,'6')) {
-													if (skipChar(vg,ch_temp)) {
-														if (vg->encoding
-															== FORMAT_UTF_16LE
-															|| vg->encoding
-															== FORMAT_UTF_16BE) {
-																/*System.out.println(
-																" " + (temp_offset) + " " + 6 + " dec attr val (encoding) " + depth);*/
-																if (BOM_detected == FALSE){
-																	e.et = parse_exception;
-																	e.subtype = 0;
-																	e.msg = "Parse Exception in parse()";
-																	e.sub_msg = "BOM not detected for UTF-16";
-																	Throw e;
-																}
-																if (vg->encoding
-																	< FORMAT_UTF_16BE)
-																{
-																	writeVTD(vg,
-																		temp_offset,
-																		6,
-																		TOKEN_DEC_ATTR_VAL,
-																		depth);
-																}
-																else{
-																	writeVTD(vg,
-																		temp_offset
-																		>> 1,
-																		6,
-																		TOKEN_DEC_ATTR_VAL,
-																		depth);
-																}
-																break;
-															}
-
-															e.et = parse_exception;
-															e.subtype = 0;
-															e.msg = "Parse Exception in parse()";
-															e.sub_msg = "XML decl error: Can't switch encoding to UTF-16";
-															Throw e;
-
-															/*throw new ParseException(
-															"XML decl error: Can't switch encoding to UTF-16"
-															+ formatLineNumber());*/
-													} else if (
-														(skipChar(vg,'l')
-														|| skipChar(vg,'L'))
-														&& (skipChar(vg,'e')
-														|| skipChar(vg,'E'))
-														&& skipChar(vg,ch_temp)) {
-															if (vg->encoding
-																== FORMAT_UTF_16LE) {
-																	/*System.out.println(
-																	" " + (temp_offset) + " " + 7 + " dec attr val (encoding) " + depth);*/
-																	if (vg->encoding
-																		< FORMAT_UTF_16BE)
-																	{
-																		writeVTD(vg,
-																			temp_offset,
-																			7,
-																			TOKEN_DEC_ATTR_VAL,
-																			depth);
-																	}
-																	else
-																	{
-																		writeVTD(vg,
-																			temp_offset
-																			>> 1,
-																			7,
-																			TOKEN_DEC_ATTR_VAL,
-																			depth);
-																	}
-																	break;
-																}
-																e.et = parse_exception;
-																e.subtype = 0;
-																e.msg = "Parse Exception in parse()";
-																e.sub_msg = "XML decl error: Can't switch encoding to UTF-16LE";
-																Throw e;
-																/*throw new ParseException(
-																"XML del error: Can't switch encoding to UTF-16LE"
-																+ formatLineNumber());*/
-														} else if (
-															(skipChar(vg,'b')
-															|| skipChar(vg,'B'))
-															&& (skipChar(vg,'e')
-															|| skipChar(vg,'E'))
-															&& skipChar(vg,ch_temp)) {
-																if (vg->encoding
-																	== FORMAT_UTF_16BE) {
-																		/*System.out.println(
-																		" " + (temp_offset) + " " + 7 + " dec attr val (encoding) " + depth);*/
-																		if (vg->encoding
-																			< FORMAT_UTF_16BE)
-																		{
-																			writeVTD(vg,
-																				temp_offset,
-																				7,
-																				TOKEN_DEC_ATTR_VAL,
-																				depth);
-																		}
-																		else{
-																			writeVTD(vg,
-																				temp_offset
-																				>> 1,
-																				7,
-																				TOKEN_DEC_ATTR_VAL,
-																				depth);
-																		}
-																		break;
-																	}
-																	e.et = parse_exception;
-																	e.subtype = 0;
-																	e.msg = "Parse Exception in parse()";
-																	e.sub_msg = "XML decl error: Can't switch encoding to UTF-16BE";
-																	Throw e;
-																	/*throw new ParseException(
-																	"XML del error: Can't swtich encoding to UTF-16BE"
-																	+ formatLineNumber());*/
-															}
-															e.et = parse_exception;
-															e.subtype = 0;
-															e.msg = "Parse Exception in parse()";
-															e.sub_msg = "XML decl error: Invalid encoding";
-															Throw e;
-															/*	throw new ParseException(
-															"XML decl error: Invalid encoding"
-															+ formatLineNumber());*/
-												}
-									}}
-					default :
-						e.et = parse_exception;
-						e.subtype = 0;
-						e.msg = "Parse Exception in parse()";
-						e.sub_msg = "XML decl error: Invalid encoding";
-						Throw e;
+						parser_state = process_dec_attr(vg);
 						break;
-						/*throw new ParseException(
-						"XML decl Error: invalid encoding"
-						+ formatLineNumber());*/
-											}
-											ch = getChar(vg);
-											if (XMLChar_isSpaceChar(ch))
-												ch = getCharAfterS(vg);
-											temp_offset = vg->offset - increment;
-										} else{		
-											e.et = parse_exception;
-											e.subtype = 0;
-											e.msg = "Parse Exception in parse()";
-											e.sub_msg = "XML decl Error: Invalid char";
-											Throw e;
-										}
-										/*throw new ParseException(
-										"XML decl Error: Invalid char"
-										+ formatLineNumber());*/
-								}
-
-								if (ch == 's') {
-									if (skipChar(vg,'t')
-										&& skipChar(vg,'a')
-										&& skipChar(vg,'n')
-										&& skipChar(vg,'d')
-										&& skipChar(vg,'a')
-										&& skipChar(vg,'l')
-										&& skipChar(vg,'o')
-										&& skipChar(vg,'n')
-										&& skipChar(vg,'e')) {
-
-											ch = getCharAfterS(vg);
-											if (ch != '='){		
-												e.et = parse_exception;
-												e.subtype = 0;
-												e.msg = "Parse Exception in parse()";
-												e.sub_msg = "XML decl error: Invalid char";
-												Throw e;
-											}
-											/*throw new ParseException(
-											"XML decl error: Invalid char"
-											+ formatLineNumber());*/
-											/*System.out.println(
-											" " + temp_offset + " " + 3 + " dec attr name (standalone) " + depth);*/
-											if (vg->encoding < FORMAT_UTF_16BE){
-												writeVTD(vg,
-													temp_offset,
-													10,
-													TOKEN_DEC_ATTR_NAME,
-													depth);
-											}
-											else{
-												writeVTD(vg,
-													temp_offset >> 1,
-													10,
-													TOKEN_DEC_ATTR_NAME,
-													depth);
-											}
-											ch_temp = getCharAfterS(vg);
-											temp_offset = vg->offset;
-											if (ch_temp != '"' && ch_temp != '\''){		
-												e.et = parse_exception;
-												e.subtype = 0;
-												e.msg = "Parse Exception in parse()";
-												e.sub_msg = "XML decl error: Invalid char to start attr name";
-												Throw e;
-											}
-											/*	throw new ParseException(
-											"XML decl error: Invalid char to start attr name"
-											+ formatLineNumber());*/
-											ch = getChar(vg);
-											//if (ch == 'y') {
-											//	if (skipChar(vg,'e')
-											//		&& skipChar(vg,'s')
-											//		&& skipChar(vg,ch_temp)) {
-											//		/*System.out.println(
-											//		    " " + (temp_offset) + " " + 3 + " dec attr val (standalone) " + depth);*/
-											//		if (vg->encoding < FORMAT_UTF_16BE)
-											//				temp_offset,
-											//				3,
-											//				TOKEN_DEC_ATTR_VAL,
-											//				depth);
-											//		else
-											//			writeVTD(vg,
-											//				temp_offset >> 1,
-											//				3,
-											//				TOKEN_DEC_ATTR_VAL,
-											//				depth);
-											//		} else{		
-											//			e.et = parse_exception;
-											//			e.msg = "Parse Exception in parse()";
-											//			e.sub_msg = "XML decl error: invalid val for standalone";
-											//			Throw e;
-											//		}
-											//		/*throw new ParseException(
-											//			"XML decl error: invalid val for standalone"
-											//			+ formatLineNumber());*/
-											//} else if (ch == 'n') {
-											//	if (skipChar(vg,'o')
-											//		&& skipChar(vg,ch_temp)) {
-											//		/*System.out.println(
-											//		    " " + (temp_offset) + " " + 2 + " dec attr val (standalone)" + depth);*/
-											//		if (vg->encoding < FORMAT_UTF_16BE)
-											//			writeVTD(vg,
-											//				temp_offset,
-											//				2,
-											//				TOKEN_DEC_ATTR_VAL,
-											//				depth);
-											//		else
-											//			writeVTD(vg,
-											//				temp_offset >> 1,
-											//				2,
-											//				TOKEN_DEC_ATTR_VAL,
-											//				depth);
-											//		} else{		
-											//			e.et = parse_exception;
-											//			e.msg = "Parse Exception in parse()";
-											//			e.sub_msg = "XML decl error: invalid val for standalone";
-											//			Throw e;
-											//		}
-											//		/*throw new ParseException(
-											//			"XML decl error: invalid val for standalone"
-											//			+ formatLineNumber());*/
-											//} else{		
-											//	e.et = parse_exception;
-											//	e.msg = "Parse Exception in parse()";
-											//	e.sub_msg = "XML decl error: invalid val for standalone";
-											//	Throw e;
-											//}
-											/*throw new ParseException(
-											"XML decl error: invalid val for standalone"
-											+ formatLineNumber());*/
-										} else{		
-											e.et = parse_exception;
-											e.subtype = 0;
-											e.msg = "Parse Exception in parse()";
-											e.sub_msg = "XML decl error";
-											Throw e;
-										}
-										/*throw new ParseException(
-										"XML decl error" + formatLineNumber());*/
-										ch = getChar(vg);
-										if (XMLChar_isSpaceChar(ch))
-											ch = getCharAfterS(vg);
-								}
-							}
-
-							if (ch == '?' && skipChar(vg,'>')) {
-								temp_offset = vg->offset;
-								ch = getCharAfterS(vg);
-								if (ch == '<') {
-									parser_state = STATE_LT_SEEN;
-								} else{		
-									e.et = parse_exception;
-									e.subtype = 0;
-									e.msg = "Parse Exception in parse()";
-									e.sub_msg = "Other Error: Invalid Char in XML";
-									Throw e;
-								}
-								/*throw new ParseException(
-								"Other Error: Invalid Char in XML"
-								+ formatLineNumber());*/
-							} else{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "XML decl Error: Invalid termination sequence";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"XML decl Error: Invalid termination sequence"
-							+ formatLineNumber());*/
-							break;
-
+				
 					case STATE_COMMENT :
-						while (TRUE) {
-							ch = getChar(vg);
-							if (XMLChar_isValidChar(ch)) {
-								if (ch == '-' && skipChar(vg,'-')) {
-									length1 =
-										vg->offset - temp_offset - 2 * increment;
-									break;
-								}
-							} else{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "Error in comment: Invalid Char";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"Error in comment: Invalid Char"
-							+ formatLineNumber());*/
-						}
-						if (getChar(vg) == '>') {
-							//System.out.println(" " + (temp_offset) + " " + length1 + " comment " + depth);
-							if (vg->encoding < FORMAT_UTF_16BE){
-								writeVTD(vg,
-									temp_offset,
-									length1,
-									TOKEN_COMMENT,
-									depth);
-							}
-							else{
-								writeVTD(vg,
-									temp_offset >> 1,
-									length1 >> 1,
-									TOKEN_COMMENT,
-									depth);
-							}
-							//length1 = 0;
-							temp_offset = vg->offset;
-							ch = getCharAfterSe(vg);
-							if (ch == '<') {
-								parser_state = STATE_LT_SEEN;
-							} else if (XMLChar_isContentChar(ch)) {
-								//temp_offset = offset;
-								parser_state = STATE_TEXT;
-							} else if (ch == '&') {
-								//has_amp = true;
-								//temp_offset = offset;
-								entityIdentifier(vg);
-								parser_state = STATE_TEXT;
-							} else if (ch == ']') {
-								if (skipChar(vg,']')) {
-									while (skipChar(vg,']')) {
-									}
-									if (skipChar(vg,'>')){		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in text content: ]]> in text content";
-										Throw e;
-									}
-									/*throw new ParseException(
-									"Error in text content: ]]> in text content"
-									+ formatLineNumber());*/
-								}
-								parser_state = STATE_TEXT;
-							   }
-							else{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "XML decl error";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"Error in text content: Invalid char"
-							+ formatLineNumber());*/
-							break;
-						} else{		
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse Exception in parse()";
-							e.sub_msg = "Error in comment: Invalid terminating sequence";
-							Throw e;
-						}
+						parser_state = process_comment(vg);
+						break;
 						/*throw new ParseException(
 						"Error in comment: Invalid terminating sequence"
 						+ formatLineNumber());*/
 					case STATE_CDATA :
-						while (TRUE) {
-							ch = getChar(vg);
-							if (XMLChar_isValidChar(ch)) {
-								if (ch == ']' && skipChar(vg,']')) {
-									while (skipChar(vg,']'));
-									if (skipChar(vg,'>')) {
-										break;
-									} else{		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in CDATA: Invalid terminating sequence";
-										Throw e;
-									}
-									/*throw new ParseException(
-									"Error in CDATA: Invalid termination sequence"
-									+ formatLineNumber());*/
-								}
-							} else{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "Error in CDATA: Invalid Char";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"Error in CDATA: Invalid Char"
-							+ formatLineNumber());*/
-						}
-						length1 = vg->offset - temp_offset - 3 * increment;
-						if (vg->encoding < FORMAT_UTF_16BE){
-							writeVTD(vg,
-								temp_offset,
-								length1,
-								TOKEN_CDATA_VAL,
-								depth);
-						}
-						else{
-							writeVTD(vg,
-								temp_offset >> 1,
-								length1 >> 1,
-								TOKEN_CDATA_VAL,
-								depth);
-						}
-						//System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
-						ch = getCharAfterSe(vg);
-						if (ch == '<') {
-							parser_state = STATE_LT_SEEN;
-						} else if (XMLChar_isContentChar(ch)) {
-							temp_offset = vg->offset;
-							parser_state = STATE_TEXT;
-						} else if (ch == '&') {
-							//has_amp = true;
-							temp_offset = vg->offset;
-							entityIdentifier(vg);
-							parser_state = STATE_TEXT;
-							//temp_offset = offset;
-						} else if (ch == ']') {
-								if (skipChar(vg,']')) {
-									while (skipChar(vg,']')) {
-									}
-									if (skipChar(vg,'>')){		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in text content: ]]> in text content";
-										Throw e;
-									}
-									/*throw new ParseException(
-									"Error in text content: ]]> in text content"
-									+ formatLineNumber());*/
-								}
-								parser_state = STATE_TEXT;
-							   }
-						else{		
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse Exception in parse()";
-							e.sub_msg = "Other Error: Invalid char in xml";
-							Throw e;
-						}
-						/*throw new ParseException(
-						"Other Error: Invalid char in xml"
-						+ formatLineNumber());*/
+						parser_state = process_cdata(vg);
 						break;
+						
 					case STATE_DOCTYPE :
-						z = 1;
-						while (TRUE) {
-							ch = getChar(vg);
-							if (XMLChar_isValidChar(ch)) {
-								if (ch == '>')
-									z--;
-								else if (ch == '<')
-									z++;
-								if (z == 0)
-									break;
-							} else{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "Error in DOCTYPE: Invalid char";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"Error in DOCTYPE: Invalid char"
-							+ formatLineNumber());*/
-						}
-						length1 = vg->offset - temp_offset - increment;
-						/*System.out.println(
-						" " + (temp_offset) + " " + length1 + " DOCTYPE val " + depth);*/
-						if (vg->encoding < FORMAT_UTF_16BE){
-							if (length1 > MAX_TOKEN_LENGTH){
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg="Token Length Error: DTD_VAL length too long";
-								Throw e;
-							}
-							writeVTD(vg,
-								temp_offset,
-								length1,
-								TOKEN_DTD_VAL,
-								depth);
-						}
-						else{
-							if (length1 > (MAX_TOKEN_LENGTH<<1)){
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg="Token Length Error: DTD_VAL length too long";
-								Throw e;
-							}
-							writeVTD(vg,
-								temp_offset >> 1,
-								length1 >> 1,
-								TOKEN_DTD_VAL,
-								depth);
-						}
-						ch = getCharAfterS(vg);
-						if (ch == '<') {
-							parser_state = STATE_LT_SEEN;
-						} else{		
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse Exception in parse()";
-							e.sub_msg = "Other Error: Invalid char in xml";
-							Throw e;
-						}
-						/*throw new ParseException(
-						"Other Error: Invalid char in xml"
-						+ formatLineNumber());*/
+						parser_state = process_doc_type(vg);
 						break;
-
+					
 					case STATE_TEXT :
-						if (depth == -1){		
+						if (vg->depth == -1){		
 							e.et = parse_exception;
 							e.subtype = 0;
 							e.msg = "Parse Exception in parse()";
@@ -2402,9 +1191,9 @@ void parse(VTDGen *vg, Boolean ns){
 						"Error in text: Char data at the wrong place"
 						+ formatLineNumber());*/
 						while (TRUE) {
-							ch = getChar(vg);
-							if (XMLChar_isContentChar(ch)) {
-							} else if (ch == '&') {
+							vg->ch = getChar(vg);
+							if (XMLChar_isContentChar(vg->ch)) {
+							} else if (vg->ch == '&') {
 								//has_amp = true;
 								if (!XMLChar_isValidChar(entityIdentifier(vg))){		
 									e.et = parse_exception;
@@ -2418,9 +1207,9 @@ void parse(VTDGen *vg, Boolean ns){
 								+ formatLineNumber());*/
 
 								//parser_state = STATE_TEXT;
-							} else if (ch == '<') {
+							} else if (vg->ch == '<') {
 								break;
-							} else if (ch == ']') {
+							} else if (vg->ch == ']') {
 								if (skipChar(vg,']')) {
 									while (skipChar(vg,']')) {
 									}
@@ -2446,30 +1235,30 @@ void parse(VTDGen *vg, Boolean ns){
 							"Error in text content: Invalid char in text content"
 							+ formatLineNumber());*/
 						}
-						length1 = vg->offset - increment - temp_offset;
+						length1 = vg->offset - vg->increment - vg->temp_offset;
 						//if (has_amp) {
 						/*System.out.println(
-						" " + temp_offset + " " + length1 + " text with amp " + depth);*/
+						" " + vg->temp_offset + " " + length1 + " text with amp " + vg->depth);*/
 						if (vg->encoding < FORMAT_UTF_16BE){
 							writeVTD(vg,
-								temp_offset,
+								vg->temp_offset,
 								length1,
 								TOKEN_CHARACTER_DATA,
-								depth);
+								vg->depth);
 						}
 						else{
 							writeVTD(vg,
-								temp_offset >> 1,
+								vg->temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_CHARACTER_DATA,
-								depth);
+								vg->depth);
 						}
 						//} else {
-						//System.out.println(" " + temp_offset + " " + length1 + " text " + depth);
+						//System.out.println(" " + vg->temp_offset + " " + length1 + " text " + vg->depth);
 						//  if (encoding < 3)
-						//  writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA_NO_ENTITY, depth);
+						//  writeVTD(vg->temp_offset, length1, TOKEN_CHARACTER_DATA_NO_ENTITY, vg->depth);
 						//else
-						//writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA_NO_ENTITY, depth);
+						//writeVTD(vg->temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA_NO_ENTITY, vg->depth);
 						//}
 						//has_amp = true;
 						parser_state = STATE_LT_SEEN;
@@ -2477,29 +1266,29 @@ void parse(VTDGen *vg, Boolean ns){
 
 					case STATE_ATTR_NAME :
 
-						if (ch == 'x') {
+						if (vg->ch == 'x') {
 							if (skipChar(vg,'m')
 								&& skipChar(vg,'l')
 								&& skipChar(vg,'n')
 								&& skipChar(vg,'s')) {
-									ch = getChar(vg);
-									if (ch == '='
-										|| XMLChar_isSpaceChar(ch)
-										|| ch == ':') {
+									vg->ch = getChar(vg);
+									if (vg->ch == '='
+										|| XMLChar_isSpaceChar(vg->ch)
+										|| vg->ch == ':') {
 											is_ns = TRUE; //break;
 										}
 								}
 						}
 						while (TRUE) {
-							if (XMLChar_isNameChar(ch)) {
-								if (ch == ':') {
-									length2 = vg->offset - temp_offset - increment;
+							if (XMLChar_isNameChar(vg->ch)) {
+								if (vg->ch == ':') {
+									length2 = vg->offset - vg->temp_offset - vg->increment;
 								}
-								ch = getChar(vg);
+								vg->ch = getChar(vg);
 							} else
 								break;
 						}
-						length1 = getPrevOffset(vg) - temp_offset;
+						length1 = getPrevOffset(vg) - vg->temp_offset;
 						// check for uniqueness here
 						/*
 						boolean unique = true;
@@ -2510,7 +1299,7 @@ void parse(VTDGen *vg, Boolean ns){
 						if (length1 == prevLen) {
 						int prevOffset = (int) (attr_name_array[i] >> 32);
 						for (int j = 0; j < prevLen; j++) {
-						if (XMLDoc[prevOffset + j] != XMLDoc[temp_offset + j]) {
+						if (XMLDoc[prevOffset + j] != XMLDoc[vg->temp_offset + j]) {
 						unequal = true;
 						break;
 						}
@@ -2530,7 +1319,7 @@ void parse(VTDGen *vg, Boolean ns){
 									(int) (vg->attr_name_array[i] >> 32);
 								for (j = 0; j < prevLen; j++) {
 									if (vg->XMLDoc[prevOffset + j]
-									!= vg->XMLDoc[temp_offset + j]) {
+									!= vg->XMLDoc[vg->temp_offset + j]) {
 										unequal = TRUE;
 										break;
 									}
@@ -2552,7 +1341,7 @@ void parse(VTDGen *vg, Boolean ns){
 						unique = TRUE;
 						if (attr_count < vg->anaLen) {
 							vg->attr_name_array[attr_count] =
-								((Long) (temp_offset) << 32) + length1;
+								((Long) (vg->temp_offset) << 32) + length1;
 							attr_count++;
 						} else // grow the attr_name_array by 16
 						{
@@ -2579,7 +1368,7 @@ void parse(VTDGen *vg, Boolean ns){
 								vg->attr_name_array[i] = temp_array[i];
 							}
 							vg->attr_name_array[attr_count] =
-								((Long) (temp_offset) << 32) + length1;
+								((Long) (vg->temp_offset) << 32) + length1;
 							attr_count++;
 						}
 						// after checking, write VTD
@@ -2601,10 +1390,10 @@ void parse(VTDGen *vg, Boolean ns){
 									}
 
 									writeVTD(vg,
-										temp_offset,
+										vg->temp_offset,
 										(length2 << 11) | length1,
 										TOKEN_ATTR_NS,
-										depth);
+										vg->depth);
 
 							}
 							else{
@@ -2624,10 +1413,10 @@ void parse(VTDGen *vg, Boolean ns){
 									}
 
 									writeVTD(vg,
-										temp_offset >> 1,
+										vg->temp_offset >> 1,
 										(length2 << 10) | (length1 >> 1),
 										TOKEN_ATTR_NS,
-										depth);
+										vg->depth);
 
 							}
 							is_ns = FALSE;
@@ -2647,10 +1436,10 @@ void parse(VTDGen *vg, Boolean ns){
 										Throw e;
 									}
 									writeVTD(vg,
-										temp_offset,
+										vg->temp_offset,
 										(length2 << 11) | length1,
 										TOKEN_ATTR_NAME,
-										depth);
+										vg->depth);
 
 							}
 							else {
@@ -2669,20 +1458,20 @@ void parse(VTDGen *vg, Boolean ns){
 									}
 
 									writeVTD(vg,
-										temp_offset >> 1,
+										vg->temp_offset >> 1,
 										(length2 << 10) | (length1 >> 1),
 										TOKEN_ATTR_NAME,
-										depth);
+										vg->depth);
 
 							}
 						}
 						/*System.out.println(
-						" " + temp_offset + " " + length2 + ":" + length1 + " attr name " + depth);*/
+						" " + vg->temp_offset + " " + length2 + ":" + length1 + " attr name " + vg->depth);*/
 						length2 = 0;
-						if (XMLChar_isSpaceChar(ch)) {
-							ch = getCharAfterS(vg);
+						if (XMLChar_isSpaceChar(vg->ch)) {
+							vg->ch = getCharAfterS(vg);
 						}
-						if (ch != '='){		
+						if (vg->ch != '='){		
 							e.et = parse_exception;
 							e.subtype = 0;
 							e.msg = "Parse Exception in parse()";
@@ -2692,8 +1481,8 @@ void parse(VTDGen *vg, Boolean ns){
 						/*throw new ParseException(
 						"Error in attr: invalid char"
 						+ formatLineNumber());*/
-						ch_temp = getCharAfterS(vg);
-						if (ch_temp != '"' && ch_temp != '\''){		
+						vg->ch_temp = getCharAfterS(vg);
+						if (vg->ch_temp != '"' && vg->ch_temp != '\''){		
 							e.et = parse_exception;
 							e.subtype = 0;
 							e.msg = "Parse Exception in parse()";
@@ -2703,16 +1492,17 @@ void parse(VTDGen *vg, Boolean ns){
 						/*throw new ParseException(
 						"Error in attr: invalid char (should be ' or \" )"
 						+ formatLineNumber());*/
-						temp_offset = vg->offset;
+						vg->temp_offset = vg->offset;
 						parser_state = STATE_ATTR_VAL;
 						break;
+
 					case STATE_ATTR_VAL :
 						while (TRUE) {
-							ch = getChar(vg);
-							if (XMLChar_isValidChar(ch) && ch != '<') {
-								if (ch == ch_temp)
+							vg->ch = getChar(vg);
+							if (XMLChar_isValidChar(vg->ch) && vg->ch != '<') {
+								if (vg->ch == vg->ch_temp)
 									break;
-								if (ch == '&') {
+								if (vg->ch == '&') {
 									//has_amp = true;
 									// as in vtd spec, we mark attr val with entities
 									if (!XMLChar_isValidChar(entityIdentifier(vg))) {		
@@ -2741,7 +1531,7 @@ void parse(VTDGen *vg, Boolean ns){
 							+ formatLineNumber());*/
 						}
 
-						length1 = vg->offset - temp_offset - increment;
+						length1 = vg->offset - vg->temp_offset - vg->increment;
 						if (vg->encoding < FORMAT_UTF_16BE){
 							if (length1 > MAX_TOKEN_LENGTH){
 								e.et = parse_exception;
@@ -2751,10 +1541,10 @@ void parse(VTDGen *vg, Boolean ns){
 								Throw e;
 							}
 							writeVTD(vg,
-								temp_offset,
+								vg->temp_offset,
 								length1,
 								TOKEN_ATTR_VAL,
-								depth);
+								vg->depth);
 						}
 						else{
 							if (length1 > (MAX_TOKEN_LENGTH << 1)){
@@ -2765,42 +1555,42 @@ void parse(VTDGen *vg, Boolean ns){
 								Throw e;
 							}
 							writeVTD(vg,
-								temp_offset >> 1,
+								vg->temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_ATTR_VAL,
-								depth);
+								vg->depth);
 						}
-						ch = getChar(vg);
-						if (XMLChar_isSpaceChar(ch)) {
-							ch = getCharAfterS(vg);
-							if (XMLChar_isNameStartChar(ch)) {
-								temp_offset = vg->offset - increment;
+						vg->ch = getChar(vg);
+						if (XMLChar_isSpaceChar(vg->ch)) {
+							vg->ch = getCharAfterS(vg);
+							if (XMLChar_isNameStartChar(vg->ch)) {
+								vg->temp_offset = vg->offset - vg->increment;
 								parser_state = STATE_ATTR_NAME;
 								break;
 							}
 						}
 
-						if (ch == '/') {
-							depth--;
-							ch = getChar(vg);
+						if (vg->ch == '/') {
+							vg->depth--;
+							vg->ch = getChar(vg);
 						}
 
-						if (ch == '>') {
+						if (vg->ch == '>') {
 							attr_count = 0;
-							if (depth != -1) {
-								temp_offset = vg->offset;
-								ch = getCharAfterSe(vg);
-								if (ch == '<') {
+							if (vg->depth != -1) {
+								vg->temp_offset = vg->offset;
+								vg->ch = getCharAfterSe(vg);
+								if (vg->ch == '<') {
 									parser_state = STATE_LT_SEEN;
-								} else if (XMLChar_isContentChar(ch)) {
-									//temp_offset = offset;
+								} else if (XMLChar_isContentChar(vg->ch)) {
+									//vg->temp_offset = offset;
 									parser_state = STATE_TEXT;
-								} else if (ch == '&') {
+								} else if (vg->ch == '&') {
 									//has_amp = true;
-									//temp_offset = offset;
+									//vg->temp_offset = offset;
 									entityIdentifier(vg);
 									parser_state = STATE_TEXT;
-								} else if (ch == ']') {
+								} else if (vg->ch == ']') {
 								if (skipChar(vg,']')) {
 									while (skipChar(vg,']')) {
 									}
@@ -2844,209 +1634,14 @@ void parse(VTDGen *vg, Boolean ns){
 						+ formatLineNumber());*/
 
 					case STATE_END_PI :										  
-						ch = getChar(vg);
-						if (XMLChar_isNameStartChar(ch)) {
-							if ((ch == 'x' || ch == 'X')
-								&& (skipChar(vg,'m') || skipChar(vg,'M'))
-								&& (skipChar(vg,'l') && skipChar(vg,'L'))) {
-									//temp_offset = offset;
-									ch = getChar(vg);
-									if (XMLChar_isSpaceChar(ch) || ch == '?'){		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in PI: [xX][mM][lL] not a valid PI target";
-										Throw e;
-									}
-									/*throw new ParseException(
-									"Error in PI: [xX][mM][lL] not a valid PI target"
-									+ formatLineNumber());*/
-									//offset = temp_offset;
-								}
 
-								while (TRUE) {
-									//ch = getChar(vg);
-									if (!XMLChar_isNameChar(ch)) {
-										break;
-									}
-									ch = getChar(vg);
-								}
-
-								length1 = vg->offset - temp_offset - increment;
-								/*System.out.println(
-								""
-								+ (char) XMLDoc[temp_offset]
-								+ " "
-								+ (temp_offset)
-								+ " "
-								+ length1
-								+ " PI Target "
-								+ depth);*/
-								if (vg->encoding < FORMAT_UTF_16BE){
-									if (length1 > MAX_TOKEN_LENGTH){
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg="Token Length Error: PI_NAME length too long";
-										Throw e;
-									}
-									writeVTD(vg,
-										temp_offset,
-										length1,
-										TOKEN_PI_NAME,
-										depth);
-								}
-								else{
-									if (length1 > (MAX_TOKEN_LENGTH<<1)){
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg="Token Length Error: PI_NAME length too long";
-										Throw e;
-									}
-									writeVTD(vg,
-										temp_offset >> 1,
-										length1 >> 1,
-										TOKEN_PI_NAME,
-										depth);
-								}
-								//length1 = 0;
-								temp_offset = vg->offset;
-								if (XMLChar_isSpaceChar(ch)) {
-									ch = getCharAfterS(vg);
-
-									while (TRUE) {
-										if (XMLChar_isValidChar(ch)) {
-											if (ch == '?')
-												if (skipChar(vg,'>')) {
-													parser_state = STATE_DOC_END;
-													break;
-												} else{		
-													e.et = parse_exception;
-													e.subtype = 0;
-													e.msg = "Parse Exception in parse()";
-													e.sub_msg = "Error in PI: invalid termination sequence";
-													Throw e;
-												}
-												/*throw new ParseException(
-												"Error in PI: invalid termination sequence"
-												+ formatLineNumber());*/
-										} else{		
-											e.et = parse_exception;
-											e.subtype = 0;
-											e.msg = "Parse Exception in parse()";
-											e.sub_msg = "Error in PI: Invalid char in PI val";
-											Throw e;
-										}
-										/*throw new ParseException(
-										"Error in PI: Invalid char in PI val"
-										+ formatLineNumber());*/
-										ch = getChar(vg);
-									}
-									length1 = vg->offset - temp_offset - 2 * increment;
-									if (vg->encoding < FORMAT_UTF_16BE){
-										if (length1 > MAX_TOKEN_LENGTH){
-											e.et = parse_exception;
-											e.subtype = 0;
-											e.msg = "Parse Exception in parse()";
-											e.sub_msg="Token Length Error: PI_VAL length too long";
-											Throw e;
-										}
-										writeVTD(vg,
-											temp_offset,
-											length1,
-											TOKEN_PI_VAL,
-											depth);
-									}
-									else{
-										if (length1 > (MAX_TOKEN_LENGTH << 1)){
-											e.et = parse_exception;
-											e.subtype = 0;
-											e.msg = "Parse Exception in parse()";
-											e.sub_msg="Token Length Error: PI_VAL length too long";
-											Throw e;
-										}
-										writeVTD(vg,
-											temp_offset >> 1,
-											length1 >> 1,
-											TOKEN_PI_VAL,
-											depth);
-									}
-									//System.out.println(" " + temp_offset + " " + length1 + " PI val " + depth);
-								} else {
-									if ((ch == '?') && skipChar(vg,'>')) {
-										parser_state = STATE_DOC_END;
-									} else{		
-										e.et = parse_exception;
-										e.subtype = 0;
-										e.msg = "Parse Exception in parse()";
-										e.sub_msg = "Error in PI: invalid termination sequence";
-										Throw e;
-									}
-									/*	throw new ParseException(
-									"Error in PI: invalid termination sequence"
-									+ formatLineNumber());*/
-								}
-								//parser_state = STATE_DOC_END;
-						} else{		
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse Exception in parse()";
-							e.sub_msg = "Error in PI: invalid char in PI target";
-							Throw e;
-						}
-						/*throw new ParseException("Error in PI: invalid char in PI target");*/
+						parser_state = process_end_pi(vg);
 						break;
-					case STATE_END_COMMENT :
-						while (TRUE) {
-							ch = getChar(vg);
-							if (XMLChar_isValidChar(ch)) {
-								if (ch == '-' && skipChar(vg,'-')) {
-									length1 =
-										vg->offset - temp_offset - 2 * increment;
-									break;
-								}
-							} else{		
-								e.et = parse_exception;
-								e.subtype = 0;
-								e.msg = "Parse Exception in parse()";
-								e.sub_msg = "Error in comment: Invalid Char";
-								Throw e;
-							}
-							/*throw new ParseException(
-							"Error in comment: Invalid Char"
-							+ formatLineNumber());*/
-						}
-						if (getChar(vg) == '>') {
-							//System.out.println(" " + temp_offset + " " + length1 + " comment " + depth);
-							if (vg->encoding < FORMAT_UTF_16BE){
-								writeVTD(vg,
-									temp_offset,
-									length1,
-									TOKEN_COMMENT,
-									depth);
-							}
-							else
-							{
-								writeVTD(vg,
-									temp_offset >> 1,
-									length1 >> 1,
-									TOKEN_COMMENT,
-									depth);
-							}
-							//length1 = 0;
-							parser_state = STATE_DOC_END;
-							break;
-						}		
-						e.et = parse_exception;
-						e.subtype = 0;
-						e.msg = "Parse Exception in parse()";
-						e.sub_msg = "Error in comment: '-->' expected";
-						Throw e;
 
-						/*throw new ParseException(
-						"Error in comment: '-->' expected"
-						+ formatLineNumber());*/
+					case STATE_END_COMMENT :
+						parser_state = process_end_comment(vg);
+						break;
+
 					default :	
 						e.et = parse_exception;
 						e.subtype = 0;
@@ -3082,6 +1677,12 @@ void parse(VTDGen *vg, Boolean ns){
 // Set the XMLDoc container.
 void setDoc(VTDGen *vg, UByte *ba, int len){
 	int a;
+	vg->depth = -1;
+	vg->increment = 1;
+	vg->BOM_detected = FALSE;
+	vg->must_utf_8 = FALSE;
+	vg->ch = vg->ch_temp = 0;
+	vg->temp_offset = 0;
 	vg->XMLDoc = ba;
 	vg->docOffset = vg->offset = 0;
 	vg->docLen = len;
@@ -3113,6 +1714,12 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
 // Set the XMLDoc container.Also set the offset and len of the document 
 void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	int a;
+	vg->depth = -1;
+	vg->increment = 1;
+	vg->BOM_detected = FALSE;
+	vg->must_utf_8 = FALSE;
+	vg->ch = vg->ch_temp = 0;
+	vg->temp_offset = 0;
 	vg->XMLDoc = ba;
 	vg->docOffset = vg->offset = os;
 	vg->docLen = len;
@@ -3539,4 +2146,1489 @@ void finishUp(VTDGen *vg){
 	} else if (vg->last_depth == 2) {
 		appendLong(vg->l2Buffer,((Long) vg->last_l2_index << 32) | 0xffffffffL);
 	}
+}
+
+void decide_encoding(VTDGen *vg){
+	exception e;
+
+	if (vg->XMLDoc[vg->offset] == -2) {
+		vg->increment = 2;
+		if (vg->XMLDoc[vg->offset + 1] == -1) {
+			vg->offset += 2;
+			vg->encoding = FORMAT_UTF_16BE;
+			vg->BOM_detected = TRUE;
+			//r = new UTF16BEReader();
+		} else{
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Unknown Character encoding: should be 0xff 0xfe";
+			Throw e;
+		}
+		//	throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
+	} else if (vg->XMLDoc[vg->offset] == -1) {
+		vg->increment = 2;
+		if (vg->XMLDoc[vg->offset + 1] == -2) {
+			vg->offset += 2;
+			vg->encoding = FORMAT_UTF_16LE;
+			vg->BOM_detected = TRUE;
+			//r = new UTF16LEReader();
+		} else{
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Unknown Character encoding";
+			Throw e;
+		}
+		//throw new EncodingException("Unknown Character encoding");
+	} else if (vg->XMLDoc[vg->offset] == -17) {
+		if (vg->XMLDoc[vg->offset+1] == -69 && vg->XMLDoc[vg->offset+2]==-65){
+			vg->offset +=3;
+			vg->must_utf_8= TRUE;
+		}
+		else {
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Unknown Character encoding: not UTF-8";
+			Throw e;
+		}
+		//	throw new EncodingException("Unknown Character encoding: not UTF-8");
+
+	} else if (vg->XMLDoc[vg->offset] == 0) {
+		if (vg->XMLDoc[vg->offset+1] == 0x3c 
+			&& vg->XMLDoc[vg->offset+2] == 0 
+			&& vg->XMLDoc[vg->offset+3] == 0x3f){
+				vg->encoding = FORMAT_UTF_16BE;
+				vg->increment = 2;
+			}
+		else{
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Unknown Character encoding: not UTF-16BE";
+			Throw e;
+		}
+		//	throw new EncodingException("Unknown Character encoding: not UTF-16BE");
+	} else if (vg->XMLDoc[vg->offset] == 0x3c) {
+		if (vg->XMLDoc[vg->offset+1] == 0 
+			&& vg->XMLDoc[vg->offset+2] == 0x3f 
+			&& vg->XMLDoc[vg->offset+3] == 0x0){
+				vg->increment = 2;
+				vg->encoding = FORMAT_UTF_16LE;
+			}
+	}
+
+	if (vg->encoding < FORMAT_UTF_16BE) {
+		if ((unsigned int)(vg->offset + vg->docLen) >= (((unsigned int)1) << 30)){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Other error: file size too large";
+			Throw e;
+		}
+		//throw new ParseException("Other error: file size too large ");
+	} else {
+		if ((unsigned int)(vg->offset - 2 + vg->docLen) >= (((unsigned int) 1) << 31)){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Other error: file size too large";
+			Throw e;
+		}
+		//throw new ParseException("Other error: file size too large ");
+	}
+}
+int process_end_pi(VTDGen *vg){
+	exception e;
+	int length1,parser_state;
+	vg->ch = getChar(vg);
+	if (XMLChar_isNameStartChar(vg->ch)) {
+		if ((vg->ch == 'x' || vg->ch == 'X')
+			&& (skipChar(vg,'m') || skipChar(vg,'M'))
+			&& (skipChar(vg,'l') && skipChar(vg,'L'))) {
+				//vg->temp_offset = offset;
+				vg->ch = getChar(vg);
+				if (XMLChar_isSpaceChar(vg->ch) || vg->ch == '?'){		
+					e.et = parse_exception;
+					e.subtype = 0;
+					e.msg = "Parse Exception in parse()";
+					e.sub_msg = "Error in PI: [xX][mM][lL] not a valid PI target";
+					Throw e;
+				}
+				/*throw new ParseException(
+				"Error in PI: [xX][mM][lL] not a valid PI target"
+				+ formatLineNumber());*/
+				//offset = vg->temp_offset;
+			}
+
+			while (TRUE) {
+				//vg->ch = getChar(vg);
+				if (!XMLChar_isNameChar(vg->ch)) {
+					break;
+				}
+				vg->ch = getChar(vg);
+			}
+
+			length1 = vg->offset - vg->temp_offset - vg->increment;
+			/*System.out.println(
+			""
+			+ (char) XMLDoc[vg->temp_offset]
+			+ " "
+			+ (vg->temp_offset)
+			+ " "
+			+ length1
+			+ " PI Target "
+			+ vg->depth);*/
+			if (vg->encoding < FORMAT_UTF_16BE){
+				if (length1 > MAX_TOKEN_LENGTH){
+					e.et = parse_exception;
+					e.subtype = 0;
+					e.msg = "Parse Exception in parse()";
+					e.sub_msg="Token Length Error: PI_NAME length too long";
+					Throw e;
+				}
+				writeVTD(vg,
+					vg->temp_offset,
+					length1,
+					TOKEN_PI_NAME,
+					vg->depth);
+			}
+			else{
+				if (length1 > (MAX_TOKEN_LENGTH<<1)){
+					e.et = parse_exception;
+					e.subtype = 0;
+					e.msg = "Parse Exception in parse()";
+					e.sub_msg="Token Length Error: PI_NAME length too long";
+					Throw e;
+				}
+				writeVTD(vg,
+					vg->temp_offset >> 1,
+					length1 >> 1,
+					TOKEN_PI_NAME,
+					vg->depth);
+			}
+			//length1 = 0;
+			vg->temp_offset = vg->offset;
+			if (XMLChar_isSpaceChar(vg->ch)) {
+				vg->ch = getCharAfterS(vg);
+
+				while (TRUE) {
+					if (XMLChar_isValidChar(vg->ch)) {
+						if (vg->ch == '?')
+							if (skipChar(vg,'>')) {
+								parser_state = STATE_DOC_END;
+								break;
+							} else{		
+								e.et = parse_exception;
+								e.subtype = 0;
+								e.msg = "Parse Exception in parse()";
+								e.sub_msg = "Error in PI: invalid termination sequence";
+								Throw e;
+							}
+							/*throw new ParseException(
+							"Error in PI: invalid termination sequence"
+							+ formatLineNumber());*/
+					} else{		
+						e.et = parse_exception;
+						e.subtype = 0;
+						e.msg = "Parse Exception in parse()";
+						e.sub_msg = "Error in PI: Invalid char in PI val";
+						Throw e;
+					}
+					/*throw new ParseException(
+					"Error in PI: Invalid char in PI val"
+					+ formatLineNumber());*/
+					vg->ch = getChar(vg);
+				}
+				length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
+				if (vg->encoding < FORMAT_UTF_16BE){
+					if (length1 > MAX_TOKEN_LENGTH){
+						e.et = parse_exception;
+						e.subtype = 0;
+						e.msg = "Parse Exception in parse()";
+						e.sub_msg="Token Length Error: PI_VAL length too long";
+						Throw e;
+					}
+					writeVTD(vg,
+						vg->temp_offset,
+						length1,
+						TOKEN_PI_VAL,
+						vg->depth);
+				}
+				else{
+					if (length1 > (MAX_TOKEN_LENGTH << 1)){
+						e.et = parse_exception;
+						e.subtype = 0;
+						e.msg = "Parse Exception in parse()";
+						e.sub_msg="Token Length Error: PI_VAL length too long";
+						Throw e;
+					}
+					writeVTD(vg,
+						vg->temp_offset >> 1,
+						length1 >> 1,
+						TOKEN_PI_VAL,
+						vg->depth);
+				}
+				//System.out.println(" " + vg->temp_offset + " " + length1 + " PI val " + vg->depth);
+			} else {
+				if ((vg->ch == '?') && skipChar(vg,'>')) {
+					parser_state = STATE_DOC_END;
+				} else{		
+					e.et = parse_exception;
+					e.subtype = 0;
+					e.msg = "Parse Exception in parse()";
+					e.sub_msg = "Error in PI: invalid termination sequence";
+					Throw e;
+				}
+				/*	throw new ParseException(
+				"Error in PI: invalid termination sequence"
+				+ formatLineNumber());*/
+			}
+			//parser_state = STATE_DOC_END;
+	} else{		
+		e.et = parse_exception;
+		e.subtype = 0;
+		e.msg = "Parse Exception in parse()";
+		e.sub_msg = "Error in PI: invalid char in PI target";
+		Throw e;
+	}
+	return parser_state;
+}
+int process_end_comment(VTDGen *vg){
+	exception e;		
+	int length1,parser_state;
+	while (TRUE) {
+		vg->ch = getChar(vg);
+		if (XMLChar_isValidChar(vg->ch)) {
+			if (vg->ch == '-' && skipChar(vg,'-')) {
+				length1 =
+					vg->offset - vg->temp_offset - (vg->increment<<1);
+				break;
+			}
+		} else{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Error in comment: Invalid Char";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"Error in comment: Invalid Char"
+		+ formatLineNumber());*/
+	}
+	if (getChar(vg) == '>') {
+		//System.out.println(" " + vg->temp_offset + " " + length1 + " comment " + vg->depth);
+		if (vg->encoding < FORMAT_UTF_16BE){
+			writeVTD(vg,
+				vg->temp_offset,
+				length1,
+				TOKEN_COMMENT,
+				vg->depth);
+		}
+		else
+		{
+			writeVTD(vg,
+				vg->temp_offset >> 1,
+				length1 >> 1,
+				TOKEN_COMMENT,
+				vg->depth);
+		}
+		//length1 = 0;
+		parser_state = STATE_DOC_END;
+		return parser_state;
+	}		
+	e.et = parse_exception;
+	e.subtype = 0;
+	e.msg = "Parse Exception in parse()";
+	e.sub_msg = "Error in comment: '-->' expected";
+	Throw e;
+
+}
+int process_comment(VTDGen *vg){
+	exception e;
+	int length1,parser_state;
+	while (TRUE) {
+		vg->ch = getChar(vg);
+		if (XMLChar_isValidChar(vg->ch)) {
+			if (vg->ch == '-' && skipChar(vg,'-')) {
+				length1 =
+					vg->offset - vg->temp_offset - (vg->increment<<1);
+				break;
+			}
+		} else{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Error in comment: Invalid Char";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"Error in comment: Invalid Char"
+		+ formatLineNumber());*/
+	}
+	if (getChar(vg) == '>') {
+		//System.out.println(" " + (vg->temp_offset) + " " + length1 + " comment " + vg->depth);
+		if (vg->encoding < FORMAT_UTF_16BE){
+			writeVTD(vg,
+				vg->temp_offset,
+				length1,
+				TOKEN_COMMENT,
+				vg->depth);
+		}
+		else{
+			writeVTD(vg,
+				vg->temp_offset >> 1,
+				length1 >> 1,
+				TOKEN_COMMENT,
+				vg->depth);
+		}
+		//length1 = 0;
+		vg->temp_offset = vg->offset;
+		vg->ch = getCharAfterSe(vg);
+		if (vg->ch == '<') {
+			parser_state = STATE_LT_SEEN;
+		} else if (XMLChar_isContentChar(vg->ch)) {
+			//vg->temp_offset = offset;
+			parser_state = STATE_TEXT;
+		} else if (vg->ch == '&') {
+			//has_amp = true;
+			//vg->temp_offset = offset;
+			entityIdentifier(vg);
+			parser_state = STATE_TEXT;
+		} else if (vg->ch == ']') {
+			if (skipChar(vg,']')) {
+				while (skipChar(vg,']')) {
+				}
+				if (skipChar(vg,'>')){		
+					e.et = parse_exception;
+					e.subtype = 0;
+					e.msg = "Parse Exception in parse()";
+					e.sub_msg = "Error in text content: ]]> in text content";
+					Throw e;
+				}
+				/*throw new ParseException(
+				"Error in text content: ]]> in text content"
+				+ formatLineNumber());*/
+			}
+			parser_state = STATE_TEXT;
+		}
+		else{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "XML decl error";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"Error in text content: Invalid char"
+		+ formatLineNumber());*/
+		return parser_state;
+	} else{		
+		e.et = parse_exception;
+		e.subtype = 0;
+		e.msg = "Parse Exception in parse()";
+		e.sub_msg = "Error in comment: Invalid terminating sequence";
+		Throw e;
+	}
+}
+int process_doc_type(VTDGen *vg){
+	exception e;
+	int length1,parser_state;
+	int	z = 1;
+
+	while (TRUE) {
+		vg->ch = getChar(vg);
+		if (XMLChar_isValidChar(vg->ch)) {
+			if (vg->ch == '>')
+				z--;
+			else if (vg->ch == '<')
+				z++;
+			if (z == 0)
+				break;
+		} else{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Error in DOCTYPE: Invalid char";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"Error in DOCTYPE: Invalid char"
+		+ formatLineNumber());*/
+	}
+	length1 = vg->offset - vg->temp_offset - vg->increment;
+	/*System.out.println(
+	" " + (vg->temp_offset) + " " + length1 + " DOCTYPE val " + vg->depth);*/
+	if (vg->encoding < FORMAT_UTF_16BE){
+		if (length1 > MAX_TOKEN_LENGTH){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg="Token Length Error: DTD_VAL length too long";
+			Throw e;
+		}
+		writeVTD(vg,
+			vg->temp_offset,
+			length1,
+			TOKEN_DTD_VAL,
+			vg->depth);
+	}
+	else{
+		if (length1 > (MAX_TOKEN_LENGTH<<1)){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg="Token Length Error: DTD_VAL length too long";
+			Throw e;
+		}
+		writeVTD(vg,
+			vg->temp_offset >> 1,
+			length1 >> 1,
+			TOKEN_DTD_VAL,
+			vg->depth);
+	}
+	vg->ch = getCharAfterS(vg);
+	if (vg->ch == '<') {
+		parser_state = STATE_LT_SEEN;
+	} else{		
+		e.et = parse_exception;
+		e.subtype = 0;
+		e.msg = "Parse Exception in parse()";
+		e.sub_msg = "Other Error: Invalid char in xml";
+		Throw e;
+	}
+	/*throw new ParseException(
+	"Other Error: Invalid char in xml"
+	+ formatLineNumber());*/
+	return parser_state;
+}
+
+int process_cdata(VTDGen *vg){
+	exception e;
+	int length1,parser_state;
+	while (TRUE) {
+		vg->ch = getChar(vg);
+		if (XMLChar_isValidChar(vg->ch)) {
+			if (vg->ch == ']' && skipChar(vg,']')) {
+				while (skipChar(vg,']'));
+				if (skipChar(vg,'>')) {
+					break;
+				} else{		
+					e.et = parse_exception;
+					e.subtype = 0;
+					e.msg = "Parse Exception in parse()";
+					e.sub_msg = "Error in CDATA: Invalid terminating sequence";
+					Throw e;
+				}
+				/*throw new ParseException(
+				"Error in CDATA: Invalid termination sequence"
+				+ formatLineNumber());*/
+			}
+		} else{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Error in CDATA: Invalid Char";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"Error in CDATA: Invalid Char"
+		+ formatLineNumber());*/
+	}
+	length1 = vg->offset - vg->temp_offset - vg->increment - (vg->increment<<1);
+	if (vg->encoding < FORMAT_UTF_16BE){
+		writeVTD(vg,
+			vg->temp_offset,
+			length1,
+			TOKEN_CDATA_VAL,
+			vg->depth);
+	}
+	else{
+		writeVTD(vg,
+			vg->temp_offset >> 1,
+			length1 >> 1,
+			TOKEN_CDATA_VAL,
+			vg->depth);
+	}
+	//System.out.println(" " + (vg->temp_offset) + " " + length1 + " CDATA " + vg->depth);
+	vg->ch = getCharAfterSe(vg);
+	if (vg->ch == '<') {
+		parser_state = STATE_LT_SEEN;
+	} else if (XMLChar_isContentChar(vg->ch)) {
+		vg->temp_offset = vg->offset;
+		parser_state = STATE_TEXT;
+	} else if (vg->ch == '&') {
+		//has_amp = true;
+		vg->temp_offset = vg->offset;
+		entityIdentifier(vg);
+		parser_state = STATE_TEXT;
+		//vg->temp_offset = offset;
+	} else if (vg->ch == ']') {
+		if (skipChar(vg,']')) {
+			while (skipChar(vg,']')) {
+			}
+			if (skipChar(vg,'>')){		
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse Exception in parse()";
+				e.sub_msg = "Error in text content: ]]> in text content";
+				Throw e;
+			}
+			/*throw new ParseException(
+			"Error in text content: ]]> in text content"
+			+ formatLineNumber());*/
+		}
+		parser_state = STATE_TEXT;
+	}
+	else{		
+		e.et = parse_exception;
+		e.subtype = 0;
+		e.msg = "Parse Exception in parse()";
+		e.sub_msg = "Other Error: Invalid char in xml";
+		Throw e;
+	}
+	/*throw new ParseException(
+	"Other Error: Invalid char in xml"
+	+ formatLineNumber());*/
+	return parser_state;
+}
+int process_pi_val(VTDGen *vg){
+	//vg->temp_offset = offset;
+	exception e;
+	int length1,parser_state;
+	while (TRUE) {
+		if (XMLChar_isValidChar(vg->ch)) {
+			//System.out.println(""+(char)ch);
+			if (vg->ch == '?')
+				if (skipChar(vg,'>')) {
+					break;
+				} else{		
+					e.et = parse_exception;
+					e.subtype = 0;
+					e.msg = "Parse Exception in parse()";
+					e.sub_msg = "Error in PI: invalid termination sequence for PI";
+					Throw e;
+				}
+				/*	throw new ParseException(
+				"Error in PI: invalid termination sequence for PI"
+				+ formatLineNumber());*/
+		} else{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Errors in PI: Invalid char in PI val";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"Errors in PI: Invalid char in PI val"
+		+ formatLineNumber());*/
+		vg->ch = getChar(vg);
+	}
+	length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
+	/*System.out.println(
+	((char) XMLDoc[vg->temp_offset])
+	+ " "
+	+ (vg->temp_offset)
+	+ " "
+	+ length1
+	+ " PI val "
+	+ vg->depth);*/
+	if (vg->encoding < FORMAT_UTF_16BE){
+		if (length1 > MAX_TOKEN_LENGTH){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg="Token Length Error: PI_VAL length too long";
+			Throw e;
+		}
+		writeVTD(vg,vg->temp_offset, length1, TOKEN_PI_VAL, vg->depth);
+	}
+	else{
+		if (length1 > (MAX_TOKEN_LENGTH << 1)){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg="Token Length Error: PI_VAL length too long";
+			Throw e;
+		}
+		writeVTD(vg,
+			vg->temp_offset >> 1,
+			length1 >> 1,
+			TOKEN_PI_VAL,
+			vg->depth);
+	}
+	//length1 = 0;
+	vg->temp_offset = vg->offset;
+	vg->ch = getCharAfterSe(vg);
+	if (vg->ch == '<') {
+		parser_state = STATE_LT_SEEN;
+	} else if (XMLChar_isContentChar(vg->ch)) {
+		//vg->temp_offset = offset;
+		parser_state = STATE_TEXT;
+	} else if (vg->ch == '&') {
+		//has_amp = true;
+		//vg->temp_offset = offset;
+		entityIdentifier(vg);
+		parser_state = STATE_TEXT;
+	} else if (vg->ch == ']') {
+		if (skipChar(vg,']')) {
+			while (skipChar(vg,']')) {
+			}
+			if (skipChar(vg,'>')){		
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse Exception in parse()";
+				e.sub_msg = "Error in text content: ]]> in text content";
+				Throw e;
+			}
+			/*throw new ParseException(
+			"Error in text content: ]]> in text content"
+			+ formatLineNumber());*/
+		}
+		parser_state = STATE_TEXT;
+	}
+	else{		
+		e.et = parse_exception;
+		e.subtype = 0;
+		e.msg = "Parse Exception in parse()";
+		e.sub_msg = "Error in text content: Invalid char";
+		Throw e;
+	}
+	/*throw new ParseException(
+	"Error in text content: Invalid char"
+	+ formatLineNumber());*/
+
+	return parser_state;
+}
+int process_pi_tag(VTDGen *vg){
+	exception e;
+	int length1,parser_state;
+	while (TRUE) {
+		vg->ch = getChar(vg);
+		if (!XMLChar_isNameChar(vg->ch))
+			break;
+	}
+
+	length1 = vg->offset - vg->temp_offset - vg->increment;
+	/*System.out.println(
+	((char) XMLDoc[vg->temp_offset])
+	+ " "
+	+ (vg->temp_offset)
+	+ " "
+	+ length1
+	+ " PI Target "
+	+ vg->depth); */
+	if (vg->encoding < FORMAT_UTF_16BE){
+		if (length1 > MAX_TOKEN_LENGTH){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg="Token Length Error: PI_TAG length too long";
+			Throw e;
+		}
+		writeVTD(vg,
+			(vg->temp_offset),
+			length1,
+			TOKEN_PI_NAME,
+			vg->depth);
+	}
+	else{													
+		if (length1 > (MAX_TOKEN_LENGTH << 1)){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg="Token Length Error: PI_TAG length too long";
+			Throw e;
+		}
+		writeVTD(vg,
+			(vg->temp_offset) >> 1,
+			(length1 >> 1),
+			TOKEN_PI_NAME,
+			vg->depth);
+	}
+	//length1 = 0;
+	vg->temp_offset = vg->offset;
+	if (XMLChar_isSpaceChar(vg->ch)) {
+		vg->ch = getChar(vg);
+	}
+	if (vg->ch == '?') {
+		if (skipChar(vg,'>')) {
+			vg->temp_offset = vg->offset;
+			vg->ch = getCharAfterSe(vg);
+			if (vg->ch == '<') {
+				parser_state = STATE_LT_SEEN;
+			} else if (XMLChar_isContentChar(vg->ch)) {
+				parser_state = STATE_TEXT;
+			} else if (vg->ch == '&') {
+				//has_amp = true;
+				entityIdentifier(vg);
+				parser_state = STATE_TEXT;
+			} else if (vg->ch == ']') {
+				if (skipChar(vg,']')) {
+					while (skipChar(vg,']')) {
+					}
+					if (skipChar(vg,'>')){		
+						e.et = parse_exception;
+						e.subtype = 0;
+						e.msg = "Parse Exception in parse()";
+						e.sub_msg = "Error in text content: ]]> in text content";
+						Throw e;
+					}
+					/*throw new ParseException(
+					"Error in text content: ]]> in text content"
+					+ formatLineNumber());*/
+				}
+				parser_state = STATE_TEXT;
+			}else
+			{		
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse Exception in parse()";
+				e.sub_msg = "Error in text content: Invalid char";
+				Throw e;
+			}
+			/*throw new ParseException(
+			"Error in text content: Invalid char"
+			+ formatLineNumber());*/
+			return parser_state;
+		} else
+		{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "Error in PI: invalid termination sequence";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"Error in PI: invalid termination sequence"
+		+ formatLineNumber());*/
+	}
+	parser_state = STATE_PI_VAL;
+	return parser_state;
+}
+int process_dec_attr(VTDGen *vg){
+	exception e;
+	int length1,parser_state;
+	if (vg->ch == 'v'
+		&& skipChar(vg,'e')
+		&& skipChar(vg,'r')
+		&& skipChar(vg,'s')
+		&& skipChar(vg,'i')
+		&& skipChar(vg,'o')
+		&& skipChar(vg,'n')) {
+			vg->ch = getCharAfterS(vg);
+			if (vg->ch == '=') {
+
+				/*System.out.println(
+				" " + (vg->temp_offset - 1) + " " + 7 + " dec attr name version " + vg->depth);*/
+				if (vg->encoding < FORMAT_UTF_16BE){
+
+					writeVTD(vg,
+						vg->temp_offset - 1,
+						7,
+						TOKEN_DEC_ATTR_NAME,
+						vg->depth);
+				}
+				else{
+
+					writeVTD(vg,
+						(vg->temp_offset - 2) >> 1,
+						7,
+						TOKEN_DEC_ATTR_NAME,
+						vg->depth);
+				}
+			} 
+			else
+			{		
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse Exception in parse()";
+				e.sub_msg = "XML decl error: Invalid char";
+				Throw e;
+			}
+			/*throw new ParseException(
+			"XML decl error: Invalid char"
+			+ formatLineNumber());*/
+		} else{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "XML decl error: should be version";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"XML decl error: should be version"
+		+ formatLineNumber());*/
+		vg->ch_temp = getCharAfterS(vg);
+		if (vg->ch_temp != '\'' && vg->ch_temp != '"')
+		{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "XML decl error: Invalid char to start attr name";
+			Throw e;
+		}
+		/*	throw new ParseException(
+		"XML decl error: Invalid char to start attr name"
+		+ formatLineNumber());*/
+		vg->temp_offset = vg->offset;
+		// support 1.0 or 1.1
+		if (skipChar(vg,'1')
+			&& skipChar(vg,'.')
+			&& (skipChar(vg,'0') || skipChar(vg,'1'))) {
+				/*System.out.println(
+				" " + vg->temp_offset + " " + 3 + " dec attr val (version)" + vg->depth);*/
+				if (vg->encoding < FORMAT_UTF_16BE){
+
+					writeVTD(vg,
+						vg->temp_offset,
+						3,
+						TOKEN_DEC_ATTR_VAL,
+						vg->depth);
+				}
+				else{
+
+					writeVTD(vg,
+						vg->temp_offset >> 1,
+						3,
+						TOKEN_DEC_ATTR_VAL,
+						vg->depth);
+				}
+			} else
+		{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "XML decl error: Invalid version(other than 1.0 or 1.1) detected";
+			Throw e;
+		}
+		/*	throw new ParseException(
+		"XML decl error: Invalid version(other than 1.0 or 1.1) detected"
+		+ formatLineNumber());*/
+		if (!skipChar(vg,vg->ch_temp))
+		{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "XML decl error: version not terminated properly";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"XML decl error: version not terminated properly"
+		+ formatLineNumber());*/
+		vg->ch = getChar(vg);
+		//? space or e 
+		if (XMLChar_isSpaceChar(vg->ch)) {
+			vg->ch = getCharAfterS(vg);
+			vg->temp_offset = vg->offset - vg->increment;
+			if (vg->ch == 'e') {
+				if (skipChar(vg,'n')
+					&& skipChar(vg,'c')
+					&& skipChar(vg,'o')
+					&& skipChar(vg,'d')
+					&& skipChar(vg,'i')
+					&& skipChar(vg,'n')
+					&& skipChar(vg,'g')) {
+						vg->ch = getChar(vg);
+						if (XMLChar_isSpaceChar(vg->ch))
+							vg->ch = getCharAfterS(vg);
+						if (vg->ch == '=') {
+							/*System.out.println(
+							" " + (vg->temp_offset) + " " + 8 + " dec attr name (encoding) " + vg->depth);*/
+							if (vg->encoding < FORMAT_UTF_16BE){
+
+								writeVTD(vg,
+									vg->temp_offset,
+									8,
+									TOKEN_DEC_ATTR_NAME,
+									vg->depth);
+							}
+							else{
+
+								writeVTD(vg,
+									vg->temp_offset >> 1,
+									8,
+									TOKEN_DEC_ATTR_NAME,
+									vg->depth);
+							}
+						} else{		
+							e.et = parse_exception;
+							e.subtype = 0;
+							e.msg = "Parse Exception in parse()";
+							e.sub_msg = "XML decl error: Invalid char";
+							Throw e;
+						}
+						/*	throw new ParseException(
+						"XML decl error: Invalid char"
+						+ formatLineNumber());*/
+						vg->ch_temp = getCharAfterS(vg);
+						if (vg->ch_temp != '"' && vg->ch_temp != '\'')
+						{		
+							e.et = parse_exception;
+							e.subtype = 0;
+							e.msg = "Parse Exception in parse()";
+							e.sub_msg = "XML decl error: Invalid char to start attr name";
+							Throw e;
+						}
+						/*	throw new ParseException(
+						"XML decl error: Invalid char to start attr name"
+						+ formatLineNumber());*/
+						vg->temp_offset = vg->offset;
+						vg->ch = getChar(vg);
+						switch (vg->ch) {
+					case 'a' :
+					case 'A' :{
+						if ((skipChar(vg,'s')
+							|| skipChar(vg,'S'))
+							&& (skipChar(vg,'c')
+							|| skipChar(vg,'C'))
+							&& (skipChar(vg,'i')
+							|| skipChar(vg,'I'))
+							&& (skipChar(vg,'i')
+							|| skipChar(vg,'I'))
+							&& skipChar(vg,vg->ch_temp)) {
+								if (vg->encoding != FORMAT_UTF_16LE
+									&& vg->encoding
+									!= FORMAT_UTF_16BE) {
+										if (vg->must_utf_8){
+											e.et = parse_exception;
+											e.subtype = 0;
+											e.msg = "Parse Exception in parse()";
+											e.sub_msg = "Can't switch from UTF-8";
+											Throw e;
+										}
+										vg->encoding = FORMAT_ASCII;
+										/*System.out.println(
+										" " + (vg->temp_offset) + " " + 5 + " dec attr val (encoding) " + vg->depth);*/
+										if (vg->encoding
+											< FORMAT_UTF_16BE){
+												writeVTD(vg,
+													vg->temp_offset,
+													5,
+													TOKEN_DEC_ATTR_VAL,
+													vg->depth);
+											}
+										else{
+											writeVTD(vg,
+												vg->temp_offset >> 1,
+												5,
+												TOKEN_DEC_ATTR_VAL,
+												vg->depth);
+										}
+										break;
+									} else
+								{		
+									e.et = parse_exception;
+									e.subtype = 0;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg = "XML decl error: Can't switch encoding to ASCII";
+									Throw e;
+								}
+								/*throw new ParseException(
+								"XML decl error: Can't switch encoding to ASCII"
+								+ formatLineNumber());*/
+							}
+
+							e.et = parse_exception;
+							e.subtype = 0;
+							e.msg = "Parse Exception in parse()";
+							e.sub_msg = "XML decl error: Invalid Encoding";
+							Throw e;
+							  }
+							  //throw new ParseException(
+							  //	"XML decl error: Invalid Encoding"
+							  //		+ formatLineNumber());
+					case 'i' :
+					case 'I' :{
+						if ((skipChar(vg,'s')
+							|| skipChar(vg,'S'))
+							&& (skipChar(vg,'o')
+							|| skipChar(vg,'O'))
+							&& skipChar(vg,'-')
+							&& skipChar(vg,'8')
+							&& skipChar(vg,'8')
+							&& skipChar(vg,'5')
+							&& skipChar(vg,'9')
+							&& skipChar(vg,'-')
+							&& skipChar(vg,'1')
+							&& skipChar(vg,vg->ch_temp)) {
+								if (vg->encoding != FORMAT_UTF_16LE
+									&& vg->encoding
+									!= FORMAT_UTF_16BE) {
+										if (vg->must_utf_8){
+											e.et = parse_exception;
+											e.subtype = 0;
+											e.msg = "Parse Exception in parse()";
+											e.sub_msg = "Can't switch from UTF-8";
+											Throw e;
+										}
+										vg->encoding = FORMAT_ISO_8859;
+										/*System.out.println(
+										" " + (vg->temp_offset) + " " + 10 + " dec attr val (encoding) " + vg->depth);*/
+										if (vg->encoding
+											< FORMAT_UTF_16BE){
+												writeVTD(vg,
+													vg->temp_offset,
+													10,
+													TOKEN_DEC_ATTR_VAL,
+													vg->depth);
+											}
+										else{
+											writeVTD(vg,
+												vg->temp_offset >> 1,
+												10,
+												TOKEN_DEC_ATTR_VAL,
+												vg->depth);
+										}
+										break;
+									} else
+								{		
+									e.et = parse_exception;
+									e.subtype = 0;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg = "XML decl error: Can't switch encoding to ISO-8859";
+									Throw e;
+								}
+								/*	throw new ParseException(
+								"XML decl error: Can't switch encoding to ISO-8859"
+								+ formatLineNumber());*/
+							}
+
+							e.et = parse_exception;
+							e.subtype = 0;
+							e.msg = "Parse Exception in parse()";
+							e.sub_msg = "XML decl error: Invalid Encoding";
+							Throw e;
+							  }
+							  /*	throw new ParseException(
+							  "XML decl error: Invalid Encoding"
+							  + formatLineNumber());*/
+					case 'u' :
+					case 'U' :{
+						if ((skipChar(vg,'s')
+							|| skipChar(vg,'S')))
+							if (skipChar(vg,'-')
+								&& (skipChar(vg,'a')
+								|| skipChar(vg,'A'))
+								&& (skipChar(vg,'s')
+								|| skipChar(vg,'S'))
+								&& (skipChar(vg,'c')
+								|| skipChar(vg,'C'))
+								&& (skipChar(vg,'i')
+								|| skipChar(vg,'I'))
+								&& (skipChar(vg,'i')
+								|| skipChar(vg,'I'))
+								&& skipChar(vg,vg->ch_temp)) {
+									if (vg->encoding
+										!= FORMAT_UTF_16LE
+										&& vg->encoding
+										!= FORMAT_UTF_16BE) {
+											if (vg->must_utf_8){
+												e.et = parse_exception;
+												e.subtype = 0;
+												e.msg = "Parse Exception in parse()";
+												e.sub_msg = "Can't switch from UTF-8";
+												Throw e;
+											}
+											vg->encoding = FORMAT_ASCII;
+											//System.out.println(
+											//    " " + (vg->temp_offset) + " " + 5 + " dec attr val (encoding) " + vg->depth);
+											if (vg->encoding
+												< FORMAT_UTF_16BE){
+													writeVTD(vg,
+														vg->temp_offset,
+														5,
+														TOKEN_DEC_ATTR_VAL,
+														vg->depth);
+												}
+											else{
+												writeVTD(vg,
+													vg->temp_offset
+													>> 1,
+													5,
+													TOKEN_DEC_ATTR_VAL,
+													vg->depth);
+											}
+											break;
+
+										} else
+									{		
+										e.et = parse_exception;
+										e.subtype = 0;
+										e.msg = "Parse Exception in parse()";
+										e.sub_msg = "XML decl error: Can't switch encoding to US-ASCII";
+										Throw e;
+									}
+									/*throw new ParseException(
+									"XML decl error: Can't switch encoding to US-ASCII"
+									+ formatLineNumber());*/
+								} else{		
+									e.et = parse_exception;
+									e.subtype = 0;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg = "XML decl error: Invalid Encoding";
+									Throw e;
+								}
+								/*throw new ParseException(
+								"XML decl error: Invalid Encoding"
+								+ formatLineNumber());*/
+
+								if ((skipChar(vg,'t')
+									|| skipChar(vg,'T'))
+									&& (skipChar(vg,'f')
+									|| skipChar(vg,'F'))
+									&& skipChar(vg,'-')) {
+										if (skipChar(vg,'8')
+											&& skipChar(vg,vg->ch_temp)) {
+												if (vg->encoding
+													!= FORMAT_UTF_16LE
+													&& vg->encoding
+													!= FORMAT_UTF_16BE) {
+														//encoding = FORMAT_UTF8;
+														/*System.out.println(
+														" " + (vg->temp_offset) + " " + 5 + " dec attr val (encoding) " + vg->depth);*/
+														if (vg->encoding
+															< FORMAT_UTF_16BE)
+														{
+															writeVTD(vg,
+																vg->temp_offset,
+																5,
+																TOKEN_DEC_ATTR_VAL,
+																vg->depth);
+														}
+														else
+														{
+															writeVTD(vg,
+																vg->temp_offset
+																>> 1,
+																5,
+																TOKEN_DEC_ATTR_VAL,
+																vg->depth);
+														}
+														break;
+													} else
+												{		
+													e.et = parse_exception;
+													e.subtype = 0;
+													e.msg = "Parse Exception in parse()";
+													e.sub_msg = "XML decl error: Can't switch encoding to UTF-8";
+													Throw e;
+												}
+												/*throw new ParseException(
+												"XML decl error: Can't switch encoding to UTF-8"
+												+ formatLineNumber());*/
+											}
+											if (skipChar(vg,'1')
+												&& skipChar(vg,'6')) {
+													if (skipChar(vg,vg->ch_temp)) {
+														if (vg->encoding
+															== FORMAT_UTF_16LE
+															|| vg->encoding
+															== FORMAT_UTF_16BE) {
+																/*System.out.println(
+																" " + (vg->temp_offset) + " " + 6 + " dec attr val (encoding) " + vg->depth);*/
+																if (vg->BOM_detected == FALSE){
+																	e.et = parse_exception;
+																	e.subtype = 0;
+																	e.msg = "Parse Exception in parse()";
+																	e.sub_msg = "BOM not detected for UTF-16";
+																	Throw e;
+																}
+																if (vg->encoding
+																	< FORMAT_UTF_16BE)
+																{
+																	writeVTD(vg,
+																		vg->temp_offset,
+																		6,
+																		TOKEN_DEC_ATTR_VAL,
+																		vg->depth);
+																}
+																else{
+																	writeVTD(vg,
+																		vg->temp_offset
+																		>> 1,
+																		6,
+																		TOKEN_DEC_ATTR_VAL,
+																		vg->depth);
+																}
+																break;
+															}
+
+															e.et = parse_exception;
+															e.subtype = 0;
+															e.msg = "Parse Exception in parse()";
+															e.sub_msg = "XML decl error: Can't switch encoding to UTF-16";
+															Throw e;
+
+															/*throw new ParseException(
+															"XML decl error: Can't switch encoding to UTF-16"
+															+ formatLineNumber());*/
+													} else if (
+														(skipChar(vg,'l')
+														|| skipChar(vg,'L'))
+														&& (skipChar(vg,'e')
+														|| skipChar(vg,'E'))
+														&& skipChar(vg,vg->ch_temp)) {
+															if (vg->encoding
+																== FORMAT_UTF_16LE) {
+																	/*System.out.println(
+																	" " + (vg->temp_offset) + " " + 7 + " dec attr val (encoding) " + vg->depth);*/
+																	if (vg->encoding
+																		< FORMAT_UTF_16BE)
+																	{
+																		writeVTD(vg,
+																			vg->temp_offset,
+																			7,
+																			TOKEN_DEC_ATTR_VAL,
+																			vg->depth);
+																	}
+																	else
+																	{
+																		writeVTD(vg,
+																			vg->temp_offset
+																			>> 1,
+																			7,
+																			TOKEN_DEC_ATTR_VAL,
+																			vg->depth);
+																	}
+																	break;
+																}
+																e.et = parse_exception;
+																e.subtype = 0;
+																e.msg = "Parse Exception in parse()";
+																e.sub_msg = "XML decl error: Can't switch encoding to UTF-16LE";
+																Throw e;
+																/*throw new ParseException(
+																"XML del error: Can't switch encoding to UTF-16LE"
+																+ formatLineNumber());*/
+														} else if (
+															(skipChar(vg,'b')
+															|| skipChar(vg,'B'))
+															&& (skipChar(vg,'e')
+															|| skipChar(vg,'E'))
+															&& skipChar(vg,vg->ch_temp)) {
+																if (vg->encoding
+																	== FORMAT_UTF_16BE) {
+																		/*System.out.println(
+																		" " + (vg->temp_offset) + " " + 7 + " dec attr val (encoding) " + vg->depth);*/
+																		if (vg->encoding
+																			< FORMAT_UTF_16BE)
+																		{
+																			writeVTD(vg,
+																				vg->temp_offset,
+																				7,
+																				TOKEN_DEC_ATTR_VAL,
+																				vg->depth);
+																		}
+																		else{
+																			writeVTD(vg,
+																				vg->temp_offset
+																				>> 1,
+																				7,
+																				TOKEN_DEC_ATTR_VAL,
+																				vg->depth);
+																		}
+																		break;
+																	}
+																	e.et = parse_exception;
+																	e.subtype = 0;
+																	e.msg = "Parse Exception in parse()";
+																	e.sub_msg = "XML decl error: Can't switch encoding to UTF-16BE";
+																	Throw e;
+																	/*throw new ParseException(
+																	"XML del error: Can't swtich encoding to UTF-16BE"
+																	+ formatLineNumber());*/
+															}
+															e.et = parse_exception;
+															e.subtype = 0;
+															e.msg = "Parse Exception in parse()";
+															e.sub_msg = "XML decl error: Invalid encoding";
+															Throw e;
+															/*	throw new ParseException(
+															"XML decl error: Invalid encoding"
+															+ formatLineNumber());*/
+												}
+									}}
+					default :
+						e.et = parse_exception;
+						e.subtype = 0;
+						e.msg = "Parse Exception in parse()";
+						e.sub_msg = "XML decl error: Invalid encoding";
+						Throw e;
+						break;
+						/*throw new ParseException(
+						"XML decl Error: invalid encoding"
+						+ formatLineNumber());*/
+						}
+						vg->ch = getChar(vg);
+						if (XMLChar_isSpaceChar(vg->ch))
+							vg->ch = getCharAfterS(vg);
+						vg->temp_offset = vg->offset - vg->increment;
+					} else{		
+						e.et = parse_exception;
+						e.subtype = 0;
+						e.msg = "Parse Exception in parse()";
+						e.sub_msg = "XML decl Error: Invalid char";
+						Throw e;
+					}
+					/*throw new ParseException(
+					"XML decl Error: Invalid char"
+					+ formatLineNumber());*/
+			}
+
+			if (vg->ch == 's') {
+				if (skipChar(vg,'t')
+					&& skipChar(vg,'a')
+					&& skipChar(vg,'n')
+					&& skipChar(vg,'d')
+					&& skipChar(vg,'a')
+					&& skipChar(vg,'l')
+					&& skipChar(vg,'o')
+					&& skipChar(vg,'n')
+					&& skipChar(vg,'e')) {
+
+						vg->ch = getCharAfterS(vg);
+						if (vg->ch != '='){		
+							e.et = parse_exception;
+							e.subtype = 0;
+							e.msg = "Parse Exception in parse()";
+							e.sub_msg = "XML decl error: Invalid char";
+							Throw e;
+						}
+						/*throw new ParseException(
+						"XML decl error: Invalid char"
+						+ formatLineNumber());*/
+						/*System.out.println(
+						" " + vg->temp_offset + " " + 3 + " dec attr name (standalone) " + vg->depth);*/
+						if (vg->encoding < FORMAT_UTF_16BE){
+							writeVTD(vg,
+								vg->temp_offset,
+								10,
+								TOKEN_DEC_ATTR_NAME,
+								vg->depth);
+						}
+						else{
+							writeVTD(vg,
+								vg->temp_offset >> 1,
+								10,
+								TOKEN_DEC_ATTR_NAME,
+								vg->depth);
+						}
+						vg->ch_temp = getCharAfterS(vg);
+						vg->temp_offset = vg->offset;
+						if (vg->ch_temp != '"' && vg->ch_temp != '\''){		
+							e.et = parse_exception;
+							e.subtype = 0;
+							e.msg = "Parse Exception in parse()";
+							e.sub_msg = "XML decl error: Invalid char to start attr name";
+							Throw e;
+						}
+						/*	throw new ParseException(
+						"XML decl error: Invalid char to start attr name"
+						+ formatLineNumber());*/
+						vg->ch = getChar(vg);
+						//if (ch == 'y') {
+						//	if (skipChar(vg,'e')
+						//		&& skipChar(vg,'s')
+						//		&& skipChar(vg,ch_temp)) {
+						//		/*System.out.println(
+						//		    " " + (vg->temp_offset) + " " + 3 + " dec attr val (standalone) " + vg->depth);*/
+						//		if (vg->encoding < FORMAT_UTF_16BE)
+						//				vg->temp_offset,
+						//				3,
+						//				TOKEN_DEC_ATTR_VAL,
+						//				vg->depth);
+						//		else
+						//			writeVTD(vg,
+						//				vg->temp_offset >> 1,
+						//				3,
+						//				TOKEN_DEC_ATTR_VAL,
+						//				vg->depth);
+						//		} else{		
+						//			e.et = parse_exception;
+						//			e.msg = "Parse Exception in parse()";
+						//			e.sub_msg = "XML decl error: invalid val for standalone";
+						//			Throw e;
+						//		}
+						//		/*throw new ParseException(
+						//			"XML decl error: invalid val for standalone"
+						//			+ formatLineNumber());*/
+						//} else if (ch == 'n') {
+						//	if (skipChar(vg,'o')
+						//		&& skipChar(vg,ch_temp)) {
+						//		/*System.out.println(
+						//		    " " + (vg->temp_offset) + " " + 2 + " dec attr val (standalone)" + vg->depth);*/
+						//		if (vg->encoding < FORMAT_UTF_16BE)
+						//			writeVTD(vg,
+						//				vg->temp_offset,
+						//				2,
+						//				TOKEN_DEC_ATTR_VAL,
+						//				vg->depth);
+						//		else
+						//			writeVTD(vg,
+						//				vg->temp_offset >> 1,
+						//				2,
+						//				TOKEN_DEC_ATTR_VAL,
+						//				vg->depth);
+						//		} else{		
+						//			e.et = parse_exception;
+						//			e.msg = "Parse Exception in parse()";
+						//			e.sub_msg = "XML decl error: invalid val for standalone";
+						//			Throw e;
+						//		}
+						//		/*throw new ParseException(
+						//			"XML decl error: invalid val for standalone"
+						//			+ formatLineNumber());*/
+						//} else{		
+						//	e.et = parse_exception;
+						//	e.msg = "Parse Exception in parse()";
+						//	e.sub_msg = "XML decl error: invalid val for standalone";
+						//	Throw e;
+						//}
+						/*throw new ParseException(
+						"XML decl error: invalid val for standalone"
+						+ formatLineNumber());*/
+					} else{		
+						e.et = parse_exception;
+						e.subtype = 0;
+						e.msg = "Parse Exception in parse()";
+						e.sub_msg = "XML decl error";
+						Throw e;
+					}
+					/*throw new ParseException(
+					"XML decl error" + formatLineNumber());*/
+					vg->ch = getChar(vg);
+					if (XMLChar_isSpaceChar(vg->ch))
+						vg->ch = getCharAfterS(vg);
+			}
+		}
+
+		if (vg->ch == '?' && skipChar(vg,'>')) {
+			vg->temp_offset = vg->offset;
+			vg->ch = getCharAfterS(vg);
+			if (vg->ch == '<') {
+				parser_state = STATE_LT_SEEN;
+			} else{		
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse Exception in parse()";
+				e.sub_msg = "Other Error: Invalid Char in XML";
+				Throw e;
+			}
+			/*throw new ParseException(
+			"Other Error: Invalid Char in XML"
+			+ formatLineNumber());*/
+		} else{		
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse Exception in parse()";
+			e.sub_msg = "XML decl Error: Invalid termination sequence";
+			Throw e;
+		}
+		/*throw new ParseException(
+		"XML decl Error: Invalid termination sequence"
+		+ formatLineNumber());*/
+		return parser_state;
+
 }
