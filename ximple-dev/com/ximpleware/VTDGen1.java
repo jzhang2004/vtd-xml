@@ -898,35 +898,11 @@ public class VTDGen1 {
 		}		
 	}
 	/**
-	 * Generating VTD tokens and Location cache info.
-	 * @param NS boolean Enable namespace or not
-	 * @throws ParseException Super class for any exceptions during parsing.     
-	 * @throws EOFException End of file exception.    
-	 * @throws EntityException Entity resolution exception.
-	 * @throws EncodingException UTF/native encoding exception.
+	 * A private method that detects the BOM and decides document encoding
+	 * @throws EncodingException
+	 * @throws ParseException
 	 */
-	public void parse(boolean NS)
-		throws EncodingException, EOFException, EntityException, ParseException {
-
-		// define internal variables	
-		ns = NS;
-		int length1 = 0, length2 = 0;
-		int attr_count = 0 /*, ch = 0, ch_temp = 0*/;
-		int prev_ch = 0, prev2_ch = 0, parser_state = STATE_DOC_START;
-		//boolean has_amp = false; 
-		boolean is_ns = false;
-		encoding = FORMAT_UTF8;
-		boolean main_loop = true,hasDTD = false,hasDecl = false,docEnd = false,firstLT = true;
-		//char char_temp; //holds the ' or " indicating start of attr val
-		//boolean must_utf_8 = false;
-		//boolean BOM_detected = false;
-		//long[] tag_stack = new long[256];
-		//long[] attr_name_array = new long[512]; // 512 attributes limit
-		//ASCII UTF-8 UTF-16 UTF-16BE UTF-16LE ISO-8859-1
-		//
-		//int[] scratch_buffer = new int[10];
-
-		// first check first several bytes to figure out the encoding
+	private void decide_encoding() throws EncodingException,ParseException {
 		if (XMLDoc[offset] == -2) {
 			increment = 2;
 			if (XMLDoc[offset + 1] == -1) {
@@ -981,6 +957,40 @@ public class VTDGen1 {
 			if ((offset - 2 + docLen) >= 1L << 31)
 				throw new ParseException("Other error: file size too large ");
 		}
+	}
+	/**
+	 * Generating VTD tokens and Location cache info.
+	 * @param NS boolean Enable namespace or not
+	 * @throws ParseException Super class for any exceptions during parsing.     
+	 * @throws EOFException End of file exception.    
+	 * @throws EntityException Entity resolution exception.
+	 * @throws EncodingException UTF/native encoding exception.
+	 */
+	public void parse(boolean NS)
+		throws EncodingException, EOFException, EntityException, ParseException {
+
+		// define internal variables	
+		ns = NS;
+		int length1 = 0, length2 = 0;
+		int attr_count = 0 /*, ch = 0, ch_temp = 0*/;
+		int prev_ch = 0, prev2_ch = 0, parser_state = STATE_DOC_START;
+		//boolean has_amp = false; 
+		boolean is_ns = false;
+		encoding = FORMAT_UTF8;
+		boolean main_loop = true,hasDTD = false,hasDecl = false,docEnd = false,firstLT = true;
+		//char char_temp; //holds the ' or " indicating start of attr val
+		//boolean must_utf_8 = false;
+		//boolean BOM_detected = false;
+		//long[] tag_stack = new long[256];
+		//long[] attr_name_array = new long[512]; // 512 attributes limit
+		//ASCII UTF-8 UTF-16 UTF-16BE UTF-16LE ISO-8859-1
+		//
+		//int[] scratch_buffer = new int[10];
+
+		
+		// first check first several bytes to figure out the encoding
+		decide_encoding();
+
 		// enter the main finite state machine
 		try {
 			while (main_loop) {
@@ -1226,7 +1236,7 @@ public class VTDGen1 {
 										length1 =
 											offset
 												- temp_offset
-												- 2 * increment;
+												- (increment<<1);
 										if (length1 > 0) {
 											if (encoding < FORMAT_UTF_16BE)
 												writeVTD(
@@ -1339,7 +1349,7 @@ public class VTDGen1 {
 						break;
 
 					case STATE_DEC_ATTR_NAME :
-						parser_state = process_pi_val();
+						parser_state = process_dec_attr();
 						break;
 						
 					case STATE_COMMENT :
@@ -2289,7 +2299,7 @@ public class VTDGen1 {
 						+ formatLineNumber());
 			ch = r.getChar();
 		}
-		length1 = offset - temp_offset - 2 * increment;
+		length1 = offset - temp_offset - (increment<<1);
 		/*System.out.println(
 		    ((char) XMLDoc[temp_offset])
 		        + " "
@@ -2365,7 +2375,7 @@ public class VTDGen1 {
 			if (XMLChar.isValidChar(ch)) {
 				if (ch == '-' && r.skipChar('-')) {
 					length1 =
-						offset - temp_offset - 2 * increment;
+						offset - temp_offset -  (increment<<1);
 					break;
 				}
 			} else
@@ -2447,7 +2457,7 @@ public class VTDGen1 {
 					"Error in CDATA: Invalid Char"
 						+ formatLineNumber());
 		}
-		length1 = offset - temp_offset - 3 * increment;
+		length1 = offset - temp_offset -  (increment<<1) - increment;
 		if (encoding < FORMAT_UTF_16BE){
 			
 			writeVTD(
@@ -2636,7 +2646,7 @@ public class VTDGen1 {
 								+ formatLineNumber());
 					ch = r.getChar();
 				}
-				length1 = offset - temp_offset - 2 * increment;
+				length1 = offset - temp_offset - (increment<<1);
 				if (encoding < FORMAT_UTF_16BE){
 					if (length1 > MAX_TOKEN_LENGTH)
 						  throw new ParseException("Token Length Error:"
@@ -2687,7 +2697,7 @@ public class VTDGen1 {
 			if (XMLChar.isValidChar(ch)) {
 				if (ch == '-' && r.skipChar('-')) {
 					length1 =
-						offset - temp_offset - 2 * increment;
+						offset - temp_offset - (increment<<1);
 					break;
 				}
 			} else

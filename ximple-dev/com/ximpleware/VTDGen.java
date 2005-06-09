@@ -1034,8 +1034,8 @@ public class VTDGen {
 							if (ch == '<') {
 								parser_state = STATE_LT_SEEN;
 								if (skipChar('/')) {
-									length1 = offset - temp_offset - 2
-											* increment;
+									length1 = offset - temp_offset - 
+											 (increment<<1);
 									if (length1 > 0) {
 										if (encoding < FORMAT_UTF_16BE)
 											writeVTD((temp_offset), length1,
@@ -1974,7 +1974,7 @@ public class VTDGen {
 								+ formatLineNumber());
 			ch = getChar();
 		}
-		length1 = offset - temp_offset - 2 * increment;
+		length1 = offset - temp_offset - (increment<<1);
 		/*
 		 * System.out.println( ((char) XMLDoc[temp_offset]) + " " +
 		 * (temp_offset) + " " + length1 + " PI val " + depth);
@@ -2037,7 +2037,7 @@ public class VTDGen {
 			ch = getChar();
 			if (XMLChar.isValidChar(ch)) {
 				if (ch == '-' && skipChar('-')) {
-					length1 = offset - temp_offset - 2 * increment;
+					length1 = offset - temp_offset - (increment<<1);
 					break;
 				}
 			} else
@@ -2116,7 +2116,7 @@ public class VTDGen {
 						"Error in CDATA: Invalid Char"
 								+ formatLineNumber());
 		}
-		length1 = offset - temp_offset - 3 * increment;
+		length1 = offset - temp_offset - increment - (increment<<1);
 		if (encoding < FORMAT_UTF_16BE) {
 
 			writeVTD(temp_offset, length1, TOKEN_CDATA_VAL, depth);
@@ -2278,7 +2278,7 @@ public class VTDGen {
 										+ formatLineNumber());
 					ch = getChar();
 				}
-				length1 = offset - temp_offset - 2 * increment;
+				length1 = offset - temp_offset - (increment<<1);
 				if (encoding < FORMAT_UTF_16BE) {
 					if (length1 > MAX_TOKEN_LENGTH)
 						throw new ParseException(
@@ -2324,7 +2324,7 @@ public class VTDGen {
 			ch = getChar();
 			if (XMLChar.isValidChar(ch)) {
 				if (ch == '-' && skipChar('-')) {
-					length1 = offset - temp_offset - 2 * increment;
+					length1 = offset - temp_offset - (increment<<1);
 					break;
 				}
 			} else
