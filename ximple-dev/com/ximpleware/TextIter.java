@@ -78,7 +78,7 @@ public int getNext() {
                             return sp;
                         }
                         sp++;
-                    } else if (sp < temp1) {
+                    } else if (sp < temp1 && vn.getTokenDepth(sp) == 1) {
                         if (isText(sp) == true) {
                             prevLocation = sp;
                             return sp;
@@ -93,9 +93,12 @@ public int getNext() {
                             sp++;
                             //continue;
                         }
-                        if (isText(sp) == true) {
+                        if (isText(sp) == true ) {
                             prevLocation = sp;
                             return sp;
+                        }
+                        else if (vn.getTokenDepth(sp) <1) {
+                            break;
                         }
                         sp++;
                     }
@@ -330,8 +333,7 @@ final private boolean isText(int index) {
     }
    
     private int increment(int sp){
-      return sp+1;
-      /*
+      
       int type = vn.getTokenType(sp);
       int vtdSize = vn.vtdBuffer.size();
       int i=sp+1;
@@ -339,8 +341,7 @@ final private boolean isText(int index) {
       		depth == vn.getTokenDepth(i) && 
 			type == vn.getTokenType(i)){
       	i++;
-      }
-      	
-      return i;*/
+      }      	
+      return i;
     }
 }
