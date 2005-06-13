@@ -17,10 +17,6 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-//import com.ximpleware.FastLongBuffer;
-//import com.ximpleware.FastIntBuffer;
-//import com.ximpleware.NavException;
-//import java.io.UnsupportedEncodingException;
 
 /**
  * This class iterates through all text nodes of an element.
@@ -54,13 +50,13 @@ public class TextIter {
  * @return int  (-1 if no more left)
  * @param action int
  */
-public int getNext() throws TextIterException {
+public int getNext() {
     int vtdSize = vn.vtdBuffer.size();
     switch (depth) {
         case 0 :
-            // scan forward, if none found, jump to level 1 element and scan backward until one is found
+            // scan forward, if none found, jump to level 1 elements and scan backward until one is found
             // if there isn't a level-one element, jump to the end of vtd buffer and scan backward
-            int sp = (prevLocation != -1) ? prevLocation + 1 : vn.rootIndex + 1;
+            int sp = (prevLocation != -1) ? increment(prevLocation): vn.rootIndex + 1;
             if (vn.l1Buffer.size() != 0) {
                 int temp1 = vn.l1Buffer.upper32At(0);
                 int temp2 = vn.l1Buffer.upper32At(vn.l1Buffer.size() - 1);
@@ -70,13 +66,12 @@ public int getNext() throws TextIterException {
                         int s = vn.l1Buffer.upper32At(lcIndex);
                         if (sp == s) { // get to the next l1 element then do a rewind
                             lcIndex++;
-                            sp = vn.l1Buffer.upper32At(lcIndex) - 1;
-                            while (vn.getTokenDepth(sp) == 1
+                            sp = vn.l1Buffer.upper32At(lcIndex)-1;
+                            while (vn.getTokenDepth(sp) == 0
                                 && vn.getTokenType(sp) != VTDNav.TOKEN_STARTING_TAG) { //probe depth in here
                                 sp--;
                             }
-                            sp++; // point to the first possible node
-                            continue;
+                            sp++; // point to the first possible node  
                         }
                         if (isText(sp) == true) {
                             prevLocation = sp;
@@ -92,11 +87,11 @@ public int getNext() throws TextIterException {
                     } else {
                         if (sp == temp2) { // get to the end of the document and do a rewind
                             sp = vn.vtdBuffer.size() - 1;
-                            while (vn.getTokenDepth(sp) == 1) {
+                            while (vn.getTokenDepth(sp) == 0) {
                                 sp--;
                             }
                             sp++;
-                            continue;
+                            //continue;
                         }
                         if (isText(sp) == true) {
                             prevLocation = sp;
@@ -105,6 +100,7 @@ public int getNext() throws TextIterException {
                         sp++;
                     }
                 }
+                //prevLocation = vtdSize-1;
                 return -1;
                 // found nothing
             } else {
@@ -120,14 +116,14 @@ public int getNext() throws TextIterException {
             }
         case 1 :
             if (prevLocation != -1) {
-                sp = prevLocation + 1;
+                sp = increment(prevLocation) ;
             } else {
                 // fetch lclower and lcupper
                 lcLower = vn.l1Buffer.lower32At(vn.l1index);
                 if (lcLower != -1) {
                     lcUpper = vn.l2Buffer.size() - 1;
                     int size = vn.l1Buffer.size();
-                    for (int i = lcLower + 1; i < size - 1; i++) {
+                    for (int i = lcLower + 1; i < size ; i++) {
                         int temp = vn.l1Buffer.lower32At(i);
                         if (temp != 0xffffffff) {
                             lcUpper = temp - 1;
@@ -152,29 +148,32 @@ public int getNext() throws TextIterException {
                                 sp--;
                             }
                             sp++;
-                            continue;
+                            //continue;
                         }
                         if (isText(sp) == true) {
                             prevLocation = sp;
                             return sp;
                         }
+                        sp++;
                     } else if (sp < temp1) {
                         if (isText(sp) == true) {
                             prevLocation = sp;
                             return sp;
                         }
+                        sp++;
                     } else {
                         //if (sp == temp2) { // last child element
                         //} else 
                         if (isText(sp) == true && vn.getTokenDepth(sp) == 1) {
                             prevLocation = sp;
                             return sp;
-                        } else if (vn.getTokenDepth(sp) == 0) {
+                        } else if (vn.getTokenDepth(sp) <2) {
                             break;
                         }
-                    }
-                    sp++;
+                        sp++;
+                    }                    
                 }
+                //prevLocation = vtdSize-1;
                 return -1;
             } else { // no child element
                 int depth = vn.getTokenDepth(sp);
@@ -186,24 +185,26 @@ public int getNext() throws TextIterException {
                         prevLocation = sp;
                         return sp;
                     }
+                    sp++;
                     depth = vn.getTokenDepth(sp);
                     type = vn.getTokenType(sp);
-                    sp++;
+                    
                 }
+                //prevLocation = vtdSize-1;
                 return -1;
             }
 
         case 2 :
             if (prevLocation != -1) {
-                sp = prevLocation + 1;
+                sp = increment(prevLocation);
             } else {
                 // fetch lclower and lcupper
                 lcLower = vn.l2Buffer.lower32At(vn.l2index);
                 if (lcLower != -1) {
                     lcUpper = vn.l3Buffer.size() - 1;
                     int size = vn.l2Buffer.size();
-                    for (int i = lcLower + 1; i < size - 1; i++) {
-                        int temp = vn.l1Buffer.lower32At(i);
+                    for (int i = lcLower + 1; i < size ; i++) {
+                        int temp = vn.l2Buffer.lower32At(i);
                         if (temp != 0xffffffff) {
                             lcUpper = temp - 1;
                             break;
@@ -228,29 +229,32 @@ public int getNext() throws TextIterException {
                                 sp--;
                             }
                             sp++;
-                            continue;
+                            //continue;
                         }
                         if (isText(sp) == true) {
                             prevLocation = sp;
                             return sp;
                         }
+                        sp++;
                     } else if (sp < temp1) {
                         if (isText(sp) == true) {
                             prevLocation = sp;
                             return sp;
                         }
+                        sp++;
                     } else {
                         //if (sp == temp2) { // last child element
                         //} else 
                         if (isText(sp) == true && vn.getTokenDepth(sp) == 2) {
                             prevLocation = sp;
                             return sp;
-                        } else if (vn.getTokenDepth(sp) < 2) {
+                        } else if (vn.getTokenDepth(sp) < 3) {
                             break;
                         }
+                        sp++;
                     }
-                    sp++;
                 }
+                //prevLocation = vtdSize-1;
                 return -1;
             } else { // no child elements
                 int depth = vn.getTokenDepth(sp);
@@ -263,30 +267,34 @@ public int getNext() throws TextIterException {
                         prevLocation = sp;
                         return sp;
                     }
+                    sp++;
                     depth = vn.getTokenDepth(sp);
                     type = vn.getTokenType(sp);
-                    sp++;
+                    
                 }
+                //prevLocation = vtdSize-1;
                 return -1;
             }
 
         default :
             int curDepth = vn.context[0];
-            sp = (prevLocation != -1) ? prevLocation + 1 : vn.context[curDepth] + 1;
+            sp = (prevLocation != -1) ? increment(prevLocation): vn.context[curDepth] + 1;
             int depth = vn.getTokenDepth(sp);
             int type = vn.getTokenType(sp);
             while (sp < vtdSize
                 && depth >= curDepth
                 && !(depth == curDepth && type == VTDNav.TOKEN_STARTING_TAG)) {
-                if (isText(sp) == true) {
+                if (isText(sp) == true && depth == curDepth) {
                     prevLocation = sp;
                     return sp;
                 }
+                sp++;
                 depth = vn.getTokenDepth(sp);
                 type = vn.getTokenType(sp);
-                sp++;
+                
             }
     }
+    //prevLocation = vtdSize-1;
     return -1;
 }
 /**
@@ -303,20 +311,36 @@ final private boolean isText(int index) {
 }
     /**
      * Obtain the current navigation position and element info from VTDNav.
+     * So one can instantiate it once and use it for many different elements
      * Creation date: (12/5/03 6:20:44 PM)
      * @param vn com.ximpleware.VTDNav
      */
     public void touch(VTDNav v) {
-        if (vn == null)
+        if (v == null)
             throw new IllegalArgumentException(" VTDNav instance can't be null");
 
-        depth = vn.context[0];
-        index = (depth != 0) ? vn.context[0] : vn.rootIndex;
+        depth = v.context[0];
+        index = (depth != 0) ? v.context[0] : v.rootIndex;
 
         vn = v;
         prevLocation = -1;
         lcIndex = -1;
         lcUpper = -1;
         lcLower = -1;
+    }
+   
+    private int increment(int sp){
+      return sp+1;
+      /*
+      int type = vn.getTokenType(sp);
+      int vtdSize = vn.vtdBuffer.size();
+      int i=sp+1;
+      while(i<vtdSize && 
+      		depth == vn.getTokenDepth(i) && 
+			type == vn.getTokenType(i)){
+      	i++;
+      }
+      	
+      return i;*/
     }
 }
