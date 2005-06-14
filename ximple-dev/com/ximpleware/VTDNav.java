@@ -1905,7 +1905,7 @@ public class VTDNav {
 
 		if (l1index < 0 || l1index >= l1Buffer.size()
 				|| context[1] != l1Buffer.upper32At(l1index)) {
-			if (l1index >= l1Buffer.size()) {
+			if (l1index >= l1Buffer.size() || l1index < 0) {
 				l1index = 0;
 			}
 			if (context[1] != l1Buffer.upper32At(l1index + 1)) {
@@ -1946,7 +1946,7 @@ public class VTDNav {
 
 		if (l2index < 0 || l2index >= l2Buffer.size()
 				|| context[2] != l2Buffer.upper32At(l2index)) {
-			if (l2index >= l2Buffer.size())
+			if (l2index >= l2Buffer.size() || l2index<0)
 				l2index = l2lower;
 			if (context[2] == l2Buffer.upper32At(l2index + 1))
 				l2index = l2index + 1;
@@ -1991,7 +1991,7 @@ public class VTDNav {
 
 		if (l3index < 0 || l3index >= l3Buffer.size()
 				|| context[3] != l3Buffer.intAt(l3index)) {
-			if (l3index >= l3Buffer.size())
+			if (l3index >= l3Buffer.size() || l3index <0)
 				l3index = l3lower;
 			if (context[3] == l3Buffer.intAt(l3index + 1))
 				l3index = l3index + 1;
