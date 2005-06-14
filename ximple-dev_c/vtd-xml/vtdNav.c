@@ -245,7 +245,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 int a, c, d;
 						 int val,i;
 						 //int ch;
-						 a = c = d = val = 0;
+						 //a = c = d = val = 0;
 
 						 switch (vn->encoding) {
 			case FORMAT_ASCII : // ascii is compatible with UTF-8, the offset value is bytes
@@ -1646,7 +1646,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				if (vn->l1index < 0
 					|| vn->l1index >= vn->l1Buffer->size
 					|| vn->context[1] != upper32At(vn->l1Buffer, vn->l1index)) {
-						if (vn->l1index >= vn->l1Buffer->size) {
+						if (vn->l1index >= vn->l1Buffer->size || vn->l1index <0) {
 							vn->l1index = 0;
 						}
 						if (vn->context[1] != upper32At(vn->l1Buffer,vn->l1index + 1)) {
@@ -1694,7 +1694,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					if (vn->l2index < 0
 						|| vn->l2index >= vn->l2Buffer->size
 						|| vn->context[2] != upper32At(vn->l2Buffer,vn->l2index)) {
-							if (vn->l2index >= vn->l2Buffer->size)
+							if (vn->l2index >= vn->l2Buffer->size || vn->l2index<0)
 								vn->l2index = vn->l2lower;
 							if (vn->context[2] == upper32At(vn->l2Buffer,vn->l2index + 1))
 								vn->l2index = vn->l2index + 1;
@@ -1745,7 +1745,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						if (vn->l3index < 0
 							|| vn->l3index >= vn->l3Buffer->size
 							|| vn->context[3] != intAt(vn->l3Buffer,vn->l3index)) {
-								if (vn->l3index >= vn->l3Buffer->size)
+								if (vn->l3index >= vn->l3Buffer->size || vn->l3index<0)
 									vn->l3index = vn->l3lower;
 								if (vn->context[3] == intAt(vn->l3Buffer,vn->l3index + 1))
 									vn->l3index = vn->l3index + 1;
