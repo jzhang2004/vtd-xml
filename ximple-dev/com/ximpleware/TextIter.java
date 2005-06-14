@@ -40,23 +40,26 @@ public class TextIter {
      */
     public TextIter() {
         super();
+        vn = null;
         /*sel_char_data = true;
         sel_comment = true;
         sel_cdata = true;*/
     }
 /**
- * Get the index val for the text node according to action type.
+ * Get the index vals for the text nodes in document order.
  * Creation date: (12/5/03 6:11:50 PM)
  * @return int  (-1 if no more left)
  * @param action int
  */
 public int getNext() {
+    if (vn == null)
+        throw new IllegalArgumentException(" VTDNav instance can't be null");
     int vtdSize = vn.vtdBuffer.size();
     switch (depth) {
         case 0 :
             // scan forward, if none found, jump to level 1 elements and scan backward until one is found
             // if there isn't a level-one element, jump to the end of vtd buffer and scan backward
-            int sp = (prevLocation != -1) ? increment(prevLocation): vn.rootIndex + 1;
+            int sp = (prevLocation != -1) ? increment(prevLocation): index + 1;
             if (vn.l1Buffer.size() != 0) {
                 int temp1 = vn.l1Buffer.upper32At(0);
                 int temp2 = vn.l1Buffer.upper32At(vn.l1Buffer.size() - 1);
@@ -78,7 +81,7 @@ public int getNext() {
                             return sp;
                         }
                         sp++;
-                    } else if (sp < temp1 && vn.getTokenDepth(sp) == 1) {
+                    } else if (sp < temp1) {
                         if (isText(sp) == true) {
                             prevLocation = sp;
                             return sp;
@@ -97,7 +100,7 @@ public int getNext() {
                             prevLocation = sp;
                             return sp;
                         }
-                        else if (vn.getTokenDepth(sp) <1) {
+                        else if (vn.getTokenDepth(sp)>1) {
                             break;
                         }
                         sp++;
@@ -134,7 +137,7 @@ public int getNext() {
                         }
                     }
                 }
-                sp = vn.context[1] + 1;
+                sp = index + 1;
             } // check for l2lower and l2upper
 
             if (lcLower != -1) { // have at least one child element
@@ -167,7 +170,8 @@ public int getNext() {
                     } else {
                         //if (sp == temp2) { // last child element
                         //} else 
-                        if (isText(sp) == true && vn.getTokenDepth(sp) == 1) {
+                        if (isText(sp) == true && vn.getTokenDepth(sp) == 1){
+                        	//System.out.println("depth ->"+vn.getTokenDepth(sp));
                             prevLocation = sp;
                             return sp;
                         } else if (vn.getTokenDepth(sp) <2) {
@@ -179,17 +183,17 @@ public int getNext() {
                 //prevLocation = vtdSize-1;
                 return -1;
             } else { // no child element
-                int depth = vn.getTokenDepth(sp);
+                int d = vn.getTokenDepth(sp);
                 int type = vn.getTokenType(sp);
                 while (sp < vtdSize
-                    && depth >= 1
-                    && !(depth == 1 && type == VTDNav.TOKEN_STARTING_TAG)) {
+                    && d >= 1
+                    && !(d == 1 && type == VTDNav.TOKEN_STARTING_TAG)) {
                     if (isText(sp) == true) {
                         prevLocation = sp;
                         return sp;
                     }
                     sp++;
-                    depth = vn.getTokenDepth(sp);
+                    d = vn.getTokenDepth(sp);
                     type = vn.getTokenType(sp);
                     
                 }
@@ -214,7 +218,7 @@ public int getNext() {
                         }
                     }
                 }
-                sp = vn.context[2] + 1;
+                sp = index + 1;
             } // check for l3lower and l3upper
 
             if (lcLower != -1) { // at least one child element
@@ -260,18 +264,18 @@ public int getNext() {
                 //prevLocation = vtdSize-1;
                 return -1;
             } else { // no child elements
-                int depth = vn.getTokenDepth(sp);
+                int d = vn.getTokenDepth(sp);
                 int type = vn.getTokenType(sp);
                 while (sp < vtdSize
-                    && depth >= 2
-                    && !(depth == 2 && type == VTDNav.TOKEN_STARTING_TAG)) {
+                    && d >= 2
+                    && !(d == 2 && type == VTDNav.TOKEN_STARTING_TAG)) {
                     // the last condition indicates the start of the next sibling element
                     if (isText(sp) == true) {
                         prevLocation = sp;
                         return sp;
                     }
                     sp++;
-                    depth = vn.getTokenDepth(sp);
+                    d = vn.getTokenDepth(sp);
                     type = vn.getTokenType(sp);
                     
                 }
@@ -280,19 +284,19 @@ public int getNext() {
             }
 
         default :
-            int curDepth = vn.context[0];
-            sp = (prevLocation != -1) ? increment(prevLocation): vn.context[curDepth] + 1;
-            int depth = vn.getTokenDepth(sp);
+            //int curDepth = vn.context[0];
+            sp = (prevLocation != -1) ? increment(prevLocation): index + 1;
+            int d = vn.getTokenDepth(sp);
             int type = vn.getTokenType(sp);
             while (sp < vtdSize
-                && depth >= curDepth
-                && !(depth == curDepth && type == VTDNav.TOKEN_STARTING_TAG)) {
-                if (isText(sp) == true && depth == curDepth) {
+                && d >= depth
+                && !(d == depth && type == VTDNav.TOKEN_STARTING_TAG)) {
+                if (isText(sp) == true && d == depth) {
                     prevLocation = sp;
                     return sp;
                 }
                 sp++;
-                depth = vn.getTokenDepth(sp);
+                d = vn.getTokenDepth(sp);
                 type = vn.getTokenType(sp);
                 
             }
@@ -323,7 +327,7 @@ final private boolean isText(int index) {
             throw new IllegalArgumentException(" VTDNav instance can't be null");
 
         depth = v.context[0];
-        index = (depth != 0) ? v.context[0] : v.rootIndex;
+        index = (depth != 0) ? v.context[depth] : v.rootIndex;
 
         vn = v;
         prevLocation = -1;
