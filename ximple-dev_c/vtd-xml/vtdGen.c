@@ -2151,9 +2151,9 @@ void finishUp(VTDGen *vg){
 void decide_encoding(VTDGen *vg){
 	exception e;
 
-	if (vg->XMLDoc[vg->offset] == -2) {
+	if (vg->XMLDoc[vg->offset] == (UByte) -2) {
 		vg->increment = 2;
-		if (vg->XMLDoc[vg->offset + 1] == -1) {
+		if (vg->XMLDoc[vg->offset + 1] == (UByte)-1) {
 			vg->offset += 2;
 			vg->encoding = FORMAT_UTF_16BE;
 			vg->BOM_detected = TRUE;
@@ -2166,9 +2166,9 @@ void decide_encoding(VTDGen *vg){
 			Throw e;
 		}
 		//	throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
-	} else if (vg->XMLDoc[vg->offset] == -1) {
+	} else if (vg->XMLDoc[vg->offset] == (UByte)-1) {
 		vg->increment = 2;
-		if (vg->XMLDoc[vg->offset + 1] == -2) {
+		if (vg->XMLDoc[vg->offset + 1] == (UByte)-2) {
 			vg->offset += 2;
 			vg->encoding = FORMAT_UTF_16LE;
 			vg->BOM_detected = TRUE;
@@ -2181,8 +2181,8 @@ void decide_encoding(VTDGen *vg){
 			Throw e;
 		}
 		//throw new EncodingException("Unknown Character encoding");
-	} else if (vg->XMLDoc[vg->offset] == -17) {
-		if (vg->XMLDoc[vg->offset+1] == -69 && vg->XMLDoc[vg->offset+2]==-65){
+	} else if (vg->XMLDoc[vg->offset] == (UByte)-17) {
+		if (vg->XMLDoc[vg->offset+1] == (UByte)-69 && vg->XMLDoc[vg->offset+2]==(UByte)-65){
 			vg->offset +=3;
 			vg->must_utf_8= TRUE;
 		}
