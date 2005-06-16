@@ -35,7 +35,9 @@
 					 // small endian --> 0
 
 #define inline __inline
-#define _UNICODE
+//#define _UNICODE
+#define VC
+//#define GCC
 
 typedef wchar_t UCSChar;
 typedef long long Long;

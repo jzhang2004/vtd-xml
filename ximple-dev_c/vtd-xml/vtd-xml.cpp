@@ -378,7 +378,12 @@ Boolean MiscTest(char *fn){
 		if (toElement(vn,FIRST_CHILD)){
 				if (matchElement(vn,L"float")){
 					do {
+#ifdef VC
 						float f1 = (float)_wtof(toString(vn,getText(vn)));
+#endif
+#ifdef GCC
+						float f1 = (float)wcstof(toString(vn,getText(vn)));
+#endif
 						float f2 = parseFloat(vn,getText(vn));
 						if (f1 != f2)
 							return FALSE;						
@@ -386,7 +391,12 @@ Boolean MiscTest(char *fn){
 					return TRUE;
 				}else if (matchElement(vn,L"double")){
 					do {
+#ifdef VC
 						double d1 = _wtof(toString(vn,getText(vn)));
+#endif
+#ifdef GCC
+						double d1 = wcstof(toString(vn,getText(vn)));
+#endif
 						double d2 = parseDouble(vn,getText(vn));
 						if (d1 != d2)
 							return FALSE;						
@@ -394,7 +404,7 @@ Boolean MiscTest(char *fn){
 					return TRUE;
 				}else if (matchElement(vn,L"int")){
 					do {
-						int i1 = _wtoi(toString(vn,getText(vn)));
+						int i1 = wcstol(toString(vn,getText(vn)),NULL,10);
 						int i2 = parseInt(vn,getText(vn));
 						if (i1 != i2)
 							return FALSE;						
@@ -402,7 +412,12 @@ Boolean MiscTest(char *fn){
 					return TRUE;
 				}else if (matchElement(vn,L"long")){
 					do {
-						Long l1 = _wtoi64(toString(vn,getText(vn)));
+#ifdef VC
+						Long l1 = _wcstoi64(toString(vn,getText(vn)),NULL,10);
+#endif
+#ifdef GCC
+						Long l1 = wcstoll(toString(vn,getText(vn)),NULL,10);
+#endif
 						Long l2 = parseLong(vn, getText(vn));
 						if (l1 != l2)
 							return FALSE;						
@@ -607,7 +622,7 @@ Boolean NavTest(char* fn){
 
 int main(int argc, char *argv[])
 {   
-   int test = 12;
+   int test = 1;
   
    if (test ==1){
 	int i,a;
@@ -616,10 +631,10 @@ int main(int argc, char *argv[])
 	UCSChar *string;
 	UCSChar *as;
 	exception e;
-	wprintf(L"size of UCSChar is %d \n",sizeof(UCSChar));
-	wprintf(L"size of wchar_t is %d \n",sizeof(wchar_t));
-	wprintf(L"size of char is %d \n",sizeof(char));
-	wprintf(L"string length is %d \n",wcslen(L"this"));
+	printf("size of UCSChar is %d \n",sizeof(UCSChar));
+	printf("size of wchar_t is %d \n",sizeof(long long));
+	printf("size of char is %d \n",(UByte)-1);
+	printf("string length is %d \n",wcslen(L"this"));
 	as= (UCSChar *)malloc(10*sizeof(UCSChar));
 	for (i=0;i<10;i++){
 		as[i]=128;
