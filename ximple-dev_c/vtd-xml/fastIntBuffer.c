@@ -435,3 +435,4 @@ void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){
     }
 	((int *) get(fib->al,index>>fib->exp))[index & fib->r] = newVal;
 }
+

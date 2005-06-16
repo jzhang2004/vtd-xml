@@ -2719,4 +2719,4 @@ int getTokenCount(VTDNav *vn){
 				((i & 0xff00) <<8) |
 				((i & 0xff0000) >> 8) |
 				((i & 0xff000000) >> 24)&0xff);
-}
+ }
