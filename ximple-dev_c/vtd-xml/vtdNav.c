@@ -23,16 +23,16 @@ static int getCharResolved(VTDNav *vn);
 static int getCharUnit(VTDNav *vn, int index);
 static inline Boolean isElement(VTDNav  *vn, int index);
 static inline Boolean isWS(int ch);
-static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCS2Char *s);
-static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCS2Char *s);
-static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCS2Char *s);
-static Boolean matchTokenString2(VTDNav *vn, Long l, UCS2Char *s);
+static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
+static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCSChar *s);
+static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
+static Boolean matchTokenString2(VTDNav *vn, Long l, UCSChar *s);
 static inline int NSval(VTDNav *vn, int i);
 static int parseInt2(VTDNav *vn, int index, int radix);
 static Long parseLong2(VTDNav *vn, int index, int radix);
 static void resolveLC(VTDNav *vn);
-static Boolean resolveNS(VTDNav *vn, UCS2Char *URL);
-static Boolean resolveNS2(VTDNav *vn, UCS2Char *URL, int offset, int len); //UCS2Char *ln);
+static Boolean resolveNS(VTDNav *vn, UCSChar *URL);
+static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len); //UCSChar *ln);
 
 
 
@@ -156,7 +156,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 //Get the token index of the attribute value given an attribute name.     
-					 int getAttrVal(VTDNav *vn, UCS2Char *an){
+					 int getAttrVal(VTDNav *vn, UCSChar *an){
 						 int size = vn->vtdBuffer->size;
 						 int index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 
@@ -197,7 +197,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Get the token index of the attribute value of given URL and local name.
 					 //If ns is not enabled, the lookup will return -1, indicating a no-found.
 					 //Also namespace nodes are invisible using this method.
-					 int getAttrValNS(VTDNav *vn, UCS2Char* URL, UCS2Char *ln){
+					 int getAttrValNS(VTDNav *vn, UCSChar* URL, UCSChar *ln){
 
 						 int size, index;
 						 tokenType type;
@@ -828,7 +828,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //					 }
 
 					 //Test whether current element has an attribute with the matching name.
-					 Boolean hasAttr(VTDNav *vn, UCS2Char *an){
+					 Boolean hasAttr(VTDNav *vn, UCSChar *an){
 						 tokenType type;
 						 int size = vn->vtdBuffer->size;
 						 int index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
@@ -837,7 +837,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 type = getTokenType(vn,index);
 						 if (vn->ns == FALSE) {
-							 if (strcmp(an,"*")==0) {
+							 if (wcscmp(an,L"*")==0) {
 								 if (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)
 									 return TRUE;
 								 else
@@ -854,7 +854,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 									 return FALSE;
 							 }
 						 } else {
-							 if (strcmp(an,"*")==0) {
+							 if (wcscmp(an,L"*")==0) {
 								 while (index < size
 									 && (getTokenType(vn,index) == TOKEN_ATTR_NAME
 									 || getTokenType(vn,index) == TOKEN_ATTR_NS)) {
@@ -882,7 +882,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Test whether the current element has an attribute with 
 					 //matching namespace URL and localname.
-					 Boolean hasAttrNS(VTDNav *vn, UCS2Char *URL, UCS2Char *localName){
+					 Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName){
 						 return (getAttrValNS(vn,URL, localName) != -1);
 					 }
 
@@ -902,7 +902,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 					 //This method is similar to getElementByName in DOM except it doesn't
 					 //return the nodeset, instead it iterates over those nodes.
-					 int iterate(VTDNav *vn, int dp, UCS2Char *en){
+					 int iterate(VTDNav *vn, int dp, UCSChar *en){
 
 						 int index = getCurrentIndex(vn) + 1;
 						 //int size = vtdBuffer.size();
@@ -930,7 +930,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //return the nodeset, instead it iterates over those nodes .
 					 //When URL is "*" it will match any namespace
 					 //if ns is false, return false immediately
-					 int iterateNS(VTDNav *vn, int dp, UCS2Char *URL, UCS2Char *ln){
+					 int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 						 int index;
 						 exception e;
 						 if (vn->ns == FALSE)
@@ -963,7 +963,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 //Test if the current element matches the given name.
-					 Boolean matchElement(VTDNav *vn, UCS2Char *en){
+					 Boolean matchElement(VTDNav *vn, UCSChar *en){
 						 exception e;
 						 if (en == NULL){
 							 e.et = invalid_argument;
@@ -971,7 +971,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 Throw e;
 						 }
 						 // throw new IllegalArgumentException(" Element name can't be null ");
-						 if (strcmp(en,"*") == 0)
+						 if (wcscmp(en,L"*") == 0)
 							 return TRUE;
 						 return matchRawTokenString(vn,
 							 (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]],
@@ -981,7 +981,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Test whether the current element matches the given namespace URL and localname.
 					 //URL, when set to "*", matches any namespace (including null), when set to null, defines a "always-no-match"
 					 //ln is the localname that, when set to *, matches any localname
-					 Boolean matchElementNS(VTDNav *vn, UCS2Char *URL, UCS2Char *ln){
+					 Boolean matchElementNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 						 int i =
 							 getTokenLength(vn, (vn->context[0] != 0) ? vn->context[vn->context[0]] : vn->rootIndex);
 						 int offset =
@@ -989,7 +989,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 int preLen = (i >> 16) & 0xffff;
 						 int fullLen = i & 0xffff;
 
-						 if (strcmp(ln, "*")== 0
+						 if (wcscmp(ln, L"*")== 0
 							 || ((preLen != 0)
 							 ? matchRawTokenString1(vn,
 							 offset + preLen + 1,
@@ -999,7 +999,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 offset,
 							 fullLen,
 							 ln))) { // no prefix, search for xmlns
-								 if (((URL != NULL) ? strcmp(URL,"*")==0 : FALSE)
+								 if (((URL != NULL) ? wcscmp(URL,L"*")==0 : FALSE)
 									 || (resolveNS2(vn, URL, offset, preLen) == TRUE))
 									 return TRUE;
 							 }
@@ -1008,7 +1008,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Match a string against a token with given offset and len, entities 
 					 //doesn't get resolved.
-					 static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCS2Char *s){
+					 static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s){
 						 int i,l, endOffset;
 						 exception e;
 						 if (s == NULL){
@@ -1020,9 +1020,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->currentOffset = offset;
 						 endOffset = offset + len;
 						 if (vn->encoding < 2) {
-							 if (strlen(s) != len)
+							 if (wcslen(s) != len)
 								 return FALSE;
-							 l = (int)strlen(s);
+							 l = (int)wcslen(s);
 							 for (i = 0; i < l && vn->currentOffset < endOffset; i++) {
 								 if (s[i] != (vn->XMLDoc[vn->currentOffset] & 0xff))
 									 return FALSE ;
@@ -1031,7 +1031,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 return TRUE;
 						 } else {
 							 //       System.out.print("currentOffset :" + currentOffset);
-							 l = (int)strlen(s);
+							 l = (int)wcslen(s);
 							 //System.out.println(s);
 							 for (i = 0; i < l && vn->currentOffset < endOffset; i++) {
 								 if (s[i] != getChar(vn)) {
@@ -1045,7 +1045,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 //Match a string with a token represented by a long (upper 32 len, lower 32 offset).
-					 static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCS2Char *s){
+					 static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCSChar *s){
 						 exception e;
 						 int len;
 						 if (s == NULL){
@@ -1066,7 +1066,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Match the string against the token at the given index value. When a token
 					 //is an attribute name or starting tag, qualified name is what gets matched against
-					 Boolean matchRawTokenString(VTDNav *vn, int index, UCS2Char *s){	
+					 Boolean matchRawTokenString(VTDNav *vn, int index, UCSChar *s){	
 						 exception e;
 						 tokenType type;
 						 int len;
@@ -1092,7 +1092,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Match a string against a token with given offset and len, entities get 
 					 //resolved properly.
-					 static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCS2Char *s){
+					 static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCSChar *s){
 						 exception e;
 						 int endOffset;
 						 int l;
@@ -1108,7 +1108,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 if (vn->encoding < FORMAT_UTF8) {
 							 int i = 0;
-							 l = (int)strlen(s);
+							 l = (int)wcslen(s);
 							 for (i = 0; i < l && vn->currentOffset < endOffset; i++) {
 								 if ((vn->XMLDoc[vn->currentOffset] & 0xff) != '&') {
 									 if (s[i] != (vn->XMLDoc[vn->currentOffset] & 0xff))
@@ -1126,7 +1126,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 return FALSE;
 						 } else {
 							 int i = 0;
-							 l = (int)strlen(s);
+							 l = (int)wcslen(s);
 							 for (i = 0; i < l && vn->currentOffset < endOffset; i++) {
 								 if (s[i] != getCharResolved(vn)) {
 									 return FALSE;
@@ -1141,7 +1141,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Match a string against a "non-extractive" token represented by a 
 					 //long (upper 32 len, lower 32 offset).
-					 static Boolean matchTokenString2(VTDNav *vn, Long l, UCS2Char *s){
+					 static Boolean matchTokenString2(VTDNav *vn, Long l, UCSChar *s){
 						 exception e;
 						 int len;
 						 if (s == NULL){
@@ -1161,7 +1161,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Match the string against the token at the given index value. When a token
 					 //is an attribute name or starting tag, qualified name is what gets matched against
-					 Boolean matchTokenString(VTDNav *vn, int index, UCS2Char *s){
+					 Boolean matchTokenString(VTDNav *vn, int index, UCSChar *s){
 						 exception e;
 						 tokenType type;
 						 int len;
@@ -1778,7 +1778,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 //Test whether the URL is defined in the document.
-					 static Boolean resolveNS(VTDNav *vn, UCS2Char *URL){
+					 static Boolean resolveNS(VTDNav *vn, UCSChar *URL){
 						 int i, offset, preLen;
 						 i =
 							 getTokenLength(vn,(vn->context[0] != 0) ? vn->context[vn->context[0]] : vn->rootIndex);
@@ -1791,7 +1791,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Test whether the URL is defined in the document.
 					 //Null is allowed to indicate the name space should be undefined.
-					 static Boolean resolveNS2(VTDNav *vn, UCS2Char *URL, int offset, int len){
+					 static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len){
 						 Long l; 
 						 int i,k;
 						 tokenType type;
@@ -2263,7 +2263,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 * <br>
 					 * for ROOT and PARENT, element name will be ignored.
 					 */
-					 Boolean toElement2(VTDNav *vn, navDir direction, UCS2Char *en){
+					 Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
 						 //int size;
 						 int temp;
 						 int d;
@@ -2275,7 +2275,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 Throw e;
 							 //throw new IllegalArgumentException(" Element name can't be null ");
 						 }
-						 if (strcmp(en,"*") == 0)
+						 if (wcscmp(en,L"*") == 0)
 							 return toElement(vn,direction);
 						 switch (direction) {
 			case ROOT :
@@ -2397,7 +2397,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 * for ROOT and PARENT, element name will be ignored.
 					 * If not ns enabled, return false immediately with no position change.
 					 */
-					 Boolean toElementNS(VTDNav *vn, navDir direction, UCS2Char *URL, UCS2Char *ln){
+					 Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln){
 						 //int size;
 						 int temp;
 						 int d;
@@ -2512,13 +2512,13 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //The entity and character references will be resolved
 					 //Multiple whitespaces char will be collapsed into one.
 
-					 UCS2Char *toNormalizedString(VTDNav *vn, int index){
+					 UCSChar *toNormalizedString(VTDNav *vn, int index){
 						 exception e;
 						 tokenType type = getTokenType(vn,index);
 						 int len, endOffset;
 						 int ch,k;
 						 Boolean d;
-						 UCS2Char *s = NULL;
+						 UCSChar *s = NULL;
 
 
 						 if (type == TOKEN_STARTING_TAG
@@ -2528,7 +2528,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 else 
 							 len = getTokenLength(vn,index);
 
-						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*(len+1));
+						 s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
 						 if (s == NULL)
 						 {
 							 e.et = out_of_mem;
@@ -2563,9 +2563,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 									 s[k++] = ch;
 								 else {
 									 //sb.append(' ');
-									 s[k++] = (UCS2Char) ' ';
+									 s[k++] = (UCSChar) ' ';
 									 //sb.append((char) ch);
-									 s[k++] = (UCS2Char) ch;
+									 s[k++] = (UCSChar) ch;
 									 d = FALSE;
 								 }
 							 }
@@ -2577,12 +2577,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Convert a token at the given index to a String, 
 					 //(built-in entity and char references not resolved)
 					 //(entities and char references not expanded).
-					 UCS2Char *toRawString(VTDNav *vn, int index){
+					 UCSChar *toRawString(VTDNav *vn, int index){
 						 exception e;
 						 int k, offset, endOffset;
 						 tokenType type = getTokenType(vn,index);
 						 int len;
-						 UCS2Char *s = NULL;
+						 UCSChar *s = NULL;
 
 						 if (type == TOKEN_STARTING_TAG
 							 || type == TOKEN_ATTR_NAME
@@ -2596,7 +2596,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 endOffset = len + vn->currentOffset;
 						 //StringBuffer sb = new StringBuffer(len);
 
-						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*(len+1));
+						 s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
 						 if (s == NULL)
 						 {
 							 e.et = out_of_mem;
@@ -2605,7 +2605,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 						 k = 0;
 						 while (vn->currentOffset < endOffset) {
-							 UCS2Char c = (UCS2Char) getChar(vn);
+							 UCSChar c = (UCSChar) getChar(vn);
 							 s[k++] = c;; // java only support 16 bit unit code
 						 }
 						 s[k] = 0;
@@ -2615,12 +2615,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Convert a token at the given index to a String, (entities and char 
 					 //references resolved).
 					 // An attribute name or an element name will get the UCS2 string of qualified name 
-					 UCS2Char *toString(VTDNav *vn, int index){
+					 UCSChar *toString(VTDNav *vn, int index){
 						 exception e;
 						 int k, offset, endOffset;
 						 tokenType type = getTokenType(vn,index);
 						 int len;
-						 UCS2Char *s = NULL;
+						 UCSChar *s = NULL;
 						 if (type!=TOKEN_CHARACTER_DATA &&
 							 type!= TOKEN_ATTR_VAL)
 							 return toRawString(vn,index);
@@ -2638,7 +2638,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 endOffset = len + vn->currentOffset;
 						 //StringBuffer sb = new StringBuffer(len);
 
-						 s = (UCS2Char *)malloc(sizeof(UCS2Char)*(len+1));
+						 s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
 						 if (s == NULL)
 						 {
 							 e.et = out_of_mem;
@@ -2647,9 +2647,76 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 						 k = 0;
 						 while (vn->currentOffset < endOffset) {
-							 UCS2Char c = (UCS2Char) getCharResolved(vn);
+							 UCSChar c = (UCSChar) getCharResolved(vn);
 							 s[k++] = c;; // java only support 16 bit unit code
 						 }
 						 s[k]= 0;
 						 return s;
 					 }
+
+//Get the starting offset of the token at the given index.
+
+int getTokenOffset(VTDNav *vn, int index){
+#if BIG_ENDIAN
+	return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
+#else
+	return swap_bytes((int)((longAt(vn->vtdBuffer,index) & 0xffffff3f00000000L) >> 32));
+#endif
+}
+// Get the XML document 
+UByte* getXML(VTDNav *vn){
+	return vn->XMLDoc;
+}
+
+//Get the token type of the token at the given index value.
+tokenType getTokenType(VTDNav *vn, int index){
+#if BIG_ENDIAN
+	return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
+#else
+	return (tokenType) ((longAt(vn->vtdBuffer, index) & 0xf0) >> 4);
+#endif
+}
+
+//Get the depth (>=0) of the current element.
+int getCurrentDepth(VTDNav *vn){
+	return vn->context[0];
+}
+// Get the index value of the current element.
+int getCurrentIndex(VTDNav *vn){
+	return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
+}
+
+/**
+ * Get the encoding of the XML document.
+ * <pre>   0  ASCII       </pre>
+ * <pre>   1  ISO-8859-1  </pre>
+ * <pre>   2  UTF-8       </pre>
+ * <pre>   3  UTF-16BE    </pre>
+ * <pre>   4  UTF-16LE    </pre>
+ */
+encoding getEncoding(VTDNav *vn){
+	return vn->encoding;
+}
+
+// Get the maximum nesting depth of the XML document (>0).
+// max depth is nestingLevel -1
+
+// max depth is nestingLevel -1
+int getNestingLevel(VTDNav *vn){
+	return vn->nestingLevel;
+}
+// Get root index value.
+int getRootIndex(VTDNav *vn){
+	return vn->rootIndex;
+}
+
+//Get total number of VTD tokens for the current XML document.
+int getTokenCount(VTDNav *vn){
+	return vn->vtdSize;
+}
+ int swap_bytes(int i){
+		return (((i & 0xff) << 24) |
+				((i & 0xff00) <<8) |
+				((i & 0xff0000) >> 8) |
+				((i & 0xff000000) >> 24)&0xff);
+}

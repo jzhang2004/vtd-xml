@@ -412,3 +412,26 @@ int* toIntArray(FastIntBuffer *fib){
     }
 	return NULL;
 }
+
+// Get the int at the index position of FastIntBuffer
+int intAt(FastIntBuffer *fib, int index){
+	exception e;	    
+	if (index < 0 || index > fib->size - 1) {
+        e.et = invalid_argument;
+		e.msg = "index out of range for modifyEntryFIB in FastIntBuffer";
+		Throw e;
+    }
+	return ((int *) get(fib->al,index>>fib->exp))[index & fib->r];
+}
+
+// Replace the value at the index position of FastIntBuffer 
+// with newVal
+void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){
+	exception e;	    
+	if (index < 0 || index > fib->size - 1) {
+        e.et = invalid_argument;
+		e.msg = "index out of range for modifyEntryFIB in FastIntBuffer";
+		Throw e;
+    }
+	((int *) get(fib->al,index>>fib->exp))[index & fib->r] = newVal;
+}

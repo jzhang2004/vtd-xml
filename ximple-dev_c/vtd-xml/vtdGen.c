@@ -2909,7 +2909,7 @@ int process_pi_tag(VTDGen *vg){
 }
 int process_dec_attr(VTDGen *vg){
 	exception e;
-	int length1,parser_state;
+	int parser_state;
 	if (vg->ch == 'v'
 		&& skipChar(vg,'e')
 		&& skipChar(vg,'r')

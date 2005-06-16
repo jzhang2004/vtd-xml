@@ -22,6 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				OptimizeForProcessor="2"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="FALSE"
@@ -156,6 +157,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\textIter.c">
+			</File>
+			<File
 				RelativePath=".\vtd-xml.cpp">
 			</File>
 			<File
@@ -198,6 +202,9 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h">
+			</File>
+			<File
+				RelativePath=".\textIter.h">
 			</File>
 			<File
 				RelativePath=".\UTF8Char.h">

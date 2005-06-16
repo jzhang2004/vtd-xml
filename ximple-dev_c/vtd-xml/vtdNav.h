@@ -100,22 +100,20 @@ void freeVTDNav(VTDNav *vn);
 int getAttrCount(VTDNav *vn);
 
 //Get the token index of the attribute value given an attribute name.     
-int getAttrVal(VTDNav *vn, UCS2Char *attrName);
+int getAttrVal(VTDNav *vn, UCSChar *attrName);
 
 //Get the token index of the attribute value of given URL and local name.
 //If ns is not enabled, the lookup will return -1, indicating a no-found.
 //Also namespace nodes are invisible using this method.
-int getAttrValNS(VTDNav *vn, UCS2Char* URL, UCS2Char *localName);
+int getAttrValNS(VTDNav *vn, UCSChar* URL, UCSChar *localName);
 
 
 //Get the depth (>=0) of the current element.
-inline int getCurrentDepth(VTDNav *vn){
-	return vn->context[0];
-}
+extern inline int getCurrentDepth(VTDNav *vn);
+
 // Get the index value of the current element.
-inline int getCurrentIndex(VTDNav *vn){
-	return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
-}
+extern inline int getCurrentIndex(VTDNav *vn);
+
 // Get the starting offset and length of an element
 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
 Long getElementFragment(VTDNav *vn);
@@ -128,30 +126,24 @@ Long getElementFragment(VTDNav *vn);
  * <pre>   3  UTF-16BE    </pre>
  * <pre>   4  UTF-16LE    </pre>
  */
-inline encoding getEncoding(VTDNav *vn){
-	return vn->encoding;
-}
+extern inline encoding getEncoding(VTDNav *vn);
 
 // Get the maximum nesting depth of the XML document (>0).
 // max depth is nestingLevel -1
 
 // max depth is nestingLevel -1
-inline int getNestingLevel(VTDNav *vn){
-	return vn->nestingLevel;
-}
+extern inline int getNestingLevel(VTDNav *vn);
+
 // Get root index value.
-inline int getRootIndex(VTDNav *vn){
-	return vn->rootIndex;
-}
+extern inline int getRootIndex(VTDNav *vn);
 
 // This function returns of the token index of the type character data or CDATA.
 // Notice that it is intended to support data orient XML (not mixed-content XML).
 int getText(VTDNav *vn);
 
 //Get total number of VTD tokens for the current XML document.
-inline int getTokenCount(VTDNav *vn){
-	return vn->vtdSize;
-}
+extern inline int getTokenCount(VTDNav *vn);
+
 //Get the depth value of a token (>=0)
 int getTokenDepth(VTDNav *vn, int index);
 
@@ -160,58 +152,46 @@ int getTokenDepth(VTDNav *vn, int index);
 int getTokenLength(VTDNav *vn, int index);
 
 //Get the starting offset of the token at the given index.
+extern inline int getTokenOffset(VTDNav *vn, int index);
 
-inline int getTokenOffset(VTDNav *vn, int index){
-#if BIG_ENDIAN
-	return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
-#else
-	return swap_bytes((int)((longAt(vn->vtdBuffer,index) & 0xffffff3f00000000L) >> 32));
-#endif
-}
 // Get the XML document 
-inline UByte* getXML(VTDNav *vn){
-	return vn->XMLDoc;
-}
+extern inline UByte* getXML(VTDNav *vn);
+
 //Get the token type of the token at the given index value.
-inline	 tokenType getTokenType(VTDNav *vn, int index){
-#if BIG_ENDIAN
-	return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
-#else
-	return (tokenType) ((longAt(vn->vtdBuffer, index) & 0xf0) >> 4);
-#endif
-}
+extern inline	tokenType getTokenType(VTDNav *vn, int index);
+
 //Test whether current element has an attribute with the matching name.
-Boolean hasAttr(VTDNav *vn, UCS2Char *attrName);
+Boolean hasAttr(VTDNav *vn, UCSChar *attrName);
 
 //Test whether the current element has an attribute with 
 //matching namespace URL and localname.
-Boolean hasAttrNS(VTDNav *vn, UCS2Char *URL, UCS2Char *localName);
+Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName);
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-int iterate(VTDNav *vn, int dp, UCS2Char *en);
+int iterate(VTDNav *vn, int dp, UCSChar *en);
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is false, return false immediately
-int iterateNS(VTDNav *vn, int dp, UCS2Char *URL, UCS2Char *ln);
+int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
 
 //Test if the current element matches the given name.
-Boolean matchElement(VTDNav *vn, UCS2Char *en);
+Boolean matchElement(VTDNav *vn, UCSChar *en);
 
 //Test whether the current element matches the given namespace URL and localname.
 //URL, when set to "*", matches any namespace (including null), when set to null, defines a "always-no-match"
 //ln is the localname that, when set to *, matches any localname
-Boolean matchElementNS(VTDNav *vn, UCS2Char *URL, UCS2Char *ln);
+Boolean matchElementNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
 
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
-Boolean matchRawTokenString(VTDNav *vn, int index, UCS2Char *s);
+Boolean matchRawTokenString(VTDNav *vn, int index, UCSChar *s);
 
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
-Boolean matchTokenString(VTDNav *vn, int index, UCS2Char *s);
+Boolean matchTokenString(VTDNav *vn, int index, UCSChar *s);
 
 //Convert a vtd token into a double.
 double parseDouble(VTDNav *vn, int index);
@@ -265,7 +245,7 @@ Boolean toElement(VTDNav *vn, navDir direction);
  * <br>
  * for ROOT and PARENT, element name will be ignored.
  */
-Boolean toElement2(VTDNav *vn, navDir direction, UCS2Char *en);
+Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en);
 /*	
  * A generic navigation function with namespace support.
  * Move the current to the element according to the direction constants and the prefix and local names
@@ -284,22 +264,24 @@ Boolean toElement2(VTDNav *vn, navDir direction, UCS2Char *en);
  * for ROOT and PARENT, element name will be ignored.
  * If not ns enabled, return false immediately with no position change.
  */
-Boolean toElementNS(VTDNav *vn, navDir direction, UCS2Char *URL, UCS2Char *ln);
+Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
 
 //This method normalizes a token into a string in a way that resembles DOM.
 //The leading and trailing white space characters will be stripped.
 //The entity and character references will be resolved
 //Multiple whitespaces char will be collapsed into one.
-UCS2Char *toNormalizedString(VTDNav *vn, int index);
+UCSChar *toNormalizedString(VTDNav *vn, int index);
 
 //Convert a token at the given index to a String, 
 //(built-in entity and char references not resolved)
 //(entities and char references not expanded).
-UCS2Char *toRawString(VTDNav *vn, int index);
+UCSChar *toRawString(VTDNav *vn, int index);
 
 //Convert a token at the given index to a String, (entities and char 
 //references resolved).
 // An attribute name or an element name will get the UCS2 string of qualified name 
-UCS2Char *toString(VTDNav *vn, int index);
+UCSChar *toString(VTDNav *vn, int index);
+
+extern inline int swap_bytes(int i);
 
 #endif

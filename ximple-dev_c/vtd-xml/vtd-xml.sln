@@ -3,6 +3,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtd-xml", "vtd-xml.vcproj",
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libxmlTest", "..\libxmlTest\libxmlTest.vcproj", "{2F301679-42D5-4736-821B-A02509AA659E}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -13,6 +17,10 @@ Global
 		{AE1D3C5D-B19F-4855-8561-E8D488B3FB88}.Debug.Build.0 = Debug|Win32
 		{AE1D3C5D-B19F-4855-8561-E8D488B3FB88}.Release.ActiveCfg = Release|Win32
 		{AE1D3C5D-B19F-4855-8561-E8D488B3FB88}.Release.Build.0 = Release|Win32
+		{2F301679-42D5-4736-821B-A02509AA659E}.Debug.ActiveCfg = Debug|Win32
+		{2F301679-42D5-4736-821B-A02509AA659E}.Debug.Build.0 = Debug|Win32
+		{2F301679-42D5-4736-821B-A02509AA659E}.Release.ActiveCfg = Release|Win32
+		{2F301679-42D5-4736-821B-A02509AA659E}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

@@ -18,12 +18,12 @@
 #ifndef VTDGEN_H
 #define VTDGEN_H
 
-#include "customTypes.h"
+//#include "customTypes.h"
 #include "fastLongBuffer.h"
 #include "fastIntBuffer.h"
 #include "vtdNav.h"
 #include "UTF8Char.h"
-#include "XMLCHAR.h"
+#include "XMLChar.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -46,7 +46,16 @@ typedef struct vTDGen {
 	int last_l1_index;
 	int last_l2_index;
 	int last_i3_index;
+
+	int increment;
+	Boolean BOM_detected;
+	Boolean must_utf_8;
+	int ch;
+	int ch_temp;
 	int offset;
+	int temp_offset;
+	int depth;
+
 	int prev_offset;
 	int rootIndex;
 	UByte* XMLDoc; // byte buffer containing

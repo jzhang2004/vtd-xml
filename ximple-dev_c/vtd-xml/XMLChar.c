@@ -362,3 +362,170 @@ int Character_digit(int ch, int radix){
 	}
 	return Character[ch&0xff];
 }
+
+
+   /**
+     * Returns true if the specified character is a supplemental character.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isSupplemental(int c) {
+       return (c >= 0x10000 && c <= 0x10FFFF);
+    }
+
+    /**
+     * Returns true the supplemental character corresponding to the given
+     * surrogates.
+     *
+     * @param h The high surrogate.
+     * @param l The low surrogate.
+     */
+    int XMLChar_isSupplementalChar(char h, char l) {
+        return (h - 0xD800) * 0x400 + (l - 0xDC00) + 0x10000;
+    }
+
+    /**
+     * Returns the high surrogate of a supplemental character
+     *
+     * @param c The supplemental character to "split".
+     */
+    unsigned short XMLChar_highSurrogate(int c) {
+        return (unsigned short) (((c - 0x00010000) >> 10) + 0xD800);
+    }
+
+    /**
+     * Returns the low surrogate of a supplemental character
+     *
+     * @param c The supplemental character to "split".
+     */
+    unsigned short XMLChar_lowSurrogate(int c) {
+        return (unsigned short) (((c - 0x00010000) & 0x3FF) + 0xDC00);
+    }
+
+    /**
+     * Returns whether the given character is a high surrogate
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isHighSurrogate(int c) {
+        return (0xD800 <= c && c <= 0xDBFF);
+    }
+
+    /**
+     * Returns whether the given character is a low surrogate
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isLowSurrogate(int c) {
+        return (0xDC00 <= c && c <= 0xDFFF);
+    }
+
+
+    /**
+     * Returns true if the specified character is valid. This method
+     * also checks the surrogate character range from 0x10000 to 0x10FFFF.
+     * <p>
+     * If the program chooses to apply the mask directly to the
+     * <code>CHARS</code> array, then they are responsible for checking
+     * the surrogate character range.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isValidChar(int c) {
+        return (c < 0x10000 && (CHARS[c] & MASK_VALID) != 0) ||
+               (0x10000 <= c && c <= 0x10FFFF);
+    } // isValid(int):boolean
+
+    /**
+     * Returns true if the specified character is invalid.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isInvalidChar(int c) {
+        return !XMLChar_isValidChar(c);
+    } // isInvalid(int):boolean
+
+    /**
+     * Returns true if the specified character can be considered content.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isContentChar(int c) {
+        return (c < 0x10000 && (CHARS[c] & MASK_CONTENT) != 0) ||
+               (0x10000 <= c && c <= 0x10FFFF);
+    } // isContent(int):boolean
+
+    /**
+     * Returns true if the specified character can be considered markup.
+     * Markup characters include '&lt;', '&amp;', and '%'.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isMarkupChar(int c) {
+        return c == '<' || c == '&' || c == '%';
+    } // isMarkup(int):boolean
+
+    /**
+     * Returns true if the specified character is a space character
+     * as defined by production [3] in the XML 1.0 specification.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isSpaceChar(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_SPACE) != 0;
+    } // isSpace(int):boolean
+
+    /**
+     * Returns true if the specified character is a valid name start
+     * character as defined by production [5] in the XML 1.0
+     * specification.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isNameStartChar(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_NAME_START) != 0;
+    } // isNameStart(int):boolean
+
+    /**
+     * Returns true if the specified character is a valid name
+     * character as defined by production [4] in the XML 1.0
+     * specification.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isNameChar(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_NAME) != 0;
+    } // isName(int):boolean
+
+    /**
+     * Returns true if the specified character is a valid NCName start
+     * character as defined by production [4] in Namespaces in XML
+     * recommendation.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isNCNameStart(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_NCNAME_START) != 0;
+    } // isNCNameStart(int):boolean
+
+    /**
+     * Returns true if the specified character is a valid NCName
+     * character as defined by production [5] in Namespaces in XML
+     * recommendation.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isNCName(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_NCNAME) != 0;
+    } // isNCName(int):boolean
+
+    /**
+     * Returns true if the specified character is a valid Pubid
+     * character as defined by production [13] in the XML 1.0
+     * specification.
+     *
+     * @param c The character to check.
+     */
+    Boolean XMLChar_isPubid(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_PUBID) != 0;
+    } // isPubid(int):boolean

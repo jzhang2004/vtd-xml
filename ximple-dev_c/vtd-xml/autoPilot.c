@@ -51,7 +51,7 @@ void freeAutoPilot(AutoPilot *ap){
 }
 
 //Select the element name before iterating
-void selectElement(AutoPilot *ap, UCS2Char *en){
+void selectElement(AutoPilot *ap, UCSChar *en){
     ap->it = SIMPLE;
     ap->depth = getCurrentDepth(ap->vn);
     ap->startIndex = getCurrentIndex(ap->vn);
@@ -63,7 +63,7 @@ void selectElement(AutoPilot *ap, UCS2Char *en){
 // * URL, if set to *, matches every namespace
 // * URL, if set to null, indicates the namespace is undefined.
 // * localname, if set to *, matches any localname
-void selectElementNS(AutoPilot *ap, UCS2Char *URL, UCS2Char *ln){
+void selectElementNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
     ap->it = SIMPLE_NS;
     ap->depth = getCurrentDepth(ap->vn);
     ap->startIndex = getCurrentIndex(ap->vn);
@@ -72,7 +72,7 @@ void selectElementNS(AutoPilot *ap, UCS2Char *URL, UCS2Char *ln){
     ap->ft = TRUE;
 }
 
-//Iterate over all the selected element nodes.
+//Iterate over all the selected element nodes in document order.
 Boolean iterateAP(AutoPilot *ap){
 	exception e;
 	switch (ap->it) {

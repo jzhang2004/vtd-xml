@@ -45,9 +45,7 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline Boolean XMLChar_isSupplemental(int c) {
-       return (c >= 0x10000 && c <= 0x10FFFF);
-    }
+    extern inline Boolean XMLChar_isSupplemental(int c);
 
     /**
      * Returns true the supplemental character corresponding to the given
@@ -56,45 +54,34 @@ void XMLChar_init();
      * @param h The high surrogate.
      * @param l The low surrogate.
      */
-    inline int XMLChar_isSupplementalChar(char h, char l) {
-        return (h - 0xD800) * 0x400 + (l - 0xDC00) + 0x10000;
-    }
+    extern inline int XMLChar_isSupplementalChar(char h, char l) ;
 
     /**
      * Returns the high surrogate of a supplemental character
      *
      * @param c The supplemental character to "split".
      */
-    inline  unsigned short XMLChar_highSurrogate(int c) {
-        return (unsigned short) (((c - 0x00010000) >> 10) + 0xD800);
-    }
+    extern inline  unsigned short XMLChar_highSurrogate(int c);
 
     /**
      * Returns the low surrogate of a supplemental character
      *
      * @param c The supplemental character to "split".
      */
-    inline  unsigned short XMLChar_lowSurrogate(int c) {
-        return (unsigned short) (((c - 0x00010000) & 0x3FF) + 0xDC00);
-    }
+    extern inline  unsigned short XMLChar_lowSurrogate(int c);
 
     /**
      * Returns whether the given character is a high surrogate
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isHighSurrogate(int c) {
-        return (0xD800 <= c && c <= 0xDBFF);
-    }
-
+    extern inline  Boolean XMLChar_isHighSurrogate(int c);
     /**
      * Returns whether the given character is a low surrogate
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isLowSurrogate(int c) {
-        return (0xDC00 <= c && c <= 0xDFFF);
-    }
+    extern inline  Boolean XMLChar_isLowSurrogate(int c);
 
 
     /**
@@ -107,29 +94,21 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isValidChar(int c) {
-        return (c < 0x10000 && (CHARS[c] & MASK_VALID) != 0) ||
-               (0x10000 <= c && c <= 0x10FFFF);
-    } // isValid(int):boolean
+    extern inline Boolean XMLChar_isValidChar(int c);
 
     /**
      * Returns true if the specified character is invalid.
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isInvalidChar(int c) {
-        return !XMLChar_isValidChar(c);
-    } // isInvalid(int):boolean
+    extern inline  Boolean XMLChar_isInvalidChar(int c);
 
     /**
      * Returns true if the specified character can be considered content.
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isContentChar(int c) {
-        return (c < 0x10000 && (CHARS[c] & MASK_CONTENT) != 0) ||
-               (0x10000 <= c && c <= 0x10FFFF);
-    } // isContent(int):boolean
+    extern inline  Boolean XMLChar_isContentChar(int c);
 
     /**
      * Returns true if the specified character can be considered markup.
@@ -137,9 +116,7 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isMarkupChar(int c) {
-        return c == '<' || c == '&' || c == '%';
-    } // isMarkup(int):boolean
+    extern inline  Boolean XMLChar_isMarkupChar(int c) ;
 
     /**
      * Returns true if the specified character is a space character
@@ -147,9 +124,7 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isSpaceChar(int c) {
-        return c < 0x10000 && (CHARS[c] & MASK_SPACE) != 0;
-    } // isSpace(int):boolean
+    extern inline  Boolean XMLChar_isSpaceChar(int c);
 
     /**
      * Returns true if the specified character is a valid name start
@@ -158,9 +133,7 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isNameStartChar(int c) {
-        return c < 0x10000 && (CHARS[c] & MASK_NAME_START) != 0;
-    } // isNameStart(int):boolean
+    extern inline  Boolean XMLChar_isNameStartChar(int c) ;
 
     /**
      * Returns true if the specified character is a valid name
@@ -169,9 +142,7 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isNameChar(int c) {
-        return c < 0x10000 && (CHARS[c] & MASK_NAME) != 0;
-    } // isName(int):boolean
+    extern inline  Boolean XMLChar_isNameChar(int c) ;
 
     /**
      * Returns true if the specified character is a valid NCName start
@@ -180,9 +151,7 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isNCNameStart(int c) {
-        return c < 0x10000 && (CHARS[c] & MASK_NCNAME_START) != 0;
-    } // isNCNameStart(int):boolean
+    extern inline  Boolean XMLChar_isNCNameStart(int c);
 
     /**
      * Returns true if the specified character is a valid NCName
@@ -191,9 +160,7 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline  Boolean XMLChar_isNCName(int c) {
-        return c < 0x10000 && (CHARS[c] & MASK_NCNAME) != 0;
-    } // isNCName(int):boolean
+    extern inline  Boolean XMLChar_isNCName(int c) ;
 
     /**
      * Returns true if the specified character is a valid Pubid
@@ -202,9 +169,7 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    inline Boolean XMLChar_isPubid(int c) {
-        return c < 0x10000 && (CHARS[c] & MASK_PUBID) != 0;
-    } // isPubid(int):boolean
+    extern inline Boolean XMLChar_isPubid(int c);
 
 	int Character_digit(int ch, int radix);
 

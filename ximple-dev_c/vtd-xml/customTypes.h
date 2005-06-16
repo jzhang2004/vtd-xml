@@ -17,7 +17,7 @@
  */
 #ifndef CUSTOMTYPE_H
 #define CUSTOMTYPE_H
-#include <TCHAR.h>
+#include <wchar.h>
 #include "cexcept.h"
 #include <string.h>
 //#include <float.h>
@@ -35,9 +35,9 @@
 					 // small endian --> 0
 
 #define inline __inline
-#define _unicode
+#define _UNICODE
 
-typedef _TCHAR UCS2Char;
+typedef wchar_t UCSChar;
 typedef long long Long;
 typedef char Byte;
 typedef unsigned char UByte;
@@ -97,10 +97,5 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 					define_exception_type(exception);
 					extern struct exception_context the_exception_context[1];
 
-					inline int swap_bytes(int i){
-						return (((i & 0xff) << 24) |
-							((i & 0xff00) <<8) |
-							((i & 0xff0000) >> 8) |
-							((i & 0xff000000) >> 24)&0xff);
-					}
+					
 #endif

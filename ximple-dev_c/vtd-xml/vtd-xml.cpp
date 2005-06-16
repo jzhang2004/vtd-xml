@@ -19,14 +19,16 @@
 //
 
 #include "stdafx.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "fcntl.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
 struct exception_context the_exception_context[1];
+
+//#define _UNICODE
 #if 1
 
 
@@ -135,7 +137,7 @@ Boolean APTest(char *fn){
 		toElement(vn,ROOT);
 		
 		ap = createAutoPilot(vn);
-		selectElement(ap,"level1:level1");
+		selectElement(ap,L"level1:level1");
 		while(iterateAP(ap)){
 			z++;
 			sampleState(vn,fib2);
@@ -144,7 +146,7 @@ Boolean APTest(char *fn){
 		z = 0;
 		toElement(vn,ROOT);
 
-		selectElement(ap,"level2:level2");
+		selectElement(ap,L"level2:level2");
 		while(iterateAP(ap)){
 			z++;
 			sampleState(vn,fib2);
@@ -153,7 +155,7 @@ Boolean APTest(char *fn){
 		z = 0;
 		toElement(vn,ROOT);
 
-		selectElement(ap,"level3:level3");
+		selectElement(ap,L"level3:level3");
 		while(iterateAP(ap)){
 			z++;
 			sampleState(vn,fib2);
@@ -162,7 +164,7 @@ Boolean APTest(char *fn){
 		z = 0;
 		toElement(vn,ROOT);
 
-		selectElement(ap,"level4:level4");
+		selectElement(ap,L"level4:level4");
 		while(iterateAP(ap)){
 			z++;
 			sampleState(vn,fib2);
@@ -209,41 +211,41 @@ Boolean NavTestNS(char* fn){
 		setDoc(vg,xml,ii);
 		parse(vg,TRUE);
 		vn = getNav(vg);
-		i= parseInt(vn,getAttrVal(vn,"attr"));
+		i= parseInt(vn,getAttrVal(vn,L"attr"));
 		i1 = 0;
 		if(toElement(vn,FIRST_CHILD)){ // to level 1
 			//i1++;
 			do {
-				int j = parseInt(vn,getAttrVal(vn,"attr"));
+				int j = parseInt(vn,getAttrVal(vn,L"attr"));
 				int j1 = 0;
-				if (matchElementNS(vn,"level1","level1")==FALSE){
+				if (matchElementNS(vn,L"level1",L"level1")==FALSE){
 					return FALSE;
 				}
 				if (toElement(vn,FIRST_CHILD)){ // to level 2
 					//j1++;
 					do {						
-						int k = parseInt(vn,getAttrVal(vn,"attr"));
+						int k = parseInt(vn,getAttrVal(vn,L"attr"));
 						int k1 = 0;
-						if (matchElementNS(vn,"level2","level2")==FALSE)
+						if (matchElementNS(vn,L"level2",L"level2")==FALSE)
 							return FALSE;
 						if (toElement(vn,FC)){ // level 3
 							//k1++;
 							do{									
-								int l = parseInt(vn,getAttrVal(vn,"attr"));
+								int l = parseInt(vn,getAttrVal(vn,L"attr"));
 								int l1 = 0;
-								if (matchElementNS(vn,"level3","level3")==FALSE)
+								if (matchElementNS(vn,L"level3",L"level3")==FALSE)
 									return FALSE;
 								if (toElement(vn,FIRST_CHILD)){ // level 4
 									//l1++;
 									do {											
-										int m = parseInt(vn,getAttrVal(vn,"attr"));
+										int m = parseInt(vn,getAttrVal(vn,L"attr"));
 										int m1 = 0;
-										if (matchElementNS(vn,"level4","level4")==FALSE)
+										if (matchElementNS(vn,L"level4",L"level4")==FALSE)
 											return FALSE;
 										if (toElement(vn,FC)){ // level 5
 											m1++;
 											do {
-												if (matchElement(vn,"level5")==FALSE)
+												if (matchElement(vn,L"level5")==FALSE)
 													return FALSE;
 												m1++;
 											}while(toElement(vn,NS));
@@ -277,41 +279,41 @@ Boolean NavTestNS(char* fn){
 		if (i1!=i)
 			return FALSE;
 		toElement(vn,ROOT);
-		i= parseInt(vn,getAttrVal(vn,"attr"));
+		i= parseInt(vn,getAttrVal(vn,L"attr"));
 		i1 = 0;
 		if(toElement(vn,LAST_CHILD)){ // to level 1
 			//i1++;
 			do {
-				int j = parseInt(vn,getAttrVal(vn,"attr"));
+				int j = parseInt(vn,getAttrVal(vn,L"attr"));
 				int j1 = 0;
-				if (matchElementNS(vn,"level1","level1")==FALSE){
+				if (matchElementNS(vn,L"level1",L"level1")==FALSE){
 					return FALSE;
 				}
 				if (toElement(vn,LAST_CHILD)){ // to level 2
 					//j1++;
 					do {						
-						int k = parseInt(vn,getAttrVal(vn,"attr"));
+						int k = parseInt(vn,getAttrVal(vn,L"attr"));
 						int k1 = 0;
-						if (matchElementNS(vn,"level2","level2")==FALSE)
+						if (matchElementNS(vn,L"level2",L"level2")==FALSE)
 							return FALSE;
 						if (toElement(vn,LC)){ // level 3
 							//k1++;
 							do{									
-								int l = parseInt(vn,getAttrVal(vn,"attr"));
+								int l = parseInt(vn,getAttrVal(vn,L"attr"));
 								int l1 = 0;
-								if (matchElementNS(vn,"level3","level3")==FALSE)
+								if (matchElementNS(vn,L"level3",L"level3")==FALSE)
 									return FALSE;
 								if (toElement(vn,LAST_CHILD)){ // level 4
 									//l1++;
 									do {											
-										int m = parseInt(vn,getAttrVal(vn,"attr"));
+										int m = parseInt(vn,getAttrVal(vn,L"attr"));
 										int m1 = 0;
-										if (matchElementNS(vn,"level4","level4")==FALSE)
+										if (matchElementNS(vn,L"level4",L"level4")==FALSE)
 											return FALSE;
 										if (toElement(vn,LC)){ // level 5
 											m1++;
 											do {
-												if (matchElement(vn,"level5")==FALSE)
+												if (matchElement(vn,L"level5")==FALSE)
 													return FALSE;
 												m1++;
 											}while(toElement(vn,PS));
@@ -374,33 +376,33 @@ Boolean MiscTest(char *fn){
 		vn = getNav(vg);
 		i = getText(vn);
 		if (toElement(vn,FIRST_CHILD)){
-				if (matchElement(vn,"float")){
+				if (matchElement(vn,L"float")){
 					do {
-						float f1 = (float)atof(toString(vn,getText(vn)));
+						float f1 = (float)_wtof(toString(vn,getText(vn)));
 						float f2 = parseFloat(vn,getText(vn));
 						if (f1 != f2)
 							return FALSE;						
 					}while(toElement(vn,NS));
 					return TRUE;
-				}else if (matchElement(vn,"double")){
+				}else if (matchElement(vn,L"double")){
 					do {
-						double d1 = atof(toString(vn,getText(vn)));
+						double d1 = _wtof(toString(vn,getText(vn)));
 						double d2 = parseDouble(vn,getText(vn));
 						if (d1 != d2)
 							return FALSE;						
 					}while(toElement(vn,NS));
 					return TRUE;
-				}else if (matchElement(vn,"int")){
+				}else if (matchElement(vn,L"int")){
 					do {
-						int i1 = atoi(toString(vn,getText(vn)));
+						int i1 = _wtoi(toString(vn,getText(vn)));
 						int i2 = parseInt(vn,getText(vn));
 						if (i1 != i2)
 							return FALSE;						
 					}while(toElement(vn,NS));
 					return TRUE;
-				}else if (matchElement(vn,"long")){
+				}else if (matchElement(vn,L"long")){
 					do {
-						Long l1 = _atoi64(toString(vn,getText(vn)));
+						Long l1 = _wtoi64(toString(vn,getText(vn)));
 						Long l2 = parseLong(vn, getText(vn));
 						if (l1 != l2)
 							return FALSE;						
@@ -412,14 +414,14 @@ Boolean MiscTest(char *fn){
 				if (i==-1){
 					i = getCurrentIndex(vn)+3;
 					if (getTokenType(vn,i)== TOKEN_COMMENT
-							|| getTokenLength(vn,i) == parseInt(vn,getAttrVal(vn,"len")))
+							|| getTokenLength(vn,i) == parseInt(vn,getAttrVal(vn,L"len")))
 						return TRUE;
 						
 					return FALSE;
 				}
 				if (getTokenType(vn,i)== TOKEN_CDATA_VAL
 						|| getTokenType(vn,i) == TOKEN_CHARACTER_DATA){
-					int z = getAttrVal(vn,"len");
+					int z = getAttrVal(vn,L"len");
 					if (z!=-1){
 						int i4 = parseInt(vn,z);
 						if (i4!= getTokenLength(vn,i)){
@@ -459,41 +461,41 @@ Boolean NavTest(char* fn){
 		setDoc(vg,xml,ii);
 		parse(vg,TRUE);
 		vn = getNav(vg);
-		i= parseInt(vn,getAttrVal(vn,"attr"));
+		i= parseInt(vn,getAttrVal(vn,L"attr"));
 		i1 = 0;
 		if(toElement(vn,FIRST_CHILD)){ // to level 1
 			//i1++;
 			do {
-				int j = parseInt(vn,getAttrVal(vn,"attr"));
+				int j = parseInt(vn,getAttrVal(vn,L"attr"));
 				int j1 = 0;
-				if (matchElement(vn,"level1")==FALSE){
+				if (matchElement(vn,L"level1")==FALSE){
 					return FALSE;
 				}
 				if (toElement(vn,FIRST_CHILD)){ // to level 2
 					//j1++;
 					do {						
-						int k = parseInt(vn,getAttrVal(vn,"attr"));
+						int k = parseInt(vn,getAttrVal(vn,L"attr"));
 						int k1 = 0;
-						if (matchElement(vn,"level2")==FALSE)
+						if (matchElement(vn,L"level2")==FALSE)
 							return FALSE;
 						if (toElement(vn,FC)){ // level 3
 							//k1++;
 							do{									
-								int l = parseInt(vn,getAttrVal(vn,"attr"));
+								int l = parseInt(vn,getAttrVal(vn,L"attr"));
 								int l1 = 0;
-								if (matchElement(vn,"level3")==FALSE)
+								if (matchElement(vn,L"level3")==FALSE)
 									return FALSE;
 								if (toElement(vn,FIRST_CHILD)){ // level 4
 									//l1++;
 									do {											
-										int m = parseInt(vn,getAttrVal(vn,"attr"));
+										int m = parseInt(vn,getAttrVal(vn,L"attr"));
 										int m1 = 0;
-										if (matchElement(vn,"level4")==FALSE)
+										if (matchElement(vn,L"level4")==FALSE)
 											return FALSE;
 										if (toElement(vn,FC)){ // level 5
 											m1++;
 											do {
-												if (matchElement(vn,"level5")==FALSE)
+												if (matchElement(vn,L"level5")==FALSE)
 													return FALSE;
 												m1++;
 											}while(toElement(vn,NS));
@@ -527,41 +529,41 @@ Boolean NavTest(char* fn){
 		if (i1!=i)
 			return FALSE;
 		toElement(vn,ROOT);
-		i= parseInt(vn,getAttrVal(vn,"attr"));
+		i= parseInt(vn,getAttrVal(vn,L"attr"));
 		i1 = 0;
 		if(toElement(vn,LAST_CHILD)){ // to level 1
 			//i1++;
 			do {
-				int j = parseInt(vn,getAttrVal(vn,"attr"));
+				int j = parseInt(vn,getAttrVal(vn,L"attr"));
 				int j1 = 0;
-				if (matchElement(vn,"level1")==FALSE){
+				if (matchElement(vn,L"level1")==FALSE){
 					return FALSE;
 				}
 				if (toElement(vn,LAST_CHILD)){ // to level 2
 					//j1++;
 					do {						
-						int k = parseInt(vn,getAttrVal(vn,"attr"));
+						int k = parseInt(vn,getAttrVal(vn,L"attr"));
 						int k1 = 0;
-						if (matchElement(vn,"level2")==FALSE)
+						if (matchElement(vn,L"level2")==FALSE)
 							return FALSE;
 						if (toElement(vn,LC)){ // level 3
 							//k1++;
 							do{									
-								int l = parseInt(vn,getAttrVal(vn,"attr"));
+								int l = parseInt(vn,getAttrVal(vn,L"attr"));
 								int l1 = 0;
-								if (matchElement(vn,"level3")==FALSE)
+								if (matchElement(vn,L"level3")==FALSE)
 									return FALSE;
 								if (toElement(vn,LAST_CHILD)){ // level 4
 									//l1++;
 									do {											
-										int m = parseInt(vn,getAttrVal(vn,"attr"));
+										int m = parseInt(vn,getAttrVal(vn,L"attr"));
 										int m1 = 0;
-										if (matchElement(vn,"level4")==FALSE)
+										if (matchElement(vn,L"level4")==FALSE)
 											return FALSE;
 										if (toElement(vn,LC)){ // level 5
 											m1++;
 											do {
-												if (matchElement(vn,"level5")==FALSE)
+												if (matchElement(vn,L"level5")==FALSE)
 													return FALSE;
 												m1++;
 											}while(toElement(vn,PS));
@@ -603,17 +605,29 @@ Boolean NavTest(char* fn){
 	return TRUE;
 }
 
-
 int main(int argc, char *argv[])
 {   
-   int test = 10;
+   int test = 12;
   
    if (test ==1){
 	int i,a;
 	unsigned int k; 
 	Long l;
-	UCS2Char *string;
+	UCSChar *string;
+	UCSChar *as;
 	exception e;
+	wprintf(L"size of UCSChar is %d \n",sizeof(UCSChar));
+	wprintf(L"size of wchar_t is %d \n",sizeof(wchar_t));
+	wprintf(L"size of char is %d \n",sizeof(char));
+	wprintf(L"string length is %d \n",wcslen(L"this"));
+	as= (UCSChar *)malloc(10*sizeof(UCSChar));
+	for (i=0;i<10;i++){
+		as[i]=128;
+	}
+	for (i=0;i<10;i++){
+		wprintf(L"%u",as[i]);
+	}
+	
 	/*ArrayList *al = createArrayList();
 	for (int i=0;i<1000;i++)
 	{
@@ -650,14 +664,14 @@ int main(int argc, char *argv[])
 	l =  0xffffffffffffffff;
     i = (unsigned int) l;
 	a = 1<<-1;
-	string = "this is cool!";
-	k = strlen(string);
+	string = L"this is cool!";
+	k = wcslen(string);
 	printf(" k equals %d", k);
 
 	printf ("\n ------------------ \n");
-	string = "*";
-	if (strcmp(string, "*")==0)
-		printf(" string value of s is * \n");
+	string = L"*";
+	if (wcscmp(string, L"*")==0)
+		wprintf(L" string value of s is * \n");
    }
    if (test ==2){
 	   int i,j,z;
@@ -969,7 +983,7 @@ if (test ==10){
 	char *dir = "d://ximple-dev//testcases//VTDNav//";
 	char *fullname = (char *)malloc(sizeof(char)*50);
 	sprintf(fullname,"%s%s",dir,argv[1]);
-    if (NavTest(fullname)==TRUE)
+    if (NavTestNS(fullname)==TRUE)
 		printf("%s passed \n", fullname);
 }
 
@@ -1028,12 +1042,12 @@ if (test == 13){
 		setDoc(vg,xml,i);
 		parse(vg,TRUE);
 		vn = getNav(vg);
-		if (toElementNS(vn,FC,"http://www.w3.org/2003/05/soap-envelope","Header")) //nav to soap header
+		if (toElementNS(vn,FC,L"http://www.w3.org/2003/05/soap-envelope",L"Header")) //nav to soap header
 		{
 			if (toElement(vn,FC))
 			{
 				do{
-					if (hasAttrNS(vn,"http://www.w3.org/2003/05/soap-envelope","mustUnderstand")){
+					if (hasAttrNS(vn,L"http://www.w3.org/2003/05/soap-envelope",L"mustUnderstand")){
 						printf(toString(vn,getCurrentIndex(vn)));
 
 						printf("\n");
