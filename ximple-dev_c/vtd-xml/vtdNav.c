@@ -157,7 +157,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Get the token index of the attribute value given an attribute name.     
 					 int getAttrVal(VTDNav *vn, UCSChar *an){
-						 int size = vn->vtdBuffer->size;
+						 //int size = vn->vtdBuffer->size;
 						 int index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 
 						 tokenType type;

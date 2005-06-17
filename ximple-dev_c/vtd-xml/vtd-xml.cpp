@@ -382,7 +382,7 @@ Boolean MiscTest(char *fn){
 						float f1 = (float)_wtof(toString(vn,getText(vn)));
 #endif
 #ifdef GCC
-						float f1 = (float)wcstof(toString(vn,getText(vn)));
+						float f1 = (float)wcstof(toString(vn,getText(vn)),NULL);
 #endif
 						float f2 = parseFloat(vn,getText(vn));
 						if (f1 != f2)
@@ -395,7 +395,7 @@ Boolean MiscTest(char *fn){
 						double d1 = _wtof(toString(vn,getText(vn)));
 #endif
 #ifdef GCC
-						double d1 = wcstof(toString(vn,getText(vn)));
+						double d1 = wcstof(toString(vn,getText(vn)),NULL);
 #endif
 						double d2 = parseDouble(vn,getText(vn));
 						if (d1 != d2)
@@ -622,7 +622,7 @@ Boolean NavTest(char* fn){
 
 int main(int argc, char *argv[])
 {   
-   int test = 1;
+   int test =10;
   
    if (test ==1){
 	int i,a;
@@ -998,7 +998,7 @@ if (test ==10){
 	char *dir = "d://ximple-dev//testcases//VTDNav//";
 	char *fullname = (char *)malloc(sizeof(char)*50);
 	sprintf(fullname,"%s%s",dir,argv[1]);
-    if (NavTestNS(fullname)==TRUE)
+    if (NavTest(fullname)==TRUE)
 		printf("%s passed \n", fullname);
 }
 
@@ -1063,7 +1063,7 @@ if (test == 13){
 			{
 				do{
 					if (hasAttrNS(vn,L"http://www.w3.org/2003/05/soap-envelope",L"mustUnderstand")){
-						printf(toString(vn,getCurrentIndex(vn)));
+						wprintf(toString(vn,getCurrentIndex(vn)));
 
 						printf("\n");
 						l = getElementFragment(vn);

@@ -323,7 +323,7 @@ static void printLineNumber(VTDGen *vg){
 	int so = vg->docOffset;
 	int lineNumber = 0;
 	int lineOffset = 0;
-	int end = vg->offset;
+	//int end = vg->offset;
 
 	if (vg->encoding < FORMAT_UTF_16BE) {
 		while (so <= vg->offset-1) {
@@ -632,7 +632,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 	int length1 = 0, length2 = 0;
 	int attr_count = 0 /*, ch = 0, ch_temp = 0*/;
-	int prev_ch = 0, prev2_ch = 0;
+	//int prev_ch = 0, prev2_ch = 0;
 	int i,j;
 	parseState parser_state = STATE_DOC_START;
 	//boolean has_amp = false; 
@@ -644,9 +644,10 @@ void parse(VTDGen *vg, Boolean ns){
 	Long x;
 	Boolean main_loop = TRUE,
 		hasDTD = FALSE,
-		hasDecl = FALSE,
-		docEnd = FALSE,
-		firstLT = TRUE;
+		//hasDecl = FALSE,
+		docEnd = FALSE
+		//firstLT = TRUE
+		;
 	//char char_temp; //holds the ' or " indicating start of attr val
 	int sos = 0, sl = 0;
 	XMLChar_init();
@@ -1779,17 +1780,18 @@ static Boolean skipChar(VTDGen *vg, int ch){
 				}
 			case FORMAT_UTF8 :
 				temp = vg->XMLDoc[vg->offset];
-				if (temp <128)
+				if (temp <128) {
 					if (ch == temp) {
 						vg->offset++;
 						return TRUE;
 					} else {
 						return FALSE;
 					}
+				}
 
-					//temp = temp & 0xff;
+				//temp = temp & 0xff;
 
-					switch (UTF8Char_byteCount(temp)) { // handle multi-byte code
+				switch (UTF8Char_byteCount(temp)) { // handle multi-byte code
 
 			case 2 :
 				c = 0x1f;
@@ -1824,30 +1826,30 @@ static Boolean skipChar(VTDGen *vg, int ch){
 				e.sub_msg = "UTF 8 encoding error: should never happen";
 				Throw e;
 				//throw new ParseException("UTF 8 encoding error: should never happen");
-					}
+				}
 
-					val = (temp & c) << d;
-					i = a - 1;
-					while (i >= 0) {
-						temp = vg->XMLDoc[vg->offset + a - i];
-						if ((temp & 0xc0) != 0x80){
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse exception in skipChar";
-							e.sub_msg = "UTF 8 encoding error: should never happen";
-							Throw e;
-						}
-						//throw new ParseException("UTF 8 encoding error: should never happen");
-						val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
-						i--;
+				val = (temp & c) << d;
+				i = a - 1;
+				while (i >= 0) {
+					temp = vg->XMLDoc[vg->offset + a - i];
+					if ((temp & 0xc0) != 0x80){
+						e.et = parse_exception;
+						e.subtype = 0;
+						e.msg = "Parse exception in skipChar";
+						e.sub_msg = "UTF 8 encoding error: should never happen";
+						Throw e;
 					}
+					//throw new ParseException("UTF 8 encoding error: should never happen");
+					val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
+					i--;
+				}
 
-					if (val == ch) {
-						vg->offset += a + 1;
-						return TRUE;
-					} else {
-						return FALSE;
-					}
+				if (val == ch) {
+					vg->offset += a + 1;
+					return TRUE;
+				} else {
+					return FALSE;
+				}
 
 			case FORMAT_UTF_16BE :
 				// implement UTF-16BE to UCS4 conversion
@@ -2315,7 +2317,7 @@ int process_end_pi(VTDGen *vg){
 
 				while (TRUE) {
 					if (XMLChar_isValidChar(vg->ch)) {
-						if (vg->ch == '?')
+						if (vg->ch == '?') {
 							if (skipChar(vg,'>')) {
 								parser_state = STATE_DOC_END;
 								break;
@@ -2326,6 +2328,7 @@ int process_end_pi(VTDGen *vg){
 								e.sub_msg = "Error in PI: invalid termination sequence";
 								Throw e;
 							}
+						}
 							/*throw new ParseException(
 							"Error in PI: invalid termination sequence"
 							+ formatLineNumber());*/
@@ -2700,7 +2703,7 @@ int process_pi_val(VTDGen *vg){
 	while (TRUE) {
 		if (XMLChar_isValidChar(vg->ch)) {
 			//System.out.println(""+(char)ch);
-			if (vg->ch == '?')
+			if (vg->ch == '?'){
 				if (skipChar(vg,'>')) {
 					break;
 				} else{		
@@ -2710,6 +2713,7 @@ int process_pi_val(VTDGen *vg){
 					e.sub_msg = "Error in PI: invalid termination sequence for PI";
 					Throw e;
 				}
+			}
 				/*	throw new ParseException(
 				"Error in PI: invalid termination sequence for PI"
 				+ formatLineNumber());*/
@@ -3207,7 +3211,7 @@ int process_dec_attr(VTDGen *vg){
 					case 'u' :
 					case 'U' :{
 						if ((skipChar(vg,'s')
-							|| skipChar(vg,'S')))
+							|| skipChar(vg,'S'))){
 							if (skipChar(vg,'-')
 								&& (skipChar(vg,'a')
 								|| skipChar(vg,'A'))
@@ -3270,6 +3274,7 @@ int process_dec_attr(VTDGen *vg){
 									e.sub_msg = "XML decl error: Invalid Encoding";
 									Throw e;
 								}
+							}
 								/*throw new ParseException(
 								"XML decl error: Invalid Encoding"
 								+ formatLineNumber());*/
