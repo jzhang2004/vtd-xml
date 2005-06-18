@@ -130,7 +130,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 freeFastIntBuffer(vn->l3Buffer);
 							 free(vn->context);
 							 free(vn->stackTemp);
-							 free(vn->XMLDoc);
+							 //free(vn->XMLDoc);
 						 }
 						 free(vn);
 					 }
