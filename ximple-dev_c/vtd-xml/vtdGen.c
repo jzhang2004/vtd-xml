@@ -1712,7 +1712,9 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
 	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
 }
 
-// Set the XMLDoc container.Also set the offset and len of the document 
+// Set the XMLDoc container.Also set the offset and len of the document
+// len is the size of the byte buffer
+// docLen is the length of the XML content in byte
 void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	int a;
 	vg->depth = -1;
@@ -1724,7 +1726,7 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->XMLDoc = ba;
 	vg->docOffset = vg->offset = os;
 	vg->docLen = len;
-	vg->endOffset = os + len;
+	vg->endOffset = os + docLen;
 	if (docLen <= 1024) {
 		//a = 1024; //set the floor
 		a = 10;
@@ -3533,64 +3535,65 @@ int process_dec_attr(VTDGen *vg){
 						"XML decl error: Invalid char to start attr name"
 						+ formatLineNumber());*/
 						vg->ch = getChar(vg);
-						//if (ch == 'y') {
-						//	if (skipChar(vg,'e')
-						//		&& skipChar(vg,'s')
-						//		&& skipChar(vg,ch_temp)) {
-						//		/*System.out.println(
-						//		    " " + (vg->temp_offset) + " " + 3 + " dec attr val (standalone) " + vg->depth);*/
-						//		if (vg->encoding < FORMAT_UTF_16BE)
-						//				vg->temp_offset,
-						//				3,
-						//				TOKEN_DEC_ATTR_VAL,
-						//				vg->depth);
-						//		else
-						//			writeVTD(vg,
-						//				vg->temp_offset >> 1,
-						//				3,
-						//				TOKEN_DEC_ATTR_VAL,
-						//				vg->depth);
-						//		} else{		
-						//			e.et = parse_exception;
-						//			e.msg = "Parse Exception in parse()";
-						//			e.sub_msg = "XML decl error: invalid val for standalone";
-						//			Throw e;
-						//		}
-						//		/*throw new ParseException(
-						//			"XML decl error: invalid val for standalone"
-						//			+ formatLineNumber());*/
-						//} else if (ch == 'n') {
-						//	if (skipChar(vg,'o')
-						//		&& skipChar(vg,ch_temp)) {
-						//		/*System.out.println(
-						//		    " " + (vg->temp_offset) + " " + 2 + " dec attr val (standalone)" + vg->depth);*/
-						//		if (vg->encoding < FORMAT_UTF_16BE)
-						//			writeVTD(vg,
-						//				vg->temp_offset,
-						//				2,
-						//				TOKEN_DEC_ATTR_VAL,
-						//				vg->depth);
-						//		else
-						//			writeVTD(vg,
-						//				vg->temp_offset >> 1,
-						//				2,
-						//				TOKEN_DEC_ATTR_VAL,
-						//				vg->depth);
-						//		} else{		
-						//			e.et = parse_exception;
-						//			e.msg = "Parse Exception in parse()";
-						//			e.sub_msg = "XML decl error: invalid val for standalone";
-						//			Throw e;
-						//		}
-						//		/*throw new ParseException(
-						//			"XML decl error: invalid val for standalone"
-						//			+ formatLineNumber());*/
-						//} else{		
-						//	e.et = parse_exception;
-						//	e.msg = "Parse Exception in parse()";
-						//	e.sub_msg = "XML decl error: invalid val for standalone";
-						//	Throw e;
-						//}
+						if (vg->ch == 'y') {
+							if (skipChar(vg,'e')
+								&& skipChar(vg,'s')
+								&& skipChar(vg,vg->ch_temp)) {
+								/*System.out.println(
+								    " " + (vg->temp_offset) + " " + 3 + " dec attr val (standalone) " + vg->depth);*/
+								if (vg->encoding < FORMAT_UTF_16BE)
+									writeVTD(vg,
+										vg->temp_offset,
+										3,
+										TOKEN_DEC_ATTR_VAL,
+										vg->depth);
+								else
+									writeVTD(vg,
+										vg->temp_offset >> 1,
+										3,
+										TOKEN_DEC_ATTR_VAL,
+										vg->depth);
+								} else{		
+									e.et = parse_exception;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg = "XML decl error: invalid val for standalone";
+									Throw e;
+								}
+								/*throw new ParseException(
+									"XML decl error: invalid val for standalone"
+									+ formatLineNumber());*/
+						} else if (vg->ch == 'n') {
+							if (skipChar(vg,'o')
+								&& skipChar(vg,vg->ch_temp)) {
+								/*System.out.println(
+								    " " + (vg->temp_offset) + " " + 2 + " dec attr val (standalone)" + vg->depth);*/
+								if (vg->encoding < FORMAT_UTF_16BE)
+									writeVTD(vg,
+										vg->temp_offset,
+										2,
+										TOKEN_DEC_ATTR_VAL,
+										vg->depth);
+								else
+									writeVTD(vg,
+										vg->temp_offset >> 1,
+										2,
+										TOKEN_DEC_ATTR_VAL,
+										vg->depth);
+								} else{		
+									e.et = parse_exception;
+									e.msg = "Parse Exception in parse()";
+									e.sub_msg = "XML decl error: invalid val for standalone";
+									Throw e;
+								}
+								/*throw new ParseException(
+									"XML decl error: invalid val for standalone"
+									+ formatLineNumber());*/
+						} else{		
+							e.et = parse_exception;
+							e.msg = "Parse Exception in parse()";
+							e.sub_msg = "XML decl error: invalid val for standalone";
+							Throw e;
+						}
 						/*throw new ParseException(
 						"XML decl error: invalid val for standalone"
 						+ formatLineNumber());*/
