@@ -51,7 +51,7 @@ void selectElement(AutoPilot *ap, UCSChar *en);
 void selectElementNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln);
 
 //Iterate over all the selected element nodes.
-Boolean iterateAP();
+Boolean iterateAP(AutoPilot *ap);
 
 #endif
 
