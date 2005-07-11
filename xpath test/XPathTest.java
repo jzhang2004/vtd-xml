@@ -32,11 +32,14 @@ public class XPathTest {
 		
 	}
 	
+	public XPathTest(){
+		currentStep =null;
+	}
 	public static final int AXIS_CHILD = 0,
 	AXIS_DESCENDENT  =1,
 	AXIS_PARENT = 2,
 	AXIS_ANCESTOR  = 3,
-	AXIS_FOLLOWING_SIBLIG =4,
+	AXIS_FOLLOWING_SIBLING =4,
 	AXIS_PRECEDING_SIBLING  = 5,
 	AXIS_FOLLOWING =6,
 	AXIS_PRECEDING =7,
@@ -62,6 +65,9 @@ public class XPathTest {
 			testType = t;
 		}
 		public boolean eval(){
+			if (testType == NODE)
+				return true;
+			
 			return false;
 		}
 	}
@@ -198,7 +204,8 @@ public class XPathTest {
 	public XPathExpr buildExpr2(VTDNav vn){
 		step currentStep;
 		XPathExpr  xpe= new XPathExpr();
-		//xpe.setPathType(XPathExpr.ABSOLUTE_PATH);
+		
+		xpe.setPathType(XPathExpr.ABSOLUTE_PATH);
 		
 		step s0 = new step();// for a
 		
@@ -244,11 +251,11 @@ public class XPathTest {
 		return xpe;
 	
 	}
-	//descendent::a/child:b/descendent::c
+	// /descendent::a/child:b/descendent::c
 	public XPathExpr buildExpr3(VTDNav vn){
 		step currentStep;
 		XPathExpr  xpe= new XPathExpr();
-		//xpe.setPathType(XPathExpr.ABSOLUTE_PATH);
+		xpe.setPathType(XPathExpr.ABSOLUTE_PATH);
 		
 		step s0 = new step();// for a
 		
@@ -294,12 +301,49 @@ public class XPathTest {
 		return xpe;
 	
 	}
+	// //a/..
+	public XPathExpr buildExpr4(VTDNav vn){
+		step currentStep;
+		XPathExpr  xpe= new XPathExpr();
+		xpe.setPathType(XPathExpr.ABSOLUTE_PATH);
+		
+		step s0 = new step();// for a
+		
+		s0.setAxisType(AXIS_DESCENDENT_OR_SELF);
+		s0.o = new AutoPilot(vn);
+		
+		nodeTest nt0 = new nodeTest();
+		nt0.setTestType(nodeTest.NAMETEST);
+		nt0.qname = "a";
+		//ap0.selectElement(nt0.qname);
+		s0.setNodeTest(nt0);
+		s0.setPrevStep(null);
+		currentStep = s0;
+		xpe.setStep(s0);
+		
+		step s1 = new step();// for a
+		
+		s1.setAxisType(AXIS_PARENT);
+		
+		nodeTest nt1 = new nodeTest();
+		nt1.setTestType(nodeTest.NAMETEST);
+		
+		nt1.qname = null;
+		s1.setNodeTest(nt1);
+		currentStep.setNextStep(s1);
+		s1.setPrevStep(currentStep);
+		currentStep = s1;
+		
+		currentStep.setNextStep(null);	
+		return xpe;
+		
+	}
 	
     // for the time being, parsing by human :)
 	public XPathExpr buildExpr(){
 		step currentStep;
 		XPathExpr  xpe= new XPathExpr();
-		//xpe.setPathType(XPathExpr.ABSOLUTE_PATH);
+		xpe.setPathType(XPathExpr.ABSOLUTE_PATH);
 		
 		step s0 = new step();// for a
 		
@@ -389,7 +433,7 @@ public class XPathTest {
 			switch(xpe.state){			
 			  case XPathExpr.START:
 			  	if (currentStep.axis_type == AXIS_CHILD) {
-					if (xpe.path_type != XPathExpr.ABSOLUTE_PATH) {
+			  		if (xpe.path_type != XPathExpr.ABSOLUTE_PATH) {
 						vn.toElement(VTDNav.FIRST_CHILD);
 					}
 					xpe.state = XPathExpr.END;
@@ -406,6 +450,7 @@ public class XPathTest {
 					} while (vn.toElement(VTDNav.NS));
 				}else if(currentStep.axis_type == AXIS_DESCENDENT_OR_SELF
 						||currentStep.axis_type == AXIS_DESCENDENT){
+					
 					ap = (AutoPilot)currentStep.o;
 					if(currentStep.get_ft()==true){
 						if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF)
@@ -429,54 +474,37 @@ public class XPathTest {
 						break;
 					}
 					else {							
-						if (currentStep.getNextStep() != null)
+						if (currentStep.getNextStep() != null){
 							xpe.state = XPathExpr.FORWARD;
+							currentStep = currentStep.getNextStep();
+						}
 						else {
 							//vn.pop();
 							xpe.state = XPathExpr.TERMINAL;
 							return vn.getCurrentIndex();
 						}
 					}				
-				}else if (currentStep.axis_type == AXIS_PARENT){
-					vn.push();
-					b = vn.toElement(VTDNav.P)&& 
-						(currentStep.nt.qname == null || 
-						 currentStep.nt.qname.matches("*") ||
-						 vn.matchElement(currentStep.nt.qname)) ;
-					if (b == false)
-						vn.pop();
-					xpe.state = XPathExpr.END;
-					if (b == true ){
-						if (currentStep.getNextStep() != null)
-							xpe.state = XPathExpr.FORWARD;
-						else {
-							xpe.state = XPathExpr.TERMINAL;
-							return vn.getCurrentIndex();
-						}
-					}	
-					
-				}else if (currentStep.axis_type == AXIS_ANCESTOR){
-					
-				}else if (currentStep.axis_type == AXIS_ANCESTOR_OR_SELF){
-					
 				}
 			  	
 			  	break;
 			  	
 			  case XPathExpr.END:
+			  	currentStep = null;
 			  	return -1;
 			  	
 			  case XPathExpr.FORWARD: //
 			  	//must have a child
-			  	currentStep = currentStep.getNextStep();
+			  	//currentStep = currentStep.getNextStep();
 			  	if (currentStep.axis_type == AXIS_CHILD) {
 					
 			  		xpe.state = XPathExpr.BACKWARD;
 					forward: if (vn.toElement(VTDNav.FC)) {
 						do {
 							if (vn.matchElement(currentStep.nt.qname)) {
-								if (currentStep.getNextStep() != null)
+								if (currentStep.getNextStep() != null){
 									xpe.state = XPathExpr.FORWARD;
+									currentStep = currentStep.getNextStep();
+								}
 								else {
 									xpe.state = XPathExpr.TERMINAL;
 									return vn.getCurrentIndex();
@@ -484,12 +512,15 @@ public class XPathTest {
 								break forward;
 							}
 						} while (vn.toElement(VTDNav.NS));
+						currentStep = currentStep.getPrevStep();
 						vn.toElement(VTDNav.P);
 					}
+			  		
+			  		
 				} else if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF
 						||currentStep.axis_type == AXIS_DESCENDENT) {
 					ap = (AutoPilot)currentStep.o;
-
+	
 					if(currentStep.get_ft()==true){
 						if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF)
 							 ap.selectElement(currentStep.nt.qname);
@@ -509,47 +540,34 @@ public class XPathTest {
 					if (b== false){
 						vn.pop();
 						xpe.state = XPathExpr.BACKWARD;
+						currentStep = currentStep.getPrevStep();
 					}
 					else {						
-						if (currentStep.getNextStep() != null)
+						if (currentStep.getNextStep() != null){
 							xpe.state = XPathExpr.FORWARD;
+							currentStep = currentStep.getNextStep();
+						}
 						else {
 							//vn.pop();
 							xpe.state = XPathExpr.TERMINAL;
 							return vn.getCurrentIndex();
 						}
 					}
-				}else if (currentStep.axis_type == AXIS_PARENT){
-					b = vn.toElement(VTDNav.P) && 
-					   (currentStep.nt.qname == null || 
-					   	currentStep.nt.qname.matches("*") ||
-						vn.matchElement(currentStep.nt.qname));
-					xpe.state = XPathExpr.BACKWARD;
-					
-					if (b == true){
-						if (currentStep.getNextStep() != null)
-							xpe.state = XPathExpr.FORWARD;
-						else {
-							xpe.state = XPathExpr.TERMINAL;
-							return vn.getCurrentIndex();
-						}
-					}	
-				}else if (currentStep.axis_type == AXIS_ANCESTOR){
-					
-				}else if (currentStep.axis_type == AXIS_ANCESTOR_OR_SELF){
-					
 				}
+					
 				break;
 			  
 			  case XPathExpr.BACKWARD: // going backforward is ok
-			  	currentStep = currentStep.getPrevStep();
+			  	//currentStep = currentStep.getPrevStep();
 			  	if (currentStep.axis_type == AXIS_CHILD) {
 					if (vn.toElement(VTDNav.NS, currentStep.nt.qname)) {
 						xpe.state = XPathExpr.FORWARD;
+						currentStep = currentStep.getNextStep();
 					} else if (currentStep.getPrevStep() == null)
 						xpe.state = XPathExpr.END;
 					else {
 						xpe.state = XPathExpr.BACKWARD;
+						currentStep = currentStep.getPrevStep();
 						vn.toElement(VTDNav.P);
 					}
 				} else if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF
@@ -566,6 +584,7 @@ public class XPathTest {
 						if (currentStep.getPrevStep()!=null){
 						   vn.pop();
 						   xpe.state = XPathExpr.BACKWARD;
+						   currentStep = currentStep.getPrevStep();
 						}
 						else
 							xpe.state = XPathExpr.END;
@@ -574,37 +593,32 @@ public class XPathTest {
 						if (currentStep.getNextStep() != null){
 							vn.push();
 							xpe.state = XPathExpr.FORWARD;
+							currentStep = currentStep.getNextStep();
 						}
 						else {
 							xpe.state = XPathExpr.TERMINAL;
 							return vn.getCurrentIndex();
 						}
 					}
-				}else if (currentStep.axis_type == AXIS_PARENT){
-					vn.pop();
-					
-				}else if (currentStep.axis_type == AXIS_ANCESTOR){
-					
-				}else if (currentStep.axis_type == AXIS_ANCESTOR_OR_SELF){
-					
 				}
-
+	
 				break;
 			  
 			  case XPathExpr.TERMINAL:
 			  	if (currentStep.axis_type == AXIS_CHILD) {
-
+	
 					while (vn.toElement(VTDNav.NS, currentStep.nt.qname)) {
 						xpe.state = XPathExpr.TERMINAL;
 						return vn.getCurrentIndex();
 					}
-
+	
 					if (currentStep.getPrevStep() == null)
 						xpe.state = XPathExpr.END;
-
+	
 					else {
 						vn.toElement(VTDNav.P);
 						xpe.state = XPathExpr.BACKWARD;
+						currentStep = currentStep.getPrevStep();
 					}
 				} else if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF
 						|| currentStep.axis_type == AXIS_DESCENDENT) {
@@ -625,15 +639,9 @@ public class XPathTest {
 						vn.pop();
 						xpe.state = XPathExpr.BACKWARD;
 						currentStep.ft = true;
+						currentStep = currentStep.getPrevStep();
+						
 					}						
-				}else if (currentStep.axis_type == AXIS_PARENT){
-					vn.pop();
-					xpe.state = XPathExpr.BACKWARD;
-					
-				}else if (currentStep.axis_type == AXIS_ANCESTOR){
-					
-				}else if (currentStep.axis_type == AXIS_ANCESTOR_OR_SELF){
-					
 				}
 			    break;
 			  	
@@ -642,7 +650,7 @@ public class XPathTest {
 			
 			}
 		}
-
+	
 		//return false;
 	}
 	
@@ -751,7 +759,7 @@ public class XPathTest {
 				} else if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF
 						||currentStep.axis_type == AXIS_DESCENDENT) {
 					ap = (AutoPilot)currentStep.o;
-
+	
 					if(currentStep.get_ft()==true){
 						if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF)
 							 ap.selectElement(currentStep.nt.qname);
@@ -824,20 +832,20 @@ public class XPathTest {
 						}
 					}
 				}
-
+	
 				break;
 			  
 			  case XPathExpr.TERMINAL:
 			  	if (currentStep.axis_type == AXIS_CHILD) {
-
+	
 					while (vn.toElement(VTDNav.NS, currentStep.nt.qname)) {
 						xpe.state = XPathExpr.TERMINAL;
 						return true;
 					}
-
+	
 					if (currentStep.getPrevStep() == null)
 						xpe.state = XPathExpr.END;
-
+	
 					else {
 						vn.toElement(VTDNav.P);
 						xpe.state = XPathExpr.BACKWARD;
@@ -870,9 +878,368 @@ public class XPathTest {
 			
 			}
 		}
-
+	
 		//return false;
 	}
+	
+	
+
+	public int evalXpathExpr3(VTDNav vn, XPathExpr xpe) throws XPathException,
+			NavException {
+		AutoPilot ap = null;
+
+		boolean b = false;
+		if (currentStep == null) {
+			if (xpe.path_type == XPathExpr.ABSOLUTE_PATH)
+				vn.toElement(VTDNav.ROOT);
+			currentStep = xpe.s;
+		}
+
+		while (true) {
+
+			switch (currentStep.axis_type) {
+
+			case AXIS_CHILD:
+				switch (xpe.state) {
+				case XPathExpr.START:
+					if (xpe.path_type != XPathExpr.ABSOLUTE_PATH) {
+						vn.toElement(VTDNav.FIRST_CHILD);
+					}
+					xpe.state = XPathExpr.END;
+					do {
+						if (vn.matchElement(currentStep.nt.qname)) {
+							if (currentStep.getNextStep() != null){
+								xpe.state = XPathExpr.FORWARD;
+								currentStep = currentStep.getNextStep();
+							}
+							else {
+								xpe.state = XPathExpr.TERMINAL;
+								return vn.getCurrentIndex();
+							}
+							break;
+						}
+					} while (vn.toElement(VTDNav.NS));
+					break;
+
+				case XPathExpr.END:
+					currentStep =null;
+					return -1;
+
+				case XPathExpr.FORWARD:
+					//currentStep = currentStep.getNextStep();
+					xpe.state = XPathExpr.BACKWARD;
+					forward: if (vn.toElement(VTDNav.FC)) {
+						do {
+							if (vn.matchElement(currentStep.nt.qname)) {
+								if (currentStep.getNextStep() != null){
+									xpe.state = XPathExpr.FORWARD;
+									currentStep = currentStep.getNextStep();
+								}
+								else {
+									xpe.state = XPathExpr.TERMINAL;
+									return vn.getCurrentIndex();
+								}
+								break forward;
+							}
+						} while (vn.toElement(VTDNav.NS));
+						vn.toElement(VTDNav.P);
+						currentStep = currentStep.getPrevStep();
+					}else 
+						currentStep = currentStep.getPrevStep();
+					
+					break;
+
+				case XPathExpr.BACKWARD:
+					//currentStep = currentStep.getPrevStep();
+					if (vn.toElement(VTDNav.NS, currentStep.nt.qname)) {
+						xpe.state = XPathExpr.FORWARD;
+						currentStep = currentStep.getNextStep();
+					} else if (currentStep.getPrevStep() == null)
+						xpe.state = XPathExpr.END;
+					else {
+						xpe.state = XPathExpr.BACKWARD;
+						vn.toElement(VTDNav.P);
+						currentStep = currentStep.getPrevStep();
+					}
+					break;
+
+				case XPathExpr.TERMINAL:
+					while (vn.toElement(VTDNav.NS, currentStep.nt.qname)) {
+						xpe.state = XPathExpr.TERMINAL;
+						return vn.getCurrentIndex();
+					}
+
+					if (currentStep.getPrevStep() == null)
+						xpe.state = XPathExpr.END;
+
+					else {
+						vn.toElement(VTDNav.P);
+						xpe.state = XPathExpr.BACKWARD;
+						currentStep = currentStep.getPrevStep();
+					}
+					break;
+
+				default:
+					throw new XPathException("unknown state");
+				}
+				break;
+
+			case AXIS_DESCENDENT_OR_SELF:
+
+			case AXIS_DESCENDENT:
+				switch (xpe.state) {
+				case XPathExpr.START:
+					ap = (AutoPilot) currentStep.o;
+					if (currentStep.get_ft() == true) {
+						if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF)
+							ap.selectElement(currentStep.nt.qname);
+						else
+							ap.selectElement_D(currentStep.nt.qname);
+						currentStep.set_ft(false);
+					}
+					xpe.state = XPathExpr.END;
+
+					vn.push(); // not the most efficient. good for now
+					b = ap.iterate();
+					if (b == false) {
+						vn.pop();
+						break;
+					} else {
+						if (currentStep.getNextStep() != null){
+							xpe.state = XPathExpr.FORWARD;
+							currentStep = currentStep.getNextStep();
+						}
+						else {
+							//vn.pop();
+							xpe.state = XPathExpr.TERMINAL;
+							return vn.getCurrentIndex();
+						}
+					}
+					break;
+
+				case XPathExpr.END:
+					currentStep = null;
+					return -1;
+
+				case XPathExpr.FORWARD:
+					//currentStep = currentStep.getNextStep();
+					ap = (AutoPilot) currentStep.o;
+
+					if (currentStep.get_ft() == true) {
+						if (currentStep.axis_type == AXIS_DESCENDENT_OR_SELF)
+							ap.selectElement(currentStep.nt.qname);
+						else
+							ap.selectElement_D(currentStep.nt.qname);
+						currentStep.set_ft(false);
+					}
+
+					vn.push(); // not the most efficient. good for now
+					b = ap.iterate();
+					if (b == false) {
+						vn.pop();
+						xpe.state = XPathExpr.BACKWARD;
+						currentStep = currentStep.getPrevStep();
+					} else {
+						if (currentStep.getNextStep() != null){
+							xpe.state = XPathExpr.FORWARD;
+							currentStep = currentStep.getNextStep();
+						}
+						else {
+							//vn.pop();
+							xpe.state = XPathExpr.TERMINAL;
+							return vn.getCurrentIndex();
+						}
+					}
+					break;
+
+				case XPathExpr.BACKWARD:
+					//currentStep = currentStep.getPrevStep();
+					ap = (AutoPilot) currentStep.o;
+					b = ap.iterate();
+					if (b == false) {
+						if (currentStep.getPrevStep() != null) {
+							vn.pop();
+							xpe.state = XPathExpr.BACKWARD;
+							currentStep = currentStep.getPrevStep();
+						} else
+							xpe.state = XPathExpr.END;
+					} else {
+						if (currentStep.getNextStep() != null) {
+							vn.push();
+							xpe.state = XPathExpr.FORWARD;
+							currentStep = currentStep.getNextStep();
+						} else {
+							xpe.state = XPathExpr.TERMINAL;
+							return vn.getCurrentIndex();
+						}
+					}
+					break;
+
+				case XPathExpr.TERMINAL:
+					ap = (AutoPilot) currentStep.o;
+					b = ap.iterate();
+					if (b == true)
+						return vn.getCurrentIndex();
+					if (currentStep.getPrevStep() == null) {
+						xpe.state = XPathExpr.END;
+					} else {
+						vn.pop();
+						xpe.state = XPathExpr.BACKWARD;
+						currentStep.ft = true;
+						currentStep = currentStep.getPrevStep();
+					}
+					break;
+
+				default:
+					throw new XPathException("unknown state");
+				}
+				break;
+
+			case AXIS_PARENT:
+				switch (xpe.state) {
+				case XPathExpr.START:
+					// assuming .. without specifying element name
+					// makes the qname = null
+					if (vn.getCurrentDepth() == 0) {
+						xpe.state = XPathExpr.END;
+					} else {
+						vn.push();
+						vn.toElement(VTDNav.P); // must return true
+						if (currentStep.nt.qname == null 
+								||currentStep.nt.qname.matches("*")
+								||vn.matchElement(currentStep.nt.qname)){
+						    if (currentStep.getNextStep() != null) {
+
+							   xpe.state = XPathExpr.FORWARD;
+							   currentStep = currentStep.getNextStep();
+						    } else {
+							   xpe.state = XPathExpr.TERMINAL;
+							   return vn.getCurrentIndex();
+						    }
+						}else
+							xpe.state = XPathExpr.END;
+					}
+
+					break;
+					
+				case XPathExpr.END:
+					currentStep = null;
+				    return -1;
+					
+				case XPathExpr.FORWARD:
+					if (vn.getCurrentDepth() == 0) {
+						vn.pop();
+						xpe.state = XPathExpr.BACKWARD;
+						currentStep = currentStep.getPrevStep();
+					} else {
+						vn.push();
+						vn.toElement(VTDNav.P); // must return true
+						if (currentStep.nt.qname == null 
+								||currentStep.nt.qname.matches("*")
+								||vn.matchElement(currentStep.nt.qname)){
+						    if (currentStep.getNextStep() != null) {
+							   xpe.state = XPathExpr.FORWARD;
+							   currentStep = currentStep.getNextStep();
+						    } else {
+							   xpe.state = XPathExpr.TERMINAL;
+							   return vn.getCurrentIndex();
+						    }
+						}else{
+							vn.pop();
+							xpe.state = XPathExpr.BACKWARD;
+							currentStep = currentStep.getPrevStep();
+						}
+					}
+
+					break;
+					
+				case XPathExpr.BACKWARD:
+					/*if (currentStep.getPrevStep()==null){
+						xpe.state = XPathExpr.END;
+					} else {
+						vn.pop();
+						xpe.state = XPathExpr.BACKWARD;
+						currentStep = currentStep.getPrevStep();
+					}
+
+					break;*/
+				
+				case XPathExpr.TERMINAL:
+					if (currentStep.getPrevStep() == null) {
+						xpe.state = XPathExpr.END;
+						break;
+					}else {
+						vn.pop();
+						xpe.state = XPathExpr.BACKWARD;
+						currentStep = currentStep.getPrevStep();
+						break;
+					}
+					
+				default:
+				}
+
+				break;
+
+			case AXIS_ANCESTOR: // reverse document order
+				switch (xpe.state) {
+				case XPathExpr.START:
+					if (vn.getCurrentDepth()==0){
+						xpe.state = XPathExpr.END;
+					}else {
+						vn.push();
+						while(vn.matchElement())
+							vn.toElement(VTDNav.P);
+					}
+				  	break;
+				case XPathExpr.FORWARD:
+				  	break;
+				case XPathExpr.END:
+					break;
+				case XPathExpr.BACKWARD:
+					break;
+				case XPathExpr.TERMINAL:
+					break;
+				default:
+				}
+
+				break;
+				
+			case AXIS_ANCESTOR_OR_SELF: // reverse doc order
+				switch (xpe.state) {
+				case XPathExpr.START:
+					
+				  	break;
+				case XPathExpr.FORWARD:
+				  	break;
+				case XPathExpr.END:
+					break;
+				case XPathExpr.BACKWARD:
+					break;
+				case XPathExpr.TERMINAL:
+					break;
+				default:
+				}
+
+				break;
+				
+			case AXIS_FOLLOWING_SIBLING: 
+				break;
+				
+			case AXIS_PRECEDING_SIBLING:
+				break;
+
+			default:
+				throw new XPathException("axis not supported");
+
+			}
+
+		}
+
+	}
+
+	
+	
+	
 	step currentStep;
 	
 	public static void main(String[] args) {
@@ -900,23 +1267,31 @@ public class XPathTest {
 			}
 			
 			System.out.println("=================");
-			vn.toElement(VTDNav.R);
+			//vn.toElement(VTDNav.R);
 			XPathExpr expr = xpt.buildExpr2(vn);
 			// navigate and perform node test according to 
 			// the XPath expression
 			
 			//vn.toElement(VTDNav.FC);
 			
-			while((result = xpt.evalXpathExpr2(vn,expr))!=-1){
+			while((result = xpt.evalXpathExpr3(vn,expr))!=-1){
 				//vn.dumpContext();
 				System.out.println("element name -->" + vn.toString(result));
 				System.out.println("\tindex ---> "+ result+"  depth ==>"+vn.getCurrentDepth());
 			}
 			System.out.println("\n+++++++++++++++++++++++\n");
-			vn.toElement(VTDNav.R);
+			//vn.toElement(VTDNav.R);
 			expr = xpt.buildExpr3(vn);
-			while((result= xpt.evalXpathExpr2(vn,expr))!=-1){
+			while((result= xpt.evalXpathExpr3(vn,expr))!=-1){
 				//vn.dumpContext();
+				System.out.println("element name -->" + vn.toString(result));
+				System.out.println("\tindex ---> "+ result+"  depth ==>"+vn.getCurrentDepth());
+			}
+			
+			System.out.println("\n+++++++++++++++++++++++\n");
+			
+			expr = xpt.buildExpr4(vn);
+			while((result = xpt.evalXpathExpr3(vn,expr))!=-1){
 				System.out.println("element name -->" + vn.toString(result));
 				System.out.println("\tindex ---> "+ result+"  depth ==>"+vn.getCurrentDepth());
 			}
