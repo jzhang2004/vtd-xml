@@ -77,7 +77,8 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 						   TOKEN_DEC_ATTR_NAME,
 						   TOKEN_DEC_ATTR_VAL,
 						   TOKEN_CDATA_VAL,
-						   TOKEN_DTD_VAL}
+						   TOKEN_DTD_VAL,
+						   TOKEN_DOCUMENT}
 					tokenType;
 
 					enum exception_type {out_of_mem, 
