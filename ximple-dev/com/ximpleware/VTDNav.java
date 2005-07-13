@@ -1925,7 +1925,7 @@ public class VTDNav {
 			if (l1index >= l1Buffer.size() || l1index < 0) {
 				l1index = 0;
 			}
-			if (l1index+1<l1Buffer.size() && context[1] != l1Buffer.upper32At(l1index + 1)) {
+			if (l1index+1<l1Buffer.size() && context[1] != l1Buffer.upper32At(l1index+1)) {
 				int init_guess = (int) (l1Buffer.size() * ((float) context[1] / vtdBuffer
 						.size()));
 				if (l1Buffer.upper32At(init_guess) > context[1]) {
@@ -1938,8 +1938,21 @@ public class VTDNav {
 					}
 				}
 				l1index = init_guess;
-			} else
-				l1index = l1index + 1;
+			} else{
+				if (context[1]>=l1Buffer.upper32At(l1index)){
+					while(context[1]!=l1Buffer.upper32At(l1index) 
+						&& l1index < l1Buffer.size()){
+						l1index++;
+					}
+				}
+				else{
+					while(context[1]!=l1Buffer.upper32At(l1index) 
+							&& l1index >=0){
+							l1index--;
+						}
+				}
+			}
+			//	l1index = l1index + 1;
 			// for iterations, l1index+1 is the logical next value for l1index
 		}
 		if (context[0] == 1)
