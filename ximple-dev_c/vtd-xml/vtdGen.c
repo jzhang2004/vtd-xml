@@ -819,6 +819,7 @@ void parse(VTDGen *vg, Boolean ns){
 	Boolean is_ns = FALSE;
 	Boolean unique;
 	Boolean unequal;
+	Boolean helper = FALSE;
 	//Boolean BOM_detected = FALSE;
 	//Boolean must_utf_8 = FALSE;
 	Long x;
@@ -845,6 +846,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 	// enter the main finite state machine
 	Try {
+		writeVTD(vg,0,0,TOKEN_DOCUMENT,vg->depth);
 		while (main_loop) {
 			switch (parser_state) {
 					case STATE_DOC_START :
@@ -1169,8 +1171,10 @@ void parse(VTDGen *vg, Boolean ns){
 								break;
 							}
 						}
+						helper = TRUE;
 						if (vg->ch == '/') {
 							vg->depth--;
+							helper = FALSE;
 							vg->ch = getChar(vg);
 						}
 						if (vg->ch == '>') {
@@ -1180,23 +1184,25 @@ void parse(VTDGen *vg, Boolean ns){
 								if (vg->ch == '<') {
 									parser_state = STATE_LT_SEEN;
 									if (skipChar(vg,'/')) {
-										length1 =
-											vg->offset
-											- vg->temp_offset
-											- (vg->increment<<1);
-										if (length1 > 0) {
-											if (vg->encoding < FORMAT_UTF_16BE)
-												writeVTD(vg,
-												(vg->temp_offset),
-												length1,
-												TOKEN_CHARACTER_DATA,
-												vg->depth);
-											else
-												writeVTD(vg,
-												(vg->temp_offset) >> 1,
-												(length1 >> 1),
-												TOKEN_CHARACTER_DATA,
-												vg->depth);
+										if (helper == TRUE){
+											length1 =
+												vg->offset
+												- vg->temp_offset
+												- (vg->increment<<1);
+											if (length1 > 0) {
+												if (vg->encoding < FORMAT_UTF_16BE)
+													writeVTD(vg,
+													(vg->temp_offset),
+													length1,
+													TOKEN_CHARACTER_DATA,
+													vg->depth);
+												else
+													writeVTD(vg,
+													(vg->temp_offset) >> 1,
+													(length1 >> 1),
+													TOKEN_CHARACTER_DATA,
+													vg->depth);
+											}
 										}
 										//offset += length1;
 										parser_state = STATE_END_TAG;
