@@ -63,6 +63,7 @@ public class VTDGen1 {
 	public final static int TOKEN_DEC_ATTR_VAL = 10;
 	public final static int TOKEN_CDATA_VAL = 11;
 	public final static int TOKEN_DTD_VAL = 12;
+	public final static int TOKEN_DOCUMENT = 13;
 
 	// encoding format
 	public final static int FORMAT_UTF8 = 2;
@@ -993,6 +994,7 @@ public class VTDGen1 {
 
 		// enter the main finite state machine
 		try {
+			writeVTD(0,0,TOKEN_DOCUMENT,depth);
 			while (main_loop) {
 				switch (parser_state) {
 					case STATE_DOC_START :
