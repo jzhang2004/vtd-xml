@@ -63,6 +63,7 @@ public class VTDGen {
 	public final static int TOKEN_DEC_ATTR_VAL = 10;
 	public final static int TOKEN_CDATA_VAL = 11;
 	public final static int TOKEN_DTD_VAL = 12;
+	public final static int TOKEN_DOCUMENT = 13;
 
 	// encoding format
 	public final static int FORMAT_UTF8 = 2;
@@ -90,7 +91,7 @@ public class VTDGen {
 
 
 	protected int prev_offset;
-	protected int rootIndex;
+	protected int rootIndex; // index of document element
 	protected byte[] XMLDoc;
 	protected FastLongBuffer VTDBuffer;
 	protected FastLongBuffer l1Buffer;
@@ -792,6 +793,7 @@ public class VTDGen {
 		//boolean has_amp = false;
 		boolean is_ns = false;
 		encoding = FORMAT_UTF8;
+		boolean helper=false;
 		boolean main_loop = true, hasDTD = false, hasDecl = false, docEnd = false, firstLT = true;
 		//char char_temp; //holds the ' or " indicating start of attr val
 		//boolean must_utf_8 = false;
@@ -809,6 +811,8 @@ public class VTDGen {
 
 		// enter the main finite state machine
 		try {
+			// write doucment to be compatible with XPath data model
+			writeVTD(0,0,TOKEN_DOCUMENT,depth);
 			while (main_loop) {
 				switch (parser_state) {
 				case STATE_DOC_START:
@@ -1023,8 +1027,10 @@ public class VTDGen {
 							break;
 						}
 					}
+					helper = true;
 					if (ch == '/') {
 						depth--;
+						helper = false;
 						ch = getChar();
 					}
 					if (ch == '>') {
@@ -1034,16 +1040,22 @@ public class VTDGen {
 							if (ch == '<') {
 								parser_state = STATE_LT_SEEN;
 								if (skipChar('/')) {
-									length1 = offset - temp_offset - 
-											 (increment<<1);
-									if (length1 > 0) {
-										if (encoding < FORMAT_UTF_16BE)
-											writeVTD((temp_offset), length1,
-													TOKEN_CHARACTER_DATA, depth);
-										else
-											writeVTD((temp_offset) >> 1,
-													(length1 >> 1),
-													TOKEN_CHARACTER_DATA, depth);
+									
+									if (helper) {
+										length1 = offset - temp_offset - 
+										 (increment<<1);
+										if (length1 > 0) {
+											if (encoding < FORMAT_UTF_16BE)
+												writeVTD((temp_offset),
+														length1,
+														TOKEN_CHARACTER_DATA,
+														depth);
+											else
+												writeVTD((temp_offset) >> 1,
+														(length1 >> 1),
+														TOKEN_CHARACTER_DATA,
+														depth);
+										}
 									}
 									parser_state = STATE_END_TAG;
 									break;
