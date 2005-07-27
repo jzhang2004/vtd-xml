@@ -354,7 +354,7 @@ public long[] toLongArray() {
  * @param index int
  */
 public int upper32At(int index) {
-    if (index < 0 || index > size()) {
+    if (index < 0 || index >= size()) {
         throw new IndexOutOfBoundsException();
     }
     int pageNum = (index >>exp);
@@ -363,5 +363,25 @@ public int upper32At(int index) {
         ((((long[]) bufferArrayList.get(pageNum))[offset] & (0xffffffffL << 32)) >> 32);
 
 }
+
+/**
+ * reset the size of long buffer, capacity
+ * is untouched so long buffer can be reused
+ * without any unnecesary and additional allocation
+ * @param i
+ */
+ public void setSize(int i){
+ 	size = i; 	
+ }
+ 
+ /**
+  * set teh size of long buffer to zero, capacity
+  * untouched so long buffer can be reused without
+  * any unnecessary and additional allocation
+  *
+  */
+ public void clear(){
+ 	size = 0;
+ }
 }
 
