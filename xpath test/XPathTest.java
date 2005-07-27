@@ -28,6 +28,14 @@
  * supporting following and preceding				   done but not tested
  * supporting attributes
  * parse an XPath expression
+ * think about how to do //text();
+ * think about how to do //@a[following::node()]
+ * 
+ * How to check uniqueness?
+ * use a custom hash table??
+ * 
+ * stick with element only hierarchy model
+ * can following axis be applied to an attribute node?
  * 
  */
 
@@ -102,11 +110,7 @@ public class XPathTest {
 			if (testType == NODE)
 				return true;
 			else if(testType == NAMETEST){
-				if (nodeName.compareTo("*")==0){
-					return true;
-				}
-				else 
-					return vn.matchElement(nodeName);
+				return vn.matchElement(nodeName);
 			}
 			
 			return false;
@@ -191,7 +195,7 @@ public class XPathTest {
 		Step s;
 		int path_type;
 		int state;
-		
+		FastIntBuffer fib; // for uniqueness checking
 		public static final int START = 0, // initial state
 							    END=1,   // return to begin
 								TERMINAL =2, // no more next step
@@ -203,6 +207,7 @@ public class XPathTest {
 			state = START;
 			s = null;
 			path_type = RELATIVE_PATH;
+			fib = new FastIntBuffer(8);// page size 256 = 2^ 8
 		}
 		
 		public void setStep(Step st){
@@ -211,6 +216,22 @@ public class XPathTest {
 		
 		public void setPathType(int ptype){
 			path_type = ptype;
+		}
+		
+		public boolean isUnique(int i){
+			int size = fib.size();
+			for (int j=0; j<size;j++){
+				if (i == fib.intAt(j))
+					return false;
+			}
+			fib.append(i);
+			return true;
+		}
+		
+		public void reset(){
+			state = START;
+			fib.clear();
+			
 		}
 	}
 	
@@ -642,6 +663,8 @@ public class XPathTest {
 						ch = getChar();
 					}
 					int t = determineTestType(s.substring(tempOffset1, tempOffset2));
+					if (t==NodeTest.NODE && currentStep.axis_type == XPathTest.AXIS_ATTRIBUTE)
+						throw new XPathException(" Must supply a name for attribute axis ");
 					if (t!=-1){
 						currentNt.setTestType(t);
 					}
@@ -879,6 +902,7 @@ public class XPathTest {
 	public int evalXpathExpr3(VTDNav vn, XPathExpr xpe) throws XPathException,
 			NavException {
 		AutoPilot ap = null;
+		int result;
 
 		boolean b = false;
 		if (currentStep == null) {
@@ -906,7 +930,9 @@ public class XPathTest {
 							}
 							else {
 								xpe.state = XPathExpr.TERMINAL;
-								return vn.getCurrentIndex();
+								result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 							}
 							break;
 						}
@@ -915,6 +941,7 @@ public class XPathTest {
 
 				case XPathExpr.END:
 					currentStep =null;
+					xpe.reset();
 					return -1;
 
 				case XPathExpr.FORWARD:
@@ -929,7 +956,9 @@ public class XPathTest {
 								}
 								else {
 									xpe.state = XPathExpr.TERMINAL;
-									return vn.getCurrentIndex();
+									result = vn.getCurrentIndex();
+									if (xpe.isUnique(result))
+										return result;
 								}
 								break forward;
 							}
@@ -966,8 +995,10 @@ public class XPathTest {
 				case XPathExpr.TERMINAL:
 					while (vn.toElement(VTDNav.NS)) {
 						if (currentStep.nt.eval(vn)){
-							xpe.state = XPathExpr.TERMINAL;
-							return vn.getCurrentIndex();
+							//xpe.state = XPathExpr.TERMINAL;
+							result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 						}
 					}
 
@@ -1033,13 +1064,16 @@ public class XPathTest {
 						else {
 							//vn.pop();
 							xpe.state = XPathExpr.TERMINAL;
-							return vn.getCurrentIndex();
+							result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 						}
 					}
 					break;
 					
 				case XPathExpr.END:
 					currentStep = null;
+					xpe.reset();
 					return -1;
 
 				case XPathExpr.BACKWARD:
@@ -1063,7 +1097,9 @@ public class XPathTest {
 							currentStep = currentStep.getNextStep();
 						} else {
 							xpe.state = XPathExpr.TERMINAL;
-							return vn.getCurrentIndex();
+							result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 						}
 					}
 					break;
@@ -1071,13 +1107,16 @@ public class XPathTest {
 				case XPathExpr.TERMINAL:
 					ap = (AutoPilot) currentStep.o;
 					b = ap.iterate();
-					if (b == true)
-						return vn.getCurrentIndex();
-					if (currentStep.getPrevStep() == null) {
+					if (b == true){
+						result = vn.getCurrentIndex();
+						if (xpe.isUnique(result))
+							return result;
+					}
+					else if (currentStep.getPrevStep() == null) {
 						xpe.state = XPathExpr.END;
 					} else {
 						vn.pop();
-						System.out.println("  --++ pop in //");
+						//System.out.println("  --++ pop in //");
 						xpe.state = XPathExpr.BACKWARD;
 						currentStep.ft = true;
 						currentStep = currentStep.getPrevStep();
@@ -1116,7 +1155,9 @@ public class XPathTest {
 							   currentStep = currentStep.getNextStep();
 						    } else {
 							   xpe.state = XPathExpr.TERMINAL;
-							   return vn.getCurrentIndex();
+							   result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 						    }
 						}else{
 							vn.pop();
@@ -1133,6 +1174,7 @@ public class XPathTest {
 					
 				case XPathExpr.END:
 					currentStep = null;
+					xpe.reset();
 				    return -1;
 					
 				case XPathExpr.BACKWARD:
@@ -1171,7 +1213,9 @@ public class XPathTest {
 				   				else {
 								    //vn.pop();
 				   					xpe.state = XPathExpr.TERMINAL;
-				   					return vn.getCurrentIndex();
+				   					result = vn.getCurrentIndex();
+									if (xpe.isUnique(result))
+										return result;
 				   				}
 				   			}							
 				   		}
@@ -1195,7 +1239,9 @@ public class XPathTest {
 				   			else {
 				   				//vn.pop();
 				   				xpe.state = XPathExpr.TERMINAL;
-				   				return vn.getCurrentIndex();
+				   				result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 				   			}
 				   		}							
 				   	}
@@ -1208,6 +1254,7 @@ public class XPathTest {
 				
 				case XPathExpr.END:
 					currentStep =null;
+					xpe.reset();
 				    return -1;
 				
 				case XPathExpr.BACKWARD:
@@ -1224,7 +1271,9 @@ public class XPathTest {
 							} else {
 								//vn.pop();
 								xpe.state = XPathExpr.TERMINAL;
-								return vn.getCurrentIndex();
+								result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 							}
 						}
 					}
@@ -1243,7 +1292,9 @@ public class XPathTest {
 				case XPathExpr.TERMINAL:
 					while (vn.toElement(VTDNav.P)) {
 						if (currentStep.nt.eval(vn)) {
-								return vn.getCurrentIndex();
+							result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 						}
 					}
 					vn.pop();
@@ -1279,7 +1330,9 @@ public class XPathTest {
 							} else {
 								//vn.pop();
 								xpe.state = XPathExpr.TERMINAL;
-								return vn.getCurrentIndex();
+								result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 							}
 						}
 					}
@@ -1293,7 +1346,9 @@ public class XPathTest {
 								} else {
 									//vn.pop();
 									xpe.state = XPathExpr.TERMINAL;
-									return vn.getCurrentIndex();
+									result = vn.getCurrentIndex();
+									if (xpe.isUnique(result))
+										return result;
 								}
 							}
 						}
@@ -1317,7 +1372,9 @@ public class XPathTest {
 							} else {
 								//vn.pop();
 								xpe.state = XPathExpr.TERMINAL;
-								return vn.getCurrentIndex();
+								result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 							}
 						}
 					} else {
@@ -1330,7 +1387,9 @@ public class XPathTest {
 								} else {
 									//vn.pop();
 									xpe.state = XPathExpr.TERMINAL;
-									return vn.getCurrentIndex();
+									result = vn.getCurrentIndex();
+									if (xpe.isUnique(result))
+										return result;
 								}
 							}
 						}
@@ -1343,6 +1402,7 @@ public class XPathTest {
 				
 				case XPathExpr.END:
 					currentStep = null;
+					xpe.reset();
 			    	return -1;
 					
 				
@@ -1360,7 +1420,9 @@ public class XPathTest {
 							} else {
 								//vn.pop();
 								xpe.state = XPathExpr.TERMINAL;
-								return vn.getCurrentIndex();
+								result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 							}
 						}
 					}
@@ -1378,7 +1440,9 @@ public class XPathTest {
 				case XPathExpr.TERMINAL:
 					while (vn.toElement(VTDNav.P)) {
 						if (currentStep.nt.eval(vn)) {
-								return vn.getCurrentIndex();
+							result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 						}
 					}
 					vn.pop();
@@ -1410,7 +1474,9 @@ public class XPathTest {
 				  		}
 				  		else{
 				  			xpe.state = XPathExpr.TERMINAL;
-				  			return vn.getCurrentIndex();
+				  			result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 				  		}
 				  	}else {
 				  		if (xpe.state == XPathExpr.START)
@@ -1422,6 +1488,7 @@ public class XPathTest {
 				  	
 				  case XPathExpr.END:
 				  	currentStep = null;
+				  	xpe.reset();
 				  	break;
 				  	
 				  case XPathExpr.BACKWARD:
@@ -1432,7 +1499,9 @@ public class XPathTest {
 				  		}
 				  		else{
 				  			xpe.state = XPathExpr.TERMINAL;
-				  			return vn.getCurrentIndex();
+				  			result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 				  		}
 				  	}else {
 				  		if (currentStep.getPrevStep()!=null){
@@ -1476,7 +1545,9 @@ public class XPathTest {
 				  				break;
 				  			} else {
 				  				xpe.state = XPathExpr.TERMINAL;
-				  				return vn.getCurrentIndex();
+				  				result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 				  			}
 				  		}
 				  	}
@@ -1491,6 +1562,7 @@ public class XPathTest {
 				  	 
 				  case XPathExpr.END:
 				  	currentStep = null;
+				  	xpe.reset();
 				  	return -1;
 				  	
 				  case XPathExpr.BACKWARD:
@@ -1503,7 +1575,9 @@ public class XPathTest {
 				  				break;
 				  			} else {
 				  				xpe.state = XPathExpr.TERMINAL;
-				  				return vn.getCurrentIndex();
+				  				result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 				  			}
 				  		}
 				  	}
@@ -1522,7 +1596,9 @@ public class XPathTest {
 				  	while (vn.toElement(VTDNav.NS)){
 				  		if (currentStep.nt.eval(vn)){
 				  			//xpe.state = XPathExpr.TERMINAL;
-				  			return vn.getCurrentIndex();
+				  			result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 				  		}
 				  	}
 				  	vn.pop();
@@ -1556,7 +1632,9 @@ public class XPathTest {
 				  				break;
 				  			} else {
 				  				xpe.state = XPathExpr.TERMINAL;
-				  				return vn.getCurrentIndex();
+				  				result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 				  			}
 				  		}
 				  	}
@@ -1571,6 +1649,7 @@ public class XPathTest {
 				  	 
 				  case XPathExpr.END:
 				  	currentStep = null;
+				  	xpe.reset();
 				  	return -1;
 				  
 				  case XPathExpr.BACKWARD:
@@ -1583,7 +1662,9 @@ public class XPathTest {
 				  				break;
 				  			} else {
 				  				xpe.state = XPathExpr.TERMINAL;
-				  				return vn.getCurrentIndex();
+				  				result = vn.getCurrentIndex();
+								if (xpe.isUnique(result))
+									return result;
 				  			}
 				  		}
 				  	}
@@ -1602,7 +1683,9 @@ public class XPathTest {
 				  	while (vn.toElement(VTDNav.PS)){
 				  		if (currentStep.nt.eval(vn)){
 				  			//xpe.state = XPathExpr.TERMINAL;
-				  			return vn.getCurrentIndex();
+				  			result = vn.getCurrentIndex();
+							if (xpe.isUnique(result))
+								return result;
 				  		}
 				  	}
 				  	vn.pop();
@@ -1622,7 +1705,81 @@ public class XPathTest {
 
 				
 			case AXIS_ATTRIBUTE:
-				
+				switch(xpe.state){
+					case XPathExpr.START:
+					case XPathExpr.FORWARD:
+						if (currentStep.get_ft() == true) {
+							currentStep.o = ap = new AutoPilot(vn);
+						    ap.selectAttr(currentStep.nt.nodeName);
+							currentStep.set_ft(false);
+						}
+						if (xpe.state == XPathExpr.START)
+							xpe.state = XPathExpr.END;
+						int temp = ap.iterateAttr();
+						if (temp == -1){
+							if (xpe.state == XPathExpr.FORWARD){
+								xpe.state = XPathExpr.BACKWARD;
+								currentStep = currentStep.getPrevStep();							
+							}	
+						}else {
+							if (currentStep.getNextStep() != null){
+								xpe.state = XPathExpr.FORWARD;
+								currentStep = currentStep.getNextStep();
+							}
+							else {
+								//vn.pop();
+								xpe.state = XPathExpr.TERMINAL;
+								if (xpe.isUnique(temp))
+									return temp;
+							}
+							
+						}
+						break;
+						
+					case XPathExpr.END:
+						currentStep = null;
+						xpe.reset();
+				  		return -1;
+				  		
+					case XPathExpr.BACKWARD:
+						ap = (AutoPilot) currentStep.o;
+						//vn.push();
+						temp = ap.iterateAttr();
+						if (temp == -1) {
+							if (currentStep.getPrevStep() != null) {
+								xpe.state = XPathExpr.BACKWARD;
+								currentStep = currentStep.getPrevStep();
+							} else
+								xpe.state = XPathExpr.END;
+						} else {
+							if (currentStep.getNextStep() != null) {
+								xpe.state = XPathExpr.FORWARD;
+								currentStep = currentStep.getNextStep();
+							} else {
+								xpe.state = XPathExpr.TERMINAL;
+								if (xpe.isUnique(temp))
+									return temp;
+							}
+						}
+						break;
+						
+					case XPathExpr.TERMINAL:
+						ap = (AutoPilot) currentStep.o;
+						temp = ap.iterateAttr();
+						if (temp != -1)
+							return temp;
+						if (currentStep.getPrevStep() == null) {
+							xpe.state = XPathExpr.END;
+						} else {
+							xpe.state = XPathExpr.BACKWARD;
+							currentStep.ft = true;
+							currentStep = currentStep.getPrevStep();
+						}
+						break;					
+					
+					default:
+						throw new XPathException("unknown state");
+				}
 				break;
 			
 
@@ -1708,7 +1865,7 @@ public class XPathTest {
 		
 		try{
 			//String s = "  ../  descendant-:or-self / self ::text() /@ ab [][]";
-			String s = "//b//a";
+			String s = "//c/following::node()";
 			XPathExpr xpe = xpt.compileXPath(s);
 			System.out.println(s);
 			xpt.dumpXPathExpr(xpe);
