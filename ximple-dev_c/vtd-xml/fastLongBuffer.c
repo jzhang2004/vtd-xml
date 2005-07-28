@@ -556,3 +556,8 @@ void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
     }
 	((Long *)get(flb->al,index>>flb->exp))[index & flb->r] = l;
 }
+
+// set the buffer size to zero, capacity untouched,
+void clearFastLongBuffer (FastLongBuffer *flb){
+	flb->size = 0;
+}

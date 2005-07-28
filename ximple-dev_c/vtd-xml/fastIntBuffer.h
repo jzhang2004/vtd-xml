@@ -71,4 +71,7 @@ extern inline void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal);
 // convert the content of FastIntBuffer to int *
 int* toIntArray(FastIntBuffer *fib);
 
+// set the buffer size to zero, capacity untouched,
+void clearFastIntBuffer (FastIntBuffer *fib);
+
 #endif

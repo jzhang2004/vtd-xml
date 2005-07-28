@@ -79,4 +79,7 @@ extern inline void modifyEntryFLB(FastLongBuffer *flb, int index, Long l);
 // convert FastLongBuffer into a Long array 
 Long* toLongArray(FastLongBuffer *flb);
 
+// set the buffer size to zero, capacity untouched,
+void clearFastLongBuffer (FastLongBuffer *flb);
+
 #endif

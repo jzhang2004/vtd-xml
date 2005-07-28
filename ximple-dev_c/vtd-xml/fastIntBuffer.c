@@ -436,3 +436,7 @@ void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){
 	((int *) get(fib->al,index>>fib->exp))[index & fib->r] = newVal;
 }
 
+// set the buffer size to zero, capacity untouched,
+void clearFastIntBuffer (FastIntBuffer *fib){
+	fib->size = 0;
+}
