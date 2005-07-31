@@ -24,6 +24,9 @@ package com.ximpleware;
  * moves the cursor across element nodes that satify the criteria (e.g. specified name).
  * Creation date: (11/24/03 2:36:21 PM)
  * 
+ * Added various functions for following, preceding, attribute, descendent
+ * axis (7/2005)
+ * 
  */
 public class AutoPilot {
     private int depth;
@@ -80,9 +83,10 @@ public AutoPilot(VTDNav v) {
 public boolean iterate() throws PilotException, NavException {
     switch (iter_type) {
         case SIMPLE :
-        	//System.out.println("iterating ---> "+elementName+ " depth ---> "+depth);
+        	//System.out.println("iterating ---> "+name+ " depth ---> "+depth);
             /*if (elementName == null)
                 throw new PilotException(" Element name not set ");*/
+        	
             if (ft == false)
                 return vn.iterate(depth, name);
             else {
@@ -121,81 +125,21 @@ public boolean iterate() throws PilotException, NavException {
          	return vn.iterateNS(depth, URL, localName);
          	
          case FOLLOWING:
-            if (ft == false)
-                return vn.iterate_following(name);
-            else {
-            	ft = false;
-            	// find the first next sibling of 
-            	while(true){
-            		while (vn.toElement(VTDNav.NS)){
-            			 if (name == null || 
-                        		vn.matchElement(name)) {                	
-                            return true;
-            			 }
-            		}
-                    if (vn.toElement(VTDNav.P)==false){
-                         	return false;
-                    } 
-            	}
-            }
+            return vn.iterate_following(name);
+            
          	
          
          case FOLLOWING_NS:
-         	if (ft == false)
-                return vn.iterate_followingNS(URL,localName);
-            else {
-            	ft = false;
-            	// find the first next sibling of 
-            	while(true){
-            		while (vn.toElement(VTDNav.NS)){
-            			 if (vn.matchElementNS(URL,localName)) {                	
-                            return true;
-            			 }
-            		}
-                    if (vn.toElement(VTDNav.P)==false){
-                         	return false;
-                    } 
-            	}
-            }
+         	return vn.iterate_followingNS(URL,localName);
+           
          	
          case PRECEDING:
-            if (ft == false)
-                return vn.iterate_preceding(name);
-            else {
-            	ft = false;
-            	// find the first next sibling of 
-            	while(true){
-            		while (vn.toElement(VTDNav.PS)){
-            			 if (name == null || 
-                        		vn.matchElement(name)) {                	
-                            return true;
-            			 }
-            		}
-                    if (vn.toElement(VTDNav.P)==false){
-                         	return false;
-                    } 
-            	}
-            }
-         	
-         case PRECEDING_NS:
-         	if (ft == false)
-                return vn.iterate_precedingNS(URL,localName);
-            else {
-            	ft = false;
-            	// find the first next sibling of 
-            	while(true){
-            		while (vn.toElement(VTDNav.PS)){
-            			 if (vn.matchElementNS(URL,localName)) {                	
-                            return true;
-            			 }
-            		}
-                    if (vn.toElement(VTDNav.P)==false){
-                         	return false;
-                    } 
-            	}
-            }
+            return vn.iterate_preceding(name);
 
          	
+         case PRECEDING_NS:
+            return vn.iterate_precedingNS(URL,localName);
+                    	
          	
         default :
             throw new PilotException(" iteration action type undefined");
@@ -211,7 +155,7 @@ public boolean iterate() throws PilotException, NavException {
    	    	case ATTR:
    	    		if (name.compareTo("*")==0){
    	    			if (ft != false){
-   	    				ft = true;
+   	    				ft = false;
    	    				index = vn.getCurrentIndex()+1;
    	    			} else
    	    				index +=2;
@@ -246,7 +190,7 @@ public boolean iterate() throws PilotException, NavException {
    	    			if (ft == false){
    	    				return -1;
    	    			} else {
-   	    				ft = true;
+   	    				ft = false;
    	    				int i = vn.getAttrVal(name);
    	    				if(i!=-1)
    	    					return i-1;
@@ -258,7 +202,7 @@ public boolean iterate() throws PilotException, NavException {
 	    			if (ft == false){
    	    				return -1;
    	    			} else {
-   	    				ft = true;
+   	    				ft = false;
    	    				int i = vn.getAttrValNS(URL,localName);
    	    				if(i!=-1)
    	    					return i-1;
@@ -304,7 +248,7 @@ public void selectElementNS(String ns_URL, String ln) {
 }
 
 /**
- * Select all descendents, withns awareness
+ * Select all descendent elements along the descendent axis, without ns awareness
  * @param en
  */
 public void selectElement_D(String en) {
@@ -316,7 +260,7 @@ public void selectElement_D(String en) {
 }
 
 /**
- * Select all descendents, withns awareness
+ * Select all descendent elements along the Descendent axis, withns awareness
  * @param ns_URL
  * @param ln
  */
@@ -330,7 +274,7 @@ public void selectElementNS_D(String ns_URL, String ln){
 }
 
 /**
- * Select all following, without ns,
+ * Select all elements along the following axis, without ns,
  * null selects every elements and documents
  * @param en
  */
@@ -341,7 +285,8 @@ public void selectElement_F(String en) {
 }
 
 /**
- * Select all following, with ns awareness
+ * Select all elements along the preceding axis as defined in XPath
+ * The namespace-aware version
  * @param en
  */
 public void selectElementNS_F(String ns_URL, String ln){
@@ -352,7 +297,7 @@ public void selectElementNS_F(String ns_URL, String ln){
 }
 
 /**
- * 
+ * Select all elements along the preceding axis as defined in XPath
  * @param en
  */
 public void selectElement_P(String en) {
@@ -362,7 +307,8 @@ public void selectElement_P(String en) {
 }
 
 /**
- * 
+ * Select all elements along the preceding axis as defined in XPath
+ * This is the namespace aware version
  * @param ns_URL
  * @param ln
  */
@@ -373,7 +319,10 @@ public void selectElementNS_P(String ns_URL, String ln){
     URL = ns_URL;
 }
 
-
+/**
+ * Select an attribute name for iteration, * choose all attributes of an element
+ * @param en
+ */
 public void selectAttr(String en) {
 	iter_type = ATTR;
     ft = true;
@@ -381,6 +330,11 @@ public void selectAttr(String en) {
     name = en;
 }
 
+/**
+ * Select an attribute name, both local part and namespace URL part
+ * @param ns_URL
+ * @param ln
+ */
 public void selectAttrNS(String ns_URL, String ln){
 	iter_type = ATTR_NS;
     ft = true;
