@@ -59,6 +59,7 @@ public class VTDNav {
 	public final static int TOKEN_DEC_ATTR_VAL = 10;
 	public final static int TOKEN_CDATA_VAL = 11;
 	public final static int TOKEN_DTD_VAL = 12;
+	public final static int TOKEN_DOCUMENT =13;
 
 	// encoding format definition here
 	public final static int FORMAT_UTF8 = 2;
@@ -101,6 +102,7 @@ public class VTDNav {
 	//private int recentNS; // most recently visited NS node, experiment for now
 	// Hierarchical representation is an array of integers addressing elements tokens 
 	private ContextBuffer contextStack;
+	private ContextBuffer contextStack2;// this is reserved for XPath
 
 	// the document encoding	     
 	private int encoding;
@@ -108,7 +110,7 @@ public class VTDNav {
 	private int currentOffset;
 
 	// whether the navigation is namespace enabled or not. 
-	private boolean ns;
+	protected boolean ns;
 
 	// intermediate buffer for push and pop purposes  
 	private int[] stackTemp;
@@ -140,8 +142,7 @@ public class VTDNav {
 		ILongBuffer l1,
 		ILongBuffer l2,
 		IIntBuffer l3,
-		int so,
-	// start offset of the starting offset(in byte) 
+		int so, // start offset of the starting offset(in byte) 
 	int length) // lengnth of the XML document (in byte)) 
 	{
 		// initialize all buffers
@@ -181,6 +182,7 @@ public class VTDNav {
 		currentOffset = 0;
 		//contextStack = new ContextBuffer(1024, nestingLevel + 7);
 		contextStack = new ContextBuffer(10, nestingLevel + 7);
+		contextStack2 = new ContextBuffer(10, nestingLevel+7);
 		stackTemp = new int[nestingLevel + 7];
 
 		// initial state of LC variables
@@ -246,6 +248,8 @@ public class VTDNav {
 	 */
 	public int getAttrVal(String an) throws NavException {
 		//int size = vtdBuffer.size();
+		if (context[0]==-1)
+			return -1;
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		
 		int type;
@@ -966,7 +970,10 @@ public class VTDNav {
 	 * @exception IllegalArguementException if an is null
 	 */
 	public boolean hasAttr(String an) throws NavException {
+		if (context[0]==-1)
+			return false;		
 		int size = vtdBuffer.size();
+		
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		if (index >= size)
 			return false;
@@ -1039,6 +1046,17 @@ public class VTDNav {
 		return (((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
 			== TOKEN_STARTING_TAG;
 	}
+	
+	/**
+	 * Test the token type, to see if it is a starting tag 
+	 * or document token (introduced in 1.0).
+	 * @return boolean
+	 * @param index int
+	 */
+	private final boolean isElementOrDocument(int index){
+		long i =(((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
+		return (i==TOKEN_STARTING_TAG||i==TOKEN_DOCUMENT);
+	}
 	/**
 	 * Test whether ch is a white space character or not.
 	 * @return boolean
@@ -1046,6 +1064,149 @@ public class VTDNav {
 	 */
 	final private boolean isWS(int ch) {
 		return (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
+	}
+	
+	/**
+	 * 
+	 * @param en
+	 * @return
+	 * @throws NavException
+	 */
+	protected boolean iterate_preceding(String en)
+	throws NavException {
+		int index = getCurrentIndex() - 1;
+		int t,d;
+		//int size = vtdBuffer.size();
+		while (index >=0) {
+			if (isElementOrDocument(index)) {
+				int depth = getTokenDepth(index);
+				context[0] = depth;
+				//context[depth]=index;
+				if (depth>0){
+					context[depth] = index;
+					t = index -1;
+					for (int i=depth-1;i>0;i--){
+						if (context[i]>index){
+							while(t>0){
+								d = getTokenDepth(t);
+								if ( d == i && isElement(t)){
+									context[i] = t;
+									break;
+								}
+								t--;
+							}							
+						}else
+							break;
+					}
+				}
+				//dumpContext();
+				if (matchElement(en)) {					
+					resolveLC();
+					return true;
+				}
+			} else
+				index--;
+		}
+		return false;	
+	}
+	/**
+	 * 
+	 * @param URL
+	 * @param ln
+	 * @return
+	 * @throws NavException
+	 */
+	protected boolean iterate_precedingNS(String URL, String ln)
+	throws NavException {
+		int index = getCurrentIndex() - 1;
+		int t,d;
+		//int size = vtdBuffer.size();
+		while (index >=0) {
+			if (isElementOrDocument(index)) {
+				int depth = getTokenDepth(index);
+				context[0] = depth;
+				//context[depth]=index;
+				if (depth>0){
+					context[depth] = index;
+					t = index -1;
+					for (int i=depth-1;i>0;i--){
+						if (context[i]>index){
+							while(t>0){
+								d = getTokenDepth(t);
+								if ( d == i && isElement(t)){
+									context[i] = t;
+									break;
+								}
+								t--;
+							}							
+						}else
+							break;
+					}
+				}
+				//dumpContext();
+				if (matchElementNS(URL,ln)) {					
+					resolveLC();
+					return true;
+				}
+			} else
+				index--;
+		}
+		return false;	
+	}
+	/**
+	 * 
+	 * @param en
+	 * @return
+	 * @throws NavException
+	 */
+	
+	protected boolean iterate_following(String en) 
+	throws NavException{
+		int index = getCurrentIndex() + 1;
+		//int size = vtdBuffer.size();
+		while (index < vtdSize) {
+			if (isElementOrDocument(index)) {
+				int depth = getTokenDepth(index);
+				context[0] = depth;
+				if (depth>0)
+					context[depth] = index;
+				if (matchElement(en)) {					
+					resolveLC();
+					return true;
+				}
+			} else 
+				index++;
+		}
+		return false;		
+	}
+	
+	/**
+	 * 
+	 * @param URL
+	 * @param ln
+	 * @return
+	 * @throws NavException
+	 */
+	protected boolean iterate_followingNS(String URL, String ln) 
+	throws NavException{
+		int index = getCurrentIndex() + 1;
+		//int size = vtdBuffer.size();
+		while (index < vtdSize) {
+			if (isElementOrDocument(index)) {
+				int depth = getTokenDepth(index);
+				context[0] = depth;
+				if (depth>0)
+					context[depth] = index;
+				if (matchElementNS(URL,ln)) {					
+					resolveLC();
+					return true;
+				}
+			} else {
+				return false;
+			}
+			index++;
+		}
+		return false;
 	}
 	/**
 	 * This method is similar to getElementByName in DOM except it doesn't
@@ -1060,7 +1221,7 @@ public class VTDNav {
 	 * content contains various errors. Notice that we are being conservative in making little assumption on
 	 * the correctness of underlying byte content. This is because VTD records can be generated by another
 	 * machine from a load-balancer.
-	 * @exception IllegalArguementException When en is null
+	 * null element name allowed represent node()in XPath;
 	 */
 	protected boolean iterate(int dp, String en)
 		throws NavException { // the navigation doesn't rely on LC
@@ -1068,7 +1229,7 @@ public class VTDNav {
 		int index = getCurrentIndex() + 1;
 		//int size = vtdBuffer.size();
 		while (index < vtdSize) {
-			if (isElement(index)) {
+			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
 				if (depth > dp) {
 					context[0] = depth;
@@ -1118,7 +1279,7 @@ public class VTDNav {
 			throw new IllegalArgumentException("local name can't be null");
 		int index = getCurrentIndex() + 1;
 		while (index < vtdSize) {
-			if (isElement(index)) {
+			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
 				if (depth > dp) {
 					context[0] = depth;
@@ -1149,10 +1310,11 @@ public class VTDNav {
 	public boolean matchElement(String en) throws NavException {
 		if (en == null )
 			throw new IllegalArgumentException(" can't match Element name ");
+		
+		if (en.equals("*") && context[0]!=-1)
+			return true;
 		if (context[0]==-1)
 			return false;
-		if (en.equals("*"))
-			return true;
 		return matchRawTokenString(
 			(context[0] == 0) ? rootIndex : context[context[0]],
 			en);
@@ -1821,7 +1983,31 @@ public class VTDNav {
 		l3upper = stackTemp[nestingLevel + 6];
 
 		return true;
+	}
+	
+	/**
+	 * Load the context info from contextStack2.
+	 * This method is dedicated for XPath evaluation.
+	 * @return
+	 */
+	
+	protected boolean pop2(){
 
+		boolean b = contextStack2.load(stackTemp);
+		if (b == false)
+			return false;
+		for (int i = 0; i < nestingLevel; i++) {
+			context[i] = stackTemp[i];
+		}
+		l1index = stackTemp[nestingLevel];
+		l2index = stackTemp[nestingLevel + 1];
+		l3index = stackTemp[nestingLevel + 2];
+		l2lower = stackTemp[nestingLevel + 3];
+		l2upper = stackTemp[nestingLevel + 4];
+		l3lower = stackTemp[nestingLevel + 5];
+		l3upper = stackTemp[nestingLevel + 6];
+
+		return true;
 	}
 	/**
 	 * Insert the method's description here.
@@ -1885,6 +2071,26 @@ public class VTDNav {
 		stackTemp[nestingLevel + 6] = l3upper;
 
 		contextStack.store(stackTemp);
+	}
+	/**
+	 * Store the context info into the contextStack2.
+	 * This method is reserved for XPath Evaluation
+	 *
+	 */
+	
+	protected void push2() {
+		for (int i = 0; i < nestingLevel; i++) {
+			stackTemp[i] = context[i];
+		}
+		stackTemp[nestingLevel] = l1index;
+		stackTemp[nestingLevel + 1] = l2index;
+		stackTemp[nestingLevel + 2] = l3index;
+		stackTemp[nestingLevel + 3] = l2lower;
+		stackTemp[nestingLevel + 4] = l2upper;
+		stackTemp[nestingLevel + 5] = l3lower;
+		stackTemp[nestingLevel + 6] = l3upper;
+
+		contextStack2.store(stackTemp);
 	}
 	
 	public void sampleState(FastIntBuffer fib){
@@ -1976,6 +2182,7 @@ public class VTDNav {
 
 		if (l2index < 0 || l2index >= l2Buffer.size()
 				|| context[2] != l2Buffer.upper32At(l2index)) {
+			
 			if (l2index >= l2Buffer.size() || l2index<0)
 				l2index = l2lower;
 			if (l2index+1< l2Buffer.size()&& context[2] == l2Buffer.upper32At(l2index + 1))
@@ -1996,6 +2203,7 @@ public class VTDNav {
 				}
 				l2index = init_guess;
 			} else if (context[2]<l2Buffer.upper32At(l2index)){
+				
 				while ( context[2] != l2Buffer.upper32At(l2index)) {
 					l2index--;
 				}
@@ -2008,6 +2216,7 @@ public class VTDNav {
 
 		if (context[0] == 2)
 			return;
+		
 		temp = l2Buffer.lower32At(l2index);
 		if (l3lower != temp) {
 			//l3lower and l3upper are always together
@@ -2028,7 +2237,8 @@ public class VTDNav {
 				|| context[3] != l3Buffer.intAt(l3index)) {
 			if (l3index >= l3Buffer.size() || l3index <0)
 				l3index = l3lower;
-			if (context[3] == l3Buffer.intAt(l3index + 1))
+			if (l3index+1 < l3Buffer.size() &&
+					context[3] == l3Buffer.intAt(l3index + 1))
 				l3index = l3index + 1;
 			else if (l3upper - l3lower >= 16) {
 				int init_guess = l3lower
@@ -2652,7 +2862,7 @@ public class VTDNav {
 						return true;
 					else {
 						//toParentElement();
-						context[context[0]] = 0xffffffff;
+						//context[context[0]] = 0xffffffff;
 						context[0]--;
 						return false;
 					}
@@ -2666,7 +2876,7 @@ public class VTDNav {
 					if (toElementNS(PREV_SIBLING, URL, ln) == true)
 						return true;
 					else {
-						context[context[0]] = 0xffffffff;
+						//context[context[0]] = 0xffffffff;
 						context[0]--;
 						//toParentElement();
 						return false;
@@ -2686,8 +2896,8 @@ public class VTDNav {
 				  case 3: val = l3index; break;
 				  	default:
 				}
-				if (d == 0)
-					return false;
+				//if (d == 0)
+				//	return false;
 				while (toElement(NEXT_SIBLING)) {
 					if (matchElementNS(URL, ln)) {
 						return true;
@@ -2715,8 +2925,8 @@ public class VTDNav {
 				  case 3: val = l3index; break;
 				  	default:
 				}
-				if (d == 0)
-					return false;
+				//if (d == 0)
+				//	return false;
 				while (toElement(PREV_SIBLING)) {
 					if (matchElementNS(URL, ln)) {
 						return true;
