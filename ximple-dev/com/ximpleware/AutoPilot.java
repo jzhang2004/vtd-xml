@@ -19,13 +19,12 @@ package com.ximpleware;
  */
 /**
  * XimpleWare's AutoPilot implementation.
- * Currently it emulates the behavior of DOM's document-order node iterator.
- * When the element name is specified, an instance of this class automatically
- * moves the cursor across element nodes that satify the criteria (e.g. specified name).
- * Creation date: (11/24/03 2:36:21 PM)
+ * 
  * 
  * Added various functions for following, preceding, attribute, descendent
  * axis (7/2005)
+ * 
+ * Added selectXPath
  * 
  */
 public class AutoPilot {
@@ -35,11 +34,18 @@ public class AutoPilot {
     private VTDNav vn; // the navigator object
     private int index;
     private boolean ft; // a helper variable for 
-
+    private boolean special;   // This helps distinguish between
+    				   		   // the case of node() and * for preceding axis
+    						   // of xpath evaluation
     private String name; // Store element name after selectElement
     private String localName; // Store local name after selectElemntNS
     private String URL; // Store URL name after selectElementNS
     private int size; // for iterateAttr
+    
+    private XPath.XPathExpr xpe;
+    private XPath x;
+    
+    
     // defines the type of "iteration"
     public final static int UNDEFINED = 0;
     // set the mode corresponding to DOM's getElemetnbyName(string)
@@ -72,6 +78,20 @@ public AutoPilot(VTDNav v) {
     iter_type = UNDEFINED; // not defined
     ft = true;
     size = 0;
+    special = false;
+    xpe = null;
+    x = null;
+    
+}
+
+public void rebind(VTDNav v){
+    name = null;
+    vn = v;
+    //depth = v.getCurrentDepth();
+    iter_type = UNDEFINED; // not defined
+    ft = true;
+    size = 0;
+    special = false;
 }
 /**
  * Iterate over all the selected element nodes in document order.
@@ -91,7 +111,7 @@ public boolean iterate() throws PilotException, NavException {
                 return vn.iterate(depth, name);
             else {
             	ft = false;
-                if (name == null || 
+                if (special || 
                 		vn.matchElement(name)) {                	
                     return true;
                 } else
@@ -125,22 +145,47 @@ public boolean iterate() throws PilotException, NavException {
          	return vn.iterateNS(depth, URL, localName);
          	
          case FOLLOWING:
-            return vn.iterate_following(name);
+            if (ft == false)
+                return vn.iterate_following(name);
+            else {
+            	ft = false;
+            	// find the first next sibling of 
+            	while(true){
+            		while (vn.toElement(VTDNav.NS)){
+            			 if (vn.matchElement(name)) {                	
+                            return true;
+            			 }
+            		}
+                    if (vn.toElement(VTDNav.P)==false){
+                         	return false;
+                    } 
+            	}
+            }
             
-         	
-         
          case FOLLOWING_NS:
-         	return vn.iterate_followingNS(URL,localName);
+         	if (ft == false)
+                return vn.iterate_followingNS(URL,localName);
+            else {
+            	ft = false;
+            	// find the first next sibling of 
+            	while(true){
+            		while (vn.toElement(VTDNav.NS)){
+            			 if (vn.matchElementNS(URL,localName)) {                	
+                            return true;
+            			 }
+            		}
+                    if (vn.toElement(VTDNav.P)==false){
+                         	return false;
+                    } 
+            	}
+            }
            
-         	
-         case PRECEDING:
-            return vn.iterate_preceding(name);
+         case PRECEDING: 
+         	return vn.iterate_preceding(name, special);
 
-         	
          case PRECEDING_NS:
-            return vn.iterate_precedingNS(URL,localName);
+         	return vn.iterate_precedingNS(URL, localName);
                     	
-         	
         default :
             throw new PilotException(" iteration action type undefined");
     }
@@ -340,5 +385,54 @@ public void selectAttrNS(String ns_URL, String ln){
     ft = true;
     localName = ln;
     URL = ns_URL;
+}
+
+/**
+ * 
+ * @param s
+ * @throws PilotException
+ */
+public void selectXPath(String s) throws PilotException{
+	x = new XPath();
+	try {
+		xpe = x.compileXPath(s);
+	}catch (XPath.XPathException e){
+		xpe = null;
+		throw new PilotException("Invalid XPath expression");
+	}
+}
+
+/**
+ * Reset teh XPath so it 
+ *
+ */
+public void resetXPath(){
+	if (xpe!=null){
+		xpe.reset();
+		vn.clearStack2();
+	}
+}
+
+/**
+ * 
+ * @return
+ */
+public int evalXPath() throws PilotException, NavException{
+	try{
+		if (xpe!=null){
+			return x.evalXpathExpr(vn, xpe);
+		}
+		throw new PilotException(" Null XPath expression "); 
+	}catch (XPath.XPathException e){}	
+	throw new PilotException(" Error during XPath evaluation "); 
+}
+/**
+ * Setspecial is used by XPath evaluator to distinguish between
+ * node() and *
+ * @param b
+ */
+
+public void setSpecial(boolean b ){
+	special = b;
 }
 }
