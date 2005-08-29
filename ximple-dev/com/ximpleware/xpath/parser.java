@@ -15,12 +15,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+
 package com.ximpleware.xpath;
+
 import java_cup.runtime.*;
 import com.ximpleware.*;
+import com.ximpleware.xpath.*;
 
 /** CUP v0.10k generated parser.
-  * @version Fri Aug 26 19:17:01 PDT 2005
+  * @version Sun Aug 28 16:19:26 PDT 2005
   */
 public class parser extends java_cup.runtime.lr_parser {
 
@@ -439,8 +442,9 @@ public class parser extends java_cup.runtime.lr_parser {
 
   
 
-  Step tempStep;
+  Step tempStep,tempStep2;
   NodeTest tempNt;
+  LocationPathExpr tempLPExpr;
   public parser (java.io.Reader input) {
     super(new Yylex(input));
   }
@@ -978,7 +982,13 @@ class CUP$parser$actions {
           case 30: // FilterExpr ::= FilterExpr Predicate 
             {
               Expr RESULT = null;
-
+		int feleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
+		int feright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
+		Expr fe = (Expr)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
+		int pleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left;
+		int pright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
+		Predicate p = (Predicate)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
+		 RESULT = new FilterExpr(fe, p);
               CUP$parser$result = new java_cup.runtime.Symbol(14/*FilterExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
           return CUP$parser$result;
@@ -999,7 +1009,37 @@ class CUP$parser$actions {
           case 28: // PathExpr ::= FilterExpr DSLASH RelativeLocationPath 
             {
               Expr RESULT = null;
-			
+		int feleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left;
+		int feright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
+		Expr fe = (Expr)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
+		int rlpleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left;
+		int rlpright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
+		Step rlp = (Step)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
+		   parser.tempStep = new Step();
+
+		     parser.tempStep.setAxisType(AxisType.DESCENDANT_OR_SELF);
+		     parser.tempNt = new NodeTest();
+		     parser.tempNt.setTestType(NodeTest.NODE);
+
+		     parser.tempStep.setNodeTest(parser.tempNt);
+
+		     parser.tempStep.setNextStep(rlp);
+		     rlp.setPrevStep(parser.tempStep);
+		     
+		     parser.tempStep2 = new Step();
+		     parser.tempNt = new NodeTest();
+		     parser.tempStep2.setAxisType(AxisType.SELF);
+		     parser.tempNt.setTestType(NodeTest.NODE);
+
+		     parser.tempStep2.setNodeTest(parser.tempNt);
+	
+  		     parser.tempStep2.setNextStep(parser.tempStep);
+		     parser.tempStep.setPrevStep(parser.tempStep2);
+
+		     parser.tempLPExpr = new LocationPathExpr();
+		     parser.tempLPExpr.setStep(parser.tempStep2);
+		     RESULT = new PathExpr(fe, parser.tempLPExpr);
+		
               CUP$parser$result = new java_cup.runtime.Symbol(13/*PathExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
           return CUP$parser$result;
@@ -1008,7 +1048,16 @@ class CUP$parser$actions {
           case 27: // PathExpr ::= FilterExpr SLASH RelativeLocationPath 
             {
               Expr RESULT = null;
-			
+		int feleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left;
+		int feright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
+		Expr fe = (Expr)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
+		int rlpleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left;
+		int rlpright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
+		Step rlp = (Step)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
+		   parser.tempLPExpr = new LocationPathExpr();
+		     parser.tempLPExpr.setStep(rlp);
+		     RESULT = new PathExpr(fe, parser.tempLPExpr);	
+		
               CUP$parser$result = new java_cup.runtime.Symbol(13/*PathExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
           return CUP$parser$result;
@@ -1047,10 +1096,12 @@ class CUP$parser$actions {
 		int peleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left;
 		int peright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
 		Expr pe = (Expr)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
-		 RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe); 
-              CUP$parser$result = new java_cup.runtime.Symbol(12/*UnionExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
+		 //RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe);
+		   throw new XPathParseException("Union not yet supported"); 
+		
+      //CUP$parser$result = new java_cup.runtime.Symbol(12/*UnionExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
-          return CUP$parser$result;
+      //return CUP$parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 23: // UnionExpr ::= PathExpr 
