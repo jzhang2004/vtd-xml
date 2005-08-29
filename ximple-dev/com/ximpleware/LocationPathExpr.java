@@ -176,11 +176,11 @@ public class LocationPathExpr extends Expr{
 				}
 			}
 		}
-		if (s!=null){
-			System.out.println("<<<<<<>>>>>>");
-			System.out.println(s.toString());
-			System.out.println("<<<<<<>>>>>>");
-		}
+//		if (s!=null){
+//			System.out.println("<<<<<<>>>>>>");
+//			System.out.println(s.toString());
+//			System.out.println("<<<<<<>>>>>>");
+//		}
 		while (true) {
 			switch (currentStep.axis_type) {
 
@@ -188,8 +188,9 @@ public class LocationPathExpr extends Expr{
 				switch ( state) {
 				case  START:
 					if (currentStep.nt.testType != NodeTest.TEXT){
-						vn.toElement(VTDNav.FIRST_CHILD);
+						 b = vn.toElement(VTDNav.FIRST_CHILD);
 						 state =  END;
+						 if (b == true)
 						do {
 							if (currentStep.eval(vn)) {
 								if (currentStep.getNextStep() != null){
@@ -205,6 +206,7 @@ public class LocationPathExpr extends Expr{
 							break;
 							}
 						} while (vn.toElement(VTDNav.NS));
+					
 					} else {
 						// for text() right now predicates are not evaled
 						if (currentStep.getNextStep() != null){
