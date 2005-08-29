@@ -33,7 +33,7 @@ public class LocationPathExpr extends Expr{
 				      TERMINAL= 2, // no more next step
 				      FORWARD = 3, // 
 				      BACKWARD= 4, //
-					DOWN  = 5; // 
+					  DOWN  = 5; // 
 								
 		public LocationPathExpr(){
 			state = START;
@@ -142,7 +142,7 @@ public class LocationPathExpr extends Expr{
 				if (a!=-1) return vn.toString(a);
 			}catch (NavException e){
 			}
-	        	return null;	
+	        return null;	
 		}
 
 		public boolean  isNodeSet(){
@@ -176,7 +176,11 @@ public class LocationPathExpr extends Expr{
 				}
 			}
 		}
-
+		if (s!=null){
+			System.out.println("<<<<<<>>>>>>");
+			System.out.println(s.toString());
+			System.out.println("<<<<<<>>>>>>");
+		}
 		while (true) {
 			switch (currentStep.axis_type) {
 
@@ -202,6 +206,7 @@ public class LocationPathExpr extends Expr{
 							}
 						} while (vn.toElement(VTDNav.NS));
 					} else {
+						// for text() right now predicates are not evaled
 						if (currentStep.getNextStep() != null){
 							state =  FORWARD;
 							currentStep = currentStep.getNextStep();
@@ -240,6 +245,7 @@ public class LocationPathExpr extends Expr{
 								}
 							} while (vn.toElement(VTDNav.NS));
 							vn.toElement(VTDNav.P);
+							currentStep.resetP();
 							currentStep = currentStep.getPrevStep();
 						} else {
 							//vn.toElement(VTDNav.P);
@@ -272,9 +278,12 @@ public class LocationPathExpr extends Expr{
 						if (b == true) {
 							 state =  FORWARD;
 							currentStep = currentStep.getNextStep();
-						} else if (currentStep.getPrevStep() == null)
+						} else if (currentStep.getPrevStep() == null){
+							currentStep.resetP();
 							 state =  END;
+						}
 						else {
+							currentStep.resetP();
 							 state =  BACKWARD;
 							vn.toElement(VTDNav.P);
 							currentStep = currentStep.getPrevStep();
@@ -299,16 +308,18 @@ public class LocationPathExpr extends Expr{
 									return result;
 							}
 						}
-
+						currentStep.resetP();
 						if (currentStep.getPrevStep() == null)
 							 state =  END;
 
 						else {
 							vn.toElement(VTDNav.P);
+							
 							 state =  BACKWARD;
 							currentStep = currentStep.getPrevStep();
 						}
 					}else {
+						currentStep.resetP();
 						if (currentStep.getPrevStep() == null)
 							 state =  END;
 
@@ -377,6 +388,7 @@ public class LocationPathExpr extends Expr{
 						vn.pop2();
 						//System.out.println("  --++ pop in //");
 						currentStep.set_ft(true);
+						currentStep.resetP();
 						if ( state ==  FORWARD){
 							 state =  BACKWARD;
 							currentStep = currentStep.getPrevStep();							
@@ -415,6 +427,7 @@ public class LocationPathExpr extends Expr{
 					if (b == false) {
 						vn.pop2();
 						currentStep.set_ft(true);
+						currentStep.resetP();
 						//System.out.println("  --++ pop in //");
 						if (currentStep.getPrevStep() != null) {
 							 state =  BACKWARD;
@@ -453,10 +466,12 @@ public class LocationPathExpr extends Expr{
 						}
 					}
 					else if (currentStep.getPrevStep() == null) {
+						currentStep.resetP();
 						 state =  END;
 					} else {
 						vn.pop2();
 						currentStep.set_ft(true);
+						currentStep.resetP();
 						//System.out.println("  --++ pop in //");
 						 state =  BACKWARD;
 						//currentStep.ft = true;
@@ -501,6 +516,7 @@ public class LocationPathExpr extends Expr{
 						    }
 						}else{
 							vn.pop2();
+							currentStep.resetP();
 							if ( state ==  START)
 								 state =  END;
 							else {								
@@ -560,6 +576,7 @@ public class LocationPathExpr extends Expr{
 				   			}							
 				   		}
 				   		if ( state == END){
+				   			currentStep.resetP();
 				   			vn.pop2();
 				   		}
 				   }
@@ -586,6 +603,7 @@ public class LocationPathExpr extends Expr{
 				   		}							
 				   	}
 				   	if ( state == BACKWARD){
+				   		currentStep.resetP();
 						vn.pop2();
 				   		currentStep=currentStep.getPrevStep();
 				   	}
@@ -620,7 +638,8 @@ public class LocationPathExpr extends Expr{
 					if (b==false){
 						vn.pop2();
 						if (currentStep.getPrevStep()!=null) {
-							 state =  BACKWARD;
+							currentStep.resetP();
+							state =  BACKWARD;
 							currentStep = currentStep.getPrevStep();
 						}
 						else {
@@ -638,6 +657,7 @@ public class LocationPathExpr extends Expr{
 						}
 					}
 					vn.pop2();
+					currentStep.resetP();
 					if (currentStep.getPrevStep()!=null) {
 						 state =  BACKWARD;
 						currentStep = currentStep.getPrevStep();
@@ -694,6 +714,7 @@ public class LocationPathExpr extends Expr{
 						}
 					}
 					if ( state ==  END) {
+						currentStep.resetP();
 						vn.pop2();
 					}
 
@@ -735,6 +756,7 @@ public class LocationPathExpr extends Expr{
 						}
 					}
 					if ( state ==  BACKWARD) {
+						currentStep.resetP();
 						currentStep.set_ft(true);
 						vn.pop2();
 						currentStep = currentStep.getPrevStep();
@@ -769,6 +791,7 @@ public class LocationPathExpr extends Expr{
 					}
 					if (b == false) {
 						vn.pop2();
+						currentStep.resetP();
 						if (currentStep.getPrevStep() != null) {
 							currentStep.set_ft(true);
 							 state =  BACKWARD;
@@ -788,6 +811,7 @@ public class LocationPathExpr extends Expr{
 						}
 					}
 					vn.pop2();
+					currentStep.resetP();
 					if (currentStep.getPrevStep()!=null) {
 						currentStep.set_ft(true);
 						 state =  BACKWARD;
@@ -821,6 +845,7 @@ public class LocationPathExpr extends Expr{
 								return result;
 				  		}
 				  	}else {
+				  		currentStep.resetP();
 				  		if ( state ==  START)
 				  			 state =  END;
 				  		else 
@@ -831,11 +856,11 @@ public class LocationPathExpr extends Expr{
 				  case  END:
 				  	currentStep = null;
 				  	// reset();
-				  	break;
+				  	return -1;
 				  	
 				  case  BACKWARD:
-				  	if (currentStep.eval(vn)){
-				  		if (currentStep.getNextStep()!=null){
+				  	/*if (currentStep.eval(vn)){
+				  		if (currentStep.getPrevStep()!=null){
 				  			 state =  BACKWARD;
 				  			currentStep = currentStep.getPrevStep();
 				  		}
@@ -846,6 +871,7 @@ public class LocationPathExpr extends Expr{
 								return result;
 				  		}
 				  	}else {
+				  		currentStep.resetP();
 				  		if (currentStep.getPrevStep()!=null){
 				  			 state =  BACKWARD;
 				  			currentStep= currentStep.getPrevStep();
@@ -853,7 +879,7 @@ public class LocationPathExpr extends Expr{
 				  			 state =  END;				  			
 				  		}
 				  	}
-				  	break;
+				  	break;*/
 				  
 				  case  TERMINAL:
 				  	if (currentStep.getPrevStep()!=null){
@@ -895,8 +921,10 @@ public class LocationPathExpr extends Expr{
 				  	}
 				  	
 				  	if ( state ==  END){
+				  		currentStep.resetP();
 				  		vn.pop2();
 				  	}else if ( state ==  BACKWARD){
+				  		currentStep.resetP();
 				  		vn.pop2();
 				  		currentStep = currentStep.getPrevStep();				  		
 				  	}
@@ -925,6 +953,7 @@ public class LocationPathExpr extends Expr{
 				  	}
 				    if (b==false){
 				    	vn.pop2();
+				    	currentStep.resetP();
 				    	if (currentStep.getPrevStep()==null){
 				    		 state =  END;
 				    	}else{
@@ -944,6 +973,7 @@ public class LocationPathExpr extends Expr{
 				  		}
 				  	}
 				  	vn.pop2();
+				  	currentStep.resetP();
 				  	if(currentStep.getPrevStep()!=null){
 				  		currentStep = currentStep.getPrevStep();
 				  		 state =  BACKWARD;
@@ -982,8 +1012,10 @@ public class LocationPathExpr extends Expr{
 				  	}
 				  	
 				  	if ( state ==  END){
+				  		currentStep.resetP();
 				  		vn.pop2();
 				  	}else if ( state ==  BACKWARD){
+				  		currentStep.resetP();
 				  		vn.pop2();
 				  		currentStep = currentStep.getPrevStep();				  		
 				  	}
@@ -1012,6 +1044,7 @@ public class LocationPathExpr extends Expr{
 				  	}
 				    if (b==false){
 				    	vn.pop2();
+				    	currentStep.resetP();
 				    	if (currentStep.getPrevStep()==null){
 				    		 state =  END;
 				    	}else{
@@ -1065,6 +1098,7 @@ public class LocationPathExpr extends Expr{
 						}
 						if (temp == -1){
 							currentStep.set_ft(true);
+							currentStep.resetP();
 							if ( state ==  FORWARD){
 								 state =  BACKWARD;
 								currentStep = currentStep.getPrevStep();							
@@ -1099,6 +1133,7 @@ public class LocationPathExpr extends Expr{
 						}
 						if (temp == -1) {
 							currentStep.set_ft(true);
+							currentStep.resetP();
 							if (currentStep.getPrevStep() != null) {
 								 state =  BACKWARD;
 								currentStep = currentStep.getPrevStep();
@@ -1125,6 +1160,7 @@ public class LocationPathExpr extends Expr{
 						}
 						if (temp != -1)
 							return temp;
+						currentStep.resetP();
 						if (currentStep.getPrevStep() == null) {
 							currentStep.set_ft(true);
 							 state =  END;
