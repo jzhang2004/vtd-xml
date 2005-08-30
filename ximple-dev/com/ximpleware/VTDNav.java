@@ -1072,21 +1072,22 @@ public class VTDNav {
 	 * @return
 	 * @throws NavException
 	 */
-	protected boolean iterate_preceding(String en)
+	protected boolean iterate_preceding(String en, int dp, boolean special)
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int t,d;
+		int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size();
-		while (index >=0) {
+		while (index >=0 && depth >= dp ) {
 			if (isElementOrDocument(index)) {
-				int depth = getTokenDepth(index);
+				depth = getTokenDepth(index);
 				context[0] = depth;
 				//context[depth]=index;
 				if (depth>0){
 					context[depth] = index;
 					t = index -1;
 					for (int i=depth-1;i>0;i--){
-						if (context[i]>index){
+						if (context[i]>index || context[i] == -1){
 							while(t>0){
 								d = getTokenDepth(t);
 								if ( d == i && isElement(t)){
@@ -1098,14 +1099,16 @@ public class VTDNav {
 						}else
 							break;
 					}
+				}else {
+					
 				}
 				//dumpContext();
-				if (matchElement(en)) {					
+				if (matchElement(en)|| special) {					
 					resolveLC();
 					return true;
 				}
-			} else
-				index--;
+			} 
+			index--;
 		}
 		return false;	
 	}
@@ -1116,21 +1119,22 @@ public class VTDNav {
 	 * @return
 	 * @throws NavException
 	 */
-	protected boolean iterate_precedingNS(String URL, String ln)
+	protected boolean iterate_precedingNS(String URL, int dp, String ln)
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int t,d;
+		int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size();
-		while (index >=0) {
+		while (index >=0 && depth >= dp) {
 			if (isElementOrDocument(index)) {
-				int depth = getTokenDepth(index);
+				depth = getTokenDepth(index);
 				context[0] = depth;
 				//context[depth]=index;
 				if (depth>0){
 					context[depth] = index;
 					t = index -1;
 					for (int i=depth-1;i>0;i--){
-						if (context[i]>index){
+						if (context[i]>index || context[i]==-1){
 							while(t>0){
 								d = getTokenDepth(t);
 								if ( d == i && isElement(t)){
@@ -1148,8 +1152,8 @@ public class VTDNav {
 					resolveLC();
 					return true;
 				}
-			} else
-				index--;
+			} 
+			index--;
 		}
 		return false;	
 	}
@@ -1174,8 +1178,8 @@ public class VTDNav {
 					resolveLC();
 					return true;
 				}
-			} else 
-				index++;
+			} 
+			index++;
 		}
 		return false;		
 	}
@@ -1201,9 +1205,7 @@ public class VTDNav {
 					resolveLC();
 					return true;
 				}
-			} else {
-				return false;
-			}
+			} 
 			index++;
 		}
 		return false;
@@ -1991,7 +1993,7 @@ public class VTDNav {
 	 * @return
 	 */
 	
-	protected boolean pop2(){
+	public boolean pop2(){
 
 		boolean b = contextStack2.load(stackTemp);
 		if (b == false)
@@ -2078,7 +2080,7 @@ public class VTDNav {
 	 *
 	 */
 	
-	protected void push2() {
+	public void push2() {
 		for (int i = 0; i < nestingLevel; i++) {
 			stackTemp[i] = context[i];
 		}
@@ -2092,6 +2094,21 @@ public class VTDNav {
 
 		contextStack2.store(stackTemp);
 	}
+	
+	/**
+	 *  clear the contextStack2 after XPath evaluation
+	 * 
+	 *
+	 */
+	protected void clearStack2(){
+		contextStack2.clear();
+	}
+	
+	
+	/**
+	 * This is for debugging purpose
+	 * @param fib
+	 */
 	
 	public void sampleState(FastIntBuffer fib){
 //		for(int i=0;i<context.)
@@ -3071,5 +3088,27 @@ public class VTDNav {
 		}
 
 		return sb.toString();
+	}
+	
+	/**
+	 * This method compare the strings ( as represented
+	 * by its VTD indices) of two VTDNav objects
+	 * @param vn1
+	 * @param i1
+	 * @param vn2
+	 * @param i2
+	 * @return
+	 */
+	public static boolean VTDComp(VTDNav vn1, int i1, 
+			VTDNav vn2, int i2)	throws NavException {
+		if (vn1==null || vn2 ==null){
+			throw new NavException("One or both VTD objects are null!!");
+		}
+		if (i1<0 || i2<0||i1>vn1.vtdSize || i2>vn2.vtdSize){
+			throw new NavException("Invalid index value");
+		}
+		if (vn1==vn2 && i1 ==i2)
+			return true;
+		return true;
 	}
 }
