@@ -27,6 +27,9 @@ package com.ximpleware;
  * Added selectXPath
  * 
  */
+
+import com.ximpleware.xpath.*;
+import java.io.*;
 public class AutoPilot {
     private int depth;
     // the depth of the element at the starting point will determine when to stop iteration
@@ -42,8 +45,7 @@ public class AutoPilot {
     private String URL; // Store URL name after selectElementNS
     private int size; // for iterateAttr
     
-    private XPath.XPathExpr xpe;
-    private XPath x;
+    private Expr xpe;
     
     
     // defines the type of "iteration"
@@ -80,8 +82,7 @@ public AutoPilot(VTDNav v) {
     size = 0;
     special = false;
     xpe = null;
-    x = null;
-    
+       
 }
 
 public void rebind(VTDNav v){
@@ -157,7 +158,7 @@ public boolean iterate() throws PilotException, NavException {
             			 }
             		}
                     if (vn.toElement(VTDNav.P)==false){
-                         	return false;
+                    	return vn.iterate_following(name);
                     } 
             	}
             }
@@ -175,16 +176,16 @@ public boolean iterate() throws PilotException, NavException {
             			 }
             		}
                     if (vn.toElement(VTDNav.P)==false){
-                         	return false;
+                    	return vn.iterate_followingNS(URL,localName);
                     } 
             	}
             }
            
          case PRECEDING: 
-         	return vn.iterate_preceding(name, special);
+         	return vn.iterate_preceding(name, depth,special);
 
          case PRECEDING_NS:
-         	return vn.iterate_precedingNS(URL, localName);
+         	return vn.iterate_precedingNS(URL, depth,localName);
                     	
         default :
             throw new PilotException(" iteration action type undefined");
@@ -346,6 +347,7 @@ public void selectElementNS_F(String ns_URL, String ln){
  * @param en
  */
 public void selectElement_P(String en) {
+	depth = vn.getCurrentDepth();
 	iter_type = PRECEDING;
     ft = true;	
     name = en;
@@ -358,6 +360,7 @@ public void selectElement_P(String en) {
  * @param ln
  */
 public void selectElementNS_P(String ns_URL, String ln){
+	depth = vn.getCurrentDepth();
 	iter_type = PRECEDING_NS;
     ft = true;
     localName = ln;
@@ -390,15 +393,16 @@ public void selectAttrNS(String ns_URL, String ln){
 /**
  * 
  * @param s
- * @throws PilotException
+ * @throws XPathParseException
  */
-public void selectXPath(String s) throws PilotException{
-	x = new XPath();
-	try {
-		xpe = x.compileXPath(s);
-	}catch (XPath.XPathException e){
-		xpe = null;
-		throw new PilotException("Invalid XPath expression");
+public void selectXPath(String s) throws XPathParseException{
+	
+	try{
+		parser p = new parser(new StringReader(s));
+		xpe = (com.ximpleware.xpath.Expr) p.parse().value;
+	}
+	catch(Exception e){
+		throw new XPathParseException(e.toString());
 	}
 }
 
@@ -417,14 +421,11 @@ public void resetXPath(){
  * 
  * @return
  */
-public int evalXPath() throws PilotException, NavException{
-	try{
-		if (xpe!=null){
-			return x.evalXpathExpr(vn, xpe);
-		}
-		throw new PilotException(" Null XPath expression "); 
-	}catch (XPath.XPathException e){}	
-	throw new PilotException(" Error during XPath evaluation "); 
+public int evalXPath() throws XPathEvalException, NavException{
+	if (xpe!=null){
+			return xpe.evalNodeSet(vn);
+	}
+	throw new PilotException(" Null XPath expression "); 
 }
 /**
  * Setspecial is used by XPath evaluator to distinguish between
@@ -434,5 +435,9 @@ public int evalXPath() throws PilotException, NavException{
 
 public void setSpecial(boolean b ){
 	special = b;
+}
+
+public String getExprString(){
+	return xpe.toString();
 }
 }
