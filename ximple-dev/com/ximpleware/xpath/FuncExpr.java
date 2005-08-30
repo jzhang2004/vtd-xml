@@ -23,6 +23,15 @@ public class FuncExpr extends Expr{
 	public Alist argumentList;
 	public int opCode;
 	boolean isNumerical;
+	int argCount(){
+		Alist temp = argumentList;
+		int count = 0;
+		while(temp!=null){
+			count++;
+			temp = temp.next;
+		}
+		return count;
+	}
 	public FuncExpr(int oc , Alist list){
 	  opCode = oc;
 	  argumentList = list;
@@ -95,9 +104,22 @@ public class FuncExpr extends Expr{
 	
 	public boolean evalBoolean(VTDNav vn){
 	  	  switch(opCode){
-			case FuncName.TRUE: return true;			
-			case FuncName.FALSE: return false;	
-			case FuncName.BOOLEAN: 			
+			case FuncName.TRUE: if (argCount()!=0){
+									throw new ArgumentCountException("true() doesn't take any argument");
+								}
+								return true;			
+			case FuncName.FALSE:if (argCount()!=0){
+									throw new ArgumentCountException("false() doesn't take any argument");
+								}
+								return false;	
+			case FuncName.BOOLEAN: if (argCount()!=1){
+										throw new ArgumentCountException("boolean() doesn't take any argument");
+								   }
+									return argumentList.e.evalBoolean(vn);	
+			case FuncName.NOT:	if (argCount()!=1){
+										throw new ArgumentCountException("not() doesn't take any argument");
+			   					}
+								return !argumentList.e.evalBoolean(vn);
 			case FuncName.CONTAINS:	
 			default: throw new UnsupportedException("Some functions are not supported");
 		  }
