@@ -47,6 +47,8 @@ public class AutoPilot {
     
     private Expr xpe;
     
+    private int[] contextCopy;
+    
     
     // defines the type of "iteration"
     public final static int UNDEFINED = 0;
@@ -93,6 +95,7 @@ public void rebind(VTDNav v){
     ft = true;
     size = 0;
     special = false;
+    contextCopy = (int[])vn.context.clone();
 }
 /**
  * Iterate over all the selected element nodes in document order.
@@ -182,10 +185,10 @@ public boolean iterate() throws PilotException, NavException {
             }
            
          case PRECEDING: 
-         	return vn.iterate_preceding(name, depth,special);
+         	return vn.iterate_preceding(name, contextCopy,special);
 
          case PRECEDING_NS:
-         	return vn.iterate_precedingNS(URL, depth,localName);
+         	return vn.iterate_precedingNS(URL, contextCopy,localName);
                     	
         default :
             throw new PilotException(" iteration action type undefined");
@@ -351,6 +354,8 @@ public void selectElement_P(String en) {
 	iter_type = PRECEDING;
     ft = true;	
     name = en;
+    contextCopy = (int[])vn.context.clone();
+    contextCopy[0]=vn.rootIndex;
 }
 
 /**
@@ -365,6 +370,8 @@ public void selectElementNS_P(String ns_URL, String ln){
     ft = true;
     localName = ln;
     URL = ns_URL;
+    contextCopy = (int[])vn.context.clone();
+    contextCopy[0]=vn.rootIndex;
 }
 
 /**
