@@ -35,7 +35,7 @@ public class AutoPilot {
     // the depth of the element at the starting point will determine when to stop iteration
     private int iter_type; // see selectElement
     private VTDNav vn; // the navigator object
-    private int index;
+    private int index; // for iterAttr
     private boolean ft; // a helper variable for 
     private boolean special;   // This helps distinguish between
     				   		   // the case of node() and * for preceding axis
@@ -45,9 +45,10 @@ public class AutoPilot {
     private String URL; // Store URL name after selectElementNS
     private int size; // for iterateAttr
     
-    private Expr xpe;
+    private Expr xpe;	// for evalXPath
     
-    private int[] contextCopy;
+    private int[] contextCopy;  //for preceding axis
+    private int stackSize;  // the stack size for xpath evaluation
     
     
     // defines the type of "iteration"
@@ -56,8 +57,8 @@ public class AutoPilot {
     public final static int SIMPLE = 1;
     // set the mode corresponding to DOM's getElementbyNameNS(string)
     public final static int SIMPLE_NS = 2;
-    public final static int DESCENDENT = 3;
-    public final static int DESCENDENT_NS = 4;
+    public final static int DESCENDANT = 3;
+    public final static int DESCENDANT_NS = 4;
     public final static int FOLLOWING = 5;
     public final static int FOLLOWING_NS=6;
     public final static int PRECEDING = 7;
@@ -66,7 +67,7 @@ public class AutoPilot {
     public final static int ATTR_NS = 10;
     
     
- public String getName(){
+ protected String getName(){
    	return name;
  }
 /**
@@ -86,16 +87,24 @@ public AutoPilot(VTDNav v) {
     xpe = null;
        
 }
-
-public void rebind(VTDNav v){
+/**
+ * Reset the internal state of Autopilot so
+ * one can attach a different vn object to the same 
+ * AutoPilot object
+ * @param new_vn
+ */
+ 
+ 
+public void rebind(VTDNav new_vn){
     name = null;
-    vn = v;
+    vn = new_vn;
     //depth = v.getCurrentDepth();
     iter_type = UNDEFINED; // not defined
     ft = true;
     size = 0;
     special = false;
-    contextCopy = (int[])vn.context.clone();
+    resetXPath(vn);
+    //contextCopy = (int[])vn.context.clone();
 }
 /**
  * Iterate over all the selected element nodes in document order.
@@ -110,22 +119,22 @@ public boolean iterate() throws PilotException, NavException {
         	//System.out.println("iterating ---> "+name+ " depth ---> "+depth);
             /*if (elementName == null)
                 throw new PilotException(" Element name not set ");*/
-        	
+        	if (vn.atTerminal)
+        	    return false;
             if (ft == false)
-                return vn.iterate(depth, name);
+                return vn.iterate(depth, name, special);
             else {
             	ft = false;
                 if (special || 
                 		vn.matchElement(name)) {                	
                     return true;
                 } else
-                    return vn.iterate(depth, name);
+                    return vn.iterate(depth, name, special);
             }
             
         case SIMPLE_NS :
-            if (localName == null) //|| URL == null)
-                throw new PilotException(" URL or Localname not set properly");
-
+        	if (vn.atTerminal)
+        	    return false;
             if (ft == false)
                 return vn.iterateNS(depth, URL, localName);
             else {
@@ -136,37 +145,41 @@ public boolean iterate() throws PilotException, NavException {
                     return vn.iterateNS(depth, URL, localName);
             }
             
-         case DESCENDENT:
-         	if (name == null)
-                throw new PilotException(" Element name not set ");
+         case DESCENDANT:
+         	if (vn.atTerminal)
+         	    return false;
+         	return vn.iterate(depth, name, special);
          	
-         	return vn.iterate(depth, name);
-         	
-         case DESCENDENT_NS:
-         	if (localName == null) //|| URL == null)
-                throw new PilotException(" URL or Localname not set properly");
-         	
+         case DESCENDANT_NS:
+         	if (vn.atTerminal)
+         	    return false;         	
          	return vn.iterateNS(depth, URL, localName);
          	
          case FOLLOWING:
+         	if (vn.atTerminal)
+         	    return false;
             if (ft == false)
-                return vn.iterate_following(name);
+                return vn.iterate_following(name, special);
             else {
             	ft = false;
             	// find the first next sibling of 
             	while(true){
             		while (vn.toElement(VTDNav.NS)){
-            			 if (vn.matchElement(name)) {                	
+            			 if (special || vn.matchElement(name)) {                	
                             return true;
             			 }
+            			 return vn.iterate_following(name, special);
             		}
                     if (vn.toElement(VTDNav.P)==false){
-                    	return vn.iterate_following(name);
+                    	//return vn.iterate_following(name, special);
+                        return false;
                     } 
             	}
             }
             
          case FOLLOWING_NS:
+         	if (vn.atTerminal)
+         	    return false;
          	if (ft == false)
                 return vn.iterate_followingNS(URL,localName);
             else {
@@ -177,29 +190,35 @@ public boolean iterate() throws PilotException, NavException {
             			 if (vn.matchElementNS(URL,localName)) {                	
                             return true;
             			 }
+            			 return vn.iterate_followingNS(URL,localName);
             		}
                     if (vn.toElement(VTDNav.P)==false){
-                    	return vn.iterate_followingNS(URL,localName);
+                    	return false;
                     } 
             	}
             }
            
          case PRECEDING: 
+         	if (vn.atTerminal)
+         	    return false;
          	return vn.iterate_preceding(name, contextCopy,special);
 
          case PRECEDING_NS:
-         	return vn.iterate_precedingNS(URL, contextCopy,localName);
+         	if (vn.atTerminal)
+         	    return false;
+         	return vn.iterate_precedingNS(URL,localName,contextCopy);
                     	
         default :
             throw new PilotException(" iteration action type undefined");
     }
 }
 /**
- * 
- * @return
+ * This method implements the attribute axis for XPath
+ * @return the integer of the selected VTD index for attribute name
  * @throws PilotException
  */
-   public int iterateAttr() throws PilotException,NavException{
+   protected int iterateAttr() throws PilotException,NavException{
+      
    	    switch(iter_type){
    	    	case ATTR:
    	    		if (name.compareTo("*")==0){
@@ -270,6 +289,8 @@ public boolean iterate() throws PilotException, NavException {
  * @param en java.lang.String
  */
 	public void selectElement(String en) {
+		if (en == null)
+			throw new IllegalArgumentException("element name can't be null");
 		iter_type = SIMPLE;
 		depth = vn.getCurrentDepth();
 		//startIndex = vn.getCurrentIndex();
@@ -288,6 +309,8 @@ public boolean iterate() throws PilotException, NavException {
  *            java.lang.String
  */
 public void selectElementNS(String ns_URL, String ln) {
+	if (ln == null)
+		throw new IllegalArgumentException("local name can't be null");
     iter_type = SIMPLE_NS;
     depth = vn.getCurrentDepth();
     //startIndex = vn.getCurrentIndex();
@@ -300,8 +323,10 @@ public void selectElementNS(String ns_URL, String ln) {
  * Select all descendent elements along the descendent axis, without ns awareness
  * @param en
  */
-public void selectElement_D(String en) {
-	iter_type = DESCENDENT;
+protected void selectElement_D(String en) {
+	if (en == null)
+		throw new IllegalArgumentException("element name can't be null");
+	iter_type = DESCENDANT;
 	depth = vn.getCurrentDepth();
 	//startIndex = vn.getCurrentIndex();
 	name = en;
@@ -313,8 +338,10 @@ public void selectElement_D(String en) {
  * @param ns_URL
  * @param ln
  */
-public void selectElementNS_D(String ns_URL, String ln){
-    iter_type = DESCENDENT_NS;
+protected void selectElementNS_D(String ns_URL, String ln){
+	if (ln == null)
+		throw new IllegalArgumentException("local name can't be null");
+    iter_type = DESCENDANT_NS;
     depth = vn.getCurrentDepth();
     //startIndex = vn.getCurrentIndex();
     localName = ln;
@@ -327,7 +354,9 @@ public void selectElementNS_D(String ns_URL, String ln){
  * null selects every elements and documents
  * @param en
  */
-public void selectElement_F(String en) {
+protected void selectElement_F(String en) {
+	if (en == null)
+		throw new IllegalArgumentException("element name can't be null");
 	iter_type = FOLLOWING;
 	ft = true;
 	name = en;
@@ -338,7 +367,9 @@ public void selectElement_F(String en) {
  * The namespace-aware version
  * @param en
  */
-public void selectElementNS_F(String ns_URL, String ln){
+protected void selectElementNS_F(String ns_URL, String ln){
+	if (ln == null)
+		throw new IllegalArgumentException("local name can't be null");
 	iter_type = FOLLOWING_NS;
     ft = true;
     localName = ln;
@@ -349,12 +380,17 @@ public void selectElementNS_F(String ns_URL, String ln){
  * Select all elements along the preceding axis as defined in XPath
  * @param en
  */
-public void selectElement_P(String en) {
+protected void selectElement_P(String en) {
+	if (en == null)
+		throw new IllegalArgumentException("element name can't be null");
 	depth = vn.getCurrentDepth();
 	iter_type = PRECEDING;
     ft = true;	
     name = en;
     contextCopy = (int[])vn.context.clone();
+    for(int i = vn.context[0]+1;i<vn.context.length;i++){
+        contextCopy[i]=-1;
+    }
     contextCopy[0]=vn.rootIndex;
 }
 
@@ -364,13 +400,18 @@ public void selectElement_P(String en) {
  * @param ns_URL
  * @param ln
  */
-public void selectElementNS_P(String ns_URL, String ln){
+protected void selectElementNS_P(String ns_URL, String ln){
+	if (ln == null)
+		throw new IllegalArgumentException("local name can't be null");
 	depth = vn.getCurrentDepth();
 	iter_type = PRECEDING_NS;
     ft = true;
     localName = ln;
     URL = ns_URL;
     contextCopy = (int[])vn.context.clone();
+    for(int i = vn.context[0]+1;i<vn.context.length;i++){
+        vn.context[i]=-1;
+    }
     contextCopy[0]=vn.rootIndex;
 }
 
@@ -378,7 +419,9 @@ public void selectElementNS_P(String ns_URL, String ln){
  * Select an attribute name for iteration, * choose all attributes of an element
  * @param en
  */
-public void selectAttr(String en) {
+protected void selectAttr(String en) {
+	if (en == null)
+		throw new IllegalArgumentException("attribute name can't be null");
 	iter_type = ATTR;
     ft = true;
     size = vn.getTokenCount();
@@ -390,7 +433,9 @@ public void selectAttr(String en) {
  * @param ns_URL
  * @param ln
  */
-public void selectAttrNS(String ns_URL, String ln){
+protected void selectAttrNS(String ns_URL, String ln){
+	if (ln == null)
+		throw new IllegalArgumentException("local name of an attribute can't be null");
 	iter_type = ATTR_NS;
     ft = true;
     localName = ln;
@@ -398,7 +443,8 @@ public void selectAttrNS(String ns_URL, String ln){
 }
 
 /**
- * 
+ * This path selects the string representing XPath expression
+ * Usually evalXPath is called afterwards
  * @param s
  * @throws XPathParseException
  */
@@ -407,6 +453,7 @@ public void selectXPath(String s) throws XPathParseException{
 	try{
 		parser p = new parser(new StringReader(s));
 		xpe = (com.ximpleware.xpath.Expr) p.parse().value;
+		stackSize = vn.contextStack2.size;
 	}
 	catch(Exception e){
 		throw new XPathParseException(e.toString());
@@ -414,19 +461,22 @@ public void selectXPath(String s) throws XPathParseException{
 }
 
 /**
- * Reset teh XPath so it 
+ * Reset the XPath so the XPath Expression can 
+ * be reused and revaluated in anther context position
  *
  */
-public void resetXPath(){
+
+public void resetXPath(VTDNav vn){
 	if (xpe!=null){
-		xpe.reset();
-		vn.clearStack2();
+		xpe.reset(vn);
+		vn.contextStack2.size = stackSize;
 	}
 }
 
 /**
- * 
- * @return
+ * This method returns the next node in the nodeset
+ * it returns -1 if there is no more node
+ * @return int corresponding to the VTD index
  */
 public int evalXPath() throws XPathEvalException, NavException{
 	if (xpe!=null){
@@ -434,16 +484,23 @@ public int evalXPath() throws XPathEvalException, NavException{
 	}
 	throw new PilotException(" Null XPath expression "); 
 }
+
 /**
  * Setspecial is used by XPath evaluator to distinguish between
  * node() and *
+ * node() corresponding to b= true;
  * @param b
  */
 
-public void setSpecial(boolean b ){
+protected void setSpecial(boolean b ){
 	special = b;
 }
 
+/**
+ * Convert the expression to a string
+ * For debugging purpose
+ * @return
+ */
 public String getExprString(){
 	return xpe.toString();
 }
