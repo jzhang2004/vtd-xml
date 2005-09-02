@@ -17,13 +17,12 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
+// added set
 import com.ximpleware.NavException;
 import com.ximpleware.parser.UTF8Char;
 /**
  *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * 
  */
 /**
  * VTD navigator class implementation
@@ -82,7 +81,10 @@ public class VTDNav {
 	protected int rootIndex; // where the root element is at
 	protected int nestingLevel;
 	protected int[] context; // main navigation tracker aka context object
-
+    protected boolean atTerminal; // this variable is to make vn compatible with
+    								// xpath's data model
+	
+	
 	// location cache part
 	protected int l2upper;
 	protected int l2lower;
@@ -102,7 +104,7 @@ public class VTDNav {
 	//private int recentNS; // most recently visited NS node, experiment for now
 	// Hierarchical representation is an array of integers addressing elements tokens 
 	private ContextBuffer contextStack;
-	private ContextBuffer contextStack2;// this is reserved for XPath
+	protected ContextBuffer contextStack2;// this is reserved for XPath
 
 	// the document encoding	     
 	private int encoding;
@@ -170,6 +172,7 @@ public class VTDNav {
 		rootIndex = RootIndex;
 		nestingLevel = depth + 1;
 		ns = NS;
+		atTerminal = false; //this variable will only change value during XPath eval
 
 		// initialize the context object
 		context = new int[nestingLevel];
@@ -181,9 +184,9 @@ public class VTDNav {
 		}
 		currentOffset = 0;
 		//contextStack = new ContextBuffer(1024, nestingLevel + 7);
-		contextStack = new ContextBuffer(10, nestingLevel + 7);
-		contextStack2 = new ContextBuffer(10, nestingLevel+7);
-		stackTemp = new int[nestingLevel + 7];
+		contextStack = new ContextBuffer(10, nestingLevel + 8);
+		contextStack2 = new ContextBuffer(10, nestingLevel+8);
+		stackTemp = new int[nestingLevel + 8];
 
 		// initial state of LC variables
 		l1index = l2index = l3index = -1;
@@ -1067,20 +1070,22 @@ public class VTDNav {
 	}
 	
 	/**
-	 * 
-	 * @param en
-	 * @return
+	 * This function is called by selectElement_P in autoPilot
+	 * @param en element Name
+	 * @param a context of current position
+	 * @param special whether the test type is node()
+	 * @return 
 	 * @throws NavException
 	 */
-	protected boolean iterate_preceding(String en, int dp, boolean special)
+	protected boolean iterate_preceding(String en, int[] a, boolean special)
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int t,d;
-		int depth = getTokenDepth(index);
+		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size();
-		while (index >=0 && depth >= dp ) {
+		while (index >  0) {
 			if (isElementOrDocument(index)) {
-				depth = getTokenDepth(index);
+				int depth = getTokenDepth(index);
 				context[0] = depth;
 				//context[depth]=index;
 				if (depth>0){
@@ -1099,11 +1104,9 @@ public class VTDNav {
 						}else
 							break;
 					}
-				}else {
-					
 				}
 				//dumpContext();
-				if (matchElement(en)|| special) {					
+				if (index!= a[depth] && (special || matchElement(en))) {					
 					resolveLC();
 					return true;
 				}
@@ -1113,21 +1116,21 @@ public class VTDNav {
 		return false;	
 	}
 	/**
-	 * 
+	 * This function is called by selectElementNS_P in autoPilot
 	 * @param URL
 	 * @param ln
 	 * @return
 	 * @throws NavException
 	 */
-	protected boolean iterate_precedingNS(String URL, int dp, String ln)
+	protected boolean iterate_precedingNS(String URL, String ln, int[] a )
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int t,d;
-		int depth = getTokenDepth(index);
+		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size();
-		while (index >=0 && depth >= dp) {
+		while (index > 0 ) {
 			if (isElementOrDocument(index)) {
-				depth = getTokenDepth(index);
+				int depth = getTokenDepth(index);
 				context[0] = depth;
 				//context[depth]=index;
 				if (depth>0){
@@ -1148,7 +1151,7 @@ public class VTDNav {
 					}
 				}
 				//dumpContext();
-				if (matchElementNS(URL,ln)) {					
+				if (index != a[depth] && matchElementNS(URL,ln)) {					
 					resolveLC();
 					return true;
 				}
@@ -1158,13 +1161,15 @@ public class VTDNav {
 		return false;	
 	}
 	/**
+	 * This function is called by selectElement_F in autoPilot
 	 * 
-	 * @param en
+	 * @param en ElementName
+	 * @param special whether it is a node()
 	 * @return
 	 * @throws NavException
 	 */
-	
-	protected boolean iterate_following(String en) 
+
+	protected boolean iterate_following(String en, boolean special) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
 		//int size = vtdBuffer.size();
@@ -1174,7 +1179,7 @@ public class VTDNav {
 				context[0] = depth;
 				if (depth>0)
 					context[depth] = index;
-				if (matchElement(en)) {					
+				if (special || matchElement(en)) {					
 					resolveLC();
 					return true;
 				}
@@ -1185,7 +1190,7 @@ public class VTDNav {
 	}
 	
 	/**
-	 * 
+	 * This function is called by selectElementNS_F in autoPilot
 	 * @param URL
 	 * @param ln
 	 * @return
@@ -1225,7 +1230,7 @@ public class VTDNav {
 	 * machine from a load-balancer.
 	 * null element name allowed represent node()in XPath;
 	 */
-	protected boolean iterate(int dp, String en)
+	protected boolean iterate(int dp, String en, boolean special)
 		throws NavException { // the navigation doesn't rely on LC
 		// get the current depth
 		int index = getCurrentIndex() + 1;
@@ -1237,7 +1242,7 @@ public class VTDNav {
 					context[0] = depth;
 					if (depth>0)
 						context[depth] = index;
-					if (matchElement(en)) {
+					if (special || matchElement(en)) {
 						if (dp< 4)
 						resolveLC();
 						return true;
@@ -1277,8 +1282,7 @@ public class VTDNav {
 		throws NavException {
 		if (ns == false)
 			return false;
-		if (ln == null)
-			throw new IllegalArgumentException("local name can't be null");
+
 		int index = getCurrentIndex() + 1;
 		while (index < vtdSize) {
 			if (isElementOrDocument(index)) {
@@ -1976,6 +1980,7 @@ public class VTDNav {
 		for (int i = 0; i < nestingLevel; i++) {
 			context[i] = stackTemp[i];
 		}
+
 		l1index = stackTemp[nestingLevel];
 		l2index = stackTemp[nestingLevel + 1];
 		l3index = stackTemp[nestingLevel + 2];
@@ -1983,6 +1988,7 @@ public class VTDNav {
 		l2upper = stackTemp[nestingLevel + 4];
 		l3lower = stackTemp[nestingLevel + 5];
 		l3upper = stackTemp[nestingLevel + 6];
+		atTerminal = (stackTemp[nestingLevel + 7] == 1);
 
 		return true;
 	}
@@ -1993,7 +1999,7 @@ public class VTDNav {
 	 * @return
 	 */
 	
-	public boolean pop2(){
+	protected boolean pop2(){
 
 		boolean b = contextStack2.load(stackTemp);
 		if (b == false)
@@ -2008,7 +2014,8 @@ public class VTDNav {
 		l2upper = stackTemp[nestingLevel + 4];
 		l3lower = stackTemp[nestingLevel + 5];
 		l3upper = stackTemp[nestingLevel + 6];
-
+		atTerminal = (stackTemp[nestingLevel + 7] == 1);
+		
 		return true;
 	}
 	/**
@@ -2061,6 +2068,7 @@ public class VTDNav {
 	 * Creation date: (11/16/03 7:00:27 PM)
 	 */
 	public void push() {
+		
 		for (int i = 0; i < nestingLevel; i++) {
 			stackTemp[i] = context[i];
 		}
@@ -2071,6 +2079,10 @@ public class VTDNav {
 		stackTemp[nestingLevel + 4] = l2upper;
 		stackTemp[nestingLevel + 5] = l3lower;
 		stackTemp[nestingLevel + 6] = l3upper;
+		if (atTerminal)
+			stackTemp[nestingLevel + 7] =1;
+		else
+			stackTemp[nestingLevel + 7] =0;
 
 		contextStack.store(stackTemp);
 	}
@@ -2080,7 +2092,8 @@ public class VTDNav {
 	 *
 	 */
 	
-	public void push2() {
+	protected void push2() {
+		
 		for (int i = 0; i < nestingLevel; i++) {
 			stackTemp[i] = context[i];
 		}
@@ -2091,7 +2104,10 @@ public class VTDNav {
 		stackTemp[nestingLevel + 4] = l2upper;
 		stackTemp[nestingLevel + 5] = l3lower;
 		stackTemp[nestingLevel + 6] = l3upper;
-
+		if (atTerminal)
+			stackTemp[nestingLevel + 7] =1;
+		else
+			stackTemp[nestingLevel + 7] =0;
 		contextStack2.store(stackTemp);
 	}
 	
@@ -2461,9 +2477,14 @@ public class VTDNav {
 					}*/
 					context[0] = 0;
 				}
+				atTerminal = false;
 				l1index = l2index = l3index = -1;
 				return true;
 			case PARENT :
+				if (atTerminal == true){
+					atTerminal = false;
+					return true;
+				}
 				if (context[0] > 0) {
 					//context[context[0]] = context[context[0] + 1] = 0xffffffff;
 					context[context[0]] = -1;
@@ -2478,7 +2499,7 @@ public class VTDNav {
 				}
 			case FIRST_CHILD :
 			case LAST_CHILD :
-
+				if (atTerminal) return false;
 				switch (context[0]) {
 				    case -1:
 				    	context[0] = 0;
@@ -2598,6 +2619,7 @@ public class VTDNav {
 
 			case NEXT_SIBLING :
 			case PREV_SIBLING :
+				if(atTerminal)return false;
 				switch (context[0]) {
 					case -1:
 					case 0 :
@@ -2739,6 +2761,7 @@ public class VTDNav {
 				return toElement(PARENT);
 
 			case FIRST_CHILD :
+				if (atTerminal)return false;
 				if (toElement(FIRST_CHILD) == false)
 					return false;
 				// check current element name
@@ -2755,6 +2778,7 @@ public class VTDNav {
 					return true;
 
 			case LAST_CHILD :
+				if (atTerminal)return false;
 				if (toElement(LAST_CHILD) == false)
 					return false;
 				if (matchElement(en) == false) {
@@ -2770,6 +2794,7 @@ public class VTDNav {
 					return true;
 
 			case NEXT_SIBLING :
+				if (atTerminal)return false;
 				d = context[0];
 				
 				switch(d)
@@ -2799,6 +2824,7 @@ public class VTDNav {
 				return false;
 
 			case PREV_SIBLING :
+				if (atTerminal) return false;
 				d = context[0];
 				switch(d)
 				{
@@ -2871,6 +2897,7 @@ public class VTDNav {
 				return toElement(PARENT);
 
 			case FIRST_CHILD :
+				if (atTerminal)return false;
 				if (toElement(FIRST_CHILD) == false)
 					return false;
 				// check current element name
@@ -2887,6 +2914,7 @@ public class VTDNav {
 					return true;
 
 			case LAST_CHILD :
+				if (atTerminal)return false;
 				if (toElement(LAST_CHILD) == false)
 					return false;
 				if (matchElementNS(URL, ln) == false) {
@@ -2902,6 +2930,7 @@ public class VTDNav {
 					return true;
 
 			case NEXT_SIBLING :
+				if (atTerminal)return false;
 				d = context[0];
 				temp = context[d]; // store the current position
 				switch(d)
@@ -2931,6 +2960,7 @@ public class VTDNav {
 				return false;
 
 			case PREV_SIBLING :
+				if (atTerminal)return false;
 				d = context[0];
 				temp = context[d]; // store the current position
 				switch(d)
@@ -3110,5 +3140,24 @@ public class VTDNav {
 		if (vn1==vn2 && i1 ==i2)
 			return true;
 		return true;
+	}
+	
+	/**
+	 * Set the value of atTerminal
+	 * This function only gets called in XPath eval
+	 * when a step calls for @* or child::text()
+	 * @param b
+	 */
+	protected void setAtTerminal(boolean b){
+		atTerminal = b;
+	}
+	
+	/**
+	 * Get the value of atTerminal
+	 * This function only gets called in XPath eval
+	 * @return
+	 */
+	protected boolean getAtTerminal(){
+		return atTerminal;
 	}
 }
