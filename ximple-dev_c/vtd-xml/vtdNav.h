@@ -56,7 +56,8 @@ typedef struct vTDNav{
 	int rootIndex;
 	int nestingLevel;
 	int* context; // context object
-	int encoding;
+	Boolean atTerminal; // Add this model to be compatible with XPath data model, 
+						// true if attribute axis or text()
 
 	int l2upper;
 	int l2lower;
@@ -73,7 +74,9 @@ typedef struct vTDNav{
 	UByte* XMLDoc;
     
 	ContextBuffer *contextBuf;
-
+	ContextBuffer *contextBuf2;
+	
+	int encoding;
 	int currentOffset;
 	int ns;
 	int* stackTemp;
@@ -169,13 +172,27 @@ Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName);
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-int iterate(VTDNav *vn, int dp, UCSChar *en);
+int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special);
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is false, return false immediately
 int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
+
+// This function is called by selectElement_P in autoPilot
+Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special);
+
+// This function is called by selectElementNS_P in autoPilot
+Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
+
+// This function is called by selectElement_F in autoPilot
+Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special);
+
+
+// This function is called by selectElementNS_F in autoPilot
+Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
+
 
 //Test if the current element matches the given name.
 Boolean matchElement(VTDNav *vn, UCSChar *en);
@@ -281,6 +298,23 @@ UCSChar *toRawString(VTDNav *vn, int index);
 //references resolved).
 // An attribute name or an element name will get the UCS2 string of qualified name 
 UCSChar *toString(VTDNav *vn, int index);
+
+/**
+ * Set the value of atTerminal
+ * This function only gets called in XPath eval
+ * when a step calls for @* or child::text()
+ */
+
+void setAtTerminal(VTDNav* vn, Boolean b);
+
+/**
+ * Get the value of atTerminal
+ * This function only gets called in XPath eval
+ */
+Boolean getAtTerminal(VTDNav *vn);
+
+
+
 
 extern inline int swap_bytes(int i);
 

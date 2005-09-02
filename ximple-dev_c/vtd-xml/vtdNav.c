@@ -22,6 +22,7 @@ static int getChar(VTDNav *vn);
 static int getCharResolved(VTDNav *vn);
 static int getCharUnit(VTDNav *vn, int index);
 static inline Boolean isElement(VTDNav  *vn, int index);
+static inline Boolean isElementOrDocument(VTDNav *vn, int index);
 static inline Boolean isWS(int ch);
 static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
 static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCSChar *s);
@@ -82,6 +83,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->nestingLevel = depth +1;
 
 						 vn->ns = ns;
+						 vn->atTerminal = FALSE;
 						 vn->context = (int *)malloc(vn->nestingLevel*sizeof(int));
 						 if (vn->context == NULL){
 							 free(vn);
@@ -95,7 +97,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 						 vn->currentOffset = 0;
 
-						 vn->contextBuf = createContextBuffer2(10, vn->nestingLevel+7);
+						 vn->contextBuf = createContextBuffer2(10, vn->nestingLevel+8);
+						 vn->contextBuf2 = createContextBuffer2(10,vn->nestingLevel+8);
+
 						 vn->stackTemp = (int *)malloc((vn->nestingLevel+7)*sizeof(int));
 
 						 if (vn->contextBuf == NULL 
@@ -124,6 +128,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 {	
 						 if (vn!=NULL){
 							 freeContextBuffer(vn->contextBuf);
+							 freeContextBuffer(vn->contextBuf2);
 							 freeFastLongBuffer(vn->vtdBuffer);
 							 freeFastLongBuffer(vn->l1Buffer);
 							 freeFastLongBuffer(vn->l2Buffer);
@@ -158,9 +163,13 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Get the token index of the attribute value given an attribute name.     
 					 int getAttrVal(VTDNav *vn, UCSChar *an){
 						 //int size = vn->vtdBuffer->size;
+						
+                         
 						 int index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 
 						 tokenType type;
+						 if (vn->context[0] =-1)
+							 return -1;
 						 if(index<vn->vtdSize)
 							 type = getTokenType(vn,index);
 						 else 
@@ -201,6 +210,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 int size, index;
 						 tokenType type;
+						 if (vn->context[0]==-1)
+							 return -1;
 						 if (vn->ns == FALSE)
 							 return -1;
 						 if (URL == NULL)
@@ -837,8 +848,13 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Test whether current element has an attribute with the matching name.
 					 Boolean hasAttr(VTDNav *vn, UCSChar *an){
 						 tokenType type;
+						 
 						 int size = vn->vtdBuffer->size;
 						 int index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
+						 
+						 if (vn->context[0]==-1) 
+							 return -1;
+						 
 						 if (index >= size)
 							 return FALSE;
 
@@ -890,6 +906,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Test whether the current element has an attribute with 
 					 //matching namespace URL and localname.
 					 Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName){
+						 if (vn->context[0]==-1)
+							 return FALSE;
 						 return (getAttrValNS(vn,URL, localName) != -1);
 					 }
 
@@ -903,25 +921,36 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 #endif
 					 }
 
+					 // Test the token type, to see if it is a starting tag or document token
+					 static inline Boolean isElementOrDocument(VTDNav  *vn, int index){
+						int i;
+#if BIG_ENDIAN		 
+						 i= (((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
+#else
+						 i = ( ((longAt(vn->vtdBuffer,index) & 0xf0)>>4) == TOKEN_STARTING_TAG );
+#endif
+						 return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
+					 }
+
 					 //Test whether ch is a white space character or not.
 					 static inline Boolean isWS(int ch){
 						 return (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
 					 }
 					 //This method is similar to getElementByName in DOM except it doesn't
 					 //return the nodeset, instead it iterates over those nodes.
-					 int iterate(VTDNav *vn, int dp, UCSChar *en){
+					 int iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
 
 						 int index = getCurrentIndex(vn) + 1;
 						 //int size = vtdBuffer.size();
 						 while (index < vn->vtdSize) {
-							 if (isElement(vn,index)) {
+							 if (isElementOrDocument(vn,index)) {
 								 int depth = getTokenDepth(vn,index);
 								 if (depth > dp) {
 									 vn->context[0] = depth;
 									 if (depth > 0)
 										vn->context[depth] = index;
 
-									 if (matchElement(vn, en)) {
+									 if (special || matchElement(vn, en)) {
 										 if (dp < 4)
 											 resolveLC(vn);
 										 return TRUE;
@@ -941,14 +970,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //if ns is false, return false immediately
 					 int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 						 int index;
-						 exception e;
 						 if (vn->ns == FALSE)
 							 return FALSE;
-						 if (ln == NULL){
-							 e.et = invalid_argument;
-							 e.msg = " invalid argument for iterateNS, ln can't be NULL";
-							 Throw e;
-						 }
+
 
 						 index = getCurrentIndex(vn) + 1;
 						 while (index < vn->vtdSize) {
@@ -972,6 +996,131 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 return FALSE;
 					 }
 
+
+					 // This function is called by selectElement_P in autoPilot
+					 Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
+						 int index = getCurrentIndex(vn) - 1;
+						 int t,d,i;
+						 //int depth = getTokenDepth(index);
+						 //int size = vtdBuffer.size();
+						 while (index >  0) {
+							 if (isElementOrDocument(vn,index)) {
+								 int depth = getTokenDepth(vn,index);
+								 vn->context[0] = depth;
+								 //context[depth]=index;
+								 if (depth>0){
+									 vn->context[depth] = index;
+									 t = index -1;
+									 for (i=depth-1;i>0;i--){
+										 if (vn->context[i]>index || vn->context[i] == -1){
+											 while(t>0){
+												 d = getTokenDepth(vn,t);
+												 if ( d == i && isElement(vn,t)){
+													 vn->context[i] = t;
+													 break;
+												 }
+												 t--;
+											 }							
+										 }else
+											 break;
+									 }
+								 }
+								 //dumpContext();
+								 if (index!= a[depth] && (special || matchElement(vn,en))) {					
+									 resolveLC(vn);
+									 return TRUE;
+								 }
+							 } 
+							 index--;
+						 }
+						 return FALSE;	
+					 }
+
+					// This function is called by selectElementNS_P in autoPilot
+					 Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
+						 int index = getCurrentIndex(vn) - 1;
+						 int t,d,i;
+						 //int depth = getTokenDepth(index);
+						 //int size = vtdBuffer.size();
+						 while (index > 0 ) {
+							 if (isElementOrDocument(vn,index)) {
+								 int depth = getTokenDepth(vn,index);
+								 vn->context[0] = depth;
+								 //context[depth]=index;
+								 if (depth>0){
+									 vn->context[depth] = index;
+									 t = index -1;
+									 for (i=depth-1;i>0;i--){
+										 if (vn->context[i]>index || vn->context[i]==-1){
+											 while(t>0){
+												 d = getTokenDepth(vn,t);
+												 if ( d == i && isElement(vn,t)){
+													 vn->context[i] = t;
+													 break;
+												 }
+												 t--;
+											 }							
+										 }else
+											 break;
+									 }
+								 }
+								 //dumpContext();
+								 if (index != a[depth] && matchElementNS(vn,URL,ln)) {					
+									 resolveLC(vn);
+									 return TRUE;
+								 }
+							 } 
+							 index--;
+						 }
+						 return FALSE;	
+					 }
+
+
+					 // This function is called by selectElement_F in autoPilot
+
+					 Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
+						 int index = getCurrentIndex(vn) + 1;
+						 //int size = vtdBuffer.size();
+						 while (index < vn->vtdSize) {
+							 if (isElementOrDocument(vn,index)) {
+								 int depth = getTokenDepth(vn,index);
+								 vn->context[0] = depth;
+								 if (depth>0)
+									 vn->context[depth] = index;
+								 if (special || matchElement(vn,en)) {					
+									 resolveLC(vn);
+									 return TRUE;
+								 }
+							 } 
+							 index++;
+						 }
+						 return FALSE;
+					 }
+
+
+					 // This function is called by selectElementNS_F in autoPilot
+
+					 Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
+								int index = getCurrentIndex(vn) + 1;
+								//int size = vtdBuffer.size();
+								while (index < vn->vtdSize) {
+									if (isElementOrDocument(vn,index)) {
+										int depth = getTokenDepth(vn,index);
+										vn->context[0] = depth;
+										if (depth>0)
+											vn->context[depth] = index;
+										if (matchElementNS(vn,URL,ln)) {					
+											resolveLC(vn);
+											return TRUE;
+										}
+									} 
+									index++;
+								}
+								return FALSE;
+					 }
+
+
+
 					 //Test if the current element matches the given name.
 					 Boolean matchElement(VTDNav *vn, UCSChar *en){
 						 exception e;
@@ -980,11 +1129,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 e.msg = "matchElement's element name can't be null";
 							 Throw e;
 						 }
+						
+						 // throw new IllegalArgumentException(" Element name can't be null ");
+						 if (wcscmp(en,L"*") == 0 && vn->context[0] !=-1)
+							 return TRUE;
 						 if (vn->context[0]==-1)
 							 return FALSE;
-						 // throw new IllegalArgumentException(" Element name can't be null ");
-						 if (wcscmp(en,L"*") == 0)
-							 return TRUE;
 						 return matchRawTokenString(vn,
 							 (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]],
 							 en);
@@ -1612,7 +1762,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 //throw new NumberFormatException(toString(index));
 					 }
 
-					 //Load the context info from ContextBuffer.
+					 //Load the context info from contextBuf.
 					 //Info saved including LC and current state of the context 
 					 Boolean pop(VTDNav *vn){
 						 Boolean b = load(vn->contextBuf,vn->stackTemp);
@@ -1629,11 +1779,34 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->l2upper = vn->stackTemp[vn->nestingLevel + 4];
 						 vn->l3lower = vn->stackTemp[vn->nestingLevel + 5];
 						 vn->l3upper = vn->stackTemp[vn->nestingLevel + 6];
-
+						 vn->atTerminal = (vn->stackTemp[vn->nestingLevel + 7] == 1);
 						 return TRUE;
 					 }
 
-					 //Store the context info into the ContextBuffer.
+					 
+					 //Load the context info from contextBuf2.
+					 //Info saved including LC and current state of the context 
+					 // this function is for XPath evaluation only
+					 Boolean pop2(VTDNav *vn){
+						 Boolean b = load(vn->contextBuf2,vn->stackTemp);
+						 int i;
+						 if (b == FALSE)
+							 return FALSE;
+						 for ( i = 0; i < vn->nestingLevel; i++) {
+							 vn->context[i] = vn->stackTemp[i];
+						 }
+						 vn->l1index = vn->stackTemp[vn->nestingLevel];
+						 vn->l2index = vn->stackTemp[vn->nestingLevel + 1];
+						 vn->l3index = vn->stackTemp[vn->nestingLevel + 2];
+						 vn->l2lower = vn->stackTemp[vn->nestingLevel + 3];
+						 vn->l2upper = vn->stackTemp[vn->nestingLevel + 4];
+						 vn->l3lower = vn->stackTemp[vn->nestingLevel + 5];
+						 vn->l3upper = vn->stackTemp[vn->nestingLevel + 6];
+						 vn->atTerminal = (vn->stackTemp[vn->nestingLevel + 7] == 1);
+						 return TRUE;
+					 }
+
+					 //Store the context info into the contextBuf.
 					 //Info saved including LC and current state of the context 
 					 Boolean push(VTDNav *vn){
 						 int i;
@@ -1647,11 +1820,36 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->stackTemp[vn->nestingLevel + 4] = vn->l2upper;
 						 vn->stackTemp[vn->nestingLevel + 5] = vn->l3lower;
 						 vn->stackTemp[vn->nestingLevel + 6] = vn->l3upper;
-
+						 if (vn->atTerminal)
+							 vn->stackTemp[vn->nestingLevel + 7]=1;
+						 else 
+							 vn->stackTemp[vn->nestingLevel + 7]=0;
 						 store(vn->contextBuf,vn->stackTemp);
 						 return TRUE;
 					 }
 
+					 //Store the context info into the contextBuf2.
+					 //Info saved including LC and current state of the context 
+					 // This function is for XPath evaluation only
+					 Boolean push2(VTDNav *vn){
+						 int i;
+						 for (i = 0; i < vn->nestingLevel; i++) {
+							 vn->stackTemp[i] = vn->context[i];
+						 }
+						 vn->stackTemp[vn->nestingLevel] = vn->l1index;
+						 vn->stackTemp[vn->nestingLevel + 1] = vn->l2index;
+						 vn->stackTemp[vn->nestingLevel + 2] = vn->l3index;
+						 vn->stackTemp[vn->nestingLevel + 3] = vn->l2lower;
+						 vn->stackTemp[vn->nestingLevel + 4] = vn->l2upper;
+						 vn->stackTemp[vn->nestingLevel + 5] = vn->l3lower;
+						 vn->stackTemp[vn->nestingLevel + 6] = vn->l3upper;
+						 if (vn->atTerminal)
+							 vn->stackTemp[vn->nestingLevel + 7]=1;
+						 else 
+							 vn->stackTemp[vn->nestingLevel + 7]=0;
+						 store(vn->contextBuf2,vn->stackTemp);
+						 return TRUE;
+					 }
 
 
 					 //Sync up the current context with location cache.
@@ -1666,7 +1864,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						if (vn->l1index >= vn->l1Buffer->size || vn->l1index <0) {
 							vn->l1index = 0;
 						}
-						if (vn->context[1] != upper32At(vn->l1Buffer,vn->l1index + 1)) {
+						if (vn->l1index+1< vn->l1Buffer->size 
+							&& vn->context[1] != upper32At(vn->l1Buffer,vn->l1index + 1)) {
 							int init_guess;
 							k = vn->context[1];
 							init_guess =
@@ -1725,7 +1924,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						|| vn->context[2] != upper32At(vn->l2Buffer,vn->l2index)) {
 							if (vn->l2index >= vn->l2Buffer->size || vn->l2index<0)
 								vn->l2index = vn->l2lower;
-							if (vn->context[2] == upper32At(vn->l2Buffer,vn->l2index + 1))
+							if (vn->l2index+1< vn->l2Buffer->size 
+								&& vn->context[2] == upper32At(vn->l2Buffer,vn->l2index + 1))
 								vn->l2index = vn->l2index + 1;
 							else if (vn->l2upper - vn->l2lower >= 16) {
 								int init_guess =
@@ -1782,7 +1982,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							|| vn->context[3] != intAt(vn->l3Buffer,vn->l3index)) {
 								if (vn->l3index >= vn->l3Buffer->size || vn->l3index<0)
 									vn->l3index = vn->l3lower;
-								if (vn->context[3] == intAt(vn->l3Buffer,vn->l3index + 1))
+								if (vn->l3index+1 < vn->l3Buffer->size  
+									&& vn->context[3] == intAt(vn->l3Buffer,vn->l3index + 1))
 									vn->l3index = vn->l3index + 1;
 								else if (vn->l3upper - vn->l3lower >= 16) {
 									int init_guess =
@@ -2020,9 +2221,14 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					}*/
 					vn->context[0] = 0;
 				}
+				vn->atTerminal = TRUE;
 				vn->l1index = vn->l2index = vn->l3index = -1;
 				return TRUE;
 			case PARENT :
+				if (vn->atTerminal == TRUE){
+					vn->atTerminal = FALSE;
+					return TRUE;
+				}
 				if (vn->context[0] > 0) {
 					//vn->context[vn->context[0]] = vn->context[vn->context[0] + 1] = 0xffffffff;
 					//vn->context[vn->context[0]] = -1;
@@ -2036,7 +2242,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				}
 			case FIRST_CHILD :
 			case LAST_CHILD :
-
+				if (vn->atTerminal) return FALSE;
 				switch (vn->context[0]) {
 			case -1:
 			   	vn->context[0] = 0;
@@ -2177,6 +2383,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 			case NEXT_SIBLING :
 			case PREV_SIBLING :
+				if (vn->atTerminal) return FALSE;
 				switch (vn->context[0]) {
 			case 0 :
 				return FALSE;
@@ -2335,6 +2542,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				return toElement(vn,PARENT);
 
 			case FIRST_CHILD :
+				if (vn->atTerminal)return FALSE;
 				if (toElement(vn,FIRST_CHILD) == FALSE)
 					return FALSE;
 				// check current element name
@@ -2351,6 +2559,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					return TRUE;
 
 			case LAST_CHILD :
+				if (vn->atTerminal)return FALSE;
 				if (toElement(vn,LAST_CHILD) == FALSE)
 					return FALSE;
 				if (matchElement(vn,en) == FALSE){
@@ -2366,6 +2575,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					return TRUE;
 
 			case NEXT_SIBLING :
+				if (vn->atTerminal)return FALSE;
 				d = vn->context[0];
 				temp = vn->context[d]; // store the current position
 
@@ -2398,6 +2608,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				return FALSE;
 
 			case PREV_SIBLING :
+				if (vn->atTerminal)return FALSE;
 				d = vn->context[0];
 				temp = vn->context[d]; // store the current position
 				switch(d)
@@ -2466,6 +2677,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				return toElement(vn,PARENT);
 
 			case FIRST_CHILD :
+				if (vn->atTerminal)return FALSE;
 				if (toElement(vn,FIRST_CHILD) == FALSE)
 					return FALSE;
 				// check current element name
@@ -2482,6 +2694,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					return TRUE;
 
 			case LAST_CHILD :
+				if (vn->atTerminal)return FALSE;
 				if (toElement(vn,LAST_CHILD) == FALSE)
 					return FALSE;
 				if (matchElementNS(vn, URL, ln) == FALSE) {
@@ -2497,6 +2710,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					return TRUE;
 
 			case NEXT_SIBLING :
+				if (vn->atTerminal)return FALSE;
 				d = vn->context[0];
 				temp = vn->context[d]; // store the current position
 				switch(d)
@@ -2528,6 +2742,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				return FALSE;
 
 			case PREV_SIBLING :
+				if (vn->atTerminal)return FALSE;
 				d = vn->context[0];
 				temp = vn->context[d]; // store the current position
 				switch(d)
@@ -2777,6 +2992,27 @@ int getRootIndex(VTDNav *vn){
 int getTokenCount(VTDNav *vn){
 	return vn->vtdSize;
 }
+
+
+/**
+ * Set the value of atTerminal
+ * This function only gets called in XPath eval
+ * when a step calls for @* or child::text()
+ */
+
+void setAtTerminal(VTDNav* vn, Boolean b){
+	vn->atTerminal = b;
+}
+
+/**
+ * Get the value of atTerminal
+ * This function only gets called in XPath eval
+ */
+Boolean getAtTerminal(VTDNav *vn){
+	return vn->atTerminal;
+}
+
+
  int swap_bytes(int i){
 		return (((i & 0xff) << 24) |
 				((i & 0xff00) <<8) |
