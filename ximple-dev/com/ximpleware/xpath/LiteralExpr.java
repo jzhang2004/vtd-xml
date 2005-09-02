@@ -17,7 +17,11 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
-class LiteralExpr extends Expr {
+/**
+ * This class represents a literal string XPath expression
+ * 
+ */
+public class LiteralExpr extends Expr {
 	public String s;
 	public LiteralExpr (String st){
 		s = st;
@@ -37,7 +41,7 @@ class LiteralExpr extends Expr {
 	}
 
 	public boolean evalBoolean(VTDNav vn){
-		return s.length() == 0;
+		return s.length() != 0;
 	}
 
 	public double evalNumber(VTDNav vn){
@@ -58,7 +62,7 @@ class LiteralExpr extends Expr {
 		return s;
 	}
 
-	public void reset(){ }
+	public void reset(VTDNav vn){ }
 
 		public boolean  isNodeSet(){
 		return false;

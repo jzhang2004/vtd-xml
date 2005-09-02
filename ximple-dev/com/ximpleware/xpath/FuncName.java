@@ -16,8 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.xpath;
+/**
+ * 
+ * This class is used by lexer to detect built-in functions
+ * then transport to the parser 
+ */
 public class FuncName{
-
 	public int i;
 	public static final int 	LAST = 0;
 	public static final int		POSITION =1;

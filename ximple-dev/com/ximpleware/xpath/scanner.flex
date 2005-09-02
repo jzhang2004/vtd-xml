@@ -113,6 +113,7 @@ mod	{     if (isName == 0) {
 		 isName = 0;
 		 name = new NameType();
 		 name.qname = "mod";
+		 System.out.println("returned a NAME "+yytext());
 		 return sym(NAME,name);
 	      }
 	}
@@ -471,7 +472,7 @@ self{ws}*::		{	isName = 1;
 				return sym(AXISNAME,at);
 			}
 
-{nc2}{nc}*:"*"  	{	isName = 1;
+{nc2}{nc}*:"*"  	{	isName = 0;
 				len = yytext().length();
 				name = new NameType();
 				name.prefix = yytext().substring(1,len-1);
@@ -480,7 +481,7 @@ self{ws}*::		{	isName = 1;
 			}
 
 {nc2}{nc}*:{nc}+ |
-{nc2}{nc}*		{	isName = 1;
+{nc2}{nc}*		{	isName = 0;
 				name = new NameType();
 				name.qname = new String(yytext());
 				//System.out.println("returned a NAME ==>" + yytext());

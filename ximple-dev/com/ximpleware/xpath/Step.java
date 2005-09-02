@@ -23,7 +23,7 @@ public class Step implements LocationPathNode{
 	public NodeTest nt;  
 	public Predicate p,pt;// linked list
 	public Step nextS; // points to next step
-	
+	public int position; // position
 	public Step prevS; // points to the prev step
 	public Object o; //AutoPilot goes here
 	boolean ft; // first time
@@ -32,13 +32,19 @@ public class Step implements LocationPathNode{
 		p  = pt = null;
 		nt = null;
 		ft = true;
+		position = 1;
 	}
 		
-	public void reset(){
+	public void reset(VTDNav vn){
 		ft = true;
+		resetP(vn);
+		position = 1;
+	}
+	
+	public void resetP(VTDNav vn){
 		Predicate temp = p;
 		while(temp!=null){
-			temp.reset();
+			temp.reset(vn);
 			temp = temp.nextP;
 		}
 	}
@@ -130,6 +136,7 @@ public class Step implements LocationPathNode{
 			case AxisType.NAMESPACE: return "namespace::";
 			case AxisType.SELF: return "self::";
 			case AxisType.DESCENDANT_OR_SELF: return "descendant-or-self::";
+			case AxisType.ANCESTOR: return "ancestor::";
 			default: return "ancestor-or-self::";
 
 		}

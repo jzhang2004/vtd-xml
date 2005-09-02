@@ -1,4 +1,3 @@
-package com.ximpleware.xpath;
 /* 
  * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
  *
@@ -16,6 +15,9 @@ package com.ximpleware.xpath;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+
+package com.ximpleware.xpath;
+
 /** CUP generated class containing symbol constants. */
 public class sym {
   /* terminals */

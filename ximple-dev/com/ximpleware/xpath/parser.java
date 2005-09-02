@@ -23,7 +23,7 @@ import com.ximpleware.*;
 import com.ximpleware.xpath.*;
 
 /** CUP v0.10k generated parser.
-  * @version Sun Aug 28 16:19:26 PDT 2005
+  * @version Mon Aug 29 11:58:25 PDT 2005
   */
 public class parser extends java_cup.runtime.lr_parser {
 
@@ -442,9 +442,9 @@ public class parser extends java_cup.runtime.lr_parser {
 
   
 
-  Step tempStep,tempStep2;
+  Step tempStep;
   NodeTest tempNt;
-  LocationPathExpr tempLPExpr;
+ LocationPathExpr tempLPExpr;
   public parser (java.io.Reader input) {
     super(new Yylex(input));
   }
@@ -1026,7 +1026,7 @@ class CUP$parser$actions {
 		     parser.tempStep.setNextStep(rlp);
 		     rlp.setPrevStep(parser.tempStep);
 		     
-		     parser.tempStep2 = new Step();
+		     /*parser.tempStep2 = new Step();
 		     parser.tempNt = new NodeTest();
 		     parser.tempStep2.setAxisType(AxisType.SELF);
 		     parser.tempNt.setTestType(NodeTest.NODE);
@@ -1034,10 +1034,10 @@ class CUP$parser$actions {
 		     parser.tempStep2.setNodeTest(parser.tempNt);
 	
   		     parser.tempStep2.setNextStep(parser.tempStep);
-		     parser.tempStep.setPrevStep(parser.tempStep2);
+		     parser.tempStep.setPrevStep(parser.tempStep2);*/
 
 		     parser.tempLPExpr = new LocationPathExpr();
-		     parser.tempLPExpr.setStep(parser.tempStep2);
+		     parser.tempLPExpr.setStep(parser.tempStep);
 		     RESULT = new PathExpr(fe, parser.tempLPExpr);
 		
               CUP$parser$result = new java_cup.runtime.Symbol(13/*PathExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
@@ -1096,12 +1096,12 @@ class CUP$parser$actions {
 		int peleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left;
 		int peright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
 		Expr pe = (Expr)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
-		 //RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe);
-		   throw new XPathParseException("Union not yet supported"); 
+		 RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe);
+		   //throw new XPathParseException("Union not yet supported"); 
 		
-      //CUP$parser$result = new java_cup.runtime.Symbol(12/*UnionExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
+              CUP$parser$result = new java_cup.runtime.Symbol(12/*UnionExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
-      //return CUP$parser$result;
+          return CUP$parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 23: // UnionExpr ::= PathExpr 

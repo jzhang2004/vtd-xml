@@ -18,12 +18,12 @@
 package com.ximpleware.xpath;
 import java_cup.runtime.*;
 import com.ximpleware.*;
-import com.ximpleware.xpath.*;
+//import com.ximpleware.xpath.*;
 parser code {:  
 
   Step tempStep;
   NodeTest tempNt;
- LocationPathExpr tempLPExpr;
+  LocationPathExpr tempLPExpr;
   public parser (java.io.Reader input) {
     super(new Yylex(input));
   }
@@ -43,7 +43,7 @@ parser code {:
     }
   }
  
-  public void report_error(String message, Object info) {
+ public void report_error(String message, Object info) {
 	//throw new XPathParseException("Syntax error during parsing");
   }
 
@@ -252,7 +252,7 @@ LocationPath    ::=    RelativeLocationPath:rlp
 AbsoluteLocationPath ::=  SLASH 			
 		{:  RESULT = null; :}
 		|    SLASH RelativeLocationPath:rlp		
-		{:  RESULT = rlp;   :}
+		{:  RESULT = rlp; :}
 		|    AbbreviatedAbsoluteLocationPath:aalp	
 		{:  RESULT = aalp;   :}
 		;
@@ -277,7 +277,7 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
 		   System.out.println(" Step 3 ");
 		:}
       		|    AbbreviatedStep:as			 
-		{: RESULT = as; System.out.println(" step 4"); :}
+		{: RESULT = as; :}
 		;
 
 
@@ -304,7 +304,7 @@ PredicateList	::=
 AxisSpecifier	::=    AXISNAME:an				
 		{:  RESULT = an; :}
 	      	|    AbbreviatedAxisSpecifier:aas		
-		{:  RESULT = aas; :}
+		{:  RESULT = aas;:}
 	      	;
 
 AbbreviatedAxisSpecifier  ::=				

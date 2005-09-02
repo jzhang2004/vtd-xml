@@ -16,6 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.xpath;
+/**
+ * This class is used by lexer to represent a NAME object
+ *
+ */
 public class NameType{
 	public String qname;
 	public String prefix;

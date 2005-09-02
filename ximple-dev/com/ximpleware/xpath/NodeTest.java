@@ -17,6 +17,11 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
+/**
+ * This class is used within LocationPathExpr to represent 
+ * Nodetest
+ *
+ */
 public class NodeTest implements LocationPathNode{
 	public String nodeName;
 	public String prefix;

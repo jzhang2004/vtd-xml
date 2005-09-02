@@ -16,6 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.xpath;
+/**
+ * This exception is thrown when an error occured during
+ * the construction of XPathExpr 
+ *
+ */
 public class XPathParseException extends Exception{
 	public XPathParseException(String s){
 		super(s);

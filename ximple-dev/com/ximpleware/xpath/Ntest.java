@@ -16,6 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.xpath;
+/**
+ * Lexer use this class to represent a type of node test
+ * 
+ *
+ */
 public class Ntest{
 	public int i;
 	public String arg;

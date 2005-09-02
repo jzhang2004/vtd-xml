@@ -16,6 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.xpath;
+import com.ximpleware.*;
+/**
+ * 
+ * This class implements the argumentList for FuncExpr
+ * which is basically a linked-list of expressions
+ */
 public class Alist {
 
 	public Expr e;
@@ -35,10 +41,10 @@ public class Alist {
 		return s;
 	}
 
-	public void reset(){
+	public void reset(VTDNav vn){
 		Alist temp = this;
 		while(temp!=null){
-			temp.e.reset();
+			temp.e.reset(vn);
 			temp = temp.next;
 		}
 	}

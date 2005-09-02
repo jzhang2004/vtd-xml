@@ -17,6 +17,10 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
+/**
+ * This class represent an XPath that is a double
+ *
+ */
 public class NumExpr extends Expr{
 	public double dval;
 	public NumExpr( double d){
@@ -60,5 +64,5 @@ public class NumExpr extends Expr{
 		return ""+dval;
 	}
 
-	public void reset(){};
+	public void reset(VTDNav vn){};
 }

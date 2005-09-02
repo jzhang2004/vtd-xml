@@ -17,7 +17,12 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
-
+/**
+ * The parser.java uses this class to contruct the corresponding
+ * AST for XPath expression when there are two operands and one
+ * operator
+ * 
+ */
 public class BinaryExpr extends Expr {
 	public final static int ADD = 0;
 	public final static int SUB = 1;
@@ -34,11 +39,11 @@ public class BinaryExpr extends Expr {
 	public final static int GT = 12;
 	public final static int UNION = 13;
 
-	public int op;
+	protected int op;
 	boolean isNumerical;
 	
-	public Expr left;
-	public Expr right;
+	protected Expr left;
+	protected Expr right;
 	public BinaryExpr ( Expr l, int o, Expr r) {
 		op = o;
 		left = l;
@@ -78,8 +83,13 @@ public class BinaryExpr extends Expr {
 	public boolean evalBoolean(VTDNav vn){
 		switch(op){
 			case OR: return left.evalBoolean(vn) || right.evalBoolean(vn);
-			case AND:return left.evalBoolean(vn) || right.evalBoolean(vn);
-			case EQ: return left.evalNumber(vn) == right.evalNumber(vn);
+			case AND:return left.evalBoolean(vn) && right.evalBoolean(vn);
+			case EQ: {
+					  if (left.isNodeSet() && right.isNodeSet()){
+					  	
+					  }
+					  return left.evalNumber(vn) == right.evalNumber(vn);
+					 }
 			case NE: return left.evalNumber(vn) != right.evalNumber(vn);
 			case LE: return left.evalNumber(vn) <= right.evalNumber(vn);
 			case GE: return left.evalNumber(vn) >= right.evalNumber(vn);
@@ -114,7 +124,7 @@ public class BinaryExpr extends Expr {
 		return "this";
 	}
 
-	public void reset(){left.reset(); right.reset();};
+	public void reset(VTDNav vn){left.reset(vn); right.reset(vn);};
 
 	public boolean  isNodeSet(){
 		return false;

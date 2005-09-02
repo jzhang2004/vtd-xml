@@ -17,6 +17,11 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
+/**
+ * 
+ * This is the abstract class on which all XPath expressions 
+ * are based
+ */
 
 abstract public class Expr {
 
@@ -28,7 +33,7 @@ abstract public class Expr {
 	
 	abstract public String evalString(VTDNav vn);
 
-	abstract public void reset();
+	abstract public void reset(VTDNav vn);
 	abstract public String toString();
 
 	abstract public boolean isNumerical();

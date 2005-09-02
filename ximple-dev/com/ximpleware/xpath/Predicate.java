@@ -17,7 +17,10 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
-
+/**
+ * LocationPathExpr uses this class to represent a predicate
+ *
+ */
 public class Predicate implements LocationPathNode{
 	double d; // only supports a[1] style of location path for now
 	public int count;
@@ -28,9 +31,12 @@ public class Predicate implements LocationPathNode{
 		d = 0;
 	}
 	public boolean eval(VTDNav vn) {
+		boolean b;		
 		if (expr.isNumerical())
-		   return ( expr.evalNumber(vn)== (double) count++);
-		return expr.evalBoolean(vn);
+			 b = (expr.evalNumber(vn)== (double) count++);
+		else 
+			b= expr.evalBoolean(vn);
+		return b;
 	}
 	
 	public void setIndex(double index) throws XPathEvalException{
@@ -39,9 +45,9 @@ public class Predicate implements LocationPathNode{
 		d = (double) index;
 	}
 	
-	public void reset(){
+	public void reset(VTDNav vn){
 		count = 1;
-		expr.reset();
+		expr.reset(vn);
 	}
 	public Predicate nextP;
 

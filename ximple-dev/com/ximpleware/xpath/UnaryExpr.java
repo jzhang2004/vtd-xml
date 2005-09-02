@@ -17,7 +17,10 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
-
+/**
+ * Parser use this class to represent Unary Expr
+ *
+ */
 public class UnaryExpr extends Expr {
 
 	public int op;
@@ -52,8 +55,8 @@ public class UnaryExpr extends Expr {
 		return ""+dval;
 	}
 
-	public void reset(){
-		operand.reset();
+	public void reset(VTDNav vn){
+		operand.reset(vn);
 	}
 
 	public boolean  isNodeSet(){

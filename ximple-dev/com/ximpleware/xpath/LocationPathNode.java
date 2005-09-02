@@ -17,6 +17,11 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
+/**
+ * This interface defines the method that
+ * Step, NodeTest, and Predicate all implement
+ *
+ */
 
 interface LocationPathNode{
 	public boolean eval(VTDNav vn) throws NavException;
