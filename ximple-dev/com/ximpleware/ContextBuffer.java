@@ -33,7 +33,7 @@ public class ContextBuffer{
     private java.util.ArrayList bufferArrayList;
     private int capacity;
     private int pageSize;
-    private int size;
+    protected int size;
     private int incSize;
     private int n; // for fast divide
     private int r; // mask for remainder
@@ -171,12 +171,14 @@ public static void main(String[] args) {
         System.out.println(" exception caught ");
     }
 }
+
 /**
- * Manage the buffer size to reduce unused spaces
- * unimplemented at this point
- * Creation date: (11/19/03 3:39:15 PM)
+ * Set the context buffer size to zero
+ * capacity untouched
  */
-public void resize() {}
+public void clear(){
+		size = 0;
+}
 /**
  * Push the array content on to the stack.
  * Creation date: (11/17/03 1:06:43 AM)
@@ -211,6 +213,7 @@ public void store(int[] input){
 
         //System.arraycopy(input, 0, lastBuffer, size % pageSize, input.length);
         System.arraycopy(input, 0, lastBuffer, size & r, input.length);
+        //System.out.println("     --+++  buffer size "+size);
         size += input.length;
     } else // new buffers needed
         {
