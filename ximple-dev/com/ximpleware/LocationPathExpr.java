@@ -213,7 +213,7 @@ public class LocationPathExpr extends Expr{
 							break;
 							}
 						} while (vn.toElement(VTDNav.NS));
-						
+						if (state == END)
 						 vn.toElement(VTDNav.PARENT);
 						 }
 					
