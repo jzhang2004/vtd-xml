@@ -23,7 +23,7 @@ import com.ximpleware.*;
 import com.ximpleware.xpath.*;
 
 /** CUP v0.10k generated parser.
-  * @version Mon Aug 29 11:58:25 PDT 2005
+  * @version Fri Sep 02 18:01:21 PDT 2005
   */
 public class parser extends java_cup.runtime.lr_parser {
 
@@ -707,6 +707,9 @@ class CUP$parser$actions {
 		 RESULT = new NodeTest();
 	 	   RESULT.setTestType(NodeTest.NAMETEST);
 		   RESULT.setNodeName(n.qname);
+		   if (n.localname!=null){
+		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
+		   }
 		
               CUP$parser$result = new java_cup.runtime.Symbol(22/*nodetest*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
