@@ -1,5 +1,6 @@
 package com.ximpleware.xpath;
 import java_cup.runtime.Symbol;
+import com.ximpleware.parser.*;
 
 %%
 %cup
@@ -24,6 +25,7 @@ import java_cup.runtime.Symbol;
   int len;
   String literal;
   Double number; 
+  int colonPosition;
 
   /* public void report_error(String message, Object info) {
 	//throw new XPathParseException("Syntax error during parsing");
@@ -44,6 +46,7 @@ import java_cup.runtime.Symbol;
 %}
 %init{
 	isName = 1;
+	colonPosition = -1;
 %init}
 
 ws  = 	   [ \t\r\n]
@@ -56,14 +59,14 @@ nc2	=  ([^\!-/:-@\[-\^ \n\r\t\|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 
 "+" 	{isName = 1 ; return sym(ADD);}
 - 	{isName = 1 ; return sym(SUB);}
-"."	{isName = 0 ; return sym(DOT);}
+"."	{isName = 0 ; /*System.out.println(". returned ");*/ return sym(DOT);}
 ".." 	{isName = 0 ; return sym(DDOT);}
 "@"	{isName = 1 ; return sym(AT);}
 
 ","	{isName = 1 ; return sym(COMMA);}
 "("	{isName = 1 ; return sym(LP);}
 ")"	{isName = 0 ; return sym(RP);}
-"["	{isName = 1 ; return sym(LB);}
+"["	{isName = 1 ; /*System.out.println( "[ returned");*/ return sym(LB);}
 "]"	{isName = 0 ; return sym(RB);}
 ">"	{isName = 1 ; return sym(GT);}
 "<"	{isName = 1 ; return sym(LT);}
@@ -74,7 +77,7 @@ nc2	=  ([^\!-/:-@\[-\^ \n\r\t\|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 
 "*"	{if (isName ==0){
 		isName = 1;
-		System.out.println("returned a MULT");
+		//System.out.println("returned a MULT");
 		return  sym(MULT);
 	}
 	 else {
@@ -113,7 +116,7 @@ mod	{     if (isName == 0) {
 		 isName = 0;
 		 name = new NameType();
 		 name.qname = "mod";
-		 System.out.println("returned a NAME "+yytext());
+		 //System.out.println("returned a NAME "+yytext());
 		 return sym(NAME,name);
 	      }
 	}
@@ -469,6 +472,7 @@ preceding-sibling{ws}*:: {	isName = 1;
 self{ws}*::		{	isName = 1;
 				at = new AxisType();
 				at.i = AxisType.SELF;
+				//System.out.println("SELF:: returned");
 				return sym(AXISNAME,at);
 			}
 
@@ -477,18 +481,44 @@ self{ws}*::		{	isName = 1;
 				name = new NameType();
 				name.prefix = yytext().substring(1,len-1);
 				name.localname = "*";
+				//System.out.println("NAME "+name+ " returned");
 				return sym(NAME,name);
 			}
 
-{nc2}{nc}*:{nc}+ |
-{nc2}{nc}*		{	isName = 0;
+{nc2}{nc}*:{nc}+ |			
+{nc2}{nc}*		{	
+				
+				isName = 0;
 				name = new NameType();
-				name.qname = new String(yytext());
+				//name.qname = new String(yytext());
 				//System.out.println("returned a NAME ==>" + yytext());
 				if (yytext().charAt(0) =='-'){
 				    throw new XPathParseException("Invalid char in name token:"+yytext());
 				}
+				
+				name.qname = new String(yytext());
+				if (!XMLChar.isNCNameStartChar(name.qname.charAt(0)))
+					throw new XPathParseException("Invalid char in name token:  "+yytext()+ "@position 0");
+				
+				for(int i=1;i<name.qname.length();i++){
+					if (!XMLChar.isNCNameChar(name.qname.charAt(i)) 
+						&& name.qname.charAt(i)!=':' )
+						throw new XPathParseException("Invalid char in name token:  "+yytext()+ "@position "+i);
+					if (name.qname.charAt(i)==':'){
+						colonPosition = i;
+					}
+				}
+		
+				if (colonPosition != -1){
+					name.prefix = yytext().substring(0,colonPosition);
+					name.localname = yytext().substring(colonPosition+1);				
+				}
+				
+				colonPosition = -1;
 				return sym(NAME,name);
 			}
 
 
+.		{	
+			throw new XPathParseException("Invalid char in XPath Expression");
+		}
