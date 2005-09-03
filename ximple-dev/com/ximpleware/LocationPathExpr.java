@@ -158,7 +158,7 @@ public class LocationPathExpr extends Expr{
 			return false;
 		}
 		
-		public int evalNodeSet(VTDNav vn) throws XPathEvalException, NavException
+		public int evalNodeSet2(VTDNav vn) throws XPathEvalException, NavException
 		{
 
 		AutoPilot ap = null;
@@ -1243,6 +1243,1126 @@ public class LocationPathExpr extends Expr{
 		}
 
 	}
+		
+	int process_child(VTDNav vn)
+		throws XPathEvalException,NavException{
+	    
+	    int result;
+	    boolean b = false;
+		switch ( state) {
+		case  START:
+			if (currentStep.nt.testType != NodeTest.TEXT){
+				 b = vn.toElement(VTDNav.FIRST_CHILD);
+				 state =  END;
+				 if (b == true){
+				do {
+					if (currentStep.eval(vn)) {
+						if (currentStep.getNextStep() != null){
+							//currentStep.position++;
+							 state =  FORWARD;
+							currentStep = currentStep.getNextStep();
+						}
+						else {
+							 state =  TERMINAL;
+							result = vn.getCurrentIndex();
+							if ( isUnique(result))
+								return result;
+						}
+					break;
+					}
+				} while (vn.toElement(VTDNav.NS));
+				if (state == END)
+				 vn.toElement(VTDNav.PARENT);
+				 }
+			
+			} else {
+				// for text() right now predicates are not evaled
+				if (vn.getAtTerminal()==true){
+					state = END;
+				}else {
+					result = vn.getText();
+					if (result != -1){
+						vn.setAtTerminal(true);
+						if (currentStep.getNextStep() != null){
+							state =  FORWARD;
+							currentStep = currentStep.getNextStep();
+						} else {
+							state =  TERMINAL;
+							//result = vn.getText();
+							if ( isUnique(result)){
+								//vn.setAtTerminal(true);
+								return result;
+							}
+						}					
+					}else {							
+						state = END;							
+					}
+				}
+			}
+			break;
+
+		case  END:
+			currentStep =null;
+			// reset();
+			return -1;
+
+		case  FORWARD:
+			if (currentStep.nt.testType != NodeTest.TEXT) {
+				//currentStep = currentStep.getNextStep();
+				 state =  BACKWARD;
+				forward: if (vn.toElement(VTDNav.FC)) {
+					do {
+						if (currentStep.eval(vn)) {
+							if (currentStep.getNextStep() != null) {
+								 state =  FORWARD;
+								currentStep = currentStep.getNextStep();
+							} else {
+								 state =  TERMINAL;
+								result = vn.getCurrentIndex();
+								if ( isUnique(result))
+									return result;
+							}
+							break forward;
+						}
+					} while (vn.toElement(VTDNav.NS));
+					vn.toElement(VTDNav.P);
+					currentStep.resetP(vn);
+					currentStep = currentStep.getPrevStep();
+				} else {
+					//vn.toElement(VTDNav.P);
+					currentStep = currentStep.getPrevStep();
+				}
+			} else {
+				if (vn.getAtTerminal() == true){
+					state = BACKWARD;
+					currentStep = currentStep.getPrevStep();
+				}else {
+					result = vn.getText();
+					if (result != -1){
+						vn.setAtTerminal(true);
+						if (currentStep.getNextStep() != null){
+							state =  FORWARD;
+							currentStep = currentStep.getNextStep();
+						} else {
+							state =  TERMINAL;
+							//result = vn.getText();
+							if (isUnique(result)){
+								return result;
+							}
+						}					
+					}else {
+							state = BACKWARD;
+							currentStep = currentStep.getPrevStep();
+					}
+				}						
+			}
+			break;
+
+		case  BACKWARD:
+			if (currentStep.nt.testType != NodeTest.TEXT) {
+				//currentStep = currentStep.getPrevStep();
+				b = false;
+				while (vn.toElement(VTDNav.NS)) {
+					if (currentStep.eval(vn)) {
+						b = true;
+						break;
+					}
+				}
+				if (b == true) {
+					 state =  FORWARD;
+					currentStep = currentStep.getNextStep();
+				} else if (currentStep.getPrevStep() == null){
+					currentStep.resetP(vn);
+					vn.toElement(VTDNav.P);
+					 state =  END;
+				}
+				else {
+					currentStep.resetP(vn);
+					 state =  BACKWARD;
+					vn.toElement(VTDNav.P);
+					currentStep = currentStep.getPrevStep();
+				}
+			}else {
+				vn.setAtTerminal(false);
+				if (currentStep.getPrevStep() == null)
+					 state =  END;
+				else {
+					 state =  BACKWARD;
+					 //vn.setAtTerminal(false);
+					currentStep = currentStep.getPrevStep();
+				}
+			}
+			break;
+
+		case  TERMINAL:
+			if (currentStep.nt.testType != NodeTest.TEXT) {
+				while (vn.toElement(VTDNav.NS)) {
+					if (currentStep.eval(vn)) {
+						// state =  TERMINAL;
+						result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+					}
+				}
+				currentStep.resetP(vn);
+				if (currentStep.getPrevStep() == null){
+					 state =  END;
+					 vn.toElement(VTDNav.P);
+				}
+				else {
+					vn.toElement(VTDNav.P);
+					
+					 state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();
+				}
+			}else {
+				currentStep.resetP(vn);
+				vn.setAtTerminal(false);
+				if (currentStep.getPrevStep() == null)
+					 state =  END;
+
+				else {
+					 state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();
+				}
+			}
+			break;
+
+		default:
+			throw new XPathEvalException("unknown state");
+		}
+		return -2;
+	}
 	
+	int process_DDFP(VTDNav vn) 
+		throws XPathEvalException, NavException {
+	    AutoPilot ap;
+	    boolean b = false;
+	    int result;
+		switch ( state) {
+		case  START:
+		case  FORWARD:
+			// currentStep.o;
+			String helper = null;
+			if (currentStep.nt.testType == NodeTest.NODE){
+				helper = "*";
+			}else {
+				helper = currentStep.nt.nodeName;
+			}
+			if (currentStep.o == null)
+				currentStep.o = ap = new AutoPilot(vn);
+			else
+				ap = (AutoPilot) currentStep.o;
+			if (currentStep.get_ft() == true) {
+
+				if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF )
+					if (currentStep.nt.testType == NodeTest.NODE)
+						ap.setSpecial(true);
+					else
+						ap.setSpecial(false);
+				//currentStep.o = ap = new AutoPilot(vn);
+			    if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF)
+					ap.selectElement(helper);
+				else if (currentStep.axis_type == AxisType.DESCENDANT)
+					ap.selectElement_D(helper);
+				else if (currentStep.axis_type == AxisType.PRECEDING)
+					ap.selectElement_P(helper);
+				else 
+					ap.selectElement_F(helper);
+				currentStep.set_ft(false);
+			}
+			if ( state ==  START)
+				 state =  END;
+
+			vn.push2(); // not the most efficient. good for now
+			//System.out.println("  --++ push in //");
+			b = false;
+			while(ap.iterate()){
+				if (currentStep.evalPredicates(vn)){
+					b = true;
+					break;
+				}
+			}
+			if (b == false) {
+				vn.pop2();
+				//System.out.println("  --++ pop in //");
+				currentStep.set_ft(true);
+				currentStep.resetP(vn);
+				if ( state ==  FORWARD){
+					 state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();							
+				}						
+			} else {
+				if (currentStep.getNextStep() != null){
+					 state =  FORWARD;
+					currentStep = currentStep.getNextStep();
+				}
+				else {
+					//vn.pop();
+					 state =  TERMINAL;
+					result = vn.getCurrentIndex();
+					if ( isUnique(result))
+						return result;
+				}
+			}
+			break;
+			
+		case  END:
+			currentStep = null;
+			// reset();
+			return -1;
+
+		case  BACKWARD:
+			//currentStep = currentStep.getPrevStep();
+			ap = (AutoPilot) currentStep.o;
+			//vn.push();
+			b = false;
+			while(ap.iterate()){
+				if (currentStep.evalPredicates(vn)){
+					b = true;
+					break;
+				}
+			}
+			if (b == false) {
+				vn.pop2();
+				currentStep.set_ft(true);
+				currentStep.resetP(vn);
+				//System.out.println("  --++ pop in //");
+				if (currentStep.getPrevStep() != null) {
+					 state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();
+				} else
+					 state =  END;
+			} else {
+				if (currentStep.getNextStep() != null) {
+					//vn.push();
+					//System.out.println("  --++ push in //");
+					 state =  FORWARD;
+					currentStep = currentStep.getNextStep();
+				} else {
+					 state =  TERMINAL;
+					result = vn.getCurrentIndex();
+					if ( isUnique(result))
+						return result;
+				}
+			}
+			break;
+
+		case  TERMINAL:
+			ap = (AutoPilot) currentStep.o;
+			b = false;
+			while(ap.iterate()){
+				if (currentStep.evalPredicates(vn)){
+					b = true;
+					break;
+				}
+			}
+			if (b == true){
+				if (currentStep.evalPredicates(vn)){
+					result = vn.getCurrentIndex();
+					if ( isUnique(result))
+						return result;
+				}
+			}
+			else if (currentStep.getPrevStep() == null) {
+				currentStep.resetP(vn);
+				vn.pop2();
+				 state =  END;
+			} else {
+				vn.pop2();
+				currentStep.set_ft(true);
+				currentStep.resetP(vn);
+				//System.out.println("  --++ pop in //");
+				 state =  BACKWARD;
+				//currentStep.ft = true;
+				currentStep = currentStep.getPrevStep();
+			}
+			break;
+
+		default:
+			throw new  XPathEvalException("unknown state");
+		}
+		return -2;
+	}
+	
+	int process_parent(VTDNav vn)
+		throws XPathEvalException, NavException{
+	    int result;
+		switch ( state) {
+		case  START:
+		case  FORWARD:
+			// assuming .. without specifying element name
+			// makes the qname = null
+			//if (vn.matchElement("b")){
+			//	System.out.println(" b encountered ==> "+ vn.getCurrentDepth());
+			//}
+			if (vn.getCurrentDepth() == -1) {
+				if ( state ==  START)
+					 state =  END;
+				else {
+					//vn.pop();
+					 state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();
+				}
+			} else {
+				vn.push2();
+				vn.toElement(VTDNav.P); // must return true
+				if (currentStep.eval(vn)){
+				    if (currentStep.getNextStep() != null) {
+					    state =  FORWARD;
+					   currentStep = currentStep.getNextStep();
+				    } else {
+					    state =  TERMINAL;
+					   result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+				    }
+				}else{
+					vn.pop2();
+					currentStep.resetP(vn);
+					if ( state ==  START)
+						 state =  END;
+					else {								
+						 state =  BACKWARD;
+						currentStep = currentStep.getPrevStep();
+					}
+				}
+			}
+
+			break;				
+			
+		case  END:
+			currentStep = null;
+			// reset();
+		    return -1;
+			
+		case  BACKWARD:
+		case  TERMINAL:
+			if (currentStep.getPrevStep() == null) {
+			    vn.pop2();
+				 state =  END;
+				break;
+			}else {
+				vn.pop2();
+				 state =  BACKWARD;
+				currentStep = currentStep.getPrevStep();
+				break;
+			}
+			
+		default:
+			throw new  XPathEvalException("unknown state");
+		}
+
+		return -2;
+	    
+	}
+	
+	int process_ancestor( VTDNav vn)
+		throws XPathEvalException, NavException{
+	    int result;
+	    boolean b = false;
+		switch ( state) {
+		case  START:
+			    
+		    state =  END;
+		   if (vn.getCurrentDepth()!=-1){
+		   		vn.push2();
+				
+		   		while(vn.toElement(VTDNav.P)){
+		   			if (currentStep.eval(vn)){
+		   				if (currentStep.getNextStep() != null){
+		   					 state =  FORWARD;
+		   					currentStep = currentStep.getNextStep();
+		   					break;
+		   				}
+		   				else {
+						    //vn.pop();
+		   					 state =  TERMINAL;
+		   					result = vn.getCurrentIndex();
+							if ( isUnique(result))
+								return result;
+		   				}
+		   			}							
+		   		}
+		   		if ( state == END){
+		   			currentStep.resetP(vn);
+		   			vn.pop2();
+		   		}
+		   }
+		   break;
+		  	
+		case  FORWARD:
+		    state =  BACKWARD;
+		   	vn.push2();
+				
+		   	while(vn.toElement(VTDNav.P)){
+		   		if (currentStep.eval(vn)){
+		   			if (currentStep.getNextStep() != null){
+		   				 state =  FORWARD;
+		   				currentStep = currentStep.getNextStep();
+		   				break;
+		   			}
+		   			else {
+		   				//vn.pop();
+		   				 state =  TERMINAL;
+		   				result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+		   			}
+		   		}							
+		   	}
+		   	if ( state == BACKWARD){
+		   		currentStep.resetP(vn);
+				vn.pop2();
+		   		currentStep=currentStep.getPrevStep();
+		   	}
+		    
+		  	break;
+		
+		case  END:
+			currentStep =null;
+			// reset();
+		    return -1;
+		
+		case  BACKWARD:
+			b = false;
+			vn.push2();
+
+			while (vn.toElement(VTDNav.P)) {
+				if (currentStep.eval(vn)) {
+					if (currentStep.getNextStep()!= null) {
+						 state =  FORWARD;
+						currentStep = currentStep.getNextStep();
+						b = true;
+						break;
+					} else {
+						//vn.pop();
+						 state =  TERMINAL;
+						result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+					}
+				}
+			}
+			if (b==false){
+				vn.pop2();
+				if (currentStep.getPrevStep()!=null) {
+					currentStep.resetP(vn);
+					state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();
+				}
+				else {
+					 state =  END;
+				}
+			}
+			break;
+		
+		case  TERMINAL:
+			while (vn.toElement(VTDNav.P)) {
+				if (currentStep.eval(vn)) {
+					result = vn.getCurrentIndex();
+					if ( isUnique(result))
+						return result;
+				}
+			}
+			vn.pop2();
+			
+			if (currentStep.getPrevStep()!=null) {
+				currentStep.resetP(vn);
+				 state =  BACKWARD;
+				currentStep = currentStep.getPrevStep();
+			}
+			else {
+				 state =  END;
+			}
+			break;
+		
+		default:
+			throw new  XPathEvalException("unknown state");
+		}
+
+		return -2;	
+	}
+	
+	int process_ancestor_or_self(VTDNav vn)
+		throws XPathEvalException,NavException{
+	    boolean b = false;
+	    int result;
+		switch ( state) {
+		case  START:
+			
+			 state =  END;
+			vn.push2();
+			
+			if (currentStep.get_ft()== true){						
+				currentStep.set_ft(false);
+				if (currentStep.eval(vn)) {
+					if (currentStep.getNextStep() != null) {
+						 state =  FORWARD;
+						currentStep = currentStep.getNextStep();
+						break;
+					} else {
+						//vn.pop();
+						 state =  TERMINAL;
+						result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+					}
+				}
+			}
+			else {
+				while (vn.toElement(VTDNav.P)) {
+					if (currentStep.eval(vn)) {
+						if (currentStep.getNextStep() != null) {
+							 state =  FORWARD;
+							currentStep = currentStep.getNextStep();
+							break;
+						} else {
+							//vn.pop();
+							 state =  TERMINAL;
+							result = vn.getCurrentIndex();
+							if ( isUnique(result))
+								return result;
+						}
+					}
+				}
+			}
+			if ( state ==  END) {
+				currentStep.resetP(vn);
+				vn.pop2();
+			}
+
+			break;
+			
+		case  FORWARD:
+			 state =  BACKWARD;
+			vn.push2();
+			if (currentStep.get_ft() == true) {
+				currentStep.set_ft(false);
+				if (currentStep.eval(vn)) {
+					if (currentStep.getNextStep() != null) {
+						 state =  FORWARD;
+						currentStep = currentStep.getNextStep();
+						break;
+					} else {
+						//vn.pop();
+						 state =  TERMINAL;
+						result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+					}
+				}
+			} else {
+				while (vn.toElement(VTDNav.P)) {
+					if (currentStep.eval(vn)) {
+						if (currentStep.getNextStep() != null) {
+							 state =  FORWARD;
+							currentStep = currentStep.getNextStep();
+							break;
+						} else {
+							//vn.pop();
+							 state =  TERMINAL;
+							result = vn.getCurrentIndex();
+							if ( isUnique(result))
+								return result;
+						}
+					}
+				}
+			}
+			if ( state ==  BACKWARD) {
+				currentStep.resetP(vn);
+				currentStep.set_ft(true);
+				vn.pop2();
+				currentStep = currentStep.getPrevStep();
+			}
+			break;
+		
+		case  END:
+			currentStep = null;
+			// reset();
+	    	return -1;
+			
+		
+		case  BACKWARD:
+			b = false;
+			vn.push2();
+
+			while (vn.toElement(VTDNav.P)) {
+				if (currentStep.eval(vn)) {
+					if (currentStep.getNextStep() != null) {
+						 state =  FORWARD;
+						currentStep = currentStep.getNextStep();
+						b = true;
+						break;
+					} else {
+						//vn.pop();
+						 state =  TERMINAL;
+						result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+					}
+				}
+			}
+			if (b == false) {
+				vn.pop2();
+				currentStep.resetP(vn);
+				if (currentStep.getPrevStep() != null) {
+					currentStep.set_ft(true);
+					 state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();
+				} else {
+					 state =  END;
+				}
+			}
+			break;
+		
+		case  TERMINAL:
+			while (vn.toElement(VTDNav.P)) {
+				if (currentStep.eval(vn)) {
+					result = vn.getCurrentIndex();
+					if ( isUnique(result))
+						return result;
+				}
+			}
+			vn.pop2();
+			currentStep.resetP(vn);
+			if (currentStep.getPrevStep()!=null) {
+				currentStep.set_ft(true);
+				 state =  BACKWARD;
+				currentStep = currentStep.getPrevStep();
+			}
+			else {
+				 state =  END;
+			}
+			break;
+			
+		
+		default:
+			throw new  XPathEvalException("unknown state");
+		}
+
+		return -2;
+	}
+	int process_self(VTDNav vn)
+		throws XPathEvalException,NavException{
+	    //boolean b = false;
+	    int result;
+		switch( state){
+		  case  START:
+		  case  FORWARD:	
+		  	if (currentStep.eval(vn)){
+		  		if (currentStep.getNextStep()!=null){
+		  			 state =  FORWARD;
+		  			currentStep = currentStep.getNextStep();
+		  		}
+		  		else{
+		  			 state =  TERMINAL;
+		  			result = vn.getCurrentIndex();
+					if ( isUnique(result))
+						return result;
+		  		}
+		  	}else {
+		  		currentStep.resetP(vn);
+		  		if ( state ==  START)
+		  			 state =  END;
+		  		else 
+		  			 state =  BACKWARD;
+		  	}
+		    break;
+		  	
+		  case  END:
+		  	currentStep = null;
+		  	// reset();
+		  	return -1;
+		  	
+		  case  BACKWARD:
+		  case  TERMINAL:
+		  	if (currentStep.getPrevStep()!=null){
+	  			 state =  BACKWARD;
+	  			currentStep= currentStep.getPrevStep();
+	  		}else{
+	  			 state =  END;				  			
+	  		}
+		  	break;
+		  
+		  default:
+			throw new  XPathEvalException("unknown state");
+		}
+		return -2;
+	}
+	
+	int process_following_sibling(VTDNav vn)
+		throws XPathEvalException,NavException{
+	    boolean b = false;
+	    int result;
+	    
+		switch( state){
+		  case  START:
+		  case  FORWARD:
+		  	if ( state ==  START)
+		  		 state =  END;
+		  	else
+		  		 state =  BACKWARD;
+		  	vn.push2();
+		  	while (vn.toElement(VTDNav.NS)){
+		  		if (currentStep.eval(vn)){
+		  			if (currentStep.getNextStep()!=null){
+		  				 state =  FORWARD;
+		  				currentStep = currentStep.getNextStep();
+		  				break;
+		  			} else {
+		  				 state =  TERMINAL;
+		  				result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+		  			}
+		  		}
+		  	}
+		  	
+		  	if ( state ==  END){
+		  		currentStep.resetP(vn);
+		  		vn.pop2();
+		  	}else if ( state ==  BACKWARD){
+		  		currentStep.resetP(vn);
+		  		vn.pop2();
+		  		currentStep = currentStep.getPrevStep();				  		
+		  	}
+		    break;
+		  	 
+		  case  END:
+		  	currentStep = null;
+		  	// reset();
+		  	return -1;
+		  	
+		  case  BACKWARD:
+		  	while (vn.toElement(VTDNav.NS)){
+		  		if (currentStep.eval(vn)){
+		  			if (currentStep.getNextStep()!=null){
+		  				 state =  FORWARD;
+		  				currentStep = currentStep.getNextStep();
+		  				b = true;
+		  				break;
+		  			} else {
+		  				 state =  TERMINAL;
+		  				result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+		  			}
+		  		}
+		  	}
+		    if (b==false){
+		    	vn.pop2();
+		    	currentStep.resetP(vn);
+		    	if (currentStep.getPrevStep()==null){
+		    		 state =  END;
+		    	}else{
+		    		 state =  BACKWARD;
+		    		currentStep = currentStep.getPrevStep();
+		    	}
+		    }
+		  	break;
+		  
+		  case  TERMINAL:
+		  	while (vn.toElement(VTDNav.NS)){
+		  		if (currentStep.eval(vn)){
+		  			// state =  TERMINAL;
+		  			result = vn.getCurrentIndex();
+					if ( isUnique(result))
+						return result;
+		  		}
+		  	}
+		  	vn.pop2();
+		  	currentStep.resetP(vn);
+		  	if(currentStep.getPrevStep()!=null){
+		  		currentStep = currentStep.getPrevStep();
+		  		 state =  BACKWARD;
+		  	}else{
+		  		 state =  END;
+		  	}
+		  	break;
+
+		  default:
+			throw new  XPathEvalException("unknown state");
+		}
+		return -2;
+	}
+	
+	int process_preceding_sibling(VTDNav vn)
+		throws XPathEvalException,NavException {
+	    boolean b = false;
+	    int result;
+	    switch(state){
+		  case  START:
+		  case  FORWARD:
+		  	if ( state ==  START)
+		  		 state =  END;
+		  	else
+		  		 state =  BACKWARD;
+		  	vn.push2();
+		  	while (vn.toElement(VTDNav.PS)){
+		  		if (currentStep.eval(vn)){
+		  			if (currentStep.getNextStep()!=null){
+		  				 state =  FORWARD;
+		  				currentStep = currentStep.getNextStep();
+		  				break;
+		  			} else {
+		  				 state =  TERMINAL;
+		  				result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+		  			}
+		  		}
+		  	}
+		  	
+		  	if ( state ==  END){
+		  		currentStep.resetP(vn);
+		  		vn.pop2();
+		  	}else if ( state ==  BACKWARD){
+		  		currentStep.resetP(vn);
+		  		vn.pop2();
+		  		currentStep = currentStep.getPrevStep();				  		
+		  	}
+		  	 break;
+		  	 
+		  case  END:
+		  	currentStep = null;
+		  	// reset();
+		  	return -1;
+		  
+		  case  BACKWARD:
+		  	while (vn.toElement(VTDNav.PS)){
+		  		if (currentStep.eval(vn)){
+		  			if (currentStep.getNextStep()!=null){
+		  				 state =  FORWARD;
+		  				currentStep = currentStep.getNextStep();
+		  				b = true;
+		  				break;
+		  			} else {
+		  				 state =  TERMINAL;
+		  				result = vn.getCurrentIndex();
+						if ( isUnique(result))
+							return result;
+		  			}
+		  		}
+		  	}
+		    if (b==false){
+		    	vn.pop2();
+		    	currentStep.resetP(vn);
+		    	if (currentStep.getPrevStep()==null){
+		    		 state =  END;
+		    	}else{
+		    		 state =  BACKWARD;
+		    		currentStep = currentStep.getPrevStep();
+		    	}
+		    }
+		  	break;
+		  
+		  case  TERMINAL:
+		  	while (vn.toElement(VTDNav.PS)){
+		  		if (currentStep.eval(vn)){
+		  			// state =  TERMINAL;
+		  			result = vn.getCurrentIndex();
+					if ( isUnique(result))
+						return result;
+		  		}
+		  	}
+		  	vn.pop2();
+		  	if(currentStep.getPrevStep()!=null){
+		  		currentStep = currentStep.getPrevStep();
+		  		 state =  BACKWARD;
+		  	}else{
+		  		 state =  END;
+		  	}
+		  	break;
+		  
+		  default:
+			throw new  XPathEvalException("unknown state");
+		}
+		return -2;
+	}
+	
+	int process_attribute(VTDNav vn)
+		throws XPathEvalException,NavException {
+	    AutoPilot ap = null;
+	    boolean b = false;
+	    int result;
+	    int temp;
+		switch( state){
+		case  START:
+		case  FORWARD:
+			if (vn.getAtTerminal()==true){
+				if (state ==START)
+					state = END;
+				else {
+					state = BACKWARD;
+					currentStep  = currentStep.getPrevStep();
+				}
+			} else {
+			if (currentStep.get_ft() == true) {
+				currentStep.o = ap = new AutoPilot(vn);
+			    ap.selectAttr(currentStep.nt.nodeName);
+				currentStep.set_ft(false);
+			}
+			if ( state ==  START)
+				 state =  END;
+			vn.setAtTerminal(true);
+			while( (temp = ap.iterateAttr()) != -1){
+				
+				if (currentStep.evalPredicates(vn)){
+					break;
+				}							
+			}
+			if (temp == -1){
+				currentStep.set_ft(true);
+				currentStep.resetP(vn);
+				vn.setAtTerminal(false);
+				if ( state ==  FORWARD){
+					state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();							
+				}	
+			}else {
+				
+				if (currentStep.getNextStep() != null){
+					 state =  FORWARD;
+					currentStep = currentStep.getNextStep();
+				}
+				else {
+					//vn.pop();
+					 state =  TERMINAL;
+					if ( isUnique(temp))
+						return temp;
+				}
+			
+			}
+			}
+			break;
+			
+		case  END:
+			currentStep = null;
+			// reset();
+	  		return -1;
+	  		
+		case  BACKWARD:
+			ap = (AutoPilot) currentStep.o;
+			//vn.push();
+			while( (temp = ap.iterateAttr()) != -1){
+				if (currentStep.evalPredicates(vn)){
+					break;
+				}							
+			}
+			if (temp == -1) {
+				currentStep.set_ft(true);
+				currentStep.resetP(vn);
+				vn.setAtTerminal(false);
+				if (currentStep.getPrevStep() != null) {
+					state =  BACKWARD;
+					currentStep = currentStep.getPrevStep();
+				} else
+					state =  END;
+			} else {
+				if (currentStep.getNextStep() != null) {
+					state =  FORWARD;
+					currentStep = currentStep.getNextStep();
+				} else {
+					state =  TERMINAL;
+					if ( isUnique(temp))
+						return temp;
+				}
+			}
+			break;
+			
+		case  TERMINAL:
+			ap = (AutoPilot) currentStep.o;
+			while( (temp = ap.iterateAttr()) != -1){
+				if (currentStep.evalPredicates(vn)){
+					break;
+				}							
+			}
+			if (temp != -1) 
+				if (isUnique(temp))
+					return temp;
+			vn.setAtTerminal(false);
+			currentStep.resetP(vn);
+			if (currentStep.getPrevStep() == null) {
+				currentStep.set_ft(true);
+				 state =  END;
+			} else {
+				 state =  BACKWARD;
+				currentStep.set_ft(true);
+				currentStep = currentStep.getPrevStep();
+			}
+			
+			break;					
+		
+		default:
+			throw new  XPathEvalException("unknown state");
+	}
+	return -2;
+	}
+	
+    public int evalNodeSet(VTDNav vn) 
+    	throws NavException,XPathEvalException{
+        int result;
+		if (currentStep == null) {
+			if ( pathType ==  ABSOLUTE_PATH){
+				vn.toElement(VTDNav.ROOT);
+				vn.toElement(VTDNav.PARENT);
+			}
+			currentStep =  s;
+			if (currentStep == null){
+				if (  state ==  START){
+					 state =  END;
+					return 0;
+				}
+				else{
+					return -1;
+				}
+			}
+		}
+		
+		while (true) {
+			switch (currentStep.axis_type) {
+
+			case AxisType.CHILD:
+			    if ( (result = process_child(vn))!=-2)
+				   return result;
+			    break;
+			case AxisType.DESCENDANT_OR_SELF:
+			case AxisType.DESCENDANT:
+			case AxisType.PRECEDING:								
+			case AxisType.FOLLOWING:
+			    if ((result = process_DDFP(vn))!= -2)
+			        return result;
+			    break;
+			case AxisType.PARENT:
+			    if ((result = process_parent(vn))!= -2)
+			        return result;
+			    break;
+			case AxisType.ANCESTOR:
+			    if ((result = process_ancestor(vn))!= -2)
+			        return result;
+			    break;
+			case AxisType.ANCESTOR_OR_SELF:
+			    if ((result = process_ancestor_or_self(vn))!= -2)
+			        return result;
+			    break;
+			case AxisType.FOLLOWING_SIBLING:
+			    if ((result = process_following_sibling(vn))!= -2)
+			        return result;
+			    break;
+			case AxisType.PRECEDING_SIBLING:
+			    if ((result = process_preceding_sibling(vn))!= -2)
+			        return result;
+			    break;
+			case AxisType.ATTRIBUTE:
+			    if ((result = process_attribute(vn))!= -2)
+			        return result;
+			    break;
+			default:
+			    throw new XPathEvalException("axis not supported");
+			}
+		}
+        
+    }
 }
 
