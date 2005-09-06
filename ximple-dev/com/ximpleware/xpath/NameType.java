@@ -24,4 +24,9 @@ public class NameType{
 	public String qname;
 	public String prefix;
 	public String localname;	
+	public NameType(){
+	    qname = null;
+	    prefix = null;
+	    localname =null;
+	}
 }	

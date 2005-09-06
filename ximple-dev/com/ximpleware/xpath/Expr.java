@@ -38,4 +38,11 @@ abstract public class Expr {
 
 	abstract public boolean isNumerical();
 	abstract public boolean isNodeSet();
+	abstract public boolean isString();
+	abstract public boolean isBoolean();
+	
+	// to support computer context size 
+	// needs to add 
+	//abstract public boolean needContextSize();
+	//abstract public boolean SetContextSize(int contextSize);
 }

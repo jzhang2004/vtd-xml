@@ -37,6 +37,7 @@ public class NodeTest implements LocationPathNode{
 				COMMENT = 5;
 	public NodeTest(){
 		nsEnabled = false;
+		localName = null;
 	}
 	public void setNsEnabled(boolean b){
 		nsEnabled = b;
@@ -62,7 +63,11 @@ public class NodeTest implements LocationPathNode{
 
 	public String toString(){
 		switch (testType){
-			case NAMETEST :   return nodeName;
+			case NAMETEST :
+			    if (localName == null)
+			        return nodeName;
+			    else 
+			        return prefix+":"+localName;
 			case NODE: return "node()";
 			case TEXT: return "text()";
 			case PI0: 

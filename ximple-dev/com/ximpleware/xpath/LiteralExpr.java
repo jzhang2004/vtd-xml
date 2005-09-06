@@ -71,4 +71,16 @@ public class LiteralExpr extends Expr {
 	public boolean  isNumerical(){
 		return false;
 	}
+	
+	public boolean isString(){
+	    return true;
+	}
+	
+	public boolean isBoolean(){
+	    return false;
+	}
+	// to support computer context size 
+	// needs to add 
+	// public boolean needContextSize();
+	// public boolean SetContextSize(int contextSize);
 }

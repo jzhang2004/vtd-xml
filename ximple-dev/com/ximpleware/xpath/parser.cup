@@ -274,7 +274,7 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
       		   RESULT.setAxisType(as.i);
       		   RESULT.setNodeTest(nt);
 		   RESULT.setPredicate(pl);	
-		   System.out.println(" Step 3 ");
+		   //System.out.println(" Step 3 ");
 		:}
       		|    AbbreviatedStep:as			 
 		{: RESULT = as; System.out.println(" step 4"); :}
@@ -285,6 +285,9 @@ nodetest	::=    NAME:n
 		{: RESULT = new NodeTest();
 	 	   RESULT.setTestType(NodeTest.NAMETEST);
 		   RESULT.setNodeName(n.qname);
+		   if (n.localname!=null){
+		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
+		   }
 		:}
 		|    NTEST:n2				
 		{: RESULT = new NodeTest();

@@ -65,4 +65,16 @@ public class NumExpr extends Expr{
 	}
 
 	public void reset(VTDNav vn){};
+	
+	public boolean isString(){
+	    return false;
+	}
+	
+	public boolean isBoolean(){
+	    return false;
+	}
+	// to support computer context size 
+	// needs to add 
+	// public boolean needContextSize();
+	// public boolean SetContextSize(int contextSize);
 }

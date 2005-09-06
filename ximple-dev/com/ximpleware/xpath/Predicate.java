@@ -59,5 +59,10 @@ public class Predicate implements LocationPathNode{
 			return s+nextP;
 		}
 	}
+	
+	// to support computer context size 
+	// needs to add 
+	// public boolean needContextSize();
+	// public boolean SetContextSize(int contextSize);
 }
 

@@ -66,4 +66,16 @@ public class UnaryExpr extends Expr {
 	public boolean  isNumerical(){
 		return true;
 	}
+	
+	public boolean isString(){
+	    return false;
+	}
+	
+	public boolean isBoolean(){
+	    return false;
+	}
+	// to support computer context size 
+	// needs to add 
+	// public boolean needContextSize();
+	// public boolean SetContextSize(int contextSize);
 }
