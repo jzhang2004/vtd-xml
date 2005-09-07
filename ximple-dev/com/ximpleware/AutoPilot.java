@@ -29,6 +29,7 @@ package com.ximpleware;
  */
 
 import com.ximpleware.xpath.*;
+import java.util.*;
 import java.io.*;
 public class AutoPilot {
     private int depth;
@@ -49,8 +50,8 @@ public class AutoPilot {
     
     private int[] contextCopy;  //for preceding axis
     private int stackSize;  // the stack size for xpath evaluation
-    
-    
+    private Hashtable ht;
+    //private parser p;
     // defines the type of "iteration"
     public final static int UNDEFINED = 0;
     // set the mode corresponding to DOM's getElemetnbyName(string)
@@ -85,7 +86,43 @@ public AutoPilot(VTDNav v) {
     size = 0;
     special = false;
     xpe = null;
-       
+    //p = null;       
+}
+
+/**
+ * Use this constructor for XPath 
+ *
+ */
+public AutoPilot(){
+    name = null;
+    //vn = v;
+    //depth = v.getCurrentDepth();
+    iter_type = UNDEFINED; // not defined
+    ft = true;
+    size = 0;
+    special = false;
+    xpe = null;
+}
+
+public void setVTDNav(VTDNav v){
+    if (v == null)
+        throw new IllegalArgumentException(" instance of VTDNav can't be null ");
+    vn = v;
+    stackSize = vn.contextStack2.size;
+}
+
+/** This function creates URL ns prefix 
+ *  and is intended to be called prior to selectXPath
+ *  @param String prefix
+ *  @param String URL
+ */
+
+public void declareXPathNameSpace(String prefix, String URL){
+    if (ht==null)
+        ht = new Hashtable();
+    ht.put(prefix, URL);
+    //System.out.println(ht);
+   
 }
 /**
  * Reset the internal state of Autopilot so
@@ -452,7 +489,9 @@ public void selectXPath(String s) throws XPathParseException{
 	
 	try{
 		parser p = new parser(new StringReader(s));
+		p.ht = ht;
 		xpe = (com.ximpleware.xpath.Expr) p.parse().value;
+		if (vn !=null)
 		stackSize = vn.contextStack2.size;
 	}
 	catch(Exception e){
