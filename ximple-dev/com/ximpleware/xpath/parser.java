@@ -21,9 +21,10 @@ package com.ximpleware.xpath;
 import java_cup.runtime.*;
 import com.ximpleware.*;
 import com.ximpleware.xpath.*;
+import java.util.*;
 
 /** CUP v0.10k generated parser.
-  * @version Fri Sep 02 18:01:21 PDT 2005
+  * @version Tue Sep 06 18:49:55 PDT 2005
   */
 public class parser extends java_cup.runtime.lr_parser {
 
@@ -441,13 +442,16 @@ public class parser extends java_cup.runtime.lr_parser {
 
 
   
-
+  public Hashtable ht;
   Step tempStep;
   NodeTest tempNt;
- LocationPathExpr tempLPExpr;
+  LocationPathExpr tempLPExpr;
+  
   public parser (java.io.Reader input) {
     super(new Yylex(input));
+    ht = null;
   }
+  
   public parser (java.io.InputStream input) {
     super(new Yylex(input));
   }
@@ -460,7 +464,7 @@ public class parser extends java_cup.runtime.lr_parser {
       System.out.println(((Expr)result));
     }
     catch (Exception e) {
-	System.out.println("caught: "+e);
+		System.out.println("caught: "+e);
     }
   }
  
@@ -709,6 +713,9 @@ class CUP$parser$actions {
 		   RESULT.setNodeName(n.qname);
 		   if (n.localname!=null){
 		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
+		   	 if (parser.ht==null || parser.ht.get(n.prefix) ==null)
+		   	    throw new XPathParseException("No URL found for prefix:"+n.prefix);
+		   	 RESULT.URL = (String) parser.ht.get(n.prefix);
 		   }
 		
               CUP$parser$result = new java_cup.runtime.Symbol(22/*nodetest*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
@@ -723,6 +730,7 @@ class CUP$parser$actions {
 		int asright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
 		Step as = (Step)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
 		 RESULT = as; System.out.println(" step 4"); 
+		
               CUP$parser$result = new java_cup.runtime.Symbol(23/*Step*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
           return CUP$parser$result;
@@ -741,10 +749,10 @@ class CUP$parser$actions {
 		int plright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
 		Predicate pl = (Predicate)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
 		 RESULT = new Step();
-      		   RESULT.setAxisType(as.i);
-      		   RESULT.setNodeTest(nt);
+      	   RESULT.setAxisType(as.i);
+      	   RESULT.setNodeTest(nt);
 		   RESULT.setPredicate(pl);	
-		   System.out.println(" Step 3 ");
+		   //System.out.println(" Step 3 ");
 		
               CUP$parser$result = new java_cup.runtime.Symbol(23/*Step*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
