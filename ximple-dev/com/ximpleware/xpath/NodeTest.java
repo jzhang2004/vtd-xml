@@ -26,6 +26,7 @@ public class NodeTest implements LocationPathNode{
 	public String nodeName;
 	public String prefix;
 	public String localName;
+	public String URL;
 	boolean nsEnabled;
 	public int testType;
 	
@@ -39,9 +40,9 @@ public class NodeTest implements LocationPathNode{
 		nsEnabled = false;
 		localName = null;
 	}
-	public void setNsEnabled(boolean b){
+	/*public void setNsEnabled(boolean b){
 		nsEnabled = b;
-	}
+	}*/
 	public void setTestType(int t){
 		testType = t;
 	}
@@ -56,7 +57,10 @@ public class NodeTest implements LocationPathNode{
 		if (testType == NODE)
 			return true;
 		else if(testType == NAMETEST){
-			return vn.matchElement(nodeName);
+		    if (localName!=null)
+		        return vn.matchElementNS(URL,localName);
+		    else 
+		        return vn.matchElement(nodeName);
 		}
 		return false;
 	}
