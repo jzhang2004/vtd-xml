@@ -1468,10 +1468,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 //anything left must be space
 						 while (vn->currentOffset <= end) {
 							 if (!isWS(ch)){// all whitespace
-								 e.et = nav_exception;
-								 e.msg = " parseDouble failed, invalid char found";
-								 Throw e;
+								// e.et = nav_exception;
+								// e.msg = " parseDouble failed, invalid char found";
+								 //Throw e;
 								 //throw new NavException("Empty string");
+								 double d1 = 0.0;
+								 return d1/d1;
 							 }
 							 // throw new NavException(toString(index));
 
@@ -1598,9 +1600,11 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 //anything left must be space
 						 while (vn->currentOffset <= end) {
 							 if (!isWS(ch)){// all whitespace
-								 e.et = number_format_exception;
+								 /*e.et = number_format_exception;
 								 e.msg = " parseFloat failed, invalid format, invalid char encountered";
-								 Throw e;
+								 Throw e;*/
+								 float f = 0.0;
+								 return f/f;
 							 }
 							 // throw new NavException(toString(index));
 
