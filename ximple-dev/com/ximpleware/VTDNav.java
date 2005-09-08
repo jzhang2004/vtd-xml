@@ -106,10 +106,12 @@ public class VTDNav {
 	private ContextBuffer contextStack;
 	protected ContextBuffer contextStack2;// this is reserved for XPath
 
+	protected int LN; // latest node for XPath eval purposes
 	// the document encoding	     
 	private int encoding;
 	// for string to token comparison
-	private int currentOffset;
+	protected int currentOffset;
+	protected int currentOffset2;
 
 	// whether the navigation is namespace enabled or not. 
 	protected boolean ns;
@@ -184,9 +186,9 @@ public class VTDNav {
 		}
 		currentOffset = 0;
 		//contextStack = new ContextBuffer(1024, nestingLevel + 7);
-		contextStack = new ContextBuffer(10, nestingLevel + 8);
-		contextStack2 = new ContextBuffer(10, nestingLevel+8);
-		stackTemp = new int[nestingLevel + 8];
+		contextStack = new ContextBuffer(10, nestingLevel + 9);
+		contextStack2 = new ContextBuffer(10, nestingLevel+9);
+		stackTemp = new int[nestingLevel + 9];
 
 		// initial state of LC variables
 		l1index = l2index = l3index = -1;
@@ -513,6 +515,176 @@ public class VTDNav {
 				throw new NavException("Unknown Encoding");
 		}
 	}
+	/* the exact same copy of getChar except it operates on currentOffset2
+	 * this is needed to compare VTD tokens directly
+	 */
+	
+	private int getChar2() throws NavException {
+		int temp = 0;
+		int a, c, d;
+		int val;
+		int ch;
+		a = c = d = val = 0;
+
+		switch (encoding) {
+			case FORMAT_ASCII : // ascii is compatible with UTF-8, the offset value is bytes
+				temp = XMLDoc.byteAt(currentOffset2);
+				if (temp == '\r') {
+					if (XMLDoc.byteAt(currentOffset2 + 1) == '\n') {
+						currentOffset2 += 2;
+						return '\n';
+					} else {
+						currentOffset2++;
+						return '\n';
+					}
+				}
+				currentOffset2++;
+				return temp;
+			case FORMAT_UTF8 :
+				temp = XMLDoc.byteAt(currentOffset2) & 0xff;
+
+				switch (UTF8Char.byteCount(temp)) {
+					case 1 :
+						if (temp == '\r') {
+							if (XMLDoc.byteAt(currentOffset2 + 1) == '\n') {
+								currentOffset2 += 2;
+								return '\n';
+							} else {
+								currentOffset2++;
+								return '\n';
+							}
+						}
+						currentOffset2++;
+						return temp;
+					case 2 :
+						c = 0x1f;
+						d = 6;
+						a = 1;
+						break;
+					case 3 :
+						c = 0x0f;
+						d = 12;
+						a = 2;
+						break;
+					case 4 :
+						c = 0x07;
+						d = 18;
+						a = 3;
+						break;
+					case 5 :
+						c = 0x03;
+						d = 24;
+						a = 4;
+						break;
+					case 6 :
+						c = 0x01;
+						d = 30;
+						a = 5;
+						break;
+					default :
+						throw new NavException("UTF 8 encoding error: should never happen");
+				}
+
+				val = (temp & c) << d;
+				int i = a - 1;
+				while (i >= 0) {
+					temp = XMLDoc.byteAt(currentOffset2 + a - i);
+					if ((temp & 0xc0) != 0x80)
+						throw new NavException("UTF 8 encoding error: should never happen");
+					val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
+					i--;
+				}
+				currentOffset2 += a + 1;
+				return val;
+
+			case FORMAT_ISO_8859 :
+				temp = XMLDoc.byteAt(currentOffset2);
+				if (temp == '\r') {
+					if (XMLDoc.byteAt(currentOffset2 + 1) == '\n') {
+						currentOffset2 += 2;
+						return '\n';
+					} else {
+						currentOffset2++;
+						return '\n';
+					}
+				}
+				currentOffset2++;
+				return temp & 0xff;
+
+			case FORMAT_UTF_16BE :
+				// implement UTF-16BE to UCS4 conversion
+				temp =
+					((XMLDoc.byteAt(currentOffset2 << 1) & 0xff)	<< 8) 
+							|(XMLDoc.byteAt((currentOffset2 << 1) + 1)& 0xff);
+				if ((temp < 0xd800)
+					|| (temp > 0xdfff)) { // not a high surrogate
+					if (temp == '\r') {
+						if (XMLDoc.byteAt((currentOffset2 << 1) + 3) == '\n'
+							&& XMLDoc.byteAt((currentOffset2 << 1) + 2) == 0) {
+							currentOffset2 += 2;
+							return '\n';
+						} else {
+							currentOffset2++;
+							return '\n';
+						}
+					}
+					currentOffset2++;
+					return temp;
+				} else {
+					if (temp<0xd800 || temp>0xdbff)				
+						throw new NavException("UTF 16 BE encoding error: should never happen");
+					val = temp;
+					temp =
+						((XMLDoc.byteAt((currentOffset2 << 1) + 2) & 0xff)
+							<< 8) | (XMLDoc.byteAt((currentOffset2 << 1 )+ 3) & 0xff);
+					if (temp < 0xdc00 || temp > 0xdfff) {
+						// has to be a low surrogate here
+						throw new NavException("UTF 16 BE encoding error: should never happen");
+					}
+					val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
+					currentOffset2 += 2;
+					return val;
+				}
+
+			case FORMAT_UTF_16LE :
+				// implement UTF-16LE to UCS4 conversion
+				temp =
+					(XMLDoc.byteAt((currentOffset2 << 1) + 1 ) & 0xff)
+						<< 8 | (XMLDoc.byteAt(currentOffset2 << 1) & 0xff);
+				if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
+					if (temp == '\r') {
+						if (XMLDoc.byteAt((currentOffset2 << 1) + 2) == '\n'
+							&& XMLDoc.byteAt((currentOffset2 << 1) + 3) == 0) {
+							currentOffset2 += 2;
+							return '\n';
+						} else {
+							currentOffset2++;
+							return '\n';
+						}
+					}
+					currentOffset2++;
+					return temp;
+				} else {
+					if (temp<0xd800 || temp>0xdbff)				
+						throw new NavException("UTF 16 LE encoding error: should never happen");
+					val = temp;
+					temp =
+						(XMLDoc.byteAt((currentOffset2 << 1) + 3)&0xff)
+							<< 8 | (XMLDoc.byteAt((currentOffset2 << 1) + 2) & 0xff);
+					if (temp < 0xdc00 || temp > 0xdfff) {
+						// has to be high surrogate
+						throw new NavException("UTF 16 LE encoding error: should never happen");
+					}
+					val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
+					currentOffset2 += 2;
+					return val;
+				}
+				//System.out.println("UTF 16 LE unimplemented for now");
+
+			default :
+				throw new NavException("Unknown Encoding");
+		}
+	}
 	/**
 	 * This method decodes the underlying byte array into corresponding UCS2 char representation .
 	 * Also it resolves built-in entity and character references.
@@ -616,6 +788,117 @@ public class VTDNav {
 				if (getCharUnit(currentOffset) == 't'
 					&& getCharUnit(currentOffset + 1) == ';') {
 					currentOffset += 2;
+					val = '>';
+				} else
+					throw new NavException("illegal builtin reference");
+				break;
+
+			default :
+				throw new NavException("Invalid entity char");
+
+		}
+
+		//currentOffset++;
+		return val;
+	}
+	
+	/* the exact same copy of getCharResolved except it operates on currentOffset2
+	 * this is needed to compare VTD tokens directly
+	 */
+	private int getCharResolved2() throws NavException {
+		int ch = 0;
+		int val = 0;
+		ch = getChar2();
+		if (ch != '&')
+			return ch;
+
+		// let us handle references here
+		//currentOffset++;
+		ch = getCharUnit(currentOffset2);
+		currentOffset2++;
+		switch (ch) {
+			case '#' :
+
+				ch = getCharUnit(currentOffset2);
+
+				if (ch == 'x') {
+					while (true) {
+						currentOffset2++;
+						ch = getCharUnit(currentOffset2);
+
+						if (ch >= '0' && ch <= '9') {
+							val = (val << 4) + (ch - '0');
+						} else if (ch >= 'a' && ch <= 'f') {
+							val = (val << 4) + (ch - 'a' + 10);
+						} else if (ch >= 'A' && ch <= 'F') {
+							val = (val << 4) + (ch - 'A' + 10);
+						} else if (ch == ';') {
+							currentOffset2++;
+							break;
+						} else
+							throw new NavException("Illegal char in a char reference");
+					}
+				} else {
+					while (true) {
+
+						ch = getCharUnit(currentOffset2);
+
+						if (ch >= '0' && ch <= '9') {
+							val = val * 10 + (ch - '0');
+						} else if (ch == ';') {
+							currentOffset2++;
+							break;
+						} else
+							throw new NavException("Illegal char in char reference");
+						currentOffset2++;
+					}
+				}
+				break;
+
+			case 'a' :
+				ch = getCharUnit(currentOffset2);
+				if (ch == 'm') {
+					if (getCharUnit(currentOffset2 + 1) == 'p'
+						&& getCharUnit(currentOffset2 + 2) == ';') {
+						currentOffset2 += 3;
+						val = '&';
+					} else
+						throw new NavException("illegal builtin reference");
+				} else if (ch == 'p') {
+					if (getCharUnit(currentOffset2 + 1) == 'o'
+						&& getCharUnit(currentOffset2 + 2) == 's'
+						&& getCharUnit(currentOffset2 + 3) == ';') {
+						currentOffset2 += 4;
+						val = '\'';
+					} else
+						throw new NavException("illegal builtin reference");
+				} else
+					throw new NavException("illegal builtin reference");
+				break;
+
+			case 'q' :
+
+				if (getCharUnit(currentOffset2) == 'u'
+					&& getCharUnit(currentOffset2 + 1) == 'o'
+					&& getCharUnit(currentOffset2 + 2) == 't'
+					&& getCharUnit(currentOffset2 + 3) == ';') {
+					currentOffset2 += 4;
+					val = '\"';
+				} else
+					throw new NavException("illegal builtin reference");
+				break;
+			case 'l' :
+				if (getCharUnit(currentOffset2) == 't'
+					&& getCharUnit(currentOffset2 + 1) == ';') {
+					currentOffset2 += 2;
+					val = '<';
+				} else
+					throw new NavException("illegal builtin reference");
+				break;
+			case 'g' :
+				if (getCharUnit(currentOffset2) == 't'
+					&& getCharUnit(currentOffset2 + 1) == ';') {
+					currentOffset2 += 2;
 					val = '>';
 				} else
 					throw new NavException("illegal builtin reference");
@@ -1597,7 +1880,7 @@ public class VTDNav {
 		}
 
 		if (currentOffset > end) // all whitespace
-			throw new NavException("Empty string");
+			return Double.NaN;
 
 		boolean neg = (ch == '-');
 
@@ -1673,7 +1956,7 @@ public class VTDNav {
 		//anything left must be space
 		while (currentOffset <= end) {
 			if (!isWS(ch))
-				throw new NavException(toString(index));
+				return Double.NaN;
 
 			ch = getCharResolved();
 		}
@@ -1989,7 +2272,7 @@ public class VTDNav {
 		l3lower = stackTemp[nestingLevel + 5];
 		l3upper = stackTemp[nestingLevel + 6];
 		atTerminal = (stackTemp[nestingLevel + 7] == 1);
-
+		LN = stackTemp[nestingLevel+8];
 		return true;
 	}
 	
@@ -2015,7 +2298,7 @@ public class VTDNav {
 		l3lower = stackTemp[nestingLevel + 5];
 		l3upper = stackTemp[nestingLevel + 6];
 		atTerminal = (stackTemp[nestingLevel + 7] == 1);
-		
+		LN = stackTemp[nestingLevel+8];
 		return true;
 	}
 	/**
@@ -2083,7 +2366,7 @@ public class VTDNav {
 			stackTemp[nestingLevel + 7] =1;
 		else
 			stackTemp[nestingLevel + 7] =0;
-
+		stackTemp[nestingLevel+8] = LN; 
 		contextStack.store(stackTemp);
 	}
 	/**
@@ -2108,6 +2391,7 @@ public class VTDNav {
 			stackTemp[nestingLevel + 7] =1;
 		else
 			stackTemp[nestingLevel + 7] =0;
+		stackTemp[nestingLevel+8] = LN; 
 		contextStack2.store(stackTemp);
 	}
 	
@@ -3120,27 +3404,61 @@ public class VTDNav {
 		return sb.toString();
 	}
 	
-	/**
-	 * This method compare the strings ( as represented
-	 * by its VTD indices) of two VTDNav objects
-	 * @param vn1
-	 * @param i1
-	 * @param vn2
-	 * @param i2
-	 * @return
-	 */
-	public static boolean VTDComp(VTDNav vn1, int i1, 
-			VTDNav vn2, int i2)	throws NavException {
-		if (vn1==null || vn2 ==null){
-			throw new NavException("One or both VTD objects are null!!");
-		}
-		if (i1<0 || i2<0||i1>vn1.vtdSize || i2>vn2.vtdSize){
-			throw new NavException("Invalid index value");
-		}
-		if (vn1==vn2 && i1 ==i2)
+/**
+ * This method compares two VTD tokens of VTDNav objects
+ * @param i1
+ * @param vn2
+ * @param i2
+ * @return
+ *
+ */
+	public boolean matchTokens(int i1, VTDNav vn2, int i2) 
+	throws NavException{
+	    int t1, t2;
+	    int ch1, ch2;
+	    int endOffset1, endOffset2;
+	    
+		/*if (vn2 ==null){
+			throw new NavException(" One of VTD objects is null!!");
+		}*/
+
+		if ( i1 ==i2 && this == vn2)
 			return true;
-		return true;
+		
+		t1 = this.getTokenType(i1);
+		t2 = vn2.getTokenType(i2);
+		
+		this.currentOffset = this.getTokenOffset(i1);
+		vn2.currentOffset2 = vn2.getTokenOffset(i2);
+		
+		endOffset1 = this.getTokenLength(i1)+this.currentOffset;
+		endOffset2 = vn2.getTokenLength(i2) + vn2.currentOffset2;
+
+		for(;vn2.currentOffset<endOffset1&& this.currentOffset2< endOffset2;){
+		    if(t1 == VTDNav.TOKEN_CHARACTER_DATA
+		            || t1== VTDNav.TOKEN_ATTR_VAL){
+		        ch1 = this.getCharResolved();
+		    } else 
+		        ch1 = this.getChar();
+		    
+		    if(t2 == VTDNav.TOKEN_CHARACTER_DATA
+		            || t2== VTDNav.TOKEN_ATTR_VAL){
+		        ch2 = this.getCharResolved2();
+		    } else 
+		        ch2 = this.getChar2();
+		    
+		    if (ch1 != ch2)
+		        return false;
+		}
+		
+		if (vn2.currentOffset2 == endOffset2 
+		        && this.currentOffset == endOffset1)
+			return true;
+		else
+			return false;
 	}
+	
+
 	
 	/**
 	 * Set the value of atTerminal
