@@ -27,6 +27,9 @@ public class FuncExpr extends Expr{
 	public Alist argumentList;
 	public int opCode;
 	boolean isNumerical;
+	boolean isBoolean;
+	boolean isString;
+	double d;
 	int a;
 	int argCount(){
 		Alist temp = argumentList;
@@ -38,36 +41,40 @@ public class FuncExpr extends Expr{
 		return count;
 	}
 	public FuncExpr(int oc , Alist list){
-		a = 1;
+		a = 0;
 	  opCode = oc;
 	  argumentList = list;
+	  isBoolean = false;
+	  isString  = false;
+	  //isNodeSet = false;
+	  isNumerical = false;
 	  switch(opCode){
 			case FuncName.LAST: 			isNumerical = true;break;
 			case FuncName.POSITION: 		isNumerical = true;break;
 			case FuncName.COUNT: 			isNumerical = true;break;
-			case FuncName.LOCAL_NAME: 		isNumerical = false;break;
-			case FuncName.NAMESPACE_URI: 		isNumerical = false;break;
-			case FuncName.NAME: 			isNumerical = false;break;
-			case FuncName.STRING: 			isNumerical = false;break;
-			case FuncName.CONCAT: 			isNumerical = false;break;
-			case FuncName.STARTS_WITH:		isNumerical = false;break;
-			case FuncName.CONTAINS: 		isNumerical = false;break;
-			case FuncName.SUBSTRING_BEFORE: 	isNumerical = false;break;
-			case FuncName.SUBSTRING_AFTER: 		isNumerical = false;break;
-			case FuncName.SUBSTRING: 		isNumerical = false;break;
-			case FuncName.STRING_LENGTH: 		isNumerical = true;break;
-			case FuncName.NORMALIZE_SPACE: 		isNumerical = false;break;
-			case FuncName.TRANSLATE:	 	isNumerical = false;break;
-			case FuncName.BOOLEAN: 			isNumerical = false;break;
-			case FuncName.NOT: 			isNumerical = false;break;
-			case FuncName.TRUE: 			isNumerical = false;break;
-			case FuncName.FALSE: 			isNumerical = false;break;
-			case FuncName.LANG: 			isNumerical = false;break;
+			case FuncName.LOCAL_NAME: 		isString = true; break;
+			case FuncName.NAMESPACE_URI: 	isString = true; break;
+			case FuncName.NAME: 			isString = true; break;
+			case FuncName.STRING: 			isString = true; break;
+			case FuncName.CONCAT: 			isString = true; break;
+			case FuncName.STARTS_WITH:		isBoolean= true;break;
+			case FuncName.CONTAINS: 		isBoolean= true;break;
+			case FuncName.SUBSTRING_BEFORE: isString = true; break;
+			case FuncName.SUBSTRING_AFTER: 	isString = true; break;
+			case FuncName.SUBSTRING: 		isString = true; break;
+			case FuncName.STRING_LENGTH: 	isNumerical = true;break;
+			case FuncName.NORMALIZE_SPACE: 	isString = true; break;
+			case FuncName.TRANSLATE:	 	isString = true;break;
+			case FuncName.BOOLEAN: 			isBoolean =true;break;
+			case FuncName.NOT: 			    isBoolean =true;break;
+			case FuncName.TRUE: 			isBoolean = true;break;
+			case FuncName.FALSE: 			isBoolean = true;break;
+			case FuncName.LANG: 			isBoolean = true;break;
 			case FuncName.NUMBER:			isNumerical = true;break;
-			case FuncName.SUM: 			isNumerical = true;break;
+			case FuncName.SUM: 			    isNumerical = true;break;
 			case FuncName.FLOOR: 			isNumerical = true;break;
 			case FuncName.CEILING: 			isNumerical = true;break;
-			default:			isNumerical = true;;
+			default:			isNumerical = true;
 	  }	  
 	}
 
@@ -80,7 +87,26 @@ public class FuncExpr extends Expr{
 	  switch(opCode){
 			case FuncName.LOCAL_NAME: 			
 			case FuncName.NAMESPACE_URI: 	
-			case FuncName.NAME: 			
+			case FuncName.NAME: 		
+			    throw new UnsupportedException("Some functions are not supported");
+			case FuncName.STRING:
+			    if (argCount()== 0)
+			        try{
+			            if (vn.atTerminal){
+			                if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_CDATA_VAL )
+			                    return vn.toRawString(vn.LN);
+			                return vn.toString(vn.LN);
+			            }
+			            return vn.toString(vn.getCurrentIndex());
+			        }
+			    	catch(NavException e){
+			    	    return null; // this will almost never occur
+			    	}
+			    else if (argCount() == 1){
+			        return argumentList.e.evalString(vn);
+			    } else 
+			        throw new IllegalArgumentException
+					("String()'s argument count is invalid");
 			case FuncName.SUBSTRING_BEFORE:		
 			case FuncName.SUBSTRING_AFTER: 		
 			case FuncName.SUBSTRING: 		
@@ -94,33 +120,26 @@ public class FuncExpr extends Expr{
 			case FuncName.LAST:  throw new UnsupportedException
 									("Some functions are not supported"); 			
 			case FuncName.POSITION: return a++;
-			case FuncName.COUNT: 	if (argCount()!=1)
-										throw new IllegalArgumentException
-											("Count()'s argument count is invalid");
-									vn.push2();
-									try{
-										a = 0;
-										while(argumentList.e.evalNodeSet(vn)!=-1){
-											a ++;
-										}
-										argumentList.e.reset(vn);
-										vn.pop2();
-										return a;
-									}catch(Exception e){
-										argumentList.e.reset(vn);
-										vn.pop2();
-										throw new IllegalArgumentException
-										("Count()'s argument must be a node set");
-									}
+			case FuncName.COUNT: 	return count(vn);
 			case FuncName.NUMBER:   if (argCount()!=1)
 										throw new IllegalArgumentException
 										("number()'s argument count is invalid");
 									return argumentList.e.evalNumber(vn);
-			case FuncName.SUM: 		
-			case FuncName.FLOOR: 	
-			case FuncName.CEILING:
+									
+			case FuncName.SUM:	    return sum(vn);
+			case FuncName.FLOOR: 	if (argCount()!=1 )
+			    						throw new IllegalArgumentException("floor()'s argument count is invalid");
+			    					return Math.floor(argumentList.e.evalNumber(vn));
+			    					
+			case FuncName.CEILING:	if (argCount()!=1 )
+			    						throw new IllegalArgumentException("ceiling()'s argument count is invalid");
+			    					return Math.ceil(argumentList.e.evalNumber(vn));
+			    					
 			case FuncName.STRING_LENGTH:
-			case FuncName.ROUND: 
+			    
+			case FuncName.ROUND: 	if (argCount()!=1 )
+			    						return Math.round(argumentList.e.evalNumber(vn));
+			
 			default: throw new UnsupportedException("Some functions are not supported");
 	  }
 	}
@@ -153,6 +172,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	public void reset(VTDNav vn){
+	    a = 0;
 		if (argumentList!=null)
 			argumentList.reset(vn);
 	}
@@ -194,4 +214,79 @@ public class FuncExpr extends Expr{
 	public boolean  isNumerical(){
 		return isNumerical;
 	}
+	
+	public boolean isString(){
+	    return isString;
+	}
+	
+	public boolean isBoolean(){
+	    return isBoolean;
+	}
+	
+	private int count(VTDNav vn){
+	    int a = -1;
+	    if (argCount()!=1 || argumentList.e.isNodeSet()==false)
+			throw new IllegalArgumentException
+				("Count()'s argument count is invalid");
+		vn.push2();
+		try{
+			a = 0;
+			while(argumentList.e.evalNodeSet(vn)!=-1){
+				a ++;
+			}
+			argumentList.e.reset(vn);
+			vn.pop2();
+			
+		}catch(Exception e){
+			argumentList.e.reset(vn);
+			vn.pop2();
+		}
+		return a;
+	}
+	
+	private double sum(VTDNav vn){
+	    
+	    if (argCount() != 1 || argumentList.e.isNodeSet() == false)
+	        throw new IllegalArgumentException("sum()'s argument count is invalid");
+    	vn.push2();
+    	try {
+    	    a = 0;
+    	    int i1;
+    	    while ((a =argumentList.e.evalNodeSet(vn)) != -1) {
+    	        int t = vn.getTokenType(a);
+                if (t == VTDNav.TOKEN_STARTING_TAG){
+                    i1 = vn.getText();
+                    if (i1!=-1)
+                        d += vn.parseDouble(i1);
+                    if (d== Double.NaN)
+                        break;
+                }
+                else if (t == VTDNav.TOKEN_ATTR_NAME
+                        || t == VTDNav.TOKEN_ATTR_NS){
+                    d += vn.parseDouble(a+1);
+                    if (d== Double.NaN)
+                        break;
+                }
+                else if (t == VTDNav.TOKEN_CHARACTER_DATA
+                        || t == VTDNav.TOKEN_CDATA_VAL){
+                    d += vn.parseDouble(a);
+                    if (d== Double.NaN)
+                        break;
+                }
+                //    fib1.append(i);
+    	    }
+    	    argumentList.e.reset(vn);
+    	    vn.pop2();
+    	    return a;
+    	} catch (Exception e) {
+    	    argumentList.e.reset(vn);
+    	    vn.pop2();
+    	    return Double.NaN;
+    	}
+	    
+	}
+	// to support computer context size 
+	// needs to add 
+	// public boolean needContextSize();
+	// public boolean SetContextSize(int contextSize);
 }
