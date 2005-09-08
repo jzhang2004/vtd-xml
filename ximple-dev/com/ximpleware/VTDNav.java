@@ -1868,15 +1868,17 @@ public class VTDNav {
 		//if (matchTokenString()
 		currentOffset = getTokenOffset(index);
 		int end = currentOffset + getTokenLength(index);
+		int t = getTokenType(index);
+		boolean b = (t==VTDNav.TOKEN_CHARACTER_DATA )|| (t==VTDNav.TOKEN_ATTR_VAL);
 		boolean expneg = false;
 		//past the last one by one
 
-		int ch = getCharResolved();
+		int ch = b? getCharResolved():getChar();
 
 		while (currentOffset < end) { // trim leading whitespaces
 			if (!isWS(ch))
 				break;
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 		}
 
 		if (currentOffset > end) // all whitespace
@@ -1885,7 +1887,7 @@ public class VTDNav {
 		boolean neg = (ch == '-');
 
 		if (ch == '-' || ch == '+')
-			ch = getCharResolved(); //get another one if it is sign.
+			ch = b? getCharResolved():getChar(); //get another one if it is sign.
 
 		//left part of decimal
 		double left = 0;
@@ -1898,14 +1900,14 @@ public class VTDNav {
 
 			left = left * 10 + dig;
 
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 		}
 
 		//right part of decimal
 		double right = 0;
 		double scale = 1;
 		if (ch == '.') {
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 
 			while (currentOffset <= end) {
 				//must be <= since we get the next one at last.
@@ -1918,17 +1920,17 @@ public class VTDNav {
 				right = right * 10 + dig;
 				scale *= 10;
 
-				ch = getCharResolved();
+				ch =b? getCharResolved():getChar();
 			}
 		}
 
 		//exponent
 		long exp = 0;
 		if (ch == 'E' || ch == 'e') {
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 			expneg = (ch == '-'); //sign for exp
 			if (ch == '+' || ch == '-')
-				ch = getCharResolved(); //skip the +/- sign
+				ch = b? getCharResolved():getChar(); //skip the +/- sign
 
 			int cur = currentOffset;
 			//remember the indx, used to find a invalid number like 1.23E
@@ -1943,10 +1945,10 @@ public class VTDNav {
 
 				exp = exp * 10 + dig;
 
-				ch = getCharResolved();
+				ch = b? getCharResolved():getChar();
 			}
 			if (cur == currentOffset)
-				throw new NavException(toString(index));
+			    return Double.NaN;
 			//found a invalid number like 1.23E
 
 			//if (expneg)
@@ -1958,7 +1960,7 @@ public class VTDNav {
 			if (!isWS(ch))
 				return Double.NaN;
 
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 		}
 
 		double v = (double) left;
@@ -1986,13 +1988,14 @@ public class VTDNav {
 		currentOffset = getTokenOffset(index);
 		int end = currentOffset + getTokenLength(index);
 		//past the last one by one
-
-		int ch = getCharResolved();
+		int t = getTokenType(index);
+		boolean b = (t==VTDNav.TOKEN_CHARACTER_DATA )|| (t==VTDNav.TOKEN_ATTR_VAL);
+		int ch = b? getCharResolved():getChar();
 
 		while (currentOffset <= end) { // trim leading whitespaces
 			if (!isWS(ch))
 				break;
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 		}
 
 		if (currentOffset > end) // all whitespace
@@ -2001,7 +2004,7 @@ public class VTDNav {
 		boolean neg = (ch == '-');
 
 		if (ch == '-' || ch == '+')
-			ch = getCharResolved(); //get another one if it is sign.
+			ch = b? getCharResolved():getChar(); //get another one if it is sign.
 
 		//left part of decimal
 		long left = 0;
@@ -2014,14 +2017,14 @@ public class VTDNav {
 
 			left = left * 10 + dig;
 
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 		}
 
 		//right part of decimal
 		long right = 0;
 		long scale = 1;
 		if (ch == '.') {
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 
 			while (currentOffset <= end) {
 				//must be <= since we get the next one at last.
@@ -2034,17 +2037,17 @@ public class VTDNav {
 				right = right * 10 + dig;
 				scale *= 10;
 
-				ch = getCharResolved();
+				ch = b? getCharResolved():getChar();
 			}
 		}
 
 		//exponent
 		long exp = 0;
 		if (ch == 'E' || ch == 'e') {
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 			boolean expneg = (ch == '-'); //sign for exp
 			if (ch == '+' || ch == '-')
-				ch = getCharResolved(); //skip the +/- sign
+				ch = b? getCharResolved():getChar(); //skip the +/- sign
 
 			int cur = currentOffset;
 			//remember the indx, used to find a invalid number like 1.23E
@@ -2059,11 +2062,11 @@ public class VTDNav {
 
 				exp = exp * 10 + dig;
 
-				ch = getCharResolved();
+				ch = b? getCharResolved():getChar();
 			}
 
 			if (cur == currentOffset)
-				throw new NavException(toString(index));
+				return Float.NaN;
 			//found a invalid number like 1.23E
 
 			if (expneg)
@@ -2075,7 +2078,7 @@ public class VTDNav {
 			if (!isWS(ch))
 				throw new NavException(toString(index));
 
-			ch = getCharResolved();
+			ch = b? getCharResolved():getChar();
 		}
 
 		double v = (double) left;
@@ -2131,23 +2134,24 @@ public class VTDNav {
 		if (radix < 2 || radix > 36)
 			throw new NumberFormatException(
 				"radix " + radix + " out of valid range");
-
+		int t = getTokenType(index);
+		boolean b = (t==VTDNav.TOKEN_CHARACTER_DATA )|| (t==VTDNav.TOKEN_ATTR_VAL);
 		currentOffset = getTokenOffset(index);
 		int endOffset = currentOffset + getTokenLength(index);
 
-		int c = getCharResolved();
+		int c = b? getCharResolved():getChar();
 
 		// trim leading whitespaces
 		while ((c == ' ' || c == '\n' || c == '\t' || c == '\r')
 			&& (currentOffset <= endOffset))
-			c = getCharResolved();
+			c = b? getCharResolved():getChar();
 
 		if (currentOffset > endOffset) // all whitespace
 			throw new NumberFormatException(" empty string");
 
 		boolean neg = (c == '-');
 		if (neg || c == '+')
-			c = getCharResolved(); //skip sign
+			c = b? getCharResolved():getChar(); //skip sign
 
 		long result = 0;
 		long pos = 1;
@@ -2160,7 +2164,7 @@ public class VTDNav {
 			result = result * radix + digit;
 			//pos *= radix;
 
-			c = getCharResolved();
+			c = b? getCharResolved():getChar();
 		}
 
 		if (result > Integer.MAX_VALUE)
@@ -2168,7 +2172,7 @@ public class VTDNav {
 
 		// take care of the trailing
 		while (currentOffset <= endOffset && isWS(c)) {
-			c = getCharResolved();
+			c = b? getCharResolved():getChar();
 		}
 		if (currentOffset == (endOffset + 1))
 			return (int) ((neg) ? (-result) : result);
@@ -2206,23 +2210,26 @@ public class VTDNav {
 		if (radix < 2 || radix > 36)
 			throw new NumberFormatException(
 				"radix " + radix + " out of valid range");
-
+		
+		int t = getTokenType(index);
+		boolean b = (t==VTDNav.TOKEN_CHARACTER_DATA )|| (t==VTDNav.TOKEN_ATTR_VAL);
+		
 		currentOffset = getTokenOffset(index);
 		int endOffset = currentOffset + getTokenLength(index);
 
-		int c = getCharResolved();
+		int c = b? getCharResolved():getChar();
 
 		// trim leading whitespaces
 		while ((c == ' ' || c == '\n' || c == '\t' || c == '\r')
 			&& (currentOffset <= endOffset))
-			c = getCharResolved();
+			c = b? getCharResolved():getChar();
 
 		if (currentOffset > endOffset) // all whitespace
 			throw new NumberFormatException(" empty string");
 
 		boolean neg = (c == '-');
 		if (neg || c == '+')
-			c = getCharResolved(); //skip sign
+			c = b? getCharResolved():getChar(); //skip sign
 
 		long result = 0;
 		long pos = 1;
@@ -2235,7 +2242,7 @@ public class VTDNav {
 			result = result * radix + digit;
 			//pos *= radix;
 
-			c = getCharResolved();
+			c = b? getCharResolved():getChar();
 		}
 
 		if (result > Long.MAX_VALUE)
@@ -2243,7 +2250,7 @@ public class VTDNav {
 
 		// take care of the trailing
 		while (currentOffset <= endOffset && isWS(c)) {
-			c = getCharResolved();
+			c = b? getCharResolved():getChar();
 		}
 		if (currentOffset == (endOffset + 1))
 			return (long) ((neg) ? (-result) : result);
