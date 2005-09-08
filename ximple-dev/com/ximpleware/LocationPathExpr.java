@@ -1252,6 +1252,16 @@ public class LocationPathExpr extends Expr{
 		switch ( state) {
 		case  START:
 			if (currentStep.nt.testType != NodeTest.TEXT){
+			    // if this step contains any predicate that
+			    // require context size
+			    // needs to precompute the context size
+			    // vn.push2();
+			    // computerContext();
+			    // set contxt();
+			    // vn.pop2()
+			    // if the context size is zero
+			    // get immediately set teh state to end
+			    // or backward
 				 b = vn.toElement(VTDNav.FIRST_CHILD);
 				 state =  END;
 				 if (b == true){
@@ -1265,8 +1275,9 @@ public class LocationPathExpr extends Expr{
 						else {
 							 state =  TERMINAL;
 							result = vn.getCurrentIndex();
-							if ( isUnique(result))
+							if ( isUnique(result)){
 								return result;
+							}
 						}
 					break;
 					}
@@ -1284,6 +1295,7 @@ public class LocationPathExpr extends Expr{
 					if (result != -1){
 						vn.setAtTerminal(true);
 						if (currentStep.getNextStep() != null){
+						    vn.LN = result;
 							state =  FORWARD;
 							currentStep = currentStep.getNextStep();
 						} else {
@@ -1291,6 +1303,7 @@ public class LocationPathExpr extends Expr{
 							//result = vn.getText();
 							if ( isUnique(result)){
 								//vn.setAtTerminal(true);
+							    vn.LN = result;
 								return result;
 							}
 						}					
@@ -1308,6 +1321,16 @@ public class LocationPathExpr extends Expr{
 
 		case  FORWARD:
 			if (currentStep.nt.testType != NodeTest.TEXT) {
+			    // if this step contains any predicate that
+			    // require context size
+			    // needs to precompute the context size
+			    // vn.push2();
+			    // computerContext();
+			    // set contxt();
+			    // vn.pop2()
+			    // if the context size is zero
+			    // get immediately set teh state to end
+			    // or backward
 				//currentStep = currentStep.getNextStep();
 				 state =  BACKWARD;
 				forward: if (vn.toElement(VTDNav.FC)) {
@@ -1341,12 +1364,14 @@ public class LocationPathExpr extends Expr{
 					if (result != -1){
 						vn.setAtTerminal(true);
 						if (currentStep.getNextStep() != null){
+						    vn.LN = result;
 							state =  FORWARD;
 							currentStep = currentStep.getNextStep();
 						} else {
 							state =  TERMINAL;
 							//result = vn.getText();
 							if (isUnique(result)){
+							    vn.LN = result;
 								return result;
 							}
 						}					
@@ -1443,6 +1468,16 @@ public class LocationPathExpr extends Expr{
 		case  START:
 		case  FORWARD:
 			// currentStep.o;
+		    // if this step contains any predicate that
+		    // require context size
+		    // needs to precompute the context size
+		    // vn.push2();
+		    // computerContext();
+		    // set contxt();
+		    // vn.pop2()
+		    // if the context size is zero
+		    // get immediately set teh state to end
+		    // or backward
 			String helper = null;
 			if (currentStep.nt.testType == NodeTest.NODE){
 				helper = "*";
@@ -1596,6 +1631,17 @@ public class LocationPathExpr extends Expr{
 			//if (vn.matchElement("b")){
 			//	System.out.println(" b encountered ==> "+ vn.getCurrentDepth());
 			//}
+		    
+		    // if this step contains any predicate that
+		    // require context size
+		    // needs to precompute the context size
+		    // vn.push2();
+		    // computerContext();
+		    // set contxt();
+		    // vn.pop2()
+		    // if the context size is zero
+		    // get immediately set teh state to end
+		    // or backward
 			if (vn.getCurrentDepth() == -1) {
 				if ( state ==  START)
 					 state =  END;
@@ -1663,7 +1709,16 @@ public class LocationPathExpr extends Expr{
 	    boolean b = false;
 		switch ( state) {
 		case  START:
-			    
+		    // if this step contains any predicate that
+		    // require context size
+		    // needs to precompute the context size
+		    // vn.push2();
+		    // computerContext();
+		    // set contxt();
+		    // vn.pop2()
+		    // if the context size is zero
+		    // get immediately set teh state to end
+		    // or backward    
 		    state =  END;
 		   if (vn.getCurrentDepth()!=-1){
 		   		vn.push2();
@@ -1692,6 +1747,16 @@ public class LocationPathExpr extends Expr{
 		   break;
 		  	
 		case  FORWARD:
+		    // if this step contains any predicate that
+		    // require context size
+		    // needs to precompute the context size
+		    // vn.push2();
+		    // computerContext();
+		    // set contxt();
+		    // vn.pop2()
+		    // if the context size is zero
+		    // get immediately set teh state to end
+		    // or backward
 		    state =  BACKWARD;
 		   	vn.push2();
 				
@@ -1790,7 +1855,16 @@ public class LocationPathExpr extends Expr{
 	    int result;
 		switch ( state) {
 		case  START:
-			
+		    // if this step contains any predicate that
+		    // require context size
+		    // needs to precompute the context size
+		    // vn.push2();
+		    // computerContext();
+		    // set contxt();
+		    // vn.pop2()
+		    // if the context size is zero
+		    // get immediately set teh state to end
+		    // or backward
 			 state =  END;
 			vn.push2();
 			
@@ -1835,6 +1909,16 @@ public class LocationPathExpr extends Expr{
 			break;
 			
 		case  FORWARD:
+		    // if this step contains any predicate that
+		    // require context size
+		    // needs to precompute the context size
+		    // vn.push2();
+		    // computerContext();
+		    // set contxt();
+		    // vn.pop2()
+		    // if the context size is zero
+		    // get immediately set teh state to end
+		    // or backward
 			 state =  BACKWARD;
 			vn.push2();
 			if (currentStep.get_ft() == true) {
@@ -1949,7 +2033,19 @@ public class LocationPathExpr extends Expr{
 	    int result;
 		switch( state){
 		  case  START:
-		  case  FORWARD:	
+		  case  FORWARD:
+		      
+			    // if this step contains any predicate that
+			    // require context size
+			    // needs to precompute the context size
+			    // vn.push2();
+			    // computerContext();
+			    // set contxt();
+			    // vn.pop2()
+			    // if the context size is zero
+			    // get immediately set teh state to end
+			    // or backward
+		      
 		  	if (currentStep.eval(vn)){
 		  		if (currentStep.getNextStep()!=null){
 		  			 state =  FORWARD;
@@ -1957,7 +2053,10 @@ public class LocationPathExpr extends Expr{
 		  		}
 		  		else{
 		  			 state =  TERMINAL;
-		  			result = vn.getCurrentIndex();
+		  			 if (vn.atTerminal == true)
+		  			     result = vn.LN;
+		  			 else 
+		  			     result = vn.getCurrentIndex();
 					if ( isUnique(result))
 						return result;
 		  		}
@@ -2094,6 +2193,18 @@ public class LocationPathExpr extends Expr{
 	    switch(state){
 		  case  START:
 		  case  FORWARD:
+		      
+			    // if this step contains any predicate that
+			    // require context size
+			    // needs to precompute the context size
+			    // vn.push2();
+			    // computerContext();
+			    // set contxt();
+			    // vn.pop2()
+			    // if the context size is zero
+			    // get immediately set teh state to end
+			    // or backward
+		      
 		  	if ( state ==  START)
 		  		 state =  END;
 		  	else
@@ -2190,6 +2301,16 @@ public class LocationPathExpr extends Expr{
 		switch( state){
 		case  START:
 		case  FORWARD:
+		    // if this step contains any predicate that
+		    // require context size
+		    // needs to precompute the context size
+		    // vn.push2();
+		    // computerContext();
+		    // set contxt();
+		    // vn.pop2()
+		    // if the context size is zero
+		    // get immediately set teh state to end
+		    // or backward
 			if (vn.getAtTerminal()==true){
 				if (state ==START)
 					state = END;
@@ -2223,14 +2344,17 @@ public class LocationPathExpr extends Expr{
 			}else {
 				
 				if (currentStep.getNextStep() != null){
-					 state =  FORWARD;
+				    vn.LN = temp;
+   				    state =  FORWARD;
 					currentStep = currentStep.getNextStep();
 				}
 				else {
 					//vn.pop();
 					 state =  TERMINAL;
-					if ( isUnique(temp))
+					if ( isUnique(temp)){
+					    vn.LN = temp;
 						return temp;
+					}
 				}
 			
 			}
@@ -2265,8 +2389,10 @@ public class LocationPathExpr extends Expr{
 					currentStep = currentStep.getNextStep();
 				} else {
 					state =  TERMINAL;
-					if ( isUnique(temp))
+					if ( isUnique(temp)){
+					    vn.LN = temp;
 						return temp;
+					}
 				}
 			}
 			break;
@@ -2279,8 +2405,10 @@ public class LocationPathExpr extends Expr{
 				}							
 			}
 			if (temp != -1) 
-				if (isUnique(temp))
+				if (isUnique(temp)){
+				    vn.LN = temp;
 					return temp;
+				}
 			vn.setAtTerminal(false);
 			currentStep.resetP(vn);
 			if (currentStep.getPrevStep() == null) {
@@ -2346,6 +2474,10 @@ public class LocationPathExpr extends Expr{
 			    if ((result = process_ancestor_or_self(vn))!= -2)
 			        return result;
 			    break;
+			case AxisType.SELF:
+			    if ((result = process_self(vn))!= -2)
+			        return result;
+			    break;
 			case AxisType.FOLLOWING_SIBLING:
 			    if ((result = process_following_sibling(vn))!= -2)
 			        return result;
@@ -2364,5 +2496,18 @@ public class LocationPathExpr extends Expr{
 		}
         
     }
+    
+	public boolean isString(){
+	    return false;
+	}
+	
+	public boolean isBoolean(){
+	    return false;
+	}
+	
+	// to support computer context size 
+	// needs to add 
+	// public boolean needContextSize();
+	// public boolean SetContextSize(int contextSize);
 }
 
