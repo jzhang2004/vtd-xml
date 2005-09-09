@@ -20,7 +20,6 @@ package com.ximpleware.xpath;
 
 import java_cup.runtime.*;
 import com.ximpleware.*;
-import com.ximpleware.xpath.*;
 import java.util.*;
 
 /** CUP v0.10k generated parser.
