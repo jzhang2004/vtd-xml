@@ -364,16 +364,7 @@ public int upper32At(int index) {
 
 }
 
-/**
- * reset the size of long buffer, capacity
- * is untouched so long buffer can be reused
- * without any unnecesary and additional allocation
- * @param i
- */
- public void setSize(int i){
- 	size = i; 	
- }
- 
+
  /**
   * set teh size of long buffer to zero, capacity
   * untouched so long buffer can be reused without
