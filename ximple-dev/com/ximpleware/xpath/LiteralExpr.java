@@ -81,6 +81,14 @@ public class LiteralExpr extends Expr {
 	}
 	// to support computer context size 
 	// needs to add 
-	// public boolean needContextSize();
-	// public boolean SetContextSize(int contextSize);
+	public boolean requireContextSize(){
+	    return false;
+	}
+	
+	public void setContextSize(int size){	    
+	}
+	
+	public void setPosition(int pos){
+	    
+	}
 }
