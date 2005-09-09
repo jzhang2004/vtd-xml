@@ -57,6 +57,7 @@ public class PathExpr extends Expr {
 		double d;
 		int a = -1;
 		vn.push2();
+		int size = vn.contextStack2.size;
 	        try {
 		  a =evalNodeSet(vn);
 		  if (a!=-1){
@@ -69,6 +70,7 @@ public class PathExpr extends Expr {
 		} catch (Exception e){
 			
 		}
+		vn.contextStack2.size = size;
 		reset(vn);
 		vn.pop2();
 		try{
@@ -134,6 +136,7 @@ public class PathExpr extends Expr {
 
 	public String evalString(VTDNav vn) {
 		vn.push2();
+		int size = vn.contextStack2.size;
 		int a = -1;
 		try {
 			a = evalNodeSet(vn);
@@ -147,6 +150,7 @@ public class PathExpr extends Expr {
 			}
 		} catch (Exception e) {
 		}
+		vn.contextStack2.size = size;
 		reset(vn);
 		vn.pop2();
 		try {
@@ -191,5 +195,25 @@ public class PathExpr extends Expr {
 	public boolean isNodeSet() {
 		return false;
 	}
-
+	
+	public boolean isString(){
+	    return false;
+	}
+	
+	public boolean isBoolean(){
+	    return false;
+	}
+	
+	// to support computer context size 
+	// needs to add 
+	public boolean requireContextSize(){
+	    return false;
+	}
+	
+	public void setContextSize(int size){	    
+	}
+	
+	public void setPosition(int pos){
+	    
+	}
 }
