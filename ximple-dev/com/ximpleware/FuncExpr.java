@@ -29,7 +29,9 @@ public class FuncExpr extends Expr{
 	boolean isNumerical;
 	boolean isBoolean;
 	boolean isString;
+	int contextSize;
 	double d;
+	int position = 0;
 	int a;
 	int argCount(){
 		Alist temp = argumentList;
@@ -117,9 +119,14 @@ public class FuncExpr extends Expr{
 	}	
 	public double evalNumber(VTDNav vn) throws UnsupportedException{
 	  switch(opCode){
-			case FuncName.LAST:  throw new UnsupportedException
-									("Some functions are not supported"); 			
-			case FuncName.POSITION: return a++;
+			case FuncName.LAST:  if (argCount()!=0 )
+									throw new IllegalArgumentException
+									("floor()'s argument count is invalid");
+								 return contextSize;			
+			case FuncName.POSITION:   if (argCount()!=0 )
+									throw new IllegalArgumentException
+									("floor()'s argument count is invalid");
+								 return position;
 			case FuncName.COUNT: 	return count(vn);
 			case FuncName.NUMBER:   if (argCount()!=1)
 										throw new IllegalArgumentException
@@ -173,6 +180,7 @@ public class FuncExpr extends Expr{
 	
 	public void reset(VTDNav vn){
 	    a = 0;
+	    //contextSize = 0;
 		if (argumentList!=null)
 			argumentList.reset(vn);
 	}
@@ -287,6 +295,48 @@ public class FuncExpr extends Expr{
 	}
 	// to support computer context size 
 	// needs to add 
-	// public boolean needContextSize();
-	// public boolean SetContextSize(int contextSize);
+	
+	public boolean requireContextSize(){
+	    if (opCode == FuncName.LAST)
+	        return true;
+	    else {
+	        Alist temp = argumentList;
+	        boolean b = false;
+	        while(temp!=null){
+	            if (temp.e.requireContextSize()){
+	                return true;
+	            }
+	            temp = temp.next;
+	        }
+	    }
+	    return false;
+	}
+	
+	public void setContextSize(int size){	
+	    if (opCode == FuncName.LAST){
+	        contextSize = size;
+	        //System.out.println("contextSize: "+size);
+	    } else {
+	        Alist temp = argumentList;
+	        boolean b = false;
+	        while(temp!=null){
+	            temp.e.setContextSize(size);
+	            temp = temp.next;
+	        }
+	    }
+	}
+	
+	public void setPosition(int pos){
+	    if (opCode == FuncName.POSITION){
+	        position = pos;
+	        //System.out.println("PO: "+size);
+	    } else {
+	        Alist temp = argumentList;
+	        boolean b = false;
+	        while(temp!=null){
+	            temp.e.setPosition(pos);
+	            temp = temp.next;
+	        }
+	    }
+	}
 }
