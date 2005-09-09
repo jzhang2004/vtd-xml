@@ -479,7 +479,7 @@ self{ws}*::		{	isName = 1;
 {nc2}{nc}*:"*"  	{	isName = 0;
 				len = yytext().length();
 				name = new NameType();
-				name.prefix = yytext().substring(1,len-1);
+				name.prefix = yytext().substring(0,len-2);
 				name.localname = "*";
 				//System.out.println("NAME "+name+ " returned");
 				return sym(NAME,name);
