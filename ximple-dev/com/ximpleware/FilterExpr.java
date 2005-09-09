@@ -1,8 +1,19 @@
-/*
- * Created on Aug 27, 2005
+/* 
+ * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
  *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
 
@@ -80,6 +91,24 @@ public class FilterExpr extends Expr {
 
 	public int evalNodeSet(VTDNav vn) 
 	throws XPathEvalException, NavException {
+	    // if tne predicate require context size
+	    // needs to precompute the context size
+	    // vn.push2();
+	    // computerContext();
+	    // set contxt();
+	    // vn.pop2()
+	    // if the context size is zero
+	    // get immediately set teh state to end
+	    // or backward
+	    if (p.requireContextSize()){	        
+	        int i = 0;
+	        vn.push2();
+	        while(e.evalNodeSet(vn)!=-1)
+	            i++;
+	        vn.pop2();
+	        p.setContextSize(i);
+	        reset(vn);
+	    }
 		int a = e.evalNodeSet(vn);
 		while (a!=-1){
 			if (p.eval(vn)==true){
@@ -89,50 +118,49 @@ public class FilterExpr extends Expr {
 			}else {
 				//p.reset();
 				a = e.evalNodeSet(vn);
-			}
-			
+			}			
 		}
 		return -1;		
 	}
 
 	public String evalString(VTDNav vn) {
 		vn.push2();
-		int size = vn.contextStack2.size;
-        int a = -1;	
-	try {
-	  a =evalNodeSet(vn);
-	  if (a!=-1){
-	  if (vn.getTokenType(a)== VTDNav.TOKEN_ATTR_NAME){
-		  a ++;
-	  }
-	  if (vn.getTokenType(a)== VTDNav.TOKEN_STARTING_TAG) {
-		  a = vn.getText();
-	  }
-	  }
-	  
-	} catch (Exception e){
-	}
-	vn.contextStack2.size = size;
-	reset(vn);
-	vn.pop2();
-	try{
-		if (a!=-1) return vn.toString(a);
-	}catch (NavException e){
-	}
-    return null;
+        int size = vn.contextStack2.size;
+        int a = -1;
+        try {
+            a = evalNodeSet(vn);
+            if (a != -1) {
+                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
+                    a++;
+                }
+                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
+                    a = vn.getText();
+                }
+            }
+        } catch (Exception e) {
+        }
+        vn.contextStack2.size = size;
+        reset(vn);
+        vn.pop2();
+        try {
+            if (a != -1)
+                return vn.toString(a);
+        } catch (NavException e) {
+        }
+        return null;
 	}
 
 	public void reset(VTDNav vn) {
 		e.reset(vn);
 		p.reset(vn);
 		fib.clear();
-		vn.contextStack2.size = stackSize; 
+		//vn.contextStack2.size = stackSize; 
 		//position = 1;
 	}
 
 
 	public String toString() {
-		// TODO Auto-generated method stub
+		
 		return "("+e+") "+p;
 	}
 
@@ -155,5 +183,23 @@ public class FilterExpr extends Expr {
 		fib.append(i);
 		return true;
 	}
-
+	
+	public boolean isString(){
+	    return false;
+	}
+	
+	public boolean isBoolean(){
+	    return false;
+	}
+	// to support computer context size 
+	// needs to add 
+	public boolean requireContextSize(){
+	    return false;
+	}
+	
+	public void setContextSize(int size){	    
+	}
+	public void setPosition(int pos){
+	    
+	}
 }
