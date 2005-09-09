@@ -41,6 +41,10 @@ abstract public class Expr {
 	abstract public boolean isString();
 	abstract public boolean isBoolean();
 	
+	abstract public boolean requireContextSize();
+	abstract public void setContextSize(int size);
+	
+	abstract public void setPosition(int pos);
 	// to support computer context size 
 	// needs to add 
 	//abstract public boolean needContextSize();
