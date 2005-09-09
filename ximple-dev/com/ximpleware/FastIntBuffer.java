@@ -335,18 +335,10 @@ public int[] toIntArray() {
     }
     return null;
 }
-/**
- * reset the size of int buffer, capacity
- * is untouched so int buffer can be reused
- * without any unnecesary and additional allocation
- * @param i
- */
- public void setSize(int i){
- 	size = i; 	
- }
+
  
  /**
-  * set teh size of int buffer to zero, capacity
+  * set the size of int buffer to zero, capacity
   * untouched so int buffer can be reused without
   * any unnecessary and additional allocation
   *
