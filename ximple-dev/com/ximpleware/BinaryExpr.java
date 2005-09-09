@@ -49,6 +49,12 @@ public class BinaryExpr extends Expr {
 	protected Expr right;
 	
 	protected FastIntBuffer fib1, fib2;
+	/**
+	 * constructor
+	 * @param l
+	 * @param o
+	 * @param r
+	 */
 	public BinaryExpr ( Expr l, int o, Expr r) {
 		op = o;
 		left = l;
@@ -104,378 +110,7 @@ public class BinaryExpr extends Expr {
 			case OR: return left.evalBoolean(vn) || right.evalBoolean(vn);
 			case AND:return left.evalBoolean(vn) && right.evalBoolean(vn);
 			case EQ:
-			case NE:  
-			   
-				  if (left.isNodeSet() && right.isNodeSet()) {
-                try {
-                    if (fib1 == null)
-                        fib1 = new FastIntBuffer(BUF_SZ_EXP);
-                    if (fib2 == null)
-                        fib2 = new FastIntBuffer(BUF_SZ_EXP);
-                    vn.push2();
-                    while ((i = left.evalNodeSet(vn)) != -1) {
-                        t = vn.getTokenType(i);
-                        if (t == VTDNav.TOKEN_STARTING_TAG)
-                            i1 = vn.getText();
-                            if (i1!=-1)
-                            fib1.append(i1);
-                        else if (t == VTDNav.TOKEN_ATTR_NAME
-                                || t == VTDNav.TOKEN_ATTR_NS)
-                        	fib1.append(i+1);
-                        else if (t == VTDNav.TOKEN_CHARACTER_DATA
-                                || t == VTDNav.TOKEN_CDATA_VAL)
-                            fib1.append(i);
-                    }
-                    vn.pop2();
-                    vn.push2();
-                    while ((i = right.evalNodeSet(vn)) != -1) {
-                        t = vn.getTokenType(i);
-                        if (t == VTDNav.TOKEN_STARTING_TAG)
-                            fib2.append(vn.getText());
-                        else if (t == VTDNav.TOKEN_ATTR_NAME
-                                || t == VTDNav.TOKEN_ATTR_NS)
-                        	fib2.append(i+1);
-                        else if (t == VTDNav.TOKEN_CHARACTER_DATA
-                                || t == VTDNav.TOKEN_CDATA_VAL)
-                            fib2.append(i);
-                    }
-                    vn.pop2();
-                    s1 = fib1.size();
-                    s2 = fib2.size();
-
-                    // start a while loop comparison
-                    for (int j = 0; j < s1; j++) {
-                        for (int k = 0; k < s2; k++) {
-                            if (vn.matchTokens(fib1.intAt(j), vn, fib2.intAt(k))) {
-                                fib1.clear();
-                                fib2.clear();
-                                if (op == EQ)
-                                    return true;
-                                else 
-                                    return false;
-                            }
-                        }
-                    }
-                    fib1.clear();
-                    fib2.clear();
-                    if (op == EQ)
-                        return false;
-                    else
-                        return true;
-
-                } catch (Exception e) {
-                    fib1.clear();
-                    fib2.clear();
-                    throw new RuntimeException("Undefined behavior");
-                }
-            } else {
-                try {
-                    if (left.isNumerical() && right.isNodeSet()) {
-                        vn.push2();
-                        stackSize = vn.contextStack2.size;
-                        while ((i = right.evalNodeSet(vn)) != -1) {
-                            t = vn.getTokenType(i);
-                            if (t == VTDNav.TOKEN_STARTING_TAG){
-                                i1 = vn.getText();
-                                if (i1 == -1)
-                                    break;
-                                if (vn.parseDouble(i1) == left.evalNumber(vn)){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                            else if (t == VTDNav.TOKEN_ATTR_NAME
-                                    || t == VTDNav.TOKEN_ATTR_NS) {
-                                if (vn.parseDouble(i+1) == left.evalNumber(vn)){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                            else if (t == VTDNav.TOKEN_CHARACTER_DATA
-                                    || t == VTDNav.TOKEN_CDATA_VAL){
-                                if (vn.parseDouble(i) == left.evalNumber(vn)){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                        }
-                        vn.contextStack2.size = stackSize;
-                        vn.pop2();
-                        left.reset(vn);
-                        right.reset(vn);
-                        if (op == EQ)
-                            return false;
-                        else 
-                            return true;
-                    } else if (left.isNodeSet() && right.isNumerical()) {
-                        vn.push2();
-                        stackSize = vn.contextStack2.size;
-                        while ((i = left.evalNodeSet(vn)) != -1) {
-                            t = vn.getTokenType(i);
-                            if (t == VTDNav.TOKEN_STARTING_TAG){
-                                i1 = vn.getText();
-                                if (i1 == -1)
-                                    break;
-                                if (vn.parseDouble(i1) == right.evalNumber(vn)){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                            else if (t == VTDNav.TOKEN_ATTR_NAME
-                                    || t == VTDNav.TOKEN_ATTR_NS) {
-                                if (vn.parseDouble(i+1) == right.evalNumber(vn)){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                            else if (t == VTDNav.TOKEN_CHARACTER_DATA
-                                    || t == VTDNav.TOKEN_CDATA_VAL){
-                                if (vn.parseDouble(i) == right.evalNumber(vn)){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                        }
-                        vn.contextStack2.size = stackSize;
-                        vn.pop2();
-                        left.reset(vn);
-                        right.reset(vn);
-                        if (op == EQ)
-                            return false;
-                        else 
-                            return true;
-                    }
- 
-                } catch (Exception e) {
-                    //fib1.clear();
-                    //fib2.clear();
-                    throw new RuntimeException("Undefined behavior");
-                }
-                
-                try {
-                    if (left.isString() && right.isNodeSet()) {
-                        vn.push2();
-                        stackSize = vn.contextStack2.size;
-                        while ((i = right.evalNodeSet(vn)) != -1) {
-                            t = vn.getTokenType(i);
-                            if (t == VTDNav.TOKEN_STARTING_TAG){
-                                i1 = vn.getText();
-                                if (i1==-1)
-                                    break;
-                                t = vn.getTokenType(i1);
-                                if (i1 == VTDNav.TOKEN_CHARACTER_DATA){
-                                    if (vn.matchTokenString(i1,left.evalString(vn))){
-                                        vn.contextStack2.size = stackSize;
-                                        vn.pop2();
-                                        left.reset(vn);
-                                        right.reset(vn);
-                                        if (op == EQ)
-                                            return true;
-                                        else 
-                                            return false;
-                                    }
-                                }else {
-                                    if (vn.matchRawTokenString(i1, left.evalString(vn))){
-                                        vn.contextStack2.size = stackSize;
-                                        vn.pop2();
-                                        left.reset(vn);
-                                        right.reset(vn);
-                                        if (op == EQ)
-                                            return true;
-                                        else 
-                                            return false;
-                                    }
-                                }
-                            }
-                            else if (t == VTDNav.TOKEN_ATTR_NAME
-                                    || t == VTDNav.TOKEN_ATTR_NS) {
-                                if (vn.matchTokenString(i+1,left.evalString(vn))){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                            else if ( t == VTDNav.TOKEN_CHARACTER_DATA
-                                    || t == VTDNav.TOKEN_CDATA_VAL){
-                                if (vn.matchTokenString(i,left.evalString(vn))){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }else if ( t == VTDNav.TOKEN_CDATA_VAL){
-                                if (vn.matchRawTokenString(i,left.evalString(vn))){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                        }
-                        vn.contextStack2.size = stackSize;
-                        vn.pop2();
-                        left.reset(vn);
-                        right.reset(vn);
-                        if (op == EQ)
-                            return false;
-                        else 
-                            return true;
-                    } else if (left.isNodeSet() && right.isString()) {
-                        vn.push2();
-                        stackSize = vn.contextStack2.size;
-                        while ((i = left.evalNodeSet(vn)) != -1) {
-                            t = vn.getTokenType(i);
-                            if (t == VTDNav.TOKEN_STARTING_TAG){
-                                i1 = vn.getText();
-                                if (i1==-1)
-                                    break;
-                                t = vn.getTokenType(i1);
-                                if (i1 == VTDNav.TOKEN_CHARACTER_DATA){
-                                    if (vn.matchTokenString(i1,right.evalString(vn))){
-                                        vn.contextStack2.size = stackSize;
-                                        vn.pop2();
-                                        left.reset(vn);
-                                        right.reset(vn);
-                                        if (op == EQ)
-                                            return true;
-                                        else 
-                                            return false;
-                                    }
-                                }else {
-                                    if (vn.matchRawTokenString(i1, right.evalString(vn))){
-                                        vn.contextStack2.size = stackSize;
-                                        vn.pop2();
-                                        left.reset(vn);
-                                        right.reset(vn);
-                                        if (op == EQ)
-                                            return true;
-                                        else 
-                                            return false;
-                                    }
-                                }
-                            }
-                            else if (t == VTDNav.TOKEN_ATTR_NAME
-                                    || t == VTDNav.TOKEN_ATTR_NS) {
-                                if (vn.matchTokenString(i+1,right.evalString(vn))){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                            else if ( t == VTDNav.TOKEN_CHARACTER_DATA
-                                    || t == VTDNav.TOKEN_CDATA_VAL){
-                                if (vn.matchTokenString(i,right.evalString(vn))){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }else if ( t == VTDNav.TOKEN_CDATA_VAL){
-                                if (vn.matchRawTokenString(i,right.evalString(vn))){
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else 
-                                        return false;
-                                }
-                            }
-                        }
-                        vn.contextStack2.size = stackSize;
-                        vn.pop2();
-                        left.reset(vn);
-                        right.reset(vn);
-                        if (op == EQ)
-                            return false;
-                        else 
-                            return true;
-                    }
-
-                } catch (Exception e) {
-                    //fib1.clear();
-                    //fib2.clear();
-                    throw new RuntimeException("Undefined behavior");
-                }
-           
-            }
-				  if (left.isBoolean() || right.isBoolean()){
-				      if (op == EQ)
-				          return left.evalBoolean(vn) == right.evalBoolean(vn);
-				      else
-				          return left.evalBoolean(vn) != right.evalBoolean(vn);
-				  }
-				  
-				  if (left.isNumerical() || right.isNumerical()){
-				      if (op == EQ)
-				          return left.evalNumber(vn) == right.evalNumber(vn);
-				      else
-				          return left.evalNumber(vn) != right.evalNumber(vn);
-				  }
-				  if (op == EQ)
-				      return left.evalString(vn).compareTo(right.evalString(vn))==0;
-            	  return 
-            	  	left.evalString(vn).compareTo(right.evalString(vn))!=0;
-			
+			case NE: return computeEQNE(op,vn);			
 			case LE: return left.evalNumber(vn) <= right.evalNumber(vn);
 			case GE: return left.evalNumber(vn) >= right.evalNumber(vn);
 			case LT: return left.evalNumber(vn) < right.evalNumber(vn);
@@ -505,8 +140,8 @@ public class BinaryExpr extends Expr {
 		throw new XPathEvalException("LiteralExpr can't eval to a node set!");
 	}
 	
-        public String evalString(VTDNav vn){
-		return "this";
+    public String evalString(VTDNav vn){
+		return "";
 	}
 
 	public void reset(VTDNav vn){left.reset(vn); right.reset(vn);};
@@ -530,4 +165,390 @@ public class BinaryExpr extends Expr {
 	// needs to add 
 	// public boolean needContextSize();
 	// public boolean SetContextSize(int contextSize);
+	
+	private boolean computeEQNE(int op, VTDNav vn){
+		   int i,t,i1 = 0,stackSize, s1,s2;
+		  if (left.isNodeSet() && right.isNodeSet()) {
+      try {
+          if (fib1 == null)
+              fib1 = new FastIntBuffer(BUF_SZ_EXP);
+          if (fib2 == null)
+              fib2 = new FastIntBuffer(BUF_SZ_EXP);
+          vn.push2();
+          while ((i = left.evalNodeSet(vn)) != -1) {
+              t = vn.getTokenType(i);
+              if (t == VTDNav.TOKEN_STARTING_TAG)
+                  i1 = vn.getText();
+                  if (i1!=-1)
+                  fib1.append(i1);
+              else if (t == VTDNav.TOKEN_ATTR_NAME
+                      || t == VTDNav.TOKEN_ATTR_NS)
+              	fib1.append(i+1);
+              else if (t == VTDNav.TOKEN_CHARACTER_DATA
+                      || t == VTDNav.TOKEN_CDATA_VAL)
+                  fib1.append(i);
+          }
+          vn.pop2();
+          vn.push2();
+          while ((i = right.evalNodeSet(vn)) != -1) {
+              t = vn.getTokenType(i);
+              if (t == VTDNav.TOKEN_STARTING_TAG)
+                  fib2.append(vn.getText());
+              else if (t == VTDNav.TOKEN_ATTR_NAME
+                      || t == VTDNav.TOKEN_ATTR_NS)
+              	fib2.append(i+1);
+              else if (t == VTDNav.TOKEN_CHARACTER_DATA
+                      || t == VTDNav.TOKEN_CDATA_VAL)
+                  fib2.append(i);
+          }
+          vn.pop2();
+          s1 = fib1.size();
+          s2 = fib2.size();
+
+          // start a while loop comparison
+          for (int j = 0; j < s1; j++) {
+              for (int k = 0; k < s2; k++) {
+                  if (vn.matchTokens(fib1.intAt(j), vn, fib2.intAt(k))) {
+                      fib1.clear();
+                      fib2.clear();
+                      if (op == EQ)
+                          return true;
+                      else 
+                          return false;
+                  }
+              }
+          }
+          fib1.clear();
+          fib2.clear();
+          if (op == EQ)
+              return false;
+          else
+              return true;
+
+      } catch (Exception e) {
+          fib1.clear();
+          fib2.clear();
+          throw new RuntimeException("Undefined behavior");
+      }
+  } else {
+      try {
+          if (left.isNumerical() && right.isNodeSet()) {
+              vn.push2();
+              stackSize = vn.contextStack2.size;
+              while ((i = right.evalNodeSet(vn)) != -1) {
+                  t = vn.getTokenType(i);
+                  if (t == VTDNav.TOKEN_STARTING_TAG){
+                      i1 = vn.getText();
+                      if (i1 == -1)
+                          break;
+                      if (vn.parseDouble(i1) == left.evalNumber(vn)){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+                  else if (t == VTDNav.TOKEN_ATTR_NAME
+                          || t == VTDNav.TOKEN_ATTR_NS) {
+                      if (vn.parseDouble(i+1) == left.evalNumber(vn)){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+                  else if (t == VTDNav.TOKEN_CHARACTER_DATA
+                          || t == VTDNav.TOKEN_CDATA_VAL){
+                      if (vn.parseDouble(i) == left.evalNumber(vn)){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+              }
+              vn.contextStack2.size = stackSize;
+              vn.pop2();
+              left.reset(vn);
+              right.reset(vn);
+              if (op == EQ)
+                  return false;
+              else 
+                  return true;
+          } else if (left.isNodeSet() && right.isNumerical()) {
+              vn.push2();
+              stackSize = vn.contextStack2.size;
+              while ((i = left.evalNodeSet(vn)) != -1) {
+                  t = vn.getTokenType(i);
+                  if (t == VTDNav.TOKEN_STARTING_TAG){
+                      i1 = vn.getText();
+                      if (i1 == -1)
+                          break;
+                      if (vn.parseDouble(i1) == right.evalNumber(vn)){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+                  else if (t == VTDNav.TOKEN_ATTR_NAME
+                          || t == VTDNav.TOKEN_ATTR_NS) {
+                      if (vn.parseDouble(i+1) == right.evalNumber(vn)){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+                  else if (t == VTDNav.TOKEN_CHARACTER_DATA
+                          || t == VTDNav.TOKEN_CDATA_VAL){
+                      if (vn.parseDouble(i) == right.evalNumber(vn)){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+              }
+              vn.contextStack2.size = stackSize;
+              vn.pop2();
+              left.reset(vn);
+              right.reset(vn);
+              if (op == EQ)
+                  return false;
+              else 
+                  return true;
+          }
+
+      } catch (Exception e) {
+          //fib1.clear();
+          //fib2.clear();
+          throw new RuntimeException("Undefined behavior");
+      }
+      
+      try {
+          if (left.isString() && right.isNodeSet()) {
+              vn.push2();
+              stackSize = vn.contextStack2.size;
+              while ((i = right.evalNodeSet(vn)) != -1) {
+                  t = vn.getTokenType(i);
+                  if (t == VTDNav.TOKEN_STARTING_TAG){
+                      i1 = vn.getText();
+                      if (i1==-1)
+                          break;
+                      t = vn.getTokenType(i1);
+                      if (i1 == VTDNav.TOKEN_CHARACTER_DATA){
+                          if (vn.matchTokenString(i1,left.evalString(vn))){
+                              vn.contextStack2.size = stackSize;
+                              vn.pop2();
+                              left.reset(vn);
+                              right.reset(vn);
+                              if (op == EQ)
+                                  return true;
+                              else 
+                                  return false;
+                          }
+                      }else {
+                          if (vn.matchRawTokenString(i1, left.evalString(vn))){
+                              vn.contextStack2.size = stackSize;
+                              vn.pop2();
+                              left.reset(vn);
+                              right.reset(vn);
+                              if (op == EQ)
+                                  return true;
+                              else 
+                                  return false;
+                          }
+                      }
+                  }
+                  else if (t == VTDNav.TOKEN_ATTR_NAME
+                          || t == VTDNav.TOKEN_ATTR_NS) {
+                      if (vn.matchTokenString(i+1,left.evalString(vn))){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+                  else if ( t == VTDNav.TOKEN_CHARACTER_DATA
+                          || t == VTDNav.TOKEN_CDATA_VAL){
+                      if (vn.matchTokenString(i,left.evalString(vn))){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }else if ( t == VTDNav.TOKEN_CDATA_VAL){
+                      if (vn.matchRawTokenString(i,left.evalString(vn))){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+              }
+              vn.contextStack2.size = stackSize;
+              vn.pop2();
+              left.reset(vn);
+              right.reset(vn);
+              if (op == EQ)
+                  return false;
+              else 
+                  return true;
+          } else if (left.isNodeSet() && right.isString()) {
+              vn.push2();
+              stackSize = vn.contextStack2.size;
+              while ((i = left.evalNodeSet(vn)) != -1) {
+                  t = vn.getTokenType(i);
+                  if (t == VTDNav.TOKEN_STARTING_TAG){
+                      i1 = vn.getText();
+                      if (i1==-1)
+                          break;
+                      t = vn.getTokenType(i1);
+                      if (i1 == VTDNav.TOKEN_CHARACTER_DATA){
+                          if (vn.matchTokenString(i1,right.evalString(vn))){
+                              vn.contextStack2.size = stackSize;
+                              vn.pop2();
+                              left.reset(vn);
+                              right.reset(vn);
+                              if (op == EQ)
+                                  return true;
+                              else 
+                                  return false;
+                          }
+                      }else {
+                          if (vn.matchRawTokenString(i1, right.evalString(vn))){
+                              vn.contextStack2.size = stackSize;
+                              vn.pop2();
+                              left.reset(vn);
+                              right.reset(vn);
+                              if (op == EQ)
+                                  return true;
+                              else 
+                                  return false;
+                          }
+                      }
+                  }
+                  else if (t == VTDNav.TOKEN_ATTR_NAME
+                          || t == VTDNav.TOKEN_ATTR_NS) {
+                      if (vn.matchTokenString(i+1,right.evalString(vn))){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+                  else if ( t == VTDNav.TOKEN_CHARACTER_DATA
+                          || t == VTDNav.TOKEN_CDATA_VAL){
+                      if (vn.matchTokenString(i,right.evalString(vn))){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }else if ( t == VTDNav.TOKEN_CDATA_VAL){
+                      if (vn.matchRawTokenString(i,right.evalString(vn))){
+                          vn.contextStack2.size = stackSize;
+                          vn.pop2();
+                          left.reset(vn);
+                          right.reset(vn);
+                          if (op == EQ)
+                              return true;
+                          else 
+                              return false;
+                      }
+                  }
+              }
+              vn.contextStack2.size = stackSize;
+              vn.pop2();
+              left.reset(vn);
+              right.reset(vn);
+              if (op == EQ)
+                  return false;
+              else 
+                  return true;
+          }
+
+      } catch (Exception e) {
+          //fib1.clear();
+          //fib2.clear();
+          throw new RuntimeException("Undefined behavior");
+      }
+ 
+  }
+		  if (left.isBoolean() || right.isBoolean()){
+		      if (op == EQ)
+		          return left.evalBoolean(vn) == right.evalBoolean(vn);
+		      else
+		          return left.evalBoolean(vn) != right.evalBoolean(vn);
+		  }
+		  
+		  if (left.isNumerical() || right.isNumerical()){
+		      if (op == EQ)
+		          return left.evalNumber(vn) == right.evalNumber(vn);
+		      else
+		          return left.evalNumber(vn) != right.evalNumber(vn);
+		  }
+		  if (op == EQ)
+		      return left.evalString(vn).compareTo(right.evalString(vn))==0;
+  	  return 
+  	  	left.evalString(vn).compareTo(right.evalString(vn))!=0;
+	}
+	
+	public boolean requireContextSize(){
+	    return left.requireContextSize() || right.requireContextSize();
+	}
+	
+	public void setContextSize(int size){
+	    left.setContextSize(size);
+	    right.setContextSize(size);
+	}
+	public void setPosition(int pos){
+	    left.setPosition(pos);
+	    right.setPosition(pos);
+	}
 }
