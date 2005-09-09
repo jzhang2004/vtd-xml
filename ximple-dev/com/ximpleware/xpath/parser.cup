@@ -19,14 +19,18 @@ package com.ximpleware.xpath;
 import java_cup.runtime.*;
 import com.ximpleware.*;
 import com.ximpleware.xpath.*;
+import java.util.*;
 parser code {:  
-
+  public Hashtable ht;
   Step tempStep;
   NodeTest tempNt;
- LocationPathExpr tempLPExpr;
+  LocationPathExpr tempLPExpr;
+  
   public parser (java.io.Reader input) {
     super(new Yylex(input));
+    ht = null;
   }
+  
   public parser (java.io.InputStream input) {
     super(new Yylex(input));
   }
@@ -39,7 +43,7 @@ parser code {:
       System.out.println(((Expr)result));
     }
     catch (Exception e) {
-	System.out.println("caught: "+e);
+		System.out.println("caught: "+e);
     }
   }
  
@@ -271,13 +275,14 @@ RelativeLocationPath ::=  Step:s
 
 Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl 
 		{: RESULT = new Step();
-      		   RESULT.setAxisType(as.i);
-      		   RESULT.setNodeTest(nt);
+      	   RESULT.setAxisType(as.i);
+      	   RESULT.setNodeTest(nt);
 		   RESULT.setPredicate(pl);	
 		   //System.out.println(" Step 3 ");
 		:}
       		|    AbbreviatedStep:as			 
-		{: RESULT = as; System.out.println(" step 4"); :}
+		{: RESULT = as; System.out.println(" step 4"); 
+		:}
 		;
 
 
@@ -287,6 +292,9 @@ nodetest	::=    NAME:n
 		   RESULT.setNodeName(n.qname);
 		   if (n.localname!=null){
 		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
+		   	 if (parser.ht==null || parser.ht.get(n.prefix) ==null)
+		   	    throw new XPathParseException("No URL found for prefix:"+n.prefix);
+		   	 RESULT.URL = (String) parser.ht.get(n.prefix);
 		   }
 		:}
 		|    NTEST:n2				
