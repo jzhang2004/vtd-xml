@@ -27,15 +27,19 @@ public class Predicate implements LocationPathNode{
 	public Expr expr;
 	public Predicate(){
 		nextP = (Predicate) null;
-		count = 1;
+		count = 0;
 		d = 0;
 	}
 	public boolean eval(VTDNav vn) {
 		boolean b;		
-		if (expr.isNumerical())
-			 b = (expr.evalNumber(vn)== (double) count++);
-		else 
-			b= expr.evalBoolean(vn);
+		count++; // increment the position
+		expr.setPosition(count);
+		if (expr.isNumerical()){		    
+			b = (expr.evalNumber(vn)== count);
+		}
+		else{ 
+			b = expr.evalBoolean(vn);
+		}
 		return b;
 	}
 	
@@ -46,8 +50,8 @@ public class Predicate implements LocationPathNode{
 	}
 	
 	public void reset(VTDNav vn){
-		count = 1;
-		expr.reset(vn);
+		count = 0;
+		expr.reset(vn); // is this really needed?
 	}
 	public Predicate nextP;
 
@@ -62,7 +66,13 @@ public class Predicate implements LocationPathNode{
 	
 	// to support computer context size 
 	// needs to add 
-	// public boolean needContextSize();
-	// public boolean SetContextSize(int contextSize);
+	
+	public boolean requireContextSize(){
+	    return expr.requireContextSize();
+	}
+	
+	public void setContextSize(int size){
+	    expr.setContextSize(size);
+	}
 }
 
