@@ -31,7 +31,7 @@ public class FilterExpr extends Expr {
 
 	public Expr e;
 	public Predicate p;
-	FastIntBuffer fib;
+	//FastIntBuffer fib;
 	int stackSize;
 	boolean first_time;
 	//public int position;
@@ -41,12 +41,12 @@ public class FilterExpr extends Expr {
 		p = pr;
 		stackSize = 0;
 		//position = 1;
-		fib = new FastIntBuffer(8);
+		//fib = new FastIntBuffer(8);
 		first_time = true;
 	}
-	public int getPositon(){
+	/*public int getPositon(){
 		return fib.size();
-	}
+	}*/
 	public boolean evalBoolean(VTDNav vn) {
 		boolean a = false;
 		vn.push2();
@@ -116,8 +116,7 @@ public class FilterExpr extends Expr {
 		while (a!=-1){
 			if (p.eval(vn)==true){
 				//p.reset();
-				if (isUnique(a))
-					return a;				
+				return a;				
 			}else {
 				//p.reset();
 				a = e.evalNodeSet(vn);
@@ -163,7 +162,7 @@ public class FilterExpr extends Expr {
 	public void reset2(VTDNav vn){
 		e.reset(vn);
 		p.reset(vn);
-		fib.clear();
+		//fib.clear();
 	}
 
 
@@ -182,7 +181,7 @@ public class FilterExpr extends Expr {
 		return true;
 	}
 	
-	public boolean isUnique(int i){
+	/*public boolean isUnique(int i){
 		int size = fib.size();
 		for (int j=0; j<size;j++){
 			if (i == fib.intAt(j))
@@ -190,7 +189,7 @@ public class FilterExpr extends Expr {
 		}
 		fib.append(i);
 		return true;
-	}
+	}*/
 	
 	public boolean isString(){
 	    return false;
