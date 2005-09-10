@@ -33,6 +33,7 @@ public class FilterExpr extends Expr {
 	public Predicate p;
 	FastIntBuffer fib;
 	int stackSize;
+	boolean first_time;
 	//public int position;
 	
 	public FilterExpr(Expr l, Predicate pr){
@@ -41,6 +42,7 @@ public class FilterExpr extends Expr {
 		stackSize = 0;
 		//position = 1;
 		fib = new FastIntBuffer(8);
+		first_time = true;
 	}
 	public int getPositon(){
 		return fib.size();
@@ -100,14 +102,15 @@ public class FilterExpr extends Expr {
 	    // if the context size is zero
 	    // get immediately set teh state to end
 	    // or backward
-	    if (p.requireContextSize()){	        
+	    if (first_time && p.requireContextSize()){
+	        first_time = false;
 	        int i = 0;
 	        vn.push2();
 	        while(e.evalNodeSet(vn)!=-1)
 	            i++;
 	        vn.pop2();
 	        p.setContextSize(i);
-	        reset(vn);
+	        reset2(vn);
 	    }
 		int a = e.evalNodeSet(vn);
 		while (a!=-1){
@@ -151,11 +154,16 @@ public class FilterExpr extends Expr {
 	}
 
 	public void reset(VTDNav vn) {
+		reset2(vn);
+		//vn.contextStack2.size = stackSize; 
+		//position = 1;
+		first_time = true;
+	}
+	
+	public void reset2(VTDNav vn){
 		e.reset(vn);
 		p.reset(vn);
 		fib.clear();
-		//vn.contextStack2.size = stackSize; 
-		//position = 1;
 	}
 
 
