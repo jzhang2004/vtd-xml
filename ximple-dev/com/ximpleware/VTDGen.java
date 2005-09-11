@@ -794,7 +794,7 @@ public class VTDGen {
 		boolean is_ns = false;
 		encoding = FORMAT_UTF8;
 		boolean helper=false;
-		boolean main_loop = true, hasDTD = false, hasDecl = false, docEnd = false, firstLT = true;
+		boolean  hasDTD = false, hasDecl = false, docEnd = false, firstLT = true;
 		//char char_temp; //holds the ' or " indicating start of attr val
 		//boolean must_utf_8 = false;
 		
@@ -813,7 +813,7 @@ public class VTDGen {
 		try {
 			// write doucment to be compatible with XPath data model
 			writeVTD(0,0,TOKEN_DOCUMENT,depth);
-			while (main_loop) {
+			while (true) {
 				switch (parser_state) {
 				case STATE_DOC_START:
 					if (getChar() == '<') {
