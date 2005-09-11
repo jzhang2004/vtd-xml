@@ -76,6 +76,15 @@ public class UnaryExpr extends Expr {
 	}
 	// to support computer context size 
 	// needs to add 
-	// public boolean needContextSize();
-	// public boolean SetContextSize(int contextSize);
+	public boolean requireContextSize(){
+	    return operand.requireContextSize();
+	}
+	
+	public void setContextSize(int size){	  
+	    operand.setContextSize(size);
+	}
+	
+	public void setPosition (int pos){
+	    operand.setPosition(pos);
+	}
 }
