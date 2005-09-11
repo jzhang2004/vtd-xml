@@ -106,7 +106,7 @@ public class VTDNav {
 	private ContextBuffer contextStack;
 	protected ContextBuffer contextStack2;// this is reserved for XPath
 
-	protected int LN; // latest node for XPath eval purposes
+	protected int LN; // record txt and attrbute for XPath eval purposes
 	// the document encoding	     
 	private int encoding;
 	// for string to token comparison
@@ -3441,7 +3441,7 @@ public class VTDNav {
 		endOffset1 = this.getTokenLength(i1)+this.currentOffset;
 		endOffset2 = vn2.getTokenLength(i2) + vn2.currentOffset2;
 
-		for(;vn2.currentOffset<endOffset1&& this.currentOffset2< endOffset2;){
+		for(;this.currentOffset<endOffset1&& vn2.currentOffset2< endOffset2;){
 		    if(t1 == VTDNav.TOKEN_CHARACTER_DATA
 		            || t1== VTDNav.TOKEN_ATTR_VAL){
 		        ch1 = this.getCharResolved();
