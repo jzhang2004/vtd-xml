@@ -105,10 +105,10 @@ public class FilterExpr extends Expr {
 	    if (first_time && p.requireContextSize()){
 	        first_time = false;
 	        int i = 0;
-	        vn.push2();
+	        //vn.push2();
 	        while(e.evalNodeSet(vn)!=-1)
 	            i++;
-	        vn.pop2();
+	        //vn.pop2();
 	        p.setContextSize(i);
 	        reset2(vn);
 	    }
