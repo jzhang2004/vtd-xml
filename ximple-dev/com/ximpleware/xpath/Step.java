@@ -48,6 +48,14 @@ public class Step implements LocationPathNode{
 			temp = temp.nextP;
 		}
 	}
+	
+	public void resetP(VTDNav vn, Predicate p1){
+		Predicate temp = p;
+		while(temp!=p1){
+			temp.reset(vn);
+			temp = temp.nextP;
+		}
+	}
 	public NodeTest getNodeTest(){
 		return this.nt;
 	}
@@ -89,12 +97,16 @@ public class Step implements LocationPathNode{
 	}
 	
 	public boolean eval(VTDNav vn)throws NavException{
-		boolean result = this.nt.eval(vn);
+		/*boolean result = this.nt.eval(vn);
 		if (result == false)
 			return false;
-		return evalPredicates(vn);
+		return evalPredicates(vn);*/
+		return nt.eval(vn) && evalPredicates(vn);
 	}
-		
+	
+	public boolean eval(VTDNav vn, Predicate p) throws NavException{
+	    return nt.eval(vn) && evalPredicates(vn,p);
+	}
 	public boolean evalPredicates(VTDNav vn) throws NavException {
 		Predicate temp = this.p;
 		while(temp!=null) {
@@ -106,6 +118,16 @@ public class Step implements LocationPathNode{
 		return true;
 	}
 		
+	public boolean evalPredicates(VTDNav vn, Predicate p) throws NavException {
+		Predicate temp = this.p;
+		while(temp!=p) {
+			if (temp.eval(vn)== false)
+				return false;
+			temp = temp.nextP;
+		}	
+		return true;
+	}
+	
 	public void setAxisType(int st){
 		axis_type = st;
 	}
