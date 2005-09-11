@@ -92,7 +92,7 @@ public class PathExpr extends Expr {
 				else
 					evalState = 1;
 				break;
-			case 1: // fe returns valid value
+			case 1: // fe returns valid value, then iterate the locationPath
 				vn.push2();
 				a = lpe.evalNodeSet(vn);
 				if (a == -1) {
@@ -120,8 +120,10 @@ public class PathExpr extends Expr {
 				a = fe.evalNodeSet(vn);
 				if (a == -1)
 					evalState = 4;
-				else
+				else{
+				    vn.push2();
 					evalState = 2;
+				}
 				break;
 			case 4:
 				return -1;
