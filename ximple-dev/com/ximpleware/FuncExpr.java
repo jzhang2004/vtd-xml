@@ -31,7 +31,7 @@ public class FuncExpr extends Expr{
 	boolean isString;
 	int contextSize;
 	double d;
-	int position = 0;
+	int position;
 	int a;
 	int argCount(){
 		Alist temp = argumentList;
@@ -48,6 +48,7 @@ public class FuncExpr extends Expr{
 	  argumentList = list;
 	  isBoolean = false;
 	  isString  = false;
+	  position = 0;
 	  //isNodeSet = false;
 	  isNumerical = false;
 	  switch(opCode){
@@ -113,11 +114,19 @@ public class FuncExpr extends Expr{
 			case FuncName.SUBSTRING_AFTER: 		
 			case FuncName.SUBSTRING: 		
 			case FuncName.TRANSLATE: 	
-			case FuncName.NORMALIZE_SPACE:
-			default: throw new UnsupportedException("Some functions are not supported");
+			case FuncName.NORMALIZE_SPACE:throw new UnsupportedException("Some functions are not supported");
+			default: if (isBoolean()){
+			    		if (evalBoolean(vn)== true)
+			    		    return "true";
+			    		else 
+			    		    return "false";
+					 } else {
+					     return ""+ evalNumber(vn);					     
+					 }
 	  }
 	}	
-	public double evalNumber(VTDNav vn) throws UnsupportedException{
+	public double evalNumber(VTDNav vn){
+	    int ac = 0;
 	  switch(opCode){
 			case FuncName.LAST:  if (argCount()!=0 )
 									throw new IllegalArgumentException
@@ -125,7 +134,7 @@ public class FuncExpr extends Expr{
 								 return contextSize;			
 			case FuncName.POSITION:   if (argCount()!=0 )
 									throw new IllegalArgumentException
-									("floor()'s argument count is invalid");
+									("position()'s argument count is invalid");
 								 return position;
 			case FuncName.COUNT: 	return count(vn);
 			case FuncName.NUMBER:   if (argCount()!=1)
@@ -143,11 +152,45 @@ public class FuncExpr extends Expr{
 			    					return Math.ceil(argumentList.e.evalNumber(vn));
 			    					
 			case FuncName.STRING_LENGTH:
+			    					ac = argCount();
+			    					if (ac == 0){
+			    					    try{
+			    					        if (vn.atTerminal == true){
+			    					            int type = vn.getTokenType(vn.LN);
+			    					            if (type == VTDNav.TOKEN_ATTR_NAME 
+			    					                || type == VTDNav.TOKEN_ATTR_NS){
+			    					                return vn.toString(vn.LN+1).length();
+			    					            } else {
+			    					                return vn.toString(vn.LN).length();
+			    					            }
+			    					        }else {
+			    					            int i = vn.getText();
+			    					            if (i==-1)
+			    					                return 0;
+			    					            else 
+			    					                return vn.toString(i).length();
+			    					        }
+			    					    }catch (NavException e){
+			    					        return 0;
+			    					    }
+			    					} else if (ac == 1){
+			    					    return argumentList.e.evalString(vn).length();
+			    					} else {
+			    					    throw new IllegalArgumentException("string-length()'s argument count is invalid");
+			    					}
 			    
 			case FuncName.ROUND: 	if (argCount()!=1 )
-			    						return Math.round(argumentList.e.evalNumber(vn));
+			    						throw new IllegalArgumentException("round()'s argument count is invalid");
+			    					return Math.round(argumentList.e.evalNumber(vn));
 			
-			default: throw new UnsupportedException("Some functions are not supported");
+			default: if (isBoolean){
+			    		if (evalBoolean(vn))
+			    		    return 1;
+			    		else
+			    		    return 0;
+					 }else {
+					    return Double.parseDouble(evalString(vn)); 					        
+					 }
 	  }
 	}
 
@@ -173,8 +216,16 @@ public class FuncExpr extends Expr{
 										throw new IllegalArgumentException("not() doesn't take any argument");
 			   					}
 								return !argumentList.e.evalBoolean(vn);
-			case FuncName.CONTAINS:	
-			default: throw new UnsupportedException("Some functions are not supported");
+			case FuncName.CONTAINS:	throw new UnsupportedException("Some functions are not supported");
+			default: if (isNumerical()){
+			    		double d = evalNumber(vn);
+			    		if (d==0 || d!=d)
+			    		    return false;
+			    		return true;
+					 }else{
+					     return evalString(vn).length()!=0;
+					 }
+			
 		  }
 	}
 	
@@ -253,7 +304,6 @@ public class FuncExpr extends Expr{
 	}
 	
 	private double sum(VTDNav vn){
-	    
 	    if (argCount() != 1 || argumentList.e.isNodeSet() == false)
 	        throw new IllegalArgumentException("sum()'s argument count is invalid");
     	vn.push2();
@@ -266,26 +316,26 @@ public class FuncExpr extends Expr{
                     i1 = vn.getText();
                     if (i1!=-1)
                         d += vn.parseDouble(i1);
-                    if (d== Double.NaN)
+                    if (Double.isNaN(d))
                         break;
                 }
                 else if (t == VTDNav.TOKEN_ATTR_NAME
                         || t == VTDNav.TOKEN_ATTR_NS){
                     d += vn.parseDouble(a+1);
-                    if (d== Double.NaN)
+                    if (Double.isNaN(d))
                         break;
                 }
                 else if (t == VTDNav.TOKEN_CHARACTER_DATA
                         || t == VTDNav.TOKEN_CDATA_VAL){
                     d += vn.parseDouble(a);
-                    if (d== Double.NaN)
+                    if (Double.isNaN(d))
                         break;
                 }
                 //    fib1.append(i);
     	    }
     	    argumentList.e.reset(vn);
     	    vn.pop2();
-    	    return a;
+    	    return d;
     	} catch (Exception e) {
     	    argumentList.e.reset(vn);
     	    vn.pop2();
@@ -301,7 +351,7 @@ public class FuncExpr extends Expr{
 	        return true;
 	    else {
 	        Alist temp = argumentList;
-	        boolean b = false;
+	        //boolean b = false;
 	        while(temp!=null){
 	            if (temp.e.requireContextSize()){
 	                return true;
@@ -318,7 +368,7 @@ public class FuncExpr extends Expr{
 	        //System.out.println("contextSize: "+size);
 	    } else {
 	        Alist temp = argumentList;
-	        boolean b = false;
+	        //boolean b = false;
 	        while(temp!=null){
 	            temp.e.setContextSize(size);
 	            temp = temp.next;
@@ -332,7 +382,7 @@ public class FuncExpr extends Expr{
 	        //System.out.println("PO: "+size);
 	    } else {
 	        Alist temp = argumentList;
-	        boolean b = false;
+	        //boolean b = false;
 	        while(temp!=null){
 	            temp.e.setPosition(pos);
 	            temp = temp.next;
