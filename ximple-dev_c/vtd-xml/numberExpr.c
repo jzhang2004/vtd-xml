@@ -52,7 +52,7 @@ void freeNumberExpr(numberExpr *ne){
 int	evalNodeSet_ne (numberExpr *ne,VTDNav *vn){
 	exception e;
 	e.et = xpath_eval_exception;
-	e.msg = "LiteralExpr can't eval to a node set!";
+	e.msg = "numberExpr can't eval to a node set!";
 	Throw e;	
 }
 
@@ -62,25 +62,30 @@ double	evalNumber_ne (numberExpr *ne,VTDNav *vn){
 
 UCSChar* evalString_ne  (numberExpr *ne,VTDNav *vn){
 	exception e;
+	Boolean b = FALSE;
 	double d = 0;
 	UCSChar *tmp;
 	if (ne->dval != ne->dval){
 		tmp = wcsdup(L"NaN");
+		b = TRUE;
 	}
 	else if ( ne->dval == 1/d){
 		tmp = wcsdup(L"Infinity");
+		b= TRUE;
 	}
 	else if (ne->dval == -1/d){
 		tmp = wcsdup(L"-Infinity");
-	}	
+		b = TRUE;
+	}	else 
 	tmp = malloc(sizeof(UCSChar)<<8);
 
 	if (tmp == NULL) {
 		e.et = out_of_mem;
-		e.msg = "numberExpr allocation failed ";
+		e.msg = "string allocation in evalString_ne failed ";
 		Throw e;
 	}
-
+	if (b)
+		return tmp;
     if (ne->dval == (Long) ne->dval){
 		
 #ifdef VC
