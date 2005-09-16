@@ -65,7 +65,7 @@ public class BinaryExpr extends Expr {
 			case SUB:
 			case MULT:
 			case DIV:
-			case MOD: isNumerical = true; break;
+			case MOD: isNumerical = true; isBoolean = false; break;
 			case OR :
 			case AND:
 			case EQ:
@@ -92,8 +92,8 @@ public class BinaryExpr extends Expr {
 			case LE: os = " <= "; break;
 			case GE: os = " >= "; break;
 			case LT: os = " < "; break;
-			case GT: os = " > "; break;
-			default: os = " | "; 
+			default: os = " > "; break;
+			 
 		}
 		
 		return "("+ left + os + right+")";
@@ -137,11 +137,25 @@ public class BinaryExpr extends Expr {
 	}
 		
 	public int evalNodeSet(VTDNav vn) throws XPathEvalException {
-		throw new XPathEvalException("LiteralExpr can't eval to a node set!");
+		throw new XPathEvalException("BinaryExpr can't eval to a node set!");
 	}
 	
     public String evalString(VTDNav vn){
-		return "";
+		if(isNumerical()){
+		    
+		    double d = evalNumber(vn);
+		    if (d==(long)d){
+		        return ""+(long)d;
+		    }
+		    else 
+		        return ""+d;
+		} else {
+		    boolean b = evalBoolean(vn);
+		    if (b)
+		        return "true";
+		    else
+		        return "false";
+		}
 	}
 
 	public void reset(VTDNav vn){left.reset(vn); right.reset(vn);};
