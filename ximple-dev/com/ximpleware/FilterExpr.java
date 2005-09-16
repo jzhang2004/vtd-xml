@@ -32,14 +32,14 @@ public class FilterExpr extends Expr {
 	public Expr e;
 	public Predicate p;
 	//FastIntBuffer fib;
-	int stackSize;
+	//int stackSize;
 	boolean first_time;
 	//public int position;
 	
 	public FilterExpr(Expr l, Predicate pr){
 		e = l;
 		p = pr;
-		stackSize = 0;
+		//stackSize = 0;
 		//position = 1;
 		//fib = new FastIntBuffer(8);
 		first_time = true;
