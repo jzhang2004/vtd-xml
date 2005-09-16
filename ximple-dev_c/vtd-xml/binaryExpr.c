@@ -557,7 +557,7 @@ Boolean evalBoolean_be (binaryExpr *be,VTDNav *vn){
 			case OR: return be->left->evalBoolean(be->left,vn) 
 						 || be->right->evalBoolean(be->right,vn);
 			case AND:return be->left->evalBoolean(be->left,vn) 
-						 && be->right->evalBoolean(be->left,vn);
+						 && be->right->evalBoolean(be->right,vn);
 			case EQ:
 			case NE: return computeEQNE(be, be->op,vn);			
 			case LE: return be->left->evalNumber(be->left,vn) <= be->right->evalNumber(be->right,vn);
