@@ -34,8 +34,7 @@ public class LocationPathExpr extends Expr{
 					   END= 1,   // return to begin
 				      TERMINAL= 2, // no more next step
 				      FORWARD = 3, // 
-				      BACKWARD= 4, //
-					  DOWN  = 5; // 
+				      BACKWARD= 4;
 								
 		public LocationPathExpr(){
 			state = START;
@@ -186,7 +185,7 @@ public class LocationPathExpr extends Expr{
 		    	        t = currentStep.p;
 		    	        while(t!=null){
 		    	            if (t.requireContextSize()){
-		    	                int i = computeContextSize(currentStep,t,vn);
+		    	                int i = computeContextSize(t,vn);
 		    	                if (i==0){
 		    	                    b1 = true;
 		    	                    break;
@@ -259,7 +258,7 @@ public class LocationPathExpr extends Expr{
 		    	        t = currentStep.p;
 		    	        while(t!=null){
 		    	            if (t.requireContextSize()){
-		    	                int i = computeContextSize(currentStep,t,vn);
+		    	                int i = computeContextSize(t,vn);
 		    	                if (i==0){
 		    	                    b1 = true;
 		    	                    break;
@@ -624,7 +623,7 @@ public class LocationPathExpr extends Expr{
     	        t = currentStep.p;
     	        while(t!=null){
     	            if (t.requireContextSize()){
-    	                int i = computeContextSize(currentStep,t,vn);
+    	                int i = computeContextSize(t,vn);
     	                if (i==0){
     	                    b1 = true;
     	                    break;
@@ -984,7 +983,7 @@ public class LocationPathExpr extends Expr{
     	        t = currentStep.p;
     	        while(t!=null){
     	            if (t.requireContextSize()){
-    	                int i = computeContextSize(currentStep,t,vn);
+    	                int i = computeContextSize(t,vn);
     	                if (i==0){
     	                    b1 = true;
     	                    break;
@@ -1148,7 +1147,7 @@ public class LocationPathExpr extends Expr{
 	throws XPathEvalException, NavException{
 	    int result;
 	    boolean b = false, b1 = false;
-	    int contextSize;
+	    //int contextSize;
 	    Predicate t= null;
 	    
 	    switch(state){
@@ -1156,7 +1155,7 @@ public class LocationPathExpr extends Expr{
 	    	    t = currentStep.p;
 	    	    while (t != null) {
 	    	        if (t.requireContextSize()) {
-	    	            int i = computeContextSize(currentStep, t, vn);
+	    	            int i = computeContextSize( t, vn);
 	    	            if (i == 0) {
 	    	                b1 = true;
 	    	                break;
@@ -1205,7 +1204,7 @@ public class LocationPathExpr extends Expr{
 	    	     t = currentStep.p;
 	    	     while(t!=null){
 	    	        if (t.requireContextSize()){
-	    	             int i = computeContextSize(currentStep,t,vn);
+	    	             int i = computeContextSize(t,vn);
 	    	             if (i==0){
 	    	                 b1 = true;
 	    	                 break;
@@ -1460,7 +1459,7 @@ public class LocationPathExpr extends Expr{
 	    	    t = currentStep.p;
 	    	    while (t != null) {
 	    	        if (t.requireContextSize()) {
-	    	            int i = computeContextSize(currentStep, t, vn);
+	    	            int i = computeContextSize( t, vn);
 	    	            if (i == 0) {
 	    	                b1 = true;
 	    	                break;
@@ -1523,7 +1522,7 @@ public class LocationPathExpr extends Expr{
 	    	     t = currentStep.p;
 	    	     while(t!=null){
 	    	        if (t.requireContextSize()){
-	    	             int i = computeContextSize(currentStep,t,vn);
+	    	             int i = computeContextSize(t,vn);
 	    	             if (i==0){
 	    	                 b1 = true;
 	    	                 break;
@@ -1845,7 +1844,7 @@ public class LocationPathExpr extends Expr{
   	        t = currentStep.p;
 	        while(t!=null){
 	            if (t.requireContextSize()){
-	                int i = computeContextSize(currentStep,t,vn);
+	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
 	                    break;
@@ -1982,7 +1981,7 @@ public class LocationPathExpr extends Expr{
   	        t = currentStep.p;
 	        while(t!=null){
 	            if (t.requireContextSize()){
-	                int i = computeContextSize(currentStep,t,vn);
+	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
 	                    break;
@@ -2197,7 +2196,7 @@ public class LocationPathExpr extends Expr{
   	        t = currentStep.p;
 	        while(t!=null){
 	            if (t.requireContextSize()){
-	                int i = computeContextSize(currentStep,t,vn);
+	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
 	                    break;
@@ -2422,7 +2421,7 @@ public class LocationPathExpr extends Expr{
 	        t = currentStep.p;
 	        while(t!=null){
 	            if (t.requireContextSize()){
-	                int i = computeContextSize(currentStep,t,vn);
+	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
 	                    break;
@@ -2778,14 +2777,14 @@ public class LocationPathExpr extends Expr{
 	public void setContextSize(int size){	    
 	}
 	
-	public int computeContextSize(Step s, Predicate p, VTDNav vn)
+	public int computeContextSize(Predicate p, VTDNav vn)
 		throws NavException,XPathEvalException{
 	    
 	    boolean b = false;
 	    Predicate tp = null;
 	    int i = 0;
 	    AutoPilot ap;
-	    switch(s.axis_type){
+	    switch(currentStep.axis_type){
 	    	case AxisType.CHILD:
 	    	    b = vn.toElement(VTDNav.FIRST_CHILD);
 	    		if (b) {
@@ -2795,7 +2794,7 @@ public class LocationPathExpr extends Expr{
 	    		        }
 	    		    } while (vn.toElement(VTDNav.NS));	    		    
 	    		    vn.toElement(VTDNav.PARENT);
-	    		    s.resetP(vn,p);
+	    		    currentStep.resetP(vn,p);
 	    		    return i;
 	    		} else
 	    		    return 0;
@@ -2845,7 +2844,7 @@ public class LocationPathExpr extends Expr{
     				}
     			}
     			vn.pop2();
-    			s.resetP(vn,p);
+    			currentStep.resetP(vn,p);
     			return i;
 			  
 			case AxisType.PARENT:
@@ -2857,7 +2856,7 @@ public class LocationPathExpr extends Expr{
 				    }
 				}			    
 				vn.pop2();
-				s.resetP(vn,p);
+				currentStep.resetP(vn,p);
 				return i;
 				
 			case AxisType.ANCESTOR:
@@ -2869,7 +2868,7 @@ public class LocationPathExpr extends Expr{
     		        }
 				}				
 				vn.pop2();
-				s.resetP(vn,p);
+				currentStep.resetP(vn,p);
 				return i;
 				
 			case AxisType.ANCESTOR_OR_SELF:
@@ -2881,7 +2880,7 @@ public class LocationPathExpr extends Expr{
     		        }
 				}while(vn.toElement(VTDNav.PARENT));
 				vn.pop2();
-				s.resetP(vn,p);
+				currentStep.resetP(vn,p);
 				return i;
 				
 			case AxisType.SELF:
@@ -2891,7 +2890,7 @@ public class LocationPathExpr extends Expr{
 				        i++;
 				    }
 				}			    
-				s.resetP(vn,p);
+				currentStep.resetP(vn,p);
 				return i;
 			    
 			case AxisType.FOLLOWING_SIBLING:
@@ -2902,7 +2901,7 @@ public class LocationPathExpr extends Expr{
 				    }
 				}			    
 			    vn.pop2();
-				s.resetP(vn,p);
+				currentStep.resetP(vn,p);
 				return i;
 			    
 			case AxisType.PRECEDING_SIBLING:
@@ -2913,7 +2912,7 @@ public class LocationPathExpr extends Expr{
 				    }
 				}			    
 				vn.pop2();
-				s.resetP(vn,p);
+				currentStep.resetP(vn,p);
 				return i;
 				
 			case AxisType.ATTRIBUTE:
