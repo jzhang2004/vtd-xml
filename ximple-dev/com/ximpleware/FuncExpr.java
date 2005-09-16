@@ -30,7 +30,7 @@ public class FuncExpr extends Expr{
 	boolean isBoolean;
 	boolean isString;
 	int contextSize;
-	double d;
+	//double d;
 	int position;
 	int a;
 	int argCount(){
@@ -87,6 +87,7 @@ public class FuncExpr extends Expr{
 	  return fname()+" ("+argumentList +")";
 	}
 	public String evalString(VTDNav vn) throws UnsupportedException{
+	    int d=0;
 	  switch(opCode){
 			case FuncName.LOCAL_NAME: 			
 			case FuncName.NAMESPACE_URI: 	
@@ -304,6 +305,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	private double sum(VTDNav vn){
+	    int d=0;
 	    if (argCount() != 1 || argumentList.e.isNodeSet() == false)
 	        throw new IllegalArgumentException("sum()'s argument count is invalid");
     	vn.push2();
