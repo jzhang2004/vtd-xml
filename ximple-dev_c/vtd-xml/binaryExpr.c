@@ -67,7 +67,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   if (matchTokens(vn,intAt(be->fib1,j), vn, intAt(be->fib2,k))) {
                        clearFastIntBuffer(be->fib1);
 					   clearFastIntBuffer(be->fib2);
-                      if (op == EQ)
+                      if (op == OP_EQ)
                           return TRUE;
                       else 
                           return FALSE;
@@ -76,7 +76,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
           }
           clearFastIntBuffer(be->fib1);
           clearFastIntBuffer(be->fib2);
-          if (op == EQ)
+          if (op == OP_EQ)
               return FALSE;
           else
               return TRUE;
@@ -110,7 +110,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -123,7 +123,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -136,7 +136,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -147,7 +147,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
               pop2(vn);
               be->left->reset(be->left,vn);
               be->right->reset(be->right,vn);
-              if (op == EQ)
+              if (op == OP_EQ)
                   return FALSE;
               else 
                   return TRUE;
@@ -165,7 +165,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -178,7 +178,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -191,7 +191,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -202,7 +202,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
               pop2(vn);
               be->left->reset(be->left,vn);
               be->right->reset(be->right,vn);
-              if (op == EQ)
+              if (op == OP_EQ)
                   return FALSE;
               else 
                   return TRUE;
@@ -234,7 +234,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                               pop2(vn);
                               be->left->reset(be->left,vn);
                               be->right->reset(be->right,vn);
-                              if (op == EQ)
+                              if (op == OP_EQ)
                                   return TRUE;
                               else 
                                   return FALSE;
@@ -245,7 +245,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                               pop2(vn);
                               be->left->reset(be->left,vn);
                               be->right->reset(be->right,vn);
-                              if (op == EQ)
+                              if (op == OP_EQ)
                                   return TRUE;
                               else 
                                   return FALSE;
@@ -259,7 +259,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -272,7 +272,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -283,7 +283,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -294,7 +294,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
               pop2(vn);
               be->left->reset(be->left,vn);
               be->right->reset(be->right,vn);
-              if (op == EQ)
+              if (op == OP_EQ)
                   return FALSE;
               else 
                   return TRUE;
@@ -314,7 +314,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                               pop2(vn);
                               be->left->reset(be->left,vn);
                               be->right->reset(be->right,vn);
-                              if (op == EQ)
+                              if (op == OP_EQ)
                                   return TRUE;
                               else 
                                   return FALSE;
@@ -325,7 +325,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                               pop2(vn);
                               be->left->reset(be->left,vn);
                               be->right->reset(be->right,vn);
-                              if (op == EQ)
+                              if (op == OP_EQ)
                                   return TRUE;
                               else 
                                   return FALSE;
@@ -339,7 +339,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -352,7 +352,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -363,7 +363,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           pop2(vn);
                           be->left->reset(be->left,vn);
                           be->right->reset(be->right,vn);
-                          if (op == EQ)
+                          if (op == OP_EQ)
                               return TRUE;
                           else 
                               return FALSE;
@@ -374,7 +374,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
               pop2(vn);
               be->left->reset(be->left,vn);
               be->right->reset(be->right,vn);
-              if (op == EQ)
+              if (op == OP_EQ)
                   return FALSE;
               else 
                   return TRUE;
@@ -390,19 +390,19 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
  
   }
 		  if (be->left->isBoolean(be->left) || be->right->isBoolean(be->right)){
-		      if (op == EQ)
+		      if (op == OP_EQ)
 		          return be->left->isBoolean(be->left) == be->right->isBoolean(be->right);
 		      else
 		          return be->left->isBoolean(be->left) != be->right->isBoolean(be->right);
 		  }
 		  
 		  if (be->left->isNumerical(be->left) || be->right->isNumerical(be->right)){
-		      if (op == EQ)
+		      if (op == OP_EQ)
 		          return be->left->evalNumber(be->left,vn) == be->right->evalNumber(be->right,vn);
 		      else
 		          return be->left->evalNumber(be->left,vn) != be->right->evalNumber(be->right,vn);
 		  }
-		  if (op == EQ)
+		  if (op == OP_EQ)
 		      return wcscmp(be->left->evalString(be->left,vn),be->right->evalString(be->right,vn))==0;
   	  return 
   	  	wcscmp(be->left->evalString(be->left,vn),be->right->evalString(be->right,vn))!=0;
@@ -438,18 +438,18 @@ binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
 	be->right = e2;
 	be->fib1 = be->fib2 = NULL;
 	switch(be->op){
-	 	case ADD:
-		case SUB:
-		case MULT:
-		case DIV:
-		case MOD: be->isNum = TRUE; be->isBool = FALSE; break;
-		case OR :
-		case AND:
-		case EQ:
-		case NE:
-		case LE:
-		case GE:
-		case LT:
+	 	case OP_ADD:
+		case OP_SUB:
+		case OP_MULT:
+		case OP_DIV:
+		case OP_MOD: be->isNum = TRUE; be->isBool = FALSE; break;
+		case OP_OR :
+		case OP_AND:
+		case OP_EQ:
+		case OP_NE:
+		case OP_LE:
+		case OP_GE:
+		case OP_LT:
 		default: be->isNum= FALSE; be->isBool = TRUE;
 	}
 	return be;
@@ -472,11 +472,11 @@ int	evalNodeSet_be (binaryExpr *be,VTDNav *vn){
 
 double	evalNumber_be (binaryExpr *be,VTDNav *vn){
 	switch(be->op){
-			case ADD: return be->left->evalNumber(be->left,vn) + be->right->evalNumber(be->right,vn);
-			case SUB: return be->left->evalNumber(be->left,vn) - be->right->evalNumber(be->right,vn);
-			case MULT:return be->left->evalNumber(be->left,vn) * be->right->evalNumber(be->right,vn);
-			case DIV: return be->left->evalNumber(be->left,vn) / be->right->evalNumber(be->right,vn);
-			case MOD: return fmod(be->left->evalNumber(be->left,vn), be->right->evalNumber(be->right,vn));
+			case OP_ADD: return be->left->evalNumber(be->left,vn) + be->right->evalNumber(be->right,vn);
+			case OP_SUB: return be->left->evalNumber(be->left,vn) - be->right->evalNumber(be->right,vn);
+			case OP_MULT:return be->left->evalNumber(be->left,vn) * be->right->evalNumber(be->right,vn);
+			case OP_DIV: return be->left->evalNumber(be->left,vn) / be->right->evalNumber(be->right,vn);
+			case OP_MOD: return fmod(be->left->evalNumber(be->left,vn), be->right->evalNumber(be->right,vn));
 			default	: if (evalBoolean_be(be,vn) == TRUE)
 						  return 1;
 				return 0;
@@ -554,16 +554,16 @@ Boolean evalBoolean_be (binaryExpr *be,VTDNav *vn){
 	Boolean b = FALSE;
 	double dval;
 	switch(be->op){
-			case OR: return be->left->evalBoolean(be->left,vn) 
+			case OP_OR: return be->left->evalBoolean(be->left,vn) 
 						 || be->right->evalBoolean(be->right,vn);
-			case AND:return be->left->evalBoolean(be->left,vn) 
+			case OP_AND:return be->left->evalBoolean(be->left,vn) 
 						 && be->right->evalBoolean(be->right,vn);
-			case EQ:
-			case NE: return computeEQNE(be, be->op,vn);			
-			case LE: return be->left->evalNumber(be->left,vn) <= be->right->evalNumber(be->right,vn);
-			case GE: return be->left->evalNumber(be->left,vn) >= be->right->evalNumber(be->right,vn);
-			case LT: return be->left->evalNumber(be->left,vn) < be->right->evalNumber(be->right,vn);
-			case GT: return be->left->evalNumber(be->left,vn) > be->right->evalNumber(be->right,vn);
+			case OP_EQ:
+			case OP_NE: return computeEQNE(be, be->op,vn);			
+			case OP_LE: return be->left->evalNumber(be->left,vn) <= be->right->evalNumber(be->right,vn);
+			case OP_GE: return be->left->evalNumber(be->left,vn) >= be->right->evalNumber(be->right,vn);
+			case OP_LT: return be->left->evalNumber(be->left,vn) < be->right->evalNumber(be->right,vn);
+			case OP_GT: return be->left->evalNumber(be->left,vn) > be->right->evalNumber(be->right,vn);
 			default: dval = evalNumber_be(be,vn);
 				if (dval ==-0.0 || dval ==+0.0 || (dval!=dval))
 					return TRUE;
@@ -610,18 +610,18 @@ void	setPosition_be(binaryExpr *be,int pos){
 void    toString_be(binaryExpr *be, UCSChar* string){
 	be->left->toString(be->left,string);
 	switch(be->op){
-			case ADD: wprintf(L" + "); break;
-			case SUB: wprintf(L" - "); break;
-			case MULT: wprintf(L" * "); break;
-			case DIV: wprintf(L" / "); break;
-			case MOD: wprintf(L" mod "); break;
-			case OR : wprintf(L" or ");break;
-			case AND: wprintf(L" and "); break;
-			case EQ: wprintf(L" = "); break;
-			case NE: wprintf(L" != "); break;
-			case LE: wprintf(L" <= "); break;
-			case GE: wprintf(L" >= "); break;
-			case LT: wprintf(L" < "); break;
+			case OP_ADD: wprintf(L" + "); break;
+			case OP_SUB: wprintf(L" - "); break;
+			case OP_MULT: wprintf(L" * "); break;
+			case OP_DIV: wprintf(L" / "); break;
+			case OP_MOD: wprintf(L" mod "); break;
+			case OP_OR : wprintf(L" or ");break;
+			case OP_AND: wprintf(L" and "); break;
+			case OP_EQ: wprintf(L" = "); break;
+			case OP_NE: wprintf(L" != "); break;
+			case OP_LE: wprintf(L" <= "); break;
+			case OP_GE: wprintf(L" >= "); break;
+			case OP_LT: wprintf(L" < "); break;
 			default: wprintf(L" > "); break;
 	}
 	be->right->toString(be->right,string);

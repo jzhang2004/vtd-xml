@@ -163,18 +163,19 @@ void    toString_ne(numberExpr *e, UCSChar* string);
 // binary Expr
 // define operand
 typedef enum OpType{		
-		 	 ADD,
-			 SUB,
-			 MULT,
-			 DIV,
-			 MOD,
-			 OR ,
-			 AND,
-			 EQ,
-			 NE,
-			 LE,
-			 GE,
-			 LT
+ 	 OP_ADD,
+	 OP_SUB,
+	 OP_MULT,
+	 OP_DIV,
+	 OP_MOD,
+	 OP_OR ,
+	 OP_AND,
+	 OP_EQ,
+	 OP_NE,
+	 OP_LE,
+	 OP_GE,
+	 OP_LT,
+	 OP_GT
 } opType;
 
 typedef struct BinaryExpr {
@@ -226,7 +227,7 @@ typedef struct UnaryExpr {
 	eval_Boolean evalBoolean;
 	is_Boolean isBoolean;
 	is_Numerical isNumerical;
-		is_String  isString;
+	is_String  isString;
 	is_NodeSet isNodeSet;
 	require_ContextSize requireContextSize;
 	reset_ reset;
@@ -255,32 +256,32 @@ void    toString_ue(unaryExpr *e, UCSChar* string);
 
 // function Expr
 typedef enum FuncName {FN_LAST,
-					   FN_POSITION,
-					   FN_COUNT,
-					   FN_LOCAL_NAME,
-					   FN_NAMESPACE_URI,
-					   FN_NAME,
-					   FN_STRING,
-					   FN_CONCAT,
-					   FN_STARTS_WITH,
-					   FN_CONTAINS,
-					   FN_SUBSTRING_BEFORE,
-					   FN_SUBSTRING_AFTER,
-					   FN_SUBSTRING,
-					   FN_STRING_LENGTH,
-					   FN_NORMALIZE_SPACE,
-					   FN_TRANSLATE,
-					   FN_BOOLEAN,
-					   FN_NOT,
-					   FN_TRUE,
-					   FN_FALSE,
-					   FN_LANG,
-					   FN_NUMBER,
-					   FN_SUM,
-					   FN_FLOOR,
-					   FN_CEILING,
-					   FN_ROUND
-					} funcName;
+		   FN_POSITION,
+		   FN_COUNT,
+		   FN_LOCAL_NAME,
+		   FN_NAMESPACE_URI,
+		   FN_NAME,
+		   FN_STRING,
+		   FN_CONCAT,
+		   FN_STARTS_WITH,
+		   FN_CONTAINS,
+		   FN_SUBSTRING_BEFORE,
+		   FN_SUBSTRING_AFTER,
+		   FN_SUBSTRING,
+		   FN_STRING_LENGTH,
+		   FN_NORMALIZE_SPACE,
+		   FN_TRANSLATE,
+		   FN_BOOLEAN,
+		   FN_NOT,
+		   FN_TRUE,
+		   FN_FALSE,
+		   FN_LANG,
+		   FN_NUMBER,
+		   FN_SUM,
+		   FN_FLOOR,
+		   FN_CEILING,
+		   FN_ROUND
+} funcName;
 typedef struct AList {
 	expr *e;
 	struct AList *next;
@@ -299,7 +300,7 @@ typedef struct FuncExpr {
 	eval_Boolean evalBoolean;
 	is_Boolean isBoolean;
 	is_Numerical isNumerical;
-		is_String  isString;
+	is_String  isString;
 	is_NodeSet isNodeSet;
 	require_ContextSize requireContextSize;
 	reset_ reset;
@@ -312,14 +313,14 @@ typedef struct FuncExpr {
 	Boolean isBool;
 	Boolean isStr;
 	int contextSize;
-	double d;
+	//double d;
 	int position;
 	int a;
 } funcExpr;
 
 funcExpr *createFuncExpr(funcName oc, aList *a);
 void freeFuncExpr(funcExpr *e);
-int		evalNodeSet_fne (funcExpr *e,VTDNav *vn);
+int	evalNodeSet_fne (funcExpr *e,VTDNav *vn);
 double	evalNumber_fne (funcExpr *e,VTDNav *vn);
 UCSChar* evalString_fne  (funcExpr *e,VTDNav *vn);
 Boolean evalBoolean_fne (funcExpr *e,VTDNav *vn);
@@ -349,12 +350,12 @@ typedef enum AxisType {  AXIS_CHILD,
 						 AXIS_ANCESTOR_OR_SELF
 					} axisType;
 
-typedef enum {	NAMETEST ,
-				NODE,
-				TEXT,
-				PI0,
-				PI1,
-				COMMENT
+typedef enum {	NT_NAMETEST ,
+		NT_NODE,
+		NT_TEXT,
+		NT_PI0,
+		NT_PI1,
+		NT_COMMENT
 } nodeTestType;
 
 typedef struct nodeTest{
@@ -378,16 +379,17 @@ void toString_nt(NodeTest *nt, UCSChar *string);
 typedef struct predicate{
 	double d; // only supports a[1] style of location path for now
 	int count;
+	struct predicate *nextP;
 	expr *e;
 } Predicate;
 
 Predicate *createPredicate();
 void freePredicate(Predicate *p);
 Boolean eval_p(Predicate *p, VTDNav *vn);
-void setIndex(Predicate *p, int i);
-void setContextSize(Predicate *p, int size);
-Boolean requireContextSize(Predicate *p);
-void reset(Predicate *p, VTDNav vn);
+void setIndex_p(Predicate *p, int i);
+void setContextSize_p(Predicate *p, int size);
+Boolean requireContextSize_p(Predicate *p);
+void reset_p(Predicate *p, VTDNav *vn);
 void toString_p(Predicate *p, UCSChar *string);
 
 typedef struct step{
@@ -403,20 +405,20 @@ typedef struct step{
 
 Step *createStep();
 void freeStep(Step *s);
-void reset_s(Step *s, VTDNav vn);
-void resetP(Step *s,VTDNav vn);
-void resetP2(Step *s,VTDNav vn, Predicate p1);
-NodeTest getNodeTest(Step *s);
-Step getNextStep(Step *s);
+void reset_s(Step *s, VTDNav *vn);
+void resetP_s(Step *s,VTDNav *vn);
+void resetP2_s(Step *s,VTDNav *vn, Predicate *p1);
+NodeTest *getNodeTest(Step *s);
+Step *getNextStep(Step *s);
 Boolean get_ft(Step *s);
 void set_ft(Step *s, Boolean b);
-Step getPrevStep(Step *s);
-void setNodeTest(Step *s,NodeTest n);
-void setPredicate(Step *s,Predicate p1);
-Boolean eval_s(Step *s,VTDNav vn);
-Boolean eval_s2(Step *s,VTDNav vn, Predicate p);
-Boolean evalPredicates(Step *s,VTDNav vn);
-Boolean evalPredicates2(Step *s,VTDNav vn, Predicate p);
+Step *getPrevStep(Step *s);
+void setNodeTest(Step *s,NodeTest *n);
+void setPredicate(Step *s,Predicate *p1);
+Boolean eval_s(Step *s,VTDNav *vn);
+Boolean eval_s2(Step *s,VTDNav *vn, Predicate *p);
+Boolean evalPredicates(Step *s,VTDNav *vn);
+Boolean evalPredicates2(Step *s,VTDNav *vn, Predicate *p);
 void setAxisType(Step *s,int st);
 void toString_s(Step *s, UCSChar *string);
 
@@ -426,11 +428,11 @@ typedef enum{
 } pt;
 
 typedef enum{
-	START, 
-	END,
-	TERMINAL,
-	FORWARD, 
-	BACKWARD			
+	XPATH_EVAL_START, 
+	XPATH_EVAL_END,
+	XPATH_EVAL_TERMINAL,
+	XPATH_EVAL_FORWARD, 
+	XPATH_EVAL_BACKWARD			
 } LPstate;
 
 typedef struct LocationPathExpr {
@@ -456,7 +458,7 @@ typedef struct LocationPathExpr {
 } locationPathExpr;
 
 locationPathExpr *createLocationPathExpr();
-void freeLoationPathExpr(locationPathExpr *e);
+void freeLocationPathExpr(locationPathExpr *e);
 int		evalNodeSet_lpe (locationPathExpr *e,VTDNav *vn);
 double	evalNumber_lpe (locationPathExpr *e,VTDNav *vn);
 UCSChar* evalString_lpe  (locationPathExpr *e,VTDNav *vn);
@@ -470,7 +472,7 @@ void	reset_lpe(locationPathExpr *e, VTDNav *vn);
 void	setContextSize_lpe(locationPathExpr *e,int s);
 void	setPosition_lpe(locationPathExpr *e,int pos);
 void    toString_lpe(locationPathExpr *e, UCSChar* string);
-int computeContextSize(locationPathExpr *e, Step *s, Predicate *p, VTDNav *vn);
+
 Boolean isUnique(locationPathExpr *e,int i);
 void setStep(locationPathExpr *e, Step* st);
 
@@ -492,7 +494,7 @@ typedef struct FilterExpr{
 	set_ContextSize setContextSize;
 	set_Position setPosition;
 	to_String toString;
-	expr *e;
+	struct Expr *e;
 	Predicate *p;
 	Boolean first_time;
 } filterExpr;
@@ -512,7 +514,7 @@ void	reset_fe(filterExpr *e, VTDNav *vn);
 void	setContextSize_fe(filterExpr *e,int s);
 void	setPosition_fe(filterExpr *e,int pos);
 void    toString_fe(filterExpr *e, UCSChar* string);
-void	reset2(filterExpr *e, VTDNav *vn);
+void	reset2_fe(filterExpr *e, VTDNav *vn);
 
 // path expr
 
@@ -533,7 +535,6 @@ typedef struct PathExpr{
 	to_String toString;
 	expr *fe;
 	locationPathExpr *lpe;
-	Boolean first_time;
 	int evalState;
 	FastIntBuffer *fib;
 } pathExpr;
