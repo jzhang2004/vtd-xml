@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,62 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #include "autoPilot.h"
+// This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
+// the URL in the list is replaced with new URL
+static void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL);
 
-//create AutoPilot
+// given a prefix, find the URL
+//UCSChar *lookup(NsList *nl, UCSChar *prefix);
+
+
+// This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
+// the URL is overwritten
+void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL){
+	NsList *tmp = ap->nl;
+	// search first
+	if (tmp == NULL){
+		tmp = (NsList *)malloc(sizeof(NsList));
+		tmp->next = NULL; 
+		tmp->prefix = prefix;
+		tmp->URL = URL;
+		ap->nl = tmp;
+		return;
+	}else {
+		if (wcscmp(tmp->prefix,prefix) == 0){
+			tmp->URL = URL; // overwritten
+			return;
+		}
+		while(tmp->next!=NULL){
+			if (wcscmp(tmp->prefix,prefix) == 0){
+				tmp->URL = URL; // overwritten
+				return;
+			}
+			tmp = tmp->next;
+		}
+		
+		tmp->next = (NsList *)malloc(sizeof(NsList));
+		tmp->next->next = NULL; 
+		tmp->next->prefix = prefix;
+		tmp->next->URL = URL;
+		return;
+	}
+}
+
+// given a prefix, find the URL
+UCSChar *lookup(NsList *l, UCSChar *prefix){
+	NsList *tmp = l;
+	if (tmp==NULL)
+		return NULL;
+	while(tmp!= NULL){
+		if (wcscmp(tmp->prefix,prefix)==0){
+			return tmp->URL;
+		}
+		tmp = tmp->next;
+	}
+	return NULL;
+}
+
+//create AutoPilot throw exception if allocation failed
 AutoPilot *createAutoPilot(VTDNav *v){
 	exception e;
 	AutoPilot *ap = NULL;
@@ -42,18 +96,70 @@ AutoPilot *createAutoPilot(VTDNav *v){
     ap->it = UNDEFINED; // not defined
     ap->ft = TRUE;
 	//ap->startIndex = -1;
+	ap->xpe = NULL;
+	ap->nl = NULL;
+	ap->contextCopy = NULL;
+	ap->special = FALSE;
 	return ap;
 }
 
-// free AutoPilot
-void freeAutoPilot(AutoPilot *ap){
-	free(ap->contextCopy);
-	free(ap);
+// a argument-less constructor for autoPilot, 
+// out_of_mem exception if allocation failed 
+AutoPilot *createAutoPilot2(){
+	exception e;
+	AutoPilot *ap = NULL;
+	ap = (AutoPilot *)malloc(sizeof(AutoPilot));
+	if (ap == NULL){
+		e.et = out_of_mem;
+		e.msg = "createAutoPilot failed";
+		Throw e;
+	}
+    //throw new IllegalArgumentException(" instance of VTDNav can't be null ");
+    ap->elementName = NULL;
+	ap->localName = NULL;
+	ap->URL = NULL;
+    ap->vn = NULL;
+    //depth = v.getCurrentDepth();
+    ap->it = UNDEFINED; // not defined
+    ap->ft = TRUE;
+	ap->xpe = NULL;
+	//ap->startIndex = -1;
+	ap->nl = NULL;
+	ap->contextCopy = NULL;
+	ap->special = FALSE;
+	return ap;
+
 }
 
 
+
+// free AutoPilot
+void freeAutoPilot(AutoPilot *ap){
+	
+	if (ap!=NULL){
+		NsList *tmp = ap->nl;
+		NsList *tmp2 = NULL;
+		while(tmp!=NULL){
+			tmp2 = tmp->next;
+			free(tmp);
+			tmp  = tmp2;			
+		}
+		if (ap->contextCopy!=NULL)
+			free(ap->contextCopy);
+		if (ap->xpe!= NULL)
+		ap->xpe->freeExpr(ap->xpe);
+	}	
+	free(ap);
+
+}
+
+void printExprString(AutoPilot *ap){
+	if (ap->xpe!=NULL)
+		ap->xpe->toString(ap->xpe,NULL);
+}
+
 // Select an attribute name for iteration, * choose all attributes of an element
-void selectAttribute(AutoPilot *ap, UCSChar *an){
+void selectAttr(AutoPilot *ap, UCSChar *an){
 	exception e;
 	if (an == NULL){
 		 e.et = invalid_argument;
@@ -67,7 +173,7 @@ void selectAttribute(AutoPilot *ap, UCSChar *an){
 }
 
 // Select an attribute name, both local part and namespace URL part
-void selectAttributeNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
+void selectAttrNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 	exception e;
 	if (ln == NULL){
 		 e.et = invalid_argument;
@@ -246,15 +352,10 @@ void selectElementNS_P(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
  * Setspecial is used by XPath evaluator to distinguish between
  * node() and *
  * node() corresponding to b= true;
-
  */
 void setSpecial(AutoPilot *ap, Boolean b){
 	ap->special = b;
 }
-
-
-
-
 
 //Iterate over all the selected element nodes in document order.
 Boolean iterateAP(AutoPilot *ap){
@@ -262,7 +363,8 @@ Boolean iterateAP(AutoPilot *ap){
 	switch (ap->it) {
 		case SIMPLE :
 			//	throw new PilotException(" Element name not set ");
-
+			if (ap->vn->atTerminal)
+				return FALSE;
 			if (ap->ft == FALSE)
 				return iterate(ap->vn, ap->depth, ap->elementName, ap->special);
 			else {
@@ -273,7 +375,8 @@ Boolean iterateAP(AutoPilot *ap){
 					return iterate(ap->vn, ap->depth, ap->elementName,ap->special);
 			}
 		case SIMPLE_NS :
-
+			if (ap->vn->atTerminal)
+				return FALSE;
 			if (ap->ft == FALSE)
 				return iterateNS(ap->vn, ap->depth, ap->URL, ap->localName);
 			else {
@@ -422,5 +525,92 @@ int iterateAttr(AutoPilot *ap){
 	
 }
 
+/*
+ * This function selects the string representing XPath expression
+ * Usually evalXPath is called afterwards
+ */
+void selectXPath(AutoPilot *ap, UCSChar *s){
+	exception e;
+	if (s==NULL){
+		e.et = xpath_parse_exception;
+		e.msg = " xpath input string can't be NULL ";
+		Throw e;
+	}
+	ap->xpe = xpathParse(s, ap->nl);
+	if (ap->xpe == NULL){
+		e.et = xpath_parse_exception;
+		e.msg = " xpath input string is invalid ";
+		Throw e;
+	}
+}
 
+/*
+ * Evaluate XPath
+ */
+int evalXPath(AutoPilot *ap){
+	exception e;
+	if (ap->xpe != NULL){
+		if (ap->ft == TRUE){
+			if (ap->vn != NULL){
+	            ap->stackSize = ap->vn->contextBuf2->size;
+			}
+			ap->ft = FALSE;
+		}
+		return ap->xpe->evalNodeSet(ap->xpe,ap->vn);
+	}
+	else {
+		e.et = other;
+		e.msg = " xpe is NULL in autoPilot ";
+		Throw e;
+	}
 
+}
+
+/*
+ * Reset XPath
+ */
+void resetXPath(AutoPilot *ap){
+	if (ap->xpe != NULL){
+		ap->xpe->reset(ap->xpe,ap->vn);
+		ap->vn->contextBuf2->size = ap->stackSize;
+		ap->ft = TRUE;
+	}
+}
+
+/*
+ * This function creates URL ns prefix 
+ *  and is intended to be called prior to selectXPath
+ */
+void declareXPathNameSpace(AutoPilot *ap, UCSChar* prefix, UCSChar *URL){
+	if(ap!=NULL)
+		insertItem(ap,prefix,URL);
+}
+
+/**
+ * Iterate over all the selected element nodes in document order.
+ * Null element name allowed, corresponding to node() in xpath
+ */
+void rebind(AutoPilot *ap, VTDNav *new_vn){
+	ap->elementName = NULL;
+    ap->vn = new_vn;
+    //depth = v.getCurrentDepth();
+	ap->it = UNDEFINED; // not defined
+    ap->ft = TRUE;
+    ap->size = 0;
+    ap->special = FALSE;
+    resetXPath(ap);
+    //contextCopy = (int[])vn.context.clone();
+}
+
+/* 
+ * This method works with the argument-less createAutoPilot
+ */
+void setVTDNav(AutoPilot *ap, VTDNav *vn){
+	exception e;
+	if (vn == NULL){
+		e.et = invalid_argument;
+		e.msg = " setVTDNav failed: can't take NULL VTDNav pointer";
+		Throw e;
+	}
+	ap->vn = vn;
+}

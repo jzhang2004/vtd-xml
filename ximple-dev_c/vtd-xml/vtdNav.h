@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ typedef struct vTDNav{
 	int* context; // context object
 	Boolean atTerminal; // Add this model to be compatible with XPath data model, 
 						// true if attribute axis or text()
-
+// location cache part
 	int l2upper;
 	int l2lower;
 	int l3upper;
@@ -74,10 +74,15 @@ typedef struct vTDNav{
 	UByte* XMLDoc;
     
 	ContextBuffer *contextBuf;
-	ContextBuffer *contextBuf2;
+	ContextBuffer *contextBuf2;// this is reserved for XPath
 	
+	int LN;// record txt and attrbute for XPath eval purposes
+
 	int encoding;
+
 	int currentOffset;
+	int currentOffset2;
+
 	int ns;
 	int* stackTemp;
 	int offset;	 // starting offset of the XML doc wrt XMLDoc
@@ -205,6 +210,8 @@ Boolean matchElementNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
 Boolean matchRawTokenString(VTDNav *vn, int index, UCSChar *s);
+//This method matches two VTD tokens of 2 VTDNavs
+Boolean matchTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
 
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
@@ -225,11 +232,11 @@ Long parseLong(VTDNav *vn, int index);
 //Load the context info from ContextBuffer.
 //Info saved including LC and current state of the context 
 Boolean pop(VTDNav *vn);
-
+Boolean pop2(VTDNav *vn);
 //Store the context info into the ContextBuffer.
 //Info saved including LC and current state of the context 
 Boolean push(VTDNav *vn);
-
+Boolean push2(VTDNav *vn);
 void sampleState(VTDNav *vn, FastIntBuffer *fib);
 
 // A generic navigation method.
@@ -312,9 +319,6 @@ void setAtTerminal(VTDNav* vn, Boolean b);
  * This function only gets called in XPath eval
  */
 Boolean getAtTerminal(VTDNav *vn);
-
-
-
 
 extern inline int swap_bytes(int i);
 

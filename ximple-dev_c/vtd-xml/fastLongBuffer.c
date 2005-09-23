@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,9 +103,10 @@ FastLongBuffer *createFastLongBuffer3(int exp, int c){
 }
 // free FastLongBuffer 
 void freeFastLongBuffer(FastLongBuffer *flb){
-	if (flb != NULL) 
+	if (flb != NULL) {
 		freeArrayList(flb->al);
-	free(flb);
+		free(flb);
+	}
 }
 // append a long array to the end of FastLongBuffer
 void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){

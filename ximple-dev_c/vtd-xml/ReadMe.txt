@@ -15,44 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-========================================================================
-    CONSOLE APPLICATION : vtd-xml Project Overview
-========================================================================
+to do list
+1. Added atTerminal variable and make corresponding changes to various navigation functions (done)
+2. Added special variable to Autopilot (done)
+3. Port various selectElement_P, selectElementNS_P, selectElement_F, selectElementNS_F, and iterate
+and compare the implementation along the way to see if there is any discrepancy (done)
+4. Port selectAttr IterateAttr (done)
+5. Start working on flex and bison, needs to define wchar_t!!!, may have to use lex instead (done)
+6. Define corresponding data types need to construct an XPath expression (done)
+7. Define various exception condition for XPath exception (done)
+8. Port the core function that does evalNodeSet for LocationPathExpr (done)
+9. Study interface emulation in C using func pointers (done)
+10. 
 
-AppWizard has created this vtd-xml application for you.  
-This file contains a summary of what you will find in each of the files that
-make up your vtd-xml application.
 
 
-vtd-xml.vcproj
-    This is the main project file for VC++ projects generated using an Application Wizard. 
-    It contains information about the version of Visual C++ that generated the file, and 
-    information about the platforms, configurations, and project features selected with the
-    Application Wizard.
-
-vtd-xml.cpp
-    This is the main application source file.
-
-/////////////////////////////////////////////////////////////////////////////
-Other standard files:
-
-StdAfx.h, StdAfx.cpp
-    These files are used to build a precompiled header (PCH) file
-    named vtd-xml.pch and a precompiled types file named StdAfx.obj.
-
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
-
-AppWizard uses "TODO:" comments to indicate parts of the source code you
-should add to or customize.
-
-setting a freed pointer to NULL is a task left to users of the library.
-
-exception handling, use "cexcept.h" as the foundation
-
-A global exception is defined
-out_of_mem exception, if thrown, doesn't require one to free up any resource,
-since that is taken care of by the exception thrower
-
-exception type  (out of mem, parse_time, nav_time, io)
-/////////////////////////////////////////////////////////////////////////////
+1. add localname and prefix support
+2. add teh rest of features in autopilot
+3. probing possible memory leaks in yyparse
+4. debugging the whole thing
+ 

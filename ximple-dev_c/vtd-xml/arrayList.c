@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 
 // allocate arrayList with initial capacity of 10, 
-// return NULL if allocation failed
+// throw exception if allocation failed
  ArrayList *createArrayList(){
 	exception e;
 	int i=0;
@@ -80,8 +80,8 @@
 	for (i=0;i<al->size;i++)
 		free(al->storage[i]); // it is ok, only pointers to mem blocks are stored
 		free(al->storage);
-	}
-	free(al);
+		free(al);
+	}	
 }
 
 // add the element to the end of the storage, 

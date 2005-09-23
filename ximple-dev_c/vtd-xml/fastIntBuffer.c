@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,9 +73,10 @@ FastIntBuffer *createFastIntBuffer2(int exp){
 
 // Free FastIntBuffer
 void freeFastIntBuffer(FastIntBuffer *fib){
-	if (fib != NULL) 
+	if (fib != NULL) {
 		freeArrayList(fib->al);
-	free(fib);
+		free(fib);
+	}
 }
 
 // Append i to the end of FastIntBuffer

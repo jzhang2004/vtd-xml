@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -629,7 +629,11 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 				}
 			} else {
 			if (lpe->currentStep->ft == TRUE) {
-				lpe->currentStep->o = ap = createAutoPilot(vn);
+				if (lpe->currentStep->o == NULL)
+					lpe->currentStep->o = ap = createAutoPilot(vn);
+				else
+					ap = lpe->currentStep->o;
+				
 				if (lpe->currentStep->nt->localName!=NULL)
 				    selectAttrNS(ap,lpe->currentStep->nt->URL,
 				            lpe->currentStep->nt->localName);
@@ -688,6 +692,8 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 			}
 			if (temp == -1) {
 				lpe->currentStep->ft = TRUE;
+				//freeAutoPilot(lpe->currentStep->o);
+				//lpe->currentStep->o = NULL;
 				resetP_s(lpe->currentStep,vn);
 				setAtTerminal(vn,FALSE);
 				if (lpe->currentStep->prevS != NULL) {
@@ -725,10 +731,14 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 			resetP_s(lpe->currentStep,vn);
 			if (lpe->currentStep->prevS == NULL) {
 				lpe->currentStep->ft = TRUE;
+				//freeAutoPilot(lpe->currentStep->o);
+				//lpe->currentStep->o = NULL;
 				 lpe->state=  XPATH_EVAL_END;
 			} else {
 				 lpe->state=  XPATH_EVAL_BACKWARD;
 				lpe->currentStep->ft = TRUE;
+				//freeAutoPilot(lpe->currentStep->o);
+				//lpe->currentStep->o = NULL;
 				lpe->currentStep = lpe->currentStep->prevS;
 			}
 			
@@ -1587,13 +1597,17 @@ NodeTest *createNodeTest(){
 	}
 	nt->nsEnabled = FALSE;
 	nt->localName = NULL;
+	nt->prefix = NULL;
+	nt->URL = NULL;
+	nt->nodeName = NULL;
 	return nt;
 }
 void freeNodeTest(NodeTest *nt){
+	if (nt==NULL) return;
 	free(nt->localName);
 	free(nt->nodeName);
 	free(nt->prefix);
-	free(nt->URL);
+	//free(nt->URL);
 	free(nt);
 }
 Boolean eval_nt(NodeTest *nt, VTDNav *vn){
@@ -1629,10 +1643,11 @@ void toString_nt(NodeTest *nt, UCSChar *string){
 		        wprintf(L"%s",nt->nodeName);
 		    else 
 				wprintf(L"%s:%s", nt->prefix,nt->localName);
-		case NT_NODE: wprintf(L"node()");
-		case NT_TEXT: wprintf(L"text()");
+			break;
+		case NT_NODE: wprintf(L"node()");break;
+		case NT_TEXT: wprintf(L"text()");break;
 		case NT_PI0: 
-		case NT_PI1: wprintf(L"processing-instruction()");
+		case NT_PI1: wprintf(L"processing-instruction()");break;
 		default:  wprintf(L"comment()");
 	}
 }
@@ -1647,22 +1662,24 @@ Predicate *createPredicate(){
 		Throw e;
 	}
 	p->nextP = NULL;
+	p->e = NULL;
 	p->count = 0;
 	p->d = 0;
 	return p;
 }
 
 void freePredicate(Predicate *p){
-	/*Predicate *tmp;
 	if (p==NULL)
 		return;
-	tmp = p->nextP;
+	/*tmp = p->nextP;
 	while(tmp!=NULL){
 		free(p);
 		p = tmp;
 		tmp = tmp->nextP;
 	}*/
 	/* the logic of free a list of predicates occurs in step*/
+	if(p->e!=NULL)
+		p->e->freeExpr(p->e);
 	free(p);
 }
 
@@ -1728,12 +1745,14 @@ Step *createStep(){
 	s->nt = NULL;
 	s->ft = TRUE;
 	s->position = 1;
+	s->o = NULL;
 
 	return s;
 }
 
 void freeStep(Step *s){
 	Predicate *tmp, *tmp2;
+	if (s==NULL)return;
 	if (s->p != NULL){
 		tmp = s->p;
 		tmp2 = tmp->nextP;
@@ -1750,7 +1769,9 @@ void freeStep(Step *s){
 }
 
 void reset_s(Step *s, VTDNav *vn){
-
+	s->ft = TRUE;
+	resetP_s(s,vn);
+	s->position =1 ;
 }
 
 void resetP_s(Step *s,VTDNav *vn){
@@ -1832,8 +1853,10 @@ void toString_s(Step *s, UCSChar *string){
 	}
 	if (s->nextS == NULL)
 		return;
-	else 
+	else {
+		wprintf(L"/");
 		toString_s(s->nextS, string);
+	}
 }
 
 
@@ -1875,6 +1898,7 @@ locationPathExpr *createLocationPathExpr(){
 
 void freeLocationPathExpr(locationPathExpr *lpe){
 	Step *tmp, *tmp2;
+	if (lpe ==NULL) return;
 	if (lpe->s != NULL){
 		tmp = lpe->s;
 		tmp2 = tmp->nextS;

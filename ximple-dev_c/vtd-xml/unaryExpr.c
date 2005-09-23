@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -46,8 +46,8 @@ unaryExpr *createUnaryExpr(opType op, expr *e1){
 	return ue;
 }
 void freeUnaryExpr(unaryExpr *ue){
-	if (ue!=NULL && ue->e != NULL)
-		(ue->e->freeExpr)(ue->e);
+	if (ue == NULL) return;
+	ue->e->freeExpr(ue->e);
 	free(ue);
 }
 

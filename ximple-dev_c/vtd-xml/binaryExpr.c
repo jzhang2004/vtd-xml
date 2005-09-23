@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -456,6 +456,7 @@ binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
 }
 
 void freeBinaryExpr(binaryExpr *be){
+	if (be == NULL) return;
 	be->left->freeExpr(be->left);
 	be->right->freeExpr(be->right);
 	freeFastIntBuffer(be->fib1);

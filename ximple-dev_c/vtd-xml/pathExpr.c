@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -36,12 +36,11 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 		e.msg = "pathExpr allocation failed ";
 		Throw e;
 	}
-	
-	pe->fib = createFastIntBuffer2(8);
-	if (pe->fib==NULL){
+	Try{
+		pe->fib = createFastIntBuffer2(8);
+	}
+	Catch(e){
 		free(pe);
-		e.et = out_of_mem;
-		e.msg = "literalExpr allocation failed ";
 		Throw e;
 	}
 
@@ -67,9 +66,10 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 	
 }
 void freePathExpr(pathExpr *pe){
+	if (pe==NULL) return;
 	freeFastIntBuffer(pe->fib);
 	pe->fe->freeExpr(pe->fe);
-	freeExpr_lpe(pe->lpe);
+	freeLocationPathExpr(pe->lpe);
 	free(pe);
 }
 
@@ -216,22 +216,22 @@ Boolean requireContextSize_pe(pathExpr *pe){
 }
 
 
-void	reset_pe(pathExpr *pe, VTDNav *vn){
+void reset_pe(pathExpr *pe, VTDNav *vn){
 	pe->fe->reset(pe->fe,vn);
 	reset_lpe(pe->lpe,vn);
 	clearFastIntBuffer(pe->fib);
 	pe->evalState = 0;
 }
-void	setContextSize_pe(pathExpr *pe,int s){
+void setContextSize_pe(pathExpr *pe,int s){
 }
 
-void	setPosition_pe(pathExpr *pe,int pos){
+void setPosition_pe(pathExpr *pe,int pos){
 
 }
-void    toString_pe(pathExpr *pe, UCSChar* string){
+void toString_pe(pathExpr *pe, UCSChar* string){
 	wprintf(L"(");
 	pe->fe->toString(pe->fe,string);
-	wprintf(L")");
+	wprintf(L")/");
 	toString_lpe(pe->lpe, string);
 }
 

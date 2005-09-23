@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,8 @@ literalExpr *createLiteralExpr(UCSChar *st){
 }
 
 void freeLiteralExpr(literalExpr *le){
-	free(le->s);
+	if (le == NULL) return;
+	free(le->s);// this assume s is dynamically created
 	free(le);
 }
 
@@ -75,7 +76,7 @@ double	evalNumber_le (literalExpr *le,VTDNav *vn){
 	return result;
 }
 
-UCSChar* evalString_le  (literalExpr *le,VTDNav *vn){
+UCSChar* evalString_le (literalExpr *le,VTDNav *vn){
 	return le->s;
 }
 
@@ -114,5 +115,7 @@ void	setPosition_le(literalExpr *le,int pos){
 }
 
 void    toString_le(literalExpr *le, UCSChar* string){
-	wprintf(L"\"%s\"",le->s);
+	wprintf(L"\"");
+	wprintf(L"%s",le->s);
+	wprintf(L"\"");
 }

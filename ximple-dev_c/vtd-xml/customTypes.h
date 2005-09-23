@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 #define VC
 //#define GCC
 
+
 typedef wchar_t UCSChar;
 typedef long long Long;
 typedef char Byte;
@@ -65,6 +66,7 @@ typedef enum XMLencoding {FORMAT_ASCII,
 						  FORMAT_UTF_16LE} 
 					encoding;
 
+
 typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 						   TOKEN_ENDING_TAG,
 						   TOKEN_ATTR_NAME,
@@ -81,6 +83,8 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 						   TOKEN_DOCUMENT}
 					tokenType;
 
+
+
 					enum exception_type {out_of_mem, 
 					  					 invalid_argument,
 										 array_out_of_bound,
@@ -88,9 +92,13 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 										 nav_exception,
 										 pilot_exception,
 										 number_format_exception,
+										 xpath_parse_exception,
+										 xpath_eval_exception,
 										 other};
 
-					typedef struct vtd_exception {
+
+
+typedef struct vtd_exception {
 						enum exception_type et;
 						int subtype; // subtype to be defined later
 						const char* msg;
@@ -100,5 +108,7 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 					define_exception_type(exception);
 					extern struct exception_context the_exception_context[1];
 
+//#define NaN  (0/0.0)
+#define isNaN(x) ((x) != (x))
 					
 #endif

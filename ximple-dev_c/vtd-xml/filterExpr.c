@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 	
 }
 void freeFilterExpr(filterExpr *fe){
+	if (fe == NULL) return;
 	fe->e->freeExpr(fe->e);
 	freePredicate(fe->p);
 	free(fe);

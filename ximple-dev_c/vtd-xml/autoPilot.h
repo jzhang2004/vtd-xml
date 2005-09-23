@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "customTypes.h"
 #include "vtdNav.h"
 #include "cexcept.h"
+#include "xpath1.h"
 
 // iter_type defines the type of iteration, to be used in function iterateAP
 typedef enum iter_type { UNDEFINED, 
@@ -35,6 +36,9 @@ typedef enum iter_type { UNDEFINED,
 						ATTR, 
 						ATTR_NS} iterType;
 
+
+
+
 typedef struct autoPilot{
 	UCSChar *URL;
 	UCSChar *localName;
@@ -47,21 +51,28 @@ typedef struct autoPilot{
     iterType it;
 	//int startIndex;
 	int size; // iterAttr
+	struct Expr *xpe; // xpath Expr
 	int *contextCopy; // for preceding axis
-	int stackSzie; // record stack size for xpath evaluation 
+	int stackSize; // record stack size for xpath evaluation 
+	struct nsList *nl;
 } AutoPilot;
 
 //create AutoPilot
 AutoPilot *createAutoPilot(VTDNav *v);
+AutoPilot *createAutoPilot2();
+
+void printExprString(AutoPilot *ap);
+// set VTDNav
+void setVTDNav(AutoPilot *ap, VTDNav *vn);
 
 // free AutoPilot
 void freeAutoPilot(AutoPilot *ap);
 
 // Select an attribute name for iteration, * choose all attributes of an element
-void selectAttribute(AutoPilot *ap, UCSChar *an);
+void selectAttr(AutoPilot *ap, UCSChar *an);
 
 // Select an attribute name, both local part and namespace URL part
-void selectAttributeNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln);
+void selectAttrNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln);
 
 
 //Select the element name before iterating
@@ -135,5 +146,28 @@ int iterateAttr(AutoPilot *ap);
  * This method implements the attribute axis for XPath
  */
 Boolean iterateAttrAP(AutoPilot *ap);
+
+/*
+ * This function selects the string representing XPath expression
+ * Usually evalXPath is called afterwards
+ */
+void selectXPath(AutoPilot *ap, UCSChar *s);
+
+/*
+ * Evaluate XPath
+ */
+int evalXPath(AutoPilot *ap);
+
+/*
+ * Reset XPath
+ */
+void resetXPath(AutoPilot *ap);
+
+/*
+ * Declare prefix/URL binding
+ */
+
+void declareXPathNameSpace(AutoPilot *ap, UCSChar *prefix, UCSChar *URL);
+
 #endif
 

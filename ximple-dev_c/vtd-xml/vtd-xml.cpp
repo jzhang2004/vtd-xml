@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 // vtd-xml.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,10 +25,19 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
+#include "xpath1.h"
+#include "helper.h"
+#include "vtdGen.h"
+#include "vtdNav.h"
+#include "autoPilot.h"
+//#include "lex.yy.c"
+//#include "l8.tab.c"
+
+
 struct exception_context the_exception_context[1];
 
 //#define _UNICODE
-#if 1
+#if 0
 
 
 Boolean APTest(char *fn){
@@ -622,7 +630,7 @@ Boolean NavTest(char* fn){
 
 int main(int argc, char *argv[])
 {   
-   int test =10;
+   int test =11;
   
    if (test ==1){
 	int i,a;
@@ -1169,3 +1177,89 @@ int main(){
 
 
 #endif
+
+#if 1
+void main(){
+	AutoPilot *ap = NULL;
+	int ii = 0;
+	FILE *f = NULL;
+	UByte *xml = NULL;
+	VTDGen *vg = NULL;
+	VTDNav *vn = NULL;
+	exception e;
+	int a,result;
+	expr *expression = NULL;
+	double d= 0;
+	char* fn = "d:/ximple-dev/testcases/xpath/x21.xml";
+	f = fopen(fn,"r");
+	ii=(int)_filelength(f->_file);
+	xml = (UByte *)malloc(sizeof(UByte)*ii); 
+	fread(xml,sizeof(UByte),ii,f);
+	
+
+	//selectXPath(ap,L"/ns1:*/ns1:*/ns1:*");
+	Try{
+		ap = createAutoPilot2();
+		vg = createVTDGen();
+		setDoc(vg,xml,ii);
+		parse(vg,TRUE);
+		vn = getNav(vg);
+		declareXPathNameSpace(ap,L"a",L"jimmy");
+		declareXPathNameSpace(ap,L"c",L"larry");
+		selectXPath(ap,L"/a:b/c:d ");
+		setVTDNav(ap,vn);
+
+		wprintf(L" *************** \n");
+
+		printExprString(ap);
+
+		wprintf(L" \n *************** \n");
+		//d = ap->xpe->evalNumber(ap->xpe,NULL);
+		//wprintf(L" dval -> %ls\n",ap->xpe->evalString(ap->xpe,NULL));
+		wprintf(L" \n\n ************** \n");
+		a = getCurrentIndex(vn);
+		while((result=evalXPath(ap))!=-1){
+			wprintf(L" result is %d \n",result);
+		}
+		if (0==getCurrentIndex(vn)){
+			wprintf(L"begin matches end \n");
+		}
+	}Catch(e){
+		wprintf(L"%s\n",e.msg);
+	}
+	freeVTDGen(vg);
+	freeVTDNav(vn);
+	freeAutoPilot(ap);
+	
+///a:b[/a:*/*/descendant::k]/@d
+	//expression = xpathParse(L"/ a[/a/b/c] / b[1+2 div 3] / self:: c");
+	//expression->toString(expression,NULL);
+	//expression->freeExpr(expression);
+	
+	//d = expression->evalNumber(expression,NULL);
+	//yy_scan_string("/a/b/c");
+	//if (yyparse()==0){
+		//expression = yylval.expression;
+	//}
+	
+	/*Try {
+		while(TRUE){
+		UCSChar *string = wcsdup(L"2.0");
+		expr *e1 = createNumberExpr(2);
+		expr *e2 = createLiteralExpr(string);
+		expr *e3 = createBinaryExpr(e1,OP_ADD,e2);
+		//wprintf(L"%s",e3->evalString(e3,NULL));
+		e3->freeExpr(e3);
+		//free(string);
+		string = NULL;
+		e3 = NULL;
+		e2 = NULL;
+		e1 = NULL;
+		}
+	}Catch (e){
+	}*/
+
+}
+#endif
+
+//struct exception_context the_exception_context[1];#ifdef 0#endif

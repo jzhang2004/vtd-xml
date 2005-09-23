@@ -419,7 +419,7 @@ Boolean eval_s(Step *s,VTDNav *vn);
 Boolean eval_s2(Step *s,VTDNav *vn, Predicate *p);
 Boolean evalPredicates(Step *s,VTDNav *vn);
 Boolean evalPredicates2(Step *s,VTDNav *vn, Predicate *p);
-void setAxisType(Step *s,int st);
+void setAxisType(Step *s,axisType st);
 void toString_s(Step *s, UCSChar *string);
 
 typedef enum{
@@ -555,4 +555,24 @@ void	setContextSize_pe(pathExpr *e,int s);
 void	setPosition_pe(pathExpr *e,int pos);
 void    toString_pe(pathExpr *e, UCSChar* string);
 
+int yylex();
+//void yyrestart(FILE *i);
+int yyerror(char *s);
+expr *xpathParse(UCSChar *input);
+//YY_BUFFER_STATE yy_scan_string(const YY_CHAR *str);
+
+// three variable to direct yyparse to in-memory string
+unsigned short *xpathInput;
+unsigned short *xpathInputPtr;
+unsigned short *xpathInputLimit;
+
+// This structure is for data item look up purposes
+typedef struct nsList {
+	UCSChar *URL;
+	UCSChar *prefix;
+	struct nsList *next;
+} NsList;
+
+// given a prefix, find the URL
+UCSChar *lookup(NsList *nl, UCSChar *prefix);
 #endif
