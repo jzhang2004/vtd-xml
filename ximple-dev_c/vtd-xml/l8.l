@@ -31,9 +31,7 @@
 #endif
 #undef  YY_INPUT
 #define YY_INPUT(b,r,ms)  r = my_yyinput(b,ms)
-static int isName = 1;
-//static size_t len;
-static int colonPosition = -1;
+
 static wchar_t *tmpstring;
 
 int my_yyinput(unsigned short *buf, int s);
@@ -49,7 +47,7 @@ static int i;
 ws 	   [ \t\r\n]
 digits	[0-9]+
 nc	   ([^!-/:-@[-^ \n\r\t|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|"-")
-nc2   ([^!-/;-@[-^ \n\r\t|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
+nc2   ([^!-/;-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 
 %%
 
@@ -83,8 +81,10 @@ nc2   ([^!-/;-@[-^ \n\r\t|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
 		yylval.name.qname = wcsdup(L"*");
+		//addObj(yylval.name.qname);
 		//yylval.name.localname = NULL;
 		//yylval.name.prefix = NULL;
+		addObj(yylval.name.qname);
 		return NAME;
 	 }	 
 	}
@@ -102,6 +102,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
 		yylval.name.qname = wcsdup(L"div");
+		addObj(yylval.name.qname);
 		return NAME;
 	 } 
 	}
@@ -115,6 +116,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.prefix = NULL;
 		isName = 0;
 		yylval.name.qname = wcsdup(L"mod");
+		addObj(yylval.name.qname);
 		return NAME;
 	 } 
 	}
@@ -129,6 +131,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.prefix = NULL;
 		isName = 0;
 		yylval.name.qname = wcsdup(L"and");
+		addObj(yylval.name.qname);
 		return NAME;
 	 } 
 	}
@@ -143,6 +146,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.prefix = NULL;
 		isName = 0;
 		yylval.name.qname = wcsdup(L"or");
+		addObj(yylval.name.qname);
 		return NAME;
 	 }
 	}
@@ -313,7 +317,7 @@ round{ws}*"("		{  	isName = 1;
 				tmpstring = mydup(yytext,yyleng);
 				yylval.literal = malloc(sizeof(wchar_t)*(yyleng-1));
 				if (yylval.literal!=NULL){
-					wcsncpy(yylval.literal, (wchar_t)(tmpstring+1), yyleng-2);
+					wcsncpy(yylval.literal, (wchar_t *)(tmpstring+1), yyleng-2);
 					addObj(yylval.literal);
 				} 	
 				*(yylval.literal+yyleng-2) = L'\0';
@@ -445,11 +449,12 @@ self{ws}*::		{	isName = 1;
 				if (tmpstring!=NULL){
 					wcsncpy(yylval.name.prefix, tmpstring, yyleng-2);
 					yylval.name.prefix[yyleng-2] = 0;
-					addObj(tmpstring);
+					addObj(yylval.name.prefix);
 				}
 				free(tmpstring);
 				tmpstring = NULL;
 				yylval.name.localname = wcsdup(L"*");
+				addObj(yylval.name.localname);
 				return NAME;
 			}
 
@@ -474,6 +479,8 @@ self{ws}*::		{	isName = 1;
 					if (yylval.name.localname == NULL){
 						return ERROR;
 					}
+					addObj(yylval.name.prefix);
+					addObj(yylval.name.localname);
 					// copy content of prefix and localname
 					for (i=0;i<colonPosition;i++){
 						yylval.name.prefix[i] = yytext[i];
@@ -500,9 +507,9 @@ self{ws}*::		{	isName = 1;
 			}
 
 %%
-//UCSChar *xpathInput;
-//UCSChar *xpathInputPtr;
-//int	xpathInputLimit;
+unsigned short *xpathInput;
+unsigned short *xpathInputPtr;
+unsigned short *xpathInputLimit;
 
 int my_yyinput(YY_CHAR *buf, int max_size){
 	// n is of unit (unsigned short)

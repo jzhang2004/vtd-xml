@@ -31,6 +31,8 @@ Predicate *tmpP;
 
 static expr *x;
 static NsList *xpathNSList = NULL;
+extern int isName;
+extern int colonPosition;
 %}
 
 %union {
@@ -96,7 +98,7 @@ OrExpr 		:    AndExpr  {$$ = $1;}
 									}
 								Catch(e){
 									//freeAllObj();
-									 return 1;
+									 YYABORT;
 								} 
 		
 								}
@@ -110,7 +112,7 @@ AndExpr		:    EqualityExpr { $$ = $1;}
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		;
@@ -123,7 +125,7 @@ EqualityExpr    :    RelationalExpr  { $$ = $1;}
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		|    EqualityExpr NE RelationalExpr {
@@ -133,7 +135,7 @@ EqualityExpr    :    RelationalExpr  { $$ = $1;}
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		;
@@ -146,7 +148,7 @@ RelationalExpr  :    AdditiveExpr  { $$ = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		|    RelationalExpr GT AdditiveExpr  {
@@ -156,7 +158,7 @@ RelationalExpr  :    AdditiveExpr  { $$ = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		|    RelationalExpr LE AdditiveExpr  {
@@ -166,7 +168,7 @@ RelationalExpr  :    AdditiveExpr  { $$ = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		|    RelationalExpr GE AdditiveExpr  {
@@ -176,7 +178,7 @@ RelationalExpr  :    AdditiveExpr  { $$ = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		;
@@ -189,7 +191,7 @@ AdditiveExpr    :    MultiplicativeExpr  {$$  = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		|    AdditiveExpr SUB MultiplicativeExpr {
@@ -199,7 +201,7 @@ AdditiveExpr    :    MultiplicativeExpr  {$$  = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		;
@@ -212,7 +214,7 @@ MultiplicativeExpr    :  UnaryExpr  {$$ = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		|    MultiplicativeExpr DIV UnaryExpr  {
@@ -222,7 +224,7 @@ MultiplicativeExpr    :  UnaryExpr  {$$ = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		|    MultiplicativeExpr MOD UnaryExpr  {
@@ -232,7 +234,7 @@ MultiplicativeExpr    :  UnaryExpr  {$$ = $1; }
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		;
@@ -245,14 +247,14 @@ UnaryExpr    	:    UnionExpr  { $$ = $1;}
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 								}
 		;
 
 
 UnionExpr    	:    PathExpr  	{ $$ = $1; }		
-   		|    UnionExpr UNION PathExpr {/*freeAllObj();*/return 1;}
+   		|    UnionExpr UNION PathExpr {/*freeAllObj();*/YYABORT;}
 		;
 
 
@@ -270,7 +272,7 @@ PathExpr     	:    LocationPath  { $$ = $1;  }
   															tmpLPExpr = NULL;
   														}Catch(e){  														
   															//freeAllObj();
-  															return 1;
+  															YYABORT;
   														}  		
   													}
   													
@@ -294,7 +296,7 @@ PathExpr     	:    LocationPath  { $$ = $1;  }
 															addObj($$->fib);															
 														} Catch (e){
 															//freeAllObj();		
-															return 1;																											
+															YYABORT;																											
 														}								
 													}
 		;
@@ -307,14 +309,14 @@ FilterExpr   	:    PrimaryExpr  { $$ = $1;}
   										}
   									Catch(e){
   										//freeAllObj();
-  										return 1;
+  										YYABORT;
   									}
   								}  									
   								;
 
 
 
-PrimaryExpr     :    VariableReference {/*freeAllObj();*/ return 1;}
+PrimaryExpr     :    VariableReference {/*freeAllObj();*/ YYABORT;}
 		|    LP Expr RP  { $$ = $2;} 
 		|    LITERAL  { Try {
 							$$ = createLiteralExpr($1);
@@ -322,7 +324,7 @@ PrimaryExpr     :    VariableReference {/*freeAllObj();*/ return 1;}
 							addObj($1);
 						} Catch (e) {
 							//freeAllObj();
-							return 1;	
+							YYABORT;	
 						}						
 					  } 
 		|    NUMBER  { Try {
@@ -330,14 +332,14 @@ PrimaryExpr     :    VariableReference {/*freeAllObj();*/ return 1;}
 						    addObj($$);
 					   } Catch (e) {
 							//freeAllObj();
-							return 1;
+							YYABORT;
 					   }
 					 } 
 		|    FunctionCall { $$ = $1;} 
 		|    ERROR {
 						//freeAllObj();
 						printf(" Invalid char encoutered \n");
-						return 1;
+						YYABORT;
 					}
 		;
 
@@ -348,7 +350,7 @@ FunctionCall    :    FunctionName LP ArgumentList RP { Try {
 													   }
 													   Catch(e){
 															//freeAllObj();
-															return 1;
+															YYABORT;
 													   }
 
 													 } 
@@ -361,7 +363,7 @@ ArgumentList	: 	{ $$ = NULL;}
 	     							$$->e = $1;  								     	
 	     						}Catch (e){
 	     							//freeAllObj();
-	     							return 1;
+	     							YYABORT;
 	     						}	
 	     					} 
 	     	|    Argument COMMA ArgumentList  {
@@ -372,7 +374,7 @@ ArgumentList	: 	{ $$ = NULL;}
 	     												$$->next = $3;	     												
 	     											} Catch (e){
 	     												//freeAllObj();
-	     												return 1;	     													     												
+	     												YYABORT;	     													     												
 	     											}	     	
 	     									  } 
 		;
@@ -389,7 +391,7 @@ LocationPath    :    RelativeLocationPath	{ Try {
 												  }
 											  Catch (e) {
 													//freeAllObj();
-													return 1;
+													YYABORT;
 											  }
 											}
 		|    AbsoluteLocationPath	{		Try {  printf("absolute locationpath \n");
@@ -402,7 +404,7 @@ LocationPath    :    RelativeLocationPath	{ Try {
 											  Catch (e) {
 													//freeLocationPathExpr($$);
 													//freeAllObj();
-													return 1;
+													YYABORT;
 											  }
 									}
 		;
@@ -431,7 +433,7 @@ Step		:    AxisSpecifier NodeTest PredicateList {
 															}
 														Catch(e){
 															//freeAllObj();
-															return 1;
+															YYABORT;
 														}
 														}
       		|    AbbreviatedStep			{$$ = $1;}
@@ -448,14 +450,15 @@ NodeTest	:    NAME 				{ Try {
 											setNodeNameNS($$,$1.prefix,$1.localname);
 											// the part for URL mapping goes here
 											$$->URL = lookup(xpathNSList,$1.prefix);
-											if ($$->URL == NULL)
-											return 1;
+											if ($$->URL == NULL){
+												YYABORT;
+											}
 										}
 										$1.prefix = $1.localname = $1.qname = NULL;
 										
 									  } Catch(e){
 										//freeAllObj();
-										return 1;
+										YYABORT;
 									  }
 									} 
 	 	|    NTEST				{ Try{
@@ -465,7 +468,7 @@ NodeTest	:    NAME 				{ Try {
 	 								}
 	 								Catch(e){
 	 									//freeAllObj();
-	 									return 1;
+	 									YYABORT;
 	 								}	 								
 	 							}
 		;
@@ -495,7 +498,7 @@ AbbreviatedStep	:    DOT {Try{
 							}
 							Catch(e){
 								//freeAllObj();
-								return 1;
+								YYABORT;
 							}
 						}
 		|    DDOT {
@@ -510,7 +513,7 @@ AbbreviatedStep	:    DOT {Try{
 					}
 					Catch(e){
 						//freeAllObj();
-						return 1;
+						YYABORT;
 					}
 		
 					}
@@ -529,7 +532,7 @@ AbbreviatedAbsoluteLocationPath : DSLASH RelativeLocationPath {
 																	$2->prevS = $$;																
 																}Catch(e){
 																	//freeAllObj();
-																	return 1;																	
+																	YYABORT;																	
 																}
 																}
 		;
@@ -550,7 +553,7 @@ AbbreviatedRelativeLocationPath : Step DSLASH RelativeLocationPath  {
 																		$$ = $1;
 																	}Catch(e){
 																		//freeAllObj();
-																		return 1;	
+																		YYABORT;	
 																	}
 																	}
 		;
@@ -563,7 +566,7 @@ Predicate 	:    LB Expr RB {
 									$$->e = $2;
 								} Catch(e){
 									//freeAllObj();
-									return 1;
+									YYABORT;
 								}
 							}
 	   	;
@@ -575,6 +578,9 @@ FunctionName 	:  FNAME  {$$  = $1;}
 	      ;
 	      
 %%
+extern unsigned short *xpathInput;
+extern unsigned short *xpathInputPtr;
+extern unsigned short *xpathInputLimit;
 
 expr *xpathParse(UCSChar *input, NsList *nl){
 	int l = wcslen(input);
@@ -586,6 +592,8 @@ expr *xpathParse(UCSChar *input, NsList *nl){
 		xpathInput[i] = (unsigned short)input[i];
 	}
 	xpathInputLimit = (unsigned short *) (xpathInput + ((l)<<1));
+	isName = 1;
+	colonPosition = -1;
 	if (yyparse() == 0){
 		//isName = 1;
 		wprintf(L"yyparse return 0\n");
@@ -594,7 +602,7 @@ expr *xpathParse(UCSChar *input, NsList *nl){
 		resetObj();
 		return x;
 	} else {
-		wprintf(L"yyparse return 1\n");
+		wprintf(L"yyparse YYABORT\n");
 		free(xpathInput);
 		xpathInput = xpathInputPtr = xpathInputLimit = NULL;
 		//isName = 1;
