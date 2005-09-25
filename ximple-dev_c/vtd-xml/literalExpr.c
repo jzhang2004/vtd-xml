@@ -77,7 +77,7 @@ double	evalNumber_le (literalExpr *le,VTDNav *vn){
 }
 
 UCSChar* evalString_le (literalExpr *le,VTDNav *vn){
-	return le->s;
+	return wcsdup(le->s);
 }
 
 Boolean evalBoolean_le (literalExpr *le,VTDNav *vn){
