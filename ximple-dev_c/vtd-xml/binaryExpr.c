@@ -567,8 +567,8 @@ Boolean evalBoolean_be (binaryExpr *be,VTDNav *vn){
 			case OP_GT: return be->left->evalNumber(be->left,vn) > be->right->evalNumber(be->right,vn);
 			default: dval = evalNumber_be(be,vn);
 				if (dval ==-0.0 || dval ==+0.0 || (dval!=dval))
-					return TRUE;
-				return FALSE;
+					return FALSE;
+				return TRUE;
 	}
 }
 
