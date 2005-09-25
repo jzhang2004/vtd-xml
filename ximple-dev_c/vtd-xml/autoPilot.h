@@ -150,8 +150,9 @@ Boolean iterateAttrAP(AutoPilot *ap);
 /*
  * This function selects the string representing XPath expression
  * Usually evalXPath is called afterwards
+ * return true is the XPath is valid
  */
-void selectXPath(AutoPilot *ap, UCSChar *s);
+Boolean selectXPath(AutoPilot *ap, UCSChar *s);
 
 /*
  * Evaluate XPath
