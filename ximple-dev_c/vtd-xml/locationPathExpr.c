@@ -1726,7 +1726,9 @@ void toString_p(Predicate *p, UCSChar *string){
 			p->e->toString(p->e,string);
 			wprintf(L"]");
 		} else {
+			wprintf(L"[");
 			p->e->toString(p->e,string);
+			wprintf(L"]");
 			toString_p(p->nextP,string);
 		}
 }
