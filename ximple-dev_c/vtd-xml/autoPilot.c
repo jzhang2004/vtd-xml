@@ -529,19 +529,20 @@ int iterateAttr(AutoPilot *ap){
  * This function selects the string representing XPath expression
  * Usually evalXPath is called afterwards
  */
-void selectXPath(AutoPilot *ap, UCSChar *s){
+Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 	exception e;
 	if (s==NULL){
 		e.et = xpath_parse_exception;
 		e.msg = " xpath input string can't be NULL ";
 		Throw e;
 	}
+	if(ap->xpe!=NULL)
+		ap->xpe->freeExpr(ap->xpe);
 	ap->xpe = xpathParse(s, ap->nl);
 	if (ap->xpe == NULL){
-		e.et = xpath_parse_exception;
-		e.msg = " xpath input string is invalid ";
-		Throw e;
+		return FALSE;
 	}
+	return TRUE;
 }
 
 /*
