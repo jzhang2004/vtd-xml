@@ -338,7 +338,7 @@ PrimaryExpr     :    VariableReference {/*freeAllObj();*/ YYABORT;}
 		|    FunctionCall { $$ = $1;} 
 		|    ERROR {
 						//freeAllObj();
-						printf(" Invalid char encoutered \n");
+						//printf(" Invalid char encoutered \n");
 						YYABORT;
 					}
 		;
@@ -394,7 +394,7 @@ LocationPath    :    RelativeLocationPath	{ Try {
 													YYABORT;
 											  }
 											}
-		|    AbsoluteLocationPath	{		Try {  printf("absolute locationpath \n");
+		|    AbsoluteLocationPath	{		Try {  /*printf("absolute locationpath \n");*/
 													$$ = createLocationPathExpr();
 													addObj($$);
 													addObj($$->fib);
@@ -410,7 +410,7 @@ LocationPath    :    RelativeLocationPath	{ Try {
 		;
 
 AbsoluteLocationPath :  SLASH 				{$$ = NULL;}
-		|    SLASH RelativeLocationPath		{printf("slash detected \n"); $$ = $2;}
+		|    SLASH RelativeLocationPath		{/*printf("slash detected \n");*/ $$ = $2;}
 		|    AbbreviatedAbsoluteLocationPath	{$$ = $1;}
 		;
 
@@ -444,7 +444,7 @@ NodeTest	:    NAME 				{ Try {
 										$$ = createNodeTest();
 										addObj($$);
 										setTestType($$,NT_NAMETEST);
-										wprintf(L"$1.qname %ls\n",$1.qname);
+										//wprintf(L"$1.qname %ls\n",$1.qname);
 										setNodeName($$,$1.qname);
 										if ($1.localname!=NULL){
 											setNodeNameNS($$,$1.prefix,$1.localname);
@@ -483,7 +483,7 @@ AxisSpecifier	:    AXISNAME				{$$  = $1;}
 	      	|    AbbreviatedAxisSpecifier		{$$  = $1;}
 	      	;
 
-AbbreviatedAxisSpecifier  : { printf("abbreviated child axis \n");$$  = AXIS_CHILD;}
+AbbreviatedAxisSpecifier  : { /*printf("abbreviated child axis \n");*/$$  = AXIS_CHILD;}
 			  | AT	{$$ = AXIS_ATTRIBUTE;}
 			;
 
@@ -586,6 +586,7 @@ expr *xpathParse(UCSChar *input, NsList *nl){
 	int l = wcslen(input);
 	int i = 0;	
 	xpathNSList = nl;
+	XMLChar_init();
 	xpathInputPtr = xpathInput = (unsigned short *)malloc((l+1)<<1);
 	// copy the string from wchar_t to unsigned short
 	for (i=0;i<l;i++){
@@ -596,13 +597,13 @@ expr *xpathParse(UCSChar *input, NsList *nl){
 	colonPosition = -1;
 	if (yyparse() == 0){
 		//isName = 1;
-		wprintf(L"yyparse return 0\n");
+		//wprintf(L"yyparse return 0\n");
 		free(xpathInput);
 		xpathInput = xpathInputPtr = xpathInputLimit = NULL;
 		resetObj();
 		return x;
 	} else {
-		wprintf(L"yyparse YYABORT\n");
+		//wprintf(L"yyparse YYABORT\n");
 		free(xpathInput);
 		xpathInput = xpathInputPtr = xpathInputLimit = NULL;
 		//isName = 1;
