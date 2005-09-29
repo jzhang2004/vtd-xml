@@ -16,9 +16,9 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 #include "xpath1.h"
-static Boolean isUnique(pathExpr *pe,int i);
+static Boolean isUnique_pe(pathExpr *pe,int i);
 
-Boolean isUnique(pathExpr *pe, int i){
+Boolean isUnique_pe(pathExpr *pe, int i){
 		int size = pe->fib->size;
 		int j;
 		for (j=0; j<size;j++){
@@ -95,7 +95,7 @@ int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 				pe->evalState = 3;
 			} else {
 				pe->evalState = 2;
-				if (isUnique(pe,a))
+				if (isUnique_pe(pe,a))
 					return a;
 			}
 			break;
@@ -105,7 +105,7 @@ int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 				reset_lpe(pe->lpe, vn);
 				pe->evalState = 3;
 			} else{
-				if (isUnique(pe, a))
+				if (isUnique_pe(pe, a))
 					return a;
 				//return a;
 			}
