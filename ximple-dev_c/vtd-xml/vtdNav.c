@@ -1218,13 +1218,15 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 // Test the token type, to see if it is a starting tag or document token
 					 static inline Boolean isElementOrDocument(VTDNav  *vn, int index){
-						int i;
+						int i = 0;
 #if BIG_ENDIAN		 
-						 i= (((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
+						 i= (((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
+						  return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
 #else
 						 i = ( ((longAt(vn->vtdBuffer,index) & 0xf0)>>4));
+						  return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
 #endif
-						 return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
+						
 					 }
 
 					 //Test whether ch is a white space character or not.
