@@ -116,6 +116,6 @@ void	setPosition_le(literalExpr *le,int pos){
 
 void    toString_le(literalExpr *le, UCSChar* string){
 	wprintf(L"\"");
-	wprintf(L"%s",le->s);
+	wprintf(L"%ls",le->s);
 	wprintf(L"\"");
 }
