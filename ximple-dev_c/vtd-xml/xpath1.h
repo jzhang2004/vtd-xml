@@ -558,13 +558,9 @@ void    toString_pe(pathExpr *e, UCSChar* string);
 int yylex();
 //void yyrestart(FILE *i);
 int yyerror(char *s);
-expr *xpathParse(UCSChar *input);
 //YY_BUFFER_STATE yy_scan_string(const YY_CHAR *str);
 
 // three variable to direct yyparse to in-memory string
-unsigned short *xpathInput;
-unsigned short *xpathInputPtr;
-unsigned short *xpathInputLimit;
 
 // This structure is for data item look up purposes
 typedef struct nsList {
@@ -575,4 +571,8 @@ typedef struct nsList {
 
 // given a prefix, find the URL
 UCSChar *lookup(NsList *nl, UCSChar *prefix);
+expr *xpathParse(UCSChar *input, NsList *nl);
+
+
+
 #endif
