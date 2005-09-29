@@ -102,7 +102,7 @@
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 36 "l8.y"
+#line 38 "l8.y"
 typedef union YYSTYPE {
 	UCSChar*   literal;
 	axisType at;
