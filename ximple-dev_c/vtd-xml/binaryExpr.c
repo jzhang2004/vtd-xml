@@ -515,21 +515,10 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 		if (b)
 			return tmp;
 		if (d == (Long) d){
-		
-#ifdef VC
-		swprintf(tmp,L"%d",(Long) d);
-#endif
-#ifdef GCC
-		wsprintf(tmp,L"%d",(Long) d);
-#endif
-	} else {
-#ifdef VC
-		swprintf(tmp,L"%f", d);
-#endif
-#ifdef GCC
-		wsprintf(tmp,L"%f", d);
-#endif
-	}
+			swprintf(tmp,L"%d",(Long) d);
+		} else {
+			swprintf(tmp,L"%f", d);
+		}
 		return tmp;
 	} else {
 		Boolean b = evalBoolean_be(be,vn);
@@ -609,6 +598,7 @@ void	setPosition_be(binaryExpr *be,int pos){
 }
 
 void    toString_be(binaryExpr *be, UCSChar* string){
+	wprintf(L"(");
 	be->left->toString(be->left,string);
 	switch(be->op){
 			case OP_ADD: wprintf(L" + "); break;
@@ -626,4 +616,5 @@ void    toString_be(binaryExpr *be, UCSChar* string){
 			default: wprintf(L" > "); break;
 	}
 	be->right->toString(be->right,string);
+	wprintf(L")");
 }
