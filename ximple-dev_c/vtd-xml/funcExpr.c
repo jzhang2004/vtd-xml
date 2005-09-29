@@ -217,19 +217,19 @@ funcExpr *createFuncExpr(funcName oc, aList *a){
 			case FN_LAST: 			fne->isNum = TRUE;break;
 			case FN_POSITION: 		fne->isNum = TRUE;break;
 			case FN_COUNT: 			fne->isNum = TRUE;break;
-			case FN_LOCAL_NAME: 		fne->isString = TRUE; break;
-			case FN_NAMESPACE_URI: 	fne->isString = TRUE; break;
-			case FN_NAME: 			fne->isString = TRUE; break;
-			case FN_STRING: 			fne->isString = TRUE; break;
-			case FN_CONCAT: 			fne->isString = TRUE; break;
+			case FN_LOCAL_NAME: 		fne->isStr = TRUE; break;
+			case FN_NAMESPACE_URI: 	fne->isStr = TRUE; break;
+			case FN_NAME: 			fne->isStr = TRUE; break;
+			case FN_STRING: 			fne->isStr = TRUE; break;
+			case FN_CONCAT: 			fne->isStr = TRUE; break;
 			case FN_STARTS_WITH:		fne->isBool= TRUE;break;
 			case FN_CONTAINS: 		fne->isBool= TRUE;break;
-			case FN_SUBSTRING_BEFORE: fne->isString = TRUE; break;
-			case FN_SUBSTRING_AFTER: 	fne->isString = TRUE; break;
-			case FN_SUBSTRING: 		fne->isString = TRUE; break;
+			case FN_SUBSTRING_BEFORE: fne->isStr = TRUE; break;
+			case FN_SUBSTRING_AFTER: 	fne->isStr = TRUE; break;
+			case FN_SUBSTRING: 		fne->isStr = TRUE; break;
 			case FN_STRING_LENGTH: 	fne->isNum = TRUE;break;
-			case FN_NORMALIZE_SPACE: 	fne->isString = TRUE; break;
-			case FN_TRANSLATE:	 	fne->isString = TRUE;break;
+			case FN_NORMALIZE_SPACE: 	fne->isStr = TRUE; break;
+			case FN_TRANSLATE:	 	fne->isStr= TRUE;break;
 			case FN_BOOLEAN: 			fne->isBool =TRUE;break;
 			case FN_NOT: 			    fne->isBool =TRUE;break;
 			case FN_TRUE: 			fne->isBool = TRUE;break;
@@ -453,19 +453,9 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 								return tmp;
 
 						    if (d == (Long) d){		
-#ifdef VC
 								swprintf(tmp,L"%d",(Long)d);
-#endif
-#ifdef GCC
-								wsprintf(tmp,L"%d",(Long)d);
-#endif
 							} else {
-#ifdef VC
 								swprintf(tmp,L"%f", d);
-#endif
-#ifdef GCC
-								wsprintf(tmp,L"%f",d);
-#endif
 							}
 							return tmp;					     
 					 }
@@ -584,9 +574,9 @@ void	setPosition_fne(funcExpr *fne,int pos){
 
 void   toString_fne(funcExpr *fne, UCSChar* string){
 	if (fne->al == NULL){
-		wprintf(L"%s()",fname(fne,fne->opCode));
+		wprintf(L"%ls()",fname(fne,fne->opCode));
 	}else {
-		wprintf(L"%s(",fname(fne,fne->opCode));
+		wprintf(L"%ls(",fname(fne,fne->opCode));
 		toString_al(fne->al,string);
 		wprintf(L")");
 	}	
