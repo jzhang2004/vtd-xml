@@ -1640,9 +1640,9 @@ void toString_nt(NodeTest *nt, UCSChar *string){
 	switch (nt->testType){
 		case NT_NAMETEST :
 		    if (nt->localName == NULL)
-		        wprintf(L"%s",nt->nodeName);
+		        wprintf(L"%ls",nt->nodeName);
 		    else 
-				wprintf(L"%s:%s", nt->prefix,nt->localName);
+				wprintf(L"%ls:%ls", nt->prefix,nt->localName);
 			break;
 		case NT_NODE: wprintf(L"node()");break;
 		case NT_TEXT: wprintf(L"text()");break;
