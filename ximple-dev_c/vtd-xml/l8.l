@@ -40,7 +40,8 @@ int my_yyinput(unsigned short *buf, int s);
 //static YY_BUFFER_STATE buf_state;
 wchar_t *mydup(YY_CHAR *text, int len);
 static int i;
-
+int isName;
+int colonPosition;
 %}
 %option noyywrap
 
