@@ -72,13 +72,9 @@ UCSChar* evalString_ue  (unaryExpr *ue,VTDNav *vn){
 			e.msg = "allocate string failed in funcExpr's evalString()";
 			Throw e;
 	}
-#ifdef VC
-	swprintf(string,L"-%s",string1);
-#endif
 
-#ifdef GCC
-	wsprintf(string,L"-%s",string1);
-#endif
+	swprintf(string,L"-%ls",string1);
+
 	free(string1);
 	return string;
 }
