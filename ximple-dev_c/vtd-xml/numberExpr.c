@@ -87,20 +87,9 @@ UCSChar* evalString_ne  (numberExpr *ne,VTDNav *vn){
 	if (b)
 		return tmp;
     if (ne->dval == (Long) ne->dval){
-		
-#ifdef VC
 		swprintf(tmp,L"%d",(Long) ne->dval);
-#endif
-#ifdef GCC
-		wsprintf(tmp,L"%d",(Long) ne->dval);
-#endif
 	} else {
-#ifdef VC
 		swprintf(tmp,L"%f", ne->dval);
-#endif
-#ifdef GCC
-		wsprintf(tmp,L"%f", ne->dval);
-#endif
 	}
 	return tmp;
 }
