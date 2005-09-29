@@ -27,6 +27,7 @@ void addObj(void *o){
 			e.et = out_of_mem;
 			Throw e;
 		} 		
+
 	} else {
 		ptr1->next = malloc(sizeof(struct obj));	
 		if (ptr1->next == NULL){
@@ -35,8 +36,8 @@ void addObj(void *o){
 		} 	
 		ptr1 = ptr1->next;
 	}
-	ptr1->object = o;
-	ptr1->next = NULL;
+		ptr1->object = o;
+		ptr1->next = NULL;
 	
 }
 void freeAllObj(){
