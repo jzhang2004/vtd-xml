@@ -3300,8 +3300,10 @@ tokenType getTokenType(VTDNav *vn, int index){
 int getCurrentDepth(VTDNav *vn){
 	return vn->context[0];
 }
-// Get the index value of the current element.
+// Get the index value of the current element/text/attribute.
 int getCurrentIndex(VTDNav *vn){
+	if (vn->atTerminal)
+		return vn->LN;
 	switch(vn->context[0]){
 		case -1: return 0;
 		case 0: return vn->rootIndex;
