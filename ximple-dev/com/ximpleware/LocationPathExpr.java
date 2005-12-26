@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@ public class LocationPathExpr extends Expr{
 		Step currentStep;
 		int pathType;
 		int state;
-	    FastIntBuffer fib; // for uniqueness checking
+	    //FastIntBuffer fib; // for uniqueness checking
+	    intHash ih;
 	    
 		public static final int START = 0, // initial state
 					   END= 1,   // return to begin
@@ -41,7 +42,8 @@ public class LocationPathExpr extends Expr{
 			s = null;
 			pathType = RELATIVE_PATH;
 			currentStep = null;
-			fib = new FastIntBuffer(8);// page size 256 = 2^ 8
+			//fib = new FastIntBuffer(8);// page size 256 = 2^ 8
+			ih = new intHash();
 		}
 		
 		public void setStep(Step st){
@@ -51,21 +53,15 @@ public class LocationPathExpr extends Expr{
 		public void setPathType(int ptype){
 			pathType = ptype;
 		}
-
+//		 Improved version for uniquness checking
 		public boolean isUnique(int i){
-			int size = fib.size();
-			for (int j=0; j<size;j++){
-				if (i == fib.intAt(j))
-					return false;
-			}
-			fib.append(i);
-			return true;
+		    return ih.isUnique(i);
 		}
 		
 		public void reset(VTDNav vn){
 			state = START;
 			Step temp = s;
-			fib.clear();
+			ih.reset();
 			currentStep = null;
 			while(temp!=null){
 				temp.reset(vn);

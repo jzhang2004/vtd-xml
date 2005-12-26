@@ -1,37 +1,45 @@
-/*
- * Created on Aug 27, 2005
+/* 
+ * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
  *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
 
 import com.ximpleware.xpath.Expr;
 import com.ximpleware.xpath.XPathEvalException;
 
-/**
- * @author jimmy zhang
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 public class PathExpr extends Expr {
 
 	Expr fe;
 	LocationPathExpr lpe;
-	boolean first_time;
+	//boolean first_time;
 	int evalState;
-	FastIntBuffer fib;
+	//FastIntBuffer fib;
+	intHash ih;
 	
-	public int getPositon(){
-		return fib.size();
-	}
+	//public int getPositon(){
+	//	return fib.size();
+	//}
+	
 	public PathExpr(Expr f, LocationPathExpr l){
 		fe = f;
 		lpe = l;
-		first_time = true;
+		//first_time = true;
 		evalState = 0;
-		fib = new FastIntBuffer(8);
+		//fib = new FastIntBuffer(8);
+		ih = new intHash();
 	}
 	
 	public boolean evalBoolean(VTDNav vn) {
@@ -50,9 +58,7 @@ public class PathExpr extends Expr {
 		return a;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.ximpleware.xpath.Expr#evalNumber(com.ximpleware.VTDNav)
-	 */
+
 	public double evalNumber(VTDNav vn) {
 		double d;
 		int a = -1;
@@ -162,22 +168,18 @@ public class PathExpr extends Expr {
 		}
 		return null;	
 	}
-
+// The improved version, use hashtable to check for uniqueness
 	public boolean isUnique(int i){
-		int size = fib.size();
-		for (int j=0; j<size;j++){
-			if (i == fib.intAt(j))
-				return false;
-		}
-		fib.append(i);
-		return true;
+	    return ih.isUnique(i);
+		
 	}
 	
 	public void reset(VTDNav vn) {
 		
 		fe.reset(vn);
 		lpe.reset(vn);
-		fib.clear();
+		//fib.clear();
+		ih.reset();
 		evalState = 0;
 
 	}
