@@ -19,14 +19,7 @@
 static Boolean isUnique_pe(pathExpr *pe,int i);
 
 Boolean isUnique_pe(pathExpr *pe, int i){
-		int size = pe->fib->size;
-		int j;
-		for (j=0; j<size;j++){
-			if (i == intAt(pe->fib,j))
-				return FALSE;
-		}
-		appendInt(pe->fib,i);
-		return TRUE;
+	return isUniqueIntHash(pe->ih,i);
 }
 pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 	exception e;
@@ -37,7 +30,7 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 		Throw e;
 	}
 	Try{
-		pe->fib = createFastIntBuffer2(8);
+		pe->ih = createIntHash();
 	}
 	Catch(e){
 		free(pe);
@@ -67,7 +60,7 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 }
 void freePathExpr(pathExpr *pe){
 	if (pe==NULL) return;
-	freeFastIntBuffer(pe->fib);
+	freeIntHash(pe->ih);
 	pe->fe->freeExpr(pe->fe);
 	freeLocationPathExpr(pe->lpe);
 	free(pe);
@@ -219,7 +212,7 @@ Boolean requireContextSize_pe(pathExpr *pe){
 void reset_pe(pathExpr *pe, VTDNav *vn){
 	pe->fe->reset(pe->fe,vn);
 	reset_lpe(pe->lpe,vn);
-	clearFastIntBuffer(pe->fib);
+	resetIntHash(pe->ih);
 	pe->evalState = 0;
 }
 void setContextSize_pe(pathExpr *pe,int s){

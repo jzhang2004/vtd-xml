@@ -50,14 +50,8 @@ UCSChar *axisName(axisType i){
 }
 
  Boolean isUnique_lpe(locationPathExpr *lpe, int i){
-	int j;
-	int size = lpe->fib->size;
-    for (j=0; j<size;j++){
-		if (i == intAt(lpe->fib,j))
-			return FALSE;
-		}
-	appendInt(lpe->fib,i);
-	return TRUE;
+	
+	return isUniqueIntHash(lpe->ih,i);
 }
 
 int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
@@ -1871,7 +1865,7 @@ locationPathExpr *createLocationPathExpr(){
 		Throw e;
 	}
 	Try{
-		lpe->fib = createFastIntBuffer2(8);
+		lpe->ih = createIntHash();
 	}Catch(e){
 		free(lpe);
 		Throw e;
@@ -1911,7 +1905,7 @@ void freeLocationPathExpr(locationPathExpr *lpe){
 		}
 		freeStep(tmp);
 	}
-	freeFastIntBuffer(lpe->fib);
+	freeIntHash(lpe->ih);
 	free(lpe);
 }
 
@@ -2085,7 +2079,7 @@ Boolean requireContextSize_lpe(locationPathExpr *lpe){
 void reset_lpe(locationPathExpr *lpe, VTDNav *vn){
 	Step *temp = lpe->s;
 	lpe->state = XPATH_EVAL_START;
-	clearFastIntBuffer(lpe->fib);
+	resetIntHash(lpe->ih);
 	lpe->currentStep = NULL;
 	while(temp!=NULL){
 		reset_s(temp,vn);
