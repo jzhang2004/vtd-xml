@@ -815,7 +815,7 @@ void parse(VTDGen *vg, Boolean ns){
 	int attr_count = 0 /*, ch = 0, ch_temp = 0*/;
 	//int prev_ch = 0, prev2_ch = 0;
 	int i,j;
-	parseState parser_state = STATE_DOC_START;
+	volatile parseState parser_state = STATE_DOC_START;
 	//boolean has_amp = false; 
 	Boolean is_ns = FALSE;
 	Boolean unique;
@@ -1974,6 +1974,14 @@ static Boolean skipChar(VTDGen *vg, int ch){
 				} else {
 					return FALSE;
 				}
+			case FORMAT_ISO_8859 :
+				temp = vg->XMLDoc[vg->offset];
+				if (temp == ch) {
+					vg->offset++;
+					return TRUE;
+				} else {
+					return FALSE;
+				}
 			case FORMAT_UTF8 :
 				temp = vg->XMLDoc[vg->offset];
 				if (temp <128) {
@@ -2110,14 +2118,7 @@ static Boolean skipChar(VTDGen *vg, int ch){
 					} else
 						return FALSE;
 				}
-			case FORMAT_ISO_8859 :
-				temp = vg->XMLDoc[vg->offset];
-				if (temp == ch) {
-					vg->offset++;
-					return TRUE;
-				} else {
-					return FALSE;
-				}
+
 			default :
 				e.et = parse_exception;
 				e.subtype = 0;
