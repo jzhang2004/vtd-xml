@@ -264,11 +264,11 @@ PathExpr     	:    LocationPath  { $$ = $1;  }
   														Try{
   															tmpLPExpr = createLocationPathExpr();
   															addObj(tmpLPExpr);
-  															addObj(tmpLPExpr->fib);
+  															addObj(tmpLPExpr->ih);
   															setStep(tmpLPExpr, $3);
   															$$ = createPathExpr($1, tmpLPExpr);
   															addObj($$);
-  															addObj($$->fib);
+  															addObj($$->ih);
   															tmpLPExpr = NULL;
   														}Catch(e){  														
   															//freeAllObj();
@@ -289,11 +289,11 @@ PathExpr     	:    LocationPath  { $$ = $1;  }
 															$3->prevS = tmpStep;
 															tmpLPExpr = createLocationPathExpr();
 															addObj(tmpLPExpr);
-															addObj(tmpLPExpr->fib);
+															addObj(tmpLPExpr->ih);
 															setStep(tmpLPExpr, tmpStep);
 															$$ = createPathExpr($1, tmpLPExpr);
 															addObj($$);
-															addObj($$->fib);															
+															addObj($$->ih);															
 														} Catch (e){
 															//freeAllObj();		
 															YYABORT;																											
@@ -386,7 +386,7 @@ Argument   	:    Expr  {$$ = $1;}
 LocationPath    :    RelativeLocationPath	{ Try {
 													$$ = createLocationPathExpr();
 													addObj($$);
-													addObj($$->fib);
+													addObj($$->ih);
 													setStep($$, $1);
 												  }
 											  Catch (e) {
@@ -397,7 +397,7 @@ LocationPath    :    RelativeLocationPath	{ Try {
 		|    AbsoluteLocationPath	{		Try {  /*printf("absolute locationpath \n");*/
 													$$ = createLocationPathExpr();
 													addObj($$);
-													addObj($$->fib);
+													addObj($$->ih);
 													$$->pathType = ABSOLUTE_PATH;
 													setStep($$, $1);
 												  }
