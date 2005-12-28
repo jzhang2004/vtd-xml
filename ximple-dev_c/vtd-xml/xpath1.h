@@ -54,6 +54,23 @@
 	set_Position setPosition;
 	to_String toString;
 } expr; */ 
+
+// definition for struct intHash
+#define mask1 0xff
+#define mask2 0xffffff00
+#define hashWidth 256
+#define pageSizeE 7
+typedef struct intHash {
+   struct fastIntBuffer **storage;	
+} IntHash;
+
+// function for intHash
+
+IntHash* createIntHash();
+void freeIntHash(IntHash *ih);
+Boolean isUniqueIntHash(IntHash *ih,int i);
+void resetIntHash(IntHash *ih);
+
 // define abstract functions in the base expr
 typedef void (*free_Expr) (struct Expr *e);
 typedef int(*eval_NodeSet) (struct Expr *e, VTDNav *vn);
@@ -454,7 +471,8 @@ typedef struct LocationPathExpr {
 	Step* currentStep;
 	pt pathType;
 	LPstate state;
-	FastIntBuffer* fib; // for uniqueness checking
+	/*FastIntBuffer* fib; // for uniqueness checking */
+	IntHash *ih; // for uniqueness checking
 } locationPathExpr;
 
 locationPathExpr *createLocationPathExpr();
@@ -536,7 +554,8 @@ typedef struct PathExpr{
 	expr *fe;
 	locationPathExpr *lpe;
 	int evalState;
-	FastIntBuffer *fib;
+	/*FastIntBuffer *fib;*/
+	IntHash *ih;
 } pathExpr;
 
 pathExpr *createPathExpr(expr *f, locationPathExpr *l);
@@ -572,6 +591,8 @@ typedef struct nsList {
 // given a prefix, find the URL
 UCSChar *lookup(NsList *nl, UCSChar *prefix);
 expr *xpathParse(UCSChar *input, NsList *nl);
+
+
 
 
 
