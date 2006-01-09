@@ -24,16 +24,16 @@ package com.ximpleware;
  * of a node
  */
 class intHash {
-    public final static int mask1 = 0xff;
-    public final static int hashWidth = 256;
-    public final static int mask2 = 0xffffff00;
-    public final static int bufferSizeE = 7;
+    public final static int mask1 = 0x1ff;
+    public final static int hashWidth = 512;
+    public final static int mask2 = 0xfffffe00;
+    public final static int pageSizeE = 6;
     protected FastIntBuffer[] storage;
     
     public boolean isUnique(int i){
         int temp = i & mask1;
         if (storage[temp]==null) {
-            storage[temp]= new FastIntBuffer(bufferSizeE);
+            storage[temp]= new FastIntBuffer(pageSizeE);
             storage[temp].append(i);
             return true;
         }        
@@ -57,7 +57,7 @@ class intHash {
         }
     }
     public intHash(){
-        storage = new FastIntBuffer[256];
+        storage = new FastIntBuffer[hashWidth];
         /*for (int i=0;i<256;i++){
             if (storage[i]==null)
                 System.out.println("null encountered "+i);
@@ -65,9 +65,9 @@ class intHash {
     }
     public static void main(String[] args) {
         intHash a = new intHash();
-        for(int i=0;i<267;i++)
+        for(int i=0;i<667;i++)
            System.out.println("" + i + " " + a.isUnique(i));
-        for(int i=0;i<267;i++)
+        for(int i=0;i<667;i++)
         System.out.println("" + i + " " + a.isUnique(i));
     }
 }
