@@ -56,10 +56,10 @@
 } expr; */ 
 
 // definition for struct intHash
-#define mask1 0xff
-#define mask2 0xffffff00
-#define hashWidth 256
-#define pageSizeE 7
+#define mask1 0x1ff
+#define mask2 0xfffffe00
+#define hashWidth 512
+#define pageSizeE 6
 typedef struct intHash {
    struct fastIntBuffer **storage;	
 } IntHash;
