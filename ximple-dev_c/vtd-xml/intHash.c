@@ -29,7 +29,7 @@ IntHash* createIntHash(){
 		e.msg = "IntHash allocation failed ";
 		Throw e;
 	}
-	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)*256);
+	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)*hashWidth);
 	/* initialize everything to null */
 	for (i=0;i<hashWidth;i++){
 		ih->storage[i]= NULL;
