@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,11 @@ package com.ximpleware.xpath;
 public class AxisType{
 
 	public int i;
+	public static final int 		    CHILD=0;
 	public static final int 		ANCESTOR =3;
 	public static final int 	ANCESTOR_OR_SELF =12;
 	public static final int 	      ATTRIBUTE = 8;
-	public static final int 		    CHILD=0;
+
 	public static final int 		DESCENDANT=1;
 	public static final int 	DESCENDANT_OR_SELF=11;
 	public static final int 		FOLLOWING =6;

@@ -1,7 +1,5 @@
-package com.ximpleware;
-
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +15,7 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+package com.ximpleware;
 /**
  * XimpleWare's AutoPilot implementation.
  * 
@@ -103,12 +102,15 @@ public AutoPilot(){
     special = false;
     xpe = null;
 }
-
+/* 
+ * This method works with the argument-less constructor 
+ */
 public void setVTDNav(VTDNav v){
     if (v == null)
         throw new IllegalArgumentException(" instance of VTDNav can't be null ");
     vn = v;
     stackSize = vn.contextStack2.size;
+    ft = true;
 }
 
 /** This function creates URL ns prefix 
@@ -121,9 +123,9 @@ public void declareXPathNameSpace(String prefix, String URL){
     if (ht==null)
         ht = new Hashtable();
     ht.put(prefix, URL);
-    //System.out.println(ht);
-   
+    //System.out.println(ht); 
 }
+
 /**
  * Reset the internal state of Autopilot so
  * one can attach a different vn object to the same 
@@ -480,7 +482,7 @@ protected void selectAttrNS(String ns_URL, String ln){
 }
 
 /**
- * This path selects the string representing XPath expression
+ * This method selects the string representing XPath expression
  * Usually evalXPath is called afterwards
  * @param s
  * @throws XPathParseException
@@ -491,8 +493,7 @@ public void selectXPath(String s) throws XPathParseException{
 		parser p = new parser(new StringReader(s));
 		p.ht = ht;
 		xpe = (com.ximpleware.xpath.Expr) p.parse().value;
-		if (vn !=null)
-		stackSize = vn.contextStack2.size;
+
 	}
 	catch(Exception e){
 		throw new XPathParseException(e.toString());
@@ -508,6 +509,7 @@ public void selectXPath(String s) throws XPathParseException{
 public void resetXPath(VTDNav vn){
 	if (xpe!=null){
 		xpe.reset(vn);
+		ft = true;
 		vn.contextStack2.size = stackSize;
 	}
 }
@@ -519,7 +521,13 @@ public void resetXPath(VTDNav vn){
  */
 public int evalXPath() throws XPathEvalException, NavException{
 	if (xpe!=null){
-			return xpe.evalNodeSet(vn);
+	    if (ft == true){
+	        if (vn != null){
+	            stackSize = vn.contextStack2.size;
+	        }
+			ft = false;
+	    }
+		return xpe.evalNodeSet(vn);
 	}
 	throw new PilotException(" Null XPath expression "); 
 }

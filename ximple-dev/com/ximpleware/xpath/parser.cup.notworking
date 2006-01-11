@@ -273,8 +273,8 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
 		{: RESULT = new Step();
       		   RESULT.setAxisType(as.i);
       		   RESULT.setNodeTest(nt);
-		   RESULT.setPredicate(pl);	
-		   System.out.println(" Step 3 ");
+		   	   RESULT.setPredicate(pl);	
+		       System.out.println(" Step 3 ");
 		:}
       		|    AbbreviatedStep:as			 
 		{: RESULT = as; :}

@@ -1,7 +1,5 @@
-package com.ximpleware;
-
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +15,7 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
+package com.ximpleware;
 import com.ximpleware.parser.XMLChar;
 import com.ximpleware.parser.UTF8Char;
 
@@ -978,6 +976,7 @@ public class VTDGen1 {
 		//boolean has_amp = false; 
 		boolean is_ns = false;
 		encoding = FORMAT_UTF8;
+		boolean helper=false;
 		boolean main_loop = true,hasDTD = false,hasDecl = false,docEnd = false,firstLT = true;
 		//char char_temp; //holds the ' or " indicating start of attr val
 		//boolean must_utf_8 = false;
@@ -1224,68 +1223,68 @@ public class VTDGen1 {
 								break;
 							}
 						}
+						helper = true;
 						if (ch == '/') {
 							depth--;
+							helper = false;
 							ch = r.getChar();
 						}
 						if (ch == '>') {
-							if (depth != -1) {
-								temp_offset = offset;
-								ch = getCharAfterSe(); // consume WSs
-								if (ch == '<') {
-									parser_state = STATE_LT_SEEN;
-									if (r.skipChar('/')) {
-										length1 =
-											offset
-												- temp_offset
-												- (increment<<1);
+						if (depth != -1) {
+							temp_offset = offset;
+							ch = getCharAfterSe(); // consume WSs
+							if (ch == '<') {
+								parser_state = STATE_LT_SEEN;
+								if (r.skipChar('/')) {
+									if (helper == true) {
+										length1 = offset - temp_offset
+												- (increment << 1);
 										if (length1 > 0) {
 											if (encoding < FORMAT_UTF_16BE)
-												writeVTD(
-													(temp_offset),
-													length1,
-													TOKEN_CHARACTER_DATA,
-													depth);
+												writeVTD((temp_offset),
+														length1,
+														TOKEN_CHARACTER_DATA,
+														depth);
 											else
-												writeVTD(
-													(temp_offset) >> 1,
-													(length1 >> 1),
-													TOKEN_CHARACTER_DATA,
-													depth);
+												writeVTD((temp_offset) >> 1,
+														(length1 >> 1),
+														TOKEN_CHARACTER_DATA,
+														depth);
 										}
-										parser_state = STATE_END_TAG;
-										break;
 									}
-								} else if (XMLChar.isContentChar(ch)) {
-									//temp_offset = offset;
-									parser_state = STATE_TEXT;
-								} else if (ch == '&') {
-									//has_amp = true;
-									//temp_offset = offset;
-									entityIdentifier();
-									parser_state = STATE_TEXT;
-								} else if (ch == ']') {
-									if (r.skipChar(']')) {
-										while (r.skipChar(']')) {
-										}
-										if (r.skipChar('>'))
-											throw new ParseException(
+									parser_state = STATE_END_TAG;
+									break;
+								}
+							} else if (XMLChar.isContentChar(ch)) {
+								//temp_offset = offset;
+								parser_state = STATE_TEXT;
+							} else if (ch == '&') {
+								//has_amp = true;
+								//temp_offset = offset;
+								entityIdentifier();
+								parser_state = STATE_TEXT;
+							} else if (ch == ']') {
+								if (r.skipChar(']')) {
+									while (r.skipChar(']')) {
+									}
+									if (r.skipChar('>'))
+										throw new ParseException(
 												"Error in text content: ]]> in text content"
-													+ formatLineNumber());
-									}
-									parser_state = STATE_TEXT;
-								}else
-									throw new ParseException(
+														+ formatLineNumber());
+								}
+								parser_state = STATE_TEXT;
+							} else
+								throw new ParseException(
 										"Error in text content: Invalid char"
-											+ formatLineNumber());
-							} else {
-								parser_state = STATE_DOC_END;
-							}
-							break;
+												+ formatLineNumber());
+						} else {
+							parser_state = STATE_DOC_END;
 						}
-						throw new ParseException(
+						break;
+					}
+					throw new ParseException(
 							"Starting tag Error: Invalid char in starting tag"
-								+ formatLineNumber());
+									+ formatLineNumber());
 
 					case STATE_END_TAG :
 						temp_offset = offset;

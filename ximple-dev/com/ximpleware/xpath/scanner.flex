@@ -1,3 +1,22 @@
+/* 
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+
 package com.ximpleware.xpath;
 import java_cup.runtime.Symbol;
 import com.ximpleware.parser.*;
@@ -52,7 +71,7 @@ import com.ximpleware.parser.*;
 ws  = 	   [ \t\r\n]
 digits	=  [0-9]+
 nc	=  ([^\!-/:-@\[-\^ \n\r\t\|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|"-")
-nc2	=  ([^\!-/:-@\[-\^ \n\r\t\|]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
+nc2	=  ([^\!-/:-@\[-\^ \n\r\t\|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 
 %%
 {ws}+ { /* eat white space */}
@@ -479,6 +498,14 @@ self{ws}*::		{	isName = 1;
 {nc2}{nc}*:"*"  	{	isName = 0;
 				len = yytext().length();
 				name = new NameType();
+                               if (!XMLChar.isNCNameStartChar(yytext().charAt(0)))
+					throw new XPathParseException("Invalid char in name token:  "+yytext()+ "@position 0");
+				
+				for(int i=1;i<len-2;i++){
+					if (!XMLChar.isNCNameChar(yytext().charAt(i)))
+						throw new XPathParseException("Invalid char in name token:  "+yytext()+ "@position "+i);
+				}
+
 				name.prefix = yytext().substring(0,len-2);
 				name.localname = "*";
 				//System.out.println("NAME "+name+ " returned");
@@ -492,9 +519,9 @@ self{ws}*::		{	isName = 1;
 				name = new NameType();
 				//name.qname = new String(yytext());
 				//System.out.println("returned a NAME ==>" + yytext());
-				if (yytext().charAt(0) =='-'){
-				    throw new XPathParseException("Invalid char in name token:"+yytext());
-				}
+				//if (yytext().charAt(0) =='-'){
+				//    throw new XPathParseException("Invalid char in name token:"+yytext());
+				//}
 				
 				name.qname = new String(yytext());
 				if (!XMLChar.isNCNameStartChar(name.qname.charAt(0)))

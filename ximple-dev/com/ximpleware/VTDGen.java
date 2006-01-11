@@ -1,7 +1,5 @@
-package com.ximpleware;
-
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +15,7 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
+package com.ximpleware;
 import com.ximpleware.parser.XMLChar;
 import com.ximpleware.parser.UTF8Char;
 
@@ -289,6 +287,154 @@ public class VTDGen {
 		return "\nLine Number: " + (lineNumber+1) + " Offset: " + (lineOffset - 1);
 	}
 
+	private int handleUTF8(int temp) throws EncodingException, ParseException{
+	    int val,c,d,a,i;
+		temp = temp & 0xff;
+		switch (UTF8Char.byteCount(temp)) { // handle multi-byte code
+		case 2:
+			c = 0x1f;
+			// A mask determine the val portion of the first byte
+			d = 6; // 
+			a = 1; //
+			break;
+		case 3:
+			c = 0x0f;
+			d = 12;
+			a = 2;
+			break;
+		case 4:
+			c = 0x07;
+			d = 18;
+			a = 3;
+			break;
+		case 5:
+			c = 0x03;
+			d = 24;
+			a = 4;
+			break;
+		case 6:
+			c = 0x01;
+			d = 30;
+			a = 5;
+			break;
+		default:
+			throw new ParseException(
+					"UTF 8 encoding error: should never happen");
+		}
+		val = (temp & c) << d;
+		i = a - 1;
+		while (i >= 0) {
+			temp = XMLDoc[offset + a - i];
+			if ((temp & 0xc0) != 0x80)
+				throw new ParseException(
+						"UTF 8 encoding error: should never happen");
+			val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
+			i--;
+		}
+		offset += a + 1;
+		return val;
+	}
+	private int handle_16be() throws EncodingException, ParseException{
+		int val,temp = (XMLDoc[offset] & 0xff) << 8 | (XMLDoc[offset + 1] & 0xff);
+		//System.out.println(" ==>"+Integer.toHexString(temp));
+		if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
+			offset += 2;
+			return temp;
+		} else {
+			if (temp < 0xd800 || temp > 0xdbff)
+				throw new EncodingException(
+						"UTF 16 BE encoding error: should never happen");
+			val = temp;
+			temp = (XMLDoc[offset + 2] & 0xff) << 8
+					| (XMLDoc[offset + 3] & 0xff);
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be a low surrogate here
+				throw new EncodingException(
+						"UTF 16 BE encoding error: should never happen");
+			}
+			//val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
+			val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+			offset += 4;
+			return val;
+		}
+	}
+	private int handle_16le() throws EncodingException, ParseException {
+	    int val;
+		int temp = (XMLDoc[offset + 1] & 0xff) << 8 | (XMLDoc[offset] & 0xff);
+		if (temp < 0xd800 || temp > 0xdfff) { // check for low surrogate
+			offset += 2;
+			return temp;
+		} else {
+			if (temp < 0xd800 || temp > 0xdbff)
+				throw new EncodingException(
+						"UTF 16 LE encoding error: should never happen");
+			val = temp;
+			temp = (XMLDoc[offset + 3] & 0xff) << 8
+					| (XMLDoc[offset + 2] & 0xff);
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be high surrogate
+				throw new EncodingException(
+						"UTF 16 LE encoding error: should never happen");
+			}
+			//val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
+			val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+			offset += 4;
+			return val;
+		}
+	}
+	/**
+	 * This is a modular version of getChar
+	 * 
+	 * @return int
+	 * @exception com.ximpleware.EOFException
+	 *                End of file exception.
+	 * @throws com.ximpleware.ParseException
+	 *             Super class for any exception during parsing.
+	 * @throws com.ximpleware.EncodingException
+	 *             UTF/native encoding exception.
+	 */
+	private int getChar() throws EncodingException, EOFException,
+			ParseException {
+		int temp;
+		int a, c, d, val;
+
+		if (offset >= endOffset)
+			throw new EOFException(
+					"permature EOF reached, XML document incomplete");
+		switch (encoding) {
+		case FORMAT_ASCII:
+			temp = XMLDoc[offset]&0x7f;
+			
+			offset++;
+			return temp;
+		
+		//throw new EncodingException("Invalid char for ASCII encoding"
+		//		+formatLineNumber());
+		case FORMAT_UTF8:
+
+			temp = XMLDoc[offset];
+			if (temp >= 0) {
+				offset++;
+				return temp;
+			}
+			return handleUTF8(temp);
+
+		case FORMAT_UTF_16BE:
+		    return handle_16be();
+		    
+		case FORMAT_UTF_16LE:
+		    return handle_16le();
+		    
+		case FORMAT_ISO_8859:
+			temp = XMLDoc[offset];
+			offset++;
+			return temp & 0xff;
+			
+		default:
+			throw new EncodingException("Unknown encoding");
+		}
+	}
+
 	/**
 	 * This method automatically converts the underlying byte representation
 	 * character into the right UCS character format.
@@ -301,7 +447,7 @@ public class VTDGen {
 	 * @throws com.ximpleware.EncodingException
 	 *             UTF/native encoding exception.
 	 */
-	private int getChar() throws EncodingException, EOFException,
+	private int getChar2() throws EncodingException, EOFException,
 			ParseException {
 		int temp;
 		int a, c, d, val;

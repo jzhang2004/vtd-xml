@@ -1,7 +1,5 @@
-package com.ximpleware;
-
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +15,7 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+package com.ximpleware;
 /**
  * A simple wrapper around monolithic byte array implementing IByteBuffer interface.
  * Creation date: (11/25/03 5:05:57 PM)

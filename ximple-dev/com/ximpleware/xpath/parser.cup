@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,18 +75,17 @@ terminal NameType NAME;
 terminal AxisType AXISNAME;
 
 non terminal VariableReference;
-non terminal FuncExpr FunctionCall; 
 non terminal FuncName FunctionName;
 non terminal Expr Expr, OrExpr, EqualityExpr, AndExpr, RelationalExpr, AdditiveExpr;
 non terminal Expr MultiplicativeExpr, UnaryExpr, UnionExpr, PathExpr, FilterExpr;
 non terminal Alist ArgumentList;
-non terminal Expr PrimaryExpr, FunctionCal, Argument;
+non terminal Expr PrimaryExpr, Argument;
 non terminal LocationPathExpr LocationPath ;
 non terminal AxisType AxisSpecifier, AbbreviatedAxisSpecifier;
 non terminal NodeTest nodetest ;
 non terminal Step Step, AbbreviatedStep, RelativeLocationPath, AbsoluteLocationPath;
 non terminal Step AbbreviatedAbsoluteLocationPath, AbbreviatedRelativeLocationPath;
-non terminal Predicate PredicateList, Predicate; 
+non terminal Predicate PredicateList; 
 
 precedence left OR;
 precedence left AND;
@@ -158,7 +157,7 @@ UnaryExpr    	::=    UnionExpr:ue
 UnionExpr    	::=    PathExpr:pe  
 		{: RESULT = pe; :}		
    		|    UnionExpr:une UNION PathExpr:pe 
-		{: RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe);
+		{: //RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe);
 		   //throw new XPathParseException("Union not yet supported"); 
 		:}
 		;
@@ -220,7 +219,6 @@ PrimaryExpr     ::=  VariableReference
 
 FunctionCall    ::=    FunctionName:fn LP ArgumentList:al RP
 		{: RESULT = new FuncExpr(fn.i, al); :} 
-
 		;
 
 ArgumentList	::=    
@@ -281,7 +279,7 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
 		   //System.out.println(" Step 3 ");
 		:}
       		|    AbbreviatedStep:as			 
-		{: RESULT = as; System.out.println(" step 4"); 
+		{: RESULT = as; /*System.out.println(" step 4");*/ 
 		:}
 		;
 

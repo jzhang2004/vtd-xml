@@ -1,7 +1,6 @@
-package com.ximpleware;
 
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +16,7 @@ package com.ximpleware;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+package com.ximpleware;
 // added set
 import com.ximpleware.NavException;
 import com.ximpleware.parser.UTF8Char;
@@ -224,6 +224,7 @@ public class VTDNav {
 	 * @return int
 	 */
 	public int getAttrCount() {
+	    if (context[0]==-1)return 0;
 		int count = 0;
 		int index = getCurrentIndex() + 1;
 		while (index < vtdSize) {
@@ -939,6 +940,8 @@ public class VTDNav {
 	 * @return int
 	 */
 	public int getCurrentIndex() {
+	    if (atTerminal)
+	        return LN;
 		switch(context[0]){
 			case -1: return 0;
 			case 0: return rootIndex;
