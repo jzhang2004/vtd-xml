@@ -24,12 +24,17 @@ package com.ximpleware;
  * of a node
  */
 class intHash {
-    public final static int mask1 = 0x1ff;
-    public final static int hashWidth = 512;
-    public final static int mask2 = 0xfffffe00;
-    public final static int pageSizeE = 6;
+    public final static int mask1 = 0x7ff;
+    public final static int hashWidth = 1<<11; //2048
+    public final static int mask2 = 0xfffff800;
+    public final static int pageSizeE = 5; // 32 * 4 bytes
     protected FastIntBuffer[] storage;
-    
+   
+    /**
+     * Test whether the input i is unique; 
+     * if not, insert into the hash table and return false
+     * otherwise, return true
+     */
     public boolean isUnique(int i){
         int temp = i & mask1;
         if (storage[temp]==null) {
@@ -49,6 +54,11 @@ class intHash {
         }
     }
 
+    /**
+     * Clear all entries in the hash table
+     * This method sets the size of member FastIntBuffer
+     * to zero
+     */
     public void reset(){
         for (int i=0;i<hashWidth;i++){
             if (storage[i]!=null){
@@ -56,6 +66,10 @@ class intHash {
             }
         }
     }
+    /**
+     * Constructor
+     *
+     */
     public intHash(){
         storage = new FastIntBuffer[hashWidth];
         /*for (int i=0;i<256;i++){
