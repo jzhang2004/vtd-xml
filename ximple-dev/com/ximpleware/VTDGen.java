@@ -286,7 +286,57 @@ public class VTDGen {
 		}
 		return "\nLine Number: " + (lineNumber+1) + " Offset: " + (lineOffset - 1);
 	}
-
+	private boolean skipUTF8(int temp, int ch) throws EncodingException, ParseException{
+	    int val, c, d, a, i;
+	    temp = temp & 0xff;
+		switch (UTF8Char.byteCount(temp)) { // handle multi-byte code
+		case 2:
+			c = 0x1f;
+			// A mask determine the val portion of the first byte
+			d = 6; // 
+			a = 1; //
+			break;
+		case 3:
+			c = 0x0f;
+			d = 12;
+			a = 2;
+			break;
+		case 4:
+			c = 0x07;
+			d = 18;
+			a = 3;
+			break;
+		case 5:
+			c = 0x03;
+			d = 24;
+			a = 4;
+			break;
+		case 6:
+			c = 0x01;
+			d = 30;
+			a = 5;
+			break;
+		default:
+			throw new ParseException(
+					"UTF 8 encoding error: should never happen");
+		}
+		val = (temp & c) << d;
+		i = a - 1;
+		while (i >= 0) {
+			temp = XMLDoc[offset + a - i];
+			if ((temp & 0xc0) != 0x80)
+				throw new ParseException(
+						"UTF 8 encoding error: should never happen");
+			val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
+			i--;
+		}
+		if (val == ch){
+		    offset += a + 1;
+		    return true;
+		}else
+		    return false; 
+		
+	}
 	private int handleUTF8(int temp) throws EncodingException, ParseException{
 	    int val,c,d,a,i;
 		temp = temp & 0xff;
@@ -334,6 +384,36 @@ public class VTDGen {
 		offset += a + 1;
 		return val;
 	}
+	private boolean skip_16be(int ch) throws EncodingException, ParseException{
+		int val,temp = (XMLDoc[offset] & 0xff) << 8 | (XMLDoc[offset + 1] & 0xff);
+		//System.out.println(" ==>"+Integer.toHexString(temp));
+		if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
+		    if (temp == ch) {
+				offset += 2;
+				return true;
+			} else
+				return false;
+		} else {
+			if (temp < 0xd800 || temp > 0xdbff)
+				throw new EncodingException(
+						"UTF 16 BE encoding error: should never happen");
+			val = temp;
+			temp = (XMLDoc[offset + 2] & 0xff) << 8
+					| (XMLDoc[offset + 3] & 0xff);
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be a low surrogate here
+				throw new EncodingException(
+						"UTF 16 BE encoding error: should never happen");
+			}
+			//val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
+			val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+			if (val == ch) {
+			   offset += 4;
+			   return true;
+			} else
+			    return false;
+		}
+	}
 	private int handle_16be() throws EncodingException, ParseException{
 		int val,temp = (XMLDoc[offset] & 0xff) << 8 | (XMLDoc[offset + 1] & 0xff);
 		//System.out.println(" ==>"+Integer.toHexString(temp));
@@ -358,6 +438,36 @@ public class VTDGen {
 			return val;
 		}
 	}
+	private boolean skip_16le(int ch) throws EncodingException, ParseException {
+		int val, temp = (XMLDoc[offset + 1] & 0xff) << 8 | (XMLDoc[offset] & 0xff);
+		if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
+			if (temp == ch) {
+				offset += 2;
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			if (temp < 0xd800 || temp > 0xdbff)
+				throw new EncodingException(
+						"UTF 16 LE encoding error: should never happen");
+			val = temp;
+			temp = (XMLDoc[offset + 3] & 0xff) << 8
+					| (XMLDoc[offset + 2] & 0xff);
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be high surrogate
+				throw new EncodingException(
+						"UTF 16 LE encoding error: should never happen");
+			}
+			val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+			if (val == ch) {
+				offset += 4;
+				return true;
+			} else
+				return false;
+		}
+	}
+	
 	private int handle_16le() throws EncodingException, ParseException {
 	    int val;
 		int temp = (XMLDoc[offset + 1] & 0xff) << 8 | (XMLDoc[offset] & 0xff);
@@ -447,7 +557,7 @@ public class VTDGen {
 	 * @throws com.ximpleware.EncodingException
 	 *             UTF/native encoding exception.
 	 */
-	private int getChar2() throws EncodingException, EOFException,
+	/*private int getChar2() throws EncodingException, EOFException,
 			ParseException {
 		int temp;
 		int a, c, d, val;
@@ -569,7 +679,7 @@ public class VTDGen {
 		default:
 			throw new EncodingException("Unknown encoding");
 		}
-	}
+	}*/
 
 	/**
 	 * The entity ignorant version of getCharAfterS.
@@ -723,107 +833,7 @@ public class VTDGen {
 		}
 	}
 
-	/**
-	 * Testing purposes.
-	 * 
-	 * @param args
-	 *            java.lang.String[]
-	 */
-	//	public static void main(String[] args) {
-	//		//String xdoc =
-	//		// "<?xml version='1.0' encoding=\"ASCII\" standalone='yes'?> <!DOCTYPE a
-	// b c> <?xmls jfksfj?><this ><![CDATA[faskfjas]]> &#32;&#32; <!--comment-->
-	// </this> ";
-	//		if (false) {
-	//			String xdoc =
-	//				"<?xml version='1.0' encoding='US-ASCII' standalone='yes'?> <!DOCTYPE a b
-	// c> \n"
-	//					+ " <?xmls ns ?> <this att1 = \"good=\" att12=\"bad\"> a<?xmls ?>"
-	//					+ " "
-	//					+ " "
-	//					+ " <![CDATA[faskfjas]]> &#32;&#32; <!----> </this> <!--version-->
-	// <?xmlns?> <?xmlf ?><!--verion2-->";
-	//			byte a = (byte) 0xff;
-	//			System.out.println("byte a & 0xff " + (a & 0xff) + " byte a " + a);
-	//			//xdoc = " < ";
-	//			// create a UTF encoded byte array here
-	//			//byte[] ba = {(byte) 0xbf, (byte) 0xbf, (byte) 0xbf, (byte) 0xbf, (byte)
-	// 0xbf };
-	//			System.out.println(xdoc);
-	//			//System.out.println("a" + (byte) (0xffe));
-	//			VTDGen vg = new VTDGen();
-	//			try {
-	//				vg.setDoc(xdoc.getBytes());
-	//				vg.parse(true);
-	//			} catch (ParseException e) {
-	//				System.out.println(e);
-	//			} catch (Exception e) {
-	//				System.out.println("other exceptions" + e);
-	//			}
-	//		} else {
-	//			try {
-	//				//vg.setDoc(xdoc.getBytes());
-	//				int total = 1000;
-	//				File pf = new File(args[1]);
-	//				if (pf.length() > 1000000) {
-	//					total = 1000;
-	//				} else if (pf.length() > 100000) {
-	//					total = 10000;
-	//				} else if (pf.length() > 10000) {
-	//					total = 100000;
-	//				}
-	//
-	//				if (args[0].equals("1")) {
-	//
-	//					File f = new File(args[1]);
-	//					FileInputStream fis = new FileInputStream(f);
-	//					byte[] b = new byte[(int) f.length()];
-	//					System.out.println((int) f.length());
-	//					fis.read(b);
-	//					ByteArrayInputStream bais;
-	//					for (int i = 0; i < total; i++) {
-	//						bais = new ByteArrayInputStream(b);
-	//						VTDGen vg = new VTDGen();
-	//						vg.setDoc(b);
-	//						vg.parse(true);
-	//					}
-	//					Runtime rt = Runtime.getRuntime();
-	//					long z = System.currentTimeMillis();
-	//					for (int i = 0; i < 1000; i++) {
-	//						bais = new ByteArrayInputStream(b);
-	//						VTDGen vg = new VTDGen();
-	//						vg.setDoc(b);
-	//						vg.parse(true);
-	//					}
-	//
-	//					System.out.println(
-	//						"total time used "
-	//							+ (float) (System.currentTimeMillis() - z) / 1000);
-	//				} else if (args[0].equals("2")) {
-	//
-	//					File f = new File(args[1]);
-	//					FileInputStream fis = new FileInputStream(f);
-	//					Runtime rt = Runtime.getRuntime();
-	//					long startMem = rt.totalMemory() - rt.freeMemory();
-	//					byte[] b = new byte[(int) f.length()];
-	//					fis.read(b);
-	//					System.out.println("file size is " + f.length());
-	//					//ByteArrayInputStream bais;
-	//					//bais = new ByteArrayInputStream(b);
-	//					VTDGen1 vg = new VTDGen1();
-	//					vg.setDoc(b);
-	//					vg.parse(false);
-	//					long endMem = rt.totalMemory() - rt.freeMemory();
-	//					System.out.println(
-	//						" total mem used " + (int) (endMem - startMem));
-	//				}
-	//			} catch (ParseException e) {
-	//				System.out.println(e);
-	//			} catch (Exception e) {
-	//				System.out.println("other exceptions" + e);
-	//			}
-	//		}
-	//	}
+
 	public static void main(String[] argv) {
 		VTDGen vg = new VTDGen();
 
@@ -2632,119 +2642,12 @@ public class VTDGen {
 				} else {
 					return false;
 				}
-
-			temp = temp & 0xff;
-
-			switch (UTF8Char.byteCount(temp)) { // handle multi-byte code
-
-			case 2:
-				c = 0x1f;
-				// A mask determine the val portion of the first byte
-				d = 6; // 
-				a = 1; //
-				break;
-			case 3:
-				c = 0x0f;
-				d = 12;
-				a = 2;
-				break;
-			case 4:
-				c = 0x07;
-				d = 18;
-				a = 3;
-				break;
-			case 5:
-				c = 0x03;
-				d = 24;
-				a = 4;
-				break;
-			case 6:
-				c = 0x01;
-				d = 30;
-				a = 5;
-				break;
-			default:
-				throw new ParseException(
-						"UTF 8 encoding error: should never happen");
-			}
-
-			val = (temp & c) << d;
-			int i = a - 1;
-			while (i >= 0) {
-				temp = XMLDoc[offset + a - i];
-				if ((temp & 0xc0) != 0x80)
-					throw new ParseException(
-							"UTF 8 encoding error: should never happen");
-				val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
-				i--;
-			}
-
-			if (val == ch) {
-				offset += a + 1;
-				return true;
-			} else {
-				return false;
-			}
-
+			return skipUTF8(temp, ch);
 		case FORMAT_UTF_16BE:
-			// implement UTF-16BE to UCS4 conversion
-			temp = (XMLDoc[offset] & 0xff) << 8 | (XMLDoc[offset + 1] & 0xff);
-			if ((temp < 0xd800) || (temp >= 0xdc00)) { // not a high surrogate
-				//offset += 2;
-				if (temp == ch) {
-					offset += 2;
-					return true;
-				} else
-					return false;
-			} else {
-				if (temp < 0xd800 || temp > 0xdbff)
-					throw new EncodingException(
-							"UTF 16 BE encoding error: should never happen");
-				val = temp;
-				temp = (XMLDoc[offset + 2] & 0xff) << 8
-						| (XMLDoc[offset + 3] & 0xff);
-				if (temp < 0xdc00 || temp > 0xdfff) {
-					// has to be a low surrogate here
-					throw new EncodingException(
-							"UTF 16 BE encoding error: should never happen");
-				}
-				//val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
-				val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
-				if (val == ch) {
-					offset += 4;
-					return true;
-				} else
-					return false;
-			}
+		    return skip_16be(ch);
 		case FORMAT_UTF_16LE:
+		    return skip_16le(ch);
 
-			temp = (XMLDoc[offset + 1] & 0xff) << 8 | (XMLDoc[offset] & 0xff);
-			if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
-				if (temp == ch) {
-					offset += 2;
-					return true;
-				} else {
-					return false;
-				}
-			} else {
-				if (temp < 0xd800 || temp > 0xdbff)
-					throw new EncodingException(
-							"UTF 16 LE encoding error: should never happen");
-				val = temp;
-				temp = (XMLDoc[offset + 3] & 0xff) << 8
-						| (XMLDoc[offset + 2] & 0xff);
-				if (temp < 0xdc00 || temp > 0xdfff) {
-					// has to be high surrogate
-					throw new EncodingException(
-							"UTF 16 LE encoding error: should never happen");
-				}
-				val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
-				if (val == ch) {
-					offset += 4;
-					return true;
-				} else
-					return false;
-			}
 		case FORMAT_ISO_8859:
 			temp = XMLDoc[offset];
 			if (temp == ch) {
