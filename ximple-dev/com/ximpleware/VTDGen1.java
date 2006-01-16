@@ -2747,8 +2747,10 @@ public class VTDGen1 {
 		endOffset = docLen;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
-			a = 10;
-		} else if (docLen <= 1024 * 16 * 4) {
+			a = 8;
+		} else if (docLen <=4096){
+		    a = 10;
+		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
 			a = 11;
 		} else if (docLen <= 1024 * 256) {
@@ -2791,8 +2793,10 @@ public class VTDGen1 {
 		endOffset = os + len;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
-			a = 10;
-		} else if (docLen <= 1024 * 16 * 4) {
+			a = 8;
+		} else if (docLen <=4096){
+		    a = 10;
+		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
 			a = 11;
 		} else if (docLen <= 1024 * 256) {
