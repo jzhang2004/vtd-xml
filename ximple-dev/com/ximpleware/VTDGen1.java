@@ -950,11 +950,17 @@ public class VTDGen1 {
 		}
 		// check for max file size exception
 		if (encoding < FORMAT_UTF_16BE) {
-			if ((offset + docLen) >= 1L << 30)
-				throw new ParseException("Other error: file size too large ");
+		    if (ns){
+		        if ((offset + (long)docLen) >= 1L << 30)
+		            throw new ParseException("Other error: file size too big >=1GB ");
+		    }
+			else {
+			    if ((offset + (long)docLen) >= 1L <<31)
+			    	throw new ParseException("Other error: file size too big >=2GB ");
+			}
 		} else {
-			if ((offset - 2 + docLen) >= 1L << 31)
-				throw new ParseException("Other error: file size too large ");
+			if ((offset+ (long)docLen) >= 1L << 31)
+				throw new ParseException("Other error: file size too large >= 2GB");
 		}
 	}
 	/**
