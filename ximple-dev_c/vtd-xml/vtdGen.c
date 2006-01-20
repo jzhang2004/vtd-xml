@@ -2419,12 +2419,22 @@ void decide_encoding(VTDGen *vg){
 	}
 
 	if (vg->encoding < FORMAT_UTF_16BE) {
-		if ((unsigned int)(vg->offset + vg->docLen) >= (((unsigned int)1) << 30)){
-			e.et = parse_exception;
-			e.subtype = 0;
-			e.msg = "Parse Exception in parse()";
-			e.sub_msg = "Other error: file size too large";
-			Throw e;
+		if (vg->ns == TRUE) {
+			if (((Long) vg->offset + vg->docLen) >= ((1L) << 30)){
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse Exception in parse()";
+				e.sub_msg = "Other error: file size too large >=1G ";
+				Throw e;
+			}
+		}else {
+			if (((Long) vg->offset + vg->docLen) >= ((1L) << 31)){
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse Exception in parse()";
+				e.sub_msg = "Other error: file size too large >=2G ";
+				Throw e;
+			}
 		}
 		//throw new ParseException("Other error: file size too large ");
 	} else {
