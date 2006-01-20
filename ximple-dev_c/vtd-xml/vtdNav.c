@@ -85,6 +85,21 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->nestingLevel = depth +1;
 
 						 vn->ns = ns;
+#if BIG_ENDIAN
+
+						 if (ns == TRUE)
+							 vn->offsetMask = MASK_TOKEN_OFFSET1;
+						 else 
+							 vn->offsetMask = MASK_TOKEN_OFFSET2;
+
+#else 
+						 if (ns == TRUE)
+							 vn->offsetMask = MASK_TOKEN_OFFSET3;
+						 else 
+							 vn->offsetMask = MASK_TOKEN_OFFSET4;
+
+#endif
+
 						 vn->atTerminal = FALSE;
 						 vn->context = (int *)malloc(vn->nestingLevel*sizeof(int));
 						 if (vn->context == NULL){
@@ -3277,9 +3292,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 int getTokenOffset(VTDNav *vn, int index){
 #if BIG_ENDIAN
-	return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
+	return (int) (longAt(vn->vtdBuffer,index) & vn->offsetMask);
 #else
-	return swap_bytes((int)((longAt(vn->vtdBuffer,index) & 0xffffff3f00000000L) >> 32));
+	return swap_bytes((int)((longAt(vn->vtdBuffer,index) & vn->offsetMask) >> 32));
 #endif
 }
 // Get the XML document 
