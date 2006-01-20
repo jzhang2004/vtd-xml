@@ -71,7 +71,7 @@ public class VTDNav {
 	private final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
 	private final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
 	private final static long MASK_TOKEN_QN_LEN = 0x000007ff00000000L;
-	private final static long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
+	long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
 	private final static long MASK_TOKEN_TYPE = 0xf000000000000000L;
 	private final static long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
 
@@ -173,7 +173,13 @@ public class VTDNav {
 		//System.out.println("encoding " + encoding);
 		rootIndex = RootIndex;
 		nestingLevel = depth + 1;
-		ns = NS;
+		ns = NS; // namespace aware or not
+		if (ns == false)
+		    MASK_TOKEN_OFFSET = 0x000000007fffffffL; // this allows xml size to be 2GB 
+		else // if there is no namespace
+		    MASK_TOKEN_OFFSET = 0x000000003fffffffL;
+		
+		
 		atTerminal = false; //this variable will only change value during XPath eval
 
 		// initialize the context object
