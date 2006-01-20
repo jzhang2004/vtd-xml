@@ -29,7 +29,7 @@ IntHash* createIntHash(){
 		e.msg = "IntHash allocation failed ";
 		Throw e;
 	}
-	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)*hashWidth);
+	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)<<hashWidthE);
 	/* initialize everything to null */
 	for (i=0;i<hashWidth;i++){
 		ih->storage[i]= NULL;
@@ -49,7 +49,7 @@ void freeIntHash(IntHash *ih){
 
 
 /* Test whether the input i is unique; 
-   if so, insert into the hash table and return false
+   if not, insert into the hash table and return false
    otherwise, return true */
 Boolean isUniqueIntHash(IntHash *ih,int i){
 	exception e;
