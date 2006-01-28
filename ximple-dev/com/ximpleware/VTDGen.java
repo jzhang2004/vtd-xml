@@ -95,6 +95,7 @@ public class VTDGen {
 	protected FastLongBuffer l1Buffer;
 	protected FastLongBuffer l2Buffer;
 	protected FastIntBuffer l3Buffer;
+	protected boolean br; //buffer reuse
 	int vtdSize;
 	int l1Size;
 	int l2Size;
@@ -128,16 +129,19 @@ public class VTDGen {
 		//scratch_buffer = new int[10];
 		VTDDepth = 0;
 		//increment  =1;
+		br = false;
 	}
 
 	/**
 	 * Clear internal states so VTDGEn can process the next file.
 	 */
 	public void clear() {
-		VTDBuffer = null;
-		l1Buffer = null;
-		l2Buffer = null;
-		l3Buffer = null;
+	    if (br == false){
+	        VTDBuffer = null;
+	        l1Buffer = null;
+	        l2Buffer = null;
+	        l3Buffer = null;
+	    }
 		XMLDoc = null;
 		offset = temp_offset =0;
 		l1Size = l2Size = l3Size = VTDDepth = 0;
@@ -148,8 +152,7 @@ public class VTDGen {
 		increment =1;
 		BOM_detected = false;
 		must_utf_8 = false;
-		ch = ch_temp = 0;
-	
+		ch = ch_temp = 0;	
 	}
 
 	/**
@@ -2521,6 +2524,113 @@ public class VTDGen {
 		throw new ParseException("Error in comment: '-->' expected"
 				+ formatLineNumber());
 	}
+	
+	
+	/**
+	 * The buffer-reuse version of setDoc
+	 * The concept is to reuse LC and VTD buffer for 
+	 * XML parsing, instead of allocating every time
+	 * @param ba
+	 *
+	 */
+	public void setDoc_BR(byte[] ba){
+		int a;
+		br = true;
+		depth = -1;
+		increment =1;
+		BOM_detected = false;
+		must_utf_8 = false;
+		ch = ch_temp = 0;
+		temp_offset = 0;
+		XMLDoc = ba;
+		docOffset = offset = 0;
+		docLen = ba.length;
+		endOffset = docLen;
+		
+		if (VTDBuffer == null){
+		    // those buffers are always created together
+			if (docLen <= 1024) {
+				//a = 1024; //set the floor
+				a = 7;
+			} else if (docLen <=4096*2){
+			    a = 9;
+			}else if (docLen <= 1024 * 16 * 4) {
+				//a = 2048;
+				a = 10;
+			} else if (docLen <= 1024 * 256) {
+				//a = 1024 * 4;
+				a = 12;
+			} else {
+				//a = 1 << 15;
+				a = 15;
+			}
+			VTDBuffer = new FastLongBuffer(a, ba.length >> (a+1));
+			l1Buffer = new FastLongBuffer(7);
+			l2Buffer = new FastLongBuffer(9);
+			l3Buffer = new FastIntBuffer(11);
+		}
+		else {
+		    VTDBuffer.clear();
+		    l1Buffer.clear();
+		    l2Buffer.clear();
+		    l3Buffer.clear();
+		}
+		vtdSize = l1Size = l2Size = l3Size = 0;
+	}
+	
+	/**
+	 * The buffer-reuse version of setDoc
+	 * The concept is to reuse LC and VTD buffer for 
+	 * XML parsing, instead of allocating every time
+	 * @param ba byte[]
+	 * @param os int (in byte)
+	 * @param len int (in byte)
+	 *
+	 */
+	public void setDoc_BR(byte[] ba, int os, int len){
+		int a;
+		br = true;
+		depth = -1;
+		increment =1;
+		BOM_detected = false;
+		must_utf_8 = false;
+		ch = ch_temp = 0;
+		temp_offset = 0;
+		XMLDoc = ba;
+		docOffset = offset = os;
+		docLen = len;
+		endOffset = os + len;
+		
+
+		if (VTDBuffer == null){
+			if (docLen <= 1024) {
+				//a = 1024; //set the floor
+				a = 7;
+			} else if (docLen <=4096*2){
+			    a = 9;
+			}else if (docLen <= 1024 * 16 * 4) {
+				//a = 2048;
+				a = 10;
+			} else if (docLen <= 1024 * 256) {
+				//a = 1024 * 4;
+				a = 12;
+			} else {
+				//a = 1 << 15;
+				a = 15;
+			}
+		    VTDBuffer = new FastLongBuffer(a, len>> (a+1));
+		    l1Buffer = new FastLongBuffer(7);
+		    l2Buffer = new FastLongBuffer(9);
+		    l3Buffer = new FastIntBuffer(11);
+		} else {
+		    VTDBuffer.clear();
+		    l1Buffer.clear();
+		    l2Buffer.clear();
+		    l3Buffer.clear();
+		}
+		vtdSize = l1Size = l2Size = l3Size = 0;
+	}
+	
 	/**
 	 * Set the XMLDoc container. Also set the offset and len of the document
 	 * with respect to the container.
@@ -2535,6 +2645,7 @@ public class VTDGen {
 	public void setDoc(byte[] ba, int os, int len) {
 
 		int a;
+		br = false;
 		depth = -1;
 		increment =1;
 		BOM_detected = false;
@@ -2547,12 +2658,12 @@ public class VTDGen {
 		endOffset = os + len;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
-			a = 8;
-		}else if (docLen <=4096){
-		    a = 10;
+			a = 7;
+		} else if (docLen <=4096*2){
+		    a = 9;
 		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
-			a = 11;
+			a = 10;
 		} else if (docLen <= 1024 * 256) {
 			//a = 1024 * 4;
 			a = 12;
@@ -2580,6 +2691,7 @@ public class VTDGen {
 	 */
 	public void setDoc(byte[] ba) {
 		int a;
+		br = false;
 		increment = 1;
 		depth = -1;
 		BOM_detected = false;
@@ -2590,15 +2702,15 @@ public class VTDGen {
 		docOffset = offset = 0;
 		docLen = ba.length;
 		endOffset = docLen;
+		
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
-			a = 8;
-		} else if (docLen <=4096){
-		    a = 10;
-		}
-		else if (docLen <= 1024 * 16 * 4) {
+			a = 7;
+		} else if (docLen <=4096*2){
+		    a = 9;
+		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
-			a = 11;
+			a = 10;
 		} else if (docLen <= 1024 * 256) {
 			//a = 1024 * 4;
 			a = 12;
@@ -2613,7 +2725,7 @@ public class VTDGen {
 		VTDBuffer = new FastLongBuffer(a, ba.length >> (a + 1));
 		l1Buffer = new FastLongBuffer(7);
 		l2Buffer = new FastLongBuffer(9);
-		l3Buffer = new FastIntBuffer(11);
+	    l3Buffer = new FastIntBuffer(11);
 		vtdSize = l1Size = l2Size = l3Size = 0;
 	}
 
