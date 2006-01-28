@@ -29,11 +29,15 @@
 #define MASK_TOKEN_FULL_LEN 0x000fffff00000000L
 #define MASK_TOKEN_PRE_LEN 0x000ff80000000000L
 #define MASK_TOKEN_QN_LEN  0x000007ff00000000L
-#define MASK_TOKEN_OFFSET  0x000000003fffffffL
+#define MASK_TOKEN_OFFSET1  0x000000003fffffffL
+#define MASK_TOKEN_OFFSET2  0x000000007fffffffL
+
 #define MASK_TOKEN_TYPE  0xf000000000000000L
 #define MASK_TOKEN_DEPTH  0x0ff0000000000000L
 #define MASK_TOKEN_NS_MARK 0x00000000c0000000L
 #else
+#define MASK_TOKEN_OFFSET3  0xffffff3f00000000L
+#define MASK_TOKEN_OFFSET4  0xffffff7f00000000L
 //define MASKS for small endians
 #define MASK_TOKEN_NS_MARK_LE 0x000000c000000000L
 #endif
@@ -73,6 +77,7 @@ typedef struct vTDNav{
 	FastIntBuffer *l3Buffer;
 	UByte* XMLDoc;
     
+	Long offsetMask;
 	ContextBuffer *contextBuf;
 	ContextBuffer *contextBuf2;// this is reserved for XPath
 	
