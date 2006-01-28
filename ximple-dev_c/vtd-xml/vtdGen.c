@@ -121,7 +121,6 @@ VTDGen *createVTDGen(){
 
 	vg->VTDBuffer =	vg->l1Buffer = 	vg->l2Buffer = NULL;
 	vg->l3Buffer = NULL;
-	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
 	vg->bufLen = vg->docLen = vg->docLen = vg->last_depth = 0;
 	vg->last_i3_index = vg->last_l2_index = vg->last_l1_index = 0;
 	vg->XMLDoc = NULL;
@@ -168,7 +167,7 @@ void clear(VTDGen *vg){
 	}
 
 	
-	vg->l1Size = vg->l2Size = vg->l3Size = vg->VTDDepth = 0;
+	//vg->l1Size = vg->l2Size = vg->l3Size = vg->VTDDepth = 0;
 	vg->last_depth = vg->last_l1_index = 
 		vg->last_l2_index = vg->last_i3_index =0;
 	vg->offset = vg->temp_offset = 0;
@@ -2017,6 +2016,7 @@ void setDoc_BR(VTDGen *vg, UByte *ba, int len){
 	vg->docOffset = vg->offset = 0;
 	vg->docLen = len;
 	vg->endOffset = len;
+	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
 	if (vg->VTDBuffer == NULL){
 		if (vg->docLen <= 1024) {
 			//a = 1024; //set the floor
@@ -2049,7 +2049,6 @@ void setDoc_BR(VTDGen *vg, UByte *ba, int len){
 		clearFastLongBuffer(vg->l2Buffer);
 		clearFastIntBuffer(vg->l3Buffer);
 	}
-	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
 	vg->stateTransfered = FALSE;
 }
 
@@ -2067,6 +2066,7 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->docOffset = vg->offset = os;
 	vg->docLen = len;
 	vg->endOffset = os + docLen;
+	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
 	if (vg->VTDBuffer == NULL){
 		if (vg->docLen <= 1024) {
 			//a = 1024; //set the floor
@@ -2099,8 +2099,8 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 		clearFastLongBuffer(vg->l2Buffer);
 		clearFastIntBuffer(vg->l3Buffer);
 	}
-	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
-
+	//vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
+	
 	vg->stateTransfered = FALSE;
 }
 
@@ -2118,6 +2118,7 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
 	vg->docOffset = vg->offset = 0;
 	vg->docLen = len;
 	vg->endOffset = len;
+	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
 	if (vg->docLen <= 1024) {
 		//a = 1024; //set the floor
 		a = 7;
@@ -2142,7 +2143,7 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
 	vg->l1Buffer = createFastLongBuffer2(7); //new FastLongBuffer2(7);
 	vg->l2Buffer = createFastLongBuffer2(9); //new FastLongBuffer2(9);
 	vg->l3Buffer = createFastIntBuffer2(11);  //new FastIntBuffer2(11);
-	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
+	//vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
 	vg->stateTransfered = FALSE;
 }
 
@@ -2162,6 +2163,7 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->docOffset = vg->offset = os;
 	vg->docLen = len;
 	vg->endOffset = os + docLen;
+	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
 	if (vg->docLen <= 1024) {
 		//a = 1024; //set the floor
 		a = 7;
@@ -2186,7 +2188,7 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->l1Buffer = createFastLongBuffer2(7); //new FastLongBuffer2(7);
 	vg->l2Buffer = createFastLongBuffer2(9); //new FastLongBuffer2(9);
 	vg->l3Buffer = createFastIntBuffer2(11);  //new FastIntBuffer2(11);
-	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
+	//vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
 
 	vg->stateTransfered = FALSE;
 }
