@@ -62,6 +62,9 @@ static inline int getChar2(VTDGen *vg);
 static int handle_16le(VTDGen *vg);
 static int handle_16be(VTDGen *vg);
 static int handle_utf8(VTDGen *vg,int temp);
+static Boolean skipUTF8(VTDGen *vg,int temp,int ch);
+static Boolean skip_16be(VTDGen *vg, int ch);
+static Boolean skip_16le(VTDGen *vg, int ch);
 static int getCharAfterSe(VTDGen *vg);
 static int getCharAfterS(VTDGen *vg);
 static int getCharAfterS2(VTDGen *vg, Boolean entityOK);
@@ -125,45 +128,46 @@ VTDGen *createVTDGen(){
 	vg->rootIndex = vg->endOffset= 0;
 	vg->ns = vg->offset = vg->prev_offset =0;
 	vg->stateTransfered = TRUE; // free VTDGen won't free all location cache and VTD buffer
-
+	
+	vg->br = FALSE;
 	return vg;
 }
 
-// free VTDGen
+// free VTDGen, it doesn't free the memory block containing XML doc
 void freeVTDGen(VTDGen *vg){
 	if (vg != NULL){
 		free(vg->attr_name_array);
 		free(vg->tag_stack);
 		if (vg->stateTransfered == FALSE){
-			free(vg->XMLDoc);
+			//free(vg->XMLDoc);
 			freeFastLongBuffer(vg->VTDBuffer);
 			freeFastLongBuffer(vg->l1Buffer);
 			freeFastLongBuffer(vg->l2Buffer);
 			freeFastIntBuffer(vg->l3Buffer);
 		}
 		free(vg);
-	}
-	
+	}	
 }
 
 // clear the internal state of VTDGen so it can process 
 // the next XML file
 void clear(VTDGen *vg){
-	if (vg->stateTransfered == FALSE){
-		free(vg->XMLDoc);
-		freeFastIntBuffer(vg->l3Buffer);
-		freeFastLongBuffer(vg->l1Buffer);
-		freeFastLongBuffer(vg->l2Buffer);
-		freeFastLongBuffer(vg->VTDBuffer);
+	if (vg->br == FALSE){
+		if (vg->stateTransfered == FALSE){
+			//free(vg->XMLDoc);
+			freeFastIntBuffer(vg->l3Buffer);
+			freeFastLongBuffer(vg->l1Buffer);
+			freeFastLongBuffer(vg->l2Buffer);
+			freeFastLongBuffer(vg->VTDBuffer);
+		}
+		vg->VTDBuffer = NULL;
+		vg->l1Buffer = NULL;
+		vg->l2Buffer = NULL;
+		vg->l3Buffer = NULL;
+		vg->XMLDoc = NULL;
 	}
 
-	vg->VTDBuffer = NULL;
-	vg->l1Buffer = NULL;
-	vg->l2Buffer = NULL;
-	vg->l3Buffer = NULL;
-	vg->XMLDoc = NULL;
-
-	vg->stateTransfered = TRUE;
+	
 	vg->l1Size = vg->l2Size = vg->l3Size = vg->VTDDepth = 0;
 	vg->last_depth = vg->last_l1_index = 
 		vg->last_l2_index = vg->last_i3_index =0;
@@ -690,6 +694,138 @@ static int handle_utf8(VTDGen *vg, int temp){
 	
 }
 
+static Boolean skipUTF8(VTDGen *vg,int temp, int ch){
+	exception e;
+	int val, a,c,d,i;
+	switch (UTF8Char_byteCount(temp)) { // handle multi-byte code
+
+			case 2 :
+				c = 0x1f;
+				// A mask determine the val portion of the first byte
+				d = 6; // 
+				a = 1; //
+				break;
+			case 3 :
+				c = 0x0f;
+				d = 12;
+				a = 2;
+				break;
+			case 4 :
+				c = 0x07;
+				d = 18;
+				a = 3;
+				break;
+			case 5 :
+				c = 0x03;
+				d = 24;
+				a = 4;
+				break;
+			case 6 :
+				c = 0x01;
+				d = 30;
+				a = 5;
+				break;
+			default :
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse exception in skipChar";
+				e.sub_msg = "UTF 8 encoding error: should never happen";
+				Throw e;
+				//throw new ParseException("UTF 8 encoding error: should never happen");
+	}
+
+	val = (temp & c) << d;
+	i = a - 1;
+	while (i >= 0) {
+		temp = vg->XMLDoc[vg->offset + a - i];
+		if ((temp & 0xc0) != 0x80){
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse exception in skipChar";
+			e.sub_msg = "UTF 8 encoding error: should never happen";
+			Throw e;
+		}
+		//throw new ParseException("UTF 8 encoding error: should never happen");
+		val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
+		i--;
+	}
+
+	if (val == ch) {
+		vg->offset += a + 1;
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+static Boolean skip_16be(VTDGen *vg, int ch){
+	exception e;
+	int temp,val;
+	// implement UTF-16BE to UCS4 conversion
+	temp = vg->XMLDoc[vg->offset] << 8 | vg->XMLDoc[vg->offset + 1];
+	if ((temp < 0xd800)
+		|| (temp >= 0xdc00)) { // not a high surrogate
+			//offset += 2;
+			if (temp == ch) {
+				vg->offset += 2;
+				return TRUE;
+			} else
+				return FALSE;
+		} else {
+			val = temp;
+			temp = vg->XMLDoc[vg->offset + 2] << 8 | vg->XMLDoc[vg->offset + 3];
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be a low surrogate here{
+				e.et = parse_exception;
+				e.subtype = 0;
+				e.msg = "Parse exception in skipChar";
+				e.sub_msg = "UTF 16 BE encoding error: should never happen";
+				Throw e;					
+				//throw new EncodingException("UTF 16 BE encoding error: should never happen");
+			}
+			//val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
+			val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+
+			if (val == ch) {
+				vg->offset += 4;
+				return TRUE;
+			} else
+				return FALSE;
+		}
+}
+static Boolean skip_16le(VTDGen *vg, int ch){
+	exception e;
+	int temp,val;
+	temp = vg->XMLDoc[vg->offset + 1] << 8 | vg->XMLDoc[vg->offset];
+	if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
+		if (temp == ch) {
+			vg->offset += 2;
+			return TRUE;
+		} else {
+			return FALSE;
+		}
+	} else {
+		val = temp;
+		temp = vg->XMLDoc[vg->offset + 3] << 8 | vg->XMLDoc[vg->offset + 2];
+		if (temp < 0xd800 || temp > 0xdc00) {
+			// has to be high surrogate
+			// has to be a low surrogate here{
+			e.et = parse_exception;
+			e.subtype = 0;
+			e.msg = "Parse exception in skipChar";
+			e.sub_msg = "UTF 16 LE encoding error: should never happen";
+			Throw e;
+			//throw new EncodingException("UTF 16 BE encoding error: should never happen");
+		}
+		//val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
+		val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
+
+		if (val == ch) {
+			vg->offset += 4;
+			return TRUE;
+		} else
+			return FALSE;
+	}
+}
 
 // The entity aware version of getCharAfterS
 static int getCharAfterSe(VTDGen *vg){
@@ -1867,11 +2003,111 @@ void parse(VTDGen *vg, Boolean ns){
 
 
 }
+// set the XML Doc container and turn on buffer reuse
+void setDoc_BR(VTDGen *vg, UByte *ba, int len){
+	int a;
+	vg->br = TRUE;
+	vg->depth = -1;
+	vg->increment = 1;
+	vg->BOM_detected = FALSE;
+	vg->must_utf_8 = FALSE;
+	vg->ch = vg->ch_temp = 0;
+	vg->temp_offset = 0;
+	vg->XMLDoc = ba;
+	vg->docOffset = vg->offset = 0;
+	vg->docLen = len;
+	vg->endOffset = len;
+	if (vg->VTDBuffer == NULL){
+		if (vg->docLen <= 1024) {
+			//a = 1024; //set the floor
+			a = 7;
+		} else if (vg->docLen <= 4096 * 2){
+			a = 9;
+		}
+		else if (vg->docLen <= 1024 * 16 * 4) {
+			//a = 2048;
+			a = 10;
+		} else if (vg->docLen <= 1024 * 256) {
+			//a = 1024 * 4;
+			a = 12;
+		} else {
+			//a = 1 << 15;
+			a = 15;
+		}
+		//VTDBuffer = new FastLongBuffer(a);
+		//l1Buffer = new FastLongBuffer(128);
+		//l2Buffer = new FastLongBuffer(512);
+		//l3Buffer = new FastIntBuffer(2048);
+		vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); //new FastLongBuffer2(a, ba.length >> (a+1));
+		vg->l1Buffer = createFastLongBuffer2(7); //new FastLongBuffer2(7);
+		vg->l2Buffer = createFastLongBuffer2(9); //new FastLongBuffer2(9);
+		vg->l3Buffer = createFastIntBuffer2(11);  //new FastIntBuffer2(11);
+		
+	} else {
+		clearFastLongBuffer(vg->VTDBuffer);
+		clearFastLongBuffer(vg->l1Buffer);
+		clearFastLongBuffer(vg->l2Buffer);
+		clearFastIntBuffer(vg->l3Buffer);
+	}
+	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
+	vg->stateTransfered = FALSE;
+}
 
+//Set the XMLDoc container.Also set the offset and len of the document 
+void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
+	int a;
+	vg->br = TRUE;
+	vg->depth = -1;
+	vg->increment = 1;
+	vg->BOM_detected = FALSE;
+	vg->must_utf_8 = FALSE;
+	vg->ch = vg->ch_temp = 0;
+	vg->temp_offset = 0;
+	vg->XMLDoc = ba;
+	vg->docOffset = vg->offset = os;
+	vg->docLen = len;
+	vg->endOffset = os + docLen;
+	if (vg->VTDBuffer == NULL){
+		if (vg->docLen <= 1024) {
+			//a = 1024; //set the floor
+			a = 7;
+		} else if (vg->docLen <= 4096 * 2){
+			a = 9;
+		}
+		else if (vg->docLen <= 1024 * 16 * 4) {
+			//a = 2048;
+			a = 10;
+		} else if (vg->docLen <= 1024 * 256) {
+			//a = 1024 * 4;
+			a = 12;
+		} else {
+			//a = 1 << 15;
+			a = 15;
+		}
+		//VTDBuffer = new FastLongBuffer(a);
+		//l1Buffer = new FastLongBuffer(128);
+		//l2Buffer = new FastLongBuffer(512);
+		//l3Buffer = new FastIntBuffer(2048);
+		vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); //new FastLongBuffer2(a, ba.length >> (a+1));
+		vg->l1Buffer = createFastLongBuffer2(7); //new FastLongBuffer2(7);
+		vg->l2Buffer = createFastLongBuffer2(9); //new FastLongBuffer2(9);
+		vg->l3Buffer = createFastIntBuffer2(11);  //new FastIntBuffer2(11);
+	}
+	else {
+		clearFastLongBuffer(vg->VTDBuffer);
+		clearFastLongBuffer(vg->l1Buffer);
+		clearFastLongBuffer(vg->l2Buffer);
+		clearFastIntBuffer(vg->l3Buffer);
+	}
+	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
+
+	vg->stateTransfered = FALSE;
+}
 
 // Set the XMLDoc container.
 void setDoc(VTDGen *vg, UByte *ba, int len){
 	int a;
+	vg->br = FALSE;
 	vg->depth = -1;
 	vg->increment = 1;
 	vg->BOM_detected = FALSE;
@@ -1884,10 +2120,13 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
 	vg->endOffset = len;
 	if (vg->docLen <= 1024) {
 		//a = 1024; //set the floor
-		a = 10;
-	} else if (vg->docLen <= 1024 * 16 * 4) {
+		a = 7;
+	} else if (vg->docLen <= 4096 * 2){
+		a = 9;
+	}
+	else if (vg->docLen <= 1024 * 16 * 4) {
 		//a = 2048;
-		a = 11;
+		a = 10;
 	} else if (vg->docLen <= 1024 * 256) {
 		//a = 1024 * 4;
 		a = 12;
@@ -1904,6 +2143,7 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
 	vg->l2Buffer = createFastLongBuffer2(9); //new FastLongBuffer2(9);
 	vg->l3Buffer = createFastIntBuffer2(11);  //new FastIntBuffer2(11);
 	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
+	vg->stateTransfered = FALSE;
 }
 
 // Set the XMLDoc container.Also set the offset and len of the document
@@ -1911,6 +2151,7 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
 // docLen is the length of the XML content in byte
 void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	int a;
+	vg->br = FALSE;
 	vg->depth = -1;
 	vg->increment = 1;
 	vg->BOM_detected = FALSE;
@@ -1921,13 +2162,16 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->docOffset = vg->offset = os;
 	vg->docLen = len;
 	vg->endOffset = os + docLen;
-	if (docLen <= 1024) {
+	if (vg->docLen <= 1024) {
 		//a = 1024; //set the floor
-		a = 10;
-	} else if (docLen <= 1024 * 16 * 4) {
+		a = 7;
+	} else if (vg->docLen <= 4096 * 2){
+		a = 9;
+	}
+	else if (vg->docLen <= 1024 * 16 * 4) {
 		//a = 2048;
-		a = 11;
-	} else if (docLen <= 1024 * 256) {
+		a = 10;
+	} else if (vg->docLen <= 1024 * 256) {
 		//a = 1024 * 4;
 		a = 12;
 	} else {
@@ -1943,6 +2187,8 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->l2Buffer = createFastLongBuffer2(9); //new FastLongBuffer2(9);
 	vg->l3Buffer = createFastIntBuffer2(11);  //new FastIntBuffer2(11);
 	vg->vtdSize = vg->l1Size = vg->l2Size = vg->l3Size = 0;
+
+	vg->stateTransfered = FALSE;
 }
 
 // Increments offset only when the next char matches a given value.
@@ -1995,129 +2241,13 @@ static Boolean skipChar(VTDGen *vg, int ch){
 
 				//temp = temp & 0xff;
 
-				switch (UTF8Char_byteCount(temp)) { // handle multi-byte code
-
-			case 2 :
-				c = 0x1f;
-				// A mask determine the val portion of the first byte
-				d = 6; // 
-				a = 1; //
-				break;
-			case 3 :
-				c = 0x0f;
-				d = 12;
-				a = 2;
-				break;
-			case 4 :
-				c = 0x07;
-				d = 18;
-				a = 3;
-				break;
-			case 5 :
-				c = 0x03;
-				d = 24;
-				a = 4;
-				break;
-			case 6 :
-				c = 0x01;
-				d = 30;
-				a = 5;
-				break;
-			default :
-				e.et = parse_exception;
-				e.subtype = 0;
-				e.msg = "Parse exception in skipChar";
-				e.sub_msg = "UTF 8 encoding error: should never happen";
-				Throw e;
-				//throw new ParseException("UTF 8 encoding error: should never happen");
-				}
-
-				val = (temp & c) << d;
-				i = a - 1;
-				while (i >= 0) {
-					temp = vg->XMLDoc[vg->offset + a - i];
-					if ((temp & 0xc0) != 0x80){
-						e.et = parse_exception;
-						e.subtype = 0;
-						e.msg = "Parse exception in skipChar";
-						e.sub_msg = "UTF 8 encoding error: should never happen";
-						Throw e;
-					}
-					//throw new ParseException("UTF 8 encoding error: should never happen");
-					val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
-					i--;
-				}
-
-				if (val == ch) {
-					vg->offset += a + 1;
-					return TRUE;
-				} else {
-					return FALSE;
-				}
+				return skipUTF8(vg,temp,ch);
 
 			case FORMAT_UTF_16BE :
-				// implement UTF-16BE to UCS4 conversion
-				temp = vg->XMLDoc[vg->offset] << 8 | vg->XMLDoc[vg->offset + 1];
-				if ((temp < 0xd800)
-					|| (temp >= 0xdc00)) { // not a high surrogate
-						//offset += 2;
-						if (temp == ch) {
-							vg->offset += 2;
-							return TRUE;
-						} else
-							return FALSE;
-					} else {
-						val = temp;
-						temp = vg->XMLDoc[vg->offset + 2] << 8 | vg->XMLDoc[vg->offset + 3];
-						if (temp < 0xdc00 || temp > 0xdfff) {
-							// has to be a low surrogate here{
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse exception in skipChar";
-							e.sub_msg = "UTF 16 BE encoding error: should never happen";
-							Throw e;					
-							//throw new EncodingException("UTF 16 BE encoding error: should never happen");
-						}
-						//val = (val - 0xd800) * 0x400 + (temp - 0xdc00) + 0x10000;
-						val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+				return skip_16be(vg,ch);
 
-						if (val == ch) {
-							vg->offset += 4;
-							return TRUE;
-						} else
-							return FALSE;
-					}
 			case FORMAT_UTF_16LE :
-				temp = vg->XMLDoc[vg->offset + 1] << 8 | vg->XMLDoc[vg->offset];
-				if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
-					if (temp == ch) {
-						vg->offset += 2;
-						return TRUE;
-					} else {
-						return FALSE;
-					}
-				} else {
-					val = temp;
-					temp = vg->XMLDoc[vg->offset + 3] << 8 | vg->XMLDoc[vg->offset + 2];
-					if (temp < 0xd800 || temp > 0xdc00) {
-						// has to be high surrogate
-						// has to be a low surrogate here{
-						e.et = parse_exception;
-						e.subtype = 0;
-						e.msg = "Parse exception in skipChar";
-						e.sub_msg = "UTF 16 LE encoding error: should never happen";
-						Throw e;
-						//throw new EncodingException("UTF 16 BE encoding error: should never happen");
-					}
-					//val = (temp - 0xd800) * 0x400 + (val - 0xdc00) + 0x10000;
-					val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
-
-					if (val == ch) {
-						vg->offset += 4;
-						return TRUE;
-					} else
-						return FALSE;
-				}
+				return skip_16le(vg,ch);
 
 			default :
 				e.et = parse_exception;
