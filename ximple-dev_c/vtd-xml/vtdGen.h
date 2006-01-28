@@ -68,12 +68,13 @@ typedef struct vTDGen {
 	FastLongBuffer *l2Buffer;
 	FastIntBuffer *l3Buffer;
 
+	Boolean br;//buffer reuse flag
 	int vtdSize;
 	int l1Size;
 	int l2Size;
 	int l3Size;
 
-	Boolean stateTransfered;
+	Boolean stateTransfered; // indicate whether VTDNav has received all LC and VTD buffers
 
 	int endOffset;
 	Long* tag_stack;
@@ -105,5 +106,11 @@ void setDoc(VTDGen *vg, UByte *byteArray, int arrayLen);
 
 // Set the XMLDoc container.Also set the offset and len of the document 
 void setDoc2(VTDGen *vg, UByte *byteArray, int arrayLen, int offset, int docLen);
+
+// set the XML Doc container and turn on buffer reuse
+void setDoc_BR(VTDGen *vg, UByte *byteArray, int arrayLen);
+
+//Set the XMLDoc container.Also set the offset and len of the document 
+void setDoc_BR2(VTDGen *vg, UByte *byteArray, int arrayLen, int offset, int docLen);
 
 #endif
