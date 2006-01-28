@@ -96,10 +96,6 @@ public class VTDGen {
 	protected FastLongBuffer l2Buffer;
 	protected FastIntBuffer l3Buffer;
 	protected boolean br; //buffer reuse
-	int vtdSize;
-	int l1Size;
-	int l2Size;
-	int l3Size;
 
 	protected int docLen;
 	// again, in terms of byte, not char as encoded in VTD
@@ -144,7 +140,6 @@ public class VTDGen {
 	    }
 		XMLDoc = null;
 		offset = temp_offset =0;
-		l1Size = l2Size = l3Size = VTDDepth = 0;
 		last_depth = last_l1_index = last_l2_index = 0;
 		rootIndex = 0;
 		
@@ -972,8 +967,9 @@ public class VTDGen {
 		// first check first several bytes to figure out the encoding
 		// decide encoding
 		// 
+		
 		decide_encoding();
-
+		
 		// enter the main finite state machine
 		try {
 			// write doucment to be compatible with XPath data model
@@ -2546,7 +2542,7 @@ public class VTDGen {
 		docOffset = offset = 0;
 		docLen = ba.length;
 		endOffset = docLen;
-		
+		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
 		if (VTDBuffer == null){
 		    // those buffers are always created together
 			if (docLen <= 1024) {
@@ -2575,7 +2571,6 @@ public class VTDGen {
 		    l2Buffer.clear();
 		    l3Buffer.clear();
 		}
-		vtdSize = l1Size = l2Size = l3Size = 0;
 	}
 	
 	/**
@@ -2600,7 +2595,7 @@ public class VTDGen {
 		docOffset = offset = os;
 		docLen = len;
 		endOffset = os + len;
-		
+		last_l1_index= last_l2_index = last_l3_index = last_depth =0;		
 
 		if (VTDBuffer == null){
 			if (docLen <= 1024) {
@@ -2628,7 +2623,6 @@ public class VTDGen {
 		    l2Buffer.clear();
 		    l3Buffer.clear();
 		}
-		vtdSize = l1Size = l2Size = l3Size = 0;
 	}
 	
 	/**
@@ -2656,6 +2650,7 @@ public class VTDGen {
 		docOffset = offset = os;
 		docLen = len;
 		endOffset = os + len;
+		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
 			a = 7;
@@ -2680,7 +2675,6 @@ public class VTDGen {
 		l1Buffer = new FastLongBuffer(7);
 		l2Buffer = new FastLongBuffer(9);
 		l3Buffer = new FastIntBuffer(11);
-		vtdSize = l1Size = l2Size = l3Size = 0;
 	}
 
 	/**
@@ -2702,7 +2696,7 @@ public class VTDGen {
 		docOffset = offset = 0;
 		docLen = ba.length;
 		endOffset = docLen;
-		
+		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
 			a = 7;
@@ -2726,7 +2720,6 @@ public class VTDGen {
 		l1Buffer = new FastLongBuffer(7);
 		l2Buffer = new FastLongBuffer(9);
 	    l3Buffer = new FastIntBuffer(11);
-		vtdSize = l1Size = l2Size = l3Size = 0;
 	}
 
 	/**
