@@ -82,29 +82,44 @@ public void append(int[] int_array) {
         throw new NullPointerException();
     }
     // no additional buffer space needed
-
+    int lastBufferIndex;
     int[] lastBuffer;
+    
     if (bufferArrayList.size() == 0) {
         lastBuffer = new int[pageSize];
         bufferArrayList.add(lastBuffer);
+        lastBufferIndex = 0;
         capacity = pageSize;
     } else {
-        lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
+        lastBufferIndex = Math.min((size>>exp),//+(((size&r)==0)? 0:1), 
+                bufferArrayList.size() - 1);
+        lastBuffer = (int[]) bufferArrayList.get(lastBufferIndex);
     }
 
     if ((this.size + int_array.length) < this.capacity) {
         //get the last buffer from the bufferListArray
         //obtain the starting offset in that buffer to which the data is to be copied
-        //update length
-
-        System.arraycopy(
-            int_array,
-            0,
-            lastBuffer,
-            //size % pageSize,
-            size & r,
-            int_array.length);
+        //update length        
+        
+        //System.arraycopy(input, 0, lastBuffer, size % pageSize, input.length);
+        if (this.size + int_array.length< ((lastBufferIndex+1)<<exp)){
+            System.arraycopy(int_array, 0, lastBuffer, size & r, int_array.length);
+        }
+        else {
+            // copy the first part
+            System.arraycopy(int_array, 0, lastBuffer, size & r, pageSize-(size &r));
+            // copy the middle part
+            int l = int_array.length - (pageSize - (size&r));
+            int k = (l)>> exp;
+            int z;
+            for (z=1;z<=k;z++){
+                System.arraycopy(int_array,0,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, pageSize);
+            }
+            // copy the last part
+            System.arraycopy(int_array,0,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, l & r);
+        }
         size += int_array.length;
+        return;
     } else // new buffers needed
         {
 
@@ -311,17 +326,19 @@ public int size() {
  */
 public int[] toIntArray() {
     if (size > 0) {
+        int s = size;
         int[] resultArray = new int[size];
         //copy all the content int into the resultArray
         int array_offset = 0;
-        for (int i = 0; i < bufferArrayList.size(); i++) {
+        for (int i = 0; s>0; i++) {
             System.arraycopy(
                 (int[]) bufferArrayList.get(i),
                 0,
                 resultArray,
                 array_offset,
-                (i == (bufferArrayList.size() - 1)) ? (size& r) : pageSize);
+                (s<pageSize) ? s : pageSize);
 //            (i == (bufferArrayList.size() - 1)) ? size() % pageSize : pageSize);
+            s = s - pageSize;
             array_offset += pageSize;
         }
         return resultArray;
