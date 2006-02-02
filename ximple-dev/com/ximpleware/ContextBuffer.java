@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 /**
  * This class is used as the global stack in VTDNav class.
- * The VTDNav object instantiate a context Buffer object, then everytime
+ * The VTDNav object instantiates a context Buffer object, then everytime
  * load/store is called, current context information gets pushed/popped to/from the 
  * ContextBuffer.
  * Creation date: (11/16/03 4:30:45 PM)
@@ -147,27 +147,99 @@ public boolean load(int[] output){
  */
 public static void main(String[] args) {
     try {
-        int[] ia = new int[10];
+        int[] ia = new int[138];      
 
-        ContextBuffer cb = new ContextBuffer(3, 10);
-        for (int i = 0; i < 30; i++) {
-            for (int j = 0; j < 10; j++) {
+        ContextBuffer cb = new ContextBuffer(7, 138);
+        for (int i = 0; i < 57; i++) {
+            for (int j = 0; j < 138; j++) {
                 ia[j] = i;
             }
             cb.store(ia);
         }
         //cb.store(ia);
-        for (int i = 29; i >= 0; i--) {
+        for (int i = 56; i >= 0; i--) {
             cb.load(ia);
             System.out.println(""+ia[0]);
-            for (int j = 9; j >= 0; j--) {
+            for (int j = 137; j >= 0; j--) {
                 if (ia[j] != i) {
                     System.out.println(" store error " + i + " " + j + " " + ia[j]);
                 }
             }
         }
+        System.out.println("cb.clear()");
+        cb.clear();
+        
+        for (int i = 0; i < 157; i++) {
+            for (int j = 0; j < 138; j++) {
+                ia[j] = i;
+            }
+            cb.store(ia);
+        }
+        //cb.store(ia);
+        for (int i = 156; i >= 0; i--) {
+            cb.load(ia);
+            System.out.println(""+ia[0]);
+            for (int j = 137; j >= 0; j--) {
+                if (ia[j] != i) {
+                    System.out.println(" store error " + i + " " + j + " " + ia[j]);
+                }
+            }
+        }
+        cb.clear();
+        for (int i = 0; i < 257; i++) {
+            for (int j = 0; j < 138; j++) {
+                ia[j] = i;
+            }
+            cb.store(ia);
+        }
+        //cb.store(ia);
+        for (int i = 256; i >= 0; i--) {
+            cb.load(ia);
+            System.out.println(""+ia[0]);
+            for (int j = 137; j >= 0; j--) {
+                if (ia[j] != i) {
+                    System.out.println(" store error " + i + " " + j + " " + ia[j]);
+                }
+            }
+        }
+        
+        System.out.println("success");
+        
+        System.out.println("test fastIntBuffer");
+        ia = new int[134];
+        for (int k=0;k<134;k++){
+            ia[k]= 1;
+        }
+        FastIntBuffer fib = new FastIntBuffer(20);
+        for(int i=0;i<10;i++){
+            fib.append(ia);
+        }
+        int ib[] = fib.toIntArray();
+        for (int i = 0;i<1340;i++){
+            if (ib[i]!=1){
+                System.out.println("error occurred at "+i);
+                break;
+            }
+        }
+        System.out.println("test fastLongBuffer");
+        long[] la = new long[154];
+        for (int k=0;k<154;k++){
+            la[k]= 1;
+        }
+        FastLongBuffer flb = new FastLongBuffer(13);
+        for(int i=0;i<10;i++){
+            flb.append(la);
+        }
+        long lb[] = flb.toLongArray();
+        for (int i = 0;i<1540;i++){
+            if (lb[i]!=1){
+                System.out.println("error occurred at "+i);
+                break;
+            }
+        }
         System.out.println("success");
     } catch (Exception e) {
+        e.printStackTrace();
         System.out.println(" exception caught ");
     }
 }
@@ -196,15 +268,20 @@ public void store(int[] input){
     //}
 
     // no additional buffer space needed
-
+    int lastBufferIndex;
     int[] lastBuffer;
+
     if (bufferArrayList.size() == 0) {
         lastBuffer = new int[pageSize];
         bufferArrayList.add(lastBuffer);
+        lastBufferIndex = 0;
         capacity = pageSize;
     } else {
-        lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
+        lastBufferIndex = Math.min((size>>n),//+(((size&r)==0)? 0:1), 
+                bufferArrayList.size() - 1);
+        lastBuffer = (int[]) bufferArrayList.get(lastBufferIndex);        
     }
+   
 
     if ((this.size + input.length) < this.capacity) {
         //get the last buffer from the bufferListArray
@@ -212,9 +289,26 @@ public void store(int[] input){
         //update length
 
         //System.arraycopy(input, 0, lastBuffer, size % pageSize, input.length);
-        System.arraycopy(input, 0, lastBuffer, size & r, input.length);
-        //System.out.println("     --+++  buffer size "+size);
+        if (this.size + input.length< ((lastBufferIndex+1)<<n)){
+            System.arraycopy(input, 0, lastBuffer, size & r, input.length);
+        }
+        else {
+            // copy the first part
+            System.arraycopy(input, 0, lastBuffer, size & r, pageSize-(size &r));
+            // copy the middle part
+            int l = input.length - (pageSize - (size&r));
+            int k = (l)>> n;
+            int z;
+            for (z=1;z<=k;z++){
+                System.arraycopy(input,0,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, pageSize);
+            }
+            // copy the last part
+            System.arraycopy(input,0,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, l & r);
+        }
         size += input.length;
+        return;
+        //System.out.println("     --+++  buffer size "+size);
+        //size += input.length;
     } else // new buffers needed
         {
 
@@ -252,5 +346,7 @@ public void store(int[] input){
         capacity += (k <<n);
         // update
     }
+    
+ 
 }
 }
