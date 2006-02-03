@@ -517,6 +517,7 @@ public void resetXPath(VTDNav vn){
 /**
  * This method returns the next node in the nodeset
  * it returns -1 if there is no more node
+ * Afer finishing evaluating, don't forget to <em> reset the xpath </em>
  * @return int corresponding to the VTD index
  */
 public int evalXPath() throws XPathEvalException, NavException{
