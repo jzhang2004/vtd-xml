@@ -20,6 +20,11 @@ package com.ximpleware;
 import com.ximpleware.xpath.Expr;
 import com.ximpleware.xpath.XPathEvalException;
 
+/**
+ * PathExpr implements the Path expression as defined
+ * in XPath spec
+ *
+ */
 public class PathExpr extends Expr {
 
 	Expr fe;

@@ -17,7 +17,11 @@
  */
 package com.ximpleware.xpath;
 import com.ximpleware.*;
-
+/**
+ * A step is a part of location path as defined in 
+ * Xpath spec
+ * 
+ */
 public class Step implements LocationPathNode{
 	public int axis_type;
 	public NodeTest nt;  

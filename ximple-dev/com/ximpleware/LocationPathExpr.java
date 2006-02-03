@@ -20,6 +20,10 @@ package com.ximpleware;
 import com.ximpleware.xpath.*;
 // if the context node is text(),
 // then many axis simply won't work
+/**
+ * LocationPathExpr implements the location path expression
+ * as defined in XPath spec
+ */
 public class LocationPathExpr extends Expr{
 
 		public static final int ABSOLUTE_PATH =0,

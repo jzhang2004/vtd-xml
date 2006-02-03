@@ -16,20 +16,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
-/**
- * XimpleWare's AutoPilot implementation.
- * 
- * 
- * Added various functions for following, preceding, attribute, descendent
- * axis (7/2005)
- * 
- * Added selectXPath
- * 
- */
+
 
 import com.ximpleware.xpath.*;
 import java.util.*;
 import java.io.*;
+/**
+ * XimpleWare's AutoPilot implementation.
+ * Added various functions for following, preceding, attribute, descendent
+ * axis
+ * 
+ * Added selectXPath
+ */
 public class AutoPilot {
     private int depth;
     // the depth of the element at the starting point will determine when to stop iteration
@@ -89,7 +87,8 @@ public AutoPilot(VTDNav v) {
 }
 
 /**
- * Use this constructor for XPath 
+ * Use this constructor for delayed binding to VTDNav
+ * which allows the reuse of XPath expression 
  *
  */
 public AutoPilot(){
@@ -102,8 +101,9 @@ public AutoPilot(){
     special = false;
     xpe = null;
 }
-/* 
+/** 
  * This method works with the argument-less constructor 
+ * and allows AutoPilot to attach to a VTDNav object
  */
 public void setVTDNav(VTDNav v){
     if (v == null)
