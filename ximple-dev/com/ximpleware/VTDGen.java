@@ -370,7 +370,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 			int a;
 			if (offset >= endOffset)
-				throw new EOFException("Permature EOF reached, XML document incomplete");
+				throw new EOFException("permature EOF reached, XML document incomplete");
 			a= XMLDoc[offset++];
 			return a&0x7f;
 		}

@@ -2739,7 +2739,7 @@ public class VTDGen1 {
 		int temp = 0;
 		int a = 0, c = 0, d = 0, val = 0;
 		if (offset >= endOffset)
-			throw new EOFException("premature EOF reached");
+			throw new EOFException("Premature EOF reached");
 		switch (encoding) {
 		case FORMAT_ASCII:
 			temp = XMLDoc[offset];
