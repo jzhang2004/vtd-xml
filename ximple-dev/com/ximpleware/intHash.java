@@ -25,11 +25,12 @@ package com.ximpleware;
  */
 class intHash {
     public final static int mask1 = 0x7ff;
-    public final static int hashWidth = 1<<11; //2048
+     //2048
     public final static int mask2 = 0xfffff800;
     public final static int pageSizeE = 5; // 32 * 4 bytes
     protected FastIntBuffer[] storage;
-   
+    private int hashWidth = 1<<11;
+    private int maxDepth;
     /**
      * Test whether the input i is unique; 
      * if not, insert into the hash table and return false
@@ -37,6 +38,9 @@ class intHash {
      */
     public boolean isUnique(int i){
         int temp = i & mask1;
+        if (temp>maxDepth){
+            maxDepth = temp;
+        }
         if (storage[temp]==null) {
             storage[temp]= new FastIntBuffer(pageSizeE);
             storage[temp].append(i);
@@ -60,7 +64,7 @@ class intHash {
      * to zero
      */
     public void reset(){
-        for (int i=0;i<hashWidth;i++){
+        for (int i=0;i<maxDepth;i++){
             if (storage[i]!=null){
                 storage[i].clear();
             }
@@ -72,10 +76,6 @@ class intHash {
      */
     public intHash(){
         storage = new FastIntBuffer[hashWidth];
-        /*for (int i=0;i<256;i++){
-            if (storage[i]==null)
-                System.out.println("null encountered "+i);
-        }*/
     }
     public static void main(String[] args) {
         intHash a = new intHash();
