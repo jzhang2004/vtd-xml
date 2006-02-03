@@ -24,10 +24,10 @@ package com.ximpleware;
  * of a node
  */
 class intHash {
-    public final static int mask1 = 0x7ff;
+    private int mask1 = 0x7ff;
      //2048
-    public final static int mask2 = 0xfffff800;
-    public final static int pageSizeE = 5; // 32 * 4 bytes
+    private int mask2 = 0xfffff800;
+    private int pageSizeE = 5; // 32 * 4 bytes
     protected FastIntBuffer[] storage;
     private int hashWidth = 1<<11;
     private int maxDepth;
