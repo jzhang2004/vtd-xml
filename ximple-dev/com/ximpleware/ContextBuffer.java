@@ -147,11 +147,11 @@ public boolean load(int[] output){
  */
 public static void main(String[] args) {
     try {
-        int[] ia = new int[138];      
+        int[] ia = new int[18];      
 
-        ContextBuffer cb = new ContextBuffer(7, 138);
+        ContextBuffer cb = new ContextBuffer(18);
         for (int i = 0; i < 57; i++) {
-            for (int j = 0; j < 138; j++) {
+            for (int j = 0; j < 18; j++) {
                 ia[j] = i;
             }
             cb.store(ia);
@@ -160,7 +160,7 @@ public static void main(String[] args) {
         for (int i = 56; i >= 0; i--) {
             cb.load(ia);
             System.out.println(""+ia[0]);
-            for (int j = 137; j >= 0; j--) {
+            for (int j = 17; j >= 0; j--) {
                 if (ia[j] != i) {
                     System.out.println(" store error " + i + " " + j + " " + ia[j]);
                 }
@@ -170,7 +170,7 @@ public static void main(String[] args) {
         cb.clear();
         
         for (int i = 0; i < 157; i++) {
-            for (int j = 0; j < 138; j++) {
+            for (int j = 0; j < 18; j++) {
                 ia[j] = i;
             }
             cb.store(ia);
@@ -179,7 +179,7 @@ public static void main(String[] args) {
         for (int i = 156; i >= 0; i--) {
             cb.load(ia);
             System.out.println(""+ia[0]);
-            for (int j = 137; j >= 0; j--) {
+            for (int j = 17; j >= 0; j--) {
                 if (ia[j] != i) {
                     System.out.println(" store error " + i + " " + j + " " + ia[j]);
                 }
@@ -187,7 +187,7 @@ public static void main(String[] args) {
         }
         cb.clear();
         for (int i = 0; i < 257; i++) {
-            for (int j = 0; j < 138; j++) {
+            for (int j = 0; j < 18; j++) {
                 ia[j] = i;
             }
             cb.store(ia);
@@ -196,7 +196,7 @@ public static void main(String[] args) {
         for (int i = 256; i >= 0; i--) {
             cb.load(ia);
             System.out.println(""+ia[0]);
-            for (int j = 137; j >= 0; j--) {
+            for (int j = 17; j >= 0; j--) {
                 if (ia[j] != i) {
                     System.out.println(" store error " + i + " " + j + " " + ia[j]);
                 }
