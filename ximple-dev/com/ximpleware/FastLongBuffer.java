@@ -118,17 +118,19 @@ public void append(long[] long_array) {
             System.arraycopy(long_array, 0, lastBuffer, size & r, long_array.length);
         }
         else {
+            int offset = pageSize -(size&r);
             // copy the first part
-            System.arraycopy(long_array, 0, lastBuffer, size & r, pageSize-(size &r));
+            System.arraycopy(long_array, 0, lastBuffer, size & r, offset);
             // copy the middle part
-            int l = long_array.length - (pageSize - (size&r));
+            int l = long_array.length - offset;
             int k = (l)>> exp;
             int z;
             for (z=1;z<=k;z++){
-                System.arraycopy(long_array,0,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, pageSize);
+                System.arraycopy(long_array,offset,(long[]) bufferArrayList.get(lastBufferIndex+z), 0, pageSize);
+                offset += pageSize;
             }
             // copy the last part
-            System.arraycopy(long_array,0,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, l & r);
+            System.arraycopy(long_array,offset,(long[]) bufferArrayList.get(lastBufferIndex+z), 0, l & r);
         }
         size += long_array.length;
         return;
