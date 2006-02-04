@@ -69,11 +69,6 @@ typedef struct vTDGen {
 	FastIntBuffer *l3Buffer;
 
 	Boolean br;//buffer reuse flag
-	int vtdSize;
-	int l1Size;
-	int l2Size;
-	int l3Size;
-
 	Boolean stateTransfered; // indicate whether VTDNav has received all LC and VTD buffers
 
 	int endOffset;
