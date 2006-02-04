@@ -151,16 +151,19 @@ public static void main(String[] args) {
 
         ContextBuffer cb = new ContextBuffer(18);
         for (int i = 0; i < 57; i++) {
-            for (int j = 0; j < 18; j++) {
+            for (int j = 0; j < 17; j++) {
                 ia[j] = i;
             }
+            ia[17] = -1;
             cb.store(ia);
         }
         //cb.store(ia);
         for (int i = 56; i >= 0; i--) {
             cb.load(ia);
             System.out.println(""+ia[0]);
-            for (int j = 17; j >= 0; j--) {
+            if (ia[17]!=-1)
+                System.out.println("store error "+i+ " "+17+" "+ia[17]);
+            for (int j = 16; j >= 0; j--) {
                 if (ia[j] != i) {
                     System.out.println(" store error " + i + " " + j + " " + ia[j]);
                 }
@@ -206,35 +209,40 @@ public static void main(String[] args) {
         System.out.println("success");
         
         System.out.println("test fastIntBuffer");
-        ia = new int[134];
-        for (int k=0;k<134;k++){
-            ia[k]= 1;
+        ia = new int[1000000];
+        for (int k=0;k<1000000;k++){
+            ia[k]= k;
         }
-        FastIntBuffer fib = new FastIntBuffer(20);
-        for(int i=0;i<10;i++){
-            fib.append(ia);
-        }
+        FastIntBuffer fib = new FastIntBuffer(13);
+        //for(int i=0;i<10;i++){
+        fib.append(ia);
+        //}
+        fib.clear();
+        fib.append(ia);
+        //for(int i=0;i<10;i++){
+        //    fib.append(ia);
+        //}
         int ib[] = fib.toIntArray();
-        for (int i = 0;i<1340;i++){
-            if (ib[i]!=1){
-                System.out.println("error occurred at "+i);
-                break;
+        
+        for (int i = 0;i<1000000;i++){
+            if (ib[i]!=i){
+                System.out.println("error occurred at "+i );
+                //break;
             }
         }
         System.out.println("test fastLongBuffer");
-        long[] la = new long[154];
-        for (int k=0;k<154;k++){
-            la[k]= 1;
+        long[] la = new long[1000000];
+        for (int k=0;k<1000000;k++){
+            la[k]= k;
         }
-        FastLongBuffer flb = new FastLongBuffer(13);
-        for(int i=0;i<10;i++){
-            flb.append(la);
-        }
+        FastLongBuffer flb = new FastLongBuffer(14);
+        flb.append(la);
+        flb.clear();
+        flb.append(la);
         long lb[] = flb.toLongArray();
-        for (int i = 0;i<1540;i++){
-            if (lb[i]!=1){
+        for (int i = 0;i<1000000;i++){
+            if (lb[i]!=i){
                 System.out.println("error occurred at "+i);
-                break;
             }
         }
         System.out.println("success");
@@ -293,17 +301,21 @@ public void store(int[] input){
             System.arraycopy(input, 0, lastBuffer, size & r, input.length);
         }
         else {
+            int offset = pageSize - (size &r);
             // copy the first part
-            System.arraycopy(input, 0, lastBuffer, size & r, pageSize-(size &r));
+            System.arraycopy(input, 0, lastBuffer, size & r, offset);
             // copy the middle part
-            int l = input.length - (pageSize - (size&r));
+            
+            int l = input.length - (offset);
             int k = (l)>> n;
             int z;
             for (z=1;z<=k;z++){
-                System.arraycopy(input,0,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, pageSize);
+                System.arraycopy(input,offset,
+                        (int[]) bufferArrayList.get(lastBufferIndex+z), 0, pageSize);
+                offset += pageSize;
             }
             // copy the last part
-            System.arraycopy(input,0,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, l & r);
+            System.arraycopy(input,offset,(int[]) bufferArrayList.get(lastBufferIndex+z), 0, l & r);
         }
         size += input.length;
         return;
