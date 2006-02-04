@@ -64,7 +64,7 @@ class intHash {
      * to zero
      */
     public void reset(){
-        for (int i=0;i<maxDepth;i++){
+        for (int i=0;i<=maxDepth;i++){
             if (storage[i]!=null){
                 storage[i].clear();
             }
