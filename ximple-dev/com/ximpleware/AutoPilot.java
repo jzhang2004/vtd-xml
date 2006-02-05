@@ -101,18 +101,6 @@ public AutoPilot(){
     special = false;
     xpe = null;
 }
-/** 
- * This method works with the argument-less constructor 
- * and allows AutoPilot to attach to a VTDNav object
- */
-public void setVTDNav(VTDNav v){
-    if (v == null)
-        throw new IllegalArgumentException(" instance of VTDNav can't be null ");
-    vn = v;
-    stackSize = vn.contextStack2.size;
-    ft = true;
-}
-
 /** This function creates URL ns prefix 
  *  and is intended to be called prior to selectXPath
  *  @param String prefix
@@ -127,23 +115,24 @@ public void declareXPathNameSpace(String prefix, String URL){
 }
 
 /**
- * Reset the internal state of Autopilot so
- * one can attach a different vn object to the same 
- * AutoPilot object
- * @param new_vn
+ * Bind is to replace rebind() and setVTDNav()
+ * It resets the internal state of AutoPilot
+ * so one can attach a VTDNav object to the autopilot
+ * Bind internally called resetXPath()
+ * @param vnv
+ *
  */
- 
- 
-public void rebind(VTDNav new_vn){
+public void bind (VTDNav vnv){
     name = null;
-    vn = new_vn;
+    if (vnv == null)
+        throw new IllegalArgumentException(" instance of VTDNav can't be null ");
+    vn = vnv;
     //depth = v.getCurrentDepth();
     iter_type = UNDEFINED; // not defined
     ft = true;
     size = 0;
     special = false;
     resetXPath();
-    //contextCopy = (int[])vn.context.clone();
 }
 /**
  * Iterate over all the selected element nodes in document order.
