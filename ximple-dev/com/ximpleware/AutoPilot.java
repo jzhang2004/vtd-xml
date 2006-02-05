@@ -142,7 +142,7 @@ public void rebind(VTDNav new_vn){
     ft = true;
     size = 0;
     special = false;
-    resetXPath(vn);
+    resetXPath();
     //contextCopy = (int[])vn.context.clone();
 }
 /**
@@ -506,8 +506,8 @@ public void selectXPath(String s) throws XPathParseException{
  *
  */
 
-public void resetXPath(VTDNav vn){
-	if (xpe!=null){
+public void resetXPath(){
+	if (xpe!=null && vn!=null){
 		xpe.reset(vn);
 		ft = true;
 		vn.contextStack2.size = stackSize;
