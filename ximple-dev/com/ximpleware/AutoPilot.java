@@ -22,11 +22,9 @@ import com.ximpleware.xpath.*;
 import java.util.*;
 import java.io.*;
 /**
- * XimpleWare's AutoPilot implementation.
- * Added various functions for following, preceding, attribute, descendent
- * axis
+ * XimpleWare's AutoPilot implementation encapsulating node iterator
+ * and XPath.
  * 
- * Added selectXPath
  */
 public class AutoPilot {
     private int depth;
@@ -118,7 +116,6 @@ public void declareXPathNameSpace(String prefix, String URL){
  * Bind is to replace rebind() and setVTDNav()
  * It resets the internal state of AutoPilot
  * so one can attach a VTDNav object to the autopilot
- * Bind internally called resetXPath()
  * @param vnv
  *
  */
@@ -132,7 +129,7 @@ public void bind (VTDNav vnv){
     ft = true;
     size = 0;
     special = false;
-    resetXPath();
+    //resetXPath();
 }
 /**
  * Iterate over all the selected element nodes in document order.
