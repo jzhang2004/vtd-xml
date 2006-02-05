@@ -448,7 +448,6 @@ public class LocationPathExpr extends Expr{
     	            break;
     	        }
     	        
-    	        
     		    String helper = null;
     			if (currentStep.nt.testType == NodeTest.NODE){
     				helper = "*";
@@ -457,8 +456,10 @@ public class LocationPathExpr extends Expr{
     			}
     			if (currentStep.o == null)
     				currentStep.o = ap = new AutoPilot(vn);
-    			else
+    			else {
     				ap = (AutoPilot) currentStep.o;
+    				ap.bind(vn);
+    			}
     			if (currentStep.get_ft() == true) {
 
     				if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF )
@@ -1390,8 +1391,11 @@ public class LocationPathExpr extends Expr{
 			if (currentStep.get_ft() == true) {
 				if (currentStep.o  == null)
 				    currentStep.o= ap = new AutoPilot(vn);
-				else
+				else{
 				    ap = (AutoPilot) currentStep.o;
+				    ap.bind(vn);
+				    //ap.set_ft(true);	
+				}
 				if (currentStep.nt.localName!=null)
 				    ap.selectAttrNS(currentStep.nt.URL,
 				            currentStep.nt.localName);
