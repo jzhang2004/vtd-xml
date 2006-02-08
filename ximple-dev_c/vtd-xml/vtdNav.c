@@ -43,7 +43,7 @@ static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len); //UCSC
 
 VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
-					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len){
+					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len, Boolean br){
 
 						 exception e;
 						 VTDNav* vn = NULL;
@@ -136,20 +136,24 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 vn->docLen = len;
 							 vn->vtdSize = vtd->size;
 							 vn->bufLen = xLen;
+							 vn->br = br;
 
 							 return vn;
 					 }
 
 					 //Free VTDNav object
+					 //it doesn't free the memory block containing XML doc
 					 void freeVTDNav(VTDNav *vn)
 					 {	
 						 if (vn!=NULL){
 							 freeContextBuffer(vn->contextBuf);
 							 freeContextBuffer(vn->contextBuf2);
-							 freeFastLongBuffer(vn->vtdBuffer);
-							 freeFastLongBuffer(vn->l1Buffer);
-							 freeFastLongBuffer(vn->l2Buffer);
-							 freeFastIntBuffer(vn->l3Buffer);
+							 if (vn->br == FALSE){
+								freeFastLongBuffer(vn->vtdBuffer);
+								freeFastLongBuffer(vn->l1Buffer);
+								freeFastLongBuffer(vn->l2Buffer);
+								freeFastIntBuffer(vn->l3Buffer);
+							 }
 							 free(vn->context);
 							 free(vn->stackTemp);
 							 //free(vn->XMLDoc);
