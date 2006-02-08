@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,7 +95,7 @@ typedef struct vTDNav{
 	int vtdSize; // # of entries in vtdBuffer equvalent 
 	             // to calling size(FastLongBuffer *flb) defined in fastLongBuffer.h
 	int bufLen; // size of XMLDoc in bytes
-
+	Boolean br; // buffer reuse flag
 } VTDNav;
 
 
@@ -104,7 +104,7 @@ typedef struct vTDNav{
 
 VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
-					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len);
+					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len,Boolean br);
 
 //Free VTDNav object
 void freeVTDNav(VTDNav *vn);
