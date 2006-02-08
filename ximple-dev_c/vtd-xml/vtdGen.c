@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ void freeVTDGen(VTDGen *vg){
 	if (vg != NULL){
 		free(vg->attr_name_array);
 		free(vg->tag_stack);
-		if (vg->stateTransfered == FALSE){
+		if (vg->stateTransfered == FALSE || vg->br == TRUE){
 			//free(vg->XMLDoc);
 			freeFastLongBuffer(vg->VTDBuffer);
 			freeFastLongBuffer(vg->l1Buffer);
@@ -897,7 +897,8 @@ VTDNav *getNav(VTDGen *vg){
 		vg->l2Buffer,
 		vg->l3Buffer,
 		vg->docOffset,
-		vg->docLen);
+		vg->docLen,
+		vg->br);
 	vg->stateTransfered = TRUE;
 	clear(vg);
 	return vn;
@@ -2139,6 +2140,13 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
 	//l1Buffer = new FastLongBuffer(128);
 	//l2Buffer = new FastLongBuffer(512);
 	//l3Buffer = new FastIntBuffer(2048);
+	if (vg->stateTransfered == FALSE && vg->VTDBuffer != NULL){
+			freeFastLongBuffer(vg->VTDBuffer);
+			freeFastLongBuffer(vg->l1Buffer);
+			freeFastLongBuffer(vg->l2Buffer);
+			freeFastIntBuffer(vg->l3Buffer);		
+	}
+
 	vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); //new FastLongBuffer2(a, ba.length >> (a+1));
 	vg->l1Buffer = createFastLongBuffer2(7); //new FastLongBuffer2(7);
 	vg->l2Buffer = createFastLongBuffer2(9); //new FastLongBuffer2(9);
@@ -2184,6 +2192,12 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	//l1Buffer = new FastLongBuffer(128);
 	//l2Buffer = new FastLongBuffer(512);
 	//l3Buffer = new FastIntBuffer(2048);
+	if (vg->stateTransfered == FALSE && vg->VTDBuffer != NULL){
+		freeFastLongBuffer(vg->VTDBuffer);
+		freeFastLongBuffer(vg->l1Buffer);
+		freeFastLongBuffer(vg->l2Buffer);
+		freeFastIntBuffer(vg->l3Buffer);		
+	}
 	vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); //new FastLongBuffer2(a, ba.length >> (a+1));
 	vg->l1Buffer = createFastLongBuffer2(7); //new FastLongBuffer2(7);
 	vg->l2Buffer = createFastLongBuffer2(9); //new FastLongBuffer2(9);
