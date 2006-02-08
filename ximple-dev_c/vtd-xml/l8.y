@@ -1,6 +1,6 @@
 %{
 /* 
-* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -446,8 +446,10 @@ NodeTest	:    NAME 				{ Try {
 										setTestType($$,NT_NAMETEST);
 										//wprintf(L"$1.qname %ls\n",$1.qname);
 										setNodeName($$,$1.qname);
+										addObj($1.qname);
 										if ($1.localname!=NULL){
 											setNodeNameNS($$,$1.prefix,$1.localname);
+											addObj($1.prefix,$1.localname);
 											// the part for URL mapping goes here
 											$$->URL = lookup(xpathNSList,$1.prefix);
 											if ($$->URL == NULL){
