@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2004 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,18 +56,23 @@
 } expr; */ 
 
 // definition for struct intHash
-#define mask1 0x7ff
-#define mask2 0xfffff800
-#define hashWidth 2048
-#define hashWidthE 11
-#define pageSizeE 5
+#define ih_mask1 0x7ff
+#define ih_mask2 0xfffff800
+#define ih_hashWidth 2048
+#define ih_hashWidthE 11
+#define ih_pageSizeE 5
 
 typedef struct intHash {
    struct fastIntBuffer **storage;	
+   int m1;  // mask1
+   int m2;  // mask2
+   int pse; // page size exponential
+   int hw;  //
+   int maxDepth;
 } IntHash;
 
 // function for intHash
-
+// see intHash.c for implemenation
 IntHash* createIntHash();
 void freeIntHash(IntHash *ih);
 Boolean isUniqueIntHash(IntHash *ih,int i);
