@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,8 +131,6 @@ AutoPilot *createAutoPilot2(){
 
 }
 
-
-
 // free AutoPilot
 void freeAutoPilot(AutoPilot *ap){
 	
@@ -159,6 +157,7 @@ void printExprString(AutoPilot *ap){
 }
 
 // Select an attribute name for iteration, * choose all attributes of an element
+// this function is not called directly
 void selectAttr(AutoPilot *ap, UCSChar *an){
 	exception e;
 	if (an == NULL){
@@ -571,7 +570,7 @@ int evalXPath(AutoPilot *ap){
  * Reset XPath
  */
 void resetXPath(AutoPilot *ap){
-	if (ap->xpe != NULL){
+	if (ap->xpe != NULL && ap->vn!=NULL){
 		ap->xpe->reset(ap->xpe,ap->vn);
 		ap->vn->contextBuf2->size = ap->stackSize;
 		ap->ft = TRUE;
@@ -588,10 +587,10 @@ void declareXPathNameSpace(AutoPilot *ap, UCSChar* prefix, UCSChar *URL){
 }
 
 /**
- * Iterate over all the selected element nodes in document order.
- * Null element name allowed, corresponding to node() in xpath
+ * 
  */
-void rebind(AutoPilot *ap, VTDNav *new_vn){
+void bind(AutoPilot *ap, VTDNav *new_vn){
+	exception e;
 	ap->elementName = NULL;
     ap->vn = new_vn;
     //depth = v.getCurrentDepth();
@@ -599,19 +598,7 @@ void rebind(AutoPilot *ap, VTDNav *new_vn){
     ap->ft = TRUE;
     ap->size = 0;
     ap->special = FALSE;
-    resetXPath(ap);
+    //resetXPath(ap);
     //contextCopy = (int[])vn.context.clone();
 }
 
-/* 
- * This method works with the argument-less createAutoPilot
- */
-void setVTDNav(AutoPilot *ap, VTDNav *vn){
-	exception e;
-	if (vn == NULL){
-		e.et = invalid_argument;
-		e.msg = " setVTDNav failed: can't take NULL VTDNav pointer";
-		Throw e;
-	}
-	ap->vn = vn;
-}
