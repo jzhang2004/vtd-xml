@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,9 +29,14 @@ IntHash* createIntHash(){
 		e.msg = "IntHash allocation failed ";
 		Throw e;
 	}
-	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)<<hashWidthE);
+	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)<<ih_hashWidthE);
+	ih->hw = ih_hashWidth;
+	ih->m1 = ih_mask1;
+	ih->m2 = ih_mask2;
+	ih->maxDepth = 0;
+	ih->pse = ih_pageSizeE;
 	/* initialize everything to null */
-	for (i=0;i<hashWidth;i++){
+	for (i=0;i<ih->hw;i++){
 		ih->storage[i]= NULL;
 	}
 
@@ -41,7 +46,7 @@ IntHash* createIntHash(){
 void freeIntHash(IntHash *ih){
 	int i=0;
 	if (ih !=NULL){
-		for (i=0;i<hashWidth;i++){
+		for (i=0;i<=ih->maxDepth;i++){
 			freeFastIntBuffer(ih->storage[i]);
 		}
 	}
@@ -54,9 +59,12 @@ void freeIntHash(IntHash *ih){
 Boolean isUniqueIntHash(IntHash *ih,int i){
 	exception e;
 	int j,size;
-	int temp = i & mask1;
+	int temp = i & ih->m1;
+	if (temp>ih->maxDepth){
+		ih->maxDepth = temp;
+	}
 	if (ih->storage[temp]==NULL) {
-		ih->storage[temp]= createFastIntBuffer2(pageSizeE);
+		ih->storage[temp]= createFastIntBuffer2(ih->pse);
 		if (ih->storage[temp]==NULL) {
 			e.et = out_of_mem;
 			e.msg = "FastIntBuffer allocation failed ";
@@ -80,7 +88,7 @@ Boolean isUniqueIntHash(IntHash *ih,int i){
 /* reset intHash */
 void resetIntHash(IntHash *ih){
 	int i=0;
-	for (i=0;i<hashWidth;i++){
+	for (i=0;i<=ih->maxDepth;i++){
 		if (ih->storage[i]!=NULL){
 			clearFastIntBuffer(ih->storage[i]);
 		}
