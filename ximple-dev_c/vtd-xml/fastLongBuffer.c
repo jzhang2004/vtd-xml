@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,6 +112,7 @@ void freeFastLongBuffer(FastLongBuffer *flb){
 void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 	exception e;
 	Long *lastBuffer = NULL;
+	int lastBufferIndex;
 	
 
 	if (longArray == NULL || len <0) {
@@ -138,8 +139,12 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 			e.msg = " appendLongArray failed to allocate mem ";
 			Throw e;
 		}
+		add(flb->al,lastBuffer);
+		lastBufferIndex = 0;
+		flb->capacity = flb->pageSize;
 	}else {
-		lastBuffer = (Long *)get(flb->al, flb->al->size -1);
+		lastBufferIndex = min((flb->size>>flb->exp),flb->al->size-1);
+		lastBuffer = (Long *)get(flb->al, lastBufferIndex);
 	}
 
 
@@ -149,29 +154,32 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
         //obtain the starting offset in that buffer to which the data is to be copied
         //update length
 
-        /*System.arraycopy(
-            long_array,
-            0,
-            lastBuffer,
-			// size % pageSize,
-            size& r,
-            long_array.length); */
-		memcpy(lastBuffer + (flb->size & flb->r),
-			longArray,
-			len << 3);
+		if (flb->size + len <(lastBufferIndex+1)<<flb->exp){
+			memcpy(lastBuffer+(flb->size&flb->r), longArray, len<<3);
+		} 
+		else {
+			int offset = flb->pageSize -(flb->size&flb->r);
+			int l = len - offset;
+			int k = (l)>>flb->exp;
+			int z;
+			memcpy(lastBuffer+(flb->size & flb->r),
+				longArray,offset<<3);
+			for (z=1;z<=k;z++){
+				memcpy(get(flb->al,lastBufferIndex+z),
+					longArray+offset, flb->pageSize<<3);
+				offset += flb->pageSize;
+			}
+			memcpy(get(flb->al,lastBufferIndex+z),
+				longArray + offset, (l & flb->r)<<3);
+
+		}
+		//memcpy(lastBuffer+(fib->size&fib->r), int_array, len<<2);
         flb->size += len;
+		return;
     } else // new buffers needed
         {
 		int i;
 		Long *newBuffer = NULL;
-        // compute the number of additional buffers needed
-//        int n =
-//            ((int) ((long_array.length + size) / pageSize))
-//                + (((long_array.length + size) % pageSize) > 0 ? 1 : 0)
-//                - (int) (capacity / pageSize);
-    	/*int n = ((long_array.length + size) >> exp)
-                + (((long_array.length + size)&r) > 0 ? 1 : 0)
-                -  (capacity >> exp);*/
 
 		int n = ((len + flb->size) >> flb->exp) 
 			+(((len + flb->size) & flb->r)> 0 ? 1 : 0)
@@ -193,25 +201,11 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 				Throw e;
 			}
             if (i < n - 1) {
-                // full copy 
-                /*System.arraycopy(
-                    long_array,
-                    pageSize * i + capacity - size,
-                    newBuffer,
-                    0,
-                    pageSize);*/
 				memcpy( newBuffer,
 					longArray + (i<<flb->exp) + flb->capacity - flb->size,
 					flb->pageSize << 3);
 
             } else {
-                // last page
-                /*System.arraycopy(
-                    long_array,
-                    pageSize * i + capacity - size,
-                    newBuffer,
-                    0,
-                    long_array.length+ size - pageSize*i - capacity);*/
 				memcpy(newBuffer,
 					longArray + (i<<flb->exp) + flb->capacity - flb->size,
 					(len + flb->size - (i<< flb->exp) - flb->capacity)<<3);
@@ -513,8 +507,15 @@ Long* toLongArray(FastLongBuffer *flb){
 // get the long at the index position from FastLongBuffer
 //Long longAt(FastLongBuffer *flb, int index);
 Long longAt(FastLongBuffer *flb, int index){
-	int pageNum = (index >>flb->exp);
-    int offset = index & flb->r;
+	exception e;
+	int pageNum,offset;
+	if (index < 0 || index > flb->size - 1) {
+        e.et = invalid_argument;
+		e.msg = "invalid index range";
+		Throw e;
+    }
+	pageNum = (index >>flb->exp);
+    offset = index & flb->r;
 	return ((Long *)get(flb->al,pageNum))[offset];
 }
 

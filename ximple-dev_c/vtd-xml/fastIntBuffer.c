@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -134,6 +134,7 @@ void appendInt(FastIntBuffer *fib, int i){
 // Append int array of length "len" to the end of fastIntBuffer
 void appendIntArray(FastIntBuffer *fib, int* int_array, int len){
 	exception e;
+	int lastBufferIndex;
 	int *lastBuffer=NULL;
 	if (int_array == NULL || len <0) {
 		e.et = invalid_argument;
@@ -155,10 +156,12 @@ void appendIntArray(FastIntBuffer *fib, int* int_array, int len){
 		//bufferArrayList.add(lastBuffer);
         //capacity = pageSize;
 		add(fib->al,lastBuffer);
+		lastBufferIndex = 0;
 		fib->capacity = fib->pageSize;
     } else {
         //lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
-		lastBuffer = (int *)get(fib->al,fib->al->size -1);
+		lastBufferIndex = min((fib->size>>fib->exp),fib->al->size-1);
+		lastBuffer = (int *)get(fib->al,lastBufferIndex);
     }
 
     if ((fib->size + len) < fib->capacity) {
@@ -173,8 +176,28 @@ void appendIntArray(FastIntBuffer *fib, int* int_array, int len){
             //size % pageSize,
             size & r,
             int_array.length);*/
-		memcpy(lastBuffer+(fib->size&fib->r), int_array, len<<2);
+		if (fib->size + len <(lastBufferIndex+1)<<fib->exp){
+			memcpy(lastBuffer+(fib->size&fib->r), int_array, len<<2);
+		} 
+		else {
+			int offset = fib->pageSize -(fib->size&fib->r);
+			int l = len - offset;
+			int k = (l)>>fib->exp;
+			int z;
+			memcpy(lastBuffer+(fib->size & fib->r),
+				int_array,offset);
+			for (z=1;z<=k;z++){
+				memcpy(get(fib->al,lastBufferIndex+z),
+					int_array+offset, fib->pageSize<<2);
+				offset += fib->pageSize;
+			}
+			memcpy(get(fib->al,lastBufferIndex+z),
+				int_array + offset, l & fib->r);
+
+		}
+		//memcpy(lastBuffer+(fib->size&fib->r), int_array, len<<2);
         fib->size += len;
+		return;
     } else // new buffers needed
         {
 		int i;
@@ -375,10 +398,6 @@ int *getIntArray(FastIntBuffer *fib, int offset, int len){
 //	((int *) get(fib->al,index>>fib->exp))[index & fib->r] = newVal;
 //}
 
-// Get the size of the FastIntBuffer
-/*int sizeFIB(FastIntBuffer *fib){
-	return fib->size;
-}*/
 // convert the content of FastIntBuffer to int *
 int* toIntArray(FastIntBuffer *fib){
 	exception e;
@@ -419,7 +438,7 @@ int intAt(FastIntBuffer *fib, int index){
 	exception e;	    
 	if (index < 0 || index > fib->size - 1) {
         e.et = invalid_argument;
-		e.msg = "index out of range for modifyEntryFIB in FastIntBuffer";
+		e.msg = "invalid index range";
 		Throw e;
     }
 	return ((int *) get(fib->al,index>>fib->exp))[index & fib->r];
@@ -431,7 +450,7 @@ void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){
 	exception e;	    
 	if (index < 0 || index > fib->size - 1) {
         e.et = invalid_argument;
-		e.msg = "index out of range for modifyEntryFIB in FastIntBuffer";
+		e.msg = "invalid index range";
 		Throw e;
     }
 	((int *) get(fib->al,index>>fib->exp))[index & fib->r] = newVal;

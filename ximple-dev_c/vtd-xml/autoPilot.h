@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,8 +62,9 @@ AutoPilot *createAutoPilot(VTDNav *v);
 AutoPilot *createAutoPilot2();
 
 void printExprString(AutoPilot *ap);
-// set VTDNav
-void setVTDNav(AutoPilot *ap, VTDNav *vn);
+
+// bind
+void bind(AutoPilot *ap, VTDNav *vn);
 
 // free AutoPilot
 void freeAutoPilot(AutoPilot *ap);

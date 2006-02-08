@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,10 +36,6 @@
 
 #define inline __inline
 //#define _UNICODE
-#define VC
-//#define GCC
-
-
 typedef wchar_t UCSChar;
 typedef long long Long;
 typedef char Byte;
@@ -109,6 +105,11 @@ typedef struct vtd_exception {
 					extern struct exception_context the_exception_context[1];
 
 //#define NaN  (0/0.0)
+#ifndef isNaN
 #define isNaN(x) ((x) != (x))
-					
+#endif
+#ifndef min
+//#define min(a,b) { (a>b)?b:a  }
+#endif
+		
 #endif

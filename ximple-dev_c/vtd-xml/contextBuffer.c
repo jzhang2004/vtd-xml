@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -167,6 +167,7 @@ Boolean load(ContextBuffer *cb, int* output){
 void store(ContextBuffer *cb, int *input){
 	exception e;
 	int *lastBuffer; 
+	int lastBufferIndex;
 	int i;
     // no additional buffer space needed
 
@@ -181,10 +182,12 @@ void store(ContextBuffer *cb, int *input){
 		}
         //bufferArrayList.add(lastBuffer);
 		add(cb->al,lastBuffer);
+		lastBufferIndex = 0;
         cb->capacity = cb->pageSize;
     } else {
         //lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
-		lastBuffer = (int *)get(cb->al,cb->al->size -1);
+		lastBufferIndex = min(cb->size>>cb->n, cb->al->size -1);
+		lastBuffer = (int *)get(cb->al,lastBufferIndex);
     }
 
     if ((cb->size + cb->incSize) < cb->capacity) {
@@ -194,8 +197,25 @@ void store(ContextBuffer *cb, int *input){
 
         //System.arraycopy(input, 0, lastBuffer, size % pageSize, input.length);
         //System.arraycopy(input, 0, lastBuffer, size & r, input.length);
-		memcpy(lastBuffer+(cb->size& cb->r),input, cb->incSize <<2);
+
+		if (cb->size + cb->incSize < ((lastBufferIndex+1)<<cb->n)){
+			memcpy(lastBuffer+(cb->size& cb->r),input, cb->incSize <<2);
+		}else {
+			int offset = cb->pageSize - (cb->size & cb->r);
+			int l = cb->incSize - offset;
+			int k = l>>cb->n;
+			int z;
+			memcpy(lastBuffer+(cb->size& cb->r),input, 
+				offset<<2);
+			for (z=1;z<=k;z++){
+				memcpy(get(cb->al,lastBufferIndex+z),input+offset,cb->pageSize<<2);
+				offset += cb->pageSize;
+			}
+			memcpy(get(cb->al,lastBufferIndex+z),input+offset, (l & cb->r)<<2);
+		}
+
         cb->size += cb->incSize;
+		return;
     } else // new buffers needed
         {
         // compute the number of additional buffers needed
