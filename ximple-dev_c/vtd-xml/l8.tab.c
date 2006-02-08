@@ -129,7 +129,7 @@
 #line 1 "l8.y"
 
 /* 
-* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -413,8 +413,8 @@ static const unsigned short yyrline[] =
      220,   230,   242,   243,   256,   257,   261,   262,   263,   279,
      305,   306,   319,   320,   321,   330,   338,   339,   347,   359,
      360,   369,   382,   386,   397,   412,   413,   414,   417,   418,
-     422,   426,   439,   443,   464,   476,   477,   482,   483,   486,
-     487,   490,   504,   522,   540,   562,   574,   577
+     422,   426,   439,   443,   466,   478,   479,   484,   485,   488,
+     489,   492,   506,   524,   542,   564,   576,   579
 };
 #endif
 
@@ -1546,7 +1546,7 @@ yyreduce:
 #line 339 "l8.y"
     {
 						//freeAllObj();
-						/*printf(" Invalid char encoutered \n");*/
+						//printf(" Invalid char encoutered \n");
 						YYABORT;
 					;}
     break;
@@ -1696,10 +1696,12 @@ yyreduce:
 										yyval.nodetest = createNodeTest();
 										addObj(yyval.nodetest);
 										setTestType(yyval.nodetest,NT_NAMETEST);
-										//wprintf(L"$1.qname %ls\n",yyvsp[0].name.qname);
+										//wprintf(L"$1.qname %ls\n",$1.qname);
 										setNodeName(yyval.nodetest,yyvsp[0].name.qname);
+										addObj(yyvsp[0].name.qname);
 										if (yyvsp[0].name.localname!=NULL){
 											setNodeNameNS(yyval.nodetest,yyvsp[0].name.prefix,yyvsp[0].name.localname);
+											addObj(yyvsp[0].name.prefix,yyvsp[0].name.localname);
 											// the part for URL mapping goes here
 											yyval.nodetest->URL = lookup(xpathNSList,yyvsp[0].name.prefix);
 											if (yyval.nodetest->URL == NULL){
@@ -1716,7 +1718,7 @@ yyreduce:
     break;
 
   case 54:
-#line 464 "l8.y"
+#line 466 "l8.y"
     { Try{
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
@@ -1730,39 +1732,39 @@ yyreduce:
     break;
 
   case 55:
-#line 476 "l8.y"
+#line 478 "l8.y"
     { yyval.p = NULL;;}
     break;
 
   case 56:
-#line 477 "l8.y"
+#line 479 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
 	     									yyval.p = yyvsp[-1].p;	
 	     								  ;}
     break;
 
   case 57:
-#line 482 "l8.y"
+#line 484 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 58:
-#line 483 "l8.y"
+#line 485 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 59:
-#line 486 "l8.y"
+#line 488 "l8.y"
     { /*printf("abbreviated child axis \n");*/yyval.at  = AXIS_CHILD;;}
     break;
 
   case 60:
-#line 487 "l8.y"
+#line 489 "l8.y"
     {yyval.at = AXIS_ATTRIBUTE;;}
     break;
 
   case 61:
-#line 490 "l8.y"
+#line 492 "l8.y"
     {Try{
 								yyval.s = createStep();
 								addObj(yyval.s);
@@ -1780,7 +1782,7 @@ yyreduce:
     break;
 
   case 62:
-#line 504 "l8.y"
+#line 506 "l8.y"
     {
 					Try{
 						yyval.s = createStep();
@@ -1800,7 +1802,7 @@ yyreduce:
     break;
 
   case 63:
-#line 522 "l8.y"
+#line 524 "l8.y"
     {
 																Try{
 																	yyval.s = createStep();
@@ -1820,7 +1822,7 @@ yyreduce:
     break;
 
   case 64:
-#line 540 "l8.y"
+#line 542 "l8.y"
     {
 																	Try{
 																		yyval.s= createStep();
@@ -1843,7 +1845,7 @@ yyreduce:
     break;
 
   case 65:
-#line 562 "l8.y"
+#line 564 "l8.y"
     {
 							   Try {
 									yyval.p = createPredicate();
@@ -1857,7 +1859,7 @@ yyreduce:
     break;
 
   case 67:
-#line 577 "l8.y"
+#line 579 "l8.y"
     {yyval.fname  = yyvsp[0].fname;;}
     break;
 
@@ -1865,7 +1867,7 @@ yyreduce:
     }
 
 /* Line 991 of yacc.c.  */
-#line 1868 "l8.tab.c"
+#line 1870 "l8.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2074,7 +2076,7 @@ yyreturn:
 }
 
 
-#line 580 "l8.y"
+#line 582 "l8.y"
 
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;

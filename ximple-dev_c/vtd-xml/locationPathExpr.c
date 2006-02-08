@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2005 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -625,9 +625,10 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 			if (lpe->currentStep->ft == TRUE) {
 				if (lpe->currentStep->o == NULL)
 					lpe->currentStep->o = ap = createAutoPilot(vn);
-				else
-					ap = lpe->currentStep->o;
-				
+				else {
+                    ap = lpe->currentStep->o;
+					bind(ap,vn);
+				}
 				if (lpe->currentStep->nt->localName!=NULL)
 				    selectAttrNS(ap,lpe->currentStep->nt->URL,
 				            lpe->currentStep->nt->localName);
@@ -1041,8 +1042,10 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 				}
 				if (lpe->currentStep->o == NULL)
 					lpe->currentStep->o = ap = createAutoPilot(vn);
-				else
+				else{
 					ap = lpe->currentStep->o;
+					bind(ap,vn);
+				}
 				if (lpe->currentStep->ft == TRUE) {
 
 					if (lpe->currentStep->axis_type == AXIS_DESCENDANT_OR_SELF )
