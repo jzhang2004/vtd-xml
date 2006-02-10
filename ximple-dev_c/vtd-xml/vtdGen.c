@@ -2566,7 +2566,7 @@ void decide_encoding(VTDGen *vg){
 
 	if (vg->encoding < FORMAT_UTF_16BE) {
 		if (vg->ns == TRUE) {
-			if (((Long) vg->offset + vg->docLen) >= ((1L) << 30)){
+			if (((Long) vg->offset + vg->docLen) >= (((unsigned int)1) << 30)){
 				e.et = parse_exception;
 				e.subtype = 0;
 				e.msg = "Parse Exception in parse()";
@@ -2574,7 +2574,7 @@ void decide_encoding(VTDGen *vg){
 				Throw e;
 			}
 		}else {
-			if (((Long) vg->offset + vg->docLen) >= ((1L) << 31)){
+			if (((Long) vg->offset + vg->docLen) >= ((1U) << 31)){
 				e.et = parse_exception;
 				e.subtype = 0;
 				e.msg = "Parse Exception in parse()";
@@ -2584,7 +2584,7 @@ void decide_encoding(VTDGen *vg){
 		}
 		//throw new ParseException("Other error: file size too large ");
 	} else {
-		if ((unsigned int)(vg->offset - 2 + vg->docLen) >= (((unsigned int) 1) << 31)){
+		if ((unsigned int)(vg->offset - 2 + vg->docLen) >= (1U << 31)){
 			e.et = parse_exception;
 			e.subtype = 0;
 			e.msg = "Parse Exception in parse()";
