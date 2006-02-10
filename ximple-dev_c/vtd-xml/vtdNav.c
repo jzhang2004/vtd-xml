@@ -1276,6 +1276,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 }
 							 }
 							 index++;
+							 while(getTokenType(vn,index)==TOKEN_ATTR_NAME){
+								 index += 2;
+							 }
 						 }
 						 return FALSE;
 					 }
@@ -1308,6 +1311,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 }
 							 }
 							 index++;
+							 while(getTokenType(vn,index)==TOKEN_ATTR_NAME){
+								 index += 2;
+							 }
 						 }
 						 return FALSE;
 					 }
