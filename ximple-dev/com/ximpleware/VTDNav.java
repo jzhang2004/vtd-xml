@@ -1544,6 +1544,9 @@ public class VTDNav {
 				}
 			}
 			index++;
+			while(getTokenType(index)==VTDNav.TOKEN_ATTR_NAME){
+			    index = index+2;
+			}
 		}
 		return false;
 	}
@@ -1593,6 +1596,9 @@ public class VTDNav {
 				}
 			}
 			index++;
+			while(getTokenType(index)==VTDNav.TOKEN_ATTR_NAME){
+			    index = index+2;
+			}
 		}
 		return false;
 	}
