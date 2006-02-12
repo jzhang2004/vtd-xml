@@ -1526,8 +1526,14 @@ public class VTDNav {
 		throws NavException { // the navigation doesn't rely on LC
 		// get the current depth
 		int index = getCurrentIndex() + 1;
+		int tokenType;
 		//int size = vtdBuffer.size();
 		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+			while(tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS){
+			    index = index+2;
+			}
 			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
 				if (depth > dp) {
@@ -1544,9 +1550,7 @@ public class VTDNav {
 				}
 			}
 			index++;
-			while(getTokenType(index)==VTDNav.TOKEN_ATTR_NAME){
-			    index = index+2;
-			}
+
 		}
 		return false;
 	}
@@ -1577,9 +1581,14 @@ public class VTDNav {
 		throws NavException {
 		if (ns == false)
 			return false;
-
+		int tokenType;
 		int index = getCurrentIndex() + 1;
 		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+			while(tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS){
+			    index = index+2;
+			}
 			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
 				if (depth > dp) {
@@ -1596,9 +1605,6 @@ public class VTDNav {
 				}
 			}
 			index++;
-			while(getTokenType(index)==VTDNav.TOKEN_ATTR_NAME){
-			    index = index+2;
-			}
 		}
 		return false;
 	}
@@ -2902,7 +2908,7 @@ public class VTDNav {
 								int token_type =
 									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 										& 0xf;
-
+								
 								if (token_type == TOKEN_STARTING_TAG) {
 									if (depth <= context[0]) {
 										break;
