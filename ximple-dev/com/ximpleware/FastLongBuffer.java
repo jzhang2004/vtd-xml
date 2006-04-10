@@ -185,12 +185,16 @@ public void append(long[] long_array) {
  */
 public void append(long i) {
    long[] lastBuffer;
+   int lastBufferIndex;
     if (bufferArrayList.size() == 0) {
         lastBuffer = new long[pageSize];
         bufferArrayList.add(lastBuffer);
         capacity = pageSize;
     } else {
-        lastBuffer = (long[]) bufferArrayList.get(bufferArrayList.size() - 1);
+        lastBufferIndex = Math.min((size>>exp),//+(((size&r)==0)? 0:1), 
+                bufferArrayList.size() - 1);
+        lastBuffer = (long[]) bufferArrayList.get(lastBufferIndex);
+        //lastBuffer = (long[]) bufferArrayList.get(bufferArrayList.size() - 1);
     }
     if (this.size  < this.capacity) {
         //get the last buffer from the bufferListArray

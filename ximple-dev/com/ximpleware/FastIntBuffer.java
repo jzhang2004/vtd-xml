@@ -178,12 +178,16 @@ public void append(int[] int_array) {
 public void append(int i) {
 
     int[] lastBuffer;
+    int lastBufferIndex;
     if (bufferArrayList.size() == 0) {
         lastBuffer = new int[pageSize];
         bufferArrayList.add(lastBuffer);
         capacity = pageSize;
     } else {
-        lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
+        lastBufferIndex = Math.min((size>>exp),//+(((size&r)==0)? 0:1), 
+                bufferArrayList.size() - 1);
+        lastBuffer = (int[]) bufferArrayList.get(lastBufferIndex);
+        //lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
     }
     if ((this.size + 1) <= this.capacity) {
         //get the last buffer from the bufferListArray
