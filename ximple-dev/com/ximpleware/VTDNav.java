@@ -1532,7 +1532,9 @@ public class VTDNav {
 		    tokenType = getTokenType(index);
 			while(tokenType==VTDNav.TOKEN_ATTR_NAME
 			        || tokenType == VTDNav.TOKEN_ATTR_NS){
+			  
 			    index = index+2;
+			    tokenType = getTokenType(index);
 			}
 			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
@@ -1588,6 +1590,7 @@ public class VTDNav {
 			while(tokenType==VTDNav.TOKEN_ATTR_NAME
 			        || tokenType == VTDNav.TOKEN_ATTR_NS){
 			    index = index+2;
+			    tokenType = getTokenType(index);
 			}
 			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
