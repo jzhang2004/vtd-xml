@@ -113,6 +113,7 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 	exception e;
 	Long *lastBuffer = NULL;
 	int lastBufferIndex;
+
 	
 
 	if (longArray == NULL || len <0) {
@@ -228,6 +229,8 @@ void appendLong(FastLongBuffer *flb, Long i){
 	exception e;
 	//long[] lastBuffer;
 	Long *lastBuffer = NULL;
+	int lastBufferIndex;
+
 
 	/*if (bufferArrayList.size() == 0) {
         lastBuffer = new long[pageSize];
@@ -247,7 +250,8 @@ void appendLong(FastLongBuffer *flb, Long i){
 		add(flb->al,lastBuffer);
 		flb->capacity = flb->pageSize;
 	}else{
-		lastBuffer = (Long *)get(flb->al, flb->al->size -1);
+		lastBufferIndex = min((flb->size>>flb->exp),flb->al->size-1);
+		lastBuffer = (Long *)get(flb->al, lastBufferIndex);
 	}
     /*if ((this.size + 1) <= this.capacity) {
         //get the last buffer from the bufferListArray

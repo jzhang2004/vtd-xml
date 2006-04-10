@@ -82,6 +82,7 @@ void freeFastIntBuffer(FastIntBuffer *fib){
 // Append i to the end of FastIntBuffer
 void appendInt(FastIntBuffer *fib, int i){
 	exception e;
+	int lastBufferIndex;
 	int* lastBuffer = NULL;
     //if (bufferArrayList.size() == 0) {
     if (fib->al->size == 0) {
@@ -99,7 +100,10 @@ void appendInt(FastIntBuffer *fib, int i){
         fib->capacity = fib->pageSize;
     } else {
         //lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
-        lastBuffer = (int *) get(fib->al,fib->al->size-1);
+        //lastBuffer = (int *) get(fib->al,fib->al->size-1);
+		        //lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
+		lastBufferIndex = min((fib->size>>fib->exp),fib->al->size-1);
+		lastBuffer = (int *)get(fib->al,lastBufferIndex);
 
     }
     if ((fib->size + 1) <= fib->capacity) {
