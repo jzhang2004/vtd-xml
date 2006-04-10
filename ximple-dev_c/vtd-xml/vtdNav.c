@@ -1257,8 +1257,16 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 int iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
 
 						 int index = getCurrentIndex(vn) + 1;
+						 tokenType tt;
 						 //int size = vtdBuffer.size();
 						 while (index < vn->vtdSize) {
+							 tt = getTokenType(vn,index);
+							 if (tt == TOKEN_ATTR_NAME ||
+								 tt == TOKEN_ATTR_NS ){
+									 index +=2;
+									 continue;
+							 }
+
 							 if (isElementOrDocument(vn,index)) {
 								 int depth = getTokenDepth(vn,index);
 								 if (depth > dp) {
@@ -1276,9 +1284,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 }
 							 }
 							 index++;
-							 while(getTokenType(vn,index)==TOKEN_ATTR_NAME){
-								 index += 2;
-							 }
 						 }
 						 return FALSE;
 					 }
@@ -1289,12 +1294,18 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //if ns is false, return false immediately
 					 int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 						 int index;
+						 tokenType tt;
 						 if (vn->ns == FALSE)
 							 return FALSE;
 
-
 						 index = getCurrentIndex(vn) + 1;
 						 while (index < vn->vtdSize) {
+							 tt = getTokenType(vn,index);
+							 if (tt == TOKEN_ATTR_NAME ||
+								 tt == TOKEN_ATTR_NS ){
+									 index +=2;
+									 continue;
+							 }
 							 if (isElement(vn,index)) {
 								 int depth = getTokenDepth(vn,index);
 								 if (depth > dp) {
@@ -1311,9 +1322,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 }
 							 }
 							 index++;
-							 while(getTokenType(vn,index)==TOKEN_ATTR_NAME){
-								 index += 2;
-							 }
+					
 						 }
 						 return FALSE;
 					 }
