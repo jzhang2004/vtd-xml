@@ -908,6 +908,7 @@ VTDNav *getNav(VTDGen *vg){
 // Get the offset value of previous character.
 static int getPrevOffset(VTDGen *vg){
 	exception e;
+	int temp;
 	int prevOffset = vg->offset;
 	switch (vg->encoding) {
 			case FORMAT_UTF8 :
@@ -919,14 +920,14 @@ static int getPrevOffset(VTDGen *vg){
 			case FORMAT_ISO_8859 :
 				return vg->offset - 1;
 			case FORMAT_UTF_16LE :
-				if (vg->XMLDoc[vg->offset - 2] < 0xDC00
-					|| vg->XMLDoc[vg->offset - 2] > 0xDFFFF) {
+				temp = vg->XMLDoc[vg->offset + 1] << 8 | vg->XMLDoc[vg->offset];
+				if (temp < 0xd800 || temp > 0xdfff) {
 						return vg->offset - 2;
 					} else
 						return vg->offset - 4;
 			case FORMAT_UTF_16BE :
-				if (vg->XMLDoc[vg->offset - 1] < 0xDC00
-					|| vg->XMLDoc[vg->offset - 1] > 0xDFFFF) {
+				temp = vg->XMLDoc[vg->offset] << 8 | vg->XMLDoc[vg->offset + 1];
+				if (temp < 0xd800 || temp > 0xdfff) {
 						return vg->offset - 2;
 					} else
 						return vg->offset - 4;
