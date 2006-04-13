@@ -128,7 +128,6 @@ public class VTDGen {
 				throw new EOFException("permature EOF reached, XML document incomplete");
 			int temp = XMLDoc[offset];
 			//int a = 0, c = 0, d = 0, val = 0;
-			int a,c,d,val;
 			if (temp >= 0) {
 				offset++;
 				return temp;
@@ -185,7 +184,7 @@ public class VTDGen {
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, EncodingException, ParseException {
-			int a = 0, c = 0, d = 0, val = 0;
+			//int a = 0, c = 0, d = 0, val = 0;
 			int temp = XMLDoc[offset];
 			if (temp >= 0)
 				if (ch == temp) {
@@ -656,6 +655,7 @@ public class VTDGen {
 	 */
 	private int getPrevOffset() throws ParseException {
 		int prevOffset = offset;
+		int temp;
 		switch (encoding) {
 			case FORMAT_UTF8 :
 				do {
@@ -666,14 +666,14 @@ public class VTDGen {
 			case FORMAT_ISO_8859 :
 				return offset - 1;
 			case FORMAT_UTF_16LE :
-				if (XMLDoc[offset - 2] < 0xDC00
-					|| XMLDoc[offset - 2] > 0xDFFFF) {
+			    temp= (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+				if (temp < 0xd800 || temp > 0xdfff) {
 					return offset - 2;
 				} else
 					return offset - 4;
 			case FORMAT_UTF_16BE :
-				if (XMLDoc[offset - 1] < 0xDC00
-					|| XMLDoc[offset - 1] > 0xDFFFF) {
+			    temp =(XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+				if (temp < 0xd800 || temp > 0xdfff) {
 					return offset - 2;
 				} else
 					return offset - 4;
@@ -984,12 +984,12 @@ public class VTDGen {
 		ns = NS;
 		int length1 = 0, length2 = 0;
 		int attr_count = 0 /*, ch = 0, ch_temp = 0*/;
-		int prev_ch = 0, prev2_ch = 0, parser_state = STATE_DOC_START;
+		int parser_state = STATE_DOC_START;
 		//boolean has_amp = false; 
 		boolean is_ns = false;
 		encoding = FORMAT_UTF8;
 		boolean helper=false;
-		boolean main_loop = true,hasDTD = false,hasDecl = false,docEnd = false,firstLT = true;
+		boolean main_loop = true,hasDTD = false,docEnd = false;
 		//char char_temp; //holds the ' or " indicating start of attr val
 		//boolean must_utf_8 = false;
 		//boolean BOM_detected = false;
