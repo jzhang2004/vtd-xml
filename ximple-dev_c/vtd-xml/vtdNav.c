@@ -1554,7 +1554,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 #if BIG_ENDIAN
 						 len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 32);
 #else
-						 len = swap_bytes(l) & 0xfffff;
+						 len = swap_bytes(l>>32) & 0xfffff;
 #endif
 						 // a little hardcode is always bad
 						 vn->currentOffset = (int) l;
@@ -1650,7 +1650,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 #if BIG_ENDIAN
 						 len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 32);
 #else
-						 len = swap_bytes(l) & 0xfffff;
+						 len = swap_bytes(l>>32) & 0xfffff;
 #endif						 // a little hardcode is always bad
 						 vn->currentOffset = (int) l;
 						 return matchRawTokenString1(vn,vn->currentOffset, len, s);
