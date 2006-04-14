@@ -371,6 +371,9 @@ public class VTDGen {
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
 			a= XMLDoc[offset++];
+			if (a<0)
+				throw new ParseException(
+				"ASCII encoding error: invalid ASCII Char");
 			return a&0x7f;
 		}
 		public boolean skipChar(int ch)

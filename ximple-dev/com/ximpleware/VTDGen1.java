@@ -511,10 +511,12 @@ public class VTDGen1 {
 					"permature EOF reached, XML document incomplete");
 		switch (encoding) {
 		case FORMAT_ASCII:
-			temp = XMLDoc[offset]&0x7f;
-			
+			temp = XMLDoc[offset];
+			if (temp<0)
+				throw new ParseException(
+				"ASCII encoding error: invalid ASCII Char");
 			offset++;
-			return temp;
+			return temp&0xff;
 		
 		//throw new EncodingException("Invalid char for ASCII encoding"
 		//		+formatLineNumber());
