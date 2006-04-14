@@ -382,7 +382,14 @@ static int getChar(VTDGen *vg){
 	//throw new EOFException("permature EOF reached, XML document incomplete");
 	switch (vg->encoding) {
 			case FORMAT_ASCII :
-				temp = vg->XMLDoc[vg->offset] & 0x7f;
+				temp = vg->XMLDoc[vg->offset];
+				if (temp>127){
+					e.et = parse_exception;
+					e.subtype = 0;
+					e.msg = "Parse exception in getChar";
+					e.sub_msg = "ASCII encoding error: invalid ASCII char (>127)";
+					Throw e;
+				}
 				vg->offset++;
 				return temp;
 			case FORMAT_UTF8 :
