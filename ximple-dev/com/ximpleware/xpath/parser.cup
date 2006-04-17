@@ -75,6 +75,7 @@ terminal NameType NAME;
 terminal AxisType AXISNAME;
 
 non terminal VariableReference;
+non terminal FuncExpr FunctionCall; 
 non terminal FuncName FunctionName;
 non terminal Expr Expr, OrExpr, EqualityExpr, AndExpr, RelationalExpr, AdditiveExpr;
 non terminal Expr MultiplicativeExpr, UnaryExpr, UnionExpr, PathExpr, FilterExpr;
@@ -85,7 +86,7 @@ non terminal AxisType AxisSpecifier, AbbreviatedAxisSpecifier;
 non terminal NodeTest nodetest ;
 non terminal Step Step, AbbreviatedStep, RelativeLocationPath, AbsoluteLocationPath;
 non terminal Step AbbreviatedAbsoluteLocationPath, AbbreviatedRelativeLocationPath;
-non terminal Predicate PredicateList; 
+non terminal Predicate Predicate,PredicateList; 
 
 precedence left OR;
 precedence left AND;
@@ -278,8 +279,8 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
 		   RESULT.setPredicate(pl);	
 		   //System.out.println(" Step 3 ");
 		:}
-      		|    AbbreviatedStep:as			 
-		{: RESULT = as; /*System.out.println(" step 4");*/ 
+      		|    AbbreviatedStep:abs			 
+		{: RESULT = abs; /*System.out.println(" step 4");*/ 
 		:}
 		;
 
