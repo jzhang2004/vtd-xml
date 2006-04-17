@@ -1123,10 +1123,10 @@ namespace com.ximpleware
 		/// <throws>  ParseException </throws>
 		private void  decide_encoding()
 		{
-			if (XMLDoc[offset] == - 2)
+			if (XMLDoc[offset] == 0xfe)
 			{
 				increment = 2;
-				if (XMLDoc[offset + 1] == - 1)
+				if (XMLDoc[offset + 1] == 0xff)
 				{
 					offset += 2;
 					encoding = FORMAT_UTF_16BE;
@@ -1136,10 +1136,10 @@ namespace com.ximpleware
 				else
 					throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
 			}
-			else if (XMLDoc[offset] == - 1)
+			else if (XMLDoc[offset] == 0xff)
 			{
 				increment = 2;
-				if (XMLDoc[offset + 1] == - 2)
+				if (XMLDoc[offset + 1] == 0xfe)
 				{
 					offset += 2;
 					encoding = FORMAT_UTF_16LE;
@@ -1149,9 +1149,9 @@ namespace com.ximpleware
 				else
 					throw new EncodingException("Unknown Character encoding: not UTF-16LE");
 			}
-			else if (XMLDoc[offset] == - 17)
+			else if (XMLDoc[offset] == unchecked ((byte) -17))
 			{
-				if (XMLDoc[offset + 1] == - 69 && XMLDoc[offset + 2] == - 65)
+				if (XMLDoc[offset + 1] == unchecked ((byte) -69) && XMLDoc[offset + 2] == unchecked ((byte) -65))
 				{
 					offset += 3;
 					must_utf_8 = true;
@@ -2955,7 +2955,7 @@ namespace com.ximpleware
 		/// </param>
 		private void  writeVTD(int offset, int length, int token_type, int depth)
 		{
-            long ll;
+            //long ll;
             //Console.WriteLine(" "+ (VTDBuffer.size())+ "===> " + offset);
 			switch (token_type)
 			{
@@ -2972,7 +2972,7 @@ namespace com.ximpleware
 						{
                             long l = ((long)(token_type << 4)
                                 | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                                | VTDNav.swap_bytes(MAX_TOKEN_LENGTH));
+                                | 0xffff0f00);
 
 							//VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32) | r_offset);
                             VTDBuffer.append(l & 0x00000000ffffffff | (((long)VTDNav.swap_bytes(r_offset)) << 32));

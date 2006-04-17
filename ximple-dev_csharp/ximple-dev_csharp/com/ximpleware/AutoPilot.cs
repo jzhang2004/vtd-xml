@@ -16,8 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 using System;
-//UPGRADE_TODO: The 'com.ximpleware.xpath' package was found, but not necessarily converted. References to it may cause compile errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1280'"
-
+using com.ximpleware.xpath;
 namespace com.ximpleware
 {
 	/// <summary> XimpleWare's AutoPilot implementation encapsulating node iterator
@@ -41,13 +40,23 @@ namespace com.ximpleware
 		/// <param name="b">
 		/// </param>
 		protected internal bool Special
-		{			
+		{
+			
 			
 			set
 			{
 				special = value;
 			}
 			
+		}
+		/// <summary> Convert the expression to a string
+		/// For debugging purpose
+		/// </summary>
+		/// <returns>
+		/// </returns>
+		public System.String getExprString()
+		{
+			return xpe.ToString();
 		}
 		private int depth;
 		// the depth of the element at the starting point will determine when to stop iteration
@@ -63,9 +72,11 @@ namespace com.ximpleware
 		private System.String URL; // Store URL name after selectElementNS
 		private int size; // for iterateAttr
 		
+		private Expr xpe; // for evalXPath
 		
 		private int[] contextCopy; //for preceding axis
 		private int stackSize; // the stack size for xpath evaluation
+		private System.Collections.Hashtable ht;
 		//private parser p;
 		// defines the type of "iteration"
 		public const int UNDEFINED = 0;
@@ -73,6 +84,14 @@ namespace com.ximpleware
 		public const int SIMPLE = 1;
 		// set the mode corresponding to DOM's getElementbyNameNS(string)
 		public const int SIMPLE_NS = 2;
+		public const int DESCENDANT = 3;
+		public const int DESCENDANT_NS = 4;
+		public const int FOLLOWING = 5;
+		public const int FOLLOWING_NS = 6;
+		public const int PRECEDING = 7;
+		public const int PRECEDING_NS = 8;
+		public const int ATTR = 9;
+		public const int ATTR_NS = 10;
 		/// <summary> AutoPilot constructor comment.</summary>
 		/// <exception cref="IllegalArgumentException">If the VTDNav object is null 
 		/// </exception>
@@ -87,6 +106,7 @@ namespace com.ximpleware
 			ft = true;
 			size = 0;
 			special = false;
+			xpe = null;
 			//p = null;       
 		}
 		
@@ -103,6 +123,22 @@ namespace com.ximpleware
 			ft = true;
 			size = 0;
 			special = false;
+			xpe = null;
+		}
+		/// <summary>This function creates URL ns prefix 
+		/// and is intended to be called prior to selectXPath
+		/// </summary>
+		/// <param name="String">prefix
+		/// </param>
+		/// <param name="String">URL
+		/// </param>
+		
+		public void  declareXPathNameSpace(System.String prefix, System.String URL)
+		{
+			if (ht == null)
+				ht = System.Collections.Hashtable.Synchronized(new System.Collections.Hashtable());
+			ht[prefix] = URL;
+			//System.out.println(ht); 
 		}
 		
 		/// <summary> Bind is to replace rebind() and setVTDNav()
@@ -111,7 +147,7 @@ namespace com.ximpleware
 		/// </summary>
 		/// <param name="vnv">*
 		/// </param>
-		public  void  bind(VTDNav vnv)
+		public void  bind(VTDNav vnv)
 		{
 			name = null;
 			if (vnv == null)
@@ -122,6 +158,7 @@ namespace com.ximpleware
 			ft = true;
 			size = 0;
 			special = false;
+			//resetXPath();
 		}
 		/// <summary> Iterate over all the selected element nodes in document order.
 		/// Null element name allowed, corresponding to node() in xpath
@@ -131,7 +168,7 @@ namespace com.ximpleware
 		/// </returns>
 		/// <exception cref="com.ximpleware.NavException">See description in method toElement() in VTDNav class.
 		/// </exception>
-		public  bool iterate()
+		public bool iterate()
 		{
 			switch (iter_type)
 			{
@@ -172,11 +209,189 @@ namespace com.ximpleware
 						else
 							return vn.iterateNS(depth, URL, localName);
 					}
-					//goto default;
+					//goto case DESCENDANT;
+				
+				
+				case DESCENDANT: 
+					if (vn.atTerminal)
+						return false;
+					return vn.iterate(depth, name, special);
+				
+				
+				case DESCENDANT_NS: 
+					if (vn.atTerminal)
+						return false;
+					return vn.iterateNS(depth, URL, localName);
+				
+				
+				case FOLLOWING: 
+					if (vn.atTerminal)
+						return false;
+					if (ft == false)
+						return vn.iterate_following(name, special);
+					else
+					{
+						ft = false;
+						// find the first next sibling of 
+						while (true)
+						{
+							while (vn.toElement(VTDNav.NS))
+							{
+								if (special || vn.matchElement(name))
+								{
+									return true;
+								}
+								return vn.iterate_following(name, special);
+							}
+							if (vn.toElement(VTDNav.P) == false)
+							{
+								//return vn.iterate_following(name, special);
+								return false;
+							}
+						}
+					}
+					//goto case FOLLOWING_NS;
+				
+				
+				case FOLLOWING_NS: 
+					if (vn.atTerminal)
+						return false;
+					if (ft == false)
+						return vn.iterate_followingNS(URL, localName);
+					else
+					{
+						ft = false;
+						// find the first next sibling of 
+						while (true)
+						{
+							while (vn.toElement(VTDNav.NS))
+							{
+								if (vn.matchElementNS(URL, localName))
+								{
+									return true;
+								}
+								return vn.iterate_followingNS(URL, localName);
+							}
+							if (vn.toElement(VTDNav.P) == false)
+							{
+								return false;
+							}
+						}
+					}
+					//goto case PRECEDING;
+				
+				
+				case PRECEDING: 
+					if (vn.atTerminal)
+						return false;
+					return vn.iterate_preceding(name, contextCopy, special);
+				
+				
+				case PRECEDING_NS: 
+					if (vn.atTerminal)
+						return false;
+					return vn.iterate_precedingNS(URL, localName, contextCopy);
 				
 				
 				default: 
 					throw new PilotException(" iteration action type undefined");
+				
+			}
+		}
+		/// <summary> This method implements the attribute axis for XPath</summary>
+		/// <returns> the integer of the selected VTD index for attribute name
+		/// </returns>
+		/// <throws>  PilotException </throws>
+		protected internal int iterateAttr()
+		{
+			
+			switch (iter_type)
+			{
+				
+				case ATTR: 
+					if (String.CompareOrdinal(name, "*") == 0)
+					{
+						if (ft != false)
+						{
+							ft = false;
+							index = vn.getCurrentIndex() + 1;
+						}
+						else
+							index += 2;
+						if (vn.ns == false)
+						{
+							while (index <= size)
+							{
+								int type = vn.getTokenType(index);
+								if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
+								{
+									return index;
+								}
+								else
+								{
+									return - 1;
+								}
+							}
+							return - 1;
+						}
+						else
+						{
+							int type = vn.getTokenType(index);
+							while (index <= size)
+							{
+								if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
+								{
+									if (type == VTDNav.TOKEN_ATTR_NAME)
+									{
+										return index;
+									}
+									else
+										index += 2;
+								}
+								else
+								{
+									return - 1;
+								}
+							}
+							return - 1;
+						}
+					}
+					else
+					{
+						if (ft == false)
+						{
+							return - 1;
+						}
+						else
+						{
+							ft = false;
+							int i = vn.getAttrVal(name);
+							if (i != - 1)
+								return i - 1;
+							else
+								return - 1;
+						}
+					}
+					//goto case ATTR_NS;
+				
+				case ATTR_NS: 
+					if (ft == false)
+					{
+						return - 1;
+					}
+					else
+					{
+						ft = false;
+						int i = vn.getAttrValNS(URL, localName);
+						if (i != - 1)
+							return i - 1;
+						else
+							return - 1;
+					}
+					//goto default;
+				
+				default: 
+					throw new PilotException("invalid iteration type");
 				
 			}
 		}
@@ -186,7 +401,7 @@ namespace com.ximpleware
 		/// </summary>
 		/// <param name="en">java.lang.String
 		/// </param>
-		public  void  selectElement(System.String en)
+		public void  selectElement(System.String en)
 		{
 			if (en == null)
 				throw new System.ArgumentException("element name can't be null");
@@ -206,7 +421,7 @@ namespace com.ximpleware
 		/// </param>
 		/// <param name="ln">java.lang.String
 		/// </param>
-		public  void  selectElementNS(System.String ns_URL, System.String ln)
+		public void  selectElementNS(System.String ns_URL, System.String ln)
 		{
 			if (ln == null)
 				throw new System.ArgumentException("local name can't be null");
@@ -216,6 +431,199 @@ namespace com.ximpleware
 			localName = ln;
 			URL = ns_URL;
 			ft = true;
+		}
+		
+		/// <summary> Select all descendent elements along the descendent axis, without ns awareness</summary>
+		/// <param name="en">
+		/// </param>
+		protected internal void  selectElement_D(System.String en)
+		{
+			if (en == null)
+				throw new System.ArgumentException("element name can't be null");
+			iter_type = DESCENDANT;
+			depth = vn.getCurrentDepth();
+			//startIndex = vn.getCurrentIndex();
+			name = en;
+			ft = true;
+		}
+		
+		/// <summary> Select all descendent elements along the Descendent axis, withns awareness</summary>
+		/// <param name="ns_URL">
+		/// </param>
+		/// <param name="ln">
+		/// </param>
+		protected internal void  selectElementNS_D(System.String ns_URL, System.String ln)
+		{
+			if (ln == null)
+				throw new System.ArgumentException("local name can't be null");
+			iter_type = DESCENDANT_NS;
+			depth = vn.getCurrentDepth();
+			//startIndex = vn.getCurrentIndex();
+			localName = ln;
+			URL = ns_URL;
+			ft = true;
+		}
+		
+		/// <summary> Select all elements along the following axis, without ns,
+		/// null selects every elements and documents
+		/// </summary>
+		/// <param name="en">
+		/// </param>
+		protected internal void  selectElement_F(System.String en)
+		{
+			if (en == null)
+				throw new System.ArgumentException("element name can't be null");
+			iter_type = FOLLOWING;
+			ft = true;
+			name = en;
+		}
+		
+		/// <summary> Select all elements along the preceding axis as defined in XPath
+		/// The namespace-aware version
+		/// </summary>
+		/// <param name="en">
+		/// </param>
+		protected internal void  selectElementNS_F(System.String ns_URL, System.String ln)
+		{
+			if (ln == null)
+				throw new System.ArgumentException("local name can't be null");
+			iter_type = FOLLOWING_NS;
+			ft = true;
+			localName = ln;
+			URL = ns_URL;
+		}
+		
+		/// <summary> Select all elements along the preceding axis as defined in XPath</summary>
+		/// <param name="en">
+		/// </param>
+		protected internal void  selectElement_P(System.String en)
+		{
+			if (en == null)
+				throw new System.ArgumentException("element name can't be null");
+			depth = vn.getCurrentDepth();
+			iter_type = PRECEDING;
+			ft = true;
+			name = en;
+			contextCopy = new int[vn.context.Length];
+			vn.context.CopyTo(contextCopy, 0);
+			for (int i = vn.context[0] + 1; i < vn.context.Length; i++)
+			{
+				contextCopy[i] = - 1;
+			}
+			contextCopy[0] = vn.rootIndex;
+		}
+		
+		/// <summary> Select all elements along the preceding axis as defined in XPath
+		/// This is the namespace aware version
+		/// </summary>
+		/// <param name="ns_URL">
+		/// </param>
+		/// <param name="ln">
+		/// </param>
+		protected internal void  selectElementNS_P(System.String ns_URL, System.String ln)
+		{
+			if (ln == null)
+				throw new System.ArgumentException("local name can't be null");
+			depth = vn.getCurrentDepth();
+			iter_type = PRECEDING_NS;
+			ft = true;
+			localName = ln;
+			URL = ns_URL;
+			contextCopy = new int[vn.context.Length];
+			vn.context.CopyTo(contextCopy, 0);
+			for (int i = vn.context[0] + 1; i < vn.context.Length; i++)
+			{
+				vn.context[i] = - 1;
+			}
+			contextCopy[0] = vn.rootIndex;
+		}
+		
+		/// <summary> Select an attribute name for iteration, * choose all attributes of an element</summary>
+		/// <param name="en">
+		/// </param>
+		protected internal void  selectAttr(System.String en)
+		{
+			if (en == null)
+				throw new System.ArgumentException("attribute name can't be null");
+			iter_type = ATTR;
+			ft = true;
+			size = vn.getTokenCount();
+			name = en;
+		}
+		
+		/// <summary> Select an attribute name, both local part and namespace URL part</summary>
+		/// <param name="ns_URL">
+		/// </param>
+		/// <param name="ln">
+		/// </param>
+		protected internal void  selectAttrNS(System.String ns_URL, System.String ln)
+		{
+			if (ln == null)
+				throw new System.ArgumentException("local name of an attribute can't be null");
+			iter_type = ATTR_NS;
+			ft = true;
+			localName = ln;
+			URL = ns_URL;
+		}
+		
+		/// <summary> This method selects the string representing XPath expression
+		/// Usually evalXPath is called afterwards
+		/// </summary>
+		/// <param name="s">
+		/// </param>
+		/// <throws>  XPathParseException </throws>
+		public void  selectXPath(System.String s)
+		{
+			
+			try
+			{
+				parser p = new parser(new System.IO.StringReader(s));
+				p.ht = ht;
+				xpe = (com.ximpleware.xpath.Expr) p.parse().value_Renamed;
+			}
+			catch (System.Exception e)
+			{
+				//UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Throwable.toString' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+				throw new XPathParseException(e.ToString());
+			}
+		}
+		
+		/// <summary> Reset the XPath so the XPath Expression can 
+		/// be reused and revaluated in anther context position
+		/// 
+		/// </summary>
+		
+		public void  resetXPath()
+		{
+			if (xpe != null && vn != null)
+			{
+				xpe.reset(vn);
+				ft = true;
+				vn.contextStack2.size = stackSize;
+			}
+		}
+		
+		/// <summary> This method returns the next node in the nodeset
+		/// it returns -1 if there is no more node
+		/// Afer finishing evaluating, don't forget to <em> reset the xpath </em>
+		/// </summary>
+		/// <returns> int corresponding to the VTD index
+		/// </returns>
+		public int evalXPath()
+		{
+			if (xpe != null)
+			{
+				if (ft == true)
+				{
+					if (vn != null)
+					{
+						stackSize = vn.contextStack2.size;
+					}
+					ft = false;
+				}
+				return xpe.evalNodeSet(vn);
+			}
+			throw new PilotException(" Null XPath expression ");
 		}
 	}
 }

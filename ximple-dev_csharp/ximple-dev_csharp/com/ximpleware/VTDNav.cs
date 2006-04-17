@@ -3353,11 +3353,15 @@ namespace com.ximpleware
 								while (index < size)
 								{
 									long temp = vtdBuffer.longAt(index);
-									int token_type = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
-									
+									//int token_type = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
+                                    int token_type = ((int)temp & 0xf0) >> 4;
+
 									if (token_type == TOKEN_STARTING_TAG)
 									{
-										int depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+										//int depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+                                        int depth = (((int)temp & 0x0f) << 4)
+                                            | (((int)temp & 0xf000) >> 12);
+
 										if (depth <= context[0])
 										{
 											return false;
@@ -3382,8 +3386,13 @@ namespace com.ximpleware
 								while (index < size)
 								{
 									long temp = vtdBuffer.longAt(index);
-									int depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-									int token_type = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
+									//int depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+                                    int depth = (((int)temp & 0x0f) << 4) | (((int)temp & 0xf000) >> 12);
+
+
+									//int token_type = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
+                                    int token_type = ((int)temp & 0xf0) >> 4;
+
 									
 									if (token_type == TOKEN_STARTING_TAG)
 									{
@@ -3497,11 +3506,16 @@ namespace com.ximpleware
 								while (index < vtdBuffer.size())
 								{
 									long temp = vtdBuffer.longAt(index);
-									int token_type = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
+									//int token_type = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
+                                    int token_type = ((int)temp & 0xf0) >> 4;
+
 									
 									if (token_type == TOKEN_STARTING_TAG)
 									{
-										int depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+										//int depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+                                        int depth = (((int)temp & 0x0f) << 4)
+                                            | (((int)temp & 0xf000) >> 12);
+
 										if (depth < context[0])
 										{
 											return false;
@@ -3523,11 +3537,14 @@ namespace com.ximpleware
 								{
 									// scan backforward
 									long temp = vtdBuffer.longAt(index);
-									int token_type = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
-									
+									//int token_type = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
+                                    int token_type = ((int)temp & 0xf0) >> 4;
+
 									if (token_type == TOKEN_STARTING_TAG)
 									{
-										int depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+										//int depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+                                        int depth = (((int)temp & 0x0f) << 4) | (((int)temp & 0xf000) >> 12);
+
 										/*if (depth < context[0]) {
 										return false;
 										} else */
