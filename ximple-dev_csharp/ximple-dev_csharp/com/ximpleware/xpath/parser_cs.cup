@@ -1,0 +1,389 @@
+/* 
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+namespace com.ximpleware.xpath;
+using TUVienna.CS_CUP.Runtime;
+using com.ximpleware;
+using com.ximpleware.xpath;
+using System;
+using System.Collections;
+
+parser code {:  
+  public Hashtable ht;
+  Step tempStep;
+  NodeTest tempNt;
+  LocationPathExpr tempLPExpr;
+  
+  public parser (System.IO.StringReader input):base(new Yylex(input)) {
+    
+    ht = null;
+  }
+  /*
+  public parser (java.io.InputStream input) {
+    super(new Yylex(input));
+  }
+  */
+
+  /*public static void main(String args[]){
+    try {
+      parser p = new parser(System.in);
+      Object result = p.parse().value;
+      //System.out.println(((Expr)result).evalNumber(null));
+      System.out.println(((Expr)result));
+    }
+    catch (Exception e) {
+		System.out.println("caught: "+e);
+    }
+  }*/
+ 
+  public void report_error(String message, Object info) {
+	//throw new XPathParseException("Syntax error during parsing");
+  }
+
+  public void report_fatal_error(String message, Object info){
+	throw new XPathParseException("Syntax error during parsing: "+ message);
+  }
+
+  public void syntax_error(Symbol cur_token) {
+	
+  }
+  
+  public void unrecovered_syntax_error(Symbol cur_token){
+	throw new XPathParseException("XPath Syntax error: "+cur_token);
+  }
+ :};
+
+terminal ADD, SUB, DOT, DDOT, AT, COMMA, LP, RP, LB, RB, GT, LT, GE, LE, EQ, NE;
+terminal MULT, SLASH, DSLASH, DIV, MOD, AND, OR, UNION, UMINUS, DOLLAR;
+terminal Double NUMBER;
+terminal String LITERAL;
+
+terminal FuncName FNAME;
+terminal Ntest NTEST;
+terminal NameType NAME;
+terminal AxisType AXISNAME;
+
+non terminal VariableReference;
+non terminal FuncExpr FunctionCall;
+non terminal FuncName FunctionName;
+non terminal Expr Expr, OrExpr, EqualityExpr, AndExpr, RelationalExpr, AdditiveExpr;
+non terminal Expr MultiplicativeExpr, UnaryExpr, UnionExpr, PathExpr, FilterExpr;
+non terminal Alist ArgumentList;
+non terminal Expr PrimaryExpr, Argument;
+non terminal LocationPathExpr LocationPath ;
+non terminal AxisType AxisSpecifier, AbbreviatedAxisSpecifier;
+non terminal NodeTest nodetest ;
+non terminal Step Step, AbbreviatedStep, RelativeLocationPath, AbsoluteLocationPath;
+non terminal Step AbbreviatedAbsoluteLocationPath, AbbreviatedRelativeLocationPath;
+non terminal Predicate Predicate,PredicateList; 
+
+precedence left OR;
+precedence left AND;
+precedence left EQ, NE;
+precedence left GE, LE, GT, LT;
+precedence nonassoc UMINUS;
+
+Expr    	::= OrExpr:o
+		{: RESULT = o; :}
+		;
+
+OrExpr 		::= AndExpr:a 
+		{: RESULT = a; :}
+		|  OrExpr:o OR AndExpr:a
+		{: RESULT = new BinaryExpr(o,BinaryExpr.OR,a);:}
+		; 
+AndExpr 	::= EqualityExpr: ee
+		{: RESULT = ee; :}
+		|  AndExpr:a AND EqualityExpr:ee
+		{: RESULT = new BinaryExpr(a, BinaryExpr.AND, ee); :}
+		;
+
+EqualityExpr    ::= RelationalExpr:re  
+		{: RESULT = re; :}
+		|   EqualityExpr:ee EQ RelationalExpr:re  
+		{: RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re); :}
+		|   EqualityExpr:ee NE RelationalExpr:re 
+		{: RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); :}
+		;
+
+RelationalExpr  ::= AdditiveExpr:ae  
+		{: RESULT = ae; :}
+  		|    RelationalExpr:re LT AdditiveExpr:ae  
+		{: RESULT = new BinaryExpr(re, BinaryExpr.LT, ae); :}
+		|    RelationalExpr:re GT AdditiveExpr:ae  
+		{: RESULT = new BinaryExpr(re, BinaryExpr.GT, ae); :}
+		|    RelationalExpr:re LE AdditiveExpr:ae  
+		{: RESULT = new BinaryExpr(re, BinaryExpr.LE, ae);  :}
+		|    RelationalExpr:re GE AdditiveExpr:ae  
+		{: RESULT = new BinaryExpr(re, BinaryExpr.GE, ae); :}
+		;
+
+AdditiveExpr    ::= MultiplicativeExpr:me  
+		{: RESULT = me; :}
+		|   AdditiveExpr:ae ADD MultiplicativeExpr:me  
+		{: RESULT = new BinaryExpr(ae, BinaryExpr.ADD, me); :}
+		|    AdditiveExpr:ae SUB MultiplicativeExpr:me  
+		{: RESULT = new BinaryExpr(ae, BinaryExpr.SUB, me); :}
+		;
+
+MultiplicativeExpr    ::=  UnaryExpr:ue  
+		{: RESULT = ue; :}
+   		|    MultiplicativeExpr:me MULT UnaryExpr:ue  
+		{: RESULT = new BinaryExpr(me, BinaryExpr.MULT, ue); :}
+		|    MultiplicativeExpr:me DIV UnaryExpr:ue  
+		{: RESULT = new BinaryExpr(me, BinaryExpr.DIV, ue); :}
+		|    MultiplicativeExpr:me MOD UnaryExpr:ue   
+		{: RESULT = new BinaryExpr(me, BinaryExpr.MOD, ue); :}
+		;
+
+UnaryExpr    	::=    UnionExpr:ue  
+		{: RESULT = ue; :}
+  		|    SUB UnaryExpr:ue   
+		{: RESULT = new UnaryExpr( BinaryExpr.SUB, ue); :}
+		 %prec UMINUS
+		;
+
+
+UnionExpr    	::=    PathExpr:pe  
+		{: RESULT = pe; :}		
+   		|    UnionExpr:une UNION PathExpr:pe 
+		{: //RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe);
+		   //throw new XPathParseException("Union not yet supported"); 
+		:}
+		;
+
+
+PathExpr     	::= 	LocationPath:lp  
+		{:  RESULT = lp; :}
+   		|    FilterExpr:fe   
+		{:  RESULT = fe; :}
+  		|    FilterExpr:fe SLASH RelativeLocationPath:rlp
+		{:   my_parser.tempLPExpr = new LocationPathExpr();
+		     my_parser.tempLPExpr.Step=rlp;
+		     RESULT = new PathExpr(fe, my_parser.tempLPExpr);	
+		:}
+		|    FilterExpr:fe DSLASH RelativeLocationPath:rlp
+		{:   my_parser.tempStep = new Step();
+
+		     my_parser.tempStep.AxisType=AxisType.DESCENDANT_OR_SELF;
+		     my_parser.tempNt = new NodeTest();
+		     my_parser.tempNt.TestType=NodeTest.NODE;
+
+		     my_parser.tempStep.NodeTest=my_parser.tempNt;
+
+		     my_parser.tempStep.NextStep=rlp;
+		     rlp.PrevStep=my_parser.tempStep;
+		     
+		     /*parser.tempStep2 = new Step();
+		     parser.tempNt = new NodeTest();
+		     parser.tempStep2.AxisType=AxisType.SELF;
+		     parser.tempNt.TestType=NodeTest.NODE;
+
+		     parser.tempStep2.NodeTest=parser.tempNt;
+	
+  		     parser.tempStep2.NextStep=parser.tempStep;
+		     parser.tempStep.PrevStep=parser.tempStep2;*/
+
+		     my_parser.tempLPExpr = new LocationPathExpr();
+		     my_parser.tempLPExpr.Step=my_parser.tempStep;
+		     RESULT = new PathExpr(fe, my_parser.tempLPExpr);
+		:}
+		;
+
+FilterExpr   	::=  PrimaryExpr:pe  
+		{: RESULT = pe; :}
+  		|    FilterExpr:fe Predicate:p 
+		{: RESULT = new FilterExpr(fe, p);:}
+		;
+
+PrimaryExpr     ::=  VariableReference  
+		|    LP Expr:e RP 
+		{: RESULT = e; :} 
+		|    LITERAL:le  
+		{: RESULT = new LiteralExpr(le); :} 
+		|    NUMBER:ne  
+		{: RESULT = new NumExpr(ne.doubleValue()); :} 
+		|    FunctionCall:fc
+		{: RESULT = fc; :} 		
+		;
+
+FunctionCall    ::=    FunctionName:fn LP ArgumentList:al RP
+		{: RESULT = new FuncExpr(fn.i, al); :} 
+		;
+
+ArgumentList	::=    
+		{: RESULT = null; :} 
+	     	|    Argument:a
+		{: RESULT = new Alist();
+		   RESULT.e = a; :}  
+		|    Argument:a COMMA ArgumentList:al
+		{: RESULT = new Alist();
+		   RESULT.e = a;
+		   RESULT.next = al;
+		:}   
+		;
+
+Argument   	::=    Expr:e
+		{: RESULT = e; :}  
+	   	; 
+
+
+LocationPath    ::=    RelativeLocationPath:rlp	
+		{: RESULT = new LocationPathExpr();
+		   RESULT.Step=rlp; 
+		:}
+		|    AbsoluteLocationPath:alp	
+		{: RESULT = new LocationPathExpr();
+		   RESULT.PathType=LocationPathExpr.ABSOLUTE_PATH;
+		   //System.out.println(" absolute ");
+		   RESULT.Step=alp;
+		   //startStep = currentStep=null;
+		:}
+		;
+
+AbsoluteLocationPath ::=  SLASH 			
+		{:  RESULT = null; :}
+		|    SLASH RelativeLocationPath:rlp		
+		{:  RESULT = rlp;   :}
+		|    AbbreviatedAbsoluteLocationPath:aalp	
+		{:  RESULT = aalp;   :}
+		;
+
+RelativeLocationPath ::=  Step:s				
+		{: RESULT = s; :}
+		|    Step:s SLASH RelativeLocationPath:rlp  	
+		{: //if (s == rlp) throw new XPathParseException("$1 = $3!!!!");
+		   s.nextS = rlp;						
+		   rlp.prevS = s;							 
+		   RESULT= s;
+		:}
+		|    AbbreviatedRelativeLocationPath:arlp 	
+		{: RESULT = arlp;	:}
+		;
+
+Step		::= AxisSpecifier:as1 nodetest:nt PredicateList:pl 
+		{: RESULT = new Step();
+      	   RESULT.AxisType=as1.i;
+      	   RESULT.NodeTest=nt;
+		   RESULT.Predicate=pl;	
+		   //System.out.println(" Step 3 ");
+		:}
+      		|    AbbreviatedStep:abs			 
+		{: RESULT = abs; /*System.out.println(" step 4");*/ 
+		:}
+		;
+
+
+nodetest	::=    NAME:n 
+		{: RESULT = new NodeTest();
+	 	   RESULT.TestType=NodeTest.NAMETEST;
+		   RESULT.NodeName=n.qname;
+		   if (n.localname!=null){
+		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
+		   	 if (my_parser.ht==null || my_parser.ht[n.prefix] ==null)
+
+		   	    throw new XPathParseException("No URL found for prefix:"+n.prefix);
+		   	 RESULT.URL = (String) my_parser.ht[n.prefix];
+		   }
+		:}
+		|    NTEST:n2				
+		{: RESULT = new NodeTest();
+		  RESULT.TestType=n2.i;				
+		:}
+		;
+
+PredicateList	::=
+		{: RESULT = null;
+	      	:} 
+	     	|    Predicate:p PredicateList:pl  		
+		{:  p.nextP = pl;
+		    RESULT = p;
+		:}	
+		;
+
+AxisSpecifier	::=    AXISNAME:an				
+		{:  RESULT = an; :}
+	      	|    AbbreviatedAxisSpecifier:aas		
+		{:  RESULT = aas; :}
+	      	;
+
+AbbreviatedAxisSpecifier  ::=				
+		{: RESULT = new AxisType(); RESULT.i = AxisType.CHILD; :}
+		| AT				
+	 	{: RESULT = new AxisType(); RESULT.i = AxisType.ATTRIBUTE; :}
+		;
+
+AbbreviatedStep	::=    DOT	
+		{:  RESULT = new Step();
+		    my_parser.tempNt = new NodeTest();
+  		    my_parser.tempNt.TestType=NodeTest.NODE;
+		    RESULT.AxisType=AxisType.SELF;
+		    RESULT.NodeTest=my_parser.tempNt;				 
+		:}
+
+		|    DDOT	
+		{:  RESULT = new Step();
+		    my_parser.tempNt = new NodeTest();
+  		    my_parser.tempNt.TestType=NodeTest.NODE;
+		    RESULT.AxisType=AxisType.PARENT;
+		    RESULT.NodeTest=my_parser.tempNt;
+		:}
+		;
+
+AbbreviatedAbsoluteLocationPath ::= DSLASH RelativeLocationPath:rlp	
+		{:
+		  RESULT = new Step();
+		  RESULT.AxisType=AxisType.DESCENDANT_OR_SELF;
+		  my_parser.tempNt = new NodeTest();
+		  my_parser.tempNt.TestType=NodeTest.NODE;
+		  RESULT.NodeTest=my_parser.tempNt;
+		  RESULT.NextStep=rlp;
+		  rlp.PrevStep=RESULT;
+		:}
+		;
+
+AbbreviatedRelativeLocationPath ::=   Step:s DSLASH RelativeLocationPath:rlp
+		{: RESULT = new Step();
+		  RESULT.AxisType = AxisType.DESCENDANT_OR_SELF;
+		  my_parser.tempNt = new NodeTest();
+					  
+		  my_parser.tempNt.TestType = NodeTest.NODE;
+		  RESULT.NodeTest = my_parser.tempNt;
+		  s.NextStep=RESULT;
+		  RESULT.PrevStep=s;
+		  RESULT.NextStep=rlp;
+		  rlp.PrevStep=RESULT;
+		  RESULT = s;
+		:}
+		;
+
+
+Predicate 	::=    LB Expr:e RB 
+		{:	RESULT = new Predicate();
+   		        RESULT.expr= e; 
+		:}   
+	   	;
+
+
+VariableReference ::= DOLLAR NAME	
+		  ;
+
+FunctionName 	::=  FNAME :fn
+		{: RESULT = fn; :} 
+	        ;
+}
