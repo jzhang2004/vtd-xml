@@ -2970,46 +2970,47 @@ namespace com.ximpleware
 						int r_offset = offset;
 						for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH)
 						{
-                            long l = ((long)(token_type << 4)
-                                | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                                | 0xffff0f00);
+                            //long l = ((long)(token_type << 4)
+                            //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
+                            //    | 0xffff0f00);
 
-							//VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32) | r_offset);
-                            VTDBuffer.append(l & 0x00000000ffffffff | (((long)VTDNav.swap_bytes(r_offset)) << 32));
+							VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32) | r_offset);
+                            //VTDBuffer.append(l & 0x00000000ffffffff | (((long)VTDNav.swap_bytes(r_offset)) << 32));
                             r_offset += MAX_TOKEN_LENGTH;
 						}
-						//VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | k) << 32) | r_offset);
-                        VTDBuffer.append((((long)((token_type << 4)
-                            |(((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                            | VTDNav.swap_bytes(k))) & 0x00000000ffffffff
-                            | (((long)VTDNav.swap_bytes(r_offset)) << 32)));
+						VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | k) << 32) | r_offset);
+                        //VTDBuffer.append((((long)((token_type << 4)
+                        //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
+                        //    | VTDNav.swap_bytes(k))) & 0x00000000ffffffff
+                        //    | (((long)VTDNav.swap_bytes(r_offset)) << 32)));
 
 					}
 					else
 					{
-						//VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
+						VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
                         //ll = (((long)((token_type << 4) | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)| VTDNav.swap_bytes(length))) & 0x00000000ffffffff
                         //    | (((long)VTDNav.swap_bytes(offset)) << 32));
-                        VTDBuffer.append((((long)((token_type << 4)
-                            | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                            | VTDNav.swap_bytes(length))) & 0x00000000ffffffff
-                            | (((long)VTDNav.swap_bytes(offset)) << 32)));
+                        //VTDBuffer.append((((long)((token_type << 4)
+                       //     | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
+                        //    | VTDNav.swap_bytes(length))) & 0x00000000ffffffff
+                         //   | (((long)VTDNav.swap_bytes(offset)) << 32)));
 					}
 					break;
 					
 					//case TOKEN_ENDING_TAG: break;
 				
 				default:
+                    VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
                     //ll = ((long)((token_type << 4)
                     //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                     //        | VTDNav.swap_bytes(length))
                     //        | (((long)VTDNav.swap_bytes(offset)) << 32));
                     //Console.WriteLine(" VTDToken ==> "+ ll.ToString("x"));
                    
-                    VTDBuffer.append((((long)((token_type << 4)
-                        | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                            | VTDNav.swap_bytes(length))) & 0x00000000ffffffff
-                            | (((long)VTDNav.swap_bytes(offset)) << 32)));
+                    //VTDBuffer.append((((long)((token_type << 4)
+                    //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
+                    //        | VTDNav.swap_bytes(length))) & 0x00000000ffffffff
+                    //        | (((long)VTDNav.swap_bytes(offset)) << 32)));
 
 					break;
 				
