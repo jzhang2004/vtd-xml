@@ -31,7 +31,7 @@
 #define MAXLONG 0x7fffffffffffffff
 #define MINLONG 0x8000000000000001
 
-#define BIG_ENDIAN 0 // big endian   --> 1
+#define BIG_ENDIAN 1 // big endian   --> 1
 					 // small endian --> 0
 
 #define inline __inline
