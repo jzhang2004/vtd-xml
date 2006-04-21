@@ -62,4 +62,13 @@ public byte[] getBytes(int offset, int len) {
 public int length() {
 	return ba.length;
 }
+
+/**
+ * Return the byte array containing the original XML document
+ * @return
+ *
+ */
+public byte[] getBytes(){
+    return ba;
+}
 }
