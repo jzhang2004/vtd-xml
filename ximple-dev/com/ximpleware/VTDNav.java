@@ -1,4 +1,3 @@
-
 /* 
  * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
  *
@@ -3337,7 +3336,7 @@ public class VTDNav {
 		currentOffset = getTokenOffset(index);
 		int endOffset = len + currentOffset - 1; // point to the last character
 		StringBuffer sb = new StringBuffer(len);
-		String s = null;
+		
 		int ch;
 
 		// trim off the leading whitespaces
@@ -3424,7 +3423,6 @@ public class VTDNav {
 		currentOffset = getTokenOffset(index);
 		int endOffset = len + currentOffset;
 		StringBuffer sb = new StringBuffer(len);
-		String s = null;
 
 		while (currentOffset < endOffset) {
 			char c = (char) getCharResolved();
