@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
+import java.io.File;
+import java.io.FileInputStream;
+
 import com.ximpleware.parser.XMLChar;
 import com.ximpleware.parser.UTF8Char;
 
@@ -972,6 +975,39 @@ public class VTDGen {
 				throw new ParseException("Other error: file size too large >= 2GB");
 		}
 	}
+	/**
+	 * This method parses the XML file and returns a boolean indicating 
+	 * if it is successful or not.
+	 * @param fileName
+	 * @param ns  namespace aware or not
+	 * @return boolean indicating whether the parseFile is a success
+	 *
+	 */
+	public boolean parseFile(String fileName, boolean ns){
+	    FileInputStream fis = null;
+	    File f = null;
+	    try{
+	        f = new File(fileName);
+	    	fis =  new FileInputStream(f);
+	        byte[] b = new byte[(int) f.length()];
+	    	fis.read(b);	    	
+	    	this.setDoc(b);
+	    	this.parse(ns);  // set namespace awareness to true
+	    	return true;
+	    }catch(java.io.IOException e){    
+	    }catch (ParseException e){
+	    }
+	    finally{
+	        if (fis!=null){
+	            try{
+	                fis.close();
+	            }catch (Exception e){
+	            }
+	        }
+	    }
+	    return false;	    
+	}
+	
 	/**
 	 * Generating VTD tokens and Location cache info.
 	 * @param NS boolean Enable namespace or not
