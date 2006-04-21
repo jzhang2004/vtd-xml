@@ -38,4 +38,6 @@ public interface IByteBuffer {
 	 * @return int
 	 */
 	int length();
+	// get the whole XML 
+	byte[] getBytes();
 }
