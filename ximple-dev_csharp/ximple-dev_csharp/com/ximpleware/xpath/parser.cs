@@ -731,7 +731,7 @@ public class CUP_parser_actions {
           case 49: // Step ::= AxisSpecifier nodetest PredicateList 
             {
               Step RESULT = null;
-                Object a =null;
+               // Object a =null;
 		int asleft = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-2)).left;
 		int asright = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-2)).right;
 		com.ximpleware.xpath.AxisType as1= (com.ximpleware.xpath.AxisType)((TUVienna.CS_CUP.Runtime.Symbol) CUP_parser_stack.elementAt(CUP_parser_top-2)).value;

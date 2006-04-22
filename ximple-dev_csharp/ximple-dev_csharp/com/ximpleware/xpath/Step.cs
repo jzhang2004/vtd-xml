@@ -16,10 +16,11 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 using System;
-using com.ximpleware;
-using com.ximpleware.xpath;
-namespace com.ximpleware.xpath
-{
+
+namespace com.ximpleware.xpath {
+    using com.ximpleware;
+    //using com.ximpleware.xpath;
+
 	/// <summary> A step is a part of location path as defined in 
 	/// Xpath spec
 	/// 
