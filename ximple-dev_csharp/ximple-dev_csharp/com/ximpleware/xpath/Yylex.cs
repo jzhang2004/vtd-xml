@@ -2096,7 +2096,7 @@ class Yylex: sym, TUVienna.CS_CUP.Runtime.Scanner {
 				}
 
 				name.prefix = yytext().Substring(0,len-2);
-                name.localname = "*"; Console.WriteLine("Name "+name.qname+ " returned");
+                name.localname = "*"; //Console.WriteLine("Name "+name.qname+ " returned");
 				//System.out.println("NAME "+name+ " returned");
 				return sym(NAME,name);
 			
@@ -2107,7 +2107,7 @@ class Yylex: sym, TUVienna.CS_CUP.Runtime.Scanner {
           if (ZZ_SPURIOUS_WARNINGS_SUCK)
           {
 #line 105 "scanner_cs.flex"
-              isName = 1; Console.WriteLine("DSLASH detected");
+              isName = 1; //Console.WriteLine("DSLASH detected");
 	 //System.out.println("DSLASH returned "); 
 	 return sym(DSLASH);
 	
