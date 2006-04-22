@@ -150,7 +150,7 @@ namespace com.ximpleware
 		/// </summary>
 		/// <param name="input">int[]
 		/// </param>
-		public virtual void  store(int[] input)
+		public void  store(int[] input)
 		{
 			
 			if (input == null)
