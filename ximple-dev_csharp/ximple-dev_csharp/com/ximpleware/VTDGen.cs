@@ -125,7 +125,7 @@ namespace com.ximpleware
 						return offset - 1;
 					
 					case FORMAT_UTF_16LE:
-                        temp = (XMLDoc[offset + 1] & 0xff) << 8 | (XMLDoc[offset] & 0xff);
+                        temp = (XMLDoc[offset + 1] ) << 8 | (XMLDoc[offset] );
                         if (temp < 0xd800 || temp > 0xdfff)
 						{
 							return offset - 2;
@@ -135,7 +135,7 @@ namespace com.ximpleware
 						//goto case FORMAT_UTF_16BE;
 					
 					case FORMAT_UTF_16BE: 
-                        temp = (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+                        temp = (XMLDoc[offset]) << 8 | (XMLDoc[offset + 1]);
                         if (temp < 0xd800 || temp > 0xdfff)
 						{
 							return offset - 2;
@@ -458,7 +458,7 @@ namespace com.ximpleware
 						throw new EOFException("permature EOF reached, XML document incomplete");
 					int temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
 					//int a = 0, c = 0, d = 0, val = 0;
-					if (temp >= 0)
+					if (temp <127)
 					{
 						Enclosing_Instance.offset++;
 						return temp;
@@ -482,7 +482,7 @@ namespace com.ximpleware
 			private int handleUTF8(int temp)
 			{
 				int val, c, d, a, i;
-				temp = temp & 0xff;
+				//temp = temp & 0xff;
 				switch (UTF8Char.byteCount(temp))
 				{
 					
@@ -539,7 +539,7 @@ namespace com.ximpleware
 			{
 				//int a = 0, d = 0, val = 0;
 				int temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
-				if (temp >= 0)
+				if (temp <128)
 					if (ch == temp)
 					{
 						Enclosing_Instance.offset++;
@@ -554,7 +554,7 @@ namespace com.ximpleware
 			private bool skipUTF8(int temp, int ch)
 			{
 				int val, c, d, a, i;
-				temp = temp & 0xff;
+				//temp = temp & 0xff;
 				switch (UTF8Char.byteCount(temp))
 				{
 					
@@ -668,7 +668,7 @@ namespace com.ximpleware
 			public bool skipChar(int ch)
 			{
 				// implement UTF-16BE to UCS4 conversion
-				int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset] & 0xff) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]);
+				int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset] ) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]);
 				if ((temp < 0xd800) || (temp > 0xdfff))
 				{
 					// not a high surrogate
@@ -1199,6 +1199,48 @@ namespace com.ximpleware
 					throw new ParseException("Other error: file size too large >= 2GB");
 			}
 		}
+        /// <summary>
+        /// parse a file directly
+        /// </summary>
+        /// <param name="fileName"> Name of the file to be parsed</param>
+        /// <param name="ns"> namespace awareness</param>
+        /// <returns>boolean indicating whether it is a success or not</returns>
+
+        public bool parseFile(String fileName, bool ns)
+        {
+            System.IO.FileInfo f = null;
+            System.IO.FileStream fis = null;
+            try
+            {
+                f = new System.IO.FileInfo(fileName);
+                //UPGRADE_TODO: Constructor 'java.io.FileInputStream.FileInputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileInputStreamFileInputStream_javaioFile'"
+                fis = new System.IO.FileStream(f.FullName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+
+                byte[] b = new byte[(int)f.Length];
+                fis.Read(b, 0, (int)f.Length);
+
+                this.setDoc(b);
+                this.parse(true);
+                return true;
+            }
+            catch
+            {
+            }
+            finally
+            {
+                if (fis != null)
+                {
+                    try
+                    {
+                        fis.Close();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            return false;
+        }
 		/// <summary> Generating VTD tokens and Location cache info.</summary>
 		/// <param name="NS">boolean Enable namespace or not
 		/// </param>

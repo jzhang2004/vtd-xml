@@ -55,10 +55,10 @@ namespace com.ximpleware
 					
 					case FORMAT_ASCII: 
 						temp = XMLDoc[offset];
-						if (temp < 0)
+						if (temp >127)
 							throw new ParseException("ASCII encoding error: invalid ASCII Char");
 						offset++;
-						return temp & 0xff;
+						return temp ;
 						
 						//throw new EncodingException("Invalid char for ASCII encoding"
 						//		+formatLineNumber());
@@ -66,7 +66,7 @@ namespace com.ximpleware
 					case FORMAT_UTF8: 
 						
 						temp = XMLDoc[offset];
-						if (temp >= 0)
+						if (temp <128)
 						{
 							offset++;
 							return temp;
@@ -85,7 +85,7 @@ namespace com.ximpleware
 					case FORMAT_ISO_8859: 
 						temp = XMLDoc[offset];
 						offset++;
-						return temp & 0xff;
+						return temp ;
 					
 					
 					default: 
@@ -171,7 +171,7 @@ namespace com.ximpleware
 						{
 							prevOffset--;
 						}
-						while (XMLDoc[prevOffset] < 0);
+						while (XMLDoc[prevOffset] >127);
 						return prevOffset;
 					
 					case FORMAT_ASCII: 
@@ -179,7 +179,7 @@ namespace com.ximpleware
 						return offset - 1;
 					
 					case FORMAT_UTF_16LE: 
-						temp = (XMLDoc[offset + 3] & 0xff) << 8 | (XMLDoc[offset + 2] & 0xff);
+						temp = (XMLDoc[offset + 3] ) << 8 | (XMLDoc[offset + 2]);
 						if (temp < 0xd800 || temp > 0xdfff)
 						{
 							return offset - 2;
@@ -189,7 +189,7 @@ namespace com.ximpleware
 						//goto case FORMAT_UTF_16BE;
 					
 					case FORMAT_UTF_16BE: 
-						temp = (XMLDoc[offset] & 0xff) << 8 | (XMLDoc[offset + 1] & 0xff);
+						temp = (XMLDoc[offset] ) << 8 | (XMLDoc[offset + 1]);
 						if (temp < 0xd800 || temp > 0xdfff)
 						{
 							return offset - 2;
@@ -514,7 +514,7 @@ namespace com.ximpleware
 		private bool skipUTF8(int temp, int ch)
 		{
 			int val, c, d, a, i;
-			temp = temp & 0xff;
+			//temp = temp & 0xff;
 			switch (UTF8Char.byteCount(temp))
 			{
 				
@@ -575,7 +575,7 @@ namespace com.ximpleware
 		private int handleUTF8(int temp)
 		{
 			int val, c, d, a, i;
-			temp = temp & 0xff;
+			//temp = temp & 0xff;
 			switch (UTF8Char.byteCount(temp))
 			{
 				
@@ -630,7 +630,7 @@ namespace com.ximpleware
 		}
 		private bool skip_16be(int ch)
 		{
-			int val, temp = (XMLDoc[offset] & 0xff) << 8 | (XMLDoc[offset + 1] & 0xff);
+			int val, temp = (XMLDoc[offset] ) << 8 | (XMLDoc[offset + 1] );
 			//System.out.println(" ==>"+Integer.toHexString(temp));
 			if ((temp < 0xd800) || (temp > 0xdfff))
 			{
@@ -648,7 +648,7 @@ namespace com.ximpleware
 				if (temp < 0xd800 || temp > 0xdbff)
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				val = temp;
-				temp = (XMLDoc[offset + 2] & 0xff) << 8 | (XMLDoc[offset + 3] & 0xff);
+				temp = (XMLDoc[offset + 2]) << 8 | (XMLDoc[offset + 3] );
 				if (temp < 0xdc00 || temp > 0xdfff)
 				{
 					// has to be a low surrogate here
@@ -667,7 +667,7 @@ namespace com.ximpleware
 		}
 		private int handle_16be()
 		{
-			int val, temp = (XMLDoc[offset] & 0xff) << 8 | (XMLDoc[offset + 1] & 0xff);
+			int val, temp = (XMLDoc[offset] ) << 8 | (XMLDoc[offset + 1] );
 			//System.out.println(" ==>"+Integer.toHexString(temp));
 			if ((temp < 0xd800) || (temp > 0xdfff))
 			{
@@ -680,7 +680,7 @@ namespace com.ximpleware
 				if (temp < 0xd800 || temp > 0xdbff)
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				val = temp;
-				temp = (XMLDoc[offset + 2] & 0xff) << 8 | (XMLDoc[offset + 3] & 0xff);
+				temp = (XMLDoc[offset + 2] ) << 8 | (XMLDoc[offset + 3]);
 				if (temp < 0xdc00 || temp > 0xdfff)
 				{
 					// has to be a low surrogate here
@@ -694,7 +694,7 @@ namespace com.ximpleware
 		}
 		private bool skip_16le(int ch)
 		{
-			int val, temp = (XMLDoc[offset + 1] & 0xff) << 8 | (XMLDoc[offset] & 0xff);
+			int val, temp = (XMLDoc[offset + 1] ) << 8 | (XMLDoc[offset] );
 			if (temp < 0xdc00 || temp > 0xdfff)
 			{
 				// check for low surrogate
@@ -713,7 +713,7 @@ namespace com.ximpleware
 				if (temp < 0xd800 || temp > 0xdbff)
 					throw new EncodingException("UTF 16 LE encoding error: should never happen");
 				val = temp;
-				temp = (XMLDoc[offset + 3] & 0xff) << 8 | (XMLDoc[offset + 2] & 0xff);
+				temp = (XMLDoc[offset + 3] ) << 8 | (XMLDoc[offset + 2] );
 				if (temp < 0xdc00 || temp > 0xdfff)
 				{
 					// has to be high surrogate
@@ -733,7 +733,7 @@ namespace com.ximpleware
 		private int handle_16le()
 		{
 			int val;
-			int temp = (XMLDoc[offset + 1] & 0xff) << 8 | (XMLDoc[offset] & 0xff);
+			int temp = (XMLDoc[offset + 1] ) << 8 | (XMLDoc[offset] );
 			if (temp < 0xd800 || temp > 0xdfff)
 			{
 				// check for low surrogate
@@ -745,7 +745,7 @@ namespace com.ximpleware
 				if (temp < 0xd800 || temp > 0xdbff)
 					throw new EncodingException("UTF 16 LE encoding error: should never happen");
 				val = temp;
-				temp = (XMLDoc[offset + 3] & 0xff) << 8 | (XMLDoc[offset + 2] & 0xff);
+				temp = (XMLDoc[offset + 3] ) << 8 | (XMLDoc[offset + 2] );
 				if (temp < 0xdc00 || temp > 0xdfff)
 				{
 					// has to be high surrogate
@@ -1067,6 +1067,51 @@ namespace com.ximpleware
 					throw new ParseException("Other error: file size too large >= 2GB");
 			}
 		}
+
+        /// <summary>
+        /// parse a file directly
+        /// </summary>
+        /// <param name="fileName"> Name of the file to be parsed</param>
+        /// <param name="ns"> namespace awareness</param>
+        /// <returns>boolean indicating whether it is a success or not</returns>
+
+        public bool parseFile(String fileName, bool ns)
+        {
+            System.IO.FileInfo f = null;
+            System.IO.FileStream fis = null;
+            try
+            {
+                f = new System.IO.FileInfo(fileName);
+                //UPGRADE_TODO: Constructor 'java.io.FileInputStream.FileInputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileInputStreamFileInputStream_javaioFile'"
+                fis = new System.IO.FileStream(f.FullName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+
+                byte[] b = new byte[(int)f.Length];
+                fis.Read(b, 0, (int)f.Length);
+
+                this.setDoc(b);
+                this.parse(true);
+                return true;
+            }
+            catch
+            {
+            }
+            finally
+            {
+                if (fis != null)
+                {
+                    try
+                    {
+                        fis.Close();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            return false;
+        }
+
+
 		/// <summary> Generating VTD tokens and Location cache info. One specifies whether the
 		/// parsing is namespace aware or not.
 		/// 
@@ -2909,7 +2954,7 @@ namespace com.ximpleware
 				
 				case FORMAT_UTF8: 
 					temp = XMLDoc[offset];
-					if (temp >= 0)
+					if (temp <128)
 						if (ch == temp)
 						{
 							offset++;
