@@ -38,5 +38,10 @@ namespace com.ximpleware
 		/// <returns> int
 		/// </returns>
 		int length();
+        /// <summary>
+        /// get the whole XML
+        /// </summary>
+        /// <returns></returns>
+        byte[] getBytes();
 	}
 }

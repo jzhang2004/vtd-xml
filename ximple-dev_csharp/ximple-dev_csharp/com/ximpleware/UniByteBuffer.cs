@@ -68,5 +68,14 @@ namespace com.ximpleware
 		{
 			return ba.Length;
 		}
+        /// <summary>
+        ///  get the whole XML
+        /// </summary>
+        /// <returns></returns>
+
+        public byte[] getBytes()
+        {
+            return ba;
+        }
 	}
 }
