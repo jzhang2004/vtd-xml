@@ -266,7 +266,7 @@ namespace com.ximpleware
 			return null;
 		}
 		// The improved version, use hashtable to check for uniqueness
-		public virtual bool isUnique(int i)
+		public bool isUnique(int i)
 		{
 			return ih.isUnique(i);
 		}

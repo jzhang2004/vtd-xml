@@ -577,9 +577,9 @@ namespace com.ximpleware
 			
 			try
 			{
-				parser p = new parser(new System.IO.StringReader(s));
+				com.ximpleware.xpath.parser p = new com.ximpleware.xpath.parser(new System.IO.StringReader(s));
 				p.ht = ht;
-				xpe = (com.ximpleware.xpath.Expr) p.parse().value_Renamed;
+				xpe = (com.ximpleware.xpath.Expr) p.parse().value;
 			}
 			catch (System.Exception e)
 			{
