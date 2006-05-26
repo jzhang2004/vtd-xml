@@ -25,9 +25,9 @@ using System.Collections;
 
 parser code {:  
   public Hashtable ht;
-  Step tempStep;
-  NodeTest tempNt;
-  LocationPathExpr tempLPExpr;
+  public Step tempStep;
+  public NodeTest tempNt;
+  public LocationPathExpr tempLPExpr;
   
   public parser (System.IO.StringReader input):base(new Yylex(input)) {
     
@@ -82,7 +82,8 @@ non terminal VariableReference;
 non terminal FuncExpr FunctionCall;
 non terminal FuncName FunctionName;
 non terminal Expr Expr, OrExpr, EqualityExpr, AndExpr, RelationalExpr, AdditiveExpr;
-non terminal Expr MultiplicativeExpr, UnaryExpr, UnionExpr, PathExpr, FilterExpr;
+non terminal Expr MultiplicativeExpr, UnaryExpr, PathExpr, FilterExpr;
+non terminal UnionExpr UnionExpr;
 non terminal Alist ArgumentList;
 non terminal Expr PrimaryExpr, Argument;
 non terminal LocationPathExpr LocationPath ;
@@ -160,10 +161,12 @@ UnaryExpr    	::=    UnionExpr:ue
 
 
 UnionExpr    	::=    PathExpr:pe  
-		{: RESULT = pe; :}		
-   		|    UnionExpr:une UNION PathExpr:pe 
-		{: //RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe);
-		   //throw new XPathParseException("Union not yet supported"); 
+		{: RESULT =  new UnionExpr(pe); 
+		:}		
+   		|    PathExpr:pe UNION UnionExpr:une
+   		{:
+   		   RESULT = new UnionExpr(pe);
+   		   RESULT.next = une;
 		:}
 		;
 
@@ -217,7 +220,7 @@ PrimaryExpr     ::=  VariableReference
 		|    LITERAL:le  
 		{: RESULT = new LiteralExpr(le); :} 
 		|    NUMBER:ne  
-		{: RESULT = new NumExpr(ne.doubleValue()); :} 
+		{: RESULT = new NumExpr(ne); :} 
 		|    FunctionCall:fc
 		{: RESULT = fc; :} 		
 		;
