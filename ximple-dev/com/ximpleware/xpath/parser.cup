@@ -25,6 +25,7 @@ parser code {:
   Step tempStep;
   NodeTest tempNt;
   LocationPathExpr tempLPExpr;
+  ExprList tmpEL1, tmpEL2;
   
   public parser (java.io.Reader input) {
     super(new Yylex(input));
@@ -78,7 +79,8 @@ non terminal VariableReference;
 non terminal FuncExpr FunctionCall; 
 non terminal FuncName FunctionName;
 non terminal Expr Expr, OrExpr, EqualityExpr, AndExpr, RelationalExpr, AdditiveExpr;
-non terminal Expr MultiplicativeExpr, UnaryExpr, UnionExpr, PathExpr, FilterExpr;
+non terminal Expr MultiplicativeExpr, UnaryExpr, PathExpr, FilterExpr;
+non terminal UnionExpr UnionExpr;
 non terminal Alist ArgumentList;
 non terminal Expr PrimaryExpr, Argument;
 non terminal LocationPathExpr LocationPath ;
@@ -156,13 +158,14 @@ UnaryExpr    	::=    UnionExpr:ue
 
 
 UnionExpr    	::=    PathExpr:pe  
-		{: RESULT = pe; :}		
-   		|    UnionExpr:une UNION PathExpr:pe 
-		{: //RESULT = new BinaryExpr(une, BinaryExpr.UNION, pe);
-		   //throw new XPathParseException("Union not yet supported"); 
+		{: RESULT =  new UnionExpr(pe); 
+		:}		
+   		|    PathExpr:pe UNION UnionExpr:une
+   		{:
+   		   RESULT = new UnionExpr(pe);
+   		   RESULT.next = une;
 		:}
 		;
-
 
 PathExpr     	::= 	LocationPath:lp  
 		{:  RESULT = lp; :}
