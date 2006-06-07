@@ -2431,8 +2431,8 @@ namespace com.ximpleware
 						{
 							break;
 						}
-						else
-							throw new ParseException("Error in CDATA: Invalid termination sequence" + formatLineNumber());
+						/*else
+							throw new ParseException("Error in CDATA: Invalid termination sequence" + formatLineNumber());*/
 					}
 				}
 				else

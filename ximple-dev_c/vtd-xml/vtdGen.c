@@ -2985,13 +2985,13 @@ int process_cdata(VTDGen *vg){
 				while (skipChar(vg,']'));
 				if (skipChar(vg,'>')) {
 					break;
-				} else{		
+				} /*else{		
 					e.et = parse_exception;
 					e.subtype = 0;
 					e.msg = "Parse Exception in parse()";
 					e.sub_msg = "Error in CDATA: Invalid terminating sequence";
 					Throw e;
-				}
+				} */
 				/*throw new ParseException(
 				"Error in CDATA: Invalid termination sequence"
 				+ formatLineNumber());*/
