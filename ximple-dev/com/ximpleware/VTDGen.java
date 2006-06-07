@@ -2498,10 +2498,10 @@ public class VTDGen {
 					while (r.skipChar(']'));
 					if (r.skipChar('>')) {
 						break;
-					} else
+					} /*else
 						throw new ParseException(
 							"Error in CDATA: Invalid termination sequence"
-								+ formatLineNumber());
+								+ formatLineNumber());*/
 				}
 			} else
 				throw new ParseException(
