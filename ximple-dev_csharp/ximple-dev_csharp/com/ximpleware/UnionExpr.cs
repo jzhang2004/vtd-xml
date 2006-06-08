@@ -286,7 +286,7 @@ namespace com.ximpleware
             get
             {
                 // TODO Auto-generated method stub
-                return false;
+                return e.Numerical;
             }
 		}
 		
@@ -300,7 +300,7 @@ namespace com.ximpleware
             get
             {
                 // TODO Auto-generated method stub
-                return true;
+                return e.NodeSet;
             }
 		}
 		
@@ -314,7 +314,7 @@ namespace com.ximpleware
             get
             {
                 // TODO Auto-generated method stub
-                return false;
+                return e.String;
             }
 		}
 		
@@ -352,6 +352,14 @@ namespace com.ximpleware
         {
             set
             {
+                current = this;
+                current.e.Position = value;
+                UnionExpr tmp = this.next;
+                while (tmp != null)
+                {
+                    tmp.e.Position = value;
+                    tmp = tmp.next;
+                }
             }
 
         }
@@ -365,6 +373,14 @@ namespace com.ximpleware
         {
             set
             {
+                current = this;
+                current.e.ContextSize = value;
+                UnionExpr tmp = this.next;
+                while (tmp != null)
+                {
+                    tmp.e.ContextSize = value;
+                    tmp = tmp.next;
+                }
 
             }
 
