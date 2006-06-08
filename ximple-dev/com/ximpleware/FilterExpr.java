@@ -48,8 +48,8 @@ public class FilterExpr extends Expr {
 		return fib.size();
 	}*/
 	public boolean evalBoolean(VTDNav vn) {
-	    if (e.isBoolean())
-	        return e.evalBoolean(vn);
+	    //if (e.isBoolean())
+	    //    return e.evalBoolean(vn);
 		boolean a = false;
 		vn.push2();
 		//record stack size
@@ -67,8 +67,8 @@ public class FilterExpr extends Expr {
 
 
 	public double evalNumber(VTDNav vn) {
-	    if (e.isNumerical())
-	        return e.evalNumber(vn);
+	   // if (e.isNumerical())
+	   //     return e.evalNumber(vn);
 		double d;
 		int a = -1;
 		vn.push2();
@@ -130,8 +130,8 @@ public class FilterExpr extends Expr {
 	}
 
 	public String evalString(VTDNav vn) {
-	    if (e.isString())
-	        return e.evalString(vn);
+	    //if (e.isString())
+	   //     return e.evalString(vn);
 		vn.push2();
         int size = vn.contextStack2.size;
         int a = -1;
@@ -179,12 +179,12 @@ public class FilterExpr extends Expr {
 
 	public boolean isNumerical() {
 		
-		return e.isNumerical();
+		return false;
 	}
 
 
 	public boolean isNodeSet() {
-		return e.isNodeSet();
+		return true;
 	}
 	
 	/*public boolean isUnique(int i){
@@ -198,11 +198,11 @@ public class FilterExpr extends Expr {
 	}*/
 	
 	public boolean isString(){
-	    return e.isString();
+	    return false;
 	}
 	
 	public boolean isBoolean(){
-	    return e.isBoolean();
+	    return false;
 	}
 	// to support computer context size 
 	// needs to add 
