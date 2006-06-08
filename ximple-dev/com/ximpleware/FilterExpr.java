@@ -48,6 +48,8 @@ public class FilterExpr extends Expr {
 		return fib.size();
 	}*/
 	public boolean evalBoolean(VTDNav vn) {
+	    if (e.isBoolean())
+	        return e.evalBoolean(vn);
 		boolean a = false;
 		vn.push2();
 		//record stack size
@@ -65,6 +67,8 @@ public class FilterExpr extends Expr {
 
 
 	public double evalNumber(VTDNav vn) {
+	    if (e.isNumerical())
+	        return e.evalNumber(vn);
 		double d;
 		int a = -1;
 		vn.push2();
@@ -126,6 +130,8 @@ public class FilterExpr extends Expr {
 	}
 
 	public String evalString(VTDNav vn) {
+	    if (e.isString())
+	        return e.evalString(vn);
 		vn.push2();
         int size = vn.contextStack2.size;
         int a = -1;

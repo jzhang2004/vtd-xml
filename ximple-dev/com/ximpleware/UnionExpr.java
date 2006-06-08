@@ -33,6 +33,9 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#evalBoolean(com.ximpleware.VTDNav)
      */
     public boolean evalBoolean(VTDNav vn) {
+        if (e.isBoolean())
+            return e.evalBoolean(vn);
+        
         boolean a = false;
         vn.push2();
         // record teh stack size
@@ -54,6 +57,8 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#evalNumber(com.ximpleware.VTDNav)
      */
     public double evalNumber(VTDNav vn) {
+        if (e.isNumerical())
+            return e.evalNumber(vn);
         double d;
         int a = -1;
         vn.push2();
@@ -160,6 +165,9 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#evalString(com.ximpleware.VTDNav)
      */
     public String evalString(VTDNav vn) {
+        if (e.isString()){
+            return e.evalString(vn);
+        }
         vn.push2();
         int size = vn.contextStack2.size;
         int a = -1;
@@ -227,7 +235,7 @@ public class UnionExpr extends Expr {
      */
     public boolean isNumerical() {
         // TODO Auto-generated method stub
-        return false;
+        return e.isNumerical();
     }
 
     /*
@@ -237,7 +245,7 @@ public class UnionExpr extends Expr {
      */
     public boolean isNodeSet() {
         // TODO Auto-generated method stub
-        return true;
+        return e.isNodeSet();
     }
 
     /*
@@ -247,7 +255,7 @@ public class UnionExpr extends Expr {
      */
     public boolean isString() {
         // TODO Auto-generated method stub
-        return false;
+        return e.isString();
     }
 
     /*
@@ -257,7 +265,7 @@ public class UnionExpr extends Expr {
      */
     public boolean isBoolean() {
         // TODO Auto-generated method stub
-        return false;
+        return e.isBoolean();
     }
 
     /*
