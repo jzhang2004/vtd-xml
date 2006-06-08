@@ -173,12 +173,12 @@ public class FilterExpr extends Expr {
 
 	public boolean isNumerical() {
 		
-		return false;
+		return e.isNumerical();
 	}
 
 
 	public boolean isNodeSet() {
-		return true;
+		return e.isNodeSet();
 	}
 	
 	/*public boolean isUnique(int i){
@@ -192,11 +192,11 @@ public class FilterExpr extends Expr {
 	}*/
 	
 	public boolean isString(){
-	    return false;
+	    return e.isString();
 	}
 	
 	public boolean isBoolean(){
-	    return false;
+	    return e.isBoolean();
 	}
 	// to support computer context size 
 	// needs to add 
