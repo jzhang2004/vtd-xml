@@ -284,7 +284,13 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#setContextSize(int)
      */
     public void setContextSize(int size) {
-
+        current = this;
+        current.e.setContextSize(size);
+        UnionExpr tmp = this.next;
+        while (tmp != null) {
+            tmp.e.setContextSize(size);
+            tmp = tmp.next;
+        }
     }
 
     /*
@@ -293,7 +299,14 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#setPosition(int)
      */
     public void setPosition(int pos) {
-        // TODO Auto-generated method stub
+       
+        current = this;
+        current.e.setPosition(pos);
+        UnionExpr tmp = this.next;
+        while (tmp != null) {
+            tmp.e.setPosition(pos);
+            tmp = tmp.next;
+        }
 
     }
 
