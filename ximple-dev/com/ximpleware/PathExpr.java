@@ -197,31 +197,21 @@ public class PathExpr extends Expr {
 
 
 	public boolean isNumerical() {
-	    if (fe != null)
-	        return fe.isNumerical();
-	    else
 	        return false;
 	}
 
 
 	public boolean isNodeSet() {
-	    if (fe != null)
-	        return fe.isNodeSet();
-	    else
 	        return true;
 	}
 	
 	public boolean isString(){
-	    if (fe != null)
-	        return fe.isString();
-	    else
+
 	        return false;
 	}
 	
 	public boolean isBoolean(){
-	    if (fe != null)
-	        return fe.isBoolean();
-	    else
+
 	        return false;
 	}
 	
