@@ -1,8 +1,6 @@
 /*
 * Created on May 18, 2006
 * 
-* TODO To change the template for this generated file go to Window -
-* Preferences - Java - Code Style - Code Templates
 */
 using System;
 //UPGRADE_TODO: The 'com.ximpleware.xpath' package was found, but not necessarily converted. References to it may cause compile errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1280'"
@@ -27,7 +25,7 @@ namespace com.ximpleware
 			e = e1;
 			next = null;
 			current = this;
-			ih = null;
+			ih = new intHash();
 			state = 0;
 		}
 		
@@ -120,8 +118,8 @@ namespace com.ximpleware
 					{
 						
 						case 0: 
-							if (ih == null)
-								ih = new intHash();
+							//if (ih == null)
+							//	ih = new intHash();
 							if (current != null)
 							{
 								vn.push2();
