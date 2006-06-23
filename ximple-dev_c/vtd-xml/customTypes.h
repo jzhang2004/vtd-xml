@@ -109,7 +109,7 @@ typedef struct vtd_exception {
 #define isNaN(x) ((x) != (x))
 #endif
 #ifndef min
-//#define min(a,b) { (a>b)?b:a  }
+ #define min(a,b)  (a>b)?b:a  
 #endif
 		
 #endif

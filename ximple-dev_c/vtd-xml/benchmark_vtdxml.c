@@ -61,11 +61,11 @@ int main(int argc, char *argv[])
 	
 	Try{
 		for (j=0;j<j1;j++){
-		setDoc2(vg,xml,s.st_size,0,k);
+		setDoc_BR2(vg,xml,s.st_size,0,k);
 		parse(vg,TRUE);
-		vn = getNav(vg);
+		//vn = getNav(vg);
 		//freeVTDGen(vg);
-		freeVTDNav(vn);
+		//freeVTDNav(vn);
 		}
 	}
 	Catch (e){

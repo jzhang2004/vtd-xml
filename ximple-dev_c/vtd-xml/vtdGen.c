@@ -382,14 +382,7 @@ static int getChar(VTDGen *vg){
 	//throw new EOFException("permature EOF reached, XML document incomplete");
 	switch (vg->encoding) {
 			case FORMAT_ASCII :
-				temp = vg->XMLDoc[vg->offset];
-				if (temp>127){
-					e.et = parse_exception;
-					e.subtype = 0;
-					e.msg = "Parse exception in getChar";
-					e.sub_msg = "ASCII encoding error: invalid ASCII char (>127)";
-					Throw e;
-				}
+				temp = vg->XMLDoc[vg->offset] & 0x7f;
 				vg->offset++;
 				return temp;
 			case FORMAT_UTF8 :
@@ -540,14 +533,7 @@ static int getChar2(VTDGen *vg){
 	//throw new EOFException("permature EOF reached, XML document incomplete");
 	switch (vg->encoding) {
 			case FORMAT_ASCII :
-				temp = vg->XMLDoc[vg->offset];
-				if (temp>127){
-					e.et = parse_exception;
-					e.subtype = 0;
-					e.msg = "Parse exception in getChar";
-					e.sub_msg = "ASCII encoding error: invalid ASCII char (>127)";
-					Throw e;
-				}
+				temp = vg->XMLDoc[vg->offset] & 0x7f;
 				vg->offset++;
 				return temp;
 			case FORMAT_UTF8 :
@@ -922,7 +908,6 @@ VTDNav *getNav(VTDGen *vg){
 // Get the offset value of previous character.
 static int getPrevOffset(VTDGen *vg){
 	exception e;
-	int temp;
 	int prevOffset = vg->offset;
 	switch (vg->encoding) {
 			case FORMAT_UTF8 :
@@ -934,14 +919,14 @@ static int getPrevOffset(VTDGen *vg){
 			case FORMAT_ISO_8859 :
 				return vg->offset - 1;
 			case FORMAT_UTF_16LE :
-				temp = vg->XMLDoc[vg->offset + 1] << 8 | vg->XMLDoc[vg->offset];
-				if (temp < 0xd800 || temp > 0xdfff) {
+				if (vg->XMLDoc[vg->offset - 2] < 0xDC00
+					|| vg->XMLDoc[vg->offset - 2] > 0xDFFFF) {
 						return vg->offset - 2;
 					} else
 						return vg->offset - 4;
 			case FORMAT_UTF_16BE :
-				temp = vg->XMLDoc[vg->offset] << 8 | vg->XMLDoc[vg->offset + 1];
-				if (temp < 0xd800 || temp > 0xdfff) {
+				if (vg->XMLDoc[vg->offset - 1] < 0xDC00
+					|| vg->XMLDoc[vg->offset - 1] > 0xDFFFF) {
 						return vg->offset - 2;
 					} else
 						return vg->offset - 4;
@@ -2581,7 +2566,7 @@ void decide_encoding(VTDGen *vg){
 
 	if (vg->encoding < FORMAT_UTF_16BE) {
 		if (vg->ns == TRUE) {
-			if (((Long) vg->offset + vg->docLen) >= (((unsigned int)1) << 30)){
+			if (((Long) vg->offset + vg->docLen) >= (1U << 30)){
 				e.et = parse_exception;
 				e.subtype = 0;
 				e.msg = "Parse Exception in parse()";
@@ -2589,7 +2574,7 @@ void decide_encoding(VTDGen *vg){
 				Throw e;
 			}
 		}else {
-			if (((Long) vg->offset + vg->docLen) >= ((1U) << 31)){
+			if (((Long) vg->offset + vg->docLen) >= (1U << 31)){
 				e.et = parse_exception;
 				e.subtype = 0;
 				e.msg = "Parse Exception in parse()";
@@ -2599,7 +2584,7 @@ void decide_encoding(VTDGen *vg){
 		}
 		//throw new ParseException("Other error: file size too large ");
 	} else {
-		if ((unsigned int)(vg->offset - 2 + vg->docLen) >= (1U << 31)){
+		if ((unsigned int)(vg->offset - 2 + vg->docLen) >= (1U<< 31)){
 			e.et = parse_exception;
 			e.subtype = 0;
 			e.msg = "Parse Exception in parse()";
@@ -2985,13 +2970,13 @@ int process_cdata(VTDGen *vg){
 				while (skipChar(vg,']'));
 				if (skipChar(vg,'>')) {
 					break;
-				} /*else{		
+				} else{		
 					e.et = parse_exception;
 					e.subtype = 0;
 					e.msg = "Parse Exception in parse()";
 					e.sub_msg = "Error in CDATA: Invalid terminating sequence";
 					Throw e;
-				} */
+				}
 				/*throw new ParseException(
 				"Error in CDATA: Invalid termination sequence"
 				+ formatLineNumber());*/

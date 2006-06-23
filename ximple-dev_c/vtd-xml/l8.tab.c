@@ -413,8 +413,8 @@ static const unsigned short yyrline[] =
      220,   230,   242,   243,   256,   257,   261,   262,   263,   279,
      305,   306,   319,   320,   321,   330,   338,   339,   347,   359,
      360,   369,   382,   386,   397,   412,   413,   414,   417,   418,
-     422,   426,   439,   443,   466,   478,   479,   484,   485,   488,
-     489,   492,   506,   524,   542,   564,   576,   579
+     422,   426,   439,   443,   467,   479,   480,   485,   486,   489,
+     490,   493,   507,   525,   543,   565,   577,   580
 };
 #endif
 
@@ -939,7 +939,7 @@ yyparse ()
 #endif
 #endif
 {
-  exception e;
+  exception e;  
   register int yystate;
   register int yyn;
   int yyresult;
@@ -1701,7 +1701,8 @@ yyreduce:
 										addObj(yyvsp[0].name.qname);
 										if (yyvsp[0].name.localname!=NULL){
 											setNodeNameNS(yyval.nodetest,yyvsp[0].name.prefix,yyvsp[0].name.localname);
-											addObj(yyvsp[0].name.prefix,yyvsp[0].name.localname);
+											addObj(yyvsp[0].name.prefix);
+	addObj(yyvsp[0].name.localname);
 											// the part for URL mapping goes here
 											yyval.nodetest->URL = lookup(xpathNSList,yyvsp[0].name.prefix);
 											if (yyval.nodetest->URL == NULL){
@@ -1718,7 +1719,7 @@ yyreduce:
     break;
 
   case 54:
-#line 466 "l8.y"
+#line 467 "l8.y"
     { Try{
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
@@ -1732,39 +1733,39 @@ yyreduce:
     break;
 
   case 55:
-#line 478 "l8.y"
+#line 479 "l8.y"
     { yyval.p = NULL;;}
     break;
 
   case 56:
-#line 479 "l8.y"
+#line 480 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
 	     									yyval.p = yyvsp[-1].p;	
 	     								  ;}
     break;
 
   case 57:
-#line 484 "l8.y"
-    {yyval.at  = yyvsp[0].at;;}
-    break;
-
-  case 58:
 #line 485 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
+  case 58:
+#line 486 "l8.y"
+    {yyval.at  = yyvsp[0].at;;}
+    break;
+
   case 59:
-#line 488 "l8.y"
+#line 489 "l8.y"
     { /*printf("abbreviated child axis \n");*/yyval.at  = AXIS_CHILD;;}
     break;
 
   case 60:
-#line 489 "l8.y"
+#line 490 "l8.y"
     {yyval.at = AXIS_ATTRIBUTE;;}
     break;
 
   case 61:
-#line 492 "l8.y"
+#line 493 "l8.y"
     {Try{
 								yyval.s = createStep();
 								addObj(yyval.s);
@@ -1782,7 +1783,7 @@ yyreduce:
     break;
 
   case 62:
-#line 506 "l8.y"
+#line 507 "l8.y"
     {
 					Try{
 						yyval.s = createStep();
@@ -1802,7 +1803,7 @@ yyreduce:
     break;
 
   case 63:
-#line 524 "l8.y"
+#line 525 "l8.y"
     {
 																Try{
 																	yyval.s = createStep();
@@ -1822,7 +1823,7 @@ yyreduce:
     break;
 
   case 64:
-#line 542 "l8.y"
+#line 543 "l8.y"
     {
 																	Try{
 																		yyval.s= createStep();
@@ -1845,7 +1846,7 @@ yyreduce:
     break;
 
   case 65:
-#line 564 "l8.y"
+#line 565 "l8.y"
     {
 							   Try {
 									yyval.p = createPredicate();
@@ -1859,7 +1860,7 @@ yyreduce:
     break;
 
   case 67:
-#line 579 "l8.y"
+#line 580 "l8.y"
     {yyval.fname  = yyvsp[0].fname;;}
     break;
 
@@ -1867,7 +1868,7 @@ yyreduce:
     }
 
 /* Line 991 of yacc.c.  */
-#line 1870 "l8.tab.c"
+#line 1871 "l8.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2076,7 +2077,7 @@ yyreturn:
 }
 
 
-#line 582 "l8.y"
+#line 583 "l8.y"
 
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;
