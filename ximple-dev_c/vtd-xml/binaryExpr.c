@@ -517,7 +517,7 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 		if (d == (Long) d){
 			swprintf(tmp,L"%d",(Long) d);
 		} else {
-			swprintf(tmp,L"%f", d);
+			swprintf(tmp,64,L"%f", d);
 		}
 		return tmp;
 	} else {

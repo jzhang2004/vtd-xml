@@ -453,9 +453,9 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 								return tmp;
 
 						    if (d == (Long) d){		
-								swprintf(tmp,L"%d",(Long)d);
+								swprintf(tmp,64,L"%d",(Long)d);
 							} else {
-								swprintf(tmp,L"%f", d);
+								swprintf(tmp,64,L"%f", d);
 							}
 							return tmp;					     
 					 }
