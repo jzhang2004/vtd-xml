@@ -123,21 +123,32 @@ int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 	}
 }
 double	evalNumber_pe (pathExpr *pe,VTDNav *vn){
+
+	double d = 0.0;
 	exception e;
-	Boolean a = FALSE;
+	int a = -1;
 	int size;
 	push2(vn);
-	// record teh stack size
 	size = vn->contextBuf2->size;
-       Try{	
-		a = (evalNodeSet_pe(pe,vn) != -1);
-	}Catch (e){
+	Try {
+		a =evalNodeSet_pe(pe,vn);
+		if (a!=-1){
+			if (getTokenType(vn,a)== TOKEN_ATTR_NAME){
+				a ++;
+			}else if (getTokenType(vn,a)== TOKEN_STARTING_TAG) {
+				a = getText(vn);
+			}
+		}			  
+	} Catch (e){
 	}
-//rewind stack
 	vn->contextBuf2->size = size;
 	reset_pe(pe,vn);
 	pop2(vn);
-	return a;
+	Try{
+		if (a!=-1) return parseDouble(vn,a);
+	}Catch (e){
+	}
+	return 0/d;
 }
 
 UCSChar* evalString_pe  (pathExpr *pe,VTDNav *vn){
