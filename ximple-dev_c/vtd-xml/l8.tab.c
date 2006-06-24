@@ -1,27 +1,20 @@
-/* A Bison parser, made by GNU Bison 1.875.  */
-
-/* Skeleton parser for Yacc-like parsing with Bison,
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
-
-/* As a special exception, when this file is copied by Bison into a
-   Bison output file, you may use that output file without restriction.
-   This special exception was added by the Free Software Foundation
-   in version 1.24 of Bison.  */
+/* 
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 
 /* Written by Richard Stallman by simplifying the original so called
    ``semantic'' parser.  */
@@ -196,6 +189,7 @@ typedef union YYSTYPE {
 	funcName fname;
 	expr *expression;
  	locationPathExpr *lpe;
+ 	unionExpr *une;
 	pathExpr *pe;
 	Step *s;
 	aList *a;
@@ -203,7 +197,7 @@ typedef union YYSTYPE {
 	Predicate* p;
 } YYSTYPE;
 /* Line 191 of yacc.c.  */
-#line 206 "l8.tab.c"
+#line 207 "l8.tab.c"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -215,7 +209,7 @@ typedef union YYSTYPE {
 
 
 /* Line 214 of yacc.c.  */
-#line 218 "l8.tab.c"
+#line 219 "l8.tab.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -391,7 +385,7 @@ static const yysigned_char yyrhs[] =
       -1,    41,    15,    42,    -1,    43,    -1,    42,    17,    43,
       -1,    42,    18,    43,    -1,    44,    -1,    43,    19,    44,
       -1,    43,    20,    44,    -1,    43,    21,    44,    -1,    45,
-      -1,    18,    44,    -1,    46,    -1,    45,    25,    46,    -1,
+      -1,    18,    44,    -1,    46,    -1,    46,    25,    45,    -1,
       52,    -1,    47,    -1,    47,    26,    54,    -1,    47,    27,
       54,    -1,    48,    -1,    47,    63,    -1,    64,    -1,    22,
       37,    23,    -1,     4,    -1,     5,    -1,    49,    -1,    29,
@@ -408,13 +402,13 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned short yyrline[] =
 {
-       0,    90,    90,    93,    94,   107,   108,   120,   121,   131,
-     143,   144,   154,   164,   174,   186,   187,   197,   209,   210,
-     220,   230,   242,   243,   256,   257,   261,   262,   263,   279,
-     305,   306,   319,   320,   321,   330,   338,   339,   347,   359,
-     360,   369,   382,   386,   397,   412,   413,   414,   417,   418,
-     422,   426,   439,   443,   467,   479,   480,   485,   486,   489,
-     490,   493,   507,   525,   543,   565,   577,   580
+       0,    92,    92,    95,    96,   109,   110,   122,   123,   133,
+     145,   146,   156,   166,   176,   188,   189,   199,   211,   212,
+     222,   232,   244,   245,   258,   268,   285,   286,   287,   303,
+     329,   330,   343,   344,   345,   354,   362,   363,   371,   383,
+     384,   393,   406,   410,   421,   436,   437,   438,   441,   442,
+     446,   450,   463,   467,   490,   502,   503,   508,   509,   512,
+     513,   516,   530,   548,   566,   588,   600,   603
 };
 #endif
 
@@ -506,7 +500,7 @@ static const yysigned_char yypact[] =
 {
       43,   -17,   -17,   -17,   -17,    43,    43,     1,     9,    13,
      -17,   -17,   -17,   -17,    14,    22,    24,    15,     7,    36,
-     -16,   -17,    17,   -17,    -8,   -17,   -17,   -17,   -17,   -17,
+     -16,   -17,   -17,    17,    -8,   -17,   -17,   -17,   -17,   -17,
       66,    74,   -17,   -17,   -17,   -17,   -17,    27,   -17,    45,
      -17,   -17,   -17,   -17,    43,    43,    43,    43,    43,    43,
       43,    43,    43,    43,    43,    43,    43,    59,    13,    13,
@@ -519,8 +513,8 @@ static const yysigned_char yypact[] =
 /* YYPGOTO[NTERM-NUM].  */
 static const yysigned_char yypgoto[] =
 {
-     -17,     0,   -17,    55,    56,    48,    28,    44,     3,   -17,
-      46,   -17,   -17,   -17,     4,   -17,   -17,   -17,    -7,   -17,
+     -17,     0,   -17,    55,    56,    48,    28,    44,     3,    46,
+     -17,   -17,   -17,   -17,     4,   -17,   -17,   -17,    -7,   -17,
      -17,    16,   -17,   -17,   -17,   -17,   -17,    78,   -17,   -17
 };
 
@@ -571,7 +565,7 @@ static const unsigned char yystos[] =
       15,    16,    17,    18,    19,    20,    21,    25,    26,    27,
       33,    63,    26,    27,     6,     8,    56,    22,    23,    39,
       40,    41,    41,    42,    42,    42,    42,    43,    43,    44,
-      44,    44,    46,    54,    54,    37,    54,    54,    57,    63,
+      44,    44,    45,    54,    54,    37,    54,    54,    57,    63,
       37,    50,    51,    34,    57,    23,    28,    50
 };
 
@@ -939,7 +933,7 @@ yyparse ()
 #endif
 #endif
 {
-  exception e;  
+  exception e;
   register int yystate;
   register int yyn;
   int yyresult;
@@ -1182,17 +1176,17 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 90 "l8.y"
+#line 92 "l8.y"
     { x=yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 3:
-#line 93 "l8.y"
+#line 95 "l8.y"
     {yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 4:
-#line 94 "l8.y"
+#line 96 "l8.y"
     {
 								Try {
 										yyval.expression = createBinaryExpr(yyvsp[-2].expression, OP_OR,yyvsp[0].expression);
@@ -1207,12 +1201,12 @@ yyreduce:
     break;
 
   case 5:
-#line 107 "l8.y"
+#line 109 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 6:
-#line 108 "l8.y"
+#line 110 "l8.y"
     {
 	 							Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_AND,yyvsp[0].expression);
@@ -1226,12 +1220,12 @@ yyreduce:
     break;
 
   case 7:
-#line 120 "l8.y"
+#line 122 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 8:
-#line 121 "l8.y"
+#line 123 "l8.y"
     { 
 								Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_EQ,yyvsp[0].expression);
@@ -1245,7 +1239,7 @@ yyreduce:
     break;
 
   case 9:
-#line 131 "l8.y"
+#line 133 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_NE,yyvsp[0].expression);
@@ -1259,12 +1253,12 @@ yyreduce:
     break;
 
   case 10:
-#line 143 "l8.y"
+#line 145 "l8.y"
     { yyval.expression = yyvsp[0].expression; ;}
     break;
 
   case 11:
-#line 144 "l8.y"
+#line 146 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_LT,yyvsp[0].expression);
@@ -1278,7 +1272,7 @@ yyreduce:
     break;
 
   case 12:
-#line 154 "l8.y"
+#line 156 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_GT,yyvsp[0].expression);
@@ -1292,7 +1286,7 @@ yyreduce:
     break;
 
   case 13:
-#line 164 "l8.y"
+#line 166 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_LE,yyvsp[0].expression);
@@ -1306,7 +1300,7 @@ yyreduce:
     break;
 
   case 14:
-#line 174 "l8.y"
+#line 176 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_GE,yyvsp[0].expression);
@@ -1320,12 +1314,12 @@ yyreduce:
     break;
 
   case 15:
-#line 186 "l8.y"
+#line 188 "l8.y"
     {yyval.expression  = yyvsp[0].expression; ;}
     break;
 
   case 16:
-#line 187 "l8.y"
+#line 189 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_ADD,yyvsp[0].expression);
@@ -1339,7 +1333,7 @@ yyreduce:
     break;
 
   case 17:
-#line 197 "l8.y"
+#line 199 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_SUB,yyvsp[0].expression);
@@ -1353,12 +1347,12 @@ yyreduce:
     break;
 
   case 18:
-#line 209 "l8.y"
+#line 211 "l8.y"
     {yyval.expression = yyvsp[0].expression; ;}
     break;
 
   case 19:
-#line 210 "l8.y"
+#line 212 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_MULT,yyvsp[0].expression);
@@ -1372,7 +1366,7 @@ yyreduce:
     break;
 
   case 20:
-#line 220 "l8.y"
+#line 222 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_DIV,yyvsp[0].expression);
@@ -1386,7 +1380,7 @@ yyreduce:
     break;
 
   case 21:
-#line 230 "l8.y"
+#line 232 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_MOD,yyvsp[0].expression);
@@ -1400,12 +1394,12 @@ yyreduce:
     break;
 
   case 22:
-#line 242 "l8.y"
-    { yyval.expression = yyvsp[0].expression;;}
+#line 244 "l8.y"
+    { yyval.expression = yyvsp[0].une;;}
     break;
 
   case 23:
-#line 243 "l8.y"
+#line 245 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = createUnaryExpr(OP_NE,yyvsp[0].expression);
@@ -1419,27 +1413,49 @@ yyreduce:
     break;
 
   case 24:
-#line 256 "l8.y"
-    { yyval.expression = yyvsp[0].pe; ;}
+#line 258 "l8.y"
+    { 
+									Try {
+										yyval.une = createUnionExpr(yyvsp[0].pe);
+										addObj(yyval.une);
+									}
+									Catch(e) {
+										YYABORT;
+									 }
+								
+								;}
     break;
 
   case 25:
-#line 257 "l8.y"
-    {/*freeAllObj();*/YYABORT;;}
+#line 268 "l8.y"
+    {
+   										Try {
+   										   yyval.une = createUnionExpr(yyvsp[-2].pe);
+   										   addObj(yyval.une);
+   										   yyval.une->next = yyvsp[0].une;
+   										}
+   										Catch(e){
+   											YYABORT;   											
+   										}
+   										
+   		                         /*freeAllObj();*/
+   		                         //YYABORT;
+   		                         
+   		                         ;}
     break;
 
   case 26:
-#line 261 "l8.y"
+#line 285 "l8.y"
     { yyval.pe = yyvsp[0].lpe;  ;}
     break;
 
   case 27:
-#line 262 "l8.y"
+#line 286 "l8.y"
     { yyval.pe = yyvsp[0].expression;;}
     break;
 
   case 28:
-#line 263 "l8.y"
+#line 287 "l8.y"
     {  														
   														Try{
   															tmpLPExpr = createLocationPathExpr();
@@ -1458,7 +1474,7 @@ yyreduce:
     break;
 
   case 29:
-#line 279 "l8.y"
+#line 303 "l8.y"
     {
 														Try {
 															tmpStep = createStep();
@@ -1485,12 +1501,12 @@ yyreduce:
     break;
 
   case 30:
-#line 305 "l8.y"
+#line 329 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 31:
-#line 306 "l8.y"
+#line 330 "l8.y"
     {Try {
   										yyval.expression = createFilterExpr(yyvsp[-1].expression,yyvsp[0].p);
   										addObj(yyval.expression);
@@ -1503,17 +1519,17 @@ yyreduce:
     break;
 
   case 32:
-#line 319 "l8.y"
+#line 343 "l8.y"
     {/*freeAllObj();*/ YYABORT;;}
     break;
 
   case 33:
-#line 320 "l8.y"
+#line 344 "l8.y"
     { yyval.expression = yyvsp[-1].expression;;}
     break;
 
   case 34:
-#line 321 "l8.y"
+#line 345 "l8.y"
     { Try {
 							yyval.expression = createLiteralExpr(yyvsp[0].literal);
 							addObj(yyval.expression);
@@ -1526,7 +1542,7 @@ yyreduce:
     break;
 
   case 35:
-#line 330 "l8.y"
+#line 354 "l8.y"
     { Try {
 						    yyval.expression = createNumberExpr(yyvsp[0].number);
 						    addObj(yyval.expression);
@@ -1538,12 +1554,12 @@ yyreduce:
     break;
 
   case 36:
-#line 338 "l8.y"
+#line 362 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 37:
-#line 339 "l8.y"
+#line 363 "l8.y"
     {
 						//freeAllObj();
 						//printf(" Invalid char encoutered \n");
@@ -1552,7 +1568,7 @@ yyreduce:
     break;
 
   case 38:
-#line 347 "l8.y"
+#line 371 "l8.y"
     { Try {
 															yyval.expression = createFuncExpr(yyvsp[-3].fname, yyvsp[-1].a);
 															addObj(yyval.expression);
@@ -1566,12 +1582,12 @@ yyreduce:
     break;
 
   case 39:
-#line 359 "l8.y"
+#line 383 "l8.y"
     { yyval.a = NULL;;}
     break;
 
   case 40:
-#line 360 "l8.y"
+#line 384 "l8.y"
     {	Try {
 	     							yyval.a = createAlist();
 	     							addObj(yyval.a);
@@ -1584,7 +1600,7 @@ yyreduce:
     break;
 
   case 41:
-#line 369 "l8.y"
+#line 393 "l8.y"
     {
 	     											Try {	     											
 	     												yyval.a = createAlist();
@@ -1599,12 +1615,12 @@ yyreduce:
     break;
 
   case 42:
-#line 382 "l8.y"
+#line 406 "l8.y"
     {yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 43:
-#line 386 "l8.y"
+#line 410 "l8.y"
     { Try {
 													yyval.lpe = createLocationPathExpr();
 													addObj(yyval.lpe);
@@ -1619,7 +1635,7 @@ yyreduce:
     break;
 
   case 44:
-#line 397 "l8.y"
+#line 421 "l8.y"
     {		Try {  /*printf("absolute locationpath \n");*/
 													yyval.lpe = createLocationPathExpr();
 													addObj(yyval.lpe);
@@ -1636,27 +1652,27 @@ yyreduce:
     break;
 
   case 45:
-#line 412 "l8.y"
+#line 436 "l8.y"
     {yyval.s = NULL;;}
     break;
 
   case 46:
-#line 413 "l8.y"
+#line 437 "l8.y"
     {/*printf("slash detected \n");*/ yyval.s = yyvsp[0].s;;}
     break;
 
   case 47:
-#line 414 "l8.y"
+#line 438 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 48:
-#line 417 "l8.y"
+#line 441 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 49:
-#line 418 "l8.y"
+#line 442 "l8.y"
     { yyvsp[-2].s->nextS = yyvsp[0].s;
 												yyvsp[0].s->prevS = yyvsp[-2].s;
 												yyval.s = yyvsp[-2].s;		
@@ -1664,12 +1680,12 @@ yyreduce:
     break;
 
   case 50:
-#line 422 "l8.y"
+#line 446 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 51:
-#line 426 "l8.y"
+#line 450 "l8.y"
     {
 														Try {
 															yyval.s = createStep();
@@ -1686,12 +1702,12 @@ yyreduce:
     break;
 
   case 52:
-#line 439 "l8.y"
+#line 463 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 53:
-#line 443 "l8.y"
+#line 467 "l8.y"
     { Try {
 										yyval.nodetest = createNodeTest();
 										addObj(yyval.nodetest);
@@ -1701,8 +1717,7 @@ yyreduce:
 										addObj(yyvsp[0].name.qname);
 										if (yyvsp[0].name.localname!=NULL){
 											setNodeNameNS(yyval.nodetest,yyvsp[0].name.prefix,yyvsp[0].name.localname);
-											addObj(yyvsp[0].name.prefix);
-	addObj(yyvsp[0].name.localname);
+											addObj(yyvsp[0].name.prefix,yyvsp[0].name.localname);
 											// the part for URL mapping goes here
 											yyval.nodetest->URL = lookup(xpathNSList,yyvsp[0].name.prefix);
 											if (yyval.nodetest->URL == NULL){
@@ -1719,7 +1734,7 @@ yyreduce:
     break;
 
   case 54:
-#line 467 "l8.y"
+#line 490 "l8.y"
     { Try{
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
@@ -1733,39 +1748,39 @@ yyreduce:
     break;
 
   case 55:
-#line 479 "l8.y"
+#line 502 "l8.y"
     { yyval.p = NULL;;}
     break;
 
   case 56:
-#line 480 "l8.y"
+#line 503 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
 	     									yyval.p = yyvsp[-1].p;	
 	     								  ;}
     break;
 
   case 57:
-#line 485 "l8.y"
+#line 508 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 58:
-#line 486 "l8.y"
+#line 509 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 59:
-#line 489 "l8.y"
+#line 512 "l8.y"
     { /*printf("abbreviated child axis \n");*/yyval.at  = AXIS_CHILD;;}
     break;
 
   case 60:
-#line 490 "l8.y"
+#line 513 "l8.y"
     {yyval.at = AXIS_ATTRIBUTE;;}
     break;
 
   case 61:
-#line 493 "l8.y"
+#line 516 "l8.y"
     {Try{
 								yyval.s = createStep();
 								addObj(yyval.s);
@@ -1783,7 +1798,7 @@ yyreduce:
     break;
 
   case 62:
-#line 507 "l8.y"
+#line 530 "l8.y"
     {
 					Try{
 						yyval.s = createStep();
@@ -1803,7 +1818,7 @@ yyreduce:
     break;
 
   case 63:
-#line 525 "l8.y"
+#line 548 "l8.y"
     {
 																Try{
 																	yyval.s = createStep();
@@ -1823,7 +1838,7 @@ yyreduce:
     break;
 
   case 64:
-#line 543 "l8.y"
+#line 566 "l8.y"
     {
 																	Try{
 																		yyval.s= createStep();
@@ -1846,7 +1861,7 @@ yyreduce:
     break;
 
   case 65:
-#line 565 "l8.y"
+#line 588 "l8.y"
     {
 							   Try {
 									yyval.p = createPredicate();
@@ -1860,7 +1875,7 @@ yyreduce:
     break;
 
   case 67:
-#line 580 "l8.y"
+#line 603 "l8.y"
     {yyval.fname  = yyvsp[0].fname;;}
     break;
 
@@ -1868,7 +1883,7 @@ yyreduce:
     }
 
 /* Line 991 of yacc.c.  */
-#line 1871 "l8.tab.c"
+#line 1893 "l8.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2077,7 +2092,7 @@ yyreturn:
 }
 
 
-#line 583 "l8.y"
+#line 606 "l8.y"
 
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;

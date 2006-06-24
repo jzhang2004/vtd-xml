@@ -52,6 +52,7 @@ extern int colonPosition;
 	funcName fname;
 	expr *expression;
  	locationPathExpr *lpe;
+ 	unionExpr *une;
 	pathExpr *pe;
 	Step *s;
 	aList *a;
@@ -66,8 +67,9 @@ extern int colonPosition;
 %token <fname> FNAME
 %token <ntest> NTEST
 %type <expression> Expr OrExpr AndExpr EqualityExpr RelationalExpr AdditiveExpr
-%type <expression> MultiplicativeExpr UnaryExpr UnionExpr FilterExpr
+%type <expression> MultiplicativeExpr UnaryExpr FilterExpr
 %type <expression> FunctionCall Argument PrimaryExpr
+%type <une> UnionExpr
 %type <lpe> LocationPath
 %type <pe> PathExpr
 %type <s> Step AbbreviatedStep RelativeLocationPath  AbsoluteLocationPath
@@ -253,8 +255,30 @@ UnaryExpr    	:    UnionExpr  { $$ = $1;}
 		;
 
 
-UnionExpr    	:    PathExpr  	{ $$ = $1; }		
-   		|    UnionExpr UNION PathExpr {/*freeAllObj();*/YYABORT;}
+UnionExpr    	:    PathExpr  	{ 
+									Try {
+										$$ = createUnionExpr($1);
+										addObj($$);
+									}
+									Catch(e) {
+										YYABORT;
+									 }
+								
+								}		
+   		|    PathExpr UNION UnionExpr {
+   										Try {
+   										   $$ = createUnionExpr($1);
+   										   addObj($$);
+   										   $$->next = $3;
+   										}
+   										Catch(e){
+   											YYABORT;   											
+   										}
+   										
+   		                         /*freeAllObj();*/
+   		                         //YYABORT;
+   		                         
+   		                         }
 		;
 
 
