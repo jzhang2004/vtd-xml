@@ -581,6 +581,48 @@ void	setContextSize_pe(pathExpr *e,int s);
 void	setPosition_pe(pathExpr *e,int pos);
 void    toString_pe(pathExpr *e, UCSChar* string);
 
+
+// Union Expr
+
+typedef struct UnionExpr{
+	free_Expr freeExpr;
+	eval_NodeSet evalNodeSet;
+	eval_Number evalNumber;
+	eval_String evalString;
+	eval_Boolean evalBoolean;
+	is_Boolean isBoolean;
+	is_Numerical isNumerical;
+	is_String  isString;
+	is_NodeSet isNodeSet;
+	require_ContextSize requireContextSize;
+	reset_ reset;
+	set_ContextSize setContextSize;
+	set_Position setPosition;
+	to_String toString;
+	expr *fe;
+	struct UnionExpr *current;
+	struct UnionExpr *next;
+	int evalState;
+	/*FastIntBuffer *fib;*/
+	IntHash *ih;
+} unionExpr;
+
+unionExpr *createUnionExpr(expr *e);
+void freeUnionExpr(unionExpr *e);
+int		evalNodeSet_une (unionExpr *e,VTDNav *vn);
+double	evalNumber_une (unionExpr *e,VTDNav *vn);
+UCSChar* evalString_une  (unionExpr *e,VTDNav *vn);
+Boolean evalBoolean_une (unionExpr *e,VTDNav *vn);
+Boolean isBoolean_une (unionExpr *e);
+Boolean isNumerical_une (unionExpr *e);
+Boolean isString_une (unionExpr *e);
+Boolean isNodeSet_une (unionExpr *e);
+Boolean requireContextSize_une(unionExpr *e);
+void	reset_une(unionExpr *e, VTDNav *vn);
+void	setContextSize_une(unionExpr *e,int s);
+void	setPosition_une(unionExpr *e,int pos);
+void    toString_une(unionExpr *e, UCSChar* string);
+
 int yylex();
 //void yyrestart(FILE *i);
 int yyerror(char *s);
