@@ -23,7 +23,7 @@ public class UnionExpr extends Expr {
         e = e1;
         next = null;
         current = this;
-        ih = new intHash();
+        ih = null;
         state = 0;
     }
 
@@ -99,8 +99,8 @@ public class UnionExpr extends Expr {
             while (true) {
                 switch (state) {
                 case 0:
-                    //if (ih==null) 
-                    //    ih = new intHash();
+                    if (ih==null) 
+                        ih = new intHash();
                     if (current != null) {
                         vn.push2();
                         while ((a = current.e.evalNodeSet(vn)) != -1) {
