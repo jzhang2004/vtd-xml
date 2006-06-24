@@ -25,7 +25,7 @@ namespace com.ximpleware
 			e = e1;
 			next = null;
 			current = this;
-			ih = new intHash();
+			ih = null;
 			state = 0;
 		}
 		
@@ -118,8 +118,8 @@ namespace com.ximpleware
 					{
 						
 						case 0: 
-							//if (ih == null)
-							//	ih = new intHash();
+							if (ih == null)
+							  ih = new intHash();
 							if (current != null)
 							{
 								vn.push2();
