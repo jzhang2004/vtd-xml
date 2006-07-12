@@ -344,6 +344,235 @@ public class VTDNav {
 		}
 		return -1;
 	}
+	private int handle_utf8(int temp) throws NavException {
+        int c, d, a, val;
+        switch (UTF8Char.byteCount(temp & 0xff)) {
+        case 2:
+            c = 0x1f;
+            d = 6;
+            a = 1;
+            break;
+        case 3:
+            c = 0x0f;
+            d = 12;
+            a = 2;
+            break;
+        case 4:
+            c = 0x07;
+            d = 18;
+            a = 3;
+            break;
+        case 5:
+            c = 0x03;
+            d = 24;
+            a = 4;
+            break;
+        case 6:
+            c = 0x01;
+            d = 30;
+            a = 5;
+            break;
+        default:
+            throw new NavException("UTF 8 encoding error: should never happen");
+        }
+
+        val = (temp & c) << d;
+        int i = a - 1;
+        while (i >= 0) {
+            temp = XMLDoc.byteAt(currentOffset + a - i);
+            if ((temp & 0xc0) != 0x80)
+                throw new NavException(
+                        "UTF 8 encoding error: should never happen");
+            val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
+            i--;
+        }
+        currentOffset += a + 1;
+        return val;
+    }
+	private int handle_utf8_2(int temp) throws NavException {
+        int c, d, a, val;
+        switch (UTF8Char.byteCount(temp & 0xff)) {
+        case 2:
+            c = 0x1f;
+            d = 6;
+            a = 1;
+            break;
+        case 3:
+            c = 0x0f;
+            d = 12;
+            a = 2;
+            break;
+        case 4:
+            c = 0x07;
+            d = 18;
+            a = 3;
+            break;
+        case 5:
+            c = 0x03;
+            d = 24;
+            a = 4;
+            break;
+        case 6:
+            c = 0x01;
+            d = 30;
+            a = 5;
+            break;
+        default:
+            throw new NavException("UTF 8 encoding error: should never happen");
+        }
+
+        val = (temp & c) << d;
+        int i = a - 1;
+        while (i >= 0) {
+            temp = XMLDoc.byteAt(currentOffset2 + a - i);
+            if ((temp & 0xc0) != 0x80)
+                throw new NavException(
+                        "UTF 8 encoding error: should never happen");
+            val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
+            i--;
+        }
+        currentOffset2 += a + 1;
+        return val;
+    }
+
+	private int handle_utf16le() throws NavException {
+		// implement UTF-16LE to UCS4 conversion
+		int val, temp =
+			(XMLDoc.byteAt((currentOffset << 1) + 1 ) & 0xff)
+				<< 8 | (XMLDoc.byteAt(currentOffset << 1) & 0xff);
+		if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
+			if (temp == '\r') {
+				if (XMLDoc.byteAt((currentOffset << 1) + 2) == '\n'
+					&& XMLDoc.byteAt((currentOffset << 1) + 3) == 0) {
+					currentOffset += 2;
+					return '\n';
+				} else {
+					currentOffset++;
+					return '\n';
+				}
+			}
+			currentOffset++;
+			return temp;
+		} else {
+			if (temp<0xd800 || temp>0xdbff)				
+				throw new NavException("UTF 16 LE encoding error: should never happen");
+			val = temp;
+			temp =
+				(XMLDoc.byteAt((currentOffset << 1) + 3)&0xff)
+					<< 8 | (XMLDoc.byteAt((currentOffset << 1) + 2) & 0xff);
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be high surrogate
+				throw new NavException("UTF 16 LE encoding error: should never happen");
+			}
+			val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
+			currentOffset += 2;
+			return val;
+		}
+		//System.out.println("UTF 16 LE unimplemented for now");
+	}
+	private int handle_utf16le_2() throws NavException {
+		// implement UTF-16LE to UCS4 conversion
+		int val, temp =
+			(XMLDoc.byteAt((currentOffset2 << 1) + 1 ) & 0xff)
+				<< 8 | (XMLDoc.byteAt(currentOffset2 << 1) & 0xff);
+		if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
+			if (temp == '\r') {
+				if (XMLDoc.byteAt((currentOffset2 << 1) + 2) == '\n'
+					&& XMLDoc.byteAt((currentOffset2 << 1) + 3) == 0) {
+					currentOffset2 += 2;
+					return '\n';
+				} else {
+					currentOffset2++;
+					return '\n';
+				}
+			}
+			currentOffset2++;
+			return temp;
+		} else {
+			if (temp<0xd800 || temp>0xdbff)				
+				throw new NavException("UTF 16 LE encoding error: should never happen");
+			val = temp;
+			temp =
+				(XMLDoc.byteAt((currentOffset2 << 1) + 3)&0xff)
+					<< 8 | (XMLDoc.byteAt((currentOffset2 << 1) + 2) & 0xff);
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be high surrogate
+				throw new NavException("UTF 16 LE encoding error: should never happen");
+			}
+			val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
+			currentOffset2 += 2;
+			return val;
+		}
+		//System.out.println("UTF 16 LE unimplemented for now");
+	}
+	private int handle_utf16be() throws NavException{
+		int val,temp =
+			((XMLDoc.byteAt(currentOffset << 1) & 0xff)	<< 8) 
+					|(XMLDoc.byteAt((currentOffset << 1) + 1)& 0xff);
+		if ((temp < 0xd800)
+			|| (temp > 0xdfff)) { // not a high surrogate
+			if (temp == '\r') {
+				if (XMLDoc.byteAt((currentOffset << 1) + 3) == '\n'
+					&& XMLDoc.byteAt((currentOffset << 1) + 2) == 0) {
+					currentOffset += 2;
+					return '\n';
+				} else {
+					currentOffset++;
+					return '\n';
+				}
+			}
+			currentOffset++;
+			return temp;
+		} else {
+			if (temp<0xd800 || temp>0xdbff)				
+				throw new NavException("UTF 16 BE encoding error: should never happen");
+			val = temp;
+			temp =
+				((XMLDoc.byteAt((currentOffset << 1) + 2) & 0xff)
+					<< 8) | (XMLDoc.byteAt((currentOffset << 1 )+ 3) & 0xff);
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be a low surrogate here
+				throw new NavException("UTF 16 BE encoding error: should never happen");
+			}
+			val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
+			currentOffset += 2;
+			return val;
+		}
+	}
+	private int handle_utf16be_2() throws NavException{
+		int val,temp =
+			((XMLDoc.byteAt(currentOffset2 << 1) & 0xff)	<< 8) 
+					|(XMLDoc.byteAt((currentOffset2 << 1) + 1)& 0xff);
+		if ((temp < 0xd800)
+			|| (temp > 0xdfff)) { // not a high surrogate
+			if (temp == '\r') {
+				if (XMLDoc.byteAt((currentOffset2 << 1) + 3) == '\n'
+					&& XMLDoc.byteAt((currentOffset2 << 1) + 2) == 0) {
+					currentOffset2 += 2;
+					return '\n';
+				} else {
+					currentOffset2++;
+					return '\n';
+				}
+			}
+			currentOffset2++;
+			return temp;
+		} else {
+			if (temp<0xd800 || temp>0xdbff)				
+				throw new NavException("UTF 16 BE encoding error: should never happen");
+			val = temp;
+			temp =
+				((XMLDoc.byteAt((currentOffset2 << 1) + 2) & 0xff)
+					<< 8) | (XMLDoc.byteAt((currentOffset2 << 1 )+ 3) & 0xff);
+			if (temp < 0xdc00 || temp > 0xdfff) {
+				// has to be a low surrogate here
+				throw new NavException("UTF 16 BE encoding error: should never happen");
+			}
+			val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
+			currentOffset2 += 2;
+			return val;
+		}
+	}
 	/**
 	 * This method decodes the underlying byte array into corresponding UCS2 char representation .
 	 * It doesn't resolves built-in entity and character references.
@@ -376,63 +605,7 @@ public class VTDNav {
 				}
 				currentOffset++;
 				return temp;
-			case FORMAT_UTF8 :
-				temp = XMLDoc.byteAt(currentOffset) & 0xff;
-
-				switch (UTF8Char.byteCount(temp)) {
-					case 1 :
-						if (temp == '\r') {
-							if (XMLDoc.byteAt(currentOffset + 1) == '\n') {
-								currentOffset += 2;
-								return '\n';
-							} else {
-								currentOffset++;
-								return '\n';
-							}
-						}
-						currentOffset++;
-						return temp;
-					case 2 :
-						c = 0x1f;
-						d = 6;
-						a = 1;
-						break;
-					case 3 :
-						c = 0x0f;
-						d = 12;
-						a = 2;
-						break;
-					case 4 :
-						c = 0x07;
-						d = 18;
-						a = 3;
-						break;
-					case 5 :
-						c = 0x03;
-						d = 24;
-						a = 4;
-						break;
-					case 6 :
-						c = 0x01;
-						d = 30;
-						a = 5;
-						break;
-					default :
-						throw new NavException("UTF 8 encoding error: should never happen");
-				}
-
-				val = (temp & c) << d;
-				int i = a - 1;
-				while (i >= 0) {
-					temp = XMLDoc.byteAt(currentOffset + a - i);
-					if ((temp & 0xc0) != 0x80)
-						throw new NavException("UTF 8 encoding error: should never happen");
-					val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
-					i--;
-				}
-				currentOffset += a + 1;
-				return val;
-
+				
 			case FORMAT_ISO_8859 :
 				temp = XMLDoc.byteAt(currentOffset);
 				if (temp == '\r') {
@@ -446,76 +619,29 @@ public class VTDNav {
 				}
 				currentOffset++;
 				return temp & 0xff;
+				
+			case FORMAT_UTF8 :
+				temp = XMLDoc.byteAt(currentOffset);
+				if (temp<128){
+					if (temp == '\r') {
+						if (XMLDoc.byteAt(currentOffset + 1) == '\n') {
+							currentOffset += 2;
+							return '\n';
+						} else {
+							currentOffset++;
+							return '\n';
+						}
+					}
+					currentOffset++;
+					return temp;
+				}				
+				return handle_utf8(temp);
 
 			case FORMAT_UTF_16BE :
-				// implement UTF-16BE to UCS4 conversion
-				temp =
-					((XMLDoc.byteAt(currentOffset << 1) & 0xff)	<< 8) 
-							|(XMLDoc.byteAt((currentOffset << 1) + 1)& 0xff);
-				if ((temp < 0xd800)
-					|| (temp > 0xdfff)) { // not a high surrogate
-					if (temp == '\r') {
-						if (XMLDoc.byteAt((currentOffset << 1) + 3) == '\n'
-							&& XMLDoc.byteAt((currentOffset << 1) + 2) == 0) {
-							currentOffset += 2;
-							return '\n';
-						} else {
-							currentOffset++;
-							return '\n';
-						}
-					}
-					currentOffset++;
-					return temp;
-				} else {
-					if (temp<0xd800 || temp>0xdbff)				
-						throw new NavException("UTF 16 BE encoding error: should never happen");
-					val = temp;
-					temp =
-						((XMLDoc.byteAt((currentOffset << 1) + 2) & 0xff)
-							<< 8) | (XMLDoc.byteAt((currentOffset << 1 )+ 3) & 0xff);
-					if (temp < 0xdc00 || temp > 0xdfff) {
-						// has to be a low surrogate here
-						throw new NavException("UTF 16 BE encoding error: should never happen");
-					}
-					val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
-					currentOffset += 2;
-					return val;
-				}
+			    return handle_utf16be();
 
 			case FORMAT_UTF_16LE :
-				// implement UTF-16LE to UCS4 conversion
-				temp =
-					(XMLDoc.byteAt((currentOffset << 1) + 1 ) & 0xff)
-						<< 8 | (XMLDoc.byteAt(currentOffset << 1) & 0xff);
-				if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
-					if (temp == '\r') {
-						if (XMLDoc.byteAt((currentOffset << 1) + 2) == '\n'
-							&& XMLDoc.byteAt((currentOffset << 1) + 3) == 0) {
-							currentOffset += 2;
-							return '\n';
-						} else {
-							currentOffset++;
-							return '\n';
-						}
-					}
-					currentOffset++;
-					return temp;
-				} else {
-					if (temp<0xd800 || temp>0xdbff)				
-						throw new NavException("UTF 16 LE encoding error: should never happen");
-					val = temp;
-					temp =
-						(XMLDoc.byteAt((currentOffset << 1) + 3)&0xff)
-							<< 8 | (XMLDoc.byteAt((currentOffset << 1) + 2) & 0xff);
-					if (temp < 0xdc00 || temp > 0xdfff) {
-						// has to be high surrogate
-						throw new NavException("UTF 16 LE encoding error: should never happen");
-					}
-					val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
-					currentOffset += 2;
-					return val;
-				}
-				//System.out.println("UTF 16 LE unimplemented for now");
+			    return handle_utf16le();
 
 			default :
 				throw new NavException("Unknown Encoding");
@@ -546,63 +672,7 @@ public class VTDNav {
 				}
 				currentOffset2++;
 				return temp;
-			case FORMAT_UTF8 :
-				temp = XMLDoc.byteAt(currentOffset2) & 0xff;
-
-				switch (UTF8Char.byteCount(temp)) {
-					case 1 :
-						if (temp == '\r') {
-							if (XMLDoc.byteAt(currentOffset2 + 1) == '\n') {
-								currentOffset2 += 2;
-								return '\n';
-							} else {
-								currentOffset2++;
-								return '\n';
-							}
-						}
-						currentOffset2++;
-						return temp;
-					case 2 :
-						c = 0x1f;
-						d = 6;
-						a = 1;
-						break;
-					case 3 :
-						c = 0x0f;
-						d = 12;
-						a = 2;
-						break;
-					case 4 :
-						c = 0x07;
-						d = 18;
-						a = 3;
-						break;
-					case 5 :
-						c = 0x03;
-						d = 24;
-						a = 4;
-						break;
-					case 6 :
-						c = 0x01;
-						d = 30;
-						a = 5;
-						break;
-					default :
-						throw new NavException("UTF 8 encoding error: should never happen");
-				}
-
-				val = (temp & c) << d;
-				int i = a - 1;
-				while (i >= 0) {
-					temp = XMLDoc.byteAt(currentOffset2 + a - i);
-					if ((temp & 0xc0) != 0x80)
-						throw new NavException("UTF 8 encoding error: should never happen");
-					val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
-					i--;
-				}
-				currentOffset2 += a + 1;
-				return val;
-
+				
 			case FORMAT_ISO_8859 :
 				temp = XMLDoc.byteAt(currentOffset2);
 				if (temp == '\r') {
@@ -616,76 +686,29 @@ public class VTDNav {
 				}
 				currentOffset2++;
 				return temp & 0xff;
+				
+			case FORMAT_UTF8 :
+				temp = XMLDoc.byteAt(currentOffset2);
+				if (temp<128){
+					if (temp == '\r') {
+						if (XMLDoc.byteAt(currentOffset2 + 1) == '\n') {
+							currentOffset2 += 2;
+							return '\n';
+						} else {
+							currentOffset2++;
+							return '\n';
+						}
+					}
+					currentOffset2++;
+					return temp;
+				}				
+				return handle_utf8_2(temp);
 
 			case FORMAT_UTF_16BE :
-				// implement UTF-16BE to UCS4 conversion
-				temp =
-					((XMLDoc.byteAt(currentOffset2 << 1) & 0xff)	<< 8) 
-							|(XMLDoc.byteAt((currentOffset2 << 1) + 1)& 0xff);
-				if ((temp < 0xd800)
-					|| (temp > 0xdfff)) { // not a high surrogate
-					if (temp == '\r') {
-						if (XMLDoc.byteAt((currentOffset2 << 1) + 3) == '\n'
-							&& XMLDoc.byteAt((currentOffset2 << 1) + 2) == 0) {
-							currentOffset2 += 2;
-							return '\n';
-						} else {
-							currentOffset2++;
-							return '\n';
-						}
-					}
-					currentOffset2++;
-					return temp;
-				} else {
-					if (temp<0xd800 || temp>0xdbff)				
-						throw new NavException("UTF 16 BE encoding error: should never happen");
-					val = temp;
-					temp =
-						((XMLDoc.byteAt((currentOffset2 << 1) + 2) & 0xff)
-							<< 8) | (XMLDoc.byteAt((currentOffset2 << 1 )+ 3) & 0xff);
-					if (temp < 0xdc00 || temp > 0xdfff) {
-						// has to be a low surrogate here
-						throw new NavException("UTF 16 BE encoding error: should never happen");
-					}
-					val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
-					currentOffset2 += 2;
-					return val;
-				}
+			    return handle_utf16be_2();
 
 			case FORMAT_UTF_16LE :
-				// implement UTF-16LE to UCS4 conversion
-				temp =
-					(XMLDoc.byteAt((currentOffset2 << 1) + 1 ) & 0xff)
-						<< 8 | (XMLDoc.byteAt(currentOffset2 << 1) & 0xff);
-				if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
-					if (temp == '\r') {
-						if (XMLDoc.byteAt((currentOffset2 << 1) + 2) == '\n'
-							&& XMLDoc.byteAt((currentOffset2 << 1) + 3) == 0) {
-							currentOffset2 += 2;
-							return '\n';
-						} else {
-							currentOffset2++;
-							return '\n';
-						}
-					}
-					currentOffset2++;
-					return temp;
-				} else {
-					if (temp<0xd800 || temp>0xdbff)				
-						throw new NavException("UTF 16 LE encoding error: should never happen");
-					val = temp;
-					temp =
-						(XMLDoc.byteAt((currentOffset2 << 1) + 3)&0xff)
-							<< 8 | (XMLDoc.byteAt((currentOffset2 << 1) + 2) & 0xff);
-					if (temp < 0xdc00 || temp > 0xdfff) {
-						// has to be high surrogate
-						throw new NavException("UTF 16 LE encoding error: should never happen");
-					}
-					val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
-					currentOffset2 += 2;
-					return val;
-				}
-				//System.out.println("UTF 16 LE unimplemented for now");
+			    return handle_utf16le_2();
 
 			default :
 				throw new NavException("Unknown Encoding");
@@ -1736,10 +1759,10 @@ public class VTDNav {
 				: getTokenLength(index);
 		// upper 16 bit is zero or for prefix
 
-		currentOffset = getTokenOffset(index);
+		//currentOffset = getTokenOffset(index);
 		// point currentOffset to the beginning of the token
 		// for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
-		return matchRawTokenString(currentOffset, len, s);
+		return matchRawTokenString(getTokenOffset(index), len, s);
 	}
 	/**
 	 * Match a string with a token represented by a long (upper 32 len, lower 32 offset).
@@ -1785,6 +1808,7 @@ public class VTDNav {
 		if (encoding < FORMAT_UTF8) {
 			int i = 0;
 			l = s.length();
+
 			for (i = 0; i < l && currentOffset < endOffset; i++) {
 				if ((XMLDoc.byteAt(currentOffset) & 0xff) != '&') {
 					if (s.charAt(i) != (XMLDoc.byteAt(currentOffset) & 0xff))
@@ -1840,10 +1864,10 @@ public class VTDNav {
 				: getTokenLength(index);
 		// upper 16 bit is zero or for prefix
 
-		currentOffset = getTokenOffset(index);
+		//currentOffset = getTokenOffset(index);
 		// point currentOffset to the beginning of the token
 		// for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
-		return matchTokenString(currentOffset, len, s);
+		return matchTokenString(getTokenOffset(index), len, s);
 	}
 	/**
 	 * Match a string against a "non-extractive" token represented by a long (upper 32 len, lower 32 offset).
