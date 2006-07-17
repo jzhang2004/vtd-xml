@@ -1866,19 +1866,13 @@ public class VTDGen {
 									r = new ASCIIReader();
 									/*System.out.println(
 									    " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
-									if (encoding
-										< FORMAT_UTF_16BE)
+									
 										writeVTD(
 											temp_offset,
 											5,
 											TOKEN_DEC_ATTR_VAL,
 											depth);
-									else
-										writeVTD(
-											temp_offset >> 1,
-											5,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
+									
 									break;
 								} else
 									throw new ParseException(
@@ -1912,19 +1906,13 @@ public class VTDGen {
 									r = new ISO8859Reader();
 									/*System.out.println(
 									    " " + (temp_offset) + " " + 10 + " dec attr val (encoding) " + depth);*/
-									if (encoding
-										< FORMAT_UTF_16BE)
+									
 										writeVTD(
 											temp_offset,
 											10,
 											TOKEN_DEC_ATTR_VAL,
 											depth);
-									else
-										writeVTD(
-											temp_offset >> 1,
-											10,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
+									
 									break;
 								} else
 									throw new ParseException(
@@ -1961,20 +1949,13 @@ public class VTDGen {
 										r = new ASCIIReader();
 										//System.out.println(
 										//    " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);
-										if (encoding
-											< FORMAT_UTF_16BE)
+										
 											writeVTD(
 												temp_offset,
-												5,
+												8,
 												TOKEN_DEC_ATTR_VAL,
 												depth);
-										else
-											writeVTD(
-												temp_offset
-													>> 1,
-												5,
-												TOKEN_DEC_ATTR_VAL,
-												depth);
+										
 										break;
 
 									} else
@@ -2030,14 +2011,7 @@ public class VTDGen {
 											if (!BOM_detected)
 												throw new EncodingException("BOM not detected for UTF-16"
 														+ formatLineNumber());
-											if (encoding
-												< FORMAT_UTF_16BE)
-												writeVTD(
-													temp_offset,
-													6,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-											else
+											
 												writeVTD(
 													temp_offset
 														>> 1,
@@ -2059,18 +2033,11 @@ public class VTDGen {
 											== FORMAT_UTF_16LE) {
 											/*System.out.println(
 											    " " + (temp_offset) + " " + 7 + " dec attr val (encoding) " + depth);*/
-											if (encoding
-												< FORMAT_UTF_16BE)
-												writeVTD(
-													temp_offset,
-													7,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-											else
+											
 												writeVTD(
 													temp_offset
 														>> 1,
-													7,
+													8,
 													TOKEN_DEC_ATTR_VAL,
 													depth);
 											break;
@@ -2088,18 +2055,11 @@ public class VTDGen {
 											== FORMAT_UTF_16BE) {
 											/*System.out.println(
 											    " " + (temp_offset) + " " + 7 + " dec attr val (encoding) " + depth);*/
-											if (encoding
-												< FORMAT_UTF_16BE)
-												writeVTD(
-													temp_offset,
-													7,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-											else
+										
 												writeVTD(
 													temp_offset
 														>> 1,
-													7,
+													8,
 													TOKEN_DEC_ATTR_VAL,
 													depth);
 											break;

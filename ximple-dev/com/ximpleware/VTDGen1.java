@@ -1772,14 +1772,11 @@ public class VTDGen1 {
 								 * (temp_offset) + " " + 5 + " dec
 								 * attr val (encoding) " + depth);
 								 */
-								if (encoding < FORMAT_UTF_16BE)
+								
 									writeVTD(temp_offset, 5,
 											TOKEN_DEC_ATTR_VAL,
 											depth);
-								else
-									writeVTD(temp_offset >> 1, 5,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
+								
 								break;
 							} else
 								throw new ParseException(
@@ -1810,14 +1807,11 @@ public class VTDGen1 {
 								 * (temp_offset) + " " + 10 + " dec
 								 * attr val (encoding) " + depth);
 								 */
-								if (encoding < FORMAT_UTF_16BE)
+								
 									writeVTD(temp_offset, 10,
 											TOKEN_DEC_ATTR_VAL,
 											depth);
-								else
-									writeVTD(temp_offset >> 1, 10,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
+								
 								break;
 							} else
 								throw new ParseException(
@@ -1848,15 +1842,11 @@ public class VTDGen1 {
 									//    " " + (temp_offset) + " " + 5
 									// + " dec attr val (encoding) "
 									// + depth);
-									if (encoding < FORMAT_UTF_16BE)
-										writeVTD(temp_offset, 5,
+									
+										writeVTD(temp_offset, 8,
 												TOKEN_DEC_ATTR_VAL,
 												depth);
-									else
-										writeVTD(temp_offset >> 1,
-												5,
-												TOKEN_DEC_ATTR_VAL,
-												depth);
+									
 									break;
 
 								} else
@@ -1881,15 +1871,11 @@ public class VTDGen1 {
 									 * dec attr val (encoding) " +
 									 * depth);
 									 */
-									if (encoding < FORMAT_UTF_16BE)
+									
 										writeVTD(temp_offset, 5,
 												TOKEN_DEC_ATTR_VAL,
 												depth);
-									else
-										writeVTD(temp_offset >> 1,
-												5,
-												TOKEN_DEC_ATTR_VAL,
-												depth);
+									
 									break;
 								} else
 									throw new ParseException(
@@ -1904,13 +1890,7 @@ public class VTDGen1 {
 											throw new EncodingException(
 													"BOM not detected for UTF-16"
 															+ formatLineNumber());
-										if (encoding < FORMAT_UTF_16BE)
-											writeVTD(
-													temp_offset,
-													6,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-										else
+									
 											writeVTD(
 													temp_offset >> 1,
 													6,
@@ -1931,16 +1911,10 @@ public class VTDGen1 {
 										 * dec attr val (encoding) " +
 										 * depth);
 										 */
-										if (encoding < FORMAT_UTF_16BE)
-											writeVTD(
-													temp_offset,
-													7,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-										else
+										
 											writeVTD(
 													temp_offset >> 1,
-													7,
+													8,
 													TOKEN_DEC_ATTR_VAL,
 													depth);
 										break;
@@ -1958,16 +1932,10 @@ public class VTDGen1 {
 										 * dec attr val (encoding) " +
 										 * depth);
 										 */
-										if (encoding < FORMAT_UTF_16BE)
-											writeVTD(
-													temp_offset,
-													7,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-										else
+										
 											writeVTD(
 													temp_offset >> 1,
-													7,
+													8,
 													TOKEN_DEC_ATTR_VAL,
 													depth);
 										break;
