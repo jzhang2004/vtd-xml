@@ -563,7 +563,7 @@ namespace com.ximpleware
             int depth = getCurrentDepth();
             //		 document length and offset returned if depth == -1
             if (depth == -1)
-                return ((long)docLen) << 32 | offset;
+                return ((long)docLen) << 32 | docOffset;
             int so = getTokenOffset(getCurrentIndex()) - 1;
             int length = 0;
 
@@ -605,7 +605,7 @@ namespace com.ximpleware
                     b = true;
                 }
                 if (b == false)
-                    so2 = (encoding < 3) ? (offset + docLen - 1) : ((offset + docLen) << 1) - 1;
+                    so2 = (encoding < 3) ? (docOffset + docLen - 1) : ((docOffset + docLen) << 1) - 1;
                 else
                     so2 = getTokenOffset(temp + 1);
                 while (getCharUnit(so2) != '>')
@@ -664,7 +664,7 @@ namespace com.ximpleware
             }
             // temp is the last entry
             // scan forward search for /> or </cc>
-            so2 = (encoding < 3) ? (offset + docLen - 1) : ((offset + docLen) << 1) - 1;
+            so2 = (encoding < 3) ? (docOffset + docLen - 1) : ((docOffset + docLen) << 1) - 1;
             d = depth + 1;
             i = 0;
             while (i < d)
@@ -1019,7 +1019,7 @@ namespace com.ximpleware
 
         // intermediate buffer for push and pop purposes  
         private int[] stackTemp;
-        protected internal int offset;
+        protected internal int docOffset;
         // length of the document
         protected internal int docLen;
         protected internal int vtdSize; //vtd record count
@@ -1094,7 +1094,7 @@ namespace com.ximpleware
             l1index = l2index = l3index = -1;
             l2lower = l3lower = -1;
             l2upper = l3upper = -1;
-            offset = so;
+            docOffset = so;
             docLen = length;
             //System.out.println("offset " + offset + "  length " + length);
             //printL2Buffer();
@@ -4122,7 +4122,7 @@ namespace com.ximpleware
                 else
                     l = this.getChar(offset1);
                 ch1 = (int)l;
-                offset += (int)(l >> 32);
+                offset1 += (int)(l >> 32);
                 if (t2 == VTDNav.TOKEN_CHARACTER_DATA || t2 == VTDNav.TOKEN_ATTR_VAL)
                 {
                     l = vn2.getCharResolved(offset2);
