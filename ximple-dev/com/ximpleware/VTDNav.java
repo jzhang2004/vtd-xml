@@ -118,7 +118,7 @@ public class VTDNav {
 
 	// intermediate buffer for push and pop purposes  
 	private int[] stackTemp;
-	protected int offset;
+	protected int docOffset;
 	// length of the document
 	protected int docLen;
 	protected int vtdSize; //vtd record count
@@ -200,7 +200,7 @@ public class VTDNav {
 		l1index = l2index = l3index = -1;
 		l2lower = l3lower = -1;
 		l2upper = l3upper = -1;
-		offset = so;
+		docOffset = so;
 		docLen = length;
 		//System.out.println("offset " + offset + "  length " + length);
 		//printL2Buffer();
@@ -995,7 +995,7 @@ public class VTDNav {
 		int depth = getCurrentDepth();
 //		 document length and offset returned if depth == -1
 		if (depth == -1)
-			return ((long)docLen)<<32 | offset;
+			return ((long)docLen)<<32 | docOffset;
 		int so = getTokenOffset(getCurrentIndex()) - 1;
 		int length = 0;
 		
@@ -1034,8 +1034,8 @@ public class VTDNav {
 			if (b == false)
 				so2 =
 					(encoding < 3)
-						? (offset + docLen - 1)
-						: ((offset + docLen) << 1) - 1;
+						? (docOffset + docLen - 1)
+						: ((docOffset + docLen) << 1) - 1;
 			else
 				so2 = getTokenOffset(temp + 1);
 			while (getCharUnit(so2) != '>') {
@@ -1094,8 +1094,8 @@ public class VTDNav {
 		// scan forward search for /> or </cc>
 		int so2 =
 			(encoding < 3)
-				? (offset + docLen - 1)
-				: ((offset + docLen) << 1) - 1;
+				? (docOffset + docLen - 1)
+				: ((docOffset + docLen) << 1) - 1;
 		int d = depth + 1;
 		int i = 0;
 		while (i < d) {
@@ -2068,7 +2068,7 @@ public class VTDNav {
 	 */
 	public float parseFloat(int index) throws NavException {
 
-		offset = getTokenOffset(index);
+		int offset = getTokenOffset(index);
 		int end = offset + getTokenLength(index);
 		long l;
 		//past the last one by one
@@ -3586,7 +3586,7 @@ public class VTDNav {
 		        l = this.getChar(offset1);
 		    }
 	        ch1 = (int)l;
-	        offset += (int)(l>>32);
+	        offset1 += (int)(l>>32);
 		    
 		    if(t2 == VTDNav.TOKEN_CHARACTER_DATA
 		            || t2== VTDNav.TOKEN_ATTR_VAL){
