@@ -1,3 +1,21 @@
+/* 
+ * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 /*
  * Created on Jul 12, 2006
  *
@@ -329,6 +347,7 @@ public class VTDNav {
     }
 	private long handle_utf8(long temp, int offset) throws NavException {
         int c, d, a; 
+        
         long val;
         switch (UTF8Char.byteCount((int)temp & 0xff)) {
         case 2:
@@ -371,7 +390,7 @@ public class VTDNav {
             i--;
         }
         //currentOffset += a + 1;
-        return val | ((a+1)<<32);
+        return val | (((long)(a+1))<<32);
     }
 	/*private int handle_utf8_2(int temp, int offset) throws NavException {
         int c, d, a, val;
@@ -500,7 +519,6 @@ public class VTDNav {
 					
 					return '\n'|(2L<<32);
 				} else {
-					
 					return '\n'|(1L<<32);
 				}
 			}
@@ -602,7 +620,7 @@ public class VTDNav {
 				
 			case FORMAT_UTF8 :
 				temp = XMLDoc.byteAt(offset);
-				if (temp<128){
+				if (temp>=0){
 					if (temp == '\r') {
 						if (XMLDoc.byteAt(offset + 1) == '\n') {
 							return '\n'|(2L<<32);
@@ -793,7 +811,7 @@ public class VTDNav {
 			case 'l' :
 				if (getCharUnit(offset) == 't'
 					&& getCharUnit(offset + 1) == ';') {
-					offset += 2;
+					//offset += 2;
 					inc = 4;
 					val = '<';
 				} else
@@ -1806,10 +1824,10 @@ public class VTDNav {
 					offset++;
 				} else {
 				    l1 = getCharResolved(offset);
-					if (s.charAt(i) != getCharResolved(offset)) {
+					if (s.charAt(i) != (int) l1) {
 						return false;
 					}
-					offset += (int)(l>>32);
+					offset += (int)(l1>>32);
 				}
 			}
 			if (i == l && offset == endOffset)
@@ -1916,11 +1934,11 @@ public class VTDNav {
 		int ch;
 		//past the last one by one
 
-		
+		{
 		l = b? getCharResolved(offset):getChar(offset);
 		ch = (int)l;
 	    offset += (int)(l>>32);
-				
+		}		
 
 		while (offset < end) { // trim leading whitespaces
 			if (!isWS(ch))
