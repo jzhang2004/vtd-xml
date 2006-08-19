@@ -473,7 +473,8 @@ NodeTest	:    NAME 				{ Try {
 										addObj($1.qname);
 										if ($1.localname!=NULL){
 											setNodeNameNS($$,$1.prefix,$1.localname);
-											addObj($1.prefix,$1.localname);
+											addObj($1.prefix);
+											addObj($1.localname);
 											// the part for URL mapping goes here
 											$$->URL = lookup(xpathNSList,$1.prefix);
 											if ($$->URL == NULL){
