@@ -85,12 +85,12 @@ typedef struct vTDNav{
 
 	int encoding;
 
-	int currentOffset;
-	int currentOffset2;
+	//int currentOffset;
+	//int currentOffset2;
 
 	int ns;
 	int* stackTemp;
-	int offset;	 // starting offset of the XML doc wrt XMLDoc
+	int docOffset;	 // starting offset of the XML doc wrt XMLDoc
 	int docLen;  // size of XML document
 	int vtdSize; // # of entries in vtdBuffer equvalent 
 	             // to calling size(FastLongBuffer *flb) defined in fastLongBuffer.h
