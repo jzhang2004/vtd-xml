@@ -2728,29 +2728,17 @@ public class VTDNav {
      *                When there is any encoding conversion error or unknown
      *                entity.
      */
-    protected boolean resolveNS(String URL) throws NavException {
+    protected int lookupNS() throws NavException {
     	if (context[0]==-1)
-    		return false;
+    	    throw new NavException("Can't lookup NS for document node");
     	int i =
     		getTokenLength((context[0] != 0) ? context[context[0]] : rootIndex);
     	int offset =
     		getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
     	int preLen = (i >> 16) & 0xffff;
     
-    	int result = lookupNS(offset, preLen);
-    	switch(result){    		
-    		case 0: if (URL==null) {
-    		    return true;
-    		} else {
-    		    return false;
-    		}    			
-    		default: 
-    		    if (URL == null)
-    		        return false;
-    		    else {
-    		        return matchTokenString(result, URL);
-    		    }
-    	}
+    	return lookupNS(offset, preLen);
+ 
     	//return resolveNS(URL, offset, preLen);
     }
     
