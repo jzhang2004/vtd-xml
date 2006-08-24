@@ -37,6 +37,8 @@ static Long parseLong2(VTDNav *vn, int index, int radix);
 static void resolveLC(VTDNav *vn);
 static Boolean resolveNS(VTDNav *vn, UCSChar *URL);
 static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len); //UCSChar *ln);
+static int lookupNS2(VTDNav *vn, int offset, int len);
+
 
 
 
@@ -2304,6 +2306,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Test whether the URL is defined in the document.
 					 static Boolean resolveNS(VTDNav *vn, UCSChar *URL){
 						 int i, offset, preLen;
+
 						 if (vn->context[0]==-1)
 							 return FALSE;
 						 i =
@@ -2312,157 +2315,189 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 getTokenOffset(vn,(vn->context[0] != 0) ? vn->context[vn->context[0]] : vn->rootIndex);
 						 preLen = (i >> 16) & 0xffff;
 
-						 return resolveNS2(vn,URL, offset, preLen);
+						 i = lookupNS2(vn,URL, offset, preLen);
+						 switch(i){
+							 case 0: if (URL== NULL){
+										return TRUE;
+									 } else {
+										 return FALSE;
+									 }
+							 default:
+								 if (URL == NULL){
+									 return FALSE;
+								 }
+								 else {
+									 return matchTokenString(vn,i,URL);
+								 }
+						 }
 					 }
 
 					 //Test whether the URL is defined in the document.
 					 //Null is allowed to indicate the name space should be undefined.
 					 static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len){
-						 Long l; 
-						 int i,k;
-						 tokenType type;
-						 Boolean hasNS = FALSE;
-						 int size = vn->vtdBuffer->size;
-						 // look for a match in the current hiearchy and return true
-						 for (i = vn->context[0]; i >= 0; i--) {
-							 int s = (i != 0) ? vn->context[i] : vn->rootIndex;
-							 switch (NSval(vn,s)) { // checked the ns marking
-				case 0xc0000000 :
-					s = s + 1;
-					if (s>=size)
-						break;
-					type = getTokenType(vn,s);
-
-					while (s < size
-						&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
-							if (type == TOKEN_ATTR_NS) {
-								// Get the token length
-								int temp = getTokenLength(vn, s);
-								int preLen = ((temp >> 16) & 0xffff);
-								int fullLen = temp & 0xffff;
-								int os = getTokenOffset(vn, s);
-								// xmlns found
-								if (temp == 5 && len == 0) {
-									if (URL != NULL) {
-										return matchTokenString(vn, s + 1, URL);
-									} else { //xmlns is found but shouldn't be
-										return FALSE;
-									}
-								} else if ((fullLen - preLen - 1) == len) {
-									// prefix length identical to local part of ns declaration
-									Boolean a = TRUE;
-									int j;
-									for (j = 0; j < len; j++) {
-										if (getCharUnit(vn,os + preLen + 1 + j)
-											!= getCharUnit(vn,offset + j)) {
-												a = FALSE;
-												break;
-											}
-									}
-									if (a == TRUE) {
-										return (URL != NULL)
-											? matchTokenString(vn, s + 1, URL)
-											: FALSE;
-									}
-								}
-							}
-							//return (URL != null) ? true : false;
-							s += 2;
-							type = getTokenType(vn,s);
-						}
-						break;
-				case 0x80000000 :
-					break;
-				default : // check the ns existence, mark bit 31:30 to 11 or 10
-					k = s + 1;
-					if (k>=size)
-						break;
-					type = getTokenType(vn,k);
-
-					while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
-							if (type == TOKEN_ATTR_NS) {
-								// Get the token length
-
-								int temp = getTokenLength(vn, k);
-								int preLen = ((temp >> 16) & 0xffff);
-								int fullLen = temp & 0xffff;
-								int os = getTokenOffset(vn, k);
-								hasNS = TRUE;
-								// xmlns found
-								if (temp == 5 && len == 0) {
-									l = longAt(vn->vtdBuffer,s);
-									hasNS = FALSE;
-#if BIG_ENDIAN
-									modifyEntryFLB(vn->vtdBuffer,
-										s,
-										l | 0x00000000c0000000L);
-#else
-									modifyEntryFLB(vn->vtdBuffer,
-										s,
-										l | 0x000000c000000000L);
-#endif
-									if (URL != NULL) {
-										return matchRawTokenString(vn,k + 1, URL);
-									} else { //xmlns is found but shouldn't be
-										return FALSE;
-									}
-								} else if ((fullLen - preLen - 1) == len) {
-									// prefix length identical to local part of ns declaration
-									Boolean a = TRUE;
-									int j;
-									for (j = 0; j < len; j++) {
-										if (getCharUnit(vn, os + preLen + 1 + j)
-											!= getCharUnit(vn, offset + j)) {
-												a = FALSE;
-												break;
-											}
-									}
-									if (a == TRUE) {
-										l = longAt(vn->vtdBuffer,s);
-										//hasNS = false;
-#if BIG_ENDIAN
-										modifyEntryFLB(vn->vtdBuffer,
-											s,
-											l | 0x00000000c0000000L);
-#else
-										modifyEntryFLB(vn->vtdBuffer,
-											s,
-											l | 0x000000c000000000L);
-#endif
-										return (URL != NULL)
-											? matchTokenString(vn, k + 1, URL)
-											: FALSE;
-									}
-								}
-							}
-							//return (URL != null) ? true : false;
-							k += 2;
-							if (k>=size)
-								break;
-							type = getTokenType(vn,k);
-						}
-						l = longAt(vn->vtdBuffer, s);
-#if BIG_ENDIAN
-						if (hasNS) {
-							hasNS = FALSE;
-							modifyEntryFLB(vn->vtdBuffer, s, l | 0x00000000c0000000L);
-						} else {
-							modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000000080000000L);
-						}
-#else
-						if (hasNS) {
-							hasNS = FALSE;
-							modifyEntryFLB(vn->vtdBuffer, s, l | 0x000000c000000000L);
-						} else {
-							modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000008000000000L);
-						}
-#endif
-						break;
-							 }
+						 int i;
+						 i = lookupNS2(vn, offset, len);
+						 switch(i){
+							 case 0: if (URL== NULL){
+										return TRUE;
+									 } else {
+										 return FALSE;
+									 }
+							 default:
+								 if (URL == NULL){
+									 return FALSE;
+								 }
+								 else {
+									 return matchTokenString(vn,i,URL);
+								 }
 						 }
-						 return (URL != NULL) ? FALSE : TRUE;
-						 //return FALSE;
 					 }
+//					 static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len){
+//						 Long l; 
+//						 int i,k;
+//						 tokenType type;
+//						 Boolean hasNS = FALSE;
+//						 int size = vn->vtdBuffer->size;
+//						 // look for a match in the current hiearchy and return true
+//						 for (i = vn->context[0]; i >= 0; i--) {
+//							 int s = (i != 0) ? vn->context[i] : vn->rootIndex;
+//							 switch (NSval(vn,s)) { // checked the ns marking
+//				case 0xc0000000 :
+//					s = s + 1;
+//					if (s>=size)
+//						break;
+//					type = getTokenType(vn,s);
+//
+//					while (s < size
+//						&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+//							if (type == TOKEN_ATTR_NS) {
+//								// Get the token length
+//								int temp = getTokenLength(vn, s);
+//								int preLen = ((temp >> 16) & 0xffff);
+//								int fullLen = temp & 0xffff;
+//								int os = getTokenOffset(vn, s);
+//								// xmlns found
+//								if (temp == 5 && len == 0) {
+//									if (URL != NULL) {
+//										return matchTokenString(vn, s + 1, URL);
+//									} else { //xmlns is found but shouldn't be
+//										return FALSE;
+//									}
+//								} else if ((fullLen - preLen - 1) == len) {
+//									// prefix length identical to local part of ns declaration
+//									Boolean a = TRUE;
+//									int j;
+//									for (j = 0; j < len; j++) {
+//										if (getCharUnit(vn,os + preLen + 1 + j)
+//											!= getCharUnit(vn,offset + j)) {
+//												a = FALSE;
+//												break;
+//											}
+//									}
+//									if (a == TRUE) {
+//										return (URL != NULL)
+//											? matchTokenString(vn, s + 1, URL)
+//											: FALSE;
+//									}
+//								}
+//							}
+//							//return (URL != null) ? true : false;
+//							s += 2;
+//							type = getTokenType(vn,s);
+//						}
+//						break;
+//				case 0x80000000 :
+//					break;
+//				default : // check the ns existence, mark bit 31:30 to 11 or 10
+//					k = s + 1;
+//					if (k>=size)
+//						break;
+//					type = getTokenType(vn,k);
+//
+//					while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+//							if (type == TOKEN_ATTR_NS) {
+//								// Get the token length
+//
+//								int temp = getTokenLength(vn, k);
+//								int preLen = ((temp >> 16) & 0xffff);
+//								int fullLen = temp & 0xffff;
+//								int os = getTokenOffset(vn, k);
+//								hasNS = TRUE;
+//								// xmlns found
+//								if (temp == 5 && len == 0) {
+//									l = longAt(vn->vtdBuffer,s);
+//									hasNS = FALSE;
+//#if BIG_ENDIAN
+//									modifyEntryFLB(vn->vtdBuffer,
+//										s,
+//										l | 0x00000000c0000000L);
+//#else
+//									modifyEntryFLB(vn->vtdBuffer,
+//										s,
+//										l | 0x000000c000000000L);
+//#endif
+//									if (URL != NULL) {
+//										return matchRawTokenString(vn,k + 1, URL);
+//									} else { //xmlns is found but shouldn't be
+//										return FALSE;
+//									}
+//								} else if ((fullLen - preLen - 1) == len) {
+//									// prefix length identical to local part of ns declaration
+//									Boolean a = TRUE;
+//									int j;
+//									for (j = 0; j < len; j++) {
+//										if (getCharUnit(vn, os + preLen + 1 + j)
+//											!= getCharUnit(vn, offset + j)) {
+//												a = FALSE;
+//												break;
+//											}
+//									}
+//									if (a == TRUE) {
+//										l = longAt(vn->vtdBuffer,s);
+//										//hasNS = false;
+//#if BIG_ENDIAN
+//										modifyEntryFLB(vn->vtdBuffer,
+//											s,
+//											l | 0x00000000c0000000L);
+//#else
+//										modifyEntryFLB(vn->vtdBuffer,
+//											s,
+//											l | 0x000000c000000000L);
+//#endif
+//										return (URL != NULL)
+//											? matchTokenString(vn, k + 1, URL)
+//											: FALSE;
+//									}
+//								}
+//							}
+//							//return (URL != null) ? true : false;
+//							k += 2;
+//							if (k>=size)
+//								break;
+//							type = getTokenType(vn,k);
+//						}
+//						l = longAt(vn->vtdBuffer, s);
+//#if BIG_ENDIAN
+//						if (hasNS) {
+//							hasNS = FALSE;
+//							modifyEntryFLB(vn->vtdBuffer, s, l | 0x00000000c0000000L);
+//						} else {
+//							modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000000080000000L);
+//						}
+//#else
+//						if (hasNS) {
+//							hasNS = FALSE;
+//							modifyEntryFLB(vn->vtdBuffer, s, l | 0x000000c000000000L);
+//						} else {
+//							modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000008000000000L);
+//						}
+//#endif
+//						break;
+//							 }
+//						 }
+//						 return (URL != NULL) ? FALSE : TRUE;
+//						 //return FALSE;
+//					 }
 
 					 void sampleState(VTDNav *vn, FastIntBuffer *fib){
 						 if (vn->context[0]>=1)							
@@ -3316,4 +3351,154 @@ Boolean getAtTerminal(VTDNav *vn){
 				((i & 0xff00) <<8) |
 				((i & 0xff0000) >> 8) |
 				((i & 0xff000000) >> 24)&0xff);
+ }
+
+
+ static int lookupNS2(VTDNav *vn, int offset, int len){
+	 Long l; 
+	 int i,k;
+	 tokenType type;
+	 Boolean hasNS = FALSE;
+	 int size = vn->vtdBuffer->size;
+	 // look for a match in the current hiearchy and return true
+	 for (i = vn->context[0]; i >= 0; i--) {
+		 int s = (i != 0) ? vn->context[i] : vn->rootIndex;
+		 switch (NSval(vn,s)) { // checked the ns marking
+				case 0xc0000000 :
+					s = s + 1;
+					if (s>=size)
+						break;
+					type = getTokenType(vn,s);
+
+					while (s < size
+						&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+							if (type == TOKEN_ATTR_NS) {
+								// Get the token length
+								int temp = getTokenLength(vn, s);
+								int preLen = ((temp >> 16) & 0xffff);
+								int fullLen = temp & 0xffff;
+								int os = getTokenOffset(vn, s);
+								// xmlns found
+								if (temp == 5 && len == 0) {
+									return s+1;
+								} else if ((fullLen - preLen - 1) == len) {
+									// prefix length identical to local part of ns declaration
+									Boolean a = TRUE;
+									int j;
+									for (j = 0; j < len; j++) {
+										if (getCharUnit(vn,os + preLen + 1 + j)
+											!= getCharUnit(vn,offset + j)) {
+												a = FALSE;
+												break;
+										}
+									}
+									if (a == TRUE) {
+										return s+1;
+									}
+								}
+							}
+							//return (URL != null) ? true : false;
+							s += 2;
+							type = getTokenType(vn,s);
+					}
+					break;
+				case 0x80000000 :
+					break;
+				default : // check the ns existence, mark bit 31:30 to 11 or 10
+					k = s + 1;
+					if (k>=size)
+						break;
+					type = getTokenType(vn,k);
+
+					while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
+						if (type == TOKEN_ATTR_NS) {
+							// Get the token length
+
+							int temp = getTokenLength(vn, k);
+							int preLen = ((temp >> 16) & 0xffff);
+							int fullLen = temp & 0xffff;
+							int os = getTokenOffset(vn, k);
+							hasNS = TRUE;
+							// xmlns found
+							if (temp == 5 && len == 0) {
+								l = longAt(vn->vtdBuffer,s);
+								hasNS = FALSE;
+#if BIG_ENDIAN
+								modifyEntryFLB(vn->vtdBuffer,
+									s,
+									l | 0x00000000c0000000L);
+#else
+								modifyEntryFLB(vn->vtdBuffer,
+									s,
+									l | 0x000000c000000000L);
+#endif
+								return k+1;
+							} else if ((fullLen - preLen - 1) == len) {
+								// prefix length identical to local part of ns declaration
+								Boolean a = TRUE;
+								int j;
+								for (j = 0; j < len; j++) {
+									if (getCharUnit(vn, os + preLen + 1 + j)
+										!= getCharUnit(vn, offset + j)) {
+											a = FALSE;
+											break;
+									}
+								}
+								if (a == TRUE) {
+									l = longAt(vn->vtdBuffer,s);
+									//hasNS = false;
+#if BIG_ENDIAN
+									modifyEntryFLB(vn->vtdBuffer,
+										s,
+										l | 0x00000000c0000000L);
+#else
+									modifyEntryFLB(vn->vtdBuffer,
+										s,
+										l | 0x000000c000000000L);
+#endif
+									return k+1;
+								}
+							}
+						}
+						//return (URL != null) ? true : false;
+						k += 2;
+						if (k>=size)
+							break;
+						type = getTokenType(vn,k);
+					}
+					l = longAt(vn->vtdBuffer, s);
+#if BIG_ENDIAN
+					if (hasNS) {
+						hasNS = FALSE;
+						modifyEntryFLB(vn->vtdBuffer, s, l | 0x00000000c0000000L);
+					} else {
+						modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000000080000000L);
+					}
+#else
+					if (hasNS) {
+						hasNS = FALSE;
+						modifyEntryFLB(vn->vtdBuffer, s, l | 0x000000c000000000L);
+					} else {
+						modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000008000000000L);
+					}
+#endif
+					break;
+		 }
+	 }
+	 return 0;
+
+ }
+
+ int lookupNS(VTDNav *vn){
+	 int i, offset, preLen;
+
+	 if (vn->context[0]==-1)
+		 return FALSE;
+	 i =
+		 getTokenLength(vn,(vn->context[0] != 0) ? vn->context[vn->context[0]] : vn->rootIndex);
+	 offset =
+		 getTokenOffset(vn,(vn->context[0] != 0) ? vn->context[vn->context[0]] : vn->rootIndex);
+	 preLen = (i >> 16) & 0xffff;
+
+	 return lookupNS2(vn,offset, preLen);
  }
