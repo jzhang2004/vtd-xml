@@ -3026,7 +3026,7 @@ namespace com.ximpleware
         protected int lookupNS()
         {
             if (context[0] == -1)
-                return false;
+                throw new NavException("Can't lookup NS for document node");
             int i = getTokenLength((context[0] != 0) ? context[context[0]] : rootIndex);
             int offset = getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
             int preLen = (i >> 16) & 0xffff;
