@@ -3023,31 +3023,24 @@ namespace com.ximpleware
         /// <exception cref="com.ximpleware.NavException">When there is any encoding conversion error or unknown
         /// entity.
         /// </exception>
-        private bool resolveNS(System.String URL)
+        protected int lookupNS()
         {
             if (context[0] == -1)
                 return false;
             int i = getTokenLength((context[0] != 0) ? context[context[0]] : rootIndex);
             int offset = getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
             int preLen = (i >> 16) & 0xffff;
-
-            return resolveNS(URL, offset, preLen);
+            return lookupNS(offset, preLen);
+            
+            //return resolveNS(URL, offset, preLen);
         }
-        /// <summary> Test whether the URL is defined in the document.
-        /// Null is allowed to indicate the name space should be undefined.
-        /// Creation date: (11/16/03 7:54:01 PM)
+        /// <summary>
+        /// 
         /// </summary>
-        /// <returns> boolean
-        /// </returns>
-        /// <param name="URL">java.lang.String
-        /// </param>
-        /// <param name="offset">(offset of the prefix)
-        /// </param>
-        /// <param name="len">   (length of the prefix)
-        /// </param>
-        /// <exception cref="com.ximpleware.NavException">When there is any encoding conversion error or unknown entity.
-        /// </exception>
-        private bool resolveNS(System.String URL, int offset, int len)
+        /// <param name="offset"></param>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        protected int lookupNS(int offset, int len)
         {
             long l;
             bool hasNS = false;
@@ -3078,15 +3071,7 @@ namespace com.ximpleware
                                 // xmlns found
                                 if (temp == 5 && len == 0)
                                 {
-                                    if (URL != null)
-                                    {
-                                        return matchTokenString(s + 1, URL);
-                                    }
-                                    else
-                                    {
-                                        //xmlns is found but shouldn't be
-                                        return false;
-                                    }
+                                    return s + 1;
                                 }
                                 else if ((fullLen - preLen - 1) == len)
                                 {
@@ -3102,7 +3087,7 @@ namespace com.ximpleware
                                     }
                                     if (a == true)
                                     {
-                                        return (URL != null) ? matchTokenString(s + 1, URL) : false;
+                                        return s+1;
                                     }
                                 }
                             }
@@ -3139,15 +3124,8 @@ namespace com.ximpleware
                                     l = vtdBuffer.longAt(s);
                                     hasNS = false;
                                     vtdBuffer.modifyEntry(s, l | unchecked((int)0x000000c000000000L));
-                                    if (URL != null)
-                                    {
-                                        return matchRawTokenString(k + 1, URL);
-                                    }
-                                    else
-                                    {
-                                        //xmlns is found but shouldn't be
-                                        return false;
-                                    }
+                                    return k+1;
+                                   
                                 }
                                 else if ((fullLen - preLen - 1) == len)
                                 {
@@ -3166,7 +3144,7 @@ namespace com.ximpleware
                                         l = vtdBuffer.longAt(s);
                                         //hasNS = false;
                                         vtdBuffer.modifyEntry(s, l | unchecked((int)0x000000c000000000L));
-                                        return (URL != null) ? matchTokenString(k + 1, URL) : false;
+                                        return k + 1;
                                     }
                                 }
                             }
@@ -3190,7 +3168,38 @@ namespace com.ximpleware
 
                 }
             }
-            return (URL != null) ? false : true;
+            return 0;
+        }
+        /// <summary> Test whether the URL is defined in the document.
+        /// Null is allowed to indicate the name space should be undefined.
+        /// Creation date: (11/16/03 7:54:01 PM)
+        /// </summary>
+        /// <returns> boolean
+        /// </returns>
+        /// <param name="URL">java.lang.String
+        /// </param>
+        /// <param name="offset">(offset of the prefix)
+        /// </param>
+        /// <param name="len">   (length of the prefix)
+        /// </param>
+        /// <exception cref="com.ximpleware.NavException">When there is any encoding conversion error or unknown entity.
+        /// </exception>
+        private bool resolveNS(System.String URL, int offset, int len)
+        {
+            int result = lookupNS(offset, len);
+            switch (result)
+            {
+                case 0:
+                    if (URL == null) 
+                        return true;
+                    else 
+                        return false;
+                default:
+                    if (URL == null)
+                        return false;
+                    else
+                        return matchTokenString(result, URL);
+            }
         }
         /// <summary> A generic navigation method.
         /// Move the current to the element according to the direction constants
