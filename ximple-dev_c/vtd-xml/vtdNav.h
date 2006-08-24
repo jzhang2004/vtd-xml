@@ -326,5 +326,6 @@ void setAtTerminal(VTDNav* vn, Boolean b);
 Boolean getAtTerminal(VTDNav *vn);
 
 extern inline int swap_bytes(int i);
+int lookupNS(VTDNav *vn);
 
 #endif
