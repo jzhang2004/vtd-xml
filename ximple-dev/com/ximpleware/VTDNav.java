@@ -507,8 +507,8 @@ public class VTDNav {
 	}*/
 	private long handle_utf16be(int offset) throws NavException{
 		long val; 
-		int inc;
-		long temp =
+		
+		int temp =
 			((XMLDoc.byteAt(offset << 1) & 0xff)	<< 8) 
 					|(XMLDoc.byteAt((offset << 1) + 1)& 0xff);
 		if ((temp < 0xd800)
@@ -2728,7 +2728,7 @@ public class VTDNav {
      *                When there is any encoding conversion error or unknown
      *                entity.
      */
-    private boolean resolveNS(String URL) throws NavException {
+    protected boolean resolveNS(String URL) throws NavException {
     	if (context[0]==-1)
     		return false;
     	int i =
@@ -2737,20 +2737,31 @@ public class VTDNav {
     		getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
     	int preLen = (i >> 16) & 0xffff;
     
-    	return resolveNS(URL, offset, preLen);
+    	int result = lookupNS(offset, preLen);
+    	switch(result){    		
+    		case 0: if (URL==null) {
+    		    return true;
+    		} else {
+    		    return false;
+    		}    			
+    		default: 
+    		    if (URL == null)
+    		        return false;
+    		    else {
+    		        return matchTokenString(result, URL);
+    		    }
+    	}
+    	//return resolveNS(URL, offset, preLen);
     }
-	/**
-     * Test whether the URL is defined in the document.
-     * Null is allowed to indicate the name space should be undefined.
-     * Creation date: (11/16/03 7:54:01 PM)
-     * @return boolean
-     * @param URL java.lang.String
-     * @param offset (offset of the prefix)
-     * @param len    (length of the prefix)
-     * @exception com.ximpleware.NavException When there is any encoding conversion error or unknown entity.
+    
+    /**
+     * This function returns the VTD record index of the namespace 
+     * that matches the prefix of cursor element
+     * @param URL
+     * @return
+     *
      */
-    private boolean resolveNS(String URL, int offset, int len)
-    	throws NavException {
+    protected int lookupNS(int offset, int len){
     	long l;
     	boolean hasNS = false;
     	int size = vtdBuffer.size();
@@ -2773,11 +2784,7 @@ public class VTDNav {
     						int os = getTokenOffset(s);
     						// xmlns found
     						if (temp == 5 && len == 0) {
-    							if (URL != null) {
-    								return matchTokenString(s + 1, URL);
-    							} else { //xmlns is found but shouldn't be
-    								return false;
-    							}
+    							return s+1;
     						} else if ((fullLen - preLen - 1) == len) {
     							// prefix length identical to local part of ns declaration
     							boolean a = true;
@@ -2789,9 +2796,7 @@ public class VTDNav {
     								}
     							}
     							if (a == true) {
-    								return (URL != null)
-    									? matchTokenString(s + 1, URL)
-    									: false;
+    								return s+1;
     							}
     						}
     					}
@@ -2825,11 +2830,9 @@ public class VTDNav {
     							vtdBuffer.modifyEntry(
     								s,
     								l | 0x00000000c0000000L);
-    							if (URL != null) {
-    								return matchRawTokenString(k + 1, URL);
-    							} else { //xmlns is found but shouldn't be
-    								return false;
-    							}
+    							
+    							return k+1;
+    							
     						} else if ((fullLen - preLen - 1) == len) {
     							// prefix length identical to local part of ns declaration
     							boolean a = true;
@@ -2846,9 +2849,7 @@ public class VTDNav {
     								vtdBuffer.modifyEntry(
     									s,
     									l | 0x00000000c0000000L);
-    								return (URL != null)
-    									? matchTokenString(k + 1, URL)
-    									: false;
+    								return k+1;
     							}
     						}
     					}
@@ -2868,7 +2869,28 @@ public class VTDNav {
     				break;
     		}
     	}
-    	return (URL != null) ? false : true;
+    	return 0;
+        //return -1;
+    }
+    private boolean resolveNS(String URL, int offset, int len)
+	throws NavException {
+    
+        int result = lookupNS(offset, len);
+        switch(result){
+        case 0: 
+            if (URL == null){ 
+              return true;
+            } else {
+               return false;
+            }
+        default:
+            if (URL == null)
+		        return false;
+		    else {
+		        return matchTokenString(result, URL);
+		    }
+        	
+        }
     }
 	/**
 	 * A generic navigation method.
@@ -3591,7 +3613,6 @@ public class VTDNav {
 		    if(t2 == VTDNav.TOKEN_CHARACTER_DATA
 		            || t2== VTDNav.TOKEN_ATTR_VAL){
 		        l = vn2.getCharResolved(offset2);
-
 		    } else {
 		        l = vn2.getChar(offset2);
 		    }
