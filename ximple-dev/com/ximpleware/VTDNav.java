@@ -3509,19 +3509,21 @@ public class VTDNav {
 		else
 			len = getTokenLength(index);
 		int offset = getTokenOffset(index);
-		long l;
-		char c;
-		int endOffset = len + offset;
-		StringBuffer sb = new StringBuffer(len);
+		return toRawString(offset, len);
 
-		while (offset < endOffset) {
-		    l = getChar(offset);
-			c = (char)l;
-			offset += (int)(l>>32);
-			sb.append(c); // java only support 16 bit unit code
-		}
-		return sb.toString();
-
+	}
+	
+	protected String toRawString(int os, int len) throws NavException{
+	    StringBuffer sb = new StringBuffer(len);	    
+	    int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        sb.append((char)l);	                
+	    }
+	    return sb.toString();
 	}
 	/**
 	 * Convert a token at the given index to a String, (entities and char references resolved).
@@ -3544,17 +3546,22 @@ public class VTDNav {
 			len = getTokenLength(index) & 0xffff;
 		else
 			len = getTokenLength(index);
+
 		int offset = getTokenOffset(index);
-		int endOffset = len + offset;
-		StringBuffer sb = new StringBuffer(len);
-
-		while (offset < endOffset) {
-			l = getCharResolved(offset);
-			offset += (int)(l>>32);
-			sb.append((char)l); // java only support 16 bit unit code
-		}
-
-		return sb.toString();
+		return toString(offset, len);
+	}
+	
+	protected String toString(int os, int len) throws NavException{
+	    StringBuffer sb = new StringBuffer(len);	    
+	    int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getCharResolved(offset);
+	        offset += (int)(l>>32);
+	        sb.append((char)l);	                
+	    }
+	    return sb.toString();
 	}
 	
 /**
