@@ -104,7 +104,7 @@ public class FuncExpr extends Expr{
                         int preLen = length >> 16;
                         int QLen = length & 0xffff;
                         if (preLen != 0)
-                            return vn.toRawString(offset + preLen, QLen
+                            return vn.toRawString(offset + preLen+1, QLen
                                     - preLen - 1);
                         else {
                             return vn.toRawString(offset, QLen);
@@ -139,7 +139,7 @@ public class FuncExpr extends Expr{
 			        int preLen = length >> 16;
 			        int QLen = length & 0xffff;
 			        if (preLen != 0)
-			            return vn.toRawString(offset + preLen, 
+			            return vn.toRawString(offset + preLen+1, 
 			                    QLen - preLen - 1);
 			        else {
 			            return vn.toRawString(offset, QLen);
