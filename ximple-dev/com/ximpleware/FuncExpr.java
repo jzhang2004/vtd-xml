@@ -90,31 +90,180 @@ public class FuncExpr extends Expr{
 		  return fname()+" ("+")";
 	  return fname()+" ("+argumentList +")";
 	}
+	
+	private String getLocalName(VTDNav vn){
+	    if (argCount()== 0){
+	        try{
+	            int index = vn.getCurrentIndex();
+	            if (vn.getTokenType(index) == VTDNav.TOKEN_STARTING_TAG) {
+                    int offset = vn.getTokenOffset(index);
+                    int length = vn.getTokenLength(index);
+                    if (length < 0x10000)
+                        return vn.toRawString(index);
+                    else {
+                        int preLen = length >> 16;
+                        int QLen = length & 0xffff;
+                        if (preLen != 0)
+                            return vn.toRawString(offset + preLen, QLen
+                                    - preLen - 1);
+                        else {
+                            return vn.toRawString(offset, QLen);
+                        }
+                    }
+                } else
+                    return null;
+	        }catch(NavException e){
+	            return null; // this will almost never occur
+	        }
+	        
+	    } if (argCount() == 1){
+	        int a = -1;
+			vn.push2();
+			try{
+				a = argumentList.e.evalNodeSet(vn);						
+				argumentList.e.reset(vn);
+				vn.pop2();						
+			}catch(Exception e){
+				argumentList.e.reset(vn);
+				vn.pop2();
+			}
+			if (a == -1 || vn.getTokenType(a)!=VTDNav.TOKEN_STARTING_TAG)
+			    return null;
+			
+			try {			    
+			    int offset = vn.getTokenOffset(a);
+			    int length = vn.getTokenLength(a);
+			    if (length < 0x10000)
+			        return vn.toRawString(a);
+			    else {
+			        int preLen = length >> 16;
+			        int QLen = length & 0xffff;
+			        if (preLen != 0)
+			            return vn.toRawString(offset + preLen, 
+			                    QLen - preLen - 1);
+			        else {
+			            return vn.toRawString(offset, QLen);
+			        }
+			    }
+			} catch (NavException e) {
+			    return null; // this will almost never occur
+			}							        
+	    } else 
+	        throw new IllegalArgumentException
+			("String()'s argument count is invalid");
+	}
+	
+	private String getNameSpaceURI(VTDNav vn){
+	    if (argCount()==0){
+	        try{
+	            int i = vn.getCurrentIndex();
+                if (vn.getTokenType(i) == VTDNav.TOKEN_STARTING_TAG) {
+                    int a = vn.lookupNS();
+                    if (a == 0)
+                        return null;
+                    else
+                        return vn.toString(a);
+                }
+	            return null;
+	        }catch (Exception e){
+	            return null;
+	        }
+	    }else if (argCount()==1){
+	        int a = -1;
+	        String result = null;
+			vn.push2();
+			try{
+				a = argumentList.e.evalNodeSet(vn);
+				if (a == -1 || vn.getTokenType(a)!=VTDNav.TOKEN_STARTING_TAG){
+				}				    
+				else{
+				    result = vn.toString(vn.lookupNS());				    
+				}				    
+				argumentList.e.reset(vn);
+				vn.pop2();						
+			}catch(Exception e){
+				argumentList.e.reset(vn);
+				vn.pop2();
+			}	        
+			return result;
+	    }else 
+	        throw new IllegalArgumentException
+			("String()'s argument count is invalid");
+	}
+	
+	private String getName(VTDNav vn){
+	    int a;
+	    if (argCount()==0){
+	        a = vn.getCurrentIndex();
+	        if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG){
+	            try{
+	                return vn.toString(a);
+	            }catch(Exception e){
+	                return null;
+	            }            
+	        }
+	        else 
+	            return null;
+	    } else if (argCount() == 1){
+	        a = -1;
+	        String result = null;
+			vn.push2();
+			try{
+				a = argumentList.e.evalNodeSet(vn);
+				if (a == -1 || vn.getTokenType(a)!=VTDNav.TOKEN_STARTING_TAG){
+				}				    
+				else{
+				    result = vn.toString(a);				    
+				}				    
+				argumentList.e.reset(vn);
+				vn.pop2();						
+			}catch(Exception e){
+				argumentList.e.reset(vn);
+				vn.pop2();
+			}	        
+			return result;
+	    }else 
+	        throw new IllegalArgumentException
+			("String()'s argument count is invalid");
+	        
+	}
+	
+	
+	private String getString(VTDNav vn){
+	    if (argCount()== 0)
+	        try{
+	            if (vn.atTerminal){
+	                if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_CDATA_VAL )
+	                    return vn.toRawString(vn.LN);
+	                return vn.toString(vn.LN);
+	            }
+	            return vn.toString(vn.getCurrentIndex());
+	        }
+	    	catch(NavException e){
+	    	    return null; // this will almost never occur
+	    	}
+	    else if (argCount() == 1){
+	        return argumentList.e.evalString(vn);
+	    } else 
+	        throw new IllegalArgumentException
+			("String()'s argument count is invalid");
+	}
+	
 	public String evalString(VTDNav vn) throws UnsupportedException{
 	    int d=0;
 	  switch(opCode){
-			case FuncName.LOCAL_NAME: 			
-			case FuncName.NAMESPACE_URI: 	
+			case FuncName.LOCAL_NAME:
+			    return getLocalName(vn);
+
+			case FuncName.NAMESPACE_URI: 
+			    return getNameSpaceURI(vn);
+
 			case FuncName.NAME: 		
-			    throw new UnsupportedException("Some functions are not supported");
+			    return getName(vn);
+
 			case FuncName.STRING:
-			    if (argCount()== 0)
-			        try{
-			            if (vn.atTerminal){
-			                if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_CDATA_VAL )
-			                    return vn.toRawString(vn.LN);
-			                return vn.toString(vn.LN);
-			            }
-			            return vn.toString(vn.getCurrentIndex());
-			        }
-			    	catch(NavException e){
-			    	    return null; // this will almost never occur
-			    	}
-			    else if (argCount() == 1){
-			        return argumentList.e.evalString(vn);
-			    } else 
-			        throw new IllegalArgumentException
-					("String()'s argument count is invalid");
+			    return getString(vn);
+
 			case FuncName.SUBSTRING_BEFORE:		
 			case FuncName.SUBSTRING_AFTER: 		
 			case FuncName.SUBSTRING: 		
