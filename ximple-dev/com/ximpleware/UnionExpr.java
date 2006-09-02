@@ -35,20 +35,34 @@ public class UnionExpr extends Expr {
     public boolean evalBoolean(VTDNav vn) {
         if (e.isBoolean())
             return e.evalBoolean(vn);
-        
-        boolean a = false;
-        vn.push2();
-        // record teh stack size
-        int size = vn.contextStack2.size;
-        try {
-            a = (evalNodeSet(vn) != -1);
-        } catch (Exception e) {
+        if (e.isNodeSet()) {
+            boolean a = false;
+            vn.push2();
+            // record teh stack size
+            int size = vn.contextStack2.size;
+            try {
+                a = (evalNodeSet(vn) != -1);
+            } catch (Exception e) {
+            }
+            //rewind stack
+            vn.contextStack2.size = size;
+            reset(vn);
+            vn.pop2();
+            return a;
         }
-        //rewind stack
-        vn.contextStack2.size = size;
-        reset(vn);
-        vn.pop2();
-        return a;
+        else if (e.isNumerical()){
+            double dval = e.evalNumber(vn);
+            if (dval == 0.0 || Double.isNaN(dval) )
+    			return false;
+    		return true;
+            
+        }else {
+            String s = e.evalString(vn);
+            if (s==null || s.length()==0)
+                return false;
+            return true;
+            
+        }
     }
 
     /*
