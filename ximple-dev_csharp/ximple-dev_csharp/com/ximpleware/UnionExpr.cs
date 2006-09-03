@@ -36,22 +36,43 @@ namespace com.ximpleware
 		*/
 		public override bool evalBoolean(VTDNav vn)
 		{
-			bool a = false;
-			vn.push2();
-			// record teh stack size
-			int size = vn.contextStack2.size;
-			try
-			{
-				a = (evalNodeSet(vn) != - 1);
-			}
-			catch (System.Exception e)
-			{
-			}
-			//rewind stack
-			vn.contextStack2.size = size;
-			reset(vn);
-			vn.pop2();
-			return a;
+            if (e.Boolean)
+            {
+                return e.evalBoolean(vn);
+            }
+            if (e.NodeSet)
+            {
+                bool a = false;
+                vn.push2();
+                // record teh stack size
+                int size = vn.contextStack2.size;
+                try
+                {
+                    a = (evalNodeSet(vn) != -1);
+                }
+                catch (System.Exception ee)
+                {
+                }
+                //rewind stack
+                vn.contextStack2.size = size;
+                reset(vn);
+                vn.pop2();
+                return a;
+            }
+            if (e.Numerical)
+            {
+                double dval = e.evalNumber(vn);
+
+                if (dval == 0.0 || System.Double.IsNaN(dval))
+                    return false;
+                return true;
+            }
+
+            String s = e.evalString(vn);
+            if (s == null || s.Length == 0)
+                return false;
+            return true;
+
 		}
 		
 		/*
