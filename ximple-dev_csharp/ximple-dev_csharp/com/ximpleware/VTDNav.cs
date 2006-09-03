@@ -156,216 +156,7 @@ namespace com.ximpleware
             */
 
         }
-        //private int Char2
-        //{
-        //    get
-        //    {
-        //        int temp = 0;
-        //        int a, c, d;
-        //        int val;
-        //        //int ch;
-        //        a = c = d = val = 0;
-
-        //        switch (encoding)
-        //        {
-
-        //            case FORMAT_ASCII:  // ascii is compatible with UTF-8, the offset value is bytes
-        //                temp = XMLDoc.byteAt(currentOffset2);
-        //                if (temp == '\r')
-        //                {
-        //                    if (XMLDoc.byteAt(currentOffset2 + 1) == '\n')
-        //                    {
-        //                        currentOffset2 += 2;
-        //                        return '\n';
-        //                    }
-        //                    else
-        //                    {
-        //                        currentOffset2++;
-        //                        return '\n';
-        //                    }
-        //                }
-        //                currentOffset2++;
-        //                return temp;
-
-        //            case FORMAT_UTF8:
-        //                temp = XMLDoc.byteAt(currentOffset2);
-
-        //                switch (UTF8Char.byteCount(temp))
-        //                {
-
-        //                    case 1:
-        //                        if (temp == '\r')
-        //                        {
-        //                            if (XMLDoc.byteAt(currentOffset2 + 1) == '\n')
-        //                            {
-        //                                currentOffset2 += 2;
-        //                                return '\n';
-        //                            }
-        //                            else
-        //                            {
-        //                                currentOffset2++;
-        //                                return '\n';
-        //                            }
-        //                        }
-        //                        currentOffset2++;
-        //                        return temp;
-
-        //                    case 2:
-        //                        c = 0x1f;
-        //                        d = 6;
-        //                        a = 1;
-        //                        break;
-
-        //                    case 3:
-        //                        c = 0x0f;
-        //                        d = 12;
-        //                        a = 2;
-        //                        break;
-
-        //                    case 4:
-        //                        c = 0x07;
-        //                        d = 18;
-        //                        a = 3;
-        //                        break;
-
-        //                    case 5:
-        //                        c = 0x03;
-        //                        d = 24;
-        //                        a = 4;
-        //                        break;
-
-        //                    case 6:
-        //                        c = 0x01;
-        //                        d = 30;
-        //                        a = 5;
-        //                        break;
-
-        //                    default:
-        //                        throw new NavException("UTF 8 encoding error: should never happen");
-
-        //                }
-
-        //                val = (temp & c) << d;
-        //                int i = a - 1;
-        //                while (i >= 0)
-        //                {
-        //                    temp = XMLDoc.byteAt(currentOffset2 + a - i);
-        //                    if ((temp & 0xc0) != 0x80)
-        //                        throw new NavException("UTF 8 encoding error: should never happen");
-        //                    val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
-        //                    i--;
-        //                }
-        //                currentOffset2 += a + 1;
-        //                return val;
-
-
-        //            case FORMAT_ISO_8859:
-        //                temp = XMLDoc.byteAt(currentOffset2);
-        //                if (temp == '\r')
-        //                {
-        //                    if (XMLDoc.byteAt(currentOffset2 + 1) == '\n')
-        //                    {
-        //                        currentOffset2 += 2;
-        //                        return '\n';
-        //                    }
-        //                    else
-        //                    {
-        //                        currentOffset2++;
-        //                        return '\n';
-        //                    }
-        //                }
-        //                currentOffset2++;
-        //                return temp;
-
-
-        //            case FORMAT_UTF_16BE:
-        //                // implement UTF-16BE to UCS4 conversion
-        //                temp = ((XMLDoc.byteAt(currentOffset2 << 1)) << 8) | (XMLDoc.byteAt((currentOffset2 << 1) + 1));
-        //                if ((temp < 0xd800) || (temp > 0xdfff))
-        //                {
-        //                    // not a high surrogate
-        //                    if (temp == '\r')
-        //                    {
-        //                        if (XMLDoc.byteAt((currentOffset2 << 1) + 3) == '\n' && XMLDoc.byteAt((currentOffset2 << 1) + 2) == 0)
-        //                        {
-        //                            currentOffset2 += 2;
-        //                            return '\n';
-        //                        }
-        //                        else
-        //                        {
-        //                            currentOffset2++;
-        //                            return '\n';
-        //                        }
-        //                    }
-        //                    currentOffset2++;
-        //                    return temp;
-        //                }
-        //                else
-        //                {
-        //                    if (temp < 0xd800 || temp > 0xdbff)
-        //                        throw new NavException("UTF 16 BE encoding error: should never happen");
-        //                    val = temp;
-        //                    temp = ((XMLDoc.byteAt((currentOffset2 << 1) + 2)) << 8) | (XMLDoc.byteAt((currentOffset2 << 1) + 3));
-        //                    if (temp < 0xdc00 || temp > 0xdfff)
-        //                    {
-        //                        // has to be a low surrogate here
-        //                        throw new NavException("UTF 16 BE encoding error: should never happen");
-        //                    }
-        //                    val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
-        //                    currentOffset2 += 2;
-        //                    return val;
-        //                }
-        //            //goto case FORMAT_UTF_16LE;
-
-
-        //            case FORMAT_UTF_16LE:
-        //                // implement UTF-16LE to UCS4 conversion
-        //                temp = (XMLDoc.byteAt((currentOffset2 << 1) + 1)) << 8 | (XMLDoc.byteAt(currentOffset2 << 1));
-        //                if (temp < 0xdc00 || temp > 0xdfff)
-        //                {
-        //                    // check for low surrogate
-        //                    if (temp == '\r')
-        //                    {
-        //                        if (XMLDoc.byteAt((currentOffset2 << 1) + 2) == '\n' && XMLDoc.byteAt((currentOffset2 << 1) + 3) == 0)
-        //                        {
-        //                            currentOffset2 += 2;
-        //                            return '\n';
-        //                        }
-        //                        else
-        //                        {
-        //                            currentOffset2++;
-        //                            return '\n';
-        //                        }
-        //                    }
-        //                    currentOffset2++;
-        //                    return temp;
-        //                }
-        //                else
-        //                {
-        //                    if (temp < 0xd800 || temp > 0xdbff)
-        //                        throw new NavException("UTF 16 LE encoding error: should never happen");
-        //                    val = temp;
-        //                    temp = (XMLDoc.byteAt((currentOffset2 << 1) + 3)) << 8 | (XMLDoc.byteAt((currentOffset2 << 1) + 2));
-        //                    if (temp < 0xdc00 || temp > 0xdfff)
-        //                    {
-        //                        // has to be high surrogate
-        //                        throw new NavException("UTF 16 LE encoding error: should never happen");
-        //                    }
-        //                    val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
-        //                    currentOffset2 += 2;
-        //                    return val;
-        //                }
-        //            //System.out.println("UTF 16 LE unimplemented for now");
-        //            //goto default;
-
-
-        //            default:
-        //                throw new NavException("Unknown Encoding");
-
-        //        }
-        //    }
-
-        //}
+     
         /// <summary> This method decodes the underlying byte array into corresponding UCS2 char representation .
         /// Also it resolves built-in entity and character references.
         /// </summary>
@@ -4019,6 +3810,21 @@ namespace com.ximpleware
             return sb.ToString();
         }
 
+        protected System.String toRawString(int os, int len)
+        {
+            int endOffset = len + os;
+            int offset = os;
+            long l;
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
+
+            while (offset < endOffset)
+            {
+                l = getChar(offset);
+                offset += (int)(l >> 32);
+                sb.Append((char)l); // java only support 16 bit unit code
+            }
+            return sb.ToString();
+        }
         /// <summary> Convert a token at the given index to a String, (built-in entity and char references not resolved)
         /// (entities and char references not expanded).
         /// Creation date: (11/16/03 7:28:49 PM)
@@ -4038,19 +3844,24 @@ namespace com.ximpleware
             else
                 len = getTokenLength(index);
             int offset = getTokenOffset(index);
-            long l;
-            int c;
+            return toRawString(offset, len);
+        }
 
-            int endOffset = len + offset;
+        protected System.String toString(int os, int len)
+        {
+            int endOffset = len + os;
+            int offset = os;
             System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
+            //System.String s = null;
+            long l;
 
             while (offset < endOffset)
             {
-                l = getChar(offset);
-                c = (char)l;
+                l = getCharResolved(offset);
                 offset += (int)(l >> 32);
-                sb.Append(c); // java only support 16 bit unit code
+                sb.Append((char)l); // java only support 16 bit unit code
             }
+
             return sb.ToString();
         }
         /// <summary> Convert a token at the given index to a String, (entities and char references resolved).
@@ -4074,20 +3885,8 @@ namespace com.ximpleware
             else
                 len = getTokenLength(index);
             int offset = getTokenOffset(index);
-            int endOffset = len + offset;
-            System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
-            //System.String s = null;
-            int i;
-            long l;
 
-            while (offset < endOffset)
-            {
-                l = getCharResolved(offset);
-                offset += (int)(l >> 32);
-                sb.Append((char)l); // java only support 16 bit unit code
-            }
-
-            return sb.ToString();
+            return toString(offset, len);
         }
 
         /// <summary> This method compares two VTD tokens of VTDNav objects</summary>
