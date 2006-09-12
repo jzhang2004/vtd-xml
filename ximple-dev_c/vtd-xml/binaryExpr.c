@@ -232,7 +232,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           break;
                       t = getTokenType(vn,i1);
                       if (i1 == TOKEN_CHARACTER_DATA){
-                          if (matchTokenString(vn,i1,st1)){
+                          if (st1 == NULL || matchTokenString(vn,i1,st1)){
                               vn->contextBuf2->size = stackSize;
                               pop2(vn);
                               be->left->reset(be->left,vn);
@@ -243,7 +243,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                                   return FALSE;
                           }
                       }else {
-                          if (matchRawTokenString(vn,i1, st1)){
+                          if (st1 == NULL ||matchRawTokenString(vn,i1, st1)){
                               vn->contextBuf2->size = stackSize;
                               pop2(vn);
                               be->left->reset(be->left,vn);
@@ -257,7 +257,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   }
                   else if (t == TOKEN_ATTR_NAME
                           || t == TOKEN_ATTR_NS) {
-                      if (matchTokenString(vn,i+1,st1)){
+                      if (st1 == NULL || matchTokenString(vn,i+1,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -270,7 +270,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   }
                   else if ( t == TOKEN_CHARACTER_DATA
                           || t == TOKEN_CDATA_VAL){
-                      if (matchTokenString(vn,i,st1)){
+                      if (st1 == NULL || matchTokenString(vn,i,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -281,7 +281,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                               return FALSE;
                       }
                   }else if ( t == TOKEN_CDATA_VAL){
-                      if (matchRawTokenString(vn,i,st1)){
+                      if (st1 == NULL || matchRawTokenString(vn,i,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -314,7 +314,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           break;
                       t = getTokenType(vn,i1);
                       if (i1 == TOKEN_CHARACTER_DATA){
-                          if (matchTokenString(vn,i1,st1)){
+                          if (st1 == NULL ||matchTokenString(vn,i1,st1)){
                               vn->contextBuf2->size = stackSize;
                               pop2(vn);
                               be->left->reset(be->left,vn);
@@ -325,7 +325,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                                   return FALSE;
                           }
                       }else {
-                          if (matchRawTokenString(vn,i1, st1)){
+                          if (st1 == NULL ||matchRawTokenString(vn,i1, st1)){
                               vn->contextBuf2->size = stackSize;
                               pop2(vn);
                               be->left->reset(be->left,vn);
@@ -339,7 +339,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   }
                   else if (t == TOKEN_ATTR_NAME
                           || t == TOKEN_ATTR_NS) {
-                      if (matchTokenString(vn,i+1,st1)){
+                      if (st1 == NULL ||matchTokenString(vn,i+1,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -352,7 +352,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   }
                   else if ( t == TOKEN_CHARACTER_DATA
                           || t == TOKEN_CDATA_VAL){
-                      if (matchTokenString(vn,i,st1)){
+                      if (st1 == NULL ||matchTokenString(vn,i,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -363,7 +363,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                               return FALSE;
                       }
                   }else if ( t == TOKEN_CDATA_VAL){
-                      if (matchRawTokenString(vn,i,st1)){
+                      if (st1 == NULL ||matchRawTokenString(vn,i,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -410,7 +410,11 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
 		  }
 		  st1 = be->left->evalString(be->left,vn);
 		  st2 = be->right->evalString(be->right,vn);
-		  btemp = wcscmp(st1, st2);
+		  if (st1 == NULL || st2 == NULL){
+			  btemp = FALSE;
+		  }else{
+			  btemp = wcscmp(st1, st2);
+		  }
 		  free(st1);
 		  free(st2);
 		  if (op == OP_EQ){
