@@ -22,6 +22,8 @@ static Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn);
 Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
 	exception e;
    int i,j,k,i1 = 0,stackSize, s1,s2;
+   Boolean btemp = FALSE;
+   UCSChar *st1=NULL, *st2=NULL;
    tokenType t;
 	if (be->left->isNodeSet(be->left) && be->right->isNodeSet(be->right)) {
       Try {
@@ -219,6 +221,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
       
       Try {
           if (be->left->isString(be->left) && be->right->isNodeSet(be->right)) {
+			  st1 = be->left->evalString(be->left,vn);
               push2(vn);
               stackSize = vn->contextBuf2->size;
               while ((i = be->right->evalNodeSet(be->right,vn)) != -1) {
@@ -229,7 +232,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           break;
                       t = getTokenType(vn,i1);
                       if (i1 == TOKEN_CHARACTER_DATA){
-                          if (matchTokenString(vn,i1,be->left->evalString(be->left,vn))){
+                          if (matchTokenString(vn,i1,st1)){
                               vn->contextBuf2->size = stackSize;
                               pop2(vn);
                               be->left->reset(be->left,vn);
@@ -240,7 +243,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                                   return FALSE;
                           }
                       }else {
-                          if (matchRawTokenString(vn,i1, be->left->evalString(be->left,vn))){
+                          if (matchRawTokenString(vn,i1, st1)){
                               vn->contextBuf2->size = stackSize;
                               pop2(vn);
                               be->left->reset(be->left,vn);
@@ -254,7 +257,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   }
                   else if (t == TOKEN_ATTR_NAME
                           || t == TOKEN_ATTR_NS) {
-                      if (matchTokenString(vn,i+1,be->left->evalString(be->left,vn))){
+                      if (matchTokenString(vn,i+1,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -267,7 +270,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   }
                   else if ( t == TOKEN_CHARACTER_DATA
                           || t == TOKEN_CDATA_VAL){
-                      if (matchTokenString(vn,i,be->left->evalString(be->left,vn))){
+                      if (matchTokenString(vn,i,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -278,7 +281,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                               return FALSE;
                       }
                   }else if ( t == TOKEN_CDATA_VAL){
-                      if (matchRawTokenString(vn,i,be->left->evalString(be->left,vn))){
+                      if (matchRawTokenString(vn,i,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -294,11 +297,13 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
               pop2(vn);
               be->left->reset(be->left,vn);
               be->right->reset(be->right,vn);
+			  free(st1); // recycle the string object
               if (op == OP_EQ)
                   return FALSE;
               else 
                   return TRUE;
           } else if (be->left->isNodeSet(be->left) && be->right->isString(be->right)) {
+			  st1 = be->right->evalString(be->right,vn);
               push2(vn);
               stackSize = vn->contextBuf2->size;
               while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
@@ -309,7 +314,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                           break;
                       t = getTokenType(vn,i1);
                       if (i1 == TOKEN_CHARACTER_DATA){
-                          if (matchTokenString(vn,i1,be->right->evalString(be->right,vn))){
+                          if (matchTokenString(vn,i1,st1)){
                               vn->contextBuf2->size = stackSize;
                               pop2(vn);
                               be->left->reset(be->left,vn);
@@ -320,7 +325,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                                   return FALSE;
                           }
                       }else {
-                          if (matchRawTokenString(vn,i1, be->right->evalString(be->right,vn))){
+                          if (matchRawTokenString(vn,i1, st1)){
                               vn->contextBuf2->size = stackSize;
                               pop2(vn);
                               be->left->reset(be->left,vn);
@@ -334,7 +339,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   }
                   else if (t == TOKEN_ATTR_NAME
                           || t == TOKEN_ATTR_NS) {
-                      if (matchTokenString(vn,i+1,be->right->evalString(be->right,vn))){
+                      if (matchTokenString(vn,i+1,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -347,7 +352,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                   }
                   else if ( t == TOKEN_CHARACTER_DATA
                           || t == TOKEN_CDATA_VAL){
-                      if (matchTokenString(vn,i,be->right->evalString(be->right,vn))){
+                      if (matchTokenString(vn,i,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -358,7 +363,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
                               return FALSE;
                       }
                   }else if ( t == TOKEN_CDATA_VAL){
-                      if (matchRawTokenString(vn,i,be->right->evalString(be->right,vn))){
+                      if (matchRawTokenString(vn,i,st1)){
                           vn->contextBuf2->size = stackSize;
                           pop2(vn);
                           be->left->reset(be->left,vn);
@@ -374,6 +379,7 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
               pop2(vn);
               be->left->reset(be->left,vn);
               be->right->reset(be->right,vn);
+			  free(st1);
               if (op == OP_EQ)
                   return FALSE;
               else 
@@ -402,13 +408,16 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
 		      else
 		          return be->left->evalNumber(be->left,vn) != be->right->evalNumber(be->right,vn);
 		  }
-		  if (op == OP_EQ)
-		      return wcscmp(be->left->evalString(be->left,vn),be->right->evalString(be->right,vn))==0;
-  	  return 
-  	  	wcscmp(be->left->evalString(be->left,vn),be->right->evalString(be->right,vn))!=0;
-	
-	
-
+		  st1 = be->left->evalString(be->left,vn);
+		  st2 = be->right->evalString(be->right,vn);
+		  btemp = wcscmp(st1, st2);
+		  free(st1);
+		  free(st2);
+		  if (op == OP_EQ){
+			 return btemp==0;
+		  }
+		  else
+  	  	     return btemp!=0;
 }
 
 binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
