@@ -220,6 +220,10 @@ namespace com.ximpleware
 		*/
 		public override System.String evalString(VTDNav vn)
 		{
+              if (e.String){
+                return e.evalString(vn);                
+              }
+
 			vn.push2();
 			int size = vn.contextStack2.size;
 			int a = - 1;
@@ -238,7 +242,7 @@ namespace com.ximpleware
 					}
 				}
 			}
-			catch (System.Exception e)
+			catch (System.Exception ee)
 			{
 			}
 			vn.contextStack2.size = size;
@@ -249,7 +253,7 @@ namespace com.ximpleware
 				if (a != - 1)
 					return vn.toString(a);
 			}
-			catch (NavException e)
+			catch (NavException ee)
 			{
 			}
 			return null;
