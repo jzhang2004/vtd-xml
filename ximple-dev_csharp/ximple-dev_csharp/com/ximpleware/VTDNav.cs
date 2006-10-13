@@ -2814,7 +2814,7 @@ namespace com.ximpleware
         /// <exception cref="com.ximpleware.NavException">When there is any encoding conversion error or unknown
         /// entity.
         /// </exception>
-        protected int lookupNS()
+        protected internal int lookupNS()
         {
             if (context[0] == -1)
                 throw new NavException("Can't lookup NS for document node");
@@ -2831,7 +2831,7 @@ namespace com.ximpleware
         /// <param name="offset"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        protected int lookupNS(int offset, int len)
+        protected internal int lookupNS(int offset, int len)
         {
             long l;
             bool hasNS = false;
@@ -3284,7 +3284,8 @@ namespace com.ximpleware
                             if (direction == NEXT_SIBLING)
                             {
                                 int index = context[context[0]] + 1;
-                                while (index < vtdBuffer.size())
+                                size = vtdBuffer.size();
+                                while (index < size)
                                 {
                                     long temp = vtdBuffer.longAt(index);
                                     int token_type = (int)((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
@@ -3810,7 +3811,7 @@ namespace com.ximpleware
             return sb.ToString();
         }
 
-        protected System.String toRawString(int os, int len)
+        protected internal System.String toRawString(int os, int len)
         {
             int endOffset = len + os;
             int offset = os;
@@ -3847,7 +3848,7 @@ namespace com.ximpleware
             return toRawString(offset, len);
         }
 
-        protected System.String toString(int os, int len)
+        protected internal System.String toString(int os, int len)
         {
             int endOffset = len + os;
             int offset = os;
