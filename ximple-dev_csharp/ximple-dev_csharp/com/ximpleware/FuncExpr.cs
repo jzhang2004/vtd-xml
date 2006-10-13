@@ -302,7 +302,7 @@ namespace com.ximpleware
                 }
             }
             else
-                throw new System.ArgumentException("String()'s argument count is invalid");
+                throw new System.ArgumentException("local-name()'s argument count is invalid");
         }
 
         private String getNameSpaceURI(VTDNav vn)
@@ -353,7 +353,7 @@ namespace com.ximpleware
                 return result;
             }
             else
-                throw new System.ArgumentException("String()'s argument count is invalid");
+                throw new System.ArgumentException("namespace-uri()'s argument count is invalid");
         }
 
         private String getName(VTDNav vn)
@@ -402,7 +402,7 @@ namespace com.ximpleware
                 return result;
             }
             else
-                throw new System.ArgumentException("String()'s argument count is invalid");
+                throw new System.ArgumentException("name()'s argument count is invalid");
         }
 
 		public override System.String evalString(VTDNav vn)

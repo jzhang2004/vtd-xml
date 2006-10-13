@@ -150,7 +150,7 @@ public class FuncExpr extends Expr{
 			}							        
 	    } else 
 	        throw new IllegalArgumentException
-			("String()'s argument count is invalid");
+			("local-name()'s argument count is invalid");
 	}
 	
 	private String getNameSpaceURI(VTDNav vn){
@@ -188,7 +188,7 @@ public class FuncExpr extends Expr{
 			return result;
 	    }else 
 	        throw new IllegalArgumentException
-			("String()'s argument count is invalid");
+			("namespace-uri()'s argument count is invalid");
 	}
 	
 	private String getName(VTDNav vn){
@@ -224,7 +224,7 @@ public class FuncExpr extends Expr{
 			return result;
 	    }else 
 	        throw new IllegalArgumentException
-			("String()'s argument count is invalid");
+			("name()'s argument count is invalid");
 	        
 	}
 	
