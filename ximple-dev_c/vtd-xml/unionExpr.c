@@ -147,6 +147,9 @@ double	evalNumber_une (unionExpr *e,VTDNav *vn){
 	exception ee;
 	int a = -1;
 	int size;
+	if (e->fe->isNumerical(e->fe)){
+		return e->fe->evalNumber(e->fe,vn);
+	}
 	push2(vn);
 	size = vn->contextBuf2->size;
 	Try {
@@ -173,9 +176,12 @@ UCSChar* evalString_une  (unionExpr *e,VTDNav *vn){
 	exception ee;
 	int size;
 	int a = -1;
+	if (e->fe->isString(e->fe)){
+		return e->fe->evalString(e->fe,vn);
+	}
 	push2(vn);
 	size = vn->contextBuf2->size;
-	
+
 	Try {
 		a = evalNodeSet_une(e,vn);
 		if (a != -1) {
@@ -205,6 +211,9 @@ Boolean evalBoolean_une (unionExpr *e,VTDNav *vn){
 	exception ee;
 	Boolean b = FALSE;
 	int size;
+	if (e->fe->isBoolean(e->fe)){
+		return e->fe->evalBoolean(e->fe,vn);
+	}
 	push2(vn);
 	// record teh stack size
 	size = vn->contextBuf2->size;
@@ -242,7 +251,8 @@ void	reset_une(unionExpr *e, VTDNav *vn){
         tmp->fe->reset(tmp->fe,vn);
         tmp = tmp->next;
     }
-	resetIntHash(e->ih);
+	if (e->ih!=NULL)
+		resetIntHash(e->ih);
 	e->evalState = 0;
 
 
