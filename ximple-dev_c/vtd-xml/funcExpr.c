@@ -20,14 +20,194 @@
 static double sum(funcExpr *fne, VTDNav *vn);
 static int argCount(funcExpr *fne);
 static int count(funcExpr *fne, VTDNav *vn);
+static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn);
+static UCSChar *getName(funcExpr *fne, VTDNav *vn);
+static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn);
+static UCSChar *getString(funcExpr *fne, VTDNav *vn);
 static double round(double v) 
 { 
- return (v>0.0) ? floor(v+0.5) : ceil(v-0.5); 
-
+ return (v>0.0) ? floor(v+0.5) : ceil(v-0.5);
 }
 
-
 static UCSChar *fname(funcExpr *fne,funcName i);
+
+static UCSChar *getString(funcExpr *fne, VTDNav *vn){
+	exception e;
+	if (argCount(fne)== 0){
+		Try{
+			if (vn->atTerminal){
+				if (getTokenType(vn,vn->LN) == TOKEN_CDATA_VAL )
+					return toRawString(vn,vn->LN);
+				return toString(vn,vn->LN);
+			}
+			return toString(vn, getCurrentIndex(vn));
+		}
+		Catch(e){
+			return NULL; // this will almost never occur
+		}
+	}
+	else if (argCount(fne) == 1){
+		return fne->al->e->evalString(fne->al->e, vn);
+	} else {
+		e.et = invalid_argument;
+		e.msg = "string()'s  <funcExpr> argument count is invalid";
+		Throw e;			        
+	}
+	return NULL;
+}
+
+static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
+	exception e;
+	int index;
+	if (argCount(fne)== 0){
+		Try{
+			index = getCurrentIndex(vn);
+			if (getTokenType(vn,index) == TOKEN_STARTING_TAG) {
+				int offset = getTokenOffset(vn,index);
+				int length = getTokenLength(vn,index);
+				if (length < 0x10000)
+					return toRawString(vn,index);
+				else {
+					int preLen = length >> 16;
+					int QLen = length & 0xffff;
+					if (preLen != 0)
+						return toRawString2(vn,offset + preLen+1, QLen
+						- preLen - 1);
+					else {
+						return toRawString2(vn,offset, QLen);
+					}
+				}
+			} else
+				return NULL;
+		}
+		Catch(e){
+			return NULL; // this will almost never occur
+		}
+	}
+	else if (argCount(fne) == 1){
+		int a = -1;
+		push2(vn);
+		Try{
+			a = fne->al->e->evalNodeSet(fne->al->e,vn);						
+			fne->al->e->reset(fne->al->e,vn);
+			pop2(vn);						
+		}Catch(e){
+			fne->al->e->reset(fne->al->e,vn);
+			pop2(vn);
+		}
+		if (a == -1 || getTokenType(vn,a)!=TOKEN_STARTING_TAG)
+			return NULL;
+		Try {			    
+			int offset = getTokenOffset(vn,a);
+			int length = getTokenLength(vn,a);
+			if (length < 0x10000)
+				return toRawString(vn,a);
+			else {
+				int preLen = length >> 16;
+				int QLen = length & 0xffff;
+				if (preLen != 0)
+					return toRawString2(vn, offset + preLen+1, 
+					QLen - preLen - 1);
+				else {
+					return toRawString2(vn, offset, QLen);
+				}
+			}
+		} Catch (e) {
+			return NULL; // this will almost never occur
+		}		
+	} else {
+		e.et = invalid_argument;
+		e.msg = "local-name()'s  <funcExpr> argument count is invalid";
+		Throw e;			        
+	}
+	return NULL;
+}
+
+static UCSChar *getName(funcExpr *fne, VTDNav *vn){
+	exception e;
+	int a;
+	if (argCount(fne)== 0){
+		a = getCurrentIndex(vn);
+		if (getTokenType(vn,a) == TOKEN_STARTING_TAG){
+			Try{
+				return toString(vn,a);
+			}Catch(e){
+				return NULL;
+			}            
+		}
+		else 
+			return NULL;
+	}
+	else if (argCount(fne) == 1){
+		UCSChar *result = NULL;
+		a = -1;		
+		push2(vn);
+		Try{
+			a = fne->al->e->evalNodeSet(fne->al->e, vn);
+			if (a == -1 || getTokenType(vn, a)!= TOKEN_STARTING_TAG){
+			}				    
+			else{
+				result = toString(vn,a);				    
+			}				    
+			fne->al->e->reset(fne->al->e,vn);
+			pop2(vn);						
+		}Catch(e){
+			fne->al->e->reset(fne->al->e,vn);
+			pop2(vn);
+		}	        
+		return result;
+		//return fne->al->e->evalString(fne->al->e, vn);
+	} else {
+		e.et = invalid_argument;
+		e.msg = "name()'s  <funcExpr> argument count is invalid";
+		Throw e;			        
+	}
+	return NULL;
+}
+
+static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn){
+		exception e;
+	if (argCount(fne)== 0){
+		Try{
+			int i = getCurrentIndex(vn);
+			if (getTokenType(vn,i) == TOKEN_STARTING_TAG) {
+				int a = lookupNS(vn);
+				if (a == 0)
+					return NULL;
+				else
+					return toString(vn,a);
+			}
+			return NULL;
+		}Catch (e){
+			return NULL;
+		}
+	}
+	else if (argCount(fne) == 1){
+		UCSChar *result = NULL;
+		int a = -1;
+		push2(vn);
+		Try{
+			a = fne->al->e->evalNodeSet(fne->al->e,vn);
+			if (a==-1 || getTokenType(vn,a) != TOKEN_STARTING_TAG){
+			}
+			else {
+				result = toString(vn,lookupNS(vn));
+			}
+			fne->al->e->reset(fne->al->e,vn);
+			pop2(vn);
+		}Catch(e){
+			fne->al->e->reset(fne->al->e,vn);
+			pop2(vn);
+		}
+		return result;
+	} else {
+		e.et = invalid_argument;
+		e.msg = "namespace-uri()'s  <funcExpr> argument count is invalid";
+		Throw e;			        
+	}
+	return NULL;
+}
+
 aList *createAlist(){
 	exception e;
 	aList *al = (aList *)malloc(sizeof(aList));
@@ -380,33 +560,15 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 	UCSChar *tmp;
 
 	switch(fne->opCode){
-			case FN_LOCAL_NAME: 			
+			case FN_LOCAL_NAME: 	
+				return getLocalName(fne,vn);
 			case FN_NAMESPACE_URI: 	
-			case FN_NAME: 		e.et = other;
-								e.msg = "Some functions are not supported";
-								Throw e;
-			    
+				return getNameSpaceURI(fne, vn);
+			case FN_NAME: 		
+				return getName(fne,vn);			    
 			case FN_STRING:
-				if (argCount(fne)== 0){
-			        Try{
-			            if (vn->atTerminal){
-			                if (getTokenType(vn,vn->LN) == TOKEN_CDATA_VAL )
-			                    return toRawString(vn,vn->LN);
-			                return toString(vn,vn->LN);
-			            }
-			            return toString(vn, getCurrentIndex(vn));
-			        }
-			    	Catch(e){
-			    	    return NULL; // this will almost never occur
-			    	}
-				}
-			    else if (argCount(fne) == 1){
-			        return fne->al->e->evalString(fne->al->e, vn);
-				} else {
-					e.et = invalid_argument;
-					e.msg = "string()'s  <funcExpr> argument count is invalid";
-					Throw e;			        
-				}
+				return getString(fne,vn);
+
 			case FN_SUBSTRING_BEFORE:		
 			case FN_SUBSTRING_AFTER: 		
 			case FN_SUBSTRING: 		
