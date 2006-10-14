@@ -82,6 +82,8 @@ namespace com.ximpleware
 		*/
 		public override double evalNumber(VTDNav vn)
 		{
+            if (e.Numerical)
+                return e.evalNumber(vn);
 			double d;
 			int a = - 1;
 			vn.push2();
@@ -101,7 +103,7 @@ namespace com.ximpleware
 					}
 				}
 			}
-			catch (System.Exception e)
+			catch (System.Exception ee)
 			{
 				
 			}
@@ -113,7 +115,7 @@ namespace com.ximpleware
 				if (a != - 1)
 					return vn.parseDouble(a);
 			}
-			catch (NavException e)
+			catch (NavException ee)
 			{
 			}
 			return System.Double.NaN;
