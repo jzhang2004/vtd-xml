@@ -305,11 +305,13 @@ UCSChar *toNormalizedString(VTDNav *vn, int index);
 //(built-in entity and char references not resolved)
 //(entities and char references not expanded).
 UCSChar *toRawString(VTDNav *vn, int index);
+UCSChar *toRawString2(VTDNav *vn, int os, int len);
 
 //Convert a token at the given index to a String, (entities and char 
 //references resolved).
 // An attribute name or an element name will get the UCS2 string of qualified name 
 UCSChar *toString(VTDNav *vn, int index);
+UCSChar *toString2(VTDNav *vn, int os, int len);
 
 /**
  * Set the value of atTerminal
