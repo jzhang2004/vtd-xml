@@ -73,7 +73,7 @@ UCSChar* evalString_ue  (unaryExpr *ue,VTDNav *vn){
 			Throw e;
 	}
 
-	swprintf(string,L"-%ls",string1);
+	swprintf(string,64,L"-%ls",string1);
 
 	free(string1);
 	return string;

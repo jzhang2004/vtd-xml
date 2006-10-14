@@ -405,8 +405,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 static Long getChar(VTDNav *vn,int offset){
 						 exception e;
 						 Long temp = 0;
-						 int a, c, d;
-						 int val,i;
+						 
+						 
 						 //int ch;
 						 //a = c = d = val = 0;
 
@@ -1007,7 +1007,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 static inline Boolean isElementOrDocument(VTDNav  *vn, int index){
 						int i = 0;
 #if BIG_ENDIAN		 
-						 i= (((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
+						 i= (int)(((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
 						  return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
 #else
 						 i = ( ((longAt(vn->vtdBuffer,index) & 0xf0)>>4));
@@ -2315,7 +2315,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 getTokenOffset(vn,(vn->context[0] != 0) ? vn->context[vn->context[0]] : vn->rootIndex);
 						 preLen = (i >> 16) & 0xffff;
 
-						 i = lookupNS2(vn,URL, offset, preLen);
+						 i = lookupNS2(vn, offset, preLen);
 						 switch(i){
 							 case 0: if (URL== NULL){
 										return TRUE;
@@ -3175,12 +3175,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //(built-in entity and char references not resolved)
 					 //(entities and char references not expanded).
 					 UCSChar *toRawString(VTDNav *vn, int index){
-						 exception e;
+						
 						 int offset;
 						 tokenType type = getTokenType(vn,index);
 						 int len;
-						 Long l;
-						 UCSChar c;
+						 
+						 
 						 UCSChar *s = NULL;
 
 						 if (type == TOKEN_STARTING_TAG
@@ -3220,11 +3220,10 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //references resolved).
 					 // An attribute name or an element name will get the UCS2 string of qualified name 
 					 UCSChar *toString(VTDNav *vn, int index){
-						 exception e;
-						 int k, offset, endOffset;
+						 int offset;
 						 tokenType type = getTokenType(vn,index);
 						 int len;
-						 Long l;
+						 
 						 UCSChar *s = NULL;
 						 if (type!=TOKEN_CHARACTER_DATA &&
 							 type!= TOKEN_ATTR_VAL)
