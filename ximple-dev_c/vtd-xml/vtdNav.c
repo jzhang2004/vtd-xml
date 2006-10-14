@@ -99,7 +99,7 @@ static Long handle_utf8(VTDNav *vn, int temp, int offset){
 		i--;
 	}
 	
-	return val | ((a+1LL)<<32);
+	return val | ((Long)(a+1)<<32);
 }
 
 static Long handle_utf16le(VTDNav *vn, int offset){
@@ -111,12 +111,12 @@ static Long handle_utf16le(VTDNav *vn, int offset){
 			if (temp == '\r') {
    				if (vn->XMLDoc[(offset << 1) + 2] == '\n'
    					&& vn->XMLDoc[(offset << 1) + 3] == 0) {
-   					return '\n' | (2LL<<32) ;
+   					return '\n' | ((Long)2<<32) ;
    				} else {
-   					return '\n' | (1LL<<32);
+   					return '\n' | ((Long)1<<32);
    				}
    			}
-			return temp | (1LL<<32);
+			return temp | ((Long)1<<32);
 	} else {
 		val = temp;
 		temp =
@@ -132,7 +132,7 @@ static Long handle_utf16le(VTDNav *vn, int offset){
 		}
 		val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
 		
-		return val | (2LL<<32);
+		return val | ((Long)2<<32);
 	}
 }
 static Long handle_utf16be(VTDNav *vn, int offset){
@@ -145,13 +145,13 @@ static Long handle_utf16be(VTDNav *vn, int offset){
 		if (temp == '\r') {
   				if (vn->XMLDoc[(offset << 1) + 3] == '\n'
   					&& vn->XMLDoc[(offset << 1) + 2] == 0) {  
-  					return '\n'|(2LL<<32);
+  					return '\n'|((Long)2<<32);
   				} else {
-  					return '\n'|(1LL<<32);
+  					return '\n'|((Long)1<<32);
   				}
  			}
   			//currentOffset++;
-  			return temp| (1LL<<32);
+  			return temp| ((Long)1<<32);
 	} else {
 		val = temp;
 		temp =
@@ -166,7 +166,7 @@ static Long handle_utf16be(VTDNav *vn, int offset){
 			//throw new NavException("UTF 16 BE encoding error: should never happen");
 		}
 		val = ((val - 0xd800) <<10) + (temp - 0xdc00) + 0x10000;
-		return val | (2LL<<32);
+		return val | ((Long)2<<32);
 	}
 }
 
@@ -416,9 +416,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				temp = vn->XMLDoc[offset];
  				if (temp == '\r') {
    					if (vn->XMLDoc[offset + 1] == '\n') {
-   						return '\n'|(2LL<<32);
+   						return '\n'|((Long)2<<32);
    					} else {
-   						return '\n'|(1LL<<32);
+   						return '\n'|((Long)1<<32);
    					}
    				}
    
@@ -429,12 +429,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				if (temp<=127){
 					if (temp == '\r') {
 						if (vn->XMLDoc[offset + 1] == '\n') {
-							return '\n'|(2LL<<32);
+							return '\n'|((Long)2<<32);
 						} else {
-							return '\n'|(1LL<<32);
+							return '\n'|((Long)1<<32);
 						}
 					}
-					return temp|(1LL<<32);
+					return (temp|((Long)1<<32));
 				}
 				return handle_utf8(vn,temp,offset);
 
@@ -3137,7 +3137,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 int temp = offset;
 							 l = getChar(vn,offset);
 							 ch = (int)l;
-							 offset += (int)(l>>32);
+							 offset += (UCSChar)(l>>32);
 							 
 							 if (!isWS(ch)) {
 								 offset = temp;
@@ -3176,7 +3176,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //(entities and char references not expanded).
 					 UCSChar *toRawString(VTDNav *vn, int index){
 						 exception e;
-						 int k, offset, endOffset;
+						 int offset;
 						 tokenType type = getTokenType(vn,index);
 						 int len;
 						 Long l;
@@ -3189,12 +3189,16 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 len = getTokenLength(vn,index) & 0xffff;
 						 else
 							 len = getTokenLength(vn,index);
+
 						 offset = getTokenOffset(vn,index);
+						 return toRawString2(vn, offset, len);
+					 }
 
-						 //offset = getTokenOffset(vn,index);
-						 endOffset = len + offset;
-						 //StringBuffer sb = new StringBuffer(len);
-
+					 UCSChar *toRawString2(VTDNav *vn, int os, int len){
+						 exception e;
+						 int offset = os, endOffset=os+len,k=0;
+						 Long l;
+						 UCSChar *s = NULL;
 						 s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
 						 if (s == NULL)
 						 {
@@ -3202,16 +3206,15 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 e.msg = " string allocation failed in toString ";
 							 Throw e;							
 						 }
-						 k = 0;
 						 while (offset < endOffset) {
-							 l = (UCSChar) getChar(vn,offset);
-							 c = (char)l;
+							 l = getChar(vn,offset);
 							 offset += (int)(l>>32);
-							 s[k++] = c;; // java only support 16 bit unit code
+							 s[k++] = (UCSChar)l; // java only support 16 bit unit code
 						 }
 						 s[k] = 0;
 						 return s;
 					 }
+
 
 					 //Convert a token at the given index to a String, (entities and char 
 					 //references resolved).
@@ -3235,11 +3238,14 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 len = getTokenLength(vn,index);
 
 						 offset = getTokenOffset(vn,index);
-
-						 //vn->currentOffset = getTokenOffset(vn,index);
-						 endOffset = len + offset;
-						 //StringBuffer sb = new StringBuffer(len);
-
+						 return toString2(vn,offset,len);
+					 }
+					 
+					 UCSChar *toString2(VTDNav *vn, int os, int len){
+						 exception e;
+						 int offset = os, endOffset=os+len,k=0;
+						 Long l;
+						 UCSChar *s = NULL;
 						 s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
 						 if (s == NULL)
 						 {
@@ -3247,14 +3253,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 e.msg = " string allocation failed in toString ";
 							 Throw e;							
 						 }
-						 k = 0;
 						 while (offset < endOffset) {
 							 l = getCharResolved(vn,offset);
 							 offset += (int)(l>>32);
-							 s[k++] = (int) l;; // java only support 16 bit unit code
-
+							 s[k++] = (UCSChar)l; // java only support 16 bit unit code
 						 }
-						 s[k]= 0;
+						 s[k] = 0;
 						 return s;
 					 }
 
