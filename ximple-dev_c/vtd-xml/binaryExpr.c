@@ -25,7 +25,7 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 
 static Boolean compNumericalNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav *vn, opType op){
 	exception e;
-	int i,t,i1 = 0,stackSize, s1,s2;
+	int i,t,i1 = 0,stackSize;
 	Try {
 		push2(vn);
 		stackSize = vn->contextBuf2->size;
@@ -89,11 +89,12 @@ static Boolean compNumericalNodeSet(binaryExpr *be, expr* left, expr* right, VTD
 		Throw e;
 		//throw new RuntimeException("Undefined behavior");
 	}
+	return FALSE;
 }
 static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav *vn, opType op){
 	exception e;
-	int i,t,i1 = 0,stackSize, s1,s2;
-	UCSChar *st1, *st2;
+	int i,t,i1 = 0,stackSize;
+	UCSChar *st1;
 	Try {
 		st1 = left->evalString(left,vn);
 		push2(vn);
@@ -184,11 +185,12 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
 		e.msg = "undefined run time behavior in computerEQNE";
 		Throw e;
 	}
+	return FALSE;
 }
 
 static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav *vn, opType op){
 	exception e;
-	int i,t,i1=0,j,k,stackSize,s1,s2;
+	int i,t,i1=0,j,k,s1,s2;
 	Try {
 		if (be->fib1 == NULL)
 			be->fib1 = createFastIntBuffer2(BUF_SZ_EXP);
@@ -259,14 +261,13 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 		e.msg = "undefined run time behavior in computerEQNE";
 		Throw e;
 	}
+	return FALSE;
 }
 
 Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
-	exception e;
-	int i,j,k,i1 = 0,stackSize, s1,s2;
+	int i1 = 0;
 	Boolean btemp = FALSE;
 	UCSChar *st1=NULL, *st2=NULL;
-	tokenType t;
 
 	if (be->left->isNodeSet(be->left) && be->right->isNodeSet(be->right)) {
 		return compNodeSetNodeSet(be, be->left, be->right, vn, be->op);
@@ -420,7 +421,7 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 		if (b)
 			return tmp;
 		if (d == (Long) d){
-			swprintf(tmp,L"%d",(Long) d);
+			swprintf(tmp,64,L"%d",(Long) d);
 		} else {
 			swprintf(tmp,64,L"%f", d);
 		}
