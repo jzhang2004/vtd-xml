@@ -27,118 +27,60 @@ static Boolean compNumericalNodeSet(binaryExpr *be, expr* left, expr* right, VTD
 	exception e;
 	int i,t,i1 = 0,stackSize, s1,s2;
 	Try {
-		if (be->left->isNumerical(be->left) && be->right->isNodeSet(be->right)) {
-			push2(vn);
-			stackSize = vn->contextBuf2->size;
-			while ((i = be->right->evalNodeSet(be->right,vn)) != -1) {
-				t = getTokenType(vn,i);
-				if (t == TOKEN_STARTING_TAG){
-					i1 = getText(vn);
-					if (i1 == -1)
-						break;
-					if (parseDouble(vn,i1) == be->left->evalNumber(be->left,vn)){
+		push2(vn);
+		stackSize = vn->contextBuf2->size;
+		while ((i = right->evalNodeSet(right,vn)) != -1) {
+			t = getTokenType(vn,i);
+			if (t == TOKEN_STARTING_TAG){
+				i1 = getText(vn);
+				if (i1 == -1)
+					break;
+				if (parseDouble(vn,i1) == left->evalNumber(left,vn)){
+					vn->contextBuf2->size = stackSize;
+					pop2(vn);
+					left->reset(left,vn);
+					right->reset(right,vn);
+					if (op == OP_EQ)
+						return TRUE;
+					else 
+						return FALSE;
+				}
+			}
+			else if (t == TOKEN_ATTR_NAME
+				|| t == TOKEN_ATTR_NS) {
+					if (parseDouble(vn,i+1) == left->evalNumber(left,vn)){
 						vn->contextBuf2->size = stackSize;
 						pop2(vn);
-						be->left->reset(be->left,vn);
-						be->right->reset(be->right,vn);
+						left->reset(left,vn);
+						right->reset(right,vn);
 						if (op == OP_EQ)
 							return TRUE;
 						else 
 							return FALSE;
 					}
-				}
-				else if (t == TOKEN_ATTR_NAME
-					|| t == TOKEN_ATTR_NS) {
-						if (parseDouble(vn,i+1) == be->left->evalNumber(be->left,vn)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-				}
-				else if (t == TOKEN_CHARACTER_DATA
-					|| t == TOKEN_CDATA_VAL){
-						if (parseDouble(vn,i) == be->left->evalNumber(be->left,vn)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-				}
 			}
-			vn->contextBuf2->size = stackSize;
-			pop2(vn);
-			be->left->reset(be->left,vn);
-			be->right->reset(be->right,vn);
-			if (op == OP_EQ)
-				return FALSE;
-			else 
-				return TRUE;
-		} else if (be->left->isNodeSet(be->left) && be->right->isNumerical(be->right)) {
-			push2(vn);
-			stackSize = vn->contextBuf2->size;
-			while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
-				t = getTokenType(vn,i);
-				if (t == TOKEN_STARTING_TAG){
-					i1 = getText(vn);
-					if (i1 == -1)
-						break;
-					if (parseDouble(vn,i1) == be->right->evalNumber(be->right,vn)){
+			else if (t == TOKEN_CHARACTER_DATA
+				|| t == TOKEN_CDATA_VAL){
+					if (parseDouble(vn,i) == left->evalNumber(left,vn)){
 						vn->contextBuf2->size = stackSize;
 						pop2(vn);
-						be->left->reset(be->left,vn);
-						be->right->reset(be->right,vn);
+						left->reset(left,vn);
+						right->reset(right,vn);
 						if (op == OP_EQ)
 							return TRUE;
 						else 
 							return FALSE;
 					}
-				}
-				else if (t == TOKEN_ATTR_NAME
-					|| t == TOKEN_ATTR_NS) {
-						if (parseDouble(vn,i+1) == be->right->evalNumber(be->right,vn)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-				}
-				else if (t == TOKEN_CHARACTER_DATA
-					|| t == TOKEN_CDATA_VAL){
-						if (parseDouble(vn,i) == be->right->evalNumber(be->right,vn)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-				}
 			}
-			vn->contextBuf2->size = stackSize;
-			pop2(vn);
-			be->left->reset(be->left,vn);
-			be->right->reset(be->right,vn);
-			if (op == OP_EQ)
-				return FALSE;
-			else 
-				return TRUE;
 		}
-
+		vn->contextBuf2->size = stackSize;
+		pop2(vn);
+		left->reset(left,vn);
+		right->reset(right,vn);
+		if (op == OP_EQ)
+			return FALSE;
+		else 
+			return TRUE;
 	} Catch (e) {
 		//fib1.clear();
 		//fib2.clear();
@@ -153,72 +95,33 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
 	int i,t,i1 = 0,stackSize, s1,s2;
 	UCSChar *st1, *st2;
 	Try {
-		if (be->left->isString(be->left) && be->right->isNodeSet(be->right)) {
-			st1 = be->left->evalString(be->left,vn);
-			push2(vn);
-			stackSize = vn->contextBuf2->size;
-			while ((i = be->right->evalNodeSet(be->right,vn)) != -1) {
-				t = getTokenType(vn,i);
-				if (t == TOKEN_STARTING_TAG){
-					i1 = getText(vn);
-					if (i1==-1)
-						break;
-					t = getTokenType(vn,i1);
-					if (i1 == TOKEN_CHARACTER_DATA){
-						if (st1 == NULL || matchTokenString(vn,i1,st1)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-					}else {
-						if (st1 == NULL ||matchRawTokenString(vn,i1, st1)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-					}
-				}
-				else if (t == TOKEN_ATTR_NAME
-					|| t == TOKEN_ATTR_NS) {
-						if (st1 == NULL || matchTokenString(vn,i+1,st1)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-				}
-				else if ( t == TOKEN_CHARACTER_DATA
-					|| t == TOKEN_CDATA_VAL){
-						if (st1 == NULL || matchTokenString(vn,i,st1)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-				}else if ( t == TOKEN_CDATA_VAL){
-					if (st1 == NULL || matchRawTokenString(vn,i,st1)){
+		st1 = left->evalString(left,vn);
+		push2(vn);
+		stackSize = vn->contextBuf2->size;
+		while ((i = right->evalNodeSet(right,vn)) != -1) {
+			t = getTokenType(vn,i);
+			if (t == TOKEN_STARTING_TAG){
+				i1 = getText(vn);
+				if (i1==-1)
+					break;
+				t = getTokenType(vn,i1);
+				if (i1 == TOKEN_CHARACTER_DATA){
+					if (st1 == NULL || matchTokenString(vn,i1,st1)){
 						vn->contextBuf2->size = stackSize;
 						pop2(vn);
-						be->left->reset(be->left,vn);
-						be->right->reset(be->right,vn);
+						left->reset(left,vn);
+						right->reset(right,vn);
+						if (op == OP_EQ)
+							return TRUE;
+						else 
+							return FALSE;
+					}
+				}else {
+					if (st1 == NULL ||matchRawTokenString(vn,i1, st1)){
+						vn->contextBuf2->size = stackSize;
+						pop2(vn);
+						left->reset(left,vn);
+						right->reset(right,vn);
 						if (op == OP_EQ)
 							return TRUE;
 						else 
@@ -226,98 +129,53 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
 					}
 				}
 			}
-			vn->contextBuf2->size = stackSize;
-			pop2(vn);
-			be->left->reset(be->left,vn);
-			be->right->reset(be->right,vn);
-			free(st1); // recycle the string object
-			if (op == OP_EQ)
-				return FALSE;
-			else 
-				return TRUE;
-		} else if (be->left->isNodeSet(be->left) && be->right->isString(be->right)) {
-			st1 = be->right->evalString(be->right,vn);
-			push2(vn);
-			stackSize = vn->contextBuf2->size;
-			while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
-				t = getTokenType(vn,i);
-				if (t == TOKEN_STARTING_TAG){
-					i1 = getText(vn);
-					if (i1==-1)
-						break;
-					t = getTokenType(vn,i1);
-					if (i1 == TOKEN_CHARACTER_DATA){
-						if (st1 == NULL ||matchTokenString(vn,i1,st1)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-					}else {
-						if (st1 == NULL ||matchRawTokenString(vn,i1, st1)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-					}
-				}
-				else if (t == TOKEN_ATTR_NAME
-					|| t == TOKEN_ATTR_NS) {
-						if (st1 == NULL ||matchTokenString(vn,i+1,st1)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-				}
-				else if ( t == TOKEN_CHARACTER_DATA
-					|| t == TOKEN_CDATA_VAL){
-						if (st1 == NULL ||matchTokenString(vn,i,st1)){
-							vn->contextBuf2->size = stackSize;
-							pop2(vn);
-							be->left->reset(be->left,vn);
-							be->right->reset(be->right,vn);
-							if (op == OP_EQ)
-								return TRUE;
-							else 
-								return FALSE;
-						}
-				}else if ( t == TOKEN_CDATA_VAL){
-					if (st1 == NULL ||matchRawTokenString(vn,i,st1)){
+			else if (t == TOKEN_ATTR_NAME
+				|| t == TOKEN_ATTR_NS) {
+					if (st1 == NULL || matchTokenString(vn,i+1,st1)){
 						vn->contextBuf2->size = stackSize;
 						pop2(vn);
-						be->left->reset(be->left,vn);
-						be->right->reset(be->right,vn);
+						left->reset(left,vn);
+						right->reset(right,vn);
 						if (op == OP_EQ)
 							return TRUE;
 						else 
 							return FALSE;
 					}
+			}
+			else if ( t == TOKEN_CHARACTER_DATA
+				|| t == TOKEN_CDATA_VAL){
+					if (st1 == NULL || matchTokenString(vn,i,st1)){
+						vn->contextBuf2->size = stackSize;
+						pop2(vn);
+						left->reset(left,vn);
+						right->reset(right,vn);
+						if (op == OP_EQ)
+							return TRUE;
+						else 
+							return FALSE;
+					}
+			}else if ( t == TOKEN_CDATA_VAL){
+				if (st1 == NULL || matchRawTokenString(vn,i,st1)){
+					vn->contextBuf2->size = stackSize;
+					pop2(vn);
+					left->reset(left,vn);
+					right->reset(right,vn);
+					if (op == OP_EQ)
+						return TRUE;
+					else 
+						return FALSE;
 				}
 			}
-			vn->contextBuf2->size = stackSize;
-			pop2(vn);
-			be->left->reset(be->left,vn);
-			be->right->reset(be->right,vn);
-			free(st1);
-			if (op == OP_EQ)
-				return FALSE;
-			else 
-				return TRUE;
 		}
+		vn->contextBuf2->size = stackSize;
+		pop2(vn);
+		left->reset(left,vn);
+		right->reset(right,vn);
+		free(st1); // recycle the string object
+		if (op == OP_EQ)
+			return FALSE;
+		else 
+			return TRUE;
 
 	} Catch ( e) {
 		//fib1.clear();
@@ -413,13 +271,19 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
 	if (be->left->isNodeSet(be->left) && be->right->isNodeSet(be->right)) {
 		return compNodeSetNodeSet(be, be->left, be->right, vn, be->op);
 	} else {      
-		if ((be->left->isNumerical(be->left) && be->right->isNodeSet(be->right))
-			|| (be->left->isNodeSet(be->left) && be->right->isNumerical(be->right))){
-				return compNumericalNodeSet(be, be->left, be->right,vn,be->op);
+		// first argument is always numerical, second a node set
+		if (be->left->isNumerical(be->left) && be->right->isNodeSet(be->right)){
+			return compNumericalNodeSet(be, be->left, be->right, vn,be->op);
 		}
-		if ((be->left->isString(be->left) && be->right->isNodeSet(be->right))
-			|| (be->left->isNodeSet(be->left) && be->right->isString(be->right))){
-				return compStringNodeSet(be, be->left, be->right,vn,be->op);
+	    if (be->left->isNodeSet(be->left) && be->right->isNumerical(be->right)){
+			return compNumericalNodeSet(be, be->right, be->left, vn,be->op);
+		}
+		// first argument is always String, second a node set
+		if (be->left->isString(be->left) && be->right->isNodeSet(be->right)){
+			return compStringNodeSet(be, be->left, be->right,vn,be->op);
+		}
+		if (be->left->isNodeSet(be->left) && be->right->isString(be->right)){
+			return compStringNodeSet(be, be->right, be->left,vn,be->op);
 		}
 
 	}
