@@ -1,31 +1,20 @@
 /* 
- * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
-/* Written by Richard Stallman by simplifying the original so called
-   ``semantic'' parser.  */
-
-/* All symbols defined below should begin with yy or YY, to avoid
-   infringing on user name space.  This should be done even for local
-   variables, as they might otherwise be expanded by user macros.
-   There are some unavoidable exceptions within include files to
-   define necessary library symbols; they are noted "INFRINGES ON
-   USER NAME SPACE" below.  */
-
+* Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
 /* Identify Bison output.  */
 #define YYBISON 1
 
@@ -407,8 +396,8 @@ static const unsigned short yyrline[] =
      222,   232,   244,   245,   258,   268,   285,   286,   287,   303,
      329,   330,   343,   344,   345,   354,   362,   363,   371,   383,
      384,   393,   406,   410,   421,   436,   437,   438,   441,   442,
-     446,   450,   463,   467,   490,   502,   503,   508,   509,   512,
-     513,   516,   530,   548,   566,   588,   600,   603
+     446,   450,   463,   467,   491,   503,   504,   509,   510,   513,
+     514,   517,   531,   549,   567,   589,   601,   604
 };
 #endif
 
@@ -1717,7 +1706,8 @@ yyreduce:
 										addObj(yyvsp[0].name.qname);
 										if (yyvsp[0].name.localname!=NULL){
 											setNodeNameNS(yyval.nodetest,yyvsp[0].name.prefix,yyvsp[0].name.localname);
-											addObj(yyvsp[0].name.prefix,yyvsp[0].name.localname);
+											addObj(yyvsp[0].name.prefix);
+											addObj(yyvsp[0].name.localname);
 											// the part for URL mapping goes here
 											yyval.nodetest->URL = lookup(xpathNSList,yyvsp[0].name.prefix);
 											if (yyval.nodetest->URL == NULL){
@@ -1734,7 +1724,7 @@ yyreduce:
     break;
 
   case 54:
-#line 490 "l8.y"
+#line 491 "l8.y"
     { Try{
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
@@ -1748,39 +1738,39 @@ yyreduce:
     break;
 
   case 55:
-#line 502 "l8.y"
+#line 503 "l8.y"
     { yyval.p = NULL;;}
     break;
 
   case 56:
-#line 503 "l8.y"
+#line 504 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
 	     									yyval.p = yyvsp[-1].p;	
 	     								  ;}
     break;
 
   case 57:
-#line 508 "l8.y"
-    {yyval.at  = yyvsp[0].at;;}
-    break;
-
-  case 58:
 #line 509 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
+  case 58:
+#line 510 "l8.y"
+    {yyval.at  = yyvsp[0].at;;}
+    break;
+
   case 59:
-#line 512 "l8.y"
+#line 513 "l8.y"
     { /*printf("abbreviated child axis \n");*/yyval.at  = AXIS_CHILD;;}
     break;
 
   case 60:
-#line 513 "l8.y"
+#line 514 "l8.y"
     {yyval.at = AXIS_ATTRIBUTE;;}
     break;
 
   case 61:
-#line 516 "l8.y"
+#line 517 "l8.y"
     {Try{
 								yyval.s = createStep();
 								addObj(yyval.s);
@@ -1798,7 +1788,7 @@ yyreduce:
     break;
 
   case 62:
-#line 530 "l8.y"
+#line 531 "l8.y"
     {
 					Try{
 						yyval.s = createStep();
@@ -1818,7 +1808,7 @@ yyreduce:
     break;
 
   case 63:
-#line 548 "l8.y"
+#line 549 "l8.y"
     {
 																Try{
 																	yyval.s = createStep();
@@ -1838,7 +1828,7 @@ yyreduce:
     break;
 
   case 64:
-#line 566 "l8.y"
+#line 567 "l8.y"
     {
 																	Try{
 																		yyval.s= createStep();
@@ -1861,7 +1851,7 @@ yyreduce:
     break;
 
   case 65:
-#line 588 "l8.y"
+#line 589 "l8.y"
     {
 							   Try {
 									yyval.p = createPredicate();
@@ -1875,7 +1865,7 @@ yyreduce:
     break;
 
   case 67:
-#line 603 "l8.y"
+#line 604 "l8.y"
     {yyval.fname  = yyvsp[0].fname;;}
     break;
 
@@ -1883,7 +1873,7 @@ yyreduce:
     }
 
 /* Line 991 of yacc.c.  */
-#line 1893 "l8.tab.c"
+#line 1894 "l8.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2092,7 +2082,7 @@ yyreturn:
 }
 
 
-#line 606 "l8.y"
+#line 607 "l8.y"
 
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;
