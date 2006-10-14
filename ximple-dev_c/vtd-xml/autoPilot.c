@@ -463,7 +463,7 @@ int iterateAttr(AutoPilot *ap){
 				if (wcscmp(ap->elementName,L"*")==0){
 					if (ap->ft != FALSE){
 						ap->ft = FALSE;
-						ap->index = getCurrentIndex(ap->vn)+1;
+						ap->index = getCurrentIndex2(ap->vn)+1;
 					} else
 						ap->index +=2;
 					if (ap->vn->ns == FALSE){

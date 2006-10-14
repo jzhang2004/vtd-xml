@@ -249,7 +249,7 @@ public boolean iterate() throws PilotException, NavException {
    	    		if (name.compareTo("*")==0){
    	    			if (ft != false){
    	    				ft = false;
-   	    				index = vn.getCurrentIndex()+1;
+   	    				index = vn.getCurrentIndex2()+1;
    	    			} else
    	    				index +=2;
    	    			if (vn.ns == false){

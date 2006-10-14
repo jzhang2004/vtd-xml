@@ -314,7 +314,7 @@ namespace com.ximpleware
 						if (ft != false)
 						{
 							ft = false;
-							index = vn.getCurrentIndex() + 1;
+							index = vn.getCurrentIndex2() + 1;
 						}
 						else
 							index += 2;
