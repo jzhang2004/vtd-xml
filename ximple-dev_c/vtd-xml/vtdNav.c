@@ -3300,6 +3300,15 @@ int getCurrentIndex(VTDNav *vn){
 	//return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
 }
 
+int getCurrentIndex2(VTDNav *vn){
+	switch(vn->context[0]){
+		case -1: return 0;
+		case 0: return vn->rootIndex;
+		default: return vn->context[vn->context[0]];
+	}
+	//return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
+}
+
 /**
  * Get the encoding of the XML document.
  * <pre>   0  ASCII       </pre>

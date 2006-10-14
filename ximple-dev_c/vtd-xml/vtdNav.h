@@ -126,7 +126,7 @@ extern inline int getCurrentDepth(VTDNav *vn);
 
 // Get the index value of the current element.
 extern inline int getCurrentIndex(VTDNav *vn);
-
+extern inline int getCurrentIndex2(VTDNav *vn);
 // Get the starting offset and length of an element
 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
 Long getElementFragment(VTDNav *vn);

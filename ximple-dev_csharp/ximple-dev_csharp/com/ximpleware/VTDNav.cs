@@ -340,6 +340,19 @@ namespace com.ximpleware
             //return (context[0] == 0) ? rootIndex : context[context[0]];
 
         }
+        protected internal int getCurrentIndex2()
+        {
+            switch (context[0])
+            {
+
+                case -1: return 0;
+
+                case 0: return rootIndex;
+
+                default: return context[context[0]];
+
+            }
+        }
         /// <summary> Get the starting offset and length of an element
         /// encoded in a long, upper 32 bit is length; lower 32 bit is offset
         /// Unit is in byte.

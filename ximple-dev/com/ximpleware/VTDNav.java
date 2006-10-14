@@ -981,6 +981,15 @@ public class VTDNav {
 		}
 		//return (context[0] == 0) ? rootIndex : context[context[0]];
 	}
+	
+	// this one is used in iterAttr() in autoPilot
+	protected int getCurrentIndex2(){
+		switch(context[0]){
+		case -1: return 0;
+		case 0: return rootIndex;
+		default: return context[context[0]];
+	}
+	}
 	/**
 	 * Get the starting offset and length of an element
 	 * encoded in a long, upper 32 bit is length; lower 32 bit is offset
@@ -3101,7 +3110,8 @@ public class VTDNav {
 
 						if (direction == NEXT_SIBLING) {
 							int index = context[context[0]] + 1;
-							while (index < vtdBuffer.size()) {
+							size = vtdBuffer.size();
+							while (index < size) {
 								long temp = vtdBuffer.longAt(index);
 								int token_type =
 									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
