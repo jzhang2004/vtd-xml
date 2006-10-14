@@ -405,51 +405,51 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 
 Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
 	exception e;
-   int i,j,k,i1 = 0,stackSize, s1,s2;
-   Boolean btemp = FALSE;
-   UCSChar *st1=NULL, *st2=NULL;
-   tokenType t;
+	int i,j,k,i1 = 0,stackSize, s1,s2;
+	Boolean btemp = FALSE;
+	UCSChar *st1=NULL, *st2=NULL;
+	tokenType t;
 
-   if (be->left->isNodeSet(be->left) && be->right->isNodeSet(be->right)) {
-            return compNodeSetNodeSet(be, be->left, be->right, vn, be->op);
-   } else {      
-	   if ((be->left->isNumerical(be->left) && be->right->isNodeSet(be->right))
-		   || (be->left->isNodeSet(be->left) && be->right->isNumerical(be->right))){
-			return compNumericalNodeSet(be, be->left, be->right,vn,be->op);
-	   }
-	   	   if ((be->left->isString(be->left) && be->right->isNodeSet(be->right))
-		   || (be->left->isNodeSet(be->left) && be->right->isString(be->right))){
-			return compStringNodeSet(be, be->left, be->right,vn,be->op);
-	   }
+	if (be->left->isNodeSet(be->left) && be->right->isNodeSet(be->right)) {
+		return compNodeSetNodeSet(be, be->left, be->right, vn, be->op);
+	} else {      
+		if ((be->left->isNumerical(be->left) && be->right->isNodeSet(be->right))
+			|| (be->left->isNodeSet(be->left) && be->right->isNumerical(be->right))){
+				return compNumericalNodeSet(be, be->left, be->right,vn,be->op);
+		}
+		if ((be->left->isString(be->left) && be->right->isNodeSet(be->right))
+			|| (be->left->isNodeSet(be->left) && be->right->isString(be->right))){
+				return compStringNodeSet(be, be->left, be->right,vn,be->op);
+		}
 
-  }
-		  if (be->left->isBoolean(be->left) || be->right->isBoolean(be->right)){
-		      if (op == OP_EQ)
-		          return be->left->isBoolean(be->left) == be->right->isBoolean(be->right);
-		      else
-		          return be->left->isBoolean(be->left) != be->right->isBoolean(be->right);
-		  }
-		  
-		  if (be->left->isNumerical(be->left) || be->right->isNumerical(be->right)){
-		      if (op == OP_EQ)
-		          return be->left->evalNumber(be->left,vn) == be->right->evalNumber(be->right,vn);
-		      else
-		          return be->left->evalNumber(be->left,vn) != be->right->evalNumber(be->right,vn);
-		  }
-		  st1 = be->left->evalString(be->left,vn);
-		  st2 = be->right->evalString(be->right,vn);
-		  if (st1 == NULL || st2 == NULL){
-			  btemp = FALSE;
-		  }else{
-			  btemp = wcscmp(st1, st2);
-		  }
-		  free(st1);
-		  free(st2);
-		  if (op == OP_EQ){
-			 return btemp==0;
-		  }
-		  else
-  	  	     return btemp!=0;
+	}
+	if (be->left->isBoolean(be->left) || be->right->isBoolean(be->right)){
+		if (op == OP_EQ)
+			return be->left->isBoolean(be->left) == be->right->isBoolean(be->right);
+		else
+			return be->left->isBoolean(be->left) != be->right->isBoolean(be->right);
+	}
+
+	if (be->left->isNumerical(be->left) || be->right->isNumerical(be->right)){
+		if (op == OP_EQ)
+			return be->left->evalNumber(be->left,vn) == be->right->evalNumber(be->right,vn);
+		else
+			return be->left->evalNumber(be->left,vn) != be->right->evalNumber(be->right,vn);
+	}
+	st1 = be->left->evalString(be->left,vn);
+	st2 = be->right->evalString(be->right,vn);
+	if (st1 == NULL || st2 == NULL){
+		btemp = FALSE;
+	}else{
+		btemp = wcscmp(st1, st2);
+	}
+	free(st1);
+	free(st2);
+	if (op == OP_EQ){
+		return btemp==0;
+	}
+	else
+		return btemp!=0;
 }
 
 binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
