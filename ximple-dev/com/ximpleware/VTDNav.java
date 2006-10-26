@@ -24,7 +24,25 @@
  */
 package com.ximpleware;
 
+import com.ximpleware.parser.ISO8859_10;
+import com.ximpleware.parser.ISO8859_2;
+import com.ximpleware.parser.ISO8859_3;
+import com.ximpleware.parser.ISO8859_4;
+import com.ximpleware.parser.ISO8859_5;
+import com.ximpleware.parser.ISO8859_6;
+import com.ximpleware.parser.ISO8859_7;
+import com.ximpleware.parser.ISO8859_8;
+import com.ximpleware.parser.ISO8859_9;
 import com.ximpleware.parser.UTF8Char;
+import com.ximpleware.parser.WIN1250;
+import com.ximpleware.parser.WIN1251;
+import com.ximpleware.parser.WIN1252;
+import com.ximpleware.parser.WIN1253;
+import com.ximpleware.parser.WIN1254;
+import com.ximpleware.parser.WIN1255;
+import com.ximpleware.parser.WIN1256;
+import com.ximpleware.parser.WIN1257;
+import com.ximpleware.parser.WIN1258;
 
 
 public class VTDNav {
@@ -63,10 +81,37 @@ public class VTDNav {
 	// encoding format definition here
 	public final static int FORMAT_UTF8 = 2;
 	public final static int FORMAT_ASCII = 0;
-	public final static int FORMAT_UTF_16LE = 4;
-	public final static int FORMAT_UTF_16BE = 3;
-	public final static int FORMAT_ISO_8859 = 1;
-
+	
+	public final static int FORMAT_ISO_8859_1 = 1;
+	public final static int FORMAT_ISO_8859_2 = 3;
+	public final static int FORMAT_ISO_8859_3 = 4;
+	public final static int FORMAT_ISO_8859_4 = 5;
+	public final static int FORMAT_ISO_8859_5 = 6;
+	public final static int FORMAT_ISO_8859_6 = 7;
+	public final static int FORMAT_ISO_8859_7 = 8;
+	public final static int FORMAT_ISO_8859_8 = 9;
+	public final static int FORMAT_ISO_8859_9 = 10;
+	public final static int FORMAT_ISO_8859_10 = 11;
+	public final static int FORMAT_ISO_8859_11 = 12;
+	public final static int FORMAT_ISO_8859_12 = 13;
+	public final static int FORMAT_ISO_8859_13 = 14;
+	public final static int FORMAT_ISO_8859_14 = 15;
+	public final static int FORMAT_ISO_8859_15 = 16;
+	public final static int FORMAT_ISO_8859_16 = 17;
+	
+	public final static int FORMAT_WIN_1250 = 18;
+	public final static int FORMAT_WIN_1251 = 19;
+	public final static int FORMAT_WIN_1252 = 20;
+	public final static int FORMAT_WIN_1253 = 21;
+	public final static int FORMAT_WIN_1254 = 22;
+	public final static int FORMAT_WIN_1255 = 23;
+	public final static int FORMAT_WIN_1256 = 24;
+	public final static int FORMAT_WIN_1257 = 25;
+	public final static int FORMAT_WIN_1258 = 26;
+	
+	
+	public final static int FORMAT_UTF_16LE = 64;
+	public final static int FORMAT_UTF_16BE = 63;
 	// masks for obtaining various fields from a VTD token 
 	private final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
 	private final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
@@ -392,51 +437,7 @@ public class VTDNav {
         //currentOffset += a + 1;
         return val | (((long)(a+1))<<32);
     }
-	/*private int handle_utf8_2(int temp, int offset) throws NavException {
-        int c, d, a, val;
-        switch (UTF8Char.byteCount(temp & 0xff)) {
-        case 2:
-            c = 0x1f;
-            d = 6;
-            a = 1;
-            break;
-        case 3:
-            c = 0x0f;
-            d = 12;
-            a = 2;
-            break;
-        case 4:
-            c = 0x07;
-            d = 18;
-            a = 3;
-            break;
-        case 5:
-            c = 0x03;
-            d = 24;
-            a = 4;
-            break;
-        case 6:
-            c = 0x01;
-            d = 30;
-            a = 5;
-            break;
-        default:
-            throw new NavException("UTF 8 encoding error: should never happen");
-        }
 
-        val = (temp & c) << d;
-        int i = a - 1;
-        while (i >= 0) {
-            temp = XMLDoc.byteAt(offset + a - i);
-            if ((temp & 0xc0) != 0x80)
-                throw new NavException(
-                        "UTF 8 encoding error: should never happen");
-            val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
-            i--;
-        }
-        currentOffset2 += a + 1;
-        return val;
-    }*/
 
 	private long handle_utf16le(int offset) throws NavException {
 		// implement UTF-16LE to UCS4 conversion
@@ -470,41 +471,7 @@ public class VTDNav {
 		}
 		//System.out.println("UTF 16 LE unimplemented for now");
 	}
-	/*private int handle_utf16le_2() throws NavException {
-		// implement UTF-16LE to UCS4 conversion
-		int val, temp =
-			(XMLDoc.byteAt((currentOffset2 << 1) + 1 ) & 0xff)
-				<< 8 | (XMLDoc.byteAt(currentOffset2 << 1) & 0xff);
-		if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
-			if (temp == '\r') {
-				if (XMLDoc.byteAt((currentOffset2 << 1) + 2) == '\n'
-					&& XMLDoc.byteAt((currentOffset2 << 1) + 3) == 0) {
-					currentOffset2 += 2;
-					return '\n';
-				} else {
-					currentOffset2++;
-					return '\n';
-				}
-			}
-			currentOffset2++;
-			return temp;
-		} else {
-			if (temp<0xd800 || temp>0xdbff)				
-				throw new NavException("UTF 16 LE encoding error: should never happen");
-			val = temp;
-			temp =
-				(XMLDoc.byteAt((currentOffset2 << 1) + 3)&0xff)
-					<< 8 | (XMLDoc.byteAt((currentOffset2 << 1) + 2) & 0xff);
-			if (temp < 0xdc00 || temp > 0xdfff) {
-				// has to be high surrogate
-				throw new NavException("UTF 16 LE encoding error: should never happen");
-			}
-			val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
-			currentOffset2 += 2;
-			return val;
-		}
-		//System.out.println("UTF 16 LE unimplemented for now");
-	}*/
+
 	private long handle_utf16be(int offset) throws NavException{
 		long val; 
 		
@@ -540,40 +507,21 @@ public class VTDNav {
 			return val | (2L<<32);
 		}
 	}
-/*	private int handle_utf16be_2() throws NavException{
-		int val,temp =
-			((XMLDoc.byteAt(currentOffset2 << 1) & 0xff)	<< 8) 
-					|(XMLDoc.byteAt((currentOffset2 << 1) + 1)& 0xff);
-		if ((temp < 0xd800)
-			|| (temp > 0xdfff)) { // not a high surrogate
-			if (temp == '\r') {
-				if (XMLDoc.byteAt((currentOffset2 << 1) + 3) == '\n'
-					&& XMLDoc.byteAt((currentOffset2 << 1) + 2) == 0) {
-					currentOffset2 += 2;
-					return '\n';
-				} else {
-					currentOffset2++;
-					return '\n';
-				}
-			}
-			currentOffset2++;
-			return temp;
-		} else {
-			if (temp<0xd800 || temp>0xdbff)				
-				throw new NavException("UTF 16 BE encoding error: should never happen");
-			val = temp;
-			temp =
-				((XMLDoc.byteAt((currentOffset2 << 1) + 2) & 0xff)
-					<< 8) | (XMLDoc.byteAt((currentOffset2 << 1 )+ 3) & 0xff);
-			if (temp < 0xdc00 || temp > 0xdfff) {
-				// has to be a low surrogate here
-				throw new NavException("UTF 16 BE encoding error: should never happen");
-			}
-			val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
-			currentOffset2 += 2;
-			return val;
-		}
-	}*/
+
+	private long getChar4OtherEncoding(int offset) throws NavException{
+	    if (encoding <= FORMAT_WIN_1258){
+	        int	temp = decode(offset);
+	        if (temp == '\r') {
+	            if (XMLDoc.byteAt(offset + 1) == '\n') {
+	                return '\n'|(2L<<32);
+	            } else {
+				return '\n'|(1L<<32);
+	            }
+	        }
+	        return temp|(1L<<32);
+	    }
+	    throw new NavException("Unknown Encoding");
+	}
 	/**
 	 * This method decodes the underlying byte array into corresponding UCS2 char representation .
 	 * It doesn't resolves built-in entity and character references.
@@ -588,8 +536,8 @@ public class VTDNav {
 	private long getChar(int offset) throws NavException {
 		long temp = 0;
 		//int a, c, d;
-		int val;
-		int ch;
+		//int val;
+		//int ch;
 		//int inc;
 		//a = c = d = val = 0;
 
@@ -606,7 +554,7 @@ public class VTDNav {
 				
 				return temp|(1L<<32);
 				
-			case FORMAT_ISO_8859 :
+			case FORMAT_ISO_8859_1 :
 				temp = XMLDoc.byteAt(offset);
 				if (temp == '\r') {
 					if (XMLDoc.byteAt(offset + 1) == '\n') {
@@ -640,78 +588,16 @@ public class VTDNav {
 			    return handle_utf16le(offset);
 
 			default :
-				throw new NavException("Unknown Encoding");
+			    return getChar4OtherEncoding(offset);
+				//throw new NavException("Unknown Encoding");
 		}
 	}
 	/* the exact same copy of getChar except it operates on currentOffset2
 	 * this is needed to compare VTD tokens directly
 	 */
 	
-	/*private long getChar2(int offset) throws NavException {
-		long temp = 0;
-		//int a, c, d;
-		int val;
-		int ch;
-		int inc;
-		//a = c = d = val = 0;
 
-		switch (encoding) {
-			case FORMAT_ASCII : // ascii is compatible with UTF-8, the offset value is bytes
-				temp = XMLDoc.byteAt(offset);
-				if (temp == '\r') {
-					if (XMLDoc.byteAt(offset + 1) == '\n') {
-						inc = 2;
-						return '\n';
-					} else {
-						inc = 1;
-						return '\n';
-					}
-				}
-				
-				return temp|((1+inc)<<32);
-				
-			case FORMAT_ISO_8859 :
-				temp = XMLDoc.byteAt(offset);
-				if (temp == '\r') {
-					if (XMLDoc.byteAt(offset + 1) == '\n') {
-						inc = 2;
-						return '\n';
-					} else {
-						inc = 1;
-						return '\n';
-					}
-				}
-				
-				return (temp & 0xff)|((1+inc)<<32);
-				
-			case FORMAT_UTF8 :
-				temp = XMLDoc.byteAt(offset);
-				if (temp<128){
-					if (temp == '\r') {
-						if (XMLDoc.byteAt(offset + 1) == '\n') {
-							inc = 2;
-							return '\n';
-						} else {
-							inc = 1;
-							return '\n';
-						}
-					}
-					//currentOffset++;
-					return temp|((1+inc)<<32);
-				}				
-				return handle_utf8_2(temp);
-
-			case FORMAT_UTF_16BE :
-			    return handle_utf16be_2();
-
-			case FORMAT_UTF_16LE :
-			    return handle_utf16le_2();
-
-			default :
-				throw new NavException("Unknown Encoding");
-		}
-	}
-	*//**
+	/**
 	 * This method decodes the underlying byte array into corresponding UCS2 char representation .
 	 * Also it resolves built-in entity and character references.
 	 * @return int
@@ -771,7 +657,7 @@ public class VTDNav {
 							break;
 						} else
 							throw new NavException("Illegal char in char reference");
-						
+					
 					}
 				}
 				break;
@@ -945,14 +831,57 @@ public class VTDNav {
 		//currentOffset++;
 		return val;
 	}*/
+	
+	private int decode(int offset){
+	    byte ch = XMLDoc.byteAt(offset);
+	    switch(encoding){
+        case FORMAT_ISO_8859_2:
+            return ISO8859_2.decode(ch);
+        case FORMAT_ISO_8859_3:
+            return ISO8859_3.decode(ch);
+        case FORMAT_ISO_8859_4:
+            return ISO8859_4.decode(ch);
+        case FORMAT_ISO_8859_5:
+            return ISO8859_5.decode(ch);
+        case FORMAT_ISO_8859_6:
+            return ISO8859_6.decode(ch);
+        case FORMAT_ISO_8859_7:
+            return ISO8859_7.decode(ch);
+        case FORMAT_ISO_8859_8:
+            return ISO8859_8.decode(ch);
+        case FORMAT_ISO_8859_9:
+            return ISO8859_9.decode(ch);
+        case FORMAT_ISO_8859_10:
+            return ISO8859_10.decode(ch);
+        case FORMAT_WIN_1250:
+            return WIN1250.decode(ch);
+        case FORMAT_WIN_1251:
+            return WIN1251.decode(ch);
+        case FORMAT_WIN_1252:
+            return WIN1252.decode(ch);
+        case FORMAT_WIN_1253:
+            return WIN1253.decode(ch);
+        case FORMAT_WIN_1254:
+            return WIN1254.decode(ch);
+        case FORMAT_WIN_1255:
+            return WIN1255.decode(ch);
+        case FORMAT_WIN_1256:
+            return WIN1256.decode(ch);
+        case FORMAT_WIN_1257:
+            return WIN1257.decode(ch);
+		default:
+		    return WIN1258.decode(ch);
+	    }
+	}
 	/**
 	 * Get the next char unit which gets decoded automatically
 	 * @return int
 	 */
 	private int getCharUnit(int offset) {
-		return (encoding < 3)
+		return (encoding <= 2)
 			? XMLDoc.byteAt(offset) & 0xff
-			: (encoding == FORMAT_UTF_16BE)
+			: (encoding <= FORMAT_WIN_1258)
+			? decode(offset):(encoding == FORMAT_UTF_16BE)
 			? (XMLDoc.byteAt(offset << 1)
 				<< 8 | XMLDoc.byteAt((offset << 1) + 1))
 			: (XMLDoc.byteAt((offset << 1) + 1)
@@ -1126,8 +1055,8 @@ public class VTDNav {
 	 * <pre>   0  ASCII       </pre>
 	 * <pre>   1  ISO-8859-1  </pre>
 	 * <pre>   2  UTF-8       </pre>
-	 * <pre>   3  UTF-16BE    </pre>
-	 * <pre>   4  UTF-16LE    </pre>
+	 * <pre>   63  UTF-16BE    </pre>
+	 * <pre>   64  UTF-16LE    </pre>
 	 * @return int
 	 */
 	public int getEncoding() {
@@ -1251,10 +1180,7 @@ public class VTDNav {
 				return (int)
 					((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
 		}
-		/*if (encoding<3)
-		 return val;
-		else
-		 return val<<1;*/
+
 	}
 	/**
 	 * Get the starting offset of the token at the given index.
@@ -1722,7 +1648,7 @@ public class VTDNav {
 		long l1;
 		//this.currentOffset = offset;
 		int endOffset = offset + len;
-		if (encoding < 2) {
+		if (encoding < FORMAT_UTF8) {
 			if (s.length() != len)
 				return false;
 			l = s.length();
@@ -1733,6 +1659,7 @@ public class VTDNav {
 			}
 			return true;
 		} else {
+			
 			//       System.out.print("currentOffset :" + currentOffset);
 			l = s.length();
 			//System.out.println(s);

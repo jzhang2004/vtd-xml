@@ -19,9 +19,7 @@ package com.ximpleware;
 import java.io.File;
 import java.io.FileInputStream;
 
-import com.ximpleware.parser.XMLChar;
-import com.ximpleware.parser.UTF8Char;
-
+import com.ximpleware.parser.*;
 //import java.io.*;
 /**
  * VTD Generator implementation.
@@ -69,10 +67,35 @@ public class VTDGen1 {
 	// encoding format
 	public final static int FORMAT_UTF8 = 2;
 	public final static int FORMAT_ASCII = 0;
-	public final static int FORMAT_UTF_16LE = 4;
-	public final static int FORMAT_UTF_16BE = 3;
-	public final static int FORMAT_ISO_8859 = 1;
 
+	public final static int FORMAT_ISO_8859_1 = 1;
+	public final static int FORMAT_ISO_8859_2 = 3;
+	public final static int FORMAT_ISO_8859_3 = 4;
+	public final static int FORMAT_ISO_8859_4 = 5;
+	public final static int FORMAT_ISO_8859_5 = 6;
+	public final static int FORMAT_ISO_8859_6 = 7;
+	public final static int FORMAT_ISO_8859_7 = 8;
+	public final static int FORMAT_ISO_8859_8 = 9;
+	public final static int FORMAT_ISO_8859_9 = 10;
+	public final static int FORMAT_ISO_8859_10 = 11;
+	public final static int FORMAT_ISO_8859_11 = 12;
+	public final static int FORMAT_ISO_8859_12 = 13;
+	public final static int FORMAT_ISO_8859_13 = 14;
+	public final static int FORMAT_ISO_8859_14 = 15;
+	public final static int FORMAT_ISO_8859_15 = 16;
+	public final static int FORMAT_ISO_8859_16 = 17;
+	
+	public final static int FORMAT_WIN_1250 = 18;
+	public final static int FORMAT_WIN_1251 = 19;
+	public final static int FORMAT_WIN_1252 = 20;
+	public final static int FORMAT_WIN_1253 = 21;
+	public final static int FORMAT_WIN_1254 = 22;
+	public final static int FORMAT_WIN_1255 = 23;
+	public final static int FORMAT_WIN_1256 = 24;
+	public final static int FORMAT_WIN_1257 = 25;
+	public final static int FORMAT_WIN_1258 = 26;
+	public final static int FORMAT_UTF_16LE = 64;
+	public final static int FORMAT_UTF_16BE = 63;
 	//namespace aware flag
 	private boolean ns;
 	protected int VTDDepth; // Maximum Depth of VTDs
@@ -415,6 +438,124 @@ public class VTDGen1 {
 			    return false;
 		}
 	}
+
+	private boolean skip4OtherEncoding(int ch1) throws EncodingException {
+	    byte ch = XMLDoc[offset];
+	    //byte temp = (byte)ch1;
+	    int temp;
+	    switch(encoding){
+        case FORMAT_ISO_8859_2:
+            temp= ISO8859_2.decode(ch);
+            break;
+        case FORMAT_ISO_8859_3:
+            temp= ISO8859_3.decode(ch);
+            break;
+        case FORMAT_ISO_8859_4:
+            temp= ISO8859_4.decode(ch);
+            break;
+        case FORMAT_ISO_8859_5:
+            temp= ISO8859_5.decode(ch);
+            break;
+        case FORMAT_ISO_8859_6:
+            temp= ISO8859_6.decode(ch);
+            break;
+        case FORMAT_ISO_8859_7:
+            temp= ISO8859_7.decode(ch);
+            break;
+        case FORMAT_ISO_8859_8:
+            temp= ISO8859_8.decode(ch);
+            break;
+        case FORMAT_ISO_8859_9:
+            temp= ISO8859_9.decode(ch);
+            break;
+        case FORMAT_ISO_8859_10:
+            temp= ISO8859_10.decode(ch);
+            break;
+        case FORMAT_WIN_1250:
+            temp= WIN1250.decode(ch);
+            break;
+        case FORMAT_WIN_1251:
+            temp=WIN1251.decode(ch);
+            break;
+        case FORMAT_WIN_1252:
+            temp=WIN1252.decode(ch);
+            break;
+        case FORMAT_WIN_1253:
+            temp= WIN1253.decode(ch);
+            break;
+        case FORMAT_WIN_1254:
+            temp= WIN1254.decode(ch);
+            break;
+        case FORMAT_WIN_1255:
+            temp= WIN1255.decode(ch);
+            break;
+        case FORMAT_WIN_1256:
+            temp= WIN1256.decode(ch);
+            break;
+        case FORMAT_WIN_1257:
+            temp= WIN1257.decode(ch);
+            break;
+		case FORMAT_WIN_1258:
+		    temp= WIN1258.decode(ch);
+		    break;
+	    default:
+	      throw new EncodingException("Unknown encoding");
+	    }
+	    if (temp == ch1){
+	        offset++;
+	        return true;
+	    } else
+	        return false;
+	    
+	}
+	private int handleOtherEncoding() throws EncodingException{
+	    byte ch = XMLDoc[offset++];
+	    switch(encoding){
+        case FORMAT_ISO_8859_2:
+            return ISO8859_2.decode(ch);
+        case FORMAT_ISO_8859_3:
+            return ISO8859_3.decode(ch);
+        case FORMAT_ISO_8859_4:
+            return ISO8859_4.decode(ch);
+        case FORMAT_ISO_8859_5:
+            return ISO8859_5.decode(ch);
+        case FORMAT_ISO_8859_6:
+            return ISO8859_6.decode(ch);
+        case FORMAT_ISO_8859_7:
+            return ISO8859_7.decode(ch);
+        case FORMAT_ISO_8859_8:
+            return ISO8859_8.decode(ch);
+        case FORMAT_ISO_8859_9:
+            return ISO8859_9.decode(ch);
+        case FORMAT_ISO_8859_10:
+            return ISO8859_10.decode(ch);
+        case FORMAT_WIN_1250:
+            return WIN1250.decode(ch);
+        case FORMAT_WIN_1251:
+            return WIN1251.decode(ch);
+        case FORMAT_WIN_1252:
+            return WIN1252.decode(ch);
+        case FORMAT_WIN_1253:
+            return WIN1253.decode(ch);
+        case FORMAT_WIN_1254:
+            return WIN1254.decode(ch);
+        case FORMAT_WIN_1255:
+            return WIN1255.decode(ch);
+        case FORMAT_WIN_1256:
+            return WIN1256.decode(ch);
+        case FORMAT_WIN_1257:
+            return WIN1257.decode(ch);
+		case FORMAT_WIN_1258:
+		    return WIN1258.decode(ch);
+	    
+	    default:
+	      throw new EncodingException("Unknown encoding");
+	    }
+	}
+	
+	
+	
+	
 	private int handle_16be() throws EncodingException, ParseException{
 		int val,temp = (XMLDoc[offset] & 0xff) << 8 | (XMLDoc[offset + 1] & 0xff);
 		//System.out.println(" ==>"+Integer.toHexString(temp));
@@ -520,7 +661,10 @@ public class VTDGen1 {
 				"ASCII encoding error: invalid ASCII Char");
 			offset++;
 			return temp&0xff;
-		
+		case FORMAT_ISO_8859_1:
+			temp = XMLDoc[offset];
+			offset++;
+			return temp & 0xff;
 		//throw new EncodingException("Invalid char for ASCII encoding"
 		//		+formatLineNumber());
 		case FORMAT_UTF8:
@@ -532,19 +676,16 @@ public class VTDGen1 {
 			}
 			return handleUTF8(temp);
 
+
 		case FORMAT_UTF_16BE:
 		    return handle_16be();
 		    
 		case FORMAT_UTF_16LE:
 		    return handle_16le();
-		    
-		case FORMAT_ISO_8859:
-			temp = XMLDoc[offset];
-			offset++;
-			return temp & 0xff;
 			
 		default:
-			throw new EncodingException("Unknown encoding");
+		    return handleOtherEncoding();
+			//throw new EncodingException("Unknown encoding");
 		}
 	}
 
@@ -791,6 +932,31 @@ public class VTDGen1 {
 		return vn;
 	}
 
+	private int getPrevOffset4OtherEncoding() throws ParseException {
+	    switch (encoding) {
+        case FORMAT_ISO_8859_2:
+        case FORMAT_ISO_8859_3:
+        case FORMAT_ISO_8859_4:
+        case FORMAT_ISO_8859_5:
+        case FORMAT_ISO_8859_6:
+        case FORMAT_ISO_8859_7:
+        case FORMAT_ISO_8859_8:
+        case FORMAT_ISO_8859_9:
+        case FORMAT_ISO_8859_10:
+        case FORMAT_WIN_1250:
+        case FORMAT_WIN_1251:
+        case FORMAT_WIN_1252:
+        case FORMAT_WIN_1253:
+        case FORMAT_WIN_1254:
+        case FORMAT_WIN_1255:
+        case FORMAT_WIN_1256:
+        case FORMAT_WIN_1257:
+        case FORMAT_WIN_1258:
+            return offset - 1;
+        default:
+            throw new ParseException("Other Error: Should never happen");
+        }
+	}
 	/**
 	 * Get the offset value of previous character.
 	 * 
@@ -808,7 +974,8 @@ public class VTDGen1 {
 			} while (XMLDoc[prevOffset] < 0);
 			return prevOffset;
 		case FORMAT_ASCII:
-		case FORMAT_ISO_8859:
+		case FORMAT_ISO_8859_1:
+
 			return offset - 1;
 		case FORMAT_UTF_16LE:
 		    temp = (XMLDoc[offset + 3] &0xff) << 8 | (XMLDoc[offset + 2]&0xff);
@@ -823,7 +990,7 @@ public class VTDGen1 {
 			} else
 				return offset - 4;
 		default:
-			throw new ParseException("Other Error: Should never happen");
+		    return getPrevOffset4OtherEncoding();
 		}
 	}
 
@@ -1657,6 +1824,370 @@ public class VTDGen1 {
 		}
 	}
 	
+	private void matchISOEncoding()throws ParseException{
+		if ((skipChar('s') || skipChar('S'))
+				&& (skipChar('o') || skipChar('O'))
+				&& skipChar('-') && skipChar('8')
+				&& skipChar('8') && skipChar('5')
+				&& skipChar('9') && skipChar('-'))
+				{
+		    if (encoding <= FORMAT_UTF_16LE) {
+				if (must_utf_8)
+					throw new EncodingException(
+							"Can't switch from UTF-8"
+									+ formatLineNumber());
+				if (skipChar('1')){
+				 if (skipChar(ch_temp)) {
+				     encoding = FORMAT_ISO_8859_1;
+				     writeVTD(temp_offset, 10,
+							TOKEN_DEC_ATTR_VAL,
+							depth);
+				 } else if (skipChar('0') && skipChar(ch_temp)){
+				     encoding = FORMAT_ISO_8859_10;
+				     writeVTD(temp_offset, 11,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				 } else 
+				     throw new ParseException(
+								"XML decl error: Invalid Encoding"
+										+ formatLineNumber());								
+				 return;
+				}else if (skipChar('2') && skipChar(ch_temp)){
+				    encoding = FORMAT_ISO_8859_2;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('3') && skipChar(ch_temp)){
+				    encoding = FORMAT_ISO_8859_3;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				   // break;
+				}else if (skipChar('4') && skipChar(ch_temp)){
+				    encoding = FORMAT_ISO_8859_4;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('5') && skipChar(ch_temp)){
+				    encoding = FORMAT_ISO_8859_5;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('6') && skipChar(ch_temp)){
+				    encoding = FORMAT_ISO_8859_6;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('7') && skipChar(ch_temp)){
+				    encoding = FORMAT_ISO_8859_7;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('8') && skipChar(ch_temp)){
+				    encoding = FORMAT_ISO_8859_8;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('9') && skipChar(ch_temp)){
+				    encoding = FORMAT_ISO_8859_9;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}								
+			} else
+				throw new ParseException(
+						"XML decl error: Can't switch encoding to ISO-8859"
+								+ formatLineNumber());
+		}
+		throw new ParseException(
+				"XML decl error: Invalid Encoding"
+						+ formatLineNumber());
+	}
+	private void matchCPEncoding()throws ParseException{
+	    if ((skipChar('p') || skipChar('P')) && skipChar('1')
+                && skipChar('2') && skipChar('5')) {
+            if (encoding <= FORMAT_UTF_16LE) {
+                if (must_utf_8)
+                    throw new EncodingException(
+                            "Can't switch from UTF-8"
+                                    + formatLineNumber());
+                if (skipChar('0') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1250;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('1') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1251;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('2') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1252;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('3') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1253;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('4') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1254;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('5') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1255;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('6') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1256;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('7') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1257;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('8') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1258;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}
+            } else
+                throw new ParseException(
+                        "XML decl error: Can't switch encoding to ISO-8859"
+                                + formatLineNumber());
+				
+				}
+	    throw new ParseException(
+				"XML decl error: Invalid Encoding"
+						+ formatLineNumber());
+	    
+	}
+	private void matchWindowsEncoding()throws ParseException{
+	    if ((skipChar('i') || skipChar('I')) 
+	            &&(skipChar('n') || skipChar('N'))
+	            &&(skipChar('d') || skipChar('D'))
+	            &&(skipChar('o') || skipChar('O'))
+	            &&(skipChar('w') || skipChar('W'))
+	            &&(skipChar('s') || skipChar('S'))
+	            && skipChar('-')
+	            && skipChar('1')
+                && skipChar('2') 
+                && skipChar('5')) {
+            if (encoding <= FORMAT_UTF_16LE) {
+                if (must_utf_8)
+                    throw new EncodingException(
+                            "Can't switch from UTF-8"
+                                    + formatLineNumber());
+                if (skipChar('0') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1250;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('1') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1251;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('2') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1252;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('3') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1253;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('4') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1254;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('5') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1255;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('6') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1256;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('7') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1257;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}else if (skipChar('8') && skipChar(ch_temp)){
+				    encoding = FORMAT_WIN_1258;
+				    writeVTD(temp_offset, 10,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				    return;
+				}
+            } else
+                throw new ParseException(
+                        "XML decl error: Can't switch encoding to ISO-8859"
+                                + formatLineNumber());
+				
+				}
+	    throw new ParseException(
+				"XML decl error: Invalid Encoding"
+						+ formatLineNumber());
+	}
+	private void matchUTFEncoding() throws ParseException{
+		if ((skipChar('s') || skipChar('S')))
+			if (skipChar('-')
+					&& (skipChar('a') || skipChar('A'))
+					&& (skipChar('s') || skipChar('S'))
+					&& (skipChar('c') || skipChar('C'))
+					&& (skipChar('i') || skipChar('I'))
+					&& (skipChar('i') || skipChar('I'))
+					&& skipChar(ch_temp)) {
+				if (encoding != FORMAT_UTF_16LE
+						&& encoding != FORMAT_UTF_16BE) {
+					if (must_utf_8)
+						throw new EncodingException(
+								"Can't switch from UTF-8"
+										+ formatLineNumber());
+					encoding = FORMAT_ASCII;
+					//System.out.println(
+					//    " " + (temp_offset) + " " + 5
+					// + " dec attr val (encoding) "
+					// + depth);
+					
+						writeVTD(temp_offset, 8,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+					
+						return;
+
+				} else
+					throw new ParseException(
+							"XML decl error: Can't switch encoding to US-ASCII"
+									+ formatLineNumber());
+			} else
+				throw new ParseException(
+						"XML decl error: Invalid Encoding"
+								+ formatLineNumber());
+
+		if ((skipChar('t') || skipChar('T'))
+				&& (skipChar('f') || skipChar('F'))
+				&& skipChar('-')) {
+			if (skipChar('8') && skipChar(ch_temp)) {
+				if (encoding != FORMAT_UTF_16LE
+						&& encoding != FORMAT_UTF_16BE) {
+					//encoding = FORMAT_UTF8;
+					/*
+					 * System.out.println( " " +
+					 * (temp_offset) + " " + 5 + "
+					 * dec attr val (encoding) " +
+					 * depth);
+					 */
+					
+						writeVTD(temp_offset, 5,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+					
+						return;
+				} else
+					throw new ParseException(
+							"XML decl error: Can't switch encoding to UTF-8"
+									+ formatLineNumber());
+			}
+			if (skipChar('1') && skipChar('6')) {
+				if (skipChar(ch_temp)) {
+					if (encoding == FORMAT_UTF_16LE
+							|| encoding == FORMAT_UTF_16BE) {
+						if (!BOM_detected)
+							throw new EncodingException(
+									"BOM not detected for UTF-16"
+											+ formatLineNumber());
+					
+							writeVTD(
+									temp_offset >> 1,
+									6,
+									TOKEN_DEC_ATTR_VAL,
+									depth);
+						return;
+					}
+					throw new ParseException(
+							"XML decl error: Can't switch encoding to UTF-16"
+									+ formatLineNumber());
+				} else if ((skipChar('l') || skipChar('L'))
+						&& (skipChar('e') || skipChar('E'))
+						&& skipChar(ch_temp)) {
+					if (encoding == FORMAT_UTF_16LE) {
+						/*
+						 * System.out.println( " " +
+						 * (temp_offset) + " " + 7 + "
+						 * dec attr val (encoding) " +
+						 * depth);
+						 */
+						
+							writeVTD(
+									temp_offset >> 1,
+									8,
+									TOKEN_DEC_ATTR_VAL,
+									depth);
+						return;
+					}
+					throw new ParseException(
+							"XML del error: Can't switch encoding to UTF-16LE"
+									+ formatLineNumber());
+				} else if ((skipChar('b') || skipChar('B'))
+						&& (skipChar('e') || skipChar('E'))
+						&& skipChar(ch_temp)) {
+					if (encoding == FORMAT_UTF_16BE) {
+						writeVTD(
+									temp_offset >> 1,
+									8,
+									TOKEN_DEC_ATTR_VAL,
+									depth);
+						return;
+					}
+					throw new ParseException(
+							"XML del error: Can't swtich encoding to UTF-16BE"
+									+ formatLineNumber());
+				}
+
+				throw new ParseException(
+						"XML decl error: Invalid encoding"
+								+ formatLineNumber());
+			}
+		}
+	}
+	
 	
 	/**
 	 * This private method processes declaration attributes
@@ -1786,170 +2317,23 @@ public class VTDGen1 {
 						throw new ParseException(
 								"XML decl error: Invalid Encoding"
 										+ formatLineNumber());
+					case 'c':
+					case 'C':
+					    matchCPEncoding();
+					    break;
 					case 'i':
 					case 'I':
-						if ((skipChar('s') || skipChar('S'))
-								&& (skipChar('o') || skipChar('O'))
-								&& skipChar('-') && skipChar('8')
-								&& skipChar('8') && skipChar('5')
-								&& skipChar('9') && skipChar('-')
-								&& skipChar('1')
-								&& skipChar(ch_temp)) {
-							if (encoding != FORMAT_UTF_16LE
-									&& encoding != FORMAT_UTF_16BE) {
-								if (must_utf_8)
-									throw new EncodingException(
-											"Can't switch from UTF-8"
-													+ formatLineNumber());
-								encoding = FORMAT_ISO_8859;
-								/*
-								 * System.out.println( " " +
-								 * (temp_offset) + " " + 10 + " dec
-								 * attr val (encoding) " + depth);
-								 */
-								
-									writeVTD(temp_offset, 10,
-											TOKEN_DEC_ATTR_VAL,
-											depth);
-								
-								break;
-							} else
-								throw new ParseException(
-										"XML decl error: Can't switch encoding to ISO-8859"
-												+ formatLineNumber());
-						}
-						throw new ParseException(
-								"XML decl error: Invalid Encoding"
-										+ formatLineNumber());
+					    matchISOEncoding();
+					    break;
 					case 'u':
 					case 'U':
-						if ((skipChar('s') || skipChar('S')))
-							if (skipChar('-')
-									&& (skipChar('a') || skipChar('A'))
-									&& (skipChar('s') || skipChar('S'))
-									&& (skipChar('c') || skipChar('C'))
-									&& (skipChar('i') || skipChar('I'))
-									&& (skipChar('i') || skipChar('I'))
-									&& skipChar(ch_temp)) {
-								if (encoding != FORMAT_UTF_16LE
-										&& encoding != FORMAT_UTF_16BE) {
-									if (must_utf_8)
-										throw new EncodingException(
-												"Can't switch from UTF-8"
-														+ formatLineNumber());
-									encoding = FORMAT_ASCII;
-									//System.out.println(
-									//    " " + (temp_offset) + " " + 5
-									// + " dec attr val (encoding) "
-									// + depth);
-									
-										writeVTD(temp_offset, 8,
-												TOKEN_DEC_ATTR_VAL,
-												depth);
-									
-									break;
-
-								} else
-									throw new ParseException(
-											"XML decl error: Can't switch encoding to US-ASCII"
-													+ formatLineNumber());
-							} else
-								throw new ParseException(
-										"XML decl error: Invalid Encoding"
-												+ formatLineNumber());
-
-						if ((skipChar('t') || skipChar('T'))
-								&& (skipChar('f') || skipChar('F'))
-								&& skipChar('-')) {
-							if (skipChar('8') && skipChar(ch_temp)) {
-								if (encoding != FORMAT_UTF_16LE
-										&& encoding != FORMAT_UTF_16BE) {
-									//encoding = FORMAT_UTF8;
-									/*
-									 * System.out.println( " " +
-									 * (temp_offset) + " " + 5 + "
-									 * dec attr val (encoding) " +
-									 * depth);
-									 */
-									
-										writeVTD(temp_offset, 5,
-												TOKEN_DEC_ATTR_VAL,
-												depth);
-									
-									break;
-								} else
-									throw new ParseException(
-											"XML decl error: Can't switch encoding to UTF-8"
-													+ formatLineNumber());
-							}
-							if (skipChar('1') && skipChar('6')) {
-								if (skipChar(ch_temp)) {
-									if (encoding == FORMAT_UTF_16LE
-											|| encoding == FORMAT_UTF_16BE) {
-										if (!BOM_detected)
-											throw new EncodingException(
-													"BOM not detected for UTF-16"
-															+ formatLineNumber());
-									
-											writeVTD(
-													temp_offset >> 1,
-													6,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-										break;
-									}
-									throw new ParseException(
-											"XML decl error: Can't switch encoding to UTF-16"
-													+ formatLineNumber());
-								} else if ((skipChar('l') || skipChar('L'))
-										&& (skipChar('e') || skipChar('E'))
-										&& skipChar(ch_temp)) {
-									if (encoding == FORMAT_UTF_16LE) {
-										/*
-										 * System.out.println( " " +
-										 * (temp_offset) + " " + 7 + "
-										 * dec attr val (encoding) " +
-										 * depth);
-										 */
-										
-											writeVTD(
-													temp_offset >> 1,
-													8,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-										break;
-									}
-									throw new ParseException(
-											"XML del error: Can't switch encoding to UTF-16LE"
-													+ formatLineNumber());
-								} else if ((skipChar('b') || skipChar('B'))
-										&& (skipChar('e') || skipChar('E'))
-										&& skipChar(ch_temp)) {
-									if (encoding == FORMAT_UTF_16BE) {
-										/*
-										 * System.out.println( " " +
-										 * (temp_offset) + " " + 7 + "
-										 * dec attr val (encoding) " +
-										 * depth);
-										 */
-										
-											writeVTD(
-													temp_offset >> 1,
-													8,
-													TOKEN_DEC_ATTR_VAL,
-													depth);
-										break;
-									}
-									throw new ParseException(
-											"XML del error: Can't swtich encoding to UTF-16BE"
-													+ formatLineNumber());
-								}
-
-								throw new ParseException(
-										"XML decl error: Invalid encoding"
-												+ formatLineNumber());
-							}
-						}
+					    matchUTFEncoding();
+					    break;
+						// now deal with windows encoding
+					case 'w' :
+					case 'W' :
+					    matchWindowsEncoding();
+					    break;					   
 					default:
 						throw new ParseException(
 								"XML decl Error: invalid encoding"
@@ -2759,6 +3143,14 @@ public class VTDGen1 {
 			} else {
 				return false;
 			}
+		case FORMAT_ISO_8859_1:
+			temp = XMLDoc[offset];
+			if (temp == ch) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
 		case FORMAT_UTF8:
 			temp = XMLDoc[offset];
 			if (temp >= 0)
@@ -2774,16 +3166,9 @@ public class VTDGen1 {
 		case FORMAT_UTF_16LE:
 		    return skip_16le(ch);
 
-		case FORMAT_ISO_8859:
-			temp = XMLDoc[offset];
-			if (temp == ch) {
-				offset++;
-				return true;
-			} else {
-				return false;
-			}
 		default:
-			throw new EncodingException("Unknown encoding");
+		    return skip4OtherEncoding(ch);
+			//throw new EncodingException("Unknown encoding");
 		}
 	}
 
