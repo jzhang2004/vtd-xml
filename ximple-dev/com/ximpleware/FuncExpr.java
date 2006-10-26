@@ -227,7 +227,56 @@ public class FuncExpr extends Expr{
 			("name()'s argument count is invalid");
 	        
 	}
-	
+	private boolean contains(VTDNav vn){
+	    String s1 = argumentList.e.evalString(vn);
+	    String s2 = argumentList.next.e.evalString(vn);
+	    if (s1 ==null || s2==null)
+	        return false;
+	    else
+	        return s1.contains(s2);
+	}
+	private String subString(VTDNav vn){
+	    if (argCount()== 2){
+	        String s = argumentList.e.evalString(vn);
+	        if (s != null){
+	            s.substring((int)argumentList.next.e.evalNumber(vn));
+	        }
+	        return null;
+	    } else if (argCount() == 3){
+	        String s = argumentList.e.evalString(vn);
+	        if (s != null){
+	            s.substring((int)argumentList.next.e.evalNumber(vn),
+	                    (int) argumentList.next.next.e.evalNumber(vn));
+	        }
+	        return null;
+	    }
+	    throw new IllegalArgumentException
+		("substring()'s argument count is invalid");
+	}
+	private String normalizeSpace(VTDNav vn){
+	    if (argCount()== 0){
+	        return null;
+	    } else if (argCount() == 1){
+	        return null;
+	    }
+	    throw new IllegalArgumentException
+		("normalize-space()'s argument count is invalid");
+	    //return null;
+	}
+	private String concat(VTDNav vn){
+	    StringBuilder  sb = new StringBuilder();
+	    if (argCount()>=2){
+			Alist temp = argumentList;
+			int count = 0;
+			while(temp!=null){
+				sb.append(temp.e.evalString(vn));
+				temp = temp.next;
+			}
+			return sb.toString();
+	    } else 
+	        throw new IllegalArgumentException
+		("concat()'s argument count is invalid");
+	}
 	
 	private String getString(VTDNav vn){
 	    if (argCount()== 0)
@@ -252,6 +301,10 @@ public class FuncExpr extends Expr{
 	public String evalString(VTDNav vn) throws UnsupportedException{
 	    int d=0;
 	  switch(opCode){
+	  		case FuncName.CONCAT:
+	  		    return concat(vn);
+	  		    //throw new UnsupportedException("Some functions are not supported");
+	  		    
 			case FuncName.LOCAL_NAME:
 			    return getLocalName(vn);
 
@@ -265,9 +318,9 @@ public class FuncExpr extends Expr{
 			    return getString(vn);
 
 			case FuncName.SUBSTRING_BEFORE:		
-			case FuncName.SUBSTRING_AFTER: 		
-			case FuncName.SUBSTRING: 		
-			case FuncName.TRANSLATE: 	
+			case FuncName.SUBSTRING_AFTER: 	throw new UnsupportedException("Some functions are not supported");	
+			case FuncName.SUBSTRING: 	return subString(vn);	
+			case FuncName.TRANSLATE: 	throw new UnsupportedException("Some functions are not supported");
 			case FuncName.NORMALIZE_SPACE:throw new UnsupportedException("Some functions are not supported");
 			default: if (isBoolean()){
 			    		if (evalBoolean(vn)== true)
@@ -370,7 +423,11 @@ public class FuncExpr extends Expr{
 										throw new IllegalArgumentException("not() doesn't take any argument");
 			   					}
 								return !argumentList.e.evalBoolean(vn);
-			case FuncName.CONTAINS:	throw new UnsupportedException("Some functions are not supported");
+			case FuncName.CONTAINS:
+			    if (argCount()!=2){
+			        throw new IllegalArgumentException("not() doesn't take any argument");
+				}
+			    return contains(vn);
 			default: if (isNumerical()){
 			    		double d = evalNumber(vn);
 			    		if (d==0 || d!=d)
