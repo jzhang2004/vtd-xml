@@ -25,8 +25,11 @@ package com.ximpleware.parser;
 public class WIN1258 {
     static final char[] chars = new char[0x100];
     static {
-        for (int i=0;i<0x100;i++){
+        for (int i=0;i<128;i++){
             chars[i] = (char)i;
+        }
+        for (int i=128;i<256;i++){
+            chars[i]=0xfffd;
         }
         chars[0x80 ]=0x20AC  ;// EURO SIGN
         chars[0x82 ]=0x201A  ;// SINGLE LOW-9 QUOTATION MARK
@@ -147,7 +150,6 @@ public class WIN1258 {
         chars[0xFD ]=0x01B0  ;// LATIN SMALL LETTER U WITH HORN
         chars[0xFE ]=0x20AB  ;// DONG SIGN
         chars[0xFF ]=0x00FF  ;// LATIN SMALL LETTER Y WITH DIAERESIS
-
     }
     public static char decode(byte b){
         return chars[b & 0xff];

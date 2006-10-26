@@ -25,8 +25,11 @@ package com.ximpleware.parser;
 public class WIN1251 {
     static final char[] chars = new char[0x100];
     static {
-        for (int i=0;i<0x100;i++){
+        for (int i=0;i<128;i++){
             chars[i] = (char)i;
+        }
+        for (int i=128;i<256;i++){
+            chars[i]=0xfffd;
         }
         chars[0x80 ]=0x0402  ;// CYRILLIC CAPITAL LETTER DJE
         chars[0x81 ]=0x0403  ;// CYRILLIC CAPITAL LETTER GJE
