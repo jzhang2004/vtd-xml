@@ -227,6 +227,16 @@ public class FuncExpr extends Expr{
 			("name()'s argument count is invalid");
 	        
 	}
+	
+	private boolean startsWith(VTDNav vn){
+	    String s1 = argumentList.e.evalString(vn);
+	    String s2 = argumentList.next.e.evalString(vn);
+	    if (s1 ==null || s2==null)
+	        return false;
+	    else
+	        return s1.startsWith(s2); 
+	}
+	
 	private boolean contains(VTDNav vn){
 	    String s1 = argumentList.e.evalString(vn);
 	    String s2 = argumentList.next.e.evalString(vn);
@@ -235,6 +245,7 @@ public class FuncExpr extends Expr{
 	    else
 	        return s1.contains(s2);
 	}
+	
 	private String subString(VTDNav vn){
 	    if (argCount()== 2){
 	        String s = argumentList.e.evalString(vn);
@@ -253,6 +264,7 @@ public class FuncExpr extends Expr{
 	    throw new IllegalArgumentException
 		("substring()'s argument count is invalid");
 	}
+	
 	private String normalizeSpace(VTDNav vn){
 	    if (argCount()== 0){
 	        return null;
@@ -263,6 +275,7 @@ public class FuncExpr extends Expr{
 		("normalize-space()'s argument count is invalid");
 	    //return null;
 	}
+	
 	private String concat(VTDNav vn){
 	    StringBuilder  sb = new StringBuilder();
 	    if (argCount()>=2){
@@ -425,9 +438,14 @@ public class FuncExpr extends Expr{
 								return !argumentList.e.evalBoolean(vn);
 			case FuncName.CONTAINS:
 			    if (argCount()!=2){
-			        throw new IllegalArgumentException("not() doesn't take any argument");
+			        throw new IllegalArgumentException("contains()'s argument count is invalid");
 				}
 			    return contains(vn);
+			case FuncName.STARTS_WITH:
+			    if (argCount()!=2){
+			        throw new IllegalArgumentException("starts-with()'s argument count is invalid");
+			    }
+			    return startsWith(vn);
 			default: if (isNumerical()){
 			    		double d = evalNumber(vn);
 			    		if (d==0 || d!=d)
@@ -435,8 +453,7 @@ public class FuncExpr extends Expr{
 			    		return true;
 					 }else{
 					     return evalString(vn).length()!=0;
-					 }
-			
+					 }			
 		  }
 	}
 	
