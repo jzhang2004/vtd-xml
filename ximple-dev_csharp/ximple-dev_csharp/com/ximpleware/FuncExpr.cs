@@ -16,6 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 using System;
+using System.Text;
 using Alist = com.ximpleware.xpath.Alist;
 using Expr = com.ximpleware.xpath.Expr;
 using FuncName = com.ximpleware.xpath.FuncName;
@@ -410,7 +411,8 @@ namespace com.ximpleware
 			//int d = 0;
 			switch (opCode)
 			{
-				
+                case FuncName.CONCAT:
+                    return concat(vn);
 				case FuncName.LOCAL_NAME:
                     return getLocalName(vn);
 				case FuncName.NAMESPACE_URI:
@@ -423,10 +425,10 @@ namespace com.ximpleware
 
 					//goto case FuncName.SUBSTRING_BEFORE;
 				
-				case FuncName.SUBSTRING_BEFORE: 
-				case FuncName.SUBSTRING_AFTER: 
-				case FuncName.SUBSTRING: 
-				case FuncName.TRANSLATE: 
+				case FuncName.SUBSTRING_BEFORE:
+                case FuncName.SUBSTRING_AFTER: throw new UnsupportedException("Some functions are not supported");
+                case FuncName.SUBSTRING: return subString(vn);
+                case FuncName.TRANSLATE: throw new UnsupportedException("Some functions are not supported");
 				case FuncName.NORMALIZE_SPACE:  throw new UnsupportedException("Some functions are not supported");
 				
 				default:  if (Boolean)
@@ -575,8 +577,20 @@ namespace com.ximpleware
 						throw new System.ArgumentException("not() doesn't take any argument");
 					}
 					return !argumentList.e.evalBoolean(vn);
-				
-				case FuncName.CONTAINS:  throw new UnsupportedException("Some functions are not supported");
+
+                case FuncName.CONTAINS:
+                    if (argCount() != 2)
+                    {
+                        throw new System.ArgumentException("contains()'s argument count is invalid");
+                    }
+                    return contains(vn);
+
+                case FuncName.STARTS_WITH:
+                    if (argCount() != 2)
+                    {
+                        throw new System.ArgumentException("starts-with()'s argument count is invalid");
+                    }
+                    return startsWith(vn);
 				
 				default:  if (Numerical)
 					{
@@ -661,7 +675,83 @@ namespace com.ximpleware
 				
 			}
 		}
-		
+
+        private bool startsWith(VTDNav vn)
+        {
+            System.String s1 = argumentList.e.evalString(vn);
+            System.String s2 = argumentList.next.e.evalString(vn);
+            if (s1 == null || s2 == null)
+                return false;
+            else
+                return s1.StartsWith(s2);
+        }
+
+        private bool contains(VTDNav vn)
+        {
+            System.String s1 = argumentList.e.evalString(vn);
+            System.String s2 = argumentList.next.e.evalString(vn);
+            if (s1 == null || s2 == null)
+                return false;
+            else
+                return s1.Contains(s2);
+        }
+
+        private System.String subString(VTDNav vn)
+        {
+            if (argCount() == 2)
+            {
+                System.String s = argumentList.e.evalString(vn);
+                if (s != null)
+                {
+                    //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
+                    s.Substring((int)argumentList.next.e.evalNumber(vn));
+                }
+                return null;
+            }
+            else if (argCount() == 3)
+            {
+                System.String s = argumentList.e.evalString(vn);
+                if (s != null)
+                {
+                    //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
+                    s.Substring((int)argumentList.next.e.evalNumber(vn), ((int)argumentList.next.next.e.evalNumber(vn)) - ((int)argumentList.next.e.evalNumber(vn)));
+                }
+                return null;
+            }
+            throw new System.ArgumentException("substring()'s argument count is invalid");
+        }
+
+        private System.String normalizeSpace(VTDNav vn)
+        {
+            if (argCount() == 0)
+            {
+                return null;
+            }
+            else if (argCount() == 1)
+            {
+                return null;
+            }
+            throw new System.ArgumentException("normalize-space()'s argument count is invalid");
+            //return null;
+        }
+        private System.String concat(VTDNav vn)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (argCount() >= 2)
+            {
+                Alist temp = argumentList;
+                int count = 0;
+                while (temp != null)
+                {
+                    sb.Append(temp.e.evalString(vn));
+                    temp = temp.next;
+                }
+                return sb.ToString();
+            }
+            else
+                throw new System.ArgumentException("concat()'s argument count is invalid");
+        }
+
 		private int count(VTDNav vn)
 		{
 			int a = - 1;
