@@ -18,6 +18,7 @@
 // added set
 using System;
 using UTF8Char = com.ximpleware.parser.UTF8Char;
+using com.ximpleware.parser;
 namespace com.ximpleware
 {
     /// <summary> 
@@ -63,6 +64,27 @@ namespace com.ximpleware
                 ((i & -0x01000000) >> 24) & 0xff);
         }
 
+        private long getChar4OtherEncoding(int offset)
+        {
+            if (encoding <= FORMAT_WIN_1258)
+            {
+                int temp = decode(offset);
+                if (temp == '\r')
+                {
+                    if (XMLDoc.byteAt(offset + 1) == '\n')
+                    {
+                        return '\n' | (2L << 32);
+                    }
+                    else
+                    {
+                        return '\n' | (1L << 32);
+                    }
+                }
+                return temp | (1L << 32);
+            }
+            throw new NavException("Unknown Encoding");
+        }
+
         /// <summary> This method decodes the underlying byte array into corresponding UCS2 char representation .
         /// It doesn't resolves built-in entity and character references.
         /// Length will never be zero
@@ -78,9 +100,6 @@ namespace com.ximpleware
         private long getChar(int offset)
         {
             long temp = 0;
-            int a, c, d;
-            
-            a = c = d = 0;
 
             switch (encoding)
             {
@@ -149,14 +168,15 @@ namespace com.ximpleware
 
 
                 default:
-                    throw new NavException("Unknown Encoding");
+                    return getChar4OtherEncoding(offset);
+                    //throw new NavException("Unknown Encoding");
             }
             /* the exact same copy of getChar except it operates on currentOffset2
             * this is needed to compare VTD tokens directly
             */
 
         }
-     
+
         /// <summary> This method decodes the underlying byte array into corresponding UCS2 char representation .
         /// Also it resolves built-in entity and character references.
         /// </summary>
@@ -169,151 +189,151 @@ namespace com.ximpleware
         /// </exception>
         private long getCharResolved(int offset)
         {
-                int ch = 0;
-                int val = 0;
-                int inc = 2;
-                long l = getChar(offset);
+            int ch = 0;
+            int val = 0;
+            int inc = 2;
+            long l = getChar(offset);
 
-                ch = (int)l;
+            ch = (int)l;
 
-                if (ch != '&')
-                    return l;
+            if (ch != '&')
+                return l;
 
-                // let us handle references here
-                //currentOffset++;
-                ch = getCharUnit(offset);
-                offset++;
-                switch (ch)
-                {
+            // let us handle references here
+            //currentOffset++;
+            ch = getCharUnit(offset);
+            offset++;
+            switch (ch)
+            {
 
-                    case '#':
+                case '#':
 
-                        ch = getCharUnit(offset);
+                    ch = getCharUnit(offset);
 
-                        if (ch == 'x')
+                    if (ch == 'x')
+                    {
+                        while (true)
                         {
-                            while (true)
-                            {
-                                offset++;
-                                inc++;
-                                ch = getCharUnit(offset);
+                            offset++;
+                            inc++;
+                            ch = getCharUnit(offset);
 
-                                if (ch >= '0' && ch <= '9')
-                                {
-                                    val = (val << 4) + (ch - '0');
-                                }
-                                else if (ch >= 'a' && ch <= 'f')
-                                {
-                                    val = (val << 4) + (ch - 'a' + 10);
-                                }
-                                else if (ch >= 'A' && ch <= 'F')
-                                {
-                                    val = (val << 4) + (ch - 'A' + 10);
-                                }
-                                else if (ch == ';')
-                                {
-                                    inc++;
-                                    break;
-                                }
-                                else
-                                    throw new NavException("Illegal char in a char reference");
+                            if (ch >= '0' && ch <= '9')
+                            {
+                                val = (val << 4) + (ch - '0');
                             }
-                        }
-                        else
-                        {
-                            while (true)
+                            else if (ch >= 'a' && ch <= 'f')
                             {
-                                ch = getCharUnit(offset);
-                                offset++;
+                                val = (val << 4) + (ch - 'a' + 10);
+                            }
+                            else if (ch >= 'A' && ch <= 'F')
+                            {
+                                val = (val << 4) + (ch - 'A' + 10);
+                            }
+                            else if (ch == ';')
+                            {
                                 inc++;
-                                if (ch >= '0' && ch <= '9')
-                                {
-                                    val = val * 10 + (ch - '0');
-                                }
-                                else if (ch == ';')
-                                {
-                                    break;
-                                }
-                                else
-                                    throw new NavException("Illegal char in char reference");
-                             }
-                        }
-                        break;
-
-
-                    case 'a':
-                        ch = getCharUnit(offset);
-                        if (ch == 'm')
-                        {
-                            if (getCharUnit(offset + 1) == 'p' && getCharUnit(offset + 2) == ';')
-                            {
-                                inc = 5;
-                                val = '&';
+                                break;
                             }
                             else
-                                throw new NavException("illegal builtin reference");
+                                throw new NavException("Illegal char in a char reference");
                         }
-                        else if (ch == 'p')
+                    }
+                    else
+                    {
+                        while (true)
                         {
-                            if (getCharUnit(offset + 1) == 'o' && getCharUnit(offset + 2) == 's' && getCharUnit(offset + 3) == ';')
+                            ch = getCharUnit(offset);
+                            offset++;
+                            inc++;
+                            if (ch >= '0' && ch <= '9')
                             {
-                                inc = 6;
-                                val = '\'';
+                                val = val * 10 + (ch - '0');
+                            }
+                            else if (ch == ';')
+                            {
+                                break;
                             }
                             else
-                                throw new NavException("illegal builtin reference");
+                                throw new NavException("Illegal char in char reference");
                         }
-                        else
-                            throw new NavException("illegal builtin reference");
-                        break;
+                    }
+                    break;
 
 
-                    case 'q':
-
-                        if (getCharUnit(offset) == 'u' 
-                            && getCharUnit(offset + 1) == 'o' 
-                            && getCharUnit(offset + 2) == 't' 
-                            && getCharUnit(offset + 3) == ';')
+                case 'a':
+                    ch = getCharUnit(offset);
+                    if (ch == 'm')
+                    {
+                        if (getCharUnit(offset + 1) == 'p' && getCharUnit(offset + 2) == ';')
                         {
                             inc = 5;
-                            val = '\"';
+                            val = '&';
                         }
                         else
                             throw new NavException("illegal builtin reference");
-                        break;
-
-                    case 'l':
-                        if (getCharUnit(offset) == 't' 
-                            && getCharUnit(offset + 1) == ';')
+                    }
+                    else if (ch == 'p')
+                    {
+                        if (getCharUnit(offset + 1) == 'o' && getCharUnit(offset + 2) == 's' && getCharUnit(offset + 3) == ';')
                         {
-                            inc = 4;
-                            val = '<';
+                            inc = 6;
+                            val = '\'';
                         }
                         else
                             throw new NavException("illegal builtin reference");
-                        break;
-
-                    case 'g':
-                        if (getCharUnit(offset) == 't' && getCharUnit(offset + 1) == ';')
-                        {
-                            inc = 4;
-                            val = '>';
-                        }
-                        else
-                            throw new NavException("illegal builtin reference");
-                        break;
+                    }
+                    else
+                        throw new NavException("illegal builtin reference");
+                    break;
 
 
-                    default:
-                        throw new NavException("Invalid entity char");
+                case 'q':
 
-                }
+                    if (getCharUnit(offset) == 'u'
+                        && getCharUnit(offset + 1) == 'o'
+                        && getCharUnit(offset + 2) == 't'
+                        && getCharUnit(offset + 3) == ';')
+                    {
+                        inc = 5;
+                        val = '\"';
+                    }
+                    else
+                        throw new NavException("illegal builtin reference");
+                    break;
 
-                //currentOffset++;
-                return val | (inc << 32);
+                case 'l':
+                    if (getCharUnit(offset) == 't'
+                        && getCharUnit(offset + 1) == ';')
+                    {
+                        inc = 4;
+                        val = '<';
+                    }
+                    else
+                        throw new NavException("illegal builtin reference");
+                    break;
+
+                case 'g':
+                    if (getCharUnit(offset) == 't' && getCharUnit(offset + 1) == ';')
+                    {
+                        inc = 4;
+                        val = '>';
+                    }
+                    else
+                        throw new NavException("illegal builtin reference");
+                    break;
+
+
+                default:
+                    throw new NavException("Invalid entity char");
+
+            }
+
+            //currentOffset++;
+            return val | (inc << 32);
         }
 
-       
+
         public int getCurrentDepth()
         {
             return context[0];
@@ -633,7 +653,7 @@ namespace com.ximpleware
                 i--;
             }
             //currentOffset += a + 1;
-            return val | (((long)(a + 1))<<32);
+            return val | (((long)(a + 1)) << 32);
         }
 
         private long handle_utf16be(int offset)
@@ -704,7 +724,7 @@ namespace com.ximpleware
                 }
                 val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
                 return val | (2L << 32);
-            }          
+            }
         }
         //UPGRADE_NOTE: Respective javadoc comments were merged.  It should be changed in order to comply with .NET documentation conventions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1199'"
         /// <summary> Get the value of atTerminal
@@ -764,11 +784,42 @@ namespace com.ximpleware
         public const int TOKEN_DOCUMENT = 13;
 
         // encoding format definition here
-        public const int FORMAT_UTF8 = 2;
+
         public const int FORMAT_ASCII = 0;
-        public const int FORMAT_UTF_16LE = 4;
-        public const int FORMAT_UTF_16BE = 3;
         public const int FORMAT_ISO_8859 = 1;
+        public const int FORMAT_UTF8 = 2;
+        public const int FORMAT_ISO_8859_2 = 3;
+        public const int FORMAT_ISO_8859_3 = 4;
+        public const int FORMAT_ISO_8859_4 = 5;
+        public const int FORMAT_ISO_8859_5 = 6;
+        public const int FORMAT_ISO_8859_6 = 7;
+        public const int FORMAT_ISO_8859_7 = 8;
+        public const int FORMAT_ISO_8859_8 = 9;
+        public const int FORMAT_ISO_8859_9 = 10;
+        public const int FORMAT_ISO_8859_10 = 11;
+        public const int FORMAT_ISO_8859_11 = 12;
+        public const int FORMAT_ISO_8859_12 = 13;
+        public const int FORMAT_ISO_8859_13 = 14;
+        public const int FORMAT_ISO_8859_14 = 15;
+        public const int FORMAT_ISO_8859_15 = 16;
+        public const int FORMAT_ISO_8859_16 = 17;
+
+        public const int FORMAT_WIN_1250 = 18;
+        public const int FORMAT_WIN_1251 = 19;
+        public const int FORMAT_WIN_1252 = 20;
+        public const int FORMAT_WIN_1253 = 21;
+        public const int FORMAT_WIN_1254 = 22;
+        public const int FORMAT_WIN_1255 = 23;
+        public const int FORMAT_WIN_1256 = 24;
+        public const int FORMAT_WIN_1257 = 25;
+        public const int FORMAT_WIN_1258 = 26;
+
+
+        public const int FORMAT_UTF_16LE = 64;
+        public const int FORMAT_UTF_16BE = 63;
+
+
+
 
         // masks for obtaining various fields from a VTD token 
         private const long MASK_TOKEN_FULL_LEN = 0x000fffff00000000;
@@ -888,7 +939,7 @@ namespace com.ximpleware
             {
                 context[i] = -1;
             }
-           // currentOffset = 0;
+            // currentOffset = 0;
             //contextStack = new ContextBuffer(1024, nestingLevel + 7);
             contextStack = new ContextBuffer(10, nestingLevel + 9);
             contextStack2 = new ContextBuffer(10, nestingLevel + 9);
@@ -1030,12 +1081,63 @@ namespace com.ximpleware
             }
             return -1;
         }
+
+        private int decode(int offset)
+        {
+            byte ch = XMLDoc.byteAt(offset);
+            switch (encoding)
+            {
+                case FORMAT_ISO_8859_2:
+                    return ISO8859_2.decode(ch);
+                case FORMAT_ISO_8859_3:
+                    return ISO8859_3.decode(ch);
+                case FORMAT_ISO_8859_4:
+                    return ISO8859_4.decode(ch);
+                case FORMAT_ISO_8859_5:
+                    return ISO8859_5.decode(ch);
+                case FORMAT_ISO_8859_6:
+                    return ISO8859_6.decode(ch);
+                case FORMAT_ISO_8859_7:
+                    return ISO8859_7.decode(ch);
+                case FORMAT_ISO_8859_8:
+                    return ISO8859_8.decode(ch);
+                case FORMAT_ISO_8859_9:
+                    return ISO8859_9.decode(ch);
+                case FORMAT_ISO_8859_10:
+                    return ISO8859_10.decode(ch);
+                case FORMAT_WIN_1250:
+                    return WIN1250.decode(ch);
+                case FORMAT_WIN_1251:
+                    return WIN1251.decode(ch);
+                case FORMAT_WIN_1252:
+                    return WIN1252.decode(ch);
+                case FORMAT_WIN_1253:
+                    return WIN1253.decode(ch);
+                case FORMAT_WIN_1254:
+                    return WIN1254.decode(ch);
+                case FORMAT_WIN_1255:
+                    return WIN1255.decode(ch);
+                case FORMAT_WIN_1256:
+                    return WIN1256.decode(ch);
+                case FORMAT_WIN_1257:
+                    return WIN1257.decode(ch);
+                default:
+                    return WIN1258.decode(ch);
+            }
+        }
         /// <summary> Get the next char unit which gets decoded automatically</summary>
         /// <returns> int
         /// </returns>
         private int getCharUnit(int offset)
         {
-            return (encoding < 3) ? XMLDoc.byteAt(offset) : ((encoding == FORMAT_UTF_16BE) ? (XMLDoc.byteAt(offset << 1) << 8 | XMLDoc.byteAt((offset << 1) + 1)) : (XMLDoc.byteAt((offset << 1) + 1) << 8 | XMLDoc.byteAt(offset << 1)));
+            return (encoding <= 2)
+                ? XMLDoc.byteAt(offset)
+                : (encoding <= FORMAT_WIN_1258)
+            ? decode(offset) : ((encoding == FORMAT_UTF_16BE)
+            ? (XMLDoc.byteAt(offset << 1)
+            << 8 | XMLDoc.byteAt((offset << 1) + 1)) :
+            (XMLDoc.byteAt((offset << 1) + 1)
+            << 8 | XMLDoc.byteAt(offset << 1)));
         }
         /// <summary> Get the depth value of a token (>=0).</summary>
         /// <returns> int
@@ -1635,7 +1737,7 @@ namespace com.ximpleware
             long l1;
             //this.currentOffset = offset;
             int endOffset = offset + len;
-            if (encoding < 2)
+            if (encoding < FORMAT_UTF8)
             {
                 if (s.Length != len)
                     return false;
@@ -1656,11 +1758,11 @@ namespace com.ximpleware
                 for (i = 0; i < l && offset < endOffset; i++)
                 {
                     l1 = getChar(offset);
-                    if (s[i] != (int) l1)
+                    if (s[i] != (int)l1)
                     {
                         return false;
                     }
-                    offset +=(int) (l1>>32) ;
+                    offset += (int)(l1 >> 32);
                 }
             }
             if (i == l && offset == endOffset)
@@ -1765,7 +1867,7 @@ namespace com.ximpleware
                     else
                     {
                         l1 = getCharResolved(offset);
-                        if (s[i] != (int) l1)
+                        if (s[i] != (int)l1)
                         {
                             return false;
                         }
@@ -2335,11 +2437,11 @@ namespace com.ximpleware
             // take care of the trailing
             while (offset <= endOffset && isWS(ch))
             {
-               
-                    l = b ? getCharResolved(offset) : getChar(offset);
-                    ch = (int)l;
-                    offset += (int)(l >> 32);
-                
+
+                l = b ? getCharResolved(offset) : getChar(offset);
+                ch = (int)l;
+                offset += (int)(l >> 32);
+
             }
             if (offset == (endOffset + 1))
                 return (int)((neg) ? (-result) : result);
@@ -2835,7 +2937,7 @@ namespace com.ximpleware
             int offset = getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
             int preLen = (i >> 16) & 0xffff;
             return lookupNS(offset, preLen);
-            
+
             //return resolveNS(URL, offset, preLen);
         }
         /// <summary>
@@ -2891,7 +2993,7 @@ namespace com.ximpleware
                                     }
                                     if (a == true)
                                     {
-                                        return s+1;
+                                        return s + 1;
                                     }
                                 }
                             }
@@ -2928,8 +3030,8 @@ namespace com.ximpleware
                                     l = vtdBuffer.longAt(s);
                                     hasNS = false;
                                     vtdBuffer.modifyEntry(s, l | unchecked((int)0x000000c000000000L));
-                                    return k+1;
-                                   
+                                    return k + 1;
+
                                 }
                                 else if ((fullLen - preLen - 1) == len)
                                 {
@@ -2994,9 +3096,9 @@ namespace com.ximpleware
             switch (result)
             {
                 case 0:
-                    if (URL == null) 
+                    if (URL == null)
                         return true;
-                    else 
+                    else
                         return false;
                 default:
                     if (URL == null)

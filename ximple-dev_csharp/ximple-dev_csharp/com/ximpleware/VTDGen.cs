@@ -16,8 +16,8 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 using System;
-using XMLChar = com.ximpleware.parser.XMLChar;
-using UTF8Char = com.ximpleware.parser.UTF8Char;
+using com.ximpleware.parser;
+
 namespace com.ximpleware
 {
 	
@@ -121,8 +121,26 @@ namespace com.ximpleware
 						return prevOffset;
 					
 					case FORMAT_ASCII: 
-					case FORMAT_ISO_8859: 
-						return offset - 1;
+					case FORMAT_ISO_8859_1:
+                    case FORMAT_ISO_8859_2:
+                    case FORMAT_ISO_8859_3:
+                    case FORMAT_ISO_8859_4:
+                    case FORMAT_ISO_8859_5:
+                    case FORMAT_ISO_8859_6:
+                    case FORMAT_ISO_8859_7:
+                    case FORMAT_ISO_8859_8:
+                    case FORMAT_ISO_8859_9:
+                    case FORMAT_ISO_8859_10:
+                    case FORMAT_WIN_1250:
+                    case FORMAT_WIN_1251:
+                    case FORMAT_WIN_1252:
+                    case FORMAT_WIN_1253:
+                    case FORMAT_WIN_1254:
+                    case FORMAT_WIN_1255:
+                    case FORMAT_WIN_1256:
+                    case FORMAT_WIN_1257:
+                    case FORMAT_WIN_1258:
+                        return offset - 1;
 					
 					case FORMAT_UTF_16LE:
                         temp = (XMLDoc[offset + 1] ) << 8 | (XMLDoc[offset] );
@@ -149,205 +167,7 @@ namespace com.ximpleware
 					
 				}
 			}
-			/// <summary> Testing purposes.</summary>
-			/// <param name="args">java.lang.String[]
-			/// </param>
-			//	public static void main(String[] args) {
-			//		//String xdoc =
-			//		//    "<?xml version='1.0' encoding=\"ASCII\" standalone='yes'?>  <!DOCTYPE a b c> <?xmls jfksfj?><this ><![CDATA[faskfjas]]>  &#32;&#32; <!--comment-->   </this> ";
-			//		if (true) {
-			//			String xdoc =
-			//				"<?xml version='1.0' encoding='us-ascii'?>  <!DOCTYPE a b c> \n"
-			//					+ " <?xmls  ns ?> <this att1 = \"good=\" att12=\"bad\"> a<?xmls  ?>"
-			//					+ " <![CDATA[faskfjas]]>  &#32;&#32; <!---->   </this>  <!--version--> <?xmlns?> <?xmlf ?><!--verion2-->";
-			//			xdoc = "<this> good </this>";
-			//			String xdoc2 =
-			//				"<address-book>"
-			//					+ "<contact type=\"individual\">"
-			//					+ "<name>Zane Pasolini</name>"
-			//					+ "<address>999 W. Prince St.</address>"
-			//					+ "<city>New York</city>"
-			//					+ "<province>NY</province>"
-			//					+ "<postalcode>10013</postalcode>"
-			//					+ "<country>USA</country>"
-			//					+ "<telephone>1-212-345-6789</telephone>"
-			//					+ "</contact>"
-			//					+ "<contact type=\"business\">"
-			//					+ "<name>SAMOFIX d.o.o.</name>"
-			//					+ "<address>Ilica 47-2</address>"
-			//					+ "<city>Zagreb</city>"
-			//					+ "<province></province>"
-			//					+ "<postalcode>10000</postalcode>"
-			//					+ "<country>Croatia</country>"
-			//					+ "<telephone>385-1-123-4567</telephone>"
-			//					+ "</contact>"
-			//					+ "</address-book>";
-			//			byte a = (byte) 0xff;
-			//			System.out.println("byte a & 0xff " + (a & 0xff) + " byte a " + a);
-			//			//xdoc = " < ";
-			//			// create a UTF encoded byte array here
-			//			//byte[] ba = {(byte) 0xbf, (byte) 0xbf, (byte) 0xbf, (byte) 0xbf, (byte) 0xbf };
-			//			System.out.println(xdoc);
-			//			//System.out.println("a" + (byte) (0xffe));
-			//			VTDGen vg = new VTDGen();
-			//
-			//			try {
-			//				byte[] ba = xdoc2.getBytes("UTF-8");
-			//				byte[] ba2 = new byte[ba.length << 1];
-			//				for (int i = 1; i < ba.length; i++) {
-			//					ba2[2 * i + 1] = ba[i];
-			//				}
-			//				String test = new String(ba2, "UTF-16BE");
-			//				System.out.println(test);
-			//				vg.setDoc(ba);
-			//				//vg.setDoc(xdoc.getBytes());
-			//				vg.parse(true);
-			//				VTDNav vn = vg.getNav();
-			//				int i = vn.getText();
-			//				System.out.println("i is " + i);
-			//			} catch (ParseException e) {
-			//				System.out.println(e);
-			//			} catch (Exception e) {
-			//				System.out.println("other exceptions" + e);
-			//			}
-			//		} else {
-			//			//args[0] = "1";
-			//			try {
-			//				//vg.setDoc(xdoc.getBytes());
-			//				int total = 1000;
-			//				//File pf = new File("c:/benchmark/po1m.xml");
-			//				File pf = new File(args[1]);
-			//				if (pf.length() > 1000000) {
-			//					total = 1000;
-			//				} else if (pf.length() > 100000) {
-			//					total = 10000;
-			//				} else if (pf.length() > 10000) {
-			//					total = 100000;
-			//				}
-			//
-			//				if (args[0].equals("1")) {
-			//					//if (true) {
-			//					File f = new File(args[1]);
-			//					//File f = new File("c:/benchmark/weblog.xml");
-			//					FileInputStream fis = new FileInputStream(f);
-			//					byte[] b = new byte[(int) f.length()];
-			//					System.out.println((int) f.length());
-			//					fis.read(b);
-			//					ByteArrayInputStream bais;
-			//					for (int i = 0; i < total; i++) {
-			//						//bais = new ByteArrayInputStream(b);
-			//						VTDGen vg = new VTDGen();
-			//						vg.setDoc(b);
-			//						vg.parse(true);
-			//					}
-			//					Runtime rt = Runtime.getRuntime();
-			//					long z = System.currentTimeMillis();
-			//					for (int i = 0; i < 1000; i++) {
-			//						//bais = new ByteArrayInputStream(b);
-			//						VTDGen vg = new VTDGen();
-			//						vg.setDoc(b);
-			//						vg.parse(true);
-			//					}
-			//
-			//					System.out.println(
-			//						"total time used "
-			//							+ (float) (System.currentTimeMillis() - z) / 1000);
-			//				} else if (args[0].equals("2")) {
-			//
-			//					File f = new File(args[1]);
-			//					FileInputStream fis = new FileInputStream(f);
-			//					Runtime rt = Runtime.getRuntime();
-			//					long startMem = rt.totalMemory() - rt.freeMemory();
-			//					byte[] b = new byte[(int) f.length()];
-			//					fis.read(b);
-			//					System.out.println("file size is " + f.length());
-			//					//ByteArrayInputStream bais;
-			//					//bais = new ByteArrayInputStream(b);
-			//					VTDGen vg = new VTDGen();
-			//					vg.setDoc(b);
-			//					vg.parse(false);
-			//					long endMem = rt.totalMemory() - rt.freeMemory();
-			//					System.out.println(
-			//						" total mem used " + (int) (endMem - startMem));
-			//				} else if (args[0].equals("3")) {
-			//					//if (true) {
-			//					File f = new File(args[1]);
-			//					//File f = new File("c:/benchmark/testx.xml");
-			//					FileInputStream fis = new FileInputStream(f);
-			//					byte[] b = new byte[(int) f.length()];
-			//					System.out.println((int) f.length());
-			//					fis.read(b);
-			//					ByteArrayInputStream bais;
-			//					VTDGen vg = new VTDGen();
-			//					vg.setDoc(b);
-			//					vg.parse(true);
-			//					int ecount = 0, acount = 0, tcount = 0;
-			//					VTDNav vn = vg.getNav();
-			//					for (int i = 0; i < total; i++) {
-			//						//bais = new ByteArrayInputStream(b);
-			//						//acount = tcount = ecount = 0;
-			//						AutoPilot ap = new AutoPilot(vn);
-			//						vn.toElement(0); // reset to root
-			//						ap.selectElement("*");
-			//						while (ap.iterate()) {
-			//							//int t = vn.getText();
-			//							int ci = vn.getCurrentIndex();
-			//							System.out.print(
-			//								"element name :" + vn.toString(ci));
-			//							ci++; //points the token right after
-			//							while (vn.getTokenType(ci) == 2
-			//								|| vn.getTokenType(ci) == 3) {
-			//								acount++;
-			//								ci += 2;
-			//							}
-			//
-			//							/*if (t != -1) {
-			//							    System.out.println("  text value :" + vn.toNormalizedString(t));
-			//							    tcount++;
-			//							}*/
-			//						}
-			//					}
-			//					Runtime rt = Runtime.getRuntime();
-			//					long z = System.currentTimeMillis();
-			//					for (int i = 0;
-			//						i < 1000;
-			//						i++) { //bais = new ByteArrayInputStream(b);
-			//						acount = tcount = ecount = 0;
-			//						AutoPilot ap = new AutoPilot(vn);
-			//						vn.toElement(0); // reset to root
-			//						ap.selectElement("*");
-			//						while (ap.iterate()) {
-			//							//int t = vn.getText();
-			//							int ci = vn.getCurrentIndex();
-			//							System.out.print(
-			//								"element name :" + vn.toString(ci));
-			//							ci++; //points the token right after
-			//							int token_type = vn.getTokenType(ci);
-			//							while (token_type == 2 || token_type == 3) {
-			//								acount++;
-			//								ci += 2;
-			//								token_type = vn.getTokenType(ci);
-			//							}
-			//
-			//							/*if (t != -1) {
-			//							    System.out.println("  text value :" + vn.toNormalizedString(t));
-			//							    tcount++;
-			//							}*/
-			//						}
-			//					}
-			//
-			//					System.out.println(
-			//						"total time used "
-			//							+ (float) (System.currentTimeMillis() - z) / 1000);
-			//				}
-			//			} catch (ParseException e) {
-			//				System.out.println(e);
-			//			} catch (Exception e) {
-			//				System.out.println("other exceptions" + e);
-			//			}
-			//		}
-			//	}
-			
+
 		}
 		// internal parser state
 		private const int STATE_DOC_START = 0; // beginning of document
@@ -389,9 +209,39 @@ namespace com.ximpleware
 		// encoding format
 		public const int FORMAT_UTF8 = 2;
 		public const int FORMAT_ASCII = 0;
-		public const int FORMAT_UTF_16LE = 4;
-		public const int FORMAT_UTF_16BE = 3;
-		public const int FORMAT_ISO_8859 = 1;
+        public const int FORMAT_ISO_8859_1 = 1;
+        public const int FORMAT_ISO_8859_2 = 3;
+        public const int FORMAT_ISO_8859_3 = 4;
+        public const int FORMAT_ISO_8859_4 = 5;
+        public const int FORMAT_ISO_8859_5 = 6;
+        public const int FORMAT_ISO_8859_6 = 7;
+        public const int FORMAT_ISO_8859_7 = 8;
+        public const int FORMAT_ISO_8859_8 = 9;
+        public const int FORMAT_ISO_8859_9 = 10;
+        public const int FORMAT_ISO_8859_10 = 11;
+        public const int FORMAT_ISO_8859_11 = 12;
+        public const int FORMAT_ISO_8859_12 = 13;
+        public const int FORMAT_ISO_8859_13 = 14;
+        public const int FORMAT_ISO_8859_14 = 15;
+        public const int FORMAT_ISO_8859_15 = 16;
+        public const int FORMAT_ISO_8859_16 = 17;
+
+        public const int FORMAT_WIN_1250 = 18;
+        public const int FORMAT_WIN_1251 = 19;
+        public const int FORMAT_WIN_1252 = 20;
+        public const int FORMAT_WIN_1253 = 21;
+        public const int FORMAT_WIN_1254 = 22;
+        public const int FORMAT_WIN_1255 = 23;
+        public const int FORMAT_WIN_1256 = 24;
+        public const int FORMAT_WIN_1257 = 25;
+        public const int FORMAT_WIN_1258 = 26;
+
+
+        public const int FORMAT_UTF_16LE = 64;
+        public const int FORMAT_UTF_16BE = 63;
+
+
+		
 		
 		//namespace aware flag
 		private bool ns;
@@ -439,8 +289,409 @@ namespace com.ximpleware
 		public const int MAX_QNAME_LENGTH = (1 << 11) - 1;
 		// max Token length
 		public const int MAX_TOKEN_LENGTH = (1 << 20) - 1;
-		
-		
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_2Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_2Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_2.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_2Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_2.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_3Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_3Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_3.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_3Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_3.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_4Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_4Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_4.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_4Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_4.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_5Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_5Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_5.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_5Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_5.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_6Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_6Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_6.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_6Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_6.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_7Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_7Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_7.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_7Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_7.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_8Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_8Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_8.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_8Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_8.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_9Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_9Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_9.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_9Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_9.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_10Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_10Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_10.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_10Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_10.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
 		
 		//UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF8Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
 		internal class UTF8Reader : IReader
@@ -458,7 +709,7 @@ namespace com.ximpleware
 						throw new EOFException("permature EOF reached, XML document incomplete");
 					int temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
 					//int a = 0, c = 0, d = 0, val = 0;
-					if (temp <127)
+					if (temp <128)
 					{
 						Enclosing_Instance.offset++;
 						return temp;
@@ -703,6 +954,412 @@ namespace com.ximpleware
 				}
 			}
 		}
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1250Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1250Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1250.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1250Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1250.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1251Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1251Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1251.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1251Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1251.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+
+
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1252Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1252Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1252.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1252Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1252.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1253Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1253Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1253.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1253Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1253.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1254Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1254Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1254.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1254Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1254.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1255Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1255Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1255.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1255Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1255.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1256Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1256Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1256.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1256Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1256.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1257Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1257Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1257.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1257Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1257.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1258Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class WIN1258Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return WIN1258.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public WIN1258Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == WIN1258.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
 		//UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF16LEReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
 		internal class UTF16LEReader : IReader
 		{
@@ -846,7 +1503,7 @@ namespace com.ximpleware
 			}
 		}
 		//UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-		internal class ISO8859Reader : IReader
+		internal class ISO8859_1Reader : IReader
 		{
 			private void  InitBlock(VTDGen enclosingInstance)
 			{
@@ -872,7 +1529,7 @@ namespace com.ximpleware
 				}
 				
 			}
-			public ISO8859Reader(VTDGen enclosingInstance)
+			public ISO8859_1Reader(VTDGen enclosingInstance)
 			{
 				InitBlock(enclosingInstance);
 			}
@@ -1940,310 +2597,528 @@ namespace com.ximpleware
 				finishUp();
 			}
 		}
-		
-		
+
+        private void matchCPEncoding()
+        {
+            if ((r.skipChar('p') || r.skipChar('P')) && r.skipChar('1') && r.skipChar('2') && r.skipChar('5'))
+            {
+                if (encoding <= FORMAT_UTF_16LE)
+                {
+                    if (must_utf_8)
+                        throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
+                    if (r.skipChar('0') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1250;
+                        r = new WIN1250Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('1') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1251;
+                        r = new WIN1251Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('2') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1252;
+                        r = new WIN1252Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('3') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1253;
+                        r = new WIN1253Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('4') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1254;
+                        r = new WIN1254Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('5') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1255;
+                        r = new WIN1255Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('6') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1256;
+                        r = new WIN1256Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('7') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1257;
+                        r = new WIN1257Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('8') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1258;
+                        r = new WIN1258Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                }
+                else
+                    throw new ParseException("XML decl error: Can't switch encoding to ISO-8859" + formatLineNumber());
+            }
+            throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
+        }
+        private void matchWindowsEncoding()
+        {
+            if ((r.skipChar('i') || r.skipChar('I')) && (r.skipChar('n') || r.skipChar('N')) && (r.skipChar('d') || r.skipChar('D')) && (r.skipChar('o') || r.skipChar('O')) && (r.skipChar('w') || r.skipChar('W')) && (r.skipChar('s') || r.skipChar('S')) && r.skipChar('-') && r.skipChar('1') && r.skipChar('2') && r.skipChar('5'))
+            {
+                if (encoding <= FORMAT_UTF_16LE)
+                {
+                    if (must_utf_8)
+                        throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
+                    if (r.skipChar('0') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1250;
+                        r = new WIN1250Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('1') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1251;
+                        r = new WIN1251Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('2') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1252;
+                        r = new WIN1252Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('3') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1253;
+                        r = new WIN1253Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('4') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1254;
+                        r = new WIN1254Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('5') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1255;
+                        r = new WIN1255Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('6') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1256;
+                        r = new WIN1256Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('7') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1257;
+                        r = new WIN1257Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('8') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_WIN_1258;
+                        r = new WIN1258Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                }
+                else
+                    throw new ParseException("XML decl error: Can't switch encoding to ISO-8859" + formatLineNumber());
+            }
+            throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
+        }
+        private void matchUTFEncoding()
+        {
+            if ((r.skipChar('s') || r.skipChar('S')))
+                if (r.skipChar('-') && (r.skipChar('a') || r.skipChar('A')) && (r.skipChar('s') || r.skipChar('S')) && (r.skipChar('c') || r.skipChar('C')) && (r.skipChar('i') || r.skipChar('I')) && (r.skipChar('i') || r.skipChar('I')) && r.skipChar(ch_temp))
+                {
+                    if (encoding != FORMAT_UTF_16LE && encoding != FORMAT_UTF_16BE)
+                    {
+                        if (must_utf_8)
+                            throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
+                        encoding = FORMAT_ASCII;
+                        r = new ASCIIReader(this);
+                        writeVTD(temp_offset, 8, TOKEN_DEC_ATTR_VAL, depth);
+
+                        return;
+                    }
+                    else
+                        throw new ParseException("XML decl error: Can't switch encoding to US-ASCII" + formatLineNumber());
+                }
+                else
+                    throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
+
+            if ((r.skipChar('t') || r.skipChar('T')) && (r.skipChar('f') || r.skipChar('F')) && r.skipChar('-'))
+            {
+                if (r.skipChar('8') && r.skipChar(ch_temp))
+                {
+                    if (encoding != FORMAT_UTF_16LE && encoding != FORMAT_UTF_16BE)
+                    {
+                        //encoding = FORMAT_UTF8;
+                        writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
+
+                        return;
+                    }
+                    else
+                        throw new ParseException("XML decl error: Can't switch encoding to UTF-8" + formatLineNumber());
+                }
+                if (r.skipChar('1') && r.skipChar('6'))
+                {
+                    if (r.skipChar(ch_temp))
+                    {
+                        if (encoding == FORMAT_UTF_16LE || encoding == FORMAT_UTF_16BE)
+                        {
+                            if (!BOM_detected)
+                                throw new EncodingException("BOM not detected for UTF-16" + formatLineNumber());
+                            writeVTD(temp_offset >> 1, 6, TOKEN_DEC_ATTR_VAL, depth);
+                            return;
+                        }
+                        throw new ParseException("XML decl error: Can't switch encoding to UTF-16" + formatLineNumber());
+                    }
+                    else if ((r.skipChar('l') || r.skipChar('L')) && (r.skipChar('e') || r.skipChar('E')) && r.skipChar(ch_temp))
+                    {
+                        if (encoding == FORMAT_UTF_16LE)
+                        {
+                            r = new UTF16LEReader(this);
+                            writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_VAL, depth);
+                            return;
+                        }
+                        throw new ParseException("XML del error: Can't switch encoding to UTF-16LE" + formatLineNumber());
+                    }
+                    else if ((r.skipChar('b') || r.skipChar('B')) && (r.skipChar('e') || r.skipChar('E')) && r.skipChar(ch_temp))
+                    {
+                        if (encoding == FORMAT_UTF_16BE)
+                        {
+                            writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_VAL, depth);
+                            return;
+                        }
+                        throw new ParseException("XML del error: Can't swtich encoding to UTF-16BE" + formatLineNumber());
+                    }
+
+                    throw new ParseException("XML decl error: Invalid encoding" + formatLineNumber());
+                }
+            }
+        }
+
+        private void matchISOEncoding()
+        {
+            if ((r.skipChar('s') || r.skipChar('S')) && (r.skipChar('o') || r.skipChar('O')) && r.skipChar('-') && r.skipChar('8') && r.skipChar('8') && r.skipChar('5') && r.skipChar('9') && r.skipChar('-'))
+            {
+                if (encoding <= FORMAT_UTF_16LE)
+                {
+                    if (must_utf_8)
+                        throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
+                    if (r.skipChar('1'))
+                    {
+                        if (r.skipChar(ch_temp))
+                        {
+                            encoding = FORMAT_ISO_8859_1;
+                            r = new ISO8859_1Reader(this);
+                            writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        }
+                        else if (r.skipChar('0') && r.skipChar(ch_temp))
+                        {
+                            encoding = FORMAT_ISO_8859_10;
+                            r = new ISO8859_10Reader(this);
+                            writeVTD(temp_offset, 11, TOKEN_DEC_ATTR_VAL, depth);
+                        }
+                        else
+                            throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
+                        return;
+                    }
+                    else if (r.skipChar('2') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_ISO_8859_2;
+                        r = new ISO8859_2Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('3') && r.skipChar(ch_temp))
+                    {
+                        r = new ISO8859_3Reader(this);
+                        encoding = FORMAT_ISO_8859_3;
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        // break;
+                    }
+                    else if (r.skipChar('4') && r.skipChar(ch_temp))
+                    {
+                        r = new ISO8859_4Reader(this);
+                        encoding = FORMAT_ISO_8859_4;
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('5') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_ISO_8859_5;
+                        r = new ISO8859_5Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('6') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_ISO_8859_6;
+                        r = new ISO8859_6Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('7') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_ISO_8859_7;
+                        r = new ISO8859_7Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('8') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_ISO_8859_8;
+                        r = new ISO8859_8Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                    else if (r.skipChar('9') && r.skipChar(ch_temp))
+                    {
+                        encoding = FORMAT_ISO_8859_9;
+                        r = new ISO8859_9Reader(this);
+                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        return;
+                    }
+                }
+                else
+                    throw new ParseException("XML decl error: Can't switch encoding to ISO-8859" + formatLineNumber());
+            }
+            throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
+        }
 		/// <summary> This private method processes declaration attributes</summary>
 		/// <returns> the parser state after which the parser loop jumps to
 		/// </returns>
 		/// <throws>  ParseException </throws>
 		/// <throws>  EncodingException </throws>
 		/// <throws>  EOFException </throws>
-		private int process_dec_attr()
-		{
-			//int length1;
-			int parser_state;
-			if (ch == 'v' && r.skipChar('e') && r.skipChar('r') && r.skipChar('s') && r.skipChar('i') && r.skipChar('o') && r.skipChar('n'))
-			{
-				ch = CharAfterS;
-				if (ch == '=')
-				{
-					/*System.out.println(
-					" " + (temp_offset - 1) + " " + 7 + " dec attr name version " + depth);*/
-					if (encoding < FORMAT_UTF_16BE)
-						writeVTD(temp_offset - 1, 7, TOKEN_DEC_ATTR_NAME, depth);
-					else
-						writeVTD((temp_offset - 2) >> 1, 7, TOKEN_DEC_ATTR_NAME, depth);
-				}
-				else
-					throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
-			}
-			else
-				throw new ParseException("XML decl error: should be version" + formatLineNumber());
-			ch_temp = CharAfterS;
-			if (ch_temp != '\'' && ch_temp != '"')
-				throw new ParseException("XML decl error: Invalid char to start attr name" + formatLineNumber());
-			temp_offset = offset;
-			// support 1.0 or 1.1
-			if (r.skipChar('1') && r.skipChar('.') && (r.skipChar('0') || r.skipChar('1')))
-			{
-				/*System.out.println(
-				" " + temp_offset + " " + 3 + " dec attr val (version)" + depth);*/
-				if (encoding < FORMAT_UTF_16BE)
-					writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
-				else
-					writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL, depth);
-			}
-			else
-				throw new ParseException("XML decl error: Invalid version(other than 1.0 or 1.1) detected" + formatLineNumber());
-			if (!r.skipChar(ch_temp))
-				throw new ParseException("XML decl error: version not terminated properly" + formatLineNumber());
-			ch = r.Char;
-			//? space or e 
-			if (XMLChar.isSpaceChar(ch))
-			{
-				ch = CharAfterS;
-				temp_offset = offset - increment;
-				if (ch == 'e')
-				{
-					if (r.skipChar('n') && r.skipChar('c') && r.skipChar('o') && r.skipChar('d') && r.skipChar('i') && r.skipChar('n') && r.skipChar('g'))
-					{
-						ch = r.Char;
-						if (XMLChar.isSpaceChar(ch))
-							ch = CharAfterS;
-						if (ch == '=')
-						{
-							/*System.out.println(
-							" " + (temp_offset) + " " + 8 + " dec attr name (encoding) " + depth);*/
-							if (encoding < FORMAT_UTF_16BE)
-								writeVTD(temp_offset, 8, TOKEN_DEC_ATTR_NAME, depth);
-							else
-								writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_NAME, depth);
-						}
-						else
-							throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
-						ch_temp = CharAfterS;
-						if (ch_temp != '"' && ch_temp != '\'')
-							throw new ParseException("XML decl error: Invalid char to start attr name" + formatLineNumber());
-						temp_offset = offset;
-						ch = r.Char;
-						switch (ch)
-						{
-							
-							case 'a': 
-							case 'A': 
-								if ((r.skipChar('s') || r.skipChar('S')) && (r.skipChar('c') || r.skipChar('C')) && (r.skipChar('i') || r.skipChar('I')) && (r.skipChar('i') || r.skipChar('I')) && r.skipChar(ch_temp))
-								{
-									if (encoding != FORMAT_UTF_16LE && encoding != FORMAT_UTF_16BE)
-									{
-										if (must_utf_8)
-											throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
-										encoding = FORMAT_ASCII;
-										r = new ASCIIReader(this);
-										/*System.out.println(
-										" " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
-										if (encoding < FORMAT_UTF_16BE)
-											writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
-										else
-											writeVTD(temp_offset >> 1, 5, TOKEN_DEC_ATTR_VAL, depth);
-										break;
-									}
-									else
-										throw new ParseException("XML decl error: Can't switch encoding to ASCII" + formatLineNumber());
-								}
-								throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
-							
-							case 'i': 
-							case 'I': 
-								if ((r.skipChar('s') || r.skipChar('S')) && (r.skipChar('o') || r.skipChar('O')) && r.skipChar('-') && r.skipChar('8') && r.skipChar('8') && r.skipChar('5') && r.skipChar('9') && r.skipChar('-') && r.skipChar('1') && r.skipChar(ch_temp))
-								{
-									if (encoding != FORMAT_UTF_16LE && encoding != FORMAT_UTF_16BE)
-									{
-										if (must_utf_8)
-											throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
-										encoding = FORMAT_ISO_8859;
-										r = new ISO8859Reader(this);
-										/*System.out.println(
-										" " + (temp_offset) + " " + 10 + " dec attr val (encoding) " + depth);*/
-										if (encoding < FORMAT_UTF_16BE)
-											writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
-										else
-											writeVTD(temp_offset >> 1, 10, TOKEN_DEC_ATTR_VAL, depth);
-										break;
-									}
-									else
-										throw new ParseException("XML decl error: Can't switch encoding to ISO-8859" + formatLineNumber());
-								}
-								throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
-							
-							case 'u': 
-							case 'U': 
-								if ((r.skipChar('s') || r.skipChar('S')))
-									if (r.skipChar('-') && (r.skipChar('a') || r.skipChar('A')) && (r.skipChar('s') || r.skipChar('S')) && (r.skipChar('c') || r.skipChar('C')) && (r.skipChar('i') || r.skipChar('I')) && (r.skipChar('i') || r.skipChar('I')) && r.skipChar(ch_temp))
-									{
-										if (encoding != FORMAT_UTF_16LE && encoding != FORMAT_UTF_16BE)
-										{
-											if (must_utf_8)
-												throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
-											encoding = FORMAT_ASCII;
-											r = new ASCIIReader(this);
-											//System.out.println(
-											//    " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);
-											if (encoding < FORMAT_UTF_16BE)
-												writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
-											else
-												writeVTD(temp_offset >> 1, 5, TOKEN_DEC_ATTR_VAL, depth);
-											break;
-										}
-										else
-											throw new ParseException("XML decl error: Can't switch encoding to US-ASCII" + formatLineNumber());
-									}
-									else
-										throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
-								
-								if ((r.skipChar('t') || r.skipChar('T')) && (r.skipChar('f') || r.skipChar('F')) && r.skipChar('-'))
-								{
-									if (r.skipChar('8') && r.skipChar(ch_temp))
-									{
-										if (encoding != FORMAT_UTF_16LE && encoding != FORMAT_UTF_16BE)
-										{
-											//encoding = FORMAT_UTF8;
-											/*System.out.println(
-											" " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
-											if (encoding < FORMAT_UTF_16BE)
-												writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
-											else
-												writeVTD(temp_offset >> 1, 5, TOKEN_DEC_ATTR_VAL, depth);
-											break;
-										}
-										else
-											throw new ParseException("XML decl error: Can't switch encoding to UTF-8" + formatLineNumber());
-									}
-									if (r.skipChar('1') && r.skipChar('6'))
-									{
-										if (r.skipChar(ch_temp))
-										{
-											if (encoding == FORMAT_UTF_16LE || encoding == FORMAT_UTF_16BE)
-											{
-												if (!BOM_detected)
-													throw new EncodingException("BOM not detected for UTF-16" + formatLineNumber());
-												if (encoding < FORMAT_UTF_16BE)
-													writeVTD(temp_offset, 6, TOKEN_DEC_ATTR_VAL, depth);
-												else
-													writeVTD(temp_offset >> 1, 6, TOKEN_DEC_ATTR_VAL, depth);
-												break;
-											}
-											throw new ParseException("XML decl error: Can't switch encoding to UTF-16" + formatLineNumber());
-										}
-										else if ((r.skipChar('l') || r.skipChar('L')) && (r.skipChar('e') || r.skipChar('E')) && r.skipChar(ch_temp))
-										{
-											if (encoding == FORMAT_UTF_16LE)
-											{
-												/*System.out.println(
-												" " + (temp_offset) + " " + 7 + " dec attr val (encoding) " + depth);*/
-												if (encoding < FORMAT_UTF_16BE)
-													writeVTD(temp_offset, 7, TOKEN_DEC_ATTR_VAL, depth);
-												else
-													writeVTD(temp_offset >> 1, 7, TOKEN_DEC_ATTR_VAL, depth);
-												break;
-											}
-											throw new ParseException("XML del error: Can't switch encoding to UTF-16LE" + formatLineNumber());
-										}
-										else if ((r.skipChar('b') || r.skipChar('B')) && (r.skipChar('e') || r.skipChar('E')) && r.skipChar(ch_temp))
-										{
-											if (encoding == FORMAT_UTF_16BE)
-											{
-												/*System.out.println(
-												" " + (temp_offset) + " " + 7 + " dec attr val (encoding) " + depth);*/
-												if (encoding < FORMAT_UTF_16BE)
-													writeVTD(temp_offset, 7, TOKEN_DEC_ATTR_VAL, depth);
-												else
-													writeVTD(temp_offset >> 1, 7, TOKEN_DEC_ATTR_VAL, depth);
-												break;
-											}
-											throw new ParseException("XML del error: Can't swtich encoding to UTF-16BE" + formatLineNumber());
-										}
-										
-										throw new ParseException("XML decl error: Invalid encoding" + formatLineNumber());
-									}
-								}
-								goto default;
-							
-							default: 
-								throw new ParseException("XML decl Error: invalid encoding" + formatLineNumber());
-							
-						}
-						ch = r.Char;
-						if (XMLChar.isSpaceChar(ch))
-							ch = CharAfterS;
-						temp_offset = offset - increment;
-					}
-					else
-						throw new ParseException("XML decl Error: Invalid char" + formatLineNumber());
-				}
-				
-				if (ch == 's')
-				{
-					if (r.skipChar('t') && r.skipChar('a') && r.skipChar('n') && r.skipChar('d') && r.skipChar('a') && r.skipChar('l') && r.skipChar('o') && r.skipChar('n') && r.skipChar('e'))
-					{
-						
-						ch = CharAfterS;
-						if (ch != '=')
-							throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
-						/*System.out.println(
-						" " + temp_offset + " " + 3 + " dec attr name (standalone) " + depth);*/
-						if (encoding < FORMAT_UTF_16BE)
-							writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_NAME, depth);
-						else
-							writeVTD(temp_offset >> 1, 10, TOKEN_DEC_ATTR_NAME, depth);
-						ch_temp = CharAfterS;
-						temp_offset = offset;
-						if (ch_temp != '"' && ch_temp != '\'')
-							throw new ParseException("XML decl error: Invalid char to start attr name" + formatLineNumber());
-						ch = r.Char;
-						if (ch == 'y')
-						{
-							if (r.skipChar('e') && r.skipChar('s') && r.skipChar(ch_temp))
-							{
-								/*System.out.println(
-								" " + (temp_offset) + " " + 3 + " dec attr val (standalone) " + depth);*/
-								if (encoding < FORMAT_UTF_16BE)
-									writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
-								else
-									writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL, depth);
-							}
-							else
-								throw new ParseException("XML decl error: invalid val for standalone" + formatLineNumber());
-						}
-						else if (ch == 'n')
-						{
-							if (r.skipChar('o') && r.skipChar(ch_temp))
-							{
-								/*System.out.println(
-								" " + (temp_offset) + " " + 2 + " dec attr val (standalone)" + depth);*/
-								if (encoding < FORMAT_UTF_16BE)
-									writeVTD(temp_offset, 2, TOKEN_DEC_ATTR_VAL, depth);
-								else
-									writeVTD(temp_offset >> 1, 2, TOKEN_DEC_ATTR_VAL, depth);
-							}
-							else
-								throw new ParseException("XML decl error: invalid val for standalone" + formatLineNumber());
-						}
-						else
-							throw new ParseException("XML decl error: invalid val for standalone" + formatLineNumber());
-					}
-					else
-						throw new ParseException("XML decl error" + formatLineNumber());
-					ch = r.Char;
-					if (XMLChar.isSpaceChar(ch))
-						ch = CharAfterS;
-				}
-			}
-			
-			if (ch == '?' && r.skipChar('>'))
-			{
-				temp_offset = offset;
-				ch = CharAfterS;
-				if (ch == '<')
-				{
-					parser_state = STATE_LT_SEEN;
-				}
-				else
-					throw new ParseException("Other Error: Invalid Char in XML" + formatLineNumber());
-			}
-			else
-				throw new ParseException("XML decl Error: Invalid termination sequence" + formatLineNumber());
-			return parser_state;
-		}
+        private int process_dec_attr()
+        {
+            int length1;
+            int parser_state;
+            if (ch == 'v' && r.skipChar('e') && r.skipChar('r') && r.skipChar('s') && r.skipChar('i') && r.skipChar('o') && r.skipChar('n'))
+            {
+                ch = CharAfterS;
+                if (ch == '=')
+                {
+                    /*System.out.println(
+                    " " + (temp_offset - 1) + " " + 7 + " dec attr name version " + depth);*/
+                    if (encoding < FORMAT_UTF_16BE)
+                        writeVTD(temp_offset - 1, 7, TOKEN_DEC_ATTR_NAME, depth);
+                    else
+                        writeVTD((temp_offset - 2) >> 1, 7, TOKEN_DEC_ATTR_NAME, depth);
+                }
+                else
+                    throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
+            }
+            else
+                throw new ParseException("XML decl error: should be version" + formatLineNumber());
+            ch_temp = CharAfterS;
+            if (ch_temp != '\'' && ch_temp != '"')
+                throw new ParseException("XML decl error: Invalid char to start attr name" + formatLineNumber());
+            temp_offset = offset;
+            // support 1.0 or 1.1
+            if (r.skipChar('1') && r.skipChar('.') && (r.skipChar('0') || r.skipChar('1')))
+            {
+                /*System.out.println(
+                " " + temp_offset + " " + 3 + " dec attr val (version)" + depth);*/
+                if (encoding < FORMAT_UTF_16BE)
+                    writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
+                else
+                    writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL, depth);
+            }
+            else
+                throw new ParseException("XML decl error: Invalid version(other than 1.0 or 1.1) detected" + formatLineNumber());
+            if (!r.skipChar(ch_temp))
+                throw new ParseException("XML decl error: version not terminated properly" + formatLineNumber());
+            ch = r.Char;
+            //? space or e 
+            if (XMLChar.isSpaceChar(ch))
+            {
+                ch = CharAfterS;
+                temp_offset = offset - increment;
+                if (ch == 'e')
+                {
+                    if (r.skipChar('n') && r.skipChar('c') && r.skipChar('o') && r.skipChar('d') && r.skipChar('i') && r.skipChar('n') && r.skipChar('g'))
+                    {
+                        ch = r.Char;
+                        if (XMLChar.isSpaceChar(ch))
+                            ch = CharAfterS;
+                        if (ch == '=')
+                        {
+                            /*System.out.println(
+                            " " + (temp_offset) + " " + 8 + " dec attr name (encoding) " + depth);*/
+                            if (encoding < FORMAT_UTF_16BE)
+                                writeVTD(temp_offset, 8, TOKEN_DEC_ATTR_NAME, depth);
+                            else
+                                writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_NAME, depth);
+                        }
+                        else
+                            throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
+                        ch_temp = CharAfterS;
+                        if (ch_temp != '"' && ch_temp != '\'')
+                            throw new ParseException("XML decl error: Invalid char to start attr name" + formatLineNumber());
+                        temp_offset = offset;
+                        ch = r.Char;
+                        switch (ch)
+                        {
+
+                            case 'a':
+                            case 'A':
+                                if ((r.skipChar('s') || r.skipChar('S')) && (r.skipChar('c') || r.skipChar('C')) && (r.skipChar('i') || r.skipChar('I')) && (r.skipChar('i') || r.skipChar('I')) && r.skipChar(ch_temp))
+                                {
+                                    if (encoding != FORMAT_UTF_16LE && encoding != FORMAT_UTF_16BE)
+                                    {
+                                        if (must_utf_8)
+                                            throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
+                                        encoding = FORMAT_ASCII;
+                                        r = new ASCIIReader(this);
+                                        /*System.out.println(
+                                        " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
+
+                                        writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
+
+                                        break;
+                                    }
+                                    else
+                                        throw new ParseException("XML decl error: Can't switch encoding to ASCII" + formatLineNumber());
+                                }
+                                throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
+
+                            case 'c':
+                            case 'C':
+                                matchCPEncoding();
+                                break;
+
+                            case 'i':
+                            case 'I':
+                                matchISOEncoding();
+                                break;
+
+                            case 'u':
+                            case 'U':
+                                matchUTFEncoding();
+                                break;
+                            // now deal with windows encoding
+
+                            case 'w':
+                            case 'W':
+                                matchWindowsEncoding();
+                                break;
+
+                            default:
+                                throw new ParseException("XML decl Error: invalid encoding" + formatLineNumber());
+
+                        }
+                        ch = r.Char;
+                        if (XMLChar.isSpaceChar(ch))
+                            ch = CharAfterS;
+                        temp_offset = offset - increment;
+                    }
+                    else
+                        throw new ParseException("XML decl Error: Invalid char" + formatLineNumber());
+                }
+
+                if (ch == 's')
+                {
+                    if (r.skipChar('t') && r.skipChar('a') && r.skipChar('n') && r.skipChar('d') && r.skipChar('a') && r.skipChar('l') && r.skipChar('o') && r.skipChar('n') && r.skipChar('e'))
+                    {
+
+                        ch = CharAfterS;
+                        if (ch != '=')
+                            throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
+                        /*System.out.println(
+                        " " + temp_offset + " " + 3 + " dec attr name (standalone) " + depth);*/
+                        if (encoding < FORMAT_UTF_16BE)
+                            writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_NAME, depth);
+                        else
+                            writeVTD(temp_offset >> 1, 10, TOKEN_DEC_ATTR_NAME, depth);
+                        ch_temp = CharAfterS;
+                        temp_offset = offset;
+                        if (ch_temp != '"' && ch_temp != '\'')
+                            throw new ParseException("XML decl error: Invalid char to start attr name" + formatLineNumber());
+                        ch = r.Char;
+                        if (ch == 'y')
+                        {
+                            if (r.skipChar('e') && r.skipChar('s') && r.skipChar(ch_temp))
+                            {
+                                /*System.out.println(
+                                " " + (temp_offset) + " " + 3 + " dec attr val (standalone) " + depth);*/
+                                if (encoding < FORMAT_UTF_16BE)
+                                    writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
+                                else
+                                    writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL, depth);
+                            }
+                            else
+                                throw new ParseException("XML decl error: invalid val for standalone" + formatLineNumber());
+                        }
+                        else if (ch == 'n')
+                        {
+                            if (r.skipChar('o') && r.skipChar(ch_temp))
+                            {
+                                /*System.out.println(
+                                " " + (temp_offset) + " " + 2 + " dec attr val (standalone)" + depth);*/
+                                if (encoding < FORMAT_UTF_16BE)
+                                    writeVTD(temp_offset, 2, TOKEN_DEC_ATTR_VAL, depth);
+                                else
+                                    writeVTD(temp_offset >> 1, 2, TOKEN_DEC_ATTR_VAL, depth);
+                            }
+                            else
+                                throw new ParseException("XML decl error: invalid val for standalone" + formatLineNumber());
+                        }
+                        else
+                            throw new ParseException("XML decl error: invalid val for standalone" + formatLineNumber());
+                    }
+                    else
+                        throw new ParseException("XML decl error" + formatLineNumber());
+                    ch = r.Char;
+                    if (XMLChar.isSpaceChar(ch))
+                        ch = CharAfterS;
+                }
+            }
+
+            if (ch == '?' && r.skipChar('>'))
+            {
+                temp_offset = offset;
+                ch = CharAfterS;
+                if (ch == '<')
+                {
+                    parser_state = STATE_LT_SEEN;
+                }
+                else
+                    throw new ParseException("Other Error: Invalid Char in XML" + formatLineNumber());
+            }
+            else
+                throw new ParseException("XML decl Error: Invalid termination sequence" + formatLineNumber());
+            return parser_state;
+        }
 		/// <summary> This private method processes PI tag</summary>
 		/// <returns> the parser state after which the parser loop jumps to
 		/// </returns>
