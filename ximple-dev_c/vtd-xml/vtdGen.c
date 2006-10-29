@@ -58,7 +58,8 @@ STATE_END_PI
 static int  entityIdentifier(VTDGen *vg);
 static void printLineNumber(VTDGen *vg);
 static int getChar(VTDGen *vg);
-static inline int getChar2(VTDGen *vg);
+static Boolean skip4OtherEncoding(VTDGen *vg, int ch1);
+static int handelOtherEncoding(VTDGen *vg);
 static int handle_16le(VTDGen *vg);
 static int handle_16be(VTDGen *vg);
 static int handle_utf8(VTDGen *vg,int temp);
@@ -368,158 +369,8 @@ static void printLineNumber(VTDGen *vg){
 
 // This method automatically converts the underlying byte 
 // representation character into the right UCS character format.
+
 static int getChar(VTDGen *vg){
-	exception e;
-	int temp = 0;
-	int a = 0, c = 0, d = 0, val = 0, i=0;
-	if (vg->offset >= vg->endOffset){
-		e.et = parse_exception;
-		e.subtype = 0;
-		e.msg = "Parse exception in getChar";
-		e.sub_msg = "Premature EOF reached, XML document incomplete";
-		Throw e;			
-	}
-	//throw new EOFException("permature EOF reached, XML document incomplete");
-	switch (vg->encoding) {
-			case FORMAT_ASCII :
-				temp = vg->XMLDoc[vg->offset] & 0x7f;
-				vg->offset++;
-				return temp;
-			case FORMAT_UTF8 :
-
-				temp = vg->XMLDoc[vg->offset];
-				if (temp <128) {
-					vg->offset++;
-					return temp;
-				}
-				//temp = temp & 0xff;
-				switch (UTF8Char_byteCount(temp)) { // handle multi-byte code
-			case 2 :
-				c = 0x1f;
-				// A mask determine the val portion of the first byte
-				d = 6; // 
-				a = 1; //
-				break;
-			case 3 :
-				c = 0x0f;
-				d = 12;
-				a = 2;
-				break;
-			case 4 :
-				c = 0x07;
-				d = 18;
-				a = 3;
-				break;
-			case 5 :
-				c = 0x03;
-				d = 24;
-				a = 4;
-				break;
-			case 6 :
-				c = 0x01;
-				d = 30;
-				a = 5;
-				break;
-			default :
-				e.et = parse_exception;
-				e.subtype = 0;
-				e.msg = "Parse exception in getChar";
-				e.sub_msg = "UTF 8 encoding error: should never happen";
-				Throw e;
-				//throw new ParseException("UTF 8 encoding error: should never happen");
-				}
-				val = (temp & c) << d;
-				i = a - 1;
-				while (i >= 0) {
-					temp = vg->XMLDoc[vg->offset + a - i];
-					if ((temp & 0xc0) != 0x80){
-						e.et = parse_exception;
-						e.subtype = 0;
-						e.msg = "Parse exception in getChar";
-						e.sub_msg = "UTF 8 encoding error: should never happen";
-						Throw e;
-					}
-					//throw new ParseException("UTF 8 encoding error: should never happen");
-					val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
-					i--;
-				}
-				vg->offset += a + 1;
-				return val;
-
-			case FORMAT_UTF_16BE :
-				// implement UTF-16BE to UCS4 conversion
-				temp = vg->XMLDoc[vg->offset] << 8 | vg->XMLDoc[vg->offset + 1];
-				if ((temp < 0xd800)
-					|| (temp > 0xdfff)) { // not a high surrogate
-						vg->offset += 2;
-						return temp;
-					} else {
-						if(temp<0xd800 || temp>0xdbff){
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse exception in getChar";
-							e.sub_msg = "UTF 16 BE encoding error: should never happen";
-							Throw e;
-						}
-						val = temp;
-						temp = vg->XMLDoc[vg->offset + 2] << 8 | vg->XMLDoc[vg->offset + 3];
-						if (temp < 0xdc00 || temp > 0xdfff) {
-							// has to be a low surrogate here
-							e.et = parse_exception;
-							e.subtype = 0;
-							e.msg = "Parse exception in getChar";
-							e.sub_msg = "UTF 16 BE encoding error: should never happen";
-							Throw e;
-							//throw new EncodingException("UTF 16 BE encoding error: should never happen");
-						}
-						val = ((val - 0xd800) <<10) + (temp - 0xdc00) + 0x10000;
-						vg->offset += 4;
-						return val;
-					}
-			case FORMAT_UTF_16LE :
-				temp = vg->XMLDoc[vg->offset + 1] << 8 | vg->XMLDoc[vg->offset];
-				if (temp < 0xd800 || temp > 0xdfff) { // check for low surrogate
-					vg->offset += 2;
-					return temp;
-				} else {
-					if(temp<0xd800 || temp>0xdbff){
-						e.et = parse_exception;
-						e.subtype = 0;
-						e.msg = "Parse exception in getChar";
-						e.sub_msg = "UTF 16 LE encoding error: should never happen";
-						Throw e;
-					}
-					val = temp;
-					temp = vg->XMLDoc[vg->offset + 3] << 8 | vg->XMLDoc[vg->offset + 2];
-					if (temp < 0xdc00 || temp > 0xdfff) {
-						// has to be high surrogate
-						e.et = parse_exception;
-						e.subtype = 0;
-						e.msg = "Parse exception in getChar";
-						e.sub_msg = "UTF 16 LE encoding error: should never happen";
-						Throw e;
-						//throw new EncodingException("UTF 16 LE encoding error: should never happen");
-					}
-					val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
-					vg->offset += 4;
-					return val;
-				}
-			case FORMAT_ISO_8859 :
-				temp = vg->XMLDoc[vg->offset];
-				vg->offset++;
-				return temp;
-			default :
-				e.et = parse_exception;
-				e.subtype = 0;
-				e.msg = "Parse exception in getChar";
-				e.sub_msg = "Unknown encoding";
-				Throw e;
-				//	throw new EncodingException("Unknown encoding");
-	}
-}
-
-
-static int getChar2(VTDGen *vg){
 	exception e;
 	int temp = 0;
 	//int a = 0, c = 0, d = 0, val = 0, i=0;
@@ -534,6 +385,10 @@ static int getChar2(VTDGen *vg){
 	switch (vg->encoding) {
 			case FORMAT_ASCII :
 				temp = vg->XMLDoc[vg->offset] & 0x7f;
+				vg->offset++;
+				return temp;
+			case FORMAT_ISO_8859 :
+				temp = vg->XMLDoc[vg->offset];
 				vg->offset++;
 				return temp;
 			case FORMAT_UTF8 :
@@ -554,10 +409,7 @@ static int getChar2(VTDGen *vg){
 			case FORMAT_UTF_16LE :
 				 return handle_16le(vg);
 				
-			case FORMAT_ISO_8859 :
-				temp = vg->XMLDoc[vg->offset];
-				vg->offset++;
-				return temp;
+
 			default :
 				e.et = parse_exception;
 				e.subtype = 0;
@@ -599,6 +451,172 @@ static int handle_16le(VTDGen *vg){
 	}
 }
 
+
+static Boolean skip4OtherEncoding(VTDGen *vg, int ch1){
+	exception e;
+	char ch = vg->XMLDoc[vg->offset];
+
+	int temp;
+	switch (vg->encoding)
+	{
+
+	case FORMAT_ISO_8859_2:
+		temp = iso_8859_2_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_3:
+		temp = iso_8859_3_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_4:
+		temp = iso_8859_4_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_5:
+		temp = iso_8859_5_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_6:
+		temp = iso_8859_6_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_7:
+		temp = iso_8859_7_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_8:
+		temp = iso_8859_8_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_9:
+		temp = iso_8859_9_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_10:
+		temp = iso_8859_10_decode(ch);
+		break;
+
+	case FORMAT_WIN_1250:
+		temp = win_1250_decode(ch);
+		break;
+
+	case FORMAT_WIN_1251:
+		temp = win_1251_decode(ch);
+		break;
+
+	case FORMAT_WIN_1252:
+		temp = win_1252_decode(ch);
+		break;
+
+	case FORMAT_WIN_1253:
+		temp = win_1253_decode(ch);
+		break;
+
+	case FORMAT_WIN_1254:
+		temp = win_1254_decode(ch);
+		break;
+
+	case FORMAT_WIN_1255:
+		temp = win_1255_decode(ch);
+		break;
+
+	case FORMAT_WIN_1256:
+		temp = win_1256_decode(ch);
+		break;
+
+	case FORMAT_WIN_1257:
+		temp = win_1257_decode(ch);
+		break;
+
+	case FORMAT_WIN_1258:
+		temp = win_1258_decode(ch);
+		break;
+
+	default:
+		//Throw new EncodingException("Unknown encoding");
+		e.et = parse_exception;
+		e.msg = "Unknown encoding";
+		Throw e;
+	}
+
+	if (temp == ch1)
+	{
+		vg->offset++;
+		return TRUE;
+	}
+	else
+		return FALSE;
+
+}
+static int handelOtherEncoding(VTDGen *vg){
+	exception e;
+	char ch = vg->XMLDoc[vg->offset++];
+	switch (vg->encoding)
+	{
+
+	case FORMAT_ISO_8859_2:
+		return iso_8859_2_decode(ch);
+
+	case FORMAT_ISO_8859_3:
+		return iso_8859_3_decode(ch);
+
+	case FORMAT_ISO_8859_4:
+		return iso_8859_4_decode(ch);
+
+	case FORMAT_ISO_8859_5:
+		return iso_8859_5_decode(ch);
+
+	case FORMAT_ISO_8859_6:
+		return iso_8859_6_decode(ch);
+
+	case FORMAT_ISO_8859_7:
+		return iso_8859_7_decode(ch);
+
+	case FORMAT_ISO_8859_8:
+		return iso_8859_8_decode(ch);
+
+	case FORMAT_ISO_8859_9:
+		return iso_8859_9_decode(ch);
+
+	case FORMAT_ISO_8859_10:
+		return iso_8859_10_decode(ch);
+
+	case FORMAT_WIN_1250:
+		return win_1250_decode(ch);
+
+	case FORMAT_WIN_1251:
+		return win_1251_decode(ch);
+
+	case FORMAT_WIN_1252:
+		return win_1252_decode(ch);
+
+	case FORMAT_WIN_1253:
+		return win_1253_decode(ch);
+
+	case FORMAT_WIN_1254:
+		return win_1254_decode(ch);
+
+	case FORMAT_WIN_1255:
+		return win_1255_decode(ch);
+
+	case FORMAT_WIN_1256:
+		return win_1256_decode(ch);
+
+	case FORMAT_WIN_1257:
+		return win_1257_decode(ch);
+
+	case FORMAT_WIN_1258:
+		return win_1258_decode(ch);
+
+
+	default:
+		//throw new EncodingException("Unknown encoding");
+		e.et = parse_exception;
+		e.msg = "Unknown encoding";
+		Throw e;
+	}
+
+}
 static int handle_16be(VTDGen *vg){
 	exception e;
 	int temp,val;
@@ -831,7 +849,7 @@ static int getCharAfterSe(VTDGen *vg){
 	int n = 0;
 	int temp; //offset saver
 	while (TRUE) {
-		n = getChar2(vg);
+		n = getChar(vg);
 		if (!XMLChar_isSpaceChar(n)) {
 			if (n != '&')
 				return n;
@@ -851,7 +869,7 @@ static int getCharAfterS(VTDGen *vg){
 	int n, k;
 	n = k = 0;
 	while (TRUE) {
-		n = getChar2(vg);
+		n = getChar(vg);
 		if (n == ' ' || n == '\t' || n == '\n' || n == '\r') {
 		} else
 			return n;
@@ -917,6 +935,25 @@ static int getPrevOffset(VTDGen *vg){
 				return prevOffset;
 			case FORMAT_ASCII :
 			case FORMAT_ISO_8859 :
+			case FORMAT_ISO_8859_2:
+			case FORMAT_ISO_8859_3:
+			case FORMAT_ISO_8859_4:
+			case FORMAT_ISO_8859_5:
+			case FORMAT_ISO_8859_6:
+			case FORMAT_ISO_8859_7:
+			case FORMAT_ISO_8859_8:
+			case FORMAT_ISO_8859_9:
+			case FORMAT_ISO_8859_10:
+			case FORMAT_WIN_1250:
+			case FORMAT_WIN_1251:
+			case FORMAT_WIN_1252:
+			case FORMAT_WIN_1253:
+			case FORMAT_WIN_1254:
+			case FORMAT_WIN_1255:
+			case FORMAT_WIN_1256:
+			case FORMAT_WIN_1257:
+			case FORMAT_WIN_1258:
+
 				return vg->offset - 1;
 			case FORMAT_UTF_16LE :
 				if (vg->XMLDoc[vg->offset - 2] < 0xDC00
@@ -1229,7 +1266,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 					case STATE_START_TAG : //name space is handled by
 						while (TRUE) {
-							vg->ch = getChar2(vg);
+							vg->ch = getChar(vg);
 							if (XMLChar_isNameChar(vg->ch)) {
 								if (vg->ch == ':') {
 									length2 = vg->offset - vg->temp_offset - vg->increment;
@@ -1522,7 +1559,7 @@ void parse(VTDGen *vg, Boolean ns){
 						"Error in text: Char data at the wrong place"
 						+ formatLineNumber());*/
 						while (TRUE) {
-							vg->ch = getChar2(vg);
+							vg->ch = getChar(vg);
 							if (XMLChar_isContentChar(vg->ch)) {
 							} else if (vg->ch == '&') {
 								//has_amp = true;
@@ -1615,7 +1652,7 @@ void parse(VTDGen *vg, Boolean ns){
 								if (vg->ch == ':') {
 									length2 = vg->offset - vg->temp_offset - vg->increment;
 								}
-								vg->ch = getChar2(vg);
+								vg->ch = getChar(vg);
 							} else
 								break;
 						}
@@ -1829,7 +1866,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 					case STATE_ATTR_VAL :
 						while (TRUE) {
-							vg->ch = getChar2(vg);
+							vg->ch = getChar(vg);
 							if (XMLChar_isValidChar(vg->ch) && vg->ch != '<') {
 								if (vg->ch == vg->ch_temp)
 									break;
@@ -2805,7 +2842,7 @@ int process_comment(VTDGen *vg){
 	exception e;
 	int length1,parser_state;
 	while (TRUE) {
-		vg->ch = getChar2(vg);
+		vg->ch = getChar(vg);
 		if (XMLChar_isValidChar(vg->ch)) {
 			if (vg->ch == '-' && skipChar(vg,'-')) {
 				length1 =
@@ -2964,7 +3001,7 @@ int process_cdata(VTDGen *vg){
 	exception e;
 	int length1,parser_state;
 	while (TRUE) {
-		vg->ch = getChar2(vg);
+		vg->ch = getChar(vg);
 		if (XMLChar_isValidChar(vg->ch)) {
 			if (vg->ch == ']' && skipChar(vg,']')) {
 				while (skipChar(vg,']'));
@@ -3080,7 +3117,7 @@ int process_pi_val(VTDGen *vg){
 		/*throw new ParseException(
 		"Errors in PI: Invalid char in PI val"
 		+ formatLineNumber());*/
-		vg->ch = getChar2(vg);
+		vg->ch = getChar(vg);
 	}
 	length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
 	/*System.out.println(
@@ -3162,7 +3199,7 @@ int process_pi_tag(VTDGen *vg){
 	exception e;
 	int length1,parser_state;
 	while (TRUE) {
-		vg->ch = getChar2(vg);
+		vg->ch = getChar(vg);
 		if (!XMLChar_isNameChar(vg->ch))
 			break;
 	}
