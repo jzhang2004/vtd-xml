@@ -482,6 +482,7 @@ public void selectXPath(String s) throws XPathParseException{
 
 	}
 	catch(Exception e){
+	    e.printStackTrace();
 		throw new XPathParseException(e.toString());
 	}
 }
@@ -499,7 +500,30 @@ public void resetXPath(){
 		vn.contextStack2.size = stackSize;
 	}
 }
-
+/**
+ * evalXPathToBoolean() evaluates the xpath expression to a double
+ * @return 
+ *
+ */
+public double evalXPathToNumber(){
+    return xpe.evalNumber(vn);
+}
+/**
+ * evalXPathToBoolean() evaluates the xpath expression to a String
+ * @return
+ *
+ */
+public String evalXPath2String(){
+    return xpe.evalString(vn);
+}
+/**
+ * evalXPathToBoolean() evaluates the xpath expression to a boolean
+ * @return boolean
+ *
+ */
+public boolean evalXPathToBoolean(){
+    return xpe.evalBoolean(vn);
+}
 /**
  * This method returns the next node in the nodeset
  * it returns -1 if there is no more node
