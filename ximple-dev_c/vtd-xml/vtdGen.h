@@ -24,6 +24,7 @@
 #include "vtdNav.h"
 #include "UTF8Char.h"
 #include "XMLChar.h"
+#include "decoder.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

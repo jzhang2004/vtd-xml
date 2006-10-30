@@ -23,6 +23,7 @@
 #include "contextBuffer.h"
 #include "UTF8Char.h"
 #include "XMLChar.h"
+#include "decoder.h"
 #include <math.h>
 
 #if BIG_ENDIAN
