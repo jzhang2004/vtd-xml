@@ -501,7 +501,7 @@ public void resetXPath(){
 	}
 }
 /**
- * evalXPathToBoolean() evaluates the xpath expression to a double
+ * evalXPathToNumber() evaluates the xpath expression to a double
  * @return 
  *
  */
@@ -509,7 +509,7 @@ public double evalXPathToNumber(){
     return xpe.evalNumber(vn);
 }
 /**
- * evalXPathToBoolean() evaluates the xpath expression to a String
+ * evalXPathToString() evaluates the xpath expression to a String
  * @return
  *
  */
