@@ -215,13 +215,13 @@ Boolean evalBoolean_une (unionExpr *e,VTDNav *vn){
 		return e->fe->evalBoolean(e->fe,vn);
 	}
 	push2(vn);
-	// record teh stack size
+	/* record teh stack size*/
 	size = vn->contextBuf2->size;
     Try{	
 		b = (evalNodeSet_une(e,vn) != -1);
 	}Catch (ee){
 	}
-		//rewind stack
+		/*rewind stack */
 	vn->contextBuf2->size = size;
 	reset_une(e,vn);
 	pop2(vn);

@@ -16,19 +16,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #include "autoPilot.h"
-// This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
-// the URL in the list is replaced with new URL
+/* This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
+ the URL in the list is replaced with new URL*/
 static void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL);
 
-// given a prefix, find the URL
-//UCSChar *lookup(NsList *nl, UCSChar *prefix);
 
-
-// This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
-// the URL is overwritten
+/* This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
+   the URL is overwritten */
 void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL){
 	NsList *tmp = ap->nl;
-	// search first
+	/* search first */
 	if (tmp == NULL){
 		tmp = (NsList *)malloc(sizeof(NsList));
 		tmp->next = NULL; 
@@ -38,12 +35,12 @@ void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL){
 		return;
 	}else {
 		if (wcscmp(tmp->prefix,prefix) == 0){
-			tmp->URL = URL; // overwritten
+			tmp->URL = URL; /* overwritten */
 			return;
 		}
 		while(tmp->next!=NULL){
 			if (wcscmp(tmp->prefix,prefix) == 0){
-				tmp->URL = URL; // overwritten
+				tmp->URL = URL; /* overwritten */
 				return;
 			}
 			tmp = tmp->next;
@@ -57,7 +54,7 @@ void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL){
 	}
 }
 
-// given a prefix, find the URL
+/* given a prefix, find the URL */
 UCSChar *lookup(NsList *l, UCSChar *prefix){
 	NsList *tmp = l;
 	if (tmp==NULL)
@@ -71,7 +68,7 @@ UCSChar *lookup(NsList *l, UCSChar *prefix){
 	return NULL;
 }
 
-//create AutoPilot throw exception if allocation failed
+/*create AutoPilot throw exception if allocation failed*/
 AutoPilot *createAutoPilot(VTDNav *v){
 	exception e;
 	AutoPilot *ap = NULL;
@@ -87,13 +84,11 @@ AutoPilot *createAutoPilot(VTDNav *v){
 		e.msg = "createAutoPilot failed";
 		Throw e;
 	}
-    //throw new IllegalArgumentException(" instance of VTDNav can't be null ");
     ap->elementName = NULL;
 	ap->localName = NULL;
 	ap->URL = NULL;
     ap->vn = v;
-    //depth = v.getCurrentDepth();
-    ap->it = UNDEFINED; // not defined
+    ap->it = UNDEFINED; /* initial state: not defined */
     ap->ft = TRUE;
 	//ap->startIndex = -1;
 	ap->xpe = NULL;
@@ -103,8 +98,8 @@ AutoPilot *createAutoPilot(VTDNav *v){
 	return ap;
 }
 
-// a argument-less constructor for autoPilot, 
-// out_of_mem exception if allocation failed 
+/* a argument-less constructor for autoPilot, 
+   out_of_mem exception if allocation failed  */
 AutoPilot *createAutoPilot2(){
 	exception e;
 	AutoPilot *ap = NULL;
@@ -114,7 +109,6 @@ AutoPilot *createAutoPilot2(){
 		e.msg = "createAutoPilot failed";
 		Throw e;
 	}
-    //throw new IllegalArgumentException(" instance of VTDNav can't be null ");
     ap->elementName = NULL;
 	ap->localName = NULL;
 	ap->URL = NULL;
@@ -131,7 +125,7 @@ AutoPilot *createAutoPilot2(){
 
 }
 
-// free AutoPilot
+/* free AutoPilot */
 void freeAutoPilot(AutoPilot *ap){
 	
 	if (ap!=NULL){
@@ -156,8 +150,8 @@ void printExprString(AutoPilot *ap){
 		ap->xpe->toString(ap->xpe,NULL);
 }
 
-// Select an attribute name for iteration, * choose all attributes of an element
-// this function is not called directly
+/* Select an attribute name for iteration, * choose all attributes of an element
+   this function is not called directly */
 void selectAttr(AutoPilot *ap, UCSChar *an){
 	exception e;
 	if (an == NULL){
@@ -171,7 +165,7 @@ void selectAttr(AutoPilot *ap, UCSChar *an){
 	ap->elementName = an;
 }
 
-// Select an attribute name, both local part and namespace URL part
+/* Select an attribute name, both local part and namespace URL part*/
 void selectAttrNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 	exception e;
 	if (ln == NULL){
@@ -187,7 +181,7 @@ void selectAttrNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 
 
 
-//Select the element name before iterating
+/*Select the element name before iterating*/
 void selectElement(AutoPilot *ap, UCSChar *en){
 	exception e;
     if (en == NULL){
@@ -197,15 +191,14 @@ void selectElement(AutoPilot *ap, UCSChar *en){
 	 }
     ap->it = SIMPLE;
     ap->depth = getCurrentDepth(ap->vn);
-    //ap->startIndex = getCurrentIndex(ap->vn);
     ap->elementName = en;
     ap->ft = TRUE;
 }
 
-//Select the element name (name space version) before iterating.
+/*Select the element name (name space version) before iterating.
 // * URL, if set to *, matches every namespace
 // * URL, if set to null, indicates the namespace is undefined.
-// * localname, if set to *, matches any localname
+// * localname, if set to *, matches any localname */
 void selectElementNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 	exception e;
     if (ln == NULL){
@@ -215,7 +208,6 @@ void selectElementNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 	}
     ap->it = SIMPLE_NS;
     ap->depth = getCurrentDepth(ap->vn);
-    //ap->startIndex = getCurrentIndex(ap->vn);
     ap->localName = ln;
 	ap->URL = URL;
     ap->ft = TRUE;
@@ -236,7 +228,6 @@ void selectElement_D(AutoPilot *ap, UCSChar *en){
 	 }
 	ap->it = DESCENDANT;
 	ap->depth = getCurrentDepth(ap->vn);
-	//startIndex = vn.getCurrentIndex();
 	ap->elementName = en;
 	ap->ft = TRUE;
 }
@@ -254,7 +245,6 @@ void selectElementNS_D(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 	}
 	ap->it = DESCENDANT_NS;
     ap->depth = getCurrentDepth(ap->vn);
-    //startIndex = vn.getCurrentIndex();
     ap->localName = ln;
 	ap->URL = URL;
     ap->ft = TRUE;
@@ -356,12 +346,11 @@ void setSpecial(AutoPilot *ap, Boolean b){
 	ap->special = b;
 }
 
-//Iterate over all the selected element nodes in document order.
+/*Iterate over all the selected element nodes in document order.*/
 Boolean iterateAP(AutoPilot *ap){
 	exception e;
 	switch (ap->it) {
 		case SIMPLE :
-			//	throw new PilotException(" Element name not set ");
 			if (ap->vn->atTerminal)
 				return FALSE;
 			if (ap->ft == FALSE)
@@ -401,7 +390,6 @@ Boolean iterateAP(AutoPilot *ap){
                 return iterate_following(ap->vn, ap->elementName, ap->special);
             else {
             	ap->ft = FALSE;
-            	// find the first next sibling of 
             	while(TRUE){
             		while (toElement(ap->vn, NEXT_SIBLING)){
             			 if (ap->special || matchElement(ap->vn,ap->elementName)) {                	
@@ -410,7 +398,6 @@ Boolean iterateAP(AutoPilot *ap){
             			 return iterate_following(ap->vn, ap->elementName, ap->special);
             		}
                     if (toElement(ap->vn, PARENT)==FALSE){
-                    	//return vn.iterate_following(name, special);
                         return FALSE;
                     } 
             	}
@@ -422,7 +409,6 @@ Boolean iterateAP(AutoPilot *ap){
                 return iterate_followingNS(ap->vn,ap->URL,ap->localName);
             else {
             	ap->ft = FALSE;
-            	// find the first next sibling of 
             	while(TRUE){
             		while (toElement(ap->vn, NEXT_SIBLING)){
             			 if (matchElementNS(ap->vn, ap->URL,ap->localName)) {                	
@@ -449,12 +435,10 @@ Boolean iterateAP(AutoPilot *ap){
 			e.et = pilot_exception;
 			e.msg = "unknow iteration type for iterateAP";
 			Throw e;
-				
-			//return;
 	}
 }
 
-// This method implements the attribute axis for XPath
+/* This method implements the attribute axis for XPath*/
 int iterateAttr(AutoPilot *ap){
 	exception e;
 	int i;
@@ -590,15 +574,11 @@ void declareXPathNameSpace(AutoPilot *ap, UCSChar* prefix, UCSChar *URL){
  * 
  */
 void bind(AutoPilot *ap, VTDNav *new_vn){
-	exception e;
 	ap->elementName = NULL;
     ap->vn = new_vn;
-    //depth = v.getCurrentDepth();
-	ap->it = UNDEFINED; // not defined
+	ap->it = UNDEFINED; 
     ap->ft = TRUE;
     ap->size = 0;
     ap->special = FALSE;
-    //resetXPath(ap);
-    //contextCopy = (int[])vn.context.clone();
 }
 
