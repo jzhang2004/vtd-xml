@@ -1832,7 +1832,7 @@ public class VTDGen1 {
 				if (skipChar('1')){
 				 if (skipChar(ch_temp)) {
 				     encoding = FORMAT_ISO_8859_1;
-				     writeVTD(temp_offset, 10,
+				     writeVTD(temp_offset, 11,
 							TOKEN_DEC_ATTR_VAL,
 							depth);
 				     return;
@@ -1911,47 +1911,47 @@ public class VTDGen1 {
                                     + formatLineNumber());
                 if (skipChar('0')){
 				    encoding = FORMAT_WIN_1250;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('1')){
 				    encoding = FORMAT_WIN_1251;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('2')){
 				    encoding = FORMAT_WIN_1252;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('3')){
 				    encoding = FORMAT_WIN_1253;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('4')){
 				    encoding = FORMAT_WIN_1254;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('5')){
 				    encoding = FORMAT_WIN_1255;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('6')){
 				    encoding = FORMAT_WIN_1256;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('7')){
 				    encoding = FORMAT_WIN_1257;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (skipChar('8')){
 				    encoding = FORMAT_WIN_1258;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				} else
@@ -1989,47 +1989,47 @@ public class VTDGen1 {
                                     + formatLineNumber());
                 if (skipChar('0')){
 				    encoding = FORMAT_WIN_1250;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('1')){
 				    encoding = FORMAT_WIN_1251;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('2') ){
 				    encoding = FORMAT_WIN_1252;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('3')){
 				    encoding = FORMAT_WIN_1253;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('4')){
 				    encoding = FORMAT_WIN_1254;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('5')){
 				    encoding = FORMAT_WIN_1255;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('6')){
 				    encoding = FORMAT_WIN_1256;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('7')){
 				    encoding = FORMAT_WIN_1257;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (skipChar('8')){
 				    encoding = FORMAT_WIN_1258;
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				} else 
@@ -2048,6 +2048,7 @@ public class VTDGen1 {
 				"XML decl error: Invalid Encoding"
 						+ formatLineNumber());
 	}
+	
 	private void matchUTFEncoding() throws ParseException{
 		if ((skipChar('s') || skipChar('S')))
 			if (skipChar('-')
@@ -2214,10 +2215,6 @@ public class VTDGen1 {
 		// support 1.0 or 1.1
 		if (skipChar('1') && skipChar('.')
 				&& (skipChar('0') || skipChar('1'))) {
-			/*
-			 * System.out.println( " " + temp_offset + " " + 3 + "
-			 * dec attr val (version)" + depth);
-			 */
 			if (encoding < FORMAT_UTF_16BE)
 				writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
 			else
@@ -2244,11 +2241,6 @@ public class VTDGen1 {
 					if (XMLChar.isSpaceChar(ch))
 						ch = getCharAfterS();
 					if (ch == '=') {
-						/*
-						 * System.out.println( " " + (temp_offset) + " " +
-						 * 8 + " dec attr name (encoding) " +
-						 * depth);
-						 */
 						if (encoding < FORMAT_UTF_16BE)
 							writeVTD(temp_offset, 8,
 									TOKEN_DEC_ATTR_NAME, depth);
@@ -2281,12 +2273,6 @@ public class VTDGen1 {
 											"Can't switch from UTF-8"
 													+ formatLineNumber());
 								encoding = FORMAT_ASCII;
-								/*
-								 * System.out.println( " " +
-								 * (temp_offset) + " " + 5 + " dec
-								 * attr val (encoding) " + depth);
-								 */
-								
 									writeVTD(temp_offset, 5,
 											TOKEN_DEC_ATTR_VAL,
 											depth);

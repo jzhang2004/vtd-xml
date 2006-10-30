@@ -2159,55 +2159,55 @@ public class VTDGen {
                 if (r.skipChar('0')){
 				    encoding = FORMAT_WIN_1250;
 				    r=new WIN1250Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('1')){
 				    encoding = FORMAT_WIN_1251;
 				    r=new WIN1251Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('2')){
 				    encoding = FORMAT_WIN_1252;
 				    r=new WIN1252Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('3')){
 				    encoding = FORMAT_WIN_1253;
 				    r=new WIN1253Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('4')){
 				    encoding = FORMAT_WIN_1254;
 				    r=new WIN1254Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else if (r.skipChar('5') ){
 				    encoding = FORMAT_WIN_1255;
 				    r=new WIN1255Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('6')){
 				    encoding = FORMAT_WIN_1256;
 				    r=new WIN1256Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('7') ){
 				    encoding = FORMAT_WIN_1257;
 				    r=new WIN1257Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('8') ){
 				    encoding = FORMAT_WIN_1258;
 				    r=new WIN1258Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else   
@@ -2246,55 +2246,55 @@ public class VTDGen {
                 if (r.skipChar('0')){
 				    encoding = FORMAT_WIN_1250;
 				    r=new WIN1250Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('1')){
 				    encoding = FORMAT_WIN_1251;
 				    r=new WIN1251Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('2')){
 				    encoding = FORMAT_WIN_1252;
 				    r=new WIN1252Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('3')){
 				    encoding = FORMAT_WIN_1253;
 				    r=new WIN1253Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('4')){
 				    encoding = FORMAT_WIN_1254;
 				    r=new WIN1254Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('5')){
 				    encoding = FORMAT_WIN_1255;
 				    r=new WIN1255Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('6')){
 				    encoding = FORMAT_WIN_1256;
 				    r=new WIN1256Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else if (r.skipChar('7')){
 				    encoding = FORMAT_WIN_1257;
 				    r=new WIN1257Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('8')){
 				    encoding = FORMAT_WIN_1258;
 				    r=new WIN1258Reader();
-				    writeVTD(temp_offset, 10,
+				    writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else 
@@ -2307,8 +2307,7 @@ public class VTDGen {
             } else
                 throw new ParseException(
                         "XML decl error: Can't switch encoding to ISO-8859"
-                                + formatLineNumber());
-				
+                                + formatLineNumber());				
 				}
 	    throw new ParseException(
 				"XML decl error: Invalid Encoding"
@@ -2336,7 +2335,6 @@ public class VTDGen {
 								depth);
 					
 						return;
-
 				} else
 					throw new ParseException(
 							"XML decl error: Can't switch encoding to US-ASCII"
@@ -2355,8 +2353,7 @@ public class VTDGen {
 					//encoding = FORMAT_UTF8;
 					writeVTD(temp_offset, 5,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-					
+								depth);					
 						return;
 				} else
 					throw new ParseException(
