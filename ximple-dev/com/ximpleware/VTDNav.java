@@ -954,7 +954,7 @@ public class VTDNav {
 			}
 			length = so2 - so + 1;
 			toElement(PREV_SIBLING);
-			if (encoding < 3)
+			if (encoding <= FORMAT_WIN_1258)
 				return ((long) length) << 32 | so;
 			else
 				return ((long) length) << 33 | (so << 1);
@@ -971,7 +971,7 @@ public class VTDNav {
 			}
 			if (b == false)
 				so2 =
-					(encoding < 3)
+					(encoding <= FORMAT_WIN_1258 )
 						? (docOffset + docLen - 1)
 						: ((docOffset + docLen) << 1) - 1;
 			else
@@ -980,7 +980,7 @@ public class VTDNav {
 				so2--;
 			}
 			length = so2 - so + 1;
-			if (encoding < 3)
+			if (encoding <= FORMAT_WIN_1258)
 				return ((long) length) << 32 | so;
 			else
 				return ((long) length) << 33 | (so << 1);
@@ -1007,7 +1007,7 @@ public class VTDNav {
 					so2--;
 				}
 				length = so2 - so + 2;
-				if (encoding < 3)
+				if (encoding <= FORMAT_WIN_1258)
 					return ((long) length) << 32 | so;
 				else
 					return ((long) length) << 33 | (so << 1);
@@ -1031,7 +1031,7 @@ public class VTDNav {
 		// temp is the last entry
 		// scan forward search for /> or </cc>
 		int so2 =
-			(encoding < 3)
+			(encoding <= FORMAT_WIN_1258)
 				? (docOffset + docLen - 1)
 				: ((docOffset + docLen) << 1) - 1;
 		int d = depth + 1;
@@ -1045,7 +1045,7 @@ public class VTDNav {
 
 		length = so2 - so + 2;
 
-		if (encoding < 3)
+		if (encoding <= FORMAT_WIN_1258)
 			return ((long) length) << 32 | so;
 		else
 			return ((long) length) << 33 | (so << 1);
