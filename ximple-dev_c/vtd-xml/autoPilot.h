@@ -23,7 +23,7 @@
 #include "cexcept.h"
 #include "xpath1.h"
 
-// iter_type defines the type of iteration, to be used in function iterateAP
+/* iter_type defines the type of iteration, to be used in function iterateAP*/
 typedef enum iter_type { UNDEFINED, 
 						SIMPLE, 
 						SIMPLE_NS,
@@ -45,44 +45,43 @@ typedef struct autoPilot{
 	UCSChar *elementName;
 	int depth;
 	VTDNav *vn;
-	int index; // for iterAttr
+	int index; /* for iterAttr*/
 	Boolean ft;
 	Boolean special;
     iterType it;
-	//int startIndex;
-	int size; // iterAttr
-	struct Expr *xpe; // xpath Expr
-	int *contextCopy; // for preceding axis
-	int stackSize; // record stack size for xpath evaluation 
+	int size; /* iterAttr*/
+	struct Expr *xpe; /* xpath Expr*/
+	int *contextCopy; /* for preceding axis */
+	int stackSize; /* record stack size for xpath evaluation */
 	struct nsList *nl;
 } AutoPilot;
 
-//create AutoPilot
+/*create AutoPilot */
 AutoPilot *createAutoPilot(VTDNav *v);
 AutoPilot *createAutoPilot2();
 
 void printExprString(AutoPilot *ap);
 
-// bind
+/* bind */
 void bind(AutoPilot *ap, VTDNav *vn);
 
-// free AutoPilot
+/* free AutoPilot*/
 void freeAutoPilot(AutoPilot *ap);
 
-// Select an attribute name for iteration, * choose all attributes of an element
+/* Select an attribute name for iteration, * choose all attributes of an element*/
 void selectAttr(AutoPilot *ap, UCSChar *an);
 
-// Select an attribute name, both local part and namespace URL part
+/* Select an attribute name, both local part and namespace URL part*/
 void selectAttrNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln);
 
 
-//Select the element name before iterating
+/*Select the element name before iterating*/
 void selectElement(AutoPilot *ap, UCSChar *en);
 
-//Select the element name (name space version) before iterating.
+/*Select the element name (name space version) before iterating.
 // * URL, if set to *, matches every namespace
 // * URL, if set to null, indicates the namespace is undefined.
-// * localname, if set to *, matches any localname
+// * localname, if set to *, matches any localname*/
 void selectElementNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln);
 
 
@@ -154,7 +153,20 @@ Boolean iterateAttrAP(AutoPilot *ap);
  * return true is the XPath is valid
  */
 Boolean selectXPath(AutoPilot *ap, UCSChar *s);
+/*
+ * Evaluate XPath to a boolean
+ */ 
+Boolean evalXPathToBoolean(AutoPilot *ap);
 
+/*
+ * Evaluate XPath to a String
+ */
+UCSChar* evalXPathToString(AutoPilot *ap);
+
+/* 
+ * Evaluate XPath to a number
+ */
+double evalXPathToNumber(AutoPilot *ap);
 /*
  * Evaluate XPath
  */
