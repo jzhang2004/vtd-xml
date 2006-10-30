@@ -411,7 +411,7 @@ namespace com.ximpleware
                 }
                 length = so2 - so + 1;
                 toElement(PREV_SIBLING);
-                if (encoding < 3)
+                if (encoding <= FORMAT_WIN_1258)
                     return ((long)length) << 32 | so;
                 else
                     return ((long)length) << 33 | (so << 1);
@@ -429,7 +429,7 @@ namespace com.ximpleware
                     b = true;
                 }
                 if (b == false)
-                    so2 = (encoding < 3) ? (docOffset + docLen - 1) : ((docOffset + docLen) << 1) - 1;
+                    so2 = (encoding < FORMAT_WIN_1258) ? (docOffset + docLen - 1) : ((docOffset + docLen) << 1) - 1;
                 else
                     so2 = getTokenOffset(temp + 1);
                 while (getCharUnit(so2) != '>')
@@ -437,7 +437,7 @@ namespace com.ximpleware
                     so2--;
                 }
                 length = so2 - so + 1;
-                if (encoding < 3)
+                if (encoding <= FORMAT_WIN_1258)
                     return ((long)length) << 32 | so;
                 else
                     return ((long)length) << 33 | (so << 1);
@@ -465,7 +465,7 @@ namespace com.ximpleware
                         so2--;
                     }
                     length = so2 - so + 2;
-                    if (encoding < 3)
+                    if (encoding <= FORMAT_WIN_1258)
                         return ((long)length) << 32 | so;
                     else
                         return ((long)length) << 33 | (so << 1);
@@ -488,7 +488,7 @@ namespace com.ximpleware
             }
             // temp is the last entry
             // scan forward search for /> or </cc>
-            so2 = (encoding < 3) ? (docOffset + docLen - 1) : ((docOffset + docLen) << 1) - 1;
+            so2 = (encoding <= FORMAT_WIN_1258) ? (docOffset + docLen - 1) : ((docOffset + docLen) << 1) - 1;
             d = depth + 1;
             i = 0;
             while (i < d)
@@ -502,7 +502,7 @@ namespace com.ximpleware
 
             length = so2 - so + 2;
 
-            if (encoding < 3)
+            if (encoding <= FORMAT_WIN_1258)
                 return ((long)length) << 32 | so;
             else
                 return ((long)length) << 33 | (so << 1);
