@@ -15,6 +15,9 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+
+/* This header file contains various structures to tracking various data structures used 
+   during the parsing of XPath expressions */
 #ifndef HELPER_H
 #define HELPER_H
 
@@ -27,9 +30,12 @@ struct obj {
 struct obj *objList;
 struct obj *ptr1;
 struct obj *ptr2;
-   
-void addObj(void *obj); // add to a global linked list during yyparse, to prevent mem leak
-void freeAllObj();  // if there is anything wrong during parsing
-void resetObj(); // this function is called if yyparse return 0
+
+/* add to a global linked list during yyparse, to prevent mem leak */ 
+void addObj(void *obj); 
+/* if there is anything wrong during parsing */
+void freeAllObj();  
+/* this function is called if yyparse returns 0 */
+void resetObj();
 
 #endif

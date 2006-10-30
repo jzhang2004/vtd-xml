@@ -25,37 +25,9 @@
 #include "customTypes.h"
 #include "vtdNav.h"
 #include "autoPilot.h"
-// expr doesn't have a constructor
-/*typedef struct Expr {
-	free_Expr freeExpr;
-	eval_NodeSet evalNodeSet;
-	eval_Number evalNumber;
-	eval_String evalString;
-	eval_Boolean evalBoolean;
-	is_Boolean isBoolean;
-	is_Numerical is_Numerical;
-	require_ContextSize requireContextSize;
-	reset_ reset;
-	set_ContextSize setContextSize;
-	set_Position setPosition;
-	to_String toString;
-} expr; */
-/*typedef struct Expr {
-	void(*free_Expr)(expr *e) freeExpr;
-	eval_NodeSet evalNodeSet;
-	eval_Number evalNumber;
-	eval_String evalString;
-	eval_Boolean evalBoolean;
-	is_Boolean isBoolean;
-	is_Numerical is_Numerical;
-	require_ContextSize requireContextSize;
-	reset_ reset;
-	set_ContextSize setContextSize;
-	set_Position setPosition;
-	to_String toString;
-} expr; */ 
+/* expr doesn't have a constructor*/
 
-// definition for struct intHash
+/* definition for struct intHash*/
 #define ih_mask1 0x7ff
 #define ih_mask2 0xfffff800
 #define ih_hashWidth 2048
@@ -64,21 +36,21 @@
 
 typedef struct intHash {
    struct fastIntBuffer **storage;	
-   int m1;  // mask1
-   int m2;  // mask2
-   int pse; // page size exponential
-   int hw;  //
+   int m1;  /* mask1 */
+   int m2;  /* mask2 */
+   int pse; /* page size exponential */
+   int hw;  
    int maxDepth;
 } IntHash;
 
-// function for intHash
-// see intHash.c for implemenation
+/* function for intHash
+ see intHash.c for implemenation*/
 IntHash* createIntHash();
 void freeIntHash(IntHash *ih);
 Boolean isUniqueIntHash(IntHash *ih,int i);
 void resetIntHash(IntHash *ih);
 
-// define abstract functions in the base expr
+/* define abstract functions in the base expr */
 typedef void (*free_Expr) (struct Expr *e);
 typedef int(*eval_NodeSet) (struct Expr *e, VTDNav *vn);
 typedef double(*eval_Number) (struct Expr *e, VTDNav *vn);
@@ -112,7 +84,7 @@ typedef struct Expr {
 } expr;
 
 
-// LiteralExpr 
+/* LiteralExpr*/ 
 typedef struct LiteralExpr {
 	free_Expr freeExpr;
 	eval_NodeSet evalNodeSet;
@@ -131,7 +103,7 @@ typedef struct LiteralExpr {
 	UCSChar *s;
 } literalExpr;
 
-// functions for LiteralExpr 
+ /*functions for LiteralExpr */
 literalExpr *createLiteralExpr(UCSChar *st);
 void freeLiteralExpr(literalExpr *e);
 int		evalNodeSet_le (literalExpr *e,VTDNav *vn);
@@ -148,7 +120,7 @@ void	setContextSize_le(literalExpr *e,int s);
 void	setPosition_le(literalExpr *e,int pos);
 void    toString_le(literalExpr *e, UCSChar* string);
 
-// number expression
+ /*number expression*/
 typedef struct NumberExpr {
 	free_Expr freeExpr;
 	eval_NodeSet evalNodeSet;
@@ -167,7 +139,7 @@ typedef struct NumberExpr {
 	double dval;
 } numberExpr;
 
-// functions for numberExpr
+/* functions for numberExpr*/
 numberExpr *createNumberExpr(double d);
 void freeNumberExpr(numberExpr *e);
 int		evalNodeSet_ne (numberExpr *e,VTDNav *vn);
@@ -184,8 +156,8 @@ void	setContextSize_ne(numberExpr *e,int s);
 void	setPosition_ne(numberExpr *e,int pos);
 void    toString_ne(numberExpr *e, UCSChar* string);
 
-// binary Expr
-// define operand
+/* binary Expr*/
+/*  define operand */
 typedef enum OpType{		
  	 OP_ADD,
 	 OP_SUB,
@@ -242,7 +214,7 @@ void	setContextSize_be(binaryExpr *e,int s);
 void	setPosition_be(binaryExpr *e,int pos);
 void    toString_be(binaryExpr *e, UCSChar* string);
 
-// unary Expr
+/* unary Expr */
 typedef struct UnaryExpr {
 	free_Expr freeExpr;
 	eval_NodeSet evalNodeSet;
@@ -278,7 +250,7 @@ void	setContextSize_ue(unaryExpr *e,int s);
 void	setPosition_ue(unaryExpr *e,int pos);
 void    toString_ue(unaryExpr *e, UCSChar* string);
 
-// function Expr
+/* function Expr */
 typedef enum FuncName {FN_LAST,
 		   FN_POSITION,
 		   FN_COUNT,
@@ -337,7 +309,6 @@ typedef struct FuncExpr {
 	Boolean isBool;
 	Boolean isStr;
 	int contextSize;
-	//double d;
 	int position;
 	int a;
 } funcExpr;
@@ -358,7 +329,7 @@ void	setContextSize_fne(funcExpr *e,int s);
 void	setPosition_fne(funcExpr *e,int pos);
 void    toString_fne(funcExpr *e, UCSChar* string);
 
-// location Expr
+/* location Expr */
 typedef enum AxisType {  AXIS_CHILD,
 						 AXIS_DESCENDANT,
 						 AXIS_PARENT,
@@ -401,7 +372,7 @@ void toString_nt(NodeTest *nt, UCSChar *string);
 
 
 typedef struct predicate{
-	double d; // only supports a[1] style of location path for now
+	double d; /* only supports a[1] style of location path for now*/
 	int count;
 	struct predicate *nextP;
 	expr *e;
@@ -419,12 +390,12 @@ void toString_p(Predicate *p, UCSChar *string);
 typedef struct step{
 	axisType axis_type;
 	NodeTest *nt;  
-	Predicate *p,*pt;// linked list
-	struct step *nextS; // points to next step
-	int position; // position
-	struct step *prevS; // points to the prev step
-	struct autoPilot *o; //AutoPilot goes here
-	Boolean ft; // first time
+	Predicate *p,*pt;/* linked list */
+	struct step *nextS; /* points to next step */
+	int position; /* position */
+	struct step *prevS; /* points to the prev step */
+	struct autoPilot *o; /*AutoPilot goes here*/
+	Boolean ft; /* first time*/
 }Step;
 
 Step *createStep();
@@ -479,7 +450,7 @@ typedef struct LocationPathExpr {
 	pt pathType;
 	LPstate state;
 	/*FastIntBuffer* fib; // for uniqueness checking */
-	IntHash *ih; // for uniqueness checking
+	IntHash *ih; /* for uniqueness checking*/
 } locationPathExpr;
 
 locationPathExpr *createLocationPathExpr();
@@ -502,7 +473,7 @@ Boolean isUnique(locationPathExpr *e,int i);
 void setStep(locationPathExpr *e, Step* st);
 
 
-// filter expr
+/* filter expr */
 
 typedef struct FilterExpr{
 	free_Expr freeExpr;
@@ -541,7 +512,7 @@ void	setPosition_fe(filterExpr *e,int pos);
 void    toString_fe(filterExpr *e, UCSChar* string);
 void	reset2_fe(filterExpr *e, VTDNav *vn);
 
-// path expr
+/* path expr */
 
 typedef struct PathExpr{
 	free_Expr freeExpr;
@@ -582,7 +553,7 @@ void	setPosition_pe(pathExpr *e,int pos);
 void    toString_pe(pathExpr *e, UCSChar* string);
 
 
-// Union Expr
+/* Union Expr */
 
 typedef struct UnionExpr{
 	free_Expr freeExpr;
@@ -624,20 +595,20 @@ void	setPosition_une(unionExpr *e,int pos);
 void    toString_une(unionExpr *e, UCSChar* string);
 
 int yylex();
-//void yyrestart(FILE *i);
+/*void yyrestart(FILE *i);*/
 int yyerror(char *s);
-//YY_BUFFER_STATE yy_scan_string(const YY_CHAR *str);
+/*YY_BUFFER_STATE yy_scan_string(const YY_CHAR *str);*/
 
-// three variable to direct yyparse to in-memory string
+/* three variable to direct yyparse to in-memory string*/
 
-// This structure is for data item look up purposes
+/* This structure is for data item look up purposes */
 typedef struct nsList {
 	UCSChar *URL;
 	UCSChar *prefix;
 	struct nsList *next;
 } NsList;
 
-// given a prefix, find the URL
+/* given a prefix, find the URL */
 UCSChar *lookup(NsList *nl, UCSChar *prefix);
 expr *xpathParse(UCSChar *input, NsList *nl);
 
