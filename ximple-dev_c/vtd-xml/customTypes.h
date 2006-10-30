@@ -56,10 +56,34 @@ typedef enum direction {ROOT,
 
 
 typedef enum XMLencoding {FORMAT_ASCII,
-						  FORMAT_ISO_8859,
+						  FORMAT_ISO_8859_1,
 						  FORMAT_UTF8,
-						  FORMAT_UTF_16BE,
-						  FORMAT_UTF_16LE} 
+						  FORMAT_ISO_8859_2,
+						  FORMAT_ISO_8859_3,
+						  FORMAT_ISO_8859_4,
+						  FORMAT_ISO_8859_5,
+						  FORMAT_ISO_8859_6,
+						  FORMAT_ISO_8859_7,
+						  FORMAT_ISO_8859_8,
+						  FORMAT_ISO_8859_9,
+						  FORMAT_ISO_8859_10,
+						  FORMAT_ISO_8859_11,
+						  FORMAT_ISO_8859_12,
+						  FORMAT_ISO_8859_13,
+						  FORMAT_ISO_8859_14,
+						  FORMAT_ISO_8859_15,
+						  FORMAT_ISO_8859_16,
+						  FORMAT_WIN_1250,
+						  FORMAT_WIN_1251,
+						  FORMAT_WIN_1252,
+						  FORMAT_WIN_1253,
+						  FORMAT_WIN_1254,
+						  FORMAT_WIN_1255,
+						  FORMAT_WIN_1256,
+						  FORMAT_WIN_1257,
+						  FORMAT_WIN_1258,
+						  FORMAT_UTF_16BE = 63,
+						  FORMAT_UTF_16LE =64} 
 					encoding;
 
 
