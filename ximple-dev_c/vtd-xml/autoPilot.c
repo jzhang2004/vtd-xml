@@ -529,6 +529,27 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 }
 
 /*
+ * Evaluate XPath to a boolean
+ */ 
+Boolean evalXPathToBoolean(AutoPilot *ap){
+	ap->xpe->evalBoolean(ap->xpe,ap->vn);
+}
+
+/*
+ * Evaluate XPath to a String
+ */
+UCSChar* evalXPathToString(AutoPilot *ap){
+	ap->xpe->evalString(ap->xpe,ap->vn);
+}
+
+/* 
+ * Evaluate XPath to a number
+ */
+double evalXPathToNumber(AutoPilot *ap){
+	ap->xpe->evalNumber(ap->xpe,ap->vn);
+}
+
+/*
  * Evaluate XPath
  */
 int evalXPath(AutoPilot *ap){
