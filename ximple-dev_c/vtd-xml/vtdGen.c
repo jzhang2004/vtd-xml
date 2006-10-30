@@ -704,6 +704,7 @@ static void matchISOEncoding(VTDGen *vg){
 								10,
 								TOKEN_DEC_ATTR_VAL,
 								vg->depth);
+							return;
 						} else if (skipChar(vg,'0')){
 							vg->encoding = FORMAT_ISO_8859_10;
 							iso_8859_10_chars_init();
