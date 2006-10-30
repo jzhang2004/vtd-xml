@@ -21,7 +21,6 @@ import java.io.FileInputStream;
 
 import com.ximpleware.parser.*;
 
-
 //import java.io.*;
 /**
  * VTD Generator implementation.
@@ -2157,70 +2156,66 @@ public class VTDGen {
                     throw new EncodingException(
                             "Can't switch from UTF-8"
                                     + formatLineNumber());
-                if (r.skipChar('0') && r.skipChar(ch_temp)){
+                if (r.skipChar('0')){
 				    encoding = FORMAT_WIN_1250;
 				    r=new WIN1250Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('1') && r.skipChar(ch_temp)){
+								depth);				    
+				}else if (r.skipChar('1')){
 				    encoding = FORMAT_WIN_1251;
 				    r=new WIN1251Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('2') && r.skipChar(ch_temp)){
+								depth);				    
+				}else if (r.skipChar('2')){
 				    encoding = FORMAT_WIN_1252;
 				    r=new WIN1252Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('3') && r.skipChar(ch_temp)){
+								depth);				    
+				}else if (r.skipChar('3')){
 				    encoding = FORMAT_WIN_1253;
 				    r=new WIN1253Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('4') && r.skipChar(ch_temp)){
+								depth);				    
+				}else if (r.skipChar('4')){
 				    encoding = FORMAT_WIN_1254;
 				    r=new WIN1254Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('5') && r.skipChar(ch_temp)){
+								depth);				   
+				}else if (r.skipChar('5') ){
 				    encoding = FORMAT_WIN_1255;
 				    r=new WIN1255Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('6') && r.skipChar(ch_temp)){
+								depth);				    
+				}else if (r.skipChar('6')){
 				    encoding = FORMAT_WIN_1256;
 				    r=new WIN1256Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('7') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('7') ){
 				    encoding = FORMAT_WIN_1257;
 				    r=new WIN1257Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('8') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('8') ){
 				    encoding = FORMAT_WIN_1258;
 				    r=new WIN1258Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}
+				}else   
+				    throw new ParseException(
+						"XML decl error: Invalid Encoding"
+						+ formatLineNumber());
+                if (r.skipChar(ch_temp))
+                    return;				
             } else
                 throw new ParseException(
                         "XML decl error: Can't switch encoding to ISO-8859"
@@ -2229,9 +2224,9 @@ public class VTDGen {
 				}
 	    throw new ParseException(
 				"XML decl error: Invalid Encoding"
-						+ formatLineNumber());
-	    
+						+ formatLineNumber());	    
 	}
+	
 	private void matchWindowsEncoding()throws ParseException{
 	    if ((r.skipChar('i') || r.skipChar('I')) 
 	            &&(r.skipChar('n') || r.skipChar('N'))
@@ -2248,70 +2243,67 @@ public class VTDGen {
                     throw new EncodingException(
                             "Can't switch from UTF-8"
                                     + formatLineNumber());
-                if (r.skipChar('0') && r.skipChar(ch_temp)){
+                if (r.skipChar('0')){
 				    encoding = FORMAT_WIN_1250;
 				    r=new WIN1250Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('1') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('1')){
 				    encoding = FORMAT_WIN_1251;
 				    r=new WIN1251Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('2') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('2')){
 				    encoding = FORMAT_WIN_1252;
 				    r=new WIN1252Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('3') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('3')){
 				    encoding = FORMAT_WIN_1253;
 				    r=new WIN1253Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('4') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('4')){
 				    encoding = FORMAT_WIN_1254;
 				    r=new WIN1254Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('5') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('5')){
 				    encoding = FORMAT_WIN_1255;
 				    r=new WIN1255Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('6') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('6')){
 				    encoding = FORMAT_WIN_1256;
 				    r=new WIN1256Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('7') && r.skipChar(ch_temp)){
+								depth);				   
+				}else if (r.skipChar('7')){
 				    encoding = FORMAT_WIN_1257;
 				    r=new WIN1257Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('8') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('8')){
 				    encoding = FORMAT_WIN_1258;
 				    r=new WIN1258Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}
+								depth);				   
+				}else 
+				    throw new ParseException(
+							"XML decl error: Invalid Encoding"
+									+ formatLineNumber());
+                if (r.skipChar(ch_temp))
+                    return;
+				
             } else
                 throw new ParseException(
                         "XML decl error: Can't switch encoding to ISO-8859"
@@ -2446,74 +2438,68 @@ public class VTDGen {
 				     writeVTD(temp_offset, 10,
 							TOKEN_DEC_ATTR_VAL,
 							depth);
-				 } else if (r.skipChar('0') && r.skipChar(ch_temp)){
+				     return;
+				 } else if (r.skipChar('0') ){
 				     encoding = FORMAT_ISO_8859_10;
 				     r = new ISO8859_10Reader();
 				     writeVTD(temp_offset, 11,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				 } else 
-				     throw new ParseException(
-								"XML decl error: Invalid Encoding"
-										+ formatLineNumber());								
-				 return;
-				}else if (r.skipChar('2') && r.skipChar(ch_temp)){
+				 } 
+				}else if (r.skipChar('2') ){
 				    encoding = FORMAT_ISO_8859_2;
 				    r = new ISO8859_2Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('3') && r.skipChar(ch_temp)){
+								depth);				    
+				}else if (r.skipChar('3')){
 				    r = new ISO8859_3Reader();
 				    encoding = FORMAT_ISO_8859_3;
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				   // break;
-				}else if (r.skipChar('4') && r.skipChar(ch_temp)){
+								depth);				  
+				}else if (r.skipChar('4') ){
 				    r = new ISO8859_4Reader();
 				    encoding = FORMAT_ISO_8859_4;
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('5') && r.skipChar(ch_temp)){
+								depth);				    
+				}else if (r.skipChar('5') ){
 				    encoding = FORMAT_ISO_8859_5;
 				    r = new ISO8859_5Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('6') && r.skipChar(ch_temp)){
+								depth);				   
+				}else if (r.skipChar('6') ){
 				    encoding = FORMAT_ISO_8859_6;
 				    r = new ISO8859_6Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				    return;
-				}else if (r.skipChar('7') && r.skipChar(ch_temp)){
+				}else if (r.skipChar('7') ){
 				    encoding = FORMAT_ISO_8859_7;
 				    r = new ISO8859_7Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('8') && r.skipChar(ch_temp)){
+								depth);				   
+				}else if (r.skipChar('8') ){
 				    encoding = FORMAT_ISO_8859_8;
 				    r = new ISO8859_8Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}else if (r.skipChar('9') && r.skipChar(ch_temp)){
+								depth);				   
+				}else if (r.skipChar('9')){
 				    encoding = FORMAT_ISO_8859_9;
 				    r = new ISO8859_9Reader();
 				    writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
-								depth);
-				    return;
-				}								
+								depth);				   
+				} else 		
+				    throw new ParseException(
+							"XML decl error: Invalid Encoding"
+									+ formatLineNumber());
+				if (r.skipChar(ch_temp))
+				    return;				
 			} else
 				throw new ParseException(
 						"XML decl error: Can't switch encoding to ISO-8859"
