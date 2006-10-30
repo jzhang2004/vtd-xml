@@ -38,7 +38,8 @@ static void resolveLC(VTDNav *vn);
 static Boolean resolveNS(VTDNav *vn, UCSChar *URL);
 static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len); //UCSChar *ln);
 static int lookupNS2(VTDNav *vn, int offset, int len);
-
+static long getChar4OtherEncoding(VTDNav *vn, int offset);
+static int decode(VTDNav *vn,int offset);
 
 
 
@@ -371,32 +372,32 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 size = vn->vtdBuffer->size;
 						 index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 						 // point to the token next to the element tag
-						 
+
 						 if(index<vn->vtdSize)
 							 type = getTokenType(vn,index);
 						 else 
 							 return -1;
 
 						 while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
-								 int i = getTokenLength(vn, index);
-								 int offset = getTokenOffset(vn, index);
-								 int preLen = (i >> 16) & 0xffff;
-								 int fullLen = i & 0xffff;
-								 if (preLen != 0
-									 // attribute name without a prefix is not bound to any namespaces
-									 && matchRawTokenString1(vn,
-									 offset + preLen + 1,
-									 fullLen - preLen - 1,
-									 ln)
-									 && resolveNS2(vn, URL, offset, preLen)) {
-										 return index + 1;
-									 }
-									 index += 2;
-									 if (index >=vn->vtdSize)
-										 return -1;
-									 type = getTokenType(vn,index);
+							 int i = getTokenLength(vn, index);
+							 int offset = getTokenOffset(vn, index);
+							 int preLen = (i >> 16) & 0xffff;
+							 int fullLen = i & 0xffff;
+							 if (preLen != 0
+								 // attribute name without a prefix is not bound to any namespaces
+								 && matchRawTokenString1(vn,
+								 offset + preLen + 1,
+								 fullLen - preLen - 1,
+								 ln)
+								 && resolveNS2(vn, URL, offset, preLen)) {
+									 return index + 1;
 							 }
-							 return -1;
+							 index += 2;
+							 if (index >=vn->vtdSize)
+								 return -1;
+							 type = getTokenType(vn,index);
+						 }
+						 return -1;
 					 }
 					 //This function decodes the underlying byte array into corresponding 
 					 //UCS2 char representation .
@@ -405,24 +406,18 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 static Long getChar(VTDNav *vn,int offset){
 						 exception e;
 						 Long temp = 0;
-						 
-						 
-						 //int ch;
-						 //a = c = d = val = 0;
-
 						 switch (vn->encoding) {
-			case FORMAT_ASCII : // ascii is compatible with UTF-8, the offset value is bytes
-			case FORMAT_ISO_8859 :			
+			case FORMAT_ASCII : 
+			case FORMAT_ISO_8859_1 :			
 				temp = vn->XMLDoc[offset];
- 				if (temp == '\r') {
-   					if (vn->XMLDoc[offset + 1] == '\n') {
-   						return '\n'|((Long)2<<32);
-   					} else {
-   						return '\n'|((Long)1<<32);
-   					}
-   				}
-   
-   				return temp|(1LL<<32);
+				if (temp == '\r') {
+					if (vn->XMLDoc[offset + 1] == '\n') {
+						return '\n'|((Long)2<<32);
+					} else {
+						return '\n'|((Long)1<<32);
+					}
+				}   
+				return temp|(1LL<<32);
 
 			case FORMAT_UTF8 :
 				temp = vn->XMLDoc[offset];
@@ -438,25 +433,18 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				}
 				return handle_utf8(vn,temp,offset);
 
-
-
 			case FORMAT_UTF_16BE :
 				return handle_utf16be(vn, offset);
-				// implement UTF-16BE to UCS4 conversion
-
 
 			case FORMAT_UTF_16LE :
 				return handle_utf16le(vn,offset);
 				// implement UTF-16LE to UCS4 conversion
-				
-					//System.out.println("UTF 16 LE unimplemented for now");
+
+				//System.out.println("UTF 16 LE unimplemented for now");
 
 			default :
-				e.et = nav_exception;
-				e.msg = "navigation exception during getChar";
-				e.sub_msg = "Unknown Encoding";
-				Throw e;
-				//throw new NavException("Unknown Encoding");
+				return getChar4OtherEncoding(vn,offset);
+						
 						 }
 
 
@@ -629,24 +617,16 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 		
 					 //Get the next char unit which gets decoded automatically
 					 static int getCharUnit(VTDNav *vn, int offset){
-						 return (vn->encoding < 3)
-							 ? vn->XMLDoc[offset] & 0xff
-							 : (vn->encoding == FORMAT_UTF_16BE)
+						 return (vn->encoding <=FORMAT_UTF8)
+							 ? vn->XMLDoc[offset]:
+						 (vn->encoding <= FORMAT_WIN_1258)
+							 ? decode(vn,offset)
+							 : ((vn->encoding == FORMAT_UTF_16BE)
 							 ? (vn->XMLDoc[offset << 1]
 							 << 8 | vn->XMLDoc[(offset << 1) + 1])
 								 : (vn->XMLDoc[(offset << 1) + 1]
-								 << 8 | vn->XMLDoc[offset << 1]);
+								 << 8 | vn->XMLDoc[offset << 1]));
 					 }
-
-					 //Get the depth (>=0) of the current element.
-					 /*inline int getCurrentDepth(VTDNav *vn){
-					 return vn->context[0];
-					 }*/
-
-					 // Get the index value of the current element.
-					 /* int getCurrentIndex(VTDNav *vn){
-					 return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
-					 }*/
 
 					 // Get the starting offset and length of an element
 					 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
@@ -680,7 +660,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 }
 							 length = so2 - so + 1;
 							 toElement(vn, PREV_SIBLING);
-							 if (vn->encoding < 3)
+							 if (vn->encoding <= FORMAT_WIN_1258)
 								 return ((Long) length) << 32 | so;
 							 else
 								 return ((Long) length) << 33 | (so << 1);
@@ -697,7 +677,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 }
 							 if (b == FALSE)
 								 so2 =
-								 (vn->encoding < 3)
+								 (vn->encoding <= FORMAT_WIN_1258)
 								 ? (vn->docOffset + vn->docLen - 1)
 								 : ((vn->docOffset + vn->docLen) << 1) - 1;
 							 else
@@ -706,7 +686,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 so2--;
 							 }
 							 length = so2 - so + 1;
-							 if (vn->encoding < 3)
+							 if (vn->encoding <= FORMAT_WIN_1258)
 								 return ((Long) length) << 32 | so;
 							 else
 								 return ((Long) length) << 33 | (so << 1);
@@ -733,7 +713,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 									 so2--;
 								 }
 								 length = so2 - so + 2;
-								 if (vn->encoding < 3)
+								 if (vn->encoding <= FORMAT_WIN_1258)
 									 return ((Long) length) << 32 | so;
 								 else
 									 return ((Long) length) << 33 | (so << 1);
@@ -742,7 +722,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 // temp is the last entry
 						 // scan forward search for /> or </cc>
 						 so2 =
-							 (vn->encoding < 3)
+							 (vn->encoding <= FORMAT_WIN_1258)
 							 ? (vn->docOffset + vn->docLen - 1)
 							 : ((vn->docOffset + vn->docLen) << 1) - 1;
 						 d = depth + 1;
@@ -756,35 +736,11 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 length = so2 - so + 2;
 
-						 if (vn->encoding < 3)
+						 if (vn->encoding <= FORMAT_WIN_1258)
 							 return ((Long) length) << 32 | so;
 						 else
 							 return ((Long) length) << 33 | (so << 1);
 					 }
-
-					 /**
-					 * Get the encoding of the XML document.
-					 * <pre>   0  ASCII       </pre>
-					 * <pre>   1  ISO-8859-1  </pre>
-					 * <pre>   2  UTF-8       </pre>
-					 * <pre>   3  UTF-16BE    </pre>
-					 * <pre>   4  UTF-16LE    </pre>
-					 */
-					 /* inline encoding getEncoding(VTDNav *vn){
-					 return vn->encoding;
-					 }*/
-
-					 // Get the maximum nesting depth of the XML document (>0).
-					 // max depth is nestingLevel -1
-					 /*inline int getNestingLevel(VTDNav *vn){
-					 return vn->nestingLevel;
-					 }*/
-
-					 // Get root index value.
-					 /* inline int getRootIndex(VTDNav *vn){
-					 return vn->rootIndex;
-					 }*/
-
 
 					 // This function returns of the token index of the type character data or CDATA.
 					 // Notice that it is intended to support data orient XML (not mixed-content XML).
@@ -826,11 +782,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 return -1;
 						 }
 					 }
-
-					 //Get total number of VTD tokens for the current XML document.
-					 /*inline int getTokenCount(VTDNav *vn){
-					 return vn->vtdSize;
-					 }*/
 
 					 //Get the depth value of a token (>=0)
 					 int getTokenDepth(VTDNav *vn, int index){
@@ -904,28 +855,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 					 }
 
-					 //Get the starting offset of the token at the given index.
-					 //					 int getTokenOffset(VTDNav *vn, int index){
-					 //#if BIG_ENDIAN
-					 //                         return (int) (longAt(vn->vtdBuffer,index) & MASK_TOKEN_OFFSET);
-					 //#else
-					 //
-					 //#endif
-					 //					 }
-
-					 //Get the XML document 
-					 /*inline Byte* getXML(VTDNav *vn){
-					 return vn->XMLDoc;
-					 }*/
-
-					 //					 //Get the token type of the token at the given index value.
-					 //					 tokenType getTokenType(VTDNav *vn, int index){
-					 //#if BIG_ENDIAN
-					 //						 return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
-					 //#else
-					 //
-					 //#endif
-					 //					 }
+				
 
 					 //Test whether current element has an attribute with the matching name.
 					 Boolean hasAttr(VTDNav *vn, UCSChar *an){
@@ -3514,3 +3444,71 @@ Boolean getAtTerminal(VTDNav *vn){
 
 	 return lookupNS2(vn,offset, preLen);
  }
+
+ static long getChar4OtherEncoding(VTDNav *vn, int offset){
+	 exception e;
+	 if (vn->encoding <= FORMAT_WIN_1258) 
+	 { 
+		 int temp = decode(vn,offset); 
+		 if (temp == '\r') 
+		 { 
+			 if (vn->XMLDoc[offset + 1] == '\n') 
+			 { 
+				 return '\n' | (2L << 32); 
+			 } 
+			 else 
+			 { 
+				 return '\n' | (1L << 32); 
+			 } 
+		 } 
+		 return temp | (1L << 32); 
+	 } 
+	 e.et = nav_exception;
+	 e.msg = "navigation exception during getChar4OtherEncoding";
+	 e.sub_msg = "Unknown encoding error: should never happen";
+	 Throw e;
+}
+
+static int decode(VTDNav *vn,int offset)
+{
+	char ch = vn->XMLDoc[offset];
+            switch (vn->encoding)
+            {
+                case FORMAT_ISO_8859_2:
+                    return iso_8859_2_decode(ch);
+                case FORMAT_ISO_8859_3:
+                    return iso_8859_3_decode(ch);
+                case FORMAT_ISO_8859_4:
+                    return iso_8859_4_decode(ch);
+                case FORMAT_ISO_8859_5:
+                    return iso_8859_5_decode(ch);
+                case FORMAT_ISO_8859_6:
+                    return iso_8859_6_decode(ch);
+                case FORMAT_ISO_8859_7:
+                    return iso_8859_7_decode(ch);
+                case FORMAT_ISO_8859_8:
+                    return iso_8859_8_decode(ch);
+                case FORMAT_ISO_8859_9:
+                    return iso_8859_9_decode(ch);
+                case FORMAT_ISO_8859_10:
+                    return iso_8859_10_decode(ch);
+                case FORMAT_WIN_1250:
+                    return windows_1250_decode(ch);
+                case FORMAT_WIN_1251:
+                    return windows_1251_decode(ch);
+                case FORMAT_WIN_1252:
+                    return windows_1252_decode(ch);
+                case FORMAT_WIN_1253:
+                    return windows_1253_decode(ch);
+                case FORMAT_WIN_1254:
+                    return windows_1254_decode(ch);
+                case FORMAT_WIN_1255:
+                    return windows_1255_decode(ch);
+                case FORMAT_WIN_1256:
+                    return windows_1256_decode(ch);
+                case FORMAT_WIN_1257:
+                    return windows_1257_decode(ch);
+                default:
+                    return windows_1258_decode(ch);
+            }
+        }
