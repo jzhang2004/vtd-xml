@@ -250,14 +250,21 @@ public class FuncExpr extends Expr{
 	    if (argCount()== 2){
 	        String s = argumentList.e.evalString(vn);
 	        if (s != null){
-	            s.substring((int)argumentList.next.e.evalNumber(vn)-1);
+	            double d1 = Math.floor(argumentList.next.e.evalNumber(vn)+0.5d);
+	            if (d1!=d1 || d1>s.length())
+	                return "";
+	            s.substring((int)d1-1);
 	        }
 	        return null;
 	    } else if (argCount() == 3){
 	        String s = argumentList.e.evalString(vn);
 	        if (s != null){
-	            s.substring((int)argumentList.next.e.evalNumber(vn)-1,
-	                    (int) argumentList.next.next.e.evalNumber(vn)-1);
+	            double d1 = Math.floor(argumentList.next.e.evalNumber(vn)+0.5d);
+	            double d2 = Math.floor(argumentList.next.next.e.evalNumber(vn)+0.5d);
+	            if (d1!=d1 || d2!=d2 || d1>s.length())
+	                return "";
+	            s.substring((int)d1-1,Math.min(s.length()-1, (int)d1-1+(int)d2));
+	            //(int) argumentList.next.next.e.evalNumber(vn)-1);
 	        }
 	        return null;
 	    }
@@ -401,7 +408,7 @@ public class FuncExpr extends Expr{
 			    
 			case FuncName.ROUND: 	if (argCount()!=1 )
 			    						throw new IllegalArgumentException("round()'s argument count is invalid");
-			    					return Math.round(argumentList.e.evalNumber(vn));
+			    					return Math.floor(argumentList.e.evalNumber(vn))+0.5d;
 			
 			default: if (isBoolean){
 			    		if (evalBoolean(vn))
