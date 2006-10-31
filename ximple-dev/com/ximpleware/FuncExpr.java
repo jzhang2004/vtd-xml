@@ -250,14 +250,14 @@ public class FuncExpr extends Expr{
 	    if (argCount()== 2){
 	        String s = argumentList.e.evalString(vn);
 	        if (s != null){
-	            s.substring((int)argumentList.next.e.evalNumber(vn));
+	            s.substring((int)argumentList.next.e.evalNumber(vn)+1);
 	        }
 	        return null;
 	    } else if (argCount() == 3){
 	        String s = argumentList.e.evalString(vn);
 	        if (s != null){
-	            s.substring((int)argumentList.next.e.evalNumber(vn),
-	                    (int) argumentList.next.next.e.evalNumber(vn));
+	            s.substring((int)argumentList.next.e.evalNumber(vn)+1,
+	                    (int) argumentList.next.next.e.evalNumber(vn)+1);
 	        }
 	        return null;
 	    }
