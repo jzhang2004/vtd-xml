@@ -40,7 +40,7 @@ STATE_END_PI
 // internal functions
 static int  entityIdentifier(VTDGen *vg);
 static void printLineNumber(VTDGen *vg);
-static int getChar(VTDGen *vg);
+static inline int getChar(VTDGen *vg);
 static Boolean skip4OtherEncoding(VTDGen *vg, int ch1);
 static int handelOtherEncoding(VTDGen *vg);
 static int handle_16le(VTDGen *vg);
