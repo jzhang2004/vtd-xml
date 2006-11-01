@@ -241,7 +241,7 @@ namespace com.ximpleware
 			catch (NavException e)
 			{
 			}
-			return null;
+			return "";
 		}
 		
 		public override void  reset(VTDNav vn)

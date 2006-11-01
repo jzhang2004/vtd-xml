@@ -119,7 +119,6 @@ namespace com.ximpleware
 		
 		public override double evalNumber(VTDNav vn)
 		{
-			double d;
 			int a = - 1;
 			vn.push2();
 			int size = vn.contextStack2.size;
@@ -158,7 +157,7 @@ namespace com.ximpleware
 		
 		public override int evalNodeSet(VTDNav vn)
 		{
-			int a, b;
+			int a;
 			while (true)
 			{
 				switch (evalState)
@@ -263,7 +262,7 @@ namespace com.ximpleware
 			catch (NavException e)
 			{
 			}
-			return null;
+			return "";
 		}
 		// The improved version, use hashtable to check for uniqueness
 		public bool isUnique(int i)

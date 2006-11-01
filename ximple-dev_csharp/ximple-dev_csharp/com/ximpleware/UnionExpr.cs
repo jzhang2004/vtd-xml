@@ -84,7 +84,6 @@ namespace com.ximpleware
 		{
             if (e.Numerical)
                 return e.evalNumber(vn);
-			double d;
 			int a = - 1;
 			vn.push2();
 			int size = vn.contextStack2.size;
@@ -258,7 +257,7 @@ namespace com.ximpleware
 			catch (NavException ee)
 			{
 			}
-			return null;
+			return "";
 		}
 		
 		/*
