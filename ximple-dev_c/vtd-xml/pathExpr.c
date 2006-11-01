@@ -178,7 +178,7 @@ UCSChar* evalString_pe  (pathExpr *pe,VTDNav *vn){
 			Throw e;
 		}
 	}
-	return NULL;	
+	return createEmptyString();	
 
 }
 Boolean evalBoolean_pe (pathExpr *pe,VTDNav *vn){

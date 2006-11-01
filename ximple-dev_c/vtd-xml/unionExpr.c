@@ -205,7 +205,7 @@ UCSChar* evalString_une  (unionExpr *e,VTDNav *vn){
 		if(ee.et == out_of_mem)
 			Throw ee;
 	}
-	return NULL;	
+	return createEmptyString();	
 }
 Boolean evalBoolean_une (unionExpr *e,VTDNav *vn){
 	exception ee;

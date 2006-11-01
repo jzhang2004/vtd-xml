@@ -2039,7 +2039,7 @@ UCSChar* evalString_lpe  (locationPathExpr *lpe,VTDNav *vn){
 		if(e.et == out_of_mem)
 			Throw e;
 	}
-	return NULL;	
+	return createEmptyString();	
 }
 
 Boolean evalBoolean_lpe (locationPathExpr *lpe,VTDNav *vn){

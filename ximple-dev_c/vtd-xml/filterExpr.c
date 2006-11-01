@@ -131,7 +131,7 @@ UCSChar* evalString_fe  (filterExpr *fe,VTDNav *vn){
 		if (e.et = out_of_mem)
 			Throw e;
 	}
-	return NULL;
+	return createEmptyString();
 }
 Boolean evalBoolean_fe (filterExpr *fe,VTDNav *vn){
 	exception e;
