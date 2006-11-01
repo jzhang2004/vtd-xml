@@ -602,7 +602,36 @@ namespace com.ximpleware
 				vn.contextStack2.size = stackSize;
 			}
 		}
-		
+
+ 
+        /// <summary>
+        ///  evalXPathToNumber() evaluates the xpath expression to a double
+        /// </summary>
+        /// <returns>return the result as a double</returns>
+        public double evalXPathToNumber()
+        {
+            return xpe.evalNumber(vn);
+        }
+        
+       
+       /// <summary>
+       /// evalXPathToString() evaluates the xpath expression to a String
+       /// </summary>
+       /// <returns>return the result as a string</returns>
+        
+        public String evalXPathToString()
+        {
+            return xpe.evalString(vn);
+        }
+       
+        /// <summary>
+        ///  evalXPathToBoolean() evaluates the xpath expression to a boolean
+        /// </summary>
+        /// <returns> return the result as a boolean</returns>
+        public Boolean evalXPathToBoolean()
+        {
+            return xpe.evalBoolean(vn);
+        }
 		/// <summary> This method returns the next node in the nodeset
 		/// it returns -1 if there is no more node
 		/// Afer finishing evaluating, don't forget to <em> reset the xpath </em>
