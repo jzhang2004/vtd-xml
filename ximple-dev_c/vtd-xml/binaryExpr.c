@@ -524,3 +524,16 @@ void    toString_be(binaryExpr *be, UCSChar* string){
 	be->right->toString(be->right,string);
 	wprintf(L")");
 }
+
+UCSChar* createEmptyString(){
+	exception e;
+	Try{
+		UCSChar* es =  malloc(sizeof(UCSChar));
+		*es = 0;
+		return es;
+	}Catch(e){
+		e.et = out_of_mem;
+		e.msg = "string allocation faild in createEmptyString ";
+		Throw e;
+	}
+}
