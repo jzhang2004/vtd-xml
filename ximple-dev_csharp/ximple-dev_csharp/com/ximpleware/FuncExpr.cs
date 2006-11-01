@@ -704,7 +704,11 @@ namespace com.ximpleware
                 if (s != null)
                 {
                     //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
-                    s.Substring((int)argumentList.next.e.evalNumber(vn));
+                    //s.Substring((int)argumentList.next.e.evalNumber(vn)+1);
+                    double d1 = Math.Floor(argumentList.next.e.evalNumber(vn) + 0.5d);
+                    if (d1 != d1 || d1 > s.Length)
+                        return "";
+                    return s.Substring(Math.Max((int)(d1 - 1), 0));
                 }
                 return null;
             }
@@ -713,8 +717,16 @@ namespace com.ximpleware
                 System.String s = argumentList.e.evalString(vn);
                 if (s != null)
                 {
+                   // double d1 = argumentList.next.next.e.evalNumber(vn);
+                   // double d2 = argumentList.next.e.evalNumber(vn);
+                    double d1 = Math.Floor(argumentList.next.e.evalNumber(vn) + 0.5d);
+                    double d2 = Math.Floor(argumentList.next.next.e.evalNumber(vn) + 0.5d);
+                    int i = Math.Max(0, (int)d1 - 1);
+                    if ((d1 + d2) != (d1 + d2) || d1 > s.Length)
+                        return "";
+                    return s.Substring(i, Math.Min(s.Length, (int)d2-1+(int)d1)-i);
                     //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
-                    s.Substring((int)argumentList.next.e.evalNumber(vn), ((int)argumentList.next.next.e.evalNumber(vn)) - ((int)argumentList.next.e.evalNumber(vn)));
+                    //s.Substring((int)d1-1, ((int)d1) - ((int)d2));
                 }
                 return null;
             }
