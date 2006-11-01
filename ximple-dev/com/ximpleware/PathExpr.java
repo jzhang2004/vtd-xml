@@ -171,7 +171,7 @@ public class PathExpr extends Expr {
 				return vn.toString(a);
 		} catch (NavException e) {
 		}
-		return null;	
+		return "";	
 	}
 // The improved version, use hashtable to check for uniqueness
 	public boolean isUnique(int i){

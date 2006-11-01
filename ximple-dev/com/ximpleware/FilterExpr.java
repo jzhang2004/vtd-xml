@@ -155,7 +155,7 @@ public class FilterExpr extends Expr {
                 return vn.toString(a);
         } catch (NavException e) {
         }
-        return null;
+        return "";
 	}
 
 	public void reset(VTDNav vn) {

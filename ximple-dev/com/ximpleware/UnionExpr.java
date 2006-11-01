@@ -205,7 +205,7 @@ public class UnionExpr extends Expr {
                 return vn.toString(a);
         } catch (NavException e) {
         }
-        return null;
+        return "";
     }
 
     /*

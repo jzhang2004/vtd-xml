@@ -154,7 +154,7 @@ public class LocationPathExpr extends Expr{
                 return vn.toString(a);
         } catch (NavException e) {
         }
-        return null;	
+        return "";	
 		}
 
 		public boolean  isNodeSet(){

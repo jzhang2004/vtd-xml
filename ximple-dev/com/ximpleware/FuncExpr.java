@@ -253,7 +253,7 @@ public class FuncExpr extends Expr{
 	            double d1 = Math.floor(argumentList.next.e.evalNumber(vn)+0.5d);
 	            if (d1!=d1 || d1>s.length())
 	                return "";
-	            s.substring((int)d1-1);
+	            return s.substring(Math.max((int)(d1-1),0));
 	        }
 	        return null;
 	    } else if (argCount() == 3){
@@ -261,9 +261,10 @@ public class FuncExpr extends Expr{
 	        if (s != null){
 	            double d1 = Math.floor(argumentList.next.e.evalNumber(vn)+0.5d);
 	            double d2 = Math.floor(argumentList.next.next.e.evalNumber(vn)+0.5d);
-	            if (d1!=d1 || d2!=d2 || d1>s.length())
+	            int i1 = Math.max(0,(int)d1 -1);
+	            if ((d1+d2)!=(d1+d2) || d1>s.length())
 	                return "";
-	            s.substring((int)d1-1,Math.min(s.length()-1, (int)d1-1+(int)d2));
+	            return s.substring(Math.max(0,(int)d1-1),Math.min(s.length(), (int)(d1-1)+(int)d2));
 	            //(int) argumentList.next.next.e.evalNumber(vn)-1);
 	        }
 	        return null;
