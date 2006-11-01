@@ -527,13 +527,13 @@ void    toString_be(binaryExpr *be, UCSChar* string){
 
 UCSChar* createEmptyString(){
 	exception e;
-	Try{
-		UCSChar* es =  malloc(sizeof(UCSChar));
-		*es = 0;
+
+	UCSChar* es =  malloc(sizeof(UCSChar));
+	if (es!=NULL){
+		es[0] = 0;
 		return es;
-	}Catch(e){
-		e.et = out_of_mem;
-		e.msg = "string allocation faild in createEmptyString ";
-		Throw e;
 	}
+	e.et = out_of_mem;
+	e.msg = "string allocation faild in createEmptyString ";
+	Throw e;
 }
