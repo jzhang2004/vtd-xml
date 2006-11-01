@@ -613,7 +613,6 @@ UCSChar *lookup(NsList *nl, UCSChar *prefix);
 expr *xpathParse(UCSChar *input, NsList *nl);
 
 
-
-
+UCSChar* createEmptyString();
 
 #endif
