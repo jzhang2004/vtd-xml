@@ -400,15 +400,15 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 	if(isNumerical_be(be)){		    
 		double d = evalNumber_be(be,vn);
 		if (d != d){
-			tmp = wcsdup(L"NaN");
+			tmp = _wcsdup(L"NaN");
 			b= TRUE;
 		}
 		else if ( d == 1/n){
-			tmp = wcsdup(L"Infinity");
+			tmp = _wcsdup(L"Infinity");
 			b = TRUE;
 		}
 		else if (d == -1/n){
-			tmp = wcsdup(L"-Infinity");
+			tmp = _wcsdup(L"-Infinity");
 			b  = TRUE;
 		}else 	
 		tmp = malloc(sizeof(UCSChar)<<8);
@@ -429,9 +429,9 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 	} else {
 		Boolean b = evalBoolean_be(be,vn);
 		if (b)
-			tmp= wcsdup(L"true");
+			tmp= _wcsdup(L"true");
 		else
-			tmp= wcsdup(L"false");
+			tmp= _wcsdup(L"false");
 		if (tmp == NULL){
 			e.et = out_of_mem;
 			e.msg = "String allocation failed in evalString_be";
@@ -527,7 +527,6 @@ void    toString_be(binaryExpr *be, UCSChar* string){
 
 UCSChar* createEmptyString(){
 	exception e;
-
 	UCSChar* es =  malloc(sizeof(UCSChar));
 	if (es!=NULL){
 		es[0] = 0;
