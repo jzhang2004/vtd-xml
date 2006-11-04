@@ -225,7 +225,6 @@ namespace com.ximpleware
             else
                 throw new System.ArgumentException("String()'s argument count is invalid");
         }
-
         private String getLocalName(VTDNav vn)
         {
             if (argCount() == 0)
@@ -233,7 +232,9 @@ namespace com.ximpleware
                 try
                 {
                     int index = vn.getCurrentIndex();
-                    if (vn.getTokenType(index) == VTDNav.TOKEN_STARTING_TAG)
+                    int type = vn.getTokenType(index);
+                    if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG
+                            || type == VTDNav.TOKEN_ATTR_NAME))
                     {
                         int offset = vn.getTokenOffset(index);
                         int length = vn.getTokenLength(index);
@@ -253,11 +254,11 @@ namespace com.ximpleware
                         }
                     }
                     else
-                        return null;
+                        return "";
                 }
                 catch (NavException e)
                 {
-                    return null; // this will almost never occur
+                    return ""; // this will almost never occur
                 }
 
             } if (argCount() == 1)
@@ -275,9 +276,12 @@ namespace com.ximpleware
                     argumentList.e.reset(vn);
                     vn.pop2();
                 }
-                if (a == -1 || vn.getTokenType(a) != VTDNav.TOKEN_STARTING_TAG)
-                    return null;
 
+                if (a == -1 || vn.ns == false)
+                    return "";
+                int type = vn.getTokenType(a);
+                if (type != VTDNav.TOKEN_STARTING_TAG && type != VTDNav.TOKEN_ATTR_NAME)
+                    return "";
                 try
                 {
                     int offset = vn.getTokenOffset(a);
@@ -299,11 +303,12 @@ namespace com.ximpleware
                 }
                 catch (NavException e)
                 {
-                    return null; // this will almost never occur
+                    return ""; // this will almost never occur
                 }
             }
             else
-                throw new System.ArgumentException("local-name()'s argument count is invalid");
+                throw new System.ArgumentException
+                ("local-name()'s argument count is invalid");
         }
 
         private String getNameSpaceURI(VTDNav vn)
@@ -313,36 +318,31 @@ namespace com.ximpleware
                 try
                 {
                     int i = vn.getCurrentIndex();
-                    if (vn.getTokenType(i) == VTDNav.TOKEN_STARTING_TAG)
+                    int type = vn.getTokenType(i);
+
+                    if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG
+                            || type == VTDNav.TOKEN_ATTR_NAME))
                     {
                         int a = vn.lookupNS();
                         if (a == 0)
-                            return null;
+                            return "";
                         else
                             return vn.toString(a);
                     }
-                    return null;
+                    return "";
                 }
                 catch (Exception e)
                 {
-                    return null;
+                    return "";
                 }
             }
             else if (argCount() == 1)
             {
                 int a = -1;
-                String result = null;
                 vn.push2();
                 try
                 {
                     a = argumentList.e.evalNodeSet(vn);
-                    if (a == -1 || vn.getTokenType(a) != VTDNav.TOKEN_STARTING_TAG)
-                    {
-                    }
-                    else
-                    {
-                        result = vn.toString(vn.lookupNS());
-                    }
                     argumentList.e.reset(vn);
                     vn.pop2();
                 }
@@ -351,10 +351,26 @@ namespace com.ximpleware
                     argumentList.e.reset(vn);
                     vn.pop2();
                 }
-                return result;
+                try
+                {
+                    if (a == -1 || vn.ns == false)
+                        return "";
+                    else
+                    {
+                        int type = vn.getTokenType(a);
+                        if (type == VTDNav.TOKEN_STARTING_TAG
+                                || type == VTDNav.TOKEN_ATTR_NAME)
+                            return vn.toString(vn.lookupNS());
+                        return "";
+                    }
+                }
+                catch (Exception e) { };
+                return "";
+
             }
             else
-                throw new System.ArgumentException("namespace-uri()'s argument count is invalid");
+                throw new System.ArgumentException
+                ("namespace-uri()'s argument count is invalid");
         }
 
         private String getName(VTDNav vn)
@@ -363,7 +379,10 @@ namespace com.ximpleware
             if (argCount() == 0)
             {
                 a = vn.getCurrentIndex();
-                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG)
+                int type = vn.getTokenType(a);
+
+                if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG
+                        || type == VTDNav.TOKEN_ATTR_NAME))
                 {
                     try
                     {
@@ -371,27 +390,20 @@ namespace com.ximpleware
                     }
                     catch (Exception e)
                     {
-                        return null;
+                        return "";
                     }
                 }
                 else
-                    return null;
+                    return "";
             }
             else if (argCount() == 1)
             {
                 a = -1;
-                String result = null;
+                String result = "";
                 vn.push2();
                 try
                 {
                     a = argumentList.e.evalNodeSet(vn);
-                    if (a == -1 || vn.getTokenType(a) != VTDNav.TOKEN_STARTING_TAG)
-                    {
-                    }
-                    else
-                    {
-                        result = vn.toString(a);
-                    }
                     argumentList.e.reset(vn);
                     vn.pop2();
                 }
@@ -400,10 +412,28 @@ namespace com.ximpleware
                     argumentList.e.reset(vn);
                     vn.pop2();
                 }
-                return result;
+                try
+                {
+                    if (a == -1 || vn.ns == false)
+                        return "";
+                    else
+                    {
+                        int type = vn.getTokenType(a);
+                        if (type == VTDNav.TOKEN_STARTING_TAG
+                                || type == VTDNav.TOKEN_ATTR_NAME)
+                            return vn.toString(a);
+                        return "";
+                    }
+                }
+                catch (Exception e)
+                {
+                }
+                return "";
             }
             else
-                throw new System.ArgumentException("name()'s argument count is invalid");
+                throw new System.ArgumentException
+                ("name()'s argument count is invalid");
+
         }
 
 		public override System.String evalString(VTDNav vn)
@@ -553,7 +583,18 @@ namespace com.ximpleware
 		{
 			switch (opCode)
 			{
-				
+                case FuncName.STARTS_WITH:
+                    if (argCount() != 2)
+                    {
+                        throw new System.ArgumentException("starts-with()'s argument count is invalid");
+                    }
+                    return startsWith(vn);
+                case FuncName.CONTAINS:
+                    if (argCount() != 2)
+                    {
+                        throw new System.ArgumentException("contains()'s argument count is invalid");
+                    }
+                    return contains(vn);
 				case FuncName.TRUE:  if (argCount() != 0)
 					{
 						throw new System.ArgumentException("true() doesn't take any argument");
@@ -576,22 +617,7 @@ namespace com.ximpleware
 					{
 						throw new System.ArgumentException("not() doesn't take any argument");
 					}
-					return !argumentList.e.evalBoolean(vn);
-
-                case FuncName.CONTAINS:
-                    if (argCount() != 2)
-                    {
-                        throw new System.ArgumentException("contains()'s argument count is invalid");
-                    }
-                    return contains(vn);
-
-                case FuncName.STARTS_WITH:
-                    if (argCount() != 2)
-                    {
-                        throw new System.ArgumentException("starts-with()'s argument count is invalid");
-                    }
-                    return startsWith(vn);
-				
+					return !argumentList.e.evalBoolean(vn);				
 				default:  if (Numerical)
 					{
 						double d = evalNumber(vn);
