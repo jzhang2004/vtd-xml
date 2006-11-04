@@ -29,6 +29,8 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn);
 static Boolean startsWith(funcExpr *fne, VTDNav *vn);
 static UCSChar* subString(funcExpr *fne, VTDNav *vn);
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn);
+static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn);
+static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn);
 
 static double round(double v) 
 { 
@@ -597,11 +599,9 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 
 			case FN_CONCAT:
 				return concat(fne,vn);
-			case FN_SUBSTRING_BEFORE:		
-			case FN_SUBSTRING_AFTER: 
-								e.et = other;
-								e.msg = "Some functions are not supported";
-								Throw e;		
+			case FN_SUBSTRING_BEFORE: return subStringBefore(fne,vn);		
+			case FN_SUBSTRING_AFTER: return subStringAfter(fne,vn);
+									
 			case FN_SUBSTRING: 	return subString(fne,vn);	
 			case FN_TRANSLATE: 	
 			case FN_NORMALIZE_SPACE:
@@ -852,8 +852,6 @@ static Boolean startsWith(funcExpr *fne, VTDNav *vn){
 	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
 	UCSChar* s3 = NULL;
 	Boolean b = FALSE;
-	if (s1 == NULL || s2 == NULL)
-		return FALSE;
 	if (wcsstr(s1,s2)==s1)
 		b = TRUE;
 	free(s1);
@@ -900,4 +898,51 @@ static UCSChar* subString(funcExpr *fne, VTDNav *vn){
 
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 
+}
+
+static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn){
+	exception e;
+	if (argCount(fne,vn) == 2){
+		UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
+		UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
+		UCSChar* temp = NULL;
+		if ((temp=wcsstr(s1,s2))!=NULL){
+			*(temp) = 0;
+			free(s2);
+			return s1;
+		}
+		else{
+			*s2 = 0;
+			free(s1);
+			return s2;
+		}
+	}
+	e.et = invalid_argument;							
+	e.msg = "substring-before()'s <funcExpr> argument count is invalid";
+	Throw e;
+}
+
+static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
+exception e;
+	if (argCount(fne,vn) == 2){
+		UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
+		UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
+		int len1=wcslen(s1),len2=wcslen(s2);
+		UCSChar* temp = NULL;
+		if ((temp=wcsstr(s1,s2))!=NULL){
+			int len = wcslen(temp);
+			wcsncpy(s1,temp+len2,len-len2);
+			*(s1+len-len2) = 0;
+			free(s2);
+			return s1;
+		}
+		else{
+			*s2 = 0;
+			free(s1);
+			return s2;
+		}
+	}
+	e.et = invalid_argument;							
+	e.msg = "substring-after()'s <funcExpr> argument count is invalid";
+	Throw e;
 }
