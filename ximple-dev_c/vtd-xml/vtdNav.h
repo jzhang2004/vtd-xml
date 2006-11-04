@@ -89,7 +89,7 @@ typedef struct vTDNav{
 	//int currentOffset;
 	//int currentOffset2;
 
-	int ns;
+	Boolean ns;
 	int* stackTemp;
 	int docOffset;	 // starting offset of the XML doc wrt XMLDoc
 	int docLen;  // size of XML document
