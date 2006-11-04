@@ -261,7 +261,7 @@ namespace com.ximpleware
                     return ""; // this will almost never occur
                 }
 
-            } if (argCount() == 1)
+            } else if (argCount() == 1)
             {
                 int a = -1;
                 vn.push2();
@@ -399,7 +399,6 @@ namespace com.ximpleware
             else if (argCount() == 1)
             {
                 a = -1;
-                String result = "";
                 vn.push2();
                 try
                 {
@@ -454,9 +453,9 @@ namespace com.ximpleware
                     return getString(vn);
 
 					//goto case FuncName.SUBSTRING_BEFORE;
-				
-				case FuncName.SUBSTRING_BEFORE:
-                case FuncName.SUBSTRING_AFTER: throw new UnsupportedException("Some functions are not supported");
+
+                case FuncName.SUBSTRING_BEFORE: return subStringBefore(vn);
+                case FuncName.SUBSTRING_AFTER: return subStringAfter(vn);
                 case FuncName.SUBSTRING: return subString(vn);
                 case FuncName.TRANSLATE: throw new UnsupportedException("Some functions are not supported");
 				case FuncName.NORMALIZE_SPACE:  throw new UnsupportedException("Some functions are not supported");
@@ -706,20 +705,54 @@ namespace com.ximpleware
         {
             System.String s1 = argumentList.e.evalString(vn);
             System.String s2 = argumentList.next.e.evalString(vn);
-            if (s1 == null || s2 == null)
-                return false;
-            else
-                return s1.StartsWith(s2);
+            return s1.StartsWith(s2);
         }
 
         private bool contains(VTDNav vn)
         {
             System.String s1 = argumentList.e.evalString(vn);
             System.String s2 = argumentList.next.e.evalString(vn);
-            if (s1 == null || s2 == null)
-                return false;
-            else
-                return s1.Contains(s2);
+            return s1.Contains(s2);
+        }
+
+        private System.String subStringAfter(VTDNav vn)
+        {
+            if (argCount() == 2)
+            {
+                String s1 = argumentList.e.evalString(vn);
+                String s2 = argumentList.next.e.evalString(vn);
+                int len1 = s1.Length;
+                int len2 = s2.Length;
+                for (int i = 0; i < len1; i++)
+                {
+                   //System.String.Compare(s1,i,s2,0,len2);
+                   if (System.String.Compare(s1, i, s2, 0, len2)==0)
+                      return s1.Substring(i + len2);
+                }
+                return "";
+            }
+            throw new System.ArgumentException
+            ("substring-after()'s argument count is invalid");
+        }
+
+        private System.String subStringBefore(VTDNav vn)
+        {
+            if (argCount() == 2)
+            {
+                String s1 = argumentList.e.evalString(vn);
+                String s2 = argumentList.next.e.evalString(vn);
+                int len1 = s1.Length;
+                int len2 = s2.Length;
+                for (int i = 0; i < len1; i++)
+                {
+                    //System.String.Compare(s1,i,s2,0,len2);
+                    if (System.String.Compare(s1, i, s2, 0, len2) == 0)
+                        return s1.Substring(0,i);
+                }
+                return "";
+            }
+            throw new System.ArgumentException
+            ("substring-after()'s argument count is invalid");
         }
 
         private System.String subString(VTDNav vn)
@@ -758,6 +791,7 @@ namespace com.ximpleware
             }
             throw new System.ArgumentException("substring()'s argument count is invalid");
         }
+
 
         private System.String normalizeSpace(VTDNav vn)
         {
