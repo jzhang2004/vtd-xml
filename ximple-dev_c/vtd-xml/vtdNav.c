@@ -112,12 +112,12 @@ static Long handle_utf16le(VTDNav *vn, int offset){
 			if (temp == '\r') {
    				if (vn->XMLDoc[(offset << 1) + 2] == '\n'
    					&& vn->XMLDoc[(offset << 1) + 3] == 0) {
-   					return '\n' | ((Long)2<<32) ;
+   					return '\n' | (2LL<<32) ;
    				} else {
-   					return '\n' | ((Long)1<<32);
+   					return '\n' | (1LL<<32);
    				}
    			}
-			return temp | ((Long)1<<32);
+			return temp | (1LL<<32);
 	} else {
 		val = temp;
 		temp =
@@ -133,7 +133,7 @@ static Long handle_utf16le(VTDNav *vn, int offset){
 		}
 		val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
 		
-		return val | ((Long)2<<32);
+		return val | (2LL<<32);
 	}
 }
 static Long handle_utf16be(VTDNav *vn, int offset){
@@ -146,13 +146,13 @@ static Long handle_utf16be(VTDNav *vn, int offset){
 		if (temp == '\r') {
   				if (vn->XMLDoc[(offset << 1) + 3] == '\n'
   					&& vn->XMLDoc[(offset << 1) + 2] == 0) {  
-  					return '\n'|((Long)2<<32);
+  					return '\n'|(2LL<<32);
   				} else {
-  					return '\n'|((Long)1<<32);
+  					return '\n'|(1LL<<32);
   				}
  			}
   			//currentOffset++;
-  			return temp| ((Long)1<<32);
+  			return temp| (1LL<<32);
 	} else {
 		val = temp;
 		temp =
@@ -167,7 +167,7 @@ static Long handle_utf16be(VTDNav *vn, int offset){
 			//throw new NavException("UTF 16 BE encoding error: should never happen");
 		}
 		val = ((val - 0xd800) <<10) + (temp - 0xdc00) + 0x10000;
-		return val | ((Long)2<<32);
+		return val | (2LL<<32);
 	}
 }
 
@@ -404,7 +404,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //It doesn't resolves built-in entity and character references.
 					 //Length will never be zero
 					 static Long getChar(VTDNav *vn,int offset){
-						 exception e;
 						 Long temp = 0;
 						 switch (vn->encoding) {
 			case FORMAT_ASCII : 
@@ -412,9 +411,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				temp = vn->XMLDoc[offset];
 				if (temp == '\r') {
 					if (vn->XMLDoc[offset + 1] == '\n') {
-						return '\n'|((Long)2<<32);
+						return '\n'|(2LL<<32);
 					} else {
-						return '\n'|((Long)1<<32);
+						return '\n'|(1LL<<32);
 					}
 				}   
 				return temp|(1LL<<32);
@@ -424,12 +423,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 				if (temp<=127){
 					if (temp == '\r') {
 						if (vn->XMLDoc[offset + 1] == '\n') {
-							return '\n'|((Long)2<<32);
+							return '\n'|(2LL<<32);
 						} else {
-							return '\n'|((Long)1<<32);
+							return '\n'|(1LL<<32);
 						}
 					}
-					return (temp|((Long)1<<32));
+					return (temp|(1LL<<32));
 				}
 				return handle_utf8(vn,temp,offset);
 
@@ -3454,14 +3453,14 @@ Boolean getAtTerminal(VTDNav *vn){
 		 { 
 			 if (vn->XMLDoc[offset + 1] == '\n') 
 			 { 
-				 return '\n' | (2L << 32); 
+				 return '\n' | (2LL << 32); 
 			 } 
 			 else 
 			 { 
-				 return '\n' | (1L << 32); 
+				 return '\n' | (1LL << 32); 
 			 } 
 		 } 
-		 return temp | (1L << 32); 
+		 return temp | (1LL << 32); 
 	 } 
 	 e.et = nav_exception;
 	 e.msg = "navigation exception during getChar4OtherEncoding";
