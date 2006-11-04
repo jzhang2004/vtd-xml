@@ -38,7 +38,7 @@ static void resolveLC(VTDNav *vn);
 static Boolean resolveNS(VTDNav *vn, UCSChar *URL);
 static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len); //UCSChar *ln);
 static int lookupNS2(VTDNav *vn, int offset, int len);
-static long getChar4OtherEncoding(VTDNav *vn, int offset);
+static Long getChar4OtherEncoding(VTDNav *vn, int offset);
 static int decode(VTDNav *vn,int offset);
 
 
@@ -3444,7 +3444,7 @@ Boolean getAtTerminal(VTDNav *vn){
 	 return lookupNS2(vn,offset, preLen);
  }
 
- static long getChar4OtherEncoding(VTDNav *vn, int offset){
+ static Long getChar4OtherEncoding(VTDNav *vn, int offset){
 	 exception e;
 	 if (vn->encoding <= FORMAT_WIN_1258) 
 	 { 
