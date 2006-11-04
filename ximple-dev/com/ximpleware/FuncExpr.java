@@ -95,7 +95,9 @@ public class FuncExpr extends Expr{
 	    if (argCount()== 0){
 	        try{
 	            int index = vn.getCurrentIndex();
-	            if (vn.getTokenType(index) == VTDNav.TOKEN_STARTING_TAG) {
+	            int type = vn.getTokenType(index);
+	            if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG 
+	                    || type == VTDNav.TOKEN_ATTR_NAME)) {
                     int offset = vn.getTokenOffset(index);
                     int length = vn.getTokenLength(index);
                     if (length < 0x10000)
@@ -111,9 +113,9 @@ public class FuncExpr extends Expr{
                         }
                     }
                 } else
-                    return null;
+                    return "";
 	        }catch(NavException e){
-	            return null; // this will almost never occur
+	            return ""; // this will almost never occur
 	        }
 	        
 	    } if (argCount() == 1){
@@ -127,9 +129,12 @@ public class FuncExpr extends Expr{
 				argumentList.e.reset(vn);
 				vn.pop2();
 			}
-			if (a == -1 || vn.getTokenType(a)!=VTDNav.TOKEN_STARTING_TAG)
-			    return null;
 			
+			if (a == -1 || vn.ns == false)
+			    return "";
+			int type = vn.getTokenType(a);
+			if (type!=VTDNav.TOKEN_STARTING_TAG && type!= VTDNav.TOKEN_ATTR_NAME)
+			    return "";
 			try {			    
 			    int offset = vn.getTokenOffset(a);
 			    int length = vn.getTokenLength(a);
@@ -146,7 +151,7 @@ public class FuncExpr extends Expr{
 			        }
 			    }
 			} catch (NavException e) {
-			    return null; // this will almost never occur
+			    return ""; // this will almost never occur
 			}							        
 	    } else 
 	        throw new IllegalArgumentException
@@ -157,35 +162,44 @@ public class FuncExpr extends Expr{
 	    if (argCount()==0){
 	        try{
 	            int i = vn.getCurrentIndex();
-                if (vn.getTokenType(i) == VTDNav.TOKEN_STARTING_TAG) {
+	            int type = vn.getTokenType(i);
+	            
+                if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG 
+	                    || type == VTDNav.TOKEN_ATTR_NAME)) {
                     int a = vn.lookupNS();
                     if (a == 0)
-                        return null;
+                        return "";
                     else
                         return vn.toString(a);
                 }
-	            return null;
+	            return "";
 	        }catch (Exception e){
-	            return null;
+	            return "";
 	        }
 	    }else if (argCount()==1){
 	        int a = -1;
-	        String result = null;
 			vn.push2();
 			try{
 				a = argumentList.e.evalNodeSet(vn);
-				if (a == -1 || vn.getTokenType(a)!=VTDNav.TOKEN_STARTING_TAG){
-				}				    
-				else{
-				    result = vn.toString(vn.lookupNS());				    
-				}				    
 				argumentList.e.reset(vn);
 				vn.pop2();						
 			}catch(Exception e){
 				argumentList.e.reset(vn);
 				vn.pop2();
-			}	        
-			return result;
+			}
+			try {
+                if (a == -1 || vn.ns == false)
+                    return "";
+                else {
+                    int type = vn.getTokenType(a);
+                    if (type == VTDNav.TOKEN_STARTING_TAG
+                            || type == VTDNav.TOKEN_ATTR_NAME)
+                       return vn.toString(vn.lookupNS());
+                    return "";
+                }                
+            } catch (Exception e){} ;
+            return "";
+			
 	    }else 
 	        throw new IllegalArgumentException
 			("namespace-uri()'s argument count is invalid");
@@ -195,33 +209,43 @@ public class FuncExpr extends Expr{
 	    int a;
 	    if (argCount()==0){
 	        a = vn.getCurrentIndex();
-	        if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG){
+	        int type = vn.getTokenType(a);
+            
+            if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG 
+                    || type == VTDNav.TOKEN_ATTR_NAME)){
 	            try{
 	                return vn.toString(a);
 	            }catch(Exception e){
-	                return null;
+	                return "";
 	            }            
 	        }
 	        else 
-	            return null;
+	            return "";
 	    } else if (argCount() == 1){
 	        a = -1;
-	        String result = null;
+	        String result = "";
 			vn.push2();
 			try{
 				a = argumentList.e.evalNodeSet(vn);
-				if (a == -1 || vn.getTokenType(a)!=VTDNav.TOKEN_STARTING_TAG){
-				}				    
-				else{
-				    result = vn.toString(a);				    
-				}				    
 				argumentList.e.reset(vn);
 				vn.pop2();						
 			}catch(Exception e){
 				argumentList.e.reset(vn);
 				vn.pop2();
-			}	        
-			return result;
+			}	
+			try {
+                if (a == -1 || vn.ns == false)
+                    return "";
+                else {
+                    int type = vn.getTokenType(a);
+                    if (type == VTDNav.TOKEN_STARTING_TAG
+                            || type == VTDNav.TOKEN_ATTR_NAME)
+                        return vn.toString(a);
+                    return "";
+                }
+            } catch (Exception e) {
+            }			
+			return "";
 	    }else 
 	        throw new IllegalArgumentException
 			("name()'s argument count is invalid");
@@ -288,7 +312,6 @@ public class FuncExpr extends Expr{
 	    StringBuilder  sb = new StringBuilder();
 	    if (argCount()>=2){
 			Alist temp = argumentList;
-			int count = 0;
 			while(temp!=null){
 				sb.append(temp.e.evalString(vn));
 				temp = temp.next;
@@ -310,7 +333,7 @@ public class FuncExpr extends Expr{
 	            return vn.toString(vn.getCurrentIndex());
 	        }
 	    	catch(NavException e){
-	    	    return null; // this will almost never occur
+	    	    return ""; // this will almost never occur
 	    	}
 	    else if (argCount() == 1){
 	        return argumentList.e.evalString(vn);
@@ -428,6 +451,16 @@ public class FuncExpr extends Expr{
 	
 	public boolean evalBoolean(VTDNav vn){
 	  	  switch(opCode){
+			case FuncName.STARTS_WITH:
+			    if (argCount()!=2){
+			        throw new IllegalArgumentException("starts-with()'s argument count is invalid");
+			    }
+			    return startsWith(vn);
+			case FuncName.CONTAINS:
+			    if (argCount()!=2){
+			        throw new IllegalArgumentException("contains()'s argument count is invalid");
+				}
+			    return contains(vn);
 			case FuncName.TRUE: if (argCount()!=0){
 									throw new IllegalArgumentException("true() doesn't take any argument");
 								}
@@ -444,16 +477,6 @@ public class FuncExpr extends Expr{
 										throw new IllegalArgumentException("not() doesn't take any argument");
 			   					}
 								return !argumentList.e.evalBoolean(vn);
-			case FuncName.CONTAINS:
-			    if (argCount()!=2){
-			        throw new IllegalArgumentException("contains()'s argument count is invalid");
-				}
-			    return contains(vn);
-			case FuncName.STARTS_WITH:
-			    if (argCount()!=2){
-			        throw new IllegalArgumentException("starts-with()'s argument count is invalid");
-			    }
-			    return startsWith(vn);
 			default: if (isNumerical()){
 			    		double d = evalNumber(vn);
 			    		if (d==0 || d!=d)
