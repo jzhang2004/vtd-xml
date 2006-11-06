@@ -458,7 +458,7 @@ namespace com.ximpleware
                 case FuncName.SUBSTRING_AFTER: return subStringAfter(vn);
                 case FuncName.SUBSTRING: return subString(vn);
                 case FuncName.TRANSLATE: throw new UnsupportedException("Some functions are not supported");
-				case FuncName.NORMALIZE_SPACE:  throw new UnsupportedException("Some functions are not supported");
+                case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
 				
 				default:  if (Boolean)
 					{
@@ -792,20 +792,83 @@ namespace com.ximpleware
             throw new System.ArgumentException("substring()'s argument count is invalid");
         }
 
-
         private System.String normalizeSpace(VTDNav vn)
         {
             if (argCount() == 0)
             {
-                return null;
+                String s = null;
+                try
+                {
+                    if (vn.atTerminal)
+                    {
+                        if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_CDATA_VAL)
+                            s = vn.toRawString(vn.LN);
+                        s = vn.toString(vn.LN);
+                    }
+                    s = vn.toString(vn.getCurrentIndex());
+                    return normalize(s);
+                }
+                catch (NavException e)
+                {
+                    return ""; // this will almost never occur
+                }
             }
             else if (argCount() == 1)
             {
-                return null;
+                String s = argumentList.e.evalString(vn);
+                return normalize(s);
             }
             throw new System.ArgumentException("normalize-space()'s argument count is invalid");
             //return null;
         }
+        private String normalize(String s)
+        {
+            int len = s.Length;
+            StringBuilder sb = new StringBuilder(len);
+            int i = 0;
+            // strip off leading ws
+            for (i = 0; i < len; i++)
+            {
+                if (isWS(s[i]))
+                {
+                }
+                else
+                {
+                    break;
+                }
+            }
+            while (i < len)
+            {
+                char c = s[i];
+                if (!isWS(c))
+                {
+                    sb.Append(c);
+                    i++;
+                }
+                else
+                {
+                    while (i < len)
+                    {
+                        c = s[i];
+                        if (isWS(c))
+                            i++;
+                        else
+                            break;
+                    }
+                    if (i < len)
+                        sb.Append(' ');
+                }
+            }
+            return sb.ToString();
+        }
+
+        private bool isWS(char c)
+        {
+            if (c == ' ' || c == '\b' || c == '\r' || c == '\n')
+                return true;
+            return false;
+        }
+	
         private System.String concat(VTDNav vn)
         {
             StringBuilder sb = new StringBuilder();
