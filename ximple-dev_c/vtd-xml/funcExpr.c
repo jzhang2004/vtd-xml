@@ -31,7 +31,9 @@ static UCSChar* subString(funcExpr *fne, VTDNav *vn);
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn);
 static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn);
 static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn);
-
+static Boolean isWS(UCSChar c);
+static inline UCSChar* normalize(UCSChar *s);
+static double round(double v);
 static double round(double v) 
 { 
  return (v>0.0) ? floor(v+0.5) : ceil(v-0.5);
@@ -51,7 +53,7 @@ static UCSChar *getString(funcExpr *fne, VTDNav *vn){
 			return toString(vn, getCurrentIndex(vn));
 		}
 		Catch(e){
-			return createEmptyString(); // this will almost never occur
+			 // this will almost never occur
 		}
 	}
 	else if (argCount(fne) == 1){
@@ -61,6 +63,7 @@ static UCSChar *getString(funcExpr *fne, VTDNav *vn){
 		e.msg = "string()'s  <funcExpr> argument count is invalid";
 		Throw e;			        
 	}
+	return createEmptyString();
 }
 
 static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
@@ -82,15 +85,11 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
 					if (preLen != 0)
 						return toRawString2(vn,offset + preLen+1, QLen
 						- preLen - 1);
-					else {
-						return toRawString2(vn,offset, QLen);
-					}
 				}
-			} else
-				return createEmptyString();
+			} 
 		}
 		Catch(e){
-			return createEmptyString(); // this will almost never occur
+			
 		}
 	}
 	else if (argCount(fne) == 1){
@@ -122,18 +121,16 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
 				if (preLen != 0)
 					return toRawString2(vn, offset + preLen+1, 
 					QLen - preLen - 1);
-				else {
-					return toRawString2(vn, offset, QLen);
-				}
 			}
 		} Catch (e) {
-			return createEmptyString(); // this will almost never occur
+			 // this will almost never occur
 		}		
 	} else {
 		e.et = invalid_argument;
 		e.msg = "local-name()'s  <funcExpr> argument count is invalid";
 		Throw e;			        
 	}
+	return createEmptyString();
 }
 static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn){
 		exception e;
@@ -148,10 +145,8 @@ static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn){
 					return createEmptyString();
 				else
 					return toString(vn,a);
-			}
-			return createEmptyString();
-		}Catch (e){
-			return createEmptyString();
+			}			
+		}Catch (e){			
 		}
 	}
 	else if (argCount(fne) == 1){
@@ -174,15 +169,14 @@ static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn){
 				if (type == TOKEN_STARTING_TAG 
 					|| type == TOKEN_ATTR_NAME)
 					return toString(vn,lookupNS(vn));
-				return createEmptyString();
 			}
-		}Catch(e){}
-		return createEmptyString();
+		}Catch(e){}		
 	} else {
 		e.et = invalid_argument;
 		e.msg = "namespace-uri()'s  <funcExpr> argument count is invalid";
 		Throw e;			        
 	}
+	return createEmptyString();
 }
 
 static UCSChar *getName(funcExpr *fne, VTDNav *vn){
@@ -226,13 +220,14 @@ static UCSChar *getName(funcExpr *fne, VTDNav *vn){
 			}			
 		}Catch(e){
 		}
-		return createEmptyString();
+		
 		//return fne->al->e->evalString(fne->al->e, vn);
 	} else {
 		e.et = invalid_argument;
 		e.msg = "name()'s  <funcExpr> argument count is invalid";
 		Throw e;			        
 	}	
+	return createEmptyString();
 }
 
 
@@ -603,16 +598,16 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 			case FN_SUBSTRING_AFTER: return subStringAfter(fne,vn);
 									
 			case FN_SUBSTRING: 	return subString(fne,vn);	
-			case FN_TRANSLATE: 	
-			case FN_NORMALIZE_SPACE:
-								e.et = other;
+			case FN_TRANSLATE: 	e.et = other;
 								e.msg = "Some functions are not supported";
 								Throw e;
+			case FN_NORMALIZE_SPACE: return normalizeString(fne,vn);
+								
 			default: if (isBoolean_fne(fne)){
 			    		if (evalBoolean_fne(fne,vn)== TRUE)
-			    		    tmp = wcsdup(L"true");
+			    		    tmp = _wcsdup(L"true");
 			    		else 
-			    		    tmp = wcsdup(L"false");
+			    		    tmp = _wcsdup(L"false");
 						if (tmp == NULL){
 							e.et = out_of_mem;
 							e.msg = "allocate string failed in funcExpr's evalString()";
@@ -624,15 +619,15 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 						 double d = evalNumber_fne(fne,vn);
 						 Boolean b = FALSE;
 							if (d != d){
-								tmp = wcsdup(L"NaN");
+								tmp = _wcsdup(L"NaN");
 								b = TRUE;
 							}
 							else if ( d == 1/d1){
-								tmp = wcsdup(L"Infinity");
+								tmp = _wcsdup(L"Infinity");
 								b = TRUE;
 							}
 							else if (d == -1/d1){
-								tmp = wcsdup(L"-Infinity");
+								tmp = _wcsdup(L"-Infinity");
 								b = TRUE;
 							}	else 
 								tmp = malloc(sizeof(UCSChar)<<8);
@@ -896,13 +891,11 @@ static UCSChar* subString(funcExpr *fne, VTDNav *vn){
 }
 
 
-static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 
-}
 
 static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn){
 	exception e;
-	if (argCount(fne,vn) == 2){
+	if (argCount(fne) == 2){
 		UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 		UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
 		UCSChar* temp = NULL;
@@ -923,8 +916,8 @@ static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn){
 }
 
 static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
-exception e;
-	if (argCount(fne,vn) == 2){
+	exception e;
+	if (argCount(fne) == 2){
 		UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 		UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
 		int len1=wcslen(s1),len2=wcslen(s2);
@@ -945,4 +938,80 @@ exception e;
 	e.et = invalid_argument;							
 	e.msg = "substring-after()'s <funcExpr> argument count is invalid";
 	Throw e;
+}
+
+
+static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
+	exception e;
+	if (argCount(fne) == 0){
+		UCSChar *s = NULL;
+		Try{
+			if (vn->atTerminal)
+			{
+				if (getTokenType(vn,vn->LN) == TOKEN_CDATA_VAL)
+					s =toRawString(vn,vn->LN);
+				s = toString(vn,vn->LN);
+			}
+			s = toString(vn,getCurrentIndex(vn));
+			return normalize(s);
+		}
+		Catch(e){
+			return createEmptyString();
+		}
+	} else if (argCount(fne) ==1){
+		UCSChar *s = fne->al->e->evalString(fne->al->e, vn);
+		return normalize(s);
+	}
+
+	e.et = invalid_argument;							
+	e.msg = "normalize-space()'s <funcExpr> argument count is invalid";
+	Throw e;
+}
+
+static UCSChar* normalize(UCSChar *s){
+	 int os=0,i,len;
+	 len = wcslen(s);
+	 // strip off leading ws
+	 for (i = 0; i < len; i++)
+	 {
+		 if (isWS(s[i]))
+		 {
+		 }
+		 else
+		 {
+			 break;
+		 }
+	 }
+	 while (i < len)
+	 {
+		 UCSChar c = s[i];
+		 if (!isWS(c))
+		 {
+			 s[os++]=c;
+			 i++;
+		 }
+		 else
+		 {
+			 while (i < len)
+			 {
+				 c = s[i];
+				 if (isWS(c))
+					 i++;
+				 else
+					 break;
+			 }
+			 if (i < len){
+				 s[os++]=' ';
+			 }
+		 }
+	 }
+	 s[os]=0;
+	 return s;
+}
+
+static Boolean isWS(UCSChar c)
+{
+	if (c == ' ' || c == '\b' || c == '\r' || c == '\n')
+		return TRUE;
+	return FALSE;
 }
