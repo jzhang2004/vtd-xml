@@ -81,7 +81,7 @@ public class FuncExpr extends Expr{
 			case FuncName.SUM: 			    isNumerical = true;break;
 			case FuncName.FLOOR: 			isNumerical = true;break;
 			case FuncName.CEILING: 			isNumerical = true;break;
-			default:			isNumerical = true;
+			default:			isNumerical = true; break;
 	  }	  
 	}
 
@@ -118,7 +118,7 @@ public class FuncExpr extends Expr{
 	            return ""; // this will almost never occur
 	        }
 	        
-	    } if (argCount() == 1){
+	    } else if (argCount() == 1){
 	        int a = -1;
 			vn.push2();
 			try{
@@ -223,7 +223,6 @@ public class FuncExpr extends Expr{
 	            return "";
 	    } else if (argCount() == 1){
 	        a = -1;
-	        String result = "";
 			vn.push2();
 			try{
 				a = argumentList.e.evalNodeSet(vn);
@@ -251,61 +250,136 @@ public class FuncExpr extends Expr{
 			("name()'s argument count is invalid");
 	        
 	}
-	
+	private boolean lang(VTDNav vn){
+	    return false;
+	}
 	private boolean startsWith(VTDNav vn){
 	    String s1 = argumentList.e.evalString(vn);
 	    String s2 = argumentList.next.e.evalString(vn);
-	    if (s1 ==null || s2==null)
-	        return false;
-	    else
-	        return s1.startsWith(s2); 
+	    return s1.startsWith(s2); 
 	}
 	
 	private boolean contains(VTDNav vn){
 	    String s1 = argumentList.e.evalString(vn);
 	    String s2 = argumentList.next.e.evalString(vn);
-	    if (s1 ==null || s2==null)
-	        return false;
-	    else
-	        return s1.contains(s2);
+	    return s1.contains(s2);
 	}
 	
 	private String subString(VTDNav vn){
 	    if (argCount()== 2){
 	        String s = argumentList.e.evalString(vn);
-	        if (s != null){
-	            double d1 = Math.floor(argumentList.next.e.evalNumber(vn)+0.5d);
-	            if (d1!=d1 || d1>s.length())
-	                return "";
-	            return s.substring(Math.max((int)(d1-1),0));
-	        }
-	        return null;
+	        double d1 = Math.floor(argumentList.next.e.evalNumber(vn)+0.5d);
+	        if (d1!=d1 || d1>s.length())    
+	            return "";
+	        return s.substring(Math.max((int)(d1-1),0));
 	    } else if (argCount() == 3){
 	        String s = argumentList.e.evalString(vn);
-	        if (s != null){
-	            double d1 = Math.floor(argumentList.next.e.evalNumber(vn)+0.5d);
-	            double d2 = Math.floor(argumentList.next.next.e.evalNumber(vn)+0.5d);
-	            int i1 = Math.max(0,(int)d1 -1);
-	            if ((d1+d2)!=(d1+d2) || d1>s.length())
-	                return "";
-	            return s.substring(Math.max(0,(int)d1-1),Math.min(s.length(), (int)(d1-1)+(int)d2));
-	            //(int) argumentList.next.next.e.evalNumber(vn)-1);
-	        }
-	        return null;
+            double d1 = Math.floor(argumentList.next.e.evalNumber(vn) + 0.5d);
+            double d2 = Math
+                    .floor(argumentList.next.next.e.evalNumber(vn) + 0.5d);
+            int i1 = Math.max(0, (int) d1 - 1);
+            if ((d1 + d2) != (d1 + d2) || d1 > s.length())
+                return "";
+            return s.substring(Math.max(0, (int) d1 - 1), Math.min(s.length(),
+                    (int) (d1 - 1) + (int) d2));
+            //(int) argumentList.next.next.e.evalNumber(vn)-1);
+	       
 	    }
 	    throw new IllegalArgumentException
 		("substring()'s argument count is invalid");
 	}
+	private String subStringBefore(VTDNav vn){
+	    if (argCount()==2){
+	        String s1 = argumentList.e.evalString(vn);
+	        String s2 = argumentList.next.e.evalString(vn);
+	        int len1 = s1.length();
+	        int len2 = s2.length();
+	        for (int i=0;i<len1;i++){
+	            if (s1.regionMatches(i,s2,0,len2))
+	                return s1.substring(0,i);
+	        }
+	        return "";
+	    }
+	    throw new IllegalArgumentException
+		("substring()'s argument count is invalid");
+	}
+	private String subStringAfter(VTDNav vn){
+	    if (argCount()==2){
+	        String s1 = argumentList.e.evalString(vn);
+	        String s2 = argumentList.next.e.evalString(vn);
+	        int len1 = s1.length();
+	        int len2 = s2.length();
+	        for (int i=0;i<len1;i++){
+	            if (s1.regionMatches(i,s2,0,len2))
+	                return s1.substring(i+len2);
+	        }
+	        return "";	        
+	    }
+	    throw new IllegalArgumentException
+		("substring()'s argument count is invalid");
+	}
+	private String translate(VTDNav vn){
+	    return "";
+	}
 	
 	private String normalizeSpace(VTDNav vn){
 	    if (argCount()== 0){
-	        return null;
+	        String s =null;
+	        try{
+	            if (vn.atTerminal){
+	                if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_CDATA_VAL )
+	                    s= vn.toRawString(vn.LN);
+	                s= vn.toString(vn.LN);
+	            }
+	            s= vn.toString(vn.getCurrentIndex());
+	            return normalize(s);
+	        }
+	    	catch(NavException e){
+	    	    return ""; // this will almost never occur
+	    	}
 	    } else if (argCount() == 1){
-	        return null;
+	        String s = argumentList.e.evalString(vn);
+	        return normalize(s);
 	    }
 	    throw new IllegalArgumentException
 		("normalize-space()'s argument count is invalid");
 	    //return null;
+	}
+	private String normalize(String s){
+	    int len = s.length();
+        StringBuffer sb = new StringBuffer(len);
+        int i=0;
+        // strip off leading ws
+        for(i=0;i<len;i++){	            
+            if (isWS(s.charAt(i))){
+            }else{
+                break;
+            }
+        }
+        while(i<len){
+            char c = s.charAt(i);
+            if (!isWS(c)){
+                sb.append(c);
+                i++;
+            } else {
+                while(i<len){
+                    c = s.charAt(i);
+                    if (isWS(c))
+                      i++;
+                    else 
+                        break;
+                }
+                if (i<len)
+                  sb.append(' ');	                    
+            }
+        }
+        return sb.toString();
+	}
+	
+	private boolean isWS(char c){
+	    if (c==' ' || c=='\b' || c=='\r'||c=='\n')
+	        return true;
+	    return false;
 	}
 	
 	private String concat(VTDNav vn){
@@ -361,11 +435,11 @@ public class FuncExpr extends Expr{
 			case FuncName.STRING:
 			    return getString(vn);
 
-			case FuncName.SUBSTRING_BEFORE:		
-			case FuncName.SUBSTRING_AFTER: 	throw new UnsupportedException("Some functions are not supported");	
+			case FuncName.SUBSTRING_BEFORE:	return subStringBefore(vn);	
+			case FuncName.SUBSTRING_AFTER: 	return subStringAfter(vn);
 			case FuncName.SUBSTRING: 	return subString(vn);	
 			case FuncName.TRANSLATE: 	throw new UnsupportedException("Some functions are not supported");
-			case FuncName.NORMALIZE_SPACE:throw new UnsupportedException("Some functions are not supported");
+			case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
 			default: if (isBoolean()){
 			    		if (evalBoolean(vn)== true)
 			    		    return "true";
