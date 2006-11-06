@@ -377,7 +377,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	private boolean isWS(char c){
-	    if (c==' ' || c=='\b' || c=='\r'||c=='\n')
+	    if (c==' ' || c=='\t' || c=='\r'||c=='\n')
 	        return true;
 	    return false;
 	}
