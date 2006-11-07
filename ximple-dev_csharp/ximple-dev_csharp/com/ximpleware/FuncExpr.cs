@@ -864,7 +864,7 @@ namespace com.ximpleware
 
         private bool isWS(char c)
         {
-            if (c == ' ' || c == '\b' || c == '\r' || c == '\n')
+            if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
                 return true;
             return false;
         }
