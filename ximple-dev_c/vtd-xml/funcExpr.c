@@ -1011,7 +1011,7 @@ static UCSChar* normalize(UCSChar *s){
 
 static Boolean isWS(UCSChar c)
 {
-	if (c == ' ' || c == '\b' || c == '\r' || c == '\n')
+	if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
 		return TRUE;
 	return FALSE;
 }
