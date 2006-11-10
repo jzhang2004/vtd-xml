@@ -186,7 +186,7 @@ static UCSChar *getName(funcExpr *fne, VTDNav *vn){
 	if (argCount(fne)== 0){
 		a = getCurrentIndex(vn);
 		type = getTokenType(vn,a);
-		if (vn->ns && type == TOKEN_STARTING_TAG
+		if ( type == TOKEN_STARTING_TAG
 			|| type == TOKEN_ATTR_NAME){
 			Try{
 				return toString(vn,a);
