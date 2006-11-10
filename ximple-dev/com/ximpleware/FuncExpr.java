@@ -211,8 +211,8 @@ public class FuncExpr extends Expr{
 	        a = vn.getCurrentIndex();
 	        int type = vn.getTokenType(a);
             
-            if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG 
-                    || type == VTDNav.TOKEN_ATTR_NAME)){
+            if (type == VTDNav.TOKEN_STARTING_TAG 
+                    || type == VTDNav.TOKEN_ATTR_NAME){
 	            try{
 	                return vn.toString(a);
 	            }catch(Exception e){
