@@ -291,7 +291,7 @@ public int getPageSize() {
 * @return int
 * @param index int
 */
-public Object ObjectAt(int index) {
+public Object objectAt(int index) {
    if (index < 0 || index > size()-1) {
        throw new IndexOutOfBoundsException();
    }
