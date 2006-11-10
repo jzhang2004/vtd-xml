@@ -77,8 +77,15 @@ class intHash {
     public intHash(){
         storage = new FastIntBuffer[hashWidth];
     }
+    
+    public intHash(int hashWidthExpo){
+        hashWidth = 1<<hashWidthExpo;
+        mask1 = (hashWidth) -1;
+        mask2 = (~mask1) & 0xffffffff;    
+        storage = new FastIntBuffer[hashWidth];
+    }
     public static void main(String[] args) {
-        intHash a = new intHash();
+        intHash a = new intHash(6);
         for(int i=0;i<667;i++)
            System.out.println("" + i + " " + a.isUnique(i));
         for(int i=0;i<667;i++)
