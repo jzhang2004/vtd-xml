@@ -422,10 +422,10 @@ namespace com.ximpleware
 			check();
 			long l;
 			byte[] ba = md.getXML().getBytes();
-			for (int i = 0; i < flb.size(); i++)
-			{
-				System.Console.Out.WriteLine(" offset value is ==>" + flb.lower32At(i));
-			}
+			//for (int i = 0; i < flb.size(); i++)
+			//{
+			//	System.Console.Out.WriteLine(" offset value is ==>" + flb.lower32At(i));
+			//}
 			if (flb.size() == 0)
 			{
 				os.Write(ba, md.docOffset, md.docLen);
