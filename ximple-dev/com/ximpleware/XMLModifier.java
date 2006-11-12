@@ -189,9 +189,9 @@ public class XMLModifier {
         int os2 = md.getTokenOffset(attrNameIndex+1);
         int len2 = md.getTokenLength(attrNameIndex+1);
    	    if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
-   	        removeContent(os1,os2+len2-os1); 
+   	        removeContent(os1,os2+len2-os1+1); 
 	    else 
-	        removeContent(os1<<1,(os2+len2-os1)<<1); 
+	        removeContent(os1<<1,(os2+len2-os1+1)<<1); 
 		    
     }
     
