@@ -385,9 +385,9 @@ public class XMLModifier {
         check();
         long l;
         byte[] ba = md.getXML().getBytes();
-        for(int i=0;i<flb.size();i++){
-            System.out.println(" offset value is ==>"+flb.lower32At(i));
-        }
+        //for(int i=0;i<flb.size();i++){
+        //    System.out.println(" offset value is ==>"+flb.lower32At(i));
+        //}
         if (flb.size()==0){
             os.write(ba,md.docOffset,md.docLen);
         }else{
