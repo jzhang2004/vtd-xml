@@ -1710,7 +1710,7 @@ public class VTDGen {
 									if (helper == true) {
 										length1 = offset - temp_offset
 												- (increment << 1);
-										if (length1 > 0) {
+										//if (length1 > 0) {
 											if (encoding < FORMAT_UTF_16BE)
 												writeVTD((temp_offset),
 														length1,
@@ -1721,7 +1721,7 @@ public class VTDGen {
 														(length1 >> 1),
 														TOKEN_CHARACTER_DATA,
 														depth);
-										}
+										//}
 									}
 									parser_state = STATE_END_TAG;
 									break;
