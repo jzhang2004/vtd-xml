@@ -42,7 +42,7 @@ static int  entityIdentifier(VTDGen *vg);
 static void printLineNumber(VTDGen *vg);
 static inline int getChar(VTDGen *vg);
 static Boolean skip4OtherEncoding(VTDGen *vg, int ch1);
-static int handelOtherEncoding(VTDGen *vg);
+static int handleOtherEncoding(VTDGen *vg);
 static int handle_16le(VTDGen *vg);
 static int handle_16be(VTDGen *vg);
 static int handle_utf8(VTDGen *vg,int temp);
@@ -1785,7 +1785,7 @@ void parse(VTDGen *vg, Boolean ns){
 												vg->offset
 												- vg->temp_offset
 												- (vg->increment<<1);
-											if (length1 > 0) {
+											/*if (length1 > 0) {*/
 												if (vg->encoding < FORMAT_UTF_16BE)
 													writeVTD(vg,
 													(vg->temp_offset),
@@ -1798,7 +1798,7 @@ void parse(VTDGen *vg, Boolean ns){
 													(length1 >> 1),
 													TOKEN_CHARACTER_DATA,
 													vg->depth);
-											}
+											/*}*/
 										}
 										//offset += length1;
 										parser_state = STATE_END_TAG;
