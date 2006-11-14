@@ -116,8 +116,7 @@ public class XMLModifier {
      *
      */
     public void remove() throws NavException,ModifyException{
-        if (md == null)
-            throw new IllegalArgumentException("MasterDocument can't be null");
+        
         int i = md.getCurrentIndex();
         int type = md.getTokenType(i);
         if (type==VTDNav.TOKEN_STARTING_TAG){
@@ -139,9 +138,7 @@ public class XMLModifier {
      *
      */
     public void removeToken(int i) throws ModifyException{
-        if (md == null)
-            throw new IllegalArgumentException("MasterDocument can't be null");
-       
+        
         int type = md.getTokenType(i);
         int os,len;
         switch(type){
@@ -180,9 +177,7 @@ public class XMLModifier {
      *
      */
     public void removeAttribute(int attrNameIndex) throws ModifyException{
-        if (md == null)
-            throw new IllegalArgumentException("MasterDocument can't be null");
-        int type = md.getTokenType(attrNameIndex);
+         int type = md.getTokenType(attrNameIndex);
         if (type != VTDNav.TOKEN_ATTR_NAME&& type != VTDNav.TOKEN_ATTR_NS)
             throw new ModifyException("token type should be attribute name");
         int os1 = md.getTokenOffset(attrNameIndex);
@@ -202,8 +197,7 @@ public class XMLModifier {
      *
      */
     private void removeContent(int offset, int len) throws ModifyException{
-        if (md == null)
-            throw new IllegalArgumentException("MasterDocument can't be null");
+
         if (offset < md.docOffset || len > md.docLen 
                 || offset + len > md.docOffset + md.docLen){
             throw new ModifyException("Invalid offset or length for removeContent");
@@ -240,9 +234,9 @@ public class XMLModifier {
      */
     public void updateToken(int index, String newContent) 
     	throws ModifyException,UnsupportedEncodingException{
-        if (md == null || newContent==null)
+        if (newContent==null)
             throw new IllegalArgumentException
-            ("MasterDocument or newContent can't be null");
+            ("String newContent can't be null");
         int offset = md.getTokenOffset(index);
         int len = md.getTokenLength(index);
         int type = md.getTokenType(index);
@@ -379,8 +373,8 @@ public class XMLModifier {
      *
      */
     public void output(OutputStream os) throws IOException, ModifyException{
-        if (md == null)
-            throw new IllegalArgumentException("MasterDocument can't be null");
+        if (os == null)
+            throw new IllegalArgumentException("OutputStream can't be null");
         sort();
         check();
         long l;
