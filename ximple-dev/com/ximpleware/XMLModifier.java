@@ -140,11 +140,10 @@ public class XMLModifier {
     public void removeToken(int i) throws ModifyException{
         
         int type = md.getTokenType(i);
-        int os,len;
+        int os = md.getTokenOffset(i);
+		int len = md.getTokenLength(i);
         switch(type){
-        	case VTDNav.TOKEN_CDATA_VAL:
-        	    os = md.getTokenOffset(i);
-        		len = md.getTokenLength(i);
+        	case VTDNav.TOKEN_CDATA_VAL:        	   
         		if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
         		    removeContent(os - 9, len + 12 );
         		else
@@ -152,9 +151,6 @@ public class XMLModifier {
         		return;
         		 
         	case VTDNav.TOKEN_COMMENT:
-           	    
-        	    os = md.getTokenOffset(i);            
-        		len = md.getTokenLength(i);
            	    if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
            	        removeContent(os-4, len+7);
            	    else
@@ -162,8 +158,6 @@ public class XMLModifier {
            	    return;
         		
         	default:
-        	    os = md.getTokenOffset(i);            
-    			len = md.getTokenLength(i);
     			if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
         	        removeContent(os, len);
         	    else
