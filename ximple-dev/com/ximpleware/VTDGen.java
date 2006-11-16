@@ -29,24 +29,25 @@ import com.ximpleware.parser.*;
  */
 public class VTDGen {
 	// internal parser state
-	private final static int STATE_DOC_START = 0; // beginning of document
-	private final static int STATE_DOC_END = 1; // end of document 
-	private final static int STATE_LT_SEEN = 2; // encounter the first <
-	private final static int STATE_START_TAG = 3;
-	private final static int STATE_END_TAG = 4;
-	private final static int STATE_UNRECORDED_TEXT = 5;
-	private final static int STATE_TEXT = 6;
-	private final static int STATE_PI_TAG = 7;
-	private final static int STATE_PI_VAL = 8;
-	private final static int STATE_DEC_ATTR_NAME = 9;
-	private final static int STATE_ATTR_NAME = 10;
-	private final static int STATE_ATTR_VAL = 11;
-	private final static int STATE_COMMENT = 12;
-	private final static int STATE_CDATA = 13;
-	private final static int STATE_DOCTYPE = 14;
-	private final static int STATE_END_COMMENT = 15;
+
+	private final static int STATE_LT_SEEN = 0; // encounter the first <
+	private final static int STATE_START_TAG = 1;
+	private final static int STATE_END_TAG = 2;
+	private final static int STATE_ATTR_NAME = 3;
+	private final static int STATE_ATTR_VAL = 4;
+	private final static int STATE_TEXT = 5;
+	private final static int STATE_DOC_START = 6; // beginning of document
+	private final static int STATE_DOC_END = 7; // end of document 
+	private final static int STATE_PI_TAG =8;
+	private final static int STATE_PI_VAL = 9;
+	private final static int STATE_DEC_ATTR_NAME = 10;
+
+	private final static int STATE_COMMENT = 11;
+	private final static int STATE_CDATA = 12;
+	private final static int STATE_DOCTYPE = 13;
+	private final static int STATE_END_COMMENT = 14;
 	// comment appear after the last ending tag
-	private final static int STATE_END_PI = 16;
+	private final static int STATE_END_PI = 15;
 	//private final static int STATE_END_PI_VAL = 17;
 
 	// token type
@@ -1108,206 +1109,7 @@ public class VTDGen {
 				throw new ParseException("Other Error: Should never happen");
 		}
 	}
-	/**
-	* Testing purposes.
-	* @param args java.lang.String[]
-	*/
-	//	public static void main(String[] args) {
-	//		//String xdoc =
-	//		//    "<?xml version='1.0' encoding=\"ASCII\" standalone='yes'?>  <!DOCTYPE a b c> <?xmls jfksfj?><this ><![CDATA[faskfjas]]>  &#32;&#32; <!--comment-->   </this> ";
-	//		if (true) {
-	//			String xdoc =
-	//				"<?xml version='1.0' encoding='us-ascii'?>  <!DOCTYPE a b c> \n"
-	//					+ " <?xmls  ns ?> <this att1 = \"good=\" att12=\"bad\"> a<?xmls  ?>"
-	//					+ " <![CDATA[faskfjas]]>  &#32;&#32; <!---->   </this>  <!--version--> <?xmlns?> <?xmlf ?><!--verion2-->";
-	//			xdoc = "<this> good </this>";
-	//			String xdoc2 =
-	//				"<address-book>"
-	//					+ "<contact type=\"individual\">"
-	//					+ "<name>Zane Pasolini</name>"
-	//					+ "<address>999 W. Prince St.</address>"
-	//					+ "<city>New York</city>"
-	//					+ "<province>NY</province>"
-	//					+ "<postalcode>10013</postalcode>"
-	//					+ "<country>USA</country>"
-	//					+ "<telephone>1-212-345-6789</telephone>"
-	//					+ "</contact>"
-	//					+ "<contact type=\"business\">"
-	//					+ "<name>SAMOFIX d.o.o.</name>"
-	//					+ "<address>Ilica 47-2</address>"
-	//					+ "<city>Zagreb</city>"
-	//					+ "<province></province>"
-	//					+ "<postalcode>10000</postalcode>"
-	//					+ "<country>Croatia</country>"
-	//					+ "<telephone>385-1-123-4567</telephone>"
-	//					+ "</contact>"
-	//					+ "</address-book>";
-	//			byte a = (byte) 0xff;
-	//			System.out.println("byte a & 0xff " + (a & 0xff) + " byte a " + a);
-	//			//xdoc = " < ";
-	//			// create a UTF encoded byte array here
-	//			//byte[] ba = {(byte) 0xbf, (byte) 0xbf, (byte) 0xbf, (byte) 0xbf, (byte) 0xbf };
-	//			System.out.println(xdoc);
-	//			//System.out.println("a" + (byte) (0xffe));
-	//			VTDGen vg = new VTDGen();
-	//
-	//			try {
-	//				byte[] ba = xdoc2.getBytes("UTF-8");
-	//				byte[] ba2 = new byte[ba.length << 1];
-	//				for (int i = 1; i < ba.length; i++) {
-	//					ba2[2 * i + 1] = ba[i];
-	//				}
-	//				String test = new String(ba2, "UTF-16BE");
-	//				System.out.println(test);
-	//				vg.setDoc(ba);
-	//				//vg.setDoc(xdoc.getBytes());
-	//				vg.parse(true);
-	//				VTDNav vn = vg.getNav();
-	//				int i = vn.getText();
-	//				System.out.println("i is " + i);
-	//			} catch (ParseException e) {
-	//				System.out.println(e);
-	//			} catch (Exception e) {
-	//				System.out.println("other exceptions" + e);
-	//			}
-	//		} else {
-	//			//args[0] = "1";
-	//			try {
-	//				//vg.setDoc(xdoc.getBytes());
-	//				int total = 1000;
-	//				//File pf = new File("c:/benchmark/po1m.xml");
-	//				File pf = new File(args[1]);
-	//				if (pf.length() > 1000000) {
-	//					total = 1000;
-	//				} else if (pf.length() > 100000) {
-	//					total = 10000;
-	//				} else if (pf.length() > 10000) {
-	//					total = 100000;
-	//				}
-	//
-	//				if (args[0].equals("1")) {
-	//					//if (true) {
-	//					File f = new File(args[1]);
-	//					//File f = new File("c:/benchmark/weblog.xml");
-	//					FileInputStream fis = new FileInputStream(f);
-	//					byte[] b = new byte[(int) f.length()];
-	//					System.out.println((int) f.length());
-	//					fis.read(b);
-	//					ByteArrayInputStream bais;
-	//					for (int i = 0; i < total; i++) {
-	//						//bais = new ByteArrayInputStream(b);
-	//						VTDGen vg = new VTDGen();
-	//						vg.setDoc(b);
-	//						vg.parse(true);
-	//					}
-	//					Runtime rt = Runtime.getRuntime();
-	//					long z = System.currentTimeMillis();
-	//					for (int i = 0; i < 1000; i++) {
-	//						//bais = new ByteArrayInputStream(b);
-	//						VTDGen vg = new VTDGen();
-	//						vg.setDoc(b);
-	//						vg.parse(true);
-	//					}
-	//
-	//					System.out.println(
-	//						"total time used "
-	//							+ (float) (System.currentTimeMillis() - z) / 1000);
-	//				} else if (args[0].equals("2")) {
-	//
-	//					File f = new File(args[1]);
-	//					FileInputStream fis = new FileInputStream(f);
-	//					Runtime rt = Runtime.getRuntime();
-	//					long startMem = rt.totalMemory() - rt.freeMemory();
-	//					byte[] b = new byte[(int) f.length()];
-	//					fis.read(b);
-	//					System.out.println("file size is " + f.length());
-	//					//ByteArrayInputStream bais;
-	//					//bais = new ByteArrayInputStream(b);
-	//					VTDGen vg = new VTDGen();
-	//					vg.setDoc(b);
-	//					vg.parse(false);
-	//					long endMem = rt.totalMemory() - rt.freeMemory();
-	//					System.out.println(
-	//						" total mem used " + (int) (endMem - startMem));
-	//				} else if (args[0].equals("3")) {
-	//					//if (true) {
-	//					File f = new File(args[1]);
-	//					//File f = new File("c:/benchmark/testx.xml");
-	//					FileInputStream fis = new FileInputStream(f);
-	//					byte[] b = new byte[(int) f.length()];
-	//					System.out.println((int) f.length());
-	//					fis.read(b);
-	//					ByteArrayInputStream bais;
-	//					VTDGen vg = new VTDGen();
-	//					vg.setDoc(b);
-	//					vg.parse(true);
-	//					int ecount = 0, acount = 0, tcount = 0;
-	//					VTDNav vn = vg.getNav();
-	//					for (int i = 0; i < total; i++) {
-	//						//bais = new ByteArrayInputStream(b);
-	//						//acount = tcount = ecount = 0;
-	//						AutoPilot ap = new AutoPilot(vn);
-	//						vn.toElement(0); // reset to root
-	//						ap.selectElement("*");
-	//						while (ap.iterate()) {
-	//							//int t = vn.getText();
-	//							int ci = vn.getCurrentIndex();
-	//							System.out.print(
-	//								"element name :" + vn.toString(ci));
-	//							ci++; //points the token right after
-	//							while (vn.getTokenType(ci) == 2
-	//								|| vn.getTokenType(ci) == 3) {
-	//								acount++;
-	//								ci += 2;
-	//							}
-	//
-	//							/*if (t != -1) {
-	//							    System.out.println("  text value :" + vn.toNormalizedString(t));
-	//							    tcount++;
-	//							}*/
-	//						}
-	//					}
-	//					Runtime rt = Runtime.getRuntime();
-	//					long z = System.currentTimeMillis();
-	//					for (int i = 0;
-	//						i < 1000;
-	//						i++) { //bais = new ByteArrayInputStream(b);
-	//						acount = tcount = ecount = 0;
-	//						AutoPilot ap = new AutoPilot(vn);
-	//						vn.toElement(0); // reset to root
-	//						ap.selectElement("*");
-	//						while (ap.iterate()) {
-	//							//int t = vn.getText();
-	//							int ci = vn.getCurrentIndex();
-	//							System.out.print(
-	//								"element name :" + vn.toString(ci));
-	//							ci++; //points the token right after
-	//							int token_type = vn.getTokenType(ci);
-	//							while (token_type == 2 || token_type == 3) {
-	//								acount++;
-	//								ci += 2;
-	//								token_type = vn.getTokenType(ci);
-	//							}
-	//
-	//							/*if (t != -1) {
-	//							    System.out.println("  text value :" + vn.toNormalizedString(t));
-	//							    tcount++;
-	//							}*/
-	//						}
-	//					}
-	//
-	//					System.out.println(
-	//						"total time used "
-	//							+ (float) (System.currentTimeMillis() - z) / 1000);
-	//				}
-	//			} catch (ParseException e) {
-	//				System.out.println(e);
-	//			} catch (Exception e) {
-	//				System.out.println("other exceptions" + e);
-	//			}
-	//		}
-	//	}
-	
+
 	public static void main(String[] argv){
 		VTDGen vg = new VTDGen();
 		try{
@@ -1450,14 +1252,6 @@ public class VTDGen {
 		encoding = FORMAT_UTF8;
 		boolean helper=false;
 		boolean main_loop = true,hasDTD = false,docEnd = false;
-		//char char_temp; //holds the ' or " indicating start of attr val
-		//boolean must_utf_8 = false;
-		//boolean BOM_detected = false;
-		//long[] tag_stack = new long[256];
-		//long[] attr_name_array = new long[512]; // 512 attributes limit
-		//ASCII UTF-8 UTF-16 UTF-16BE UTF-16LE ISO-8859-1
-		//
-		//int[] scratch_buffer = new int[10];
 
 		// first check first several bytes to figure out the encoding
 		decide_encoding();
@@ -1467,70 +1261,12 @@ public class VTDGen {
 			writeVTD(0,0,TOKEN_DOCUMENT,depth);
 			while (main_loop) {
 				switch (parser_state) {
-					case STATE_DOC_START :
-						if (r.getChar() == '<') {
-							temp_offset = offset;
-							// xml decl has to be right after the start of the document
-							if (r.skipChar('?')
-								&& (r.skipChar('x') || r.skipChar('X'))
-								&& (r.skipChar('m') || r.skipChar('M'))
-								&& (r.skipChar('l') || r.skipChar('L'))) {
-								if (r.skipChar(' ')
-									|| r.skipChar('\t')
-									|| r.skipChar('\n')
-									|| r.skipChar('\r')) {
-									ch = getCharAfterS();
-									temp_offset = offset;
-									parser_state = STATE_DEC_ATTR_NAME;
-									break;
-								} else if (r.skipChar('?'))
-									throw new ParseException(
-										"Error in XML decl: Premature ending"
-											+ formatLineNumber());
-							}
-							offset = temp_offset;
-							parser_state = STATE_LT_SEEN;
-							break;
-						}
-						throw new ParseException(
-							"Other Error: XML not starting properly"
-								+ formatLineNumber());
-
-					case STATE_DOC_END :
-						docEnd = true;
-						ch = getCharAfterS();
-						// eof exception should be thrown here for premature ending
-						if (ch == '<') {
-
-							if (r.skipChar('?')) {
-								// processing instruction after end tag of root element
-								temp_offset = offset;
-								parser_state = STATE_END_PI;
-								break;
-							} else if (
-								r.skipChar('!')
-									&& r.skipChar('-')
-									&& r.skipChar('-')) {
-								// comments allowed after the end tag of the root element
-								temp_offset = offset;
-								parser_state = STATE_END_COMMENT;
-								break;
-							}
-						}
-						throw new ParseException(
-							"Other Error: XML not terminated properly"
-								+ formatLineNumber());
-
 					case STATE_LT_SEEN : //if (depth < -1)
 						//    throw new ParseException("Other Errors: Invalid depth");
 						temp_offset = offset;
 						ch = r.getChar();
 						if (XMLChar.isNameStartChar(ch)) {
-							//temp_offset = offset;
-							//length1++;
 							depth++;
-							//if (ch == ':')
-							//   length2 = 0;
 							parser_state = STATE_START_TAG;
 						} else {
 							switch (ch) {
@@ -1538,94 +1274,10 @@ public class VTDGen {
 									parser_state = STATE_END_TAG;
 									break;
 								case '?' :
-									temp_offset = offset;
-									ch = r.getChar();
-									if (XMLChar.isNameStartChar(ch)) {
-										//temp_offset = offset;
-										if ((ch == 'x' || ch == 'X')
-											&& (r.skipChar('m')	|| r.skipChar('M'))
-											&& (r.skipChar('l')	|| r.skipChar('L'))) {
-											ch = r.getChar();
-											if (ch == '?'
-												|| XMLChar.isSpaceChar(ch))
-												throw new ParseException(
-													"Error in PI: [xX][mM][lL] not a valid PI targetname"
-														+ formatLineNumber());
-											offset = getPrevOffset();
-										}
-
-										parser_state = STATE_PI_TAG;
-										break;
-									}
-
-									throw new ParseException(
-										"Other Error: First char after <? invalid"
-											+ formatLineNumber());
-
+									parser_state = process_qt_seen();
+									break;
 								case '!' : // three possibility (comment, CDATA, DOCTYPE)
-									ch = r.getChar();
-									switch (ch) {
-										case '-' :
-											if (r.skipChar('-')) {
-												temp_offset = offset;
-												parser_state = STATE_COMMENT;
-												break;
-											} else
-												throw new ParseException(
-													"Error in comment: Invalid char sequence to start a comment"
-														+ formatLineNumber());
-										case '[' :
-											if (r.skipChar('C')
-												&& r.skipChar('D')
-												&& r.skipChar('A')
-												&& r.skipChar('T')
-												&& r.skipChar('A')
-												&& r.skipChar('[')
-												&& (depth != -1)) {
-												temp_offset = offset;
-												parser_state = STATE_CDATA;
-												break;
-											} else {
-												if (depth == -1)
-													throw new ParseException(
-														"Error in CDATA: Wrong place for CDATA"
-															+ formatLineNumber());
-												throw new ParseException(
-													"Error in CDATA: Invalid char sequence for CDATA"
-														+ formatLineNumber());
-											}
-
-										case 'D' :
-											if (r.skipChar('O')
-												&& r.skipChar('C')
-												&& r.skipChar('T')
-												&& r.skipChar('Y')
-												&& r.skipChar('P')
-												&& r.skipChar('E')
-												&& (depth == -1)
-												&& !hasDTD) {
-												hasDTD = true;
-												temp_offset = offset;
-												parser_state = STATE_DOCTYPE;
-												break;
-											} else {
-												if (hasDTD == true)
-													throw new ParseException(
-														"Error for DOCTYPE: Only DOCTYPE allowed"
-															+ formatLineNumber());
-												if (depth != -1)
-													throw new ParseException(
-														"Error for DOCTYPE: DTD at wrong place"
-															+ formatLineNumber());
-												throw new ParseException(
-													"Error for DOCTYPE: Invalid char sequence for DOCTYPE"
-														+ formatLineNumber());
-											}
-										default :
-											throw new ParseException(
-												"Other Error: Unrecognized char after <!"
-													+ formatLineNumber());
-									}
+									parser_state = process_ex_seen(hasDTD);
 									break;
 								default :
 									throw new ParseException(
@@ -1810,82 +1462,6 @@ public class VTDGen {
 							parser_state = STATE_DOC_END;
 						break;
 						
-					case STATE_UNRECORDED_TEXT :
-						break;
-					case STATE_PI_TAG :
-						parser_state = process_pi_tag();
-						break;
-						//throw new ParseException("Error in PI: Invalid char");
-					case STATE_PI_VAL :
-						parser_state = process_pi_val();
-						break;
-
-					case STATE_DEC_ATTR_NAME :
-						parser_state = process_dec_attr();
-						break;
-						
-					case STATE_COMMENT :
-						parser_state = process_comment();
-						break;
-						
-					case STATE_CDATA :
-						parser_state = process_cdata();
-						break;
-						
-					case STATE_DOCTYPE :
-						parser_state = process_doc_type();
-						break;
-					
-					case STATE_TEXT :
-						if (depth == -1)
-							throw new ParseException(
-								"Error in text content: Char data at the wrong place"
-									+ formatLineNumber());
-						while (true) {
-							ch = r.getChar();
-							if (XMLChar.isContentChar(ch)) {
-							} else if (ch == '&') {
-								//has_amp = true;
-								if (!XMLChar.isValidChar(entityIdentifier()))
-									throw new ParseException(
-										"Error in text content: Invalid char in text content "
-											+ formatLineNumber());
-								//parser_state = STATE_TEXT;
-							} else if (ch == '<') {
-								break;
-							} else if (ch == ']') {
-								if (r.skipChar(']')) {
-									while (r.skipChar(']')) {
-									}
-									if (r.skipChar('>'))
-										throw new ParseException(
-											"Error in text content: ]]> in text content"
-												+ formatLineNumber());
-								}
-							} else
-								throw new ParseException(
-									"Error in text content: Invalid char in text content "
-										+ formatLineNumber());
-						}
-						length1 = offset - increment - temp_offset;
-
-						if (encoding < FORMAT_UTF_16BE)
-							writeVTD(
-								temp_offset,
-								length1,
-								TOKEN_CHARACTER_DATA,
-								depth);
-						else
-							writeVTD(
-								temp_offset >> 1,
-								length1 >> 1,
-								TOKEN_CHARACTER_DATA,
-								depth);
-
-						//has_amp = true;
-						parser_state = STATE_LT_SEEN;
-						break;
-
 					case STATE_ATTR_NAME :
 
 						if (ch == 'x') {
@@ -2029,6 +1605,7 @@ public class VTDGen {
 						temp_offset = offset;
 						parser_state = STATE_ATTR_VAL;
 						break;
+						
 					case STATE_ATTR_VAL :
 						while (true) {
 							ch = r.getChar();
@@ -2127,13 +1704,93 @@ public class VTDGen {
 						throw new ParseException(
 							"Starting tag Error: Invalid char in starting tag"
 								+ formatLineNumber());
+						
+					case STATE_TEXT :
+						if (depth == -1)
+							throw new ParseException(
+								"Error in text content: Char data at the wrong place"
+									+ formatLineNumber());
+						while (true) {
+							ch = r.getChar();
+							if (XMLChar.isContentChar(ch)) {
+							} else if (ch == '&') {
+								//has_amp = true;
+								if (!XMLChar.isValidChar(entityIdentifier()))
+									throw new ParseException(
+										"Error in text content: Invalid char in text content "
+											+ formatLineNumber());
+								//parser_state = STATE_TEXT;
+							} else if (ch == '<') {
+								break;
+							} else if (ch == ']') {
+								if (r.skipChar(']')) {
+									while (r.skipChar(']')) {
+									}
+									if (r.skipChar('>'))
+										throw new ParseException(
+											"Error in text content: ]]> in text content"
+												+ formatLineNumber());
+								}
+							} else
+								throw new ParseException(
+									"Error in text content: Invalid char in text content "
+										+ formatLineNumber());
+						}
+						length1 = offset - increment - temp_offset;
+
+						if (encoding < FORMAT_UTF_16BE)
+							writeVTD(
+								temp_offset,
+								length1,
+								TOKEN_CHARACTER_DATA,
+								depth);
+						else
+							writeVTD(
+								temp_offset >> 1,
+								length1 >> 1,
+								TOKEN_CHARACTER_DATA,
+								depth);
+
+						//has_amp = true;
+						parser_state = STATE_LT_SEEN;
+						break;
+					case STATE_DOC_START :
+						parser_state = process_start_doc();
+						break;
+					case STATE_DOC_END :
+						docEnd = true;
+						parser_state = process_end_doc();
+						break;
+					case STATE_PI_TAG :
+						parser_state = process_pi_tag();
+						break;
+						//throw new ParseException("Error in PI: Invalid char");
+					case STATE_PI_VAL :
+						parser_state = process_pi_val();
+						break;
+
+					case STATE_DEC_ATTR_NAME :
+						parser_state = process_dec_attr();
+						break;
+						
+					case STATE_COMMENT :
+						parser_state = process_comment();
+						break;
+						
+					case STATE_CDATA :
+						parser_state = process_cdata();
+						break;
+						
+					case STATE_DOCTYPE :
+						parser_state = process_doc_type();
+						break;
+						
+					case STATE_END_COMMENT :
+						parser_state = process_end_comment();
+						break;
 
 					case STATE_END_PI :
 						parser_state = process_end_pi();
-						break;
-
-					case STATE_END_COMMENT :
-						parser_state = process_end_comment();
 						break;
 						
 					default :
@@ -3043,7 +2700,151 @@ public class VTDGen {
 				"Error in comment: Invalid terminating sequence"
 					+ formatLineNumber());
 	}
+	private int process_end_doc() throws ParseException, EncodingException, EOFException {
+	    int parser_state;
+		ch = getCharAfterS();
+		/* eof exception should be thrown here for premature ending*/
+		if (ch == '<') {
+
+			if (r.skipChar('?')) {
+				/* processing instruction after end tag of root element*/
+				temp_offset = offset;
+				parser_state = STATE_END_PI;
+				return parser_state;
+			} else if (
+				r.skipChar('!')
+					&& r.skipChar('-')
+					&& r.skipChar('-')) {
+				// comments allowed after the end tag of the root element
+				temp_offset = offset;
+				parser_state = STATE_END_COMMENT;
+				return parser_state;
+			}
+		}
+		throw new ParseException(
+			"Other Error: XML not terminated properly"
+				+ formatLineNumber());
+	}
+	private int process_qt_seen()throws ParseException, EncodingException, EOFException {
+	    temp_offset = offset;
+		ch = r.getChar();
+		if (XMLChar.isNameStartChar(ch)) {
+			//temp_offset = offset;
+			if ((ch == 'x' || ch == 'X')
+				&& (r.skipChar('m')	|| r.skipChar('M'))
+				&& (r.skipChar('l')	|| r.skipChar('L'))) {
+				ch = r.getChar();
+				if (ch == '?'
+					|| XMLChar.isSpaceChar(ch))
+					throw new ParseException(
+						"Error in PI: [xX][mM][lL] not a valid PI targetname"
+							+ formatLineNumber());
+				offset = getPrevOffset();
+			}
+			return STATE_PI_TAG;
+		}
+		throw new ParseException(
+			"Other Error: First char after <? invalid"
+				+ formatLineNumber());
+	}
 	
+	private int process_ex_seen(boolean hasDTD)throws ParseException, EncodingException, EOFException {
+	    int parser_state;
+	    ch = r.getChar();
+		switch (ch) {
+			case '-' :
+				if (r.skipChar('-')) {
+					temp_offset = offset;
+					parser_state = STATE_COMMENT;
+					break;
+				} else
+					throw new ParseException(
+						"Error in comment: Invalid char sequence to start a comment"
+							+ formatLineNumber());
+			case '[' :
+				if (r.skipChar('C')
+					&& r.skipChar('D')
+					&& r.skipChar('A')
+					&& r.skipChar('T')
+					&& r.skipChar('A')
+					&& r.skipChar('[')
+					&& (depth != -1)) {
+					temp_offset = offset;
+					parser_state = STATE_CDATA;
+					break;
+				} else {
+					if (depth == -1)
+						throw new ParseException(
+							"Error in CDATA: Wrong place for CDATA"
+								+ formatLineNumber());
+					throw new ParseException(
+						"Error in CDATA: Invalid char sequence for CDATA"
+							+ formatLineNumber());
+				}
+
+			case 'D' :
+				if (r.skipChar('O')
+					&& r.skipChar('C')
+					&& r.skipChar('T')
+					&& r.skipChar('Y')
+					&& r.skipChar('P')
+					&& r.skipChar('E')
+					&& (depth == -1)
+					&& !hasDTD) {
+					hasDTD = true;
+					temp_offset = offset;
+					parser_state = STATE_DOCTYPE;
+					break;
+				} else {
+					if (hasDTD == true)
+						throw new ParseException(
+							"Error for DOCTYPE: Only DOCTYPE allowed"
+								+ formatLineNumber());
+					if (depth != -1)
+						throw new ParseException(
+							"Error for DOCTYPE: DTD at wrong place"
+								+ formatLineNumber());
+					throw new ParseException(
+						"Error for DOCTYPE: Invalid char sequence for DOCTYPE"
+							+ formatLineNumber());
+				}
+			default :
+				throw new ParseException(
+					"Other Error: Unrecognized char after <!"
+						+ formatLineNumber());
+		}
+		return parser_state;
+	}
+	private int process_start_doc()throws ParseException, EncodingException, EOFException {
+	    int parser_state;
+		if (r.getChar() == '<') {
+			temp_offset = offset;
+			// xml decl has to be right after the start of the document
+			if (r.skipChar('?')
+				&& (r.skipChar('x') || r.skipChar('X'))
+				&& (r.skipChar('m') || r.skipChar('M'))
+				&& (r.skipChar('l') || r.skipChar('L'))) {
+				if (r.skipChar(' ')
+					|| r.skipChar('\t')
+					|| r.skipChar('\n')
+					|| r.skipChar('\r')) {
+					ch = getCharAfterS();
+					temp_offset = offset;
+					parser_state = STATE_DEC_ATTR_NAME;
+					return parser_state;
+				} else if (r.skipChar('?'))
+					throw new ParseException(
+						"Error in XML decl: Premature ending"
+							+ formatLineNumber());
+			}
+			offset = temp_offset;
+			parser_state = STATE_LT_SEEN;
+			return parser_state;
+		}
+		throw new ParseException(
+			"Other Error: XML not starting properly"
+				+ formatLineNumber());
+	}
 	/**
 	 * This private method processes CDATA section
 	 * @return the parser state after which the parser loop jumps to
