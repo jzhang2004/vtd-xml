@@ -18,12 +18,10 @@
 #include "xpath1.h"
 
 filterExpr *createFilterExpr(expr *e1, Predicate *pr){
-	exception e;
 	filterExpr *fe = malloc(sizeof(filterExpr));
 	if (fe ==NULL){
-		e.et = out_of_mem;
-		e.msg = "filterExpr allocation failed";
-		Throw e;
+		throwException2(out_of_mem,
+			"filterExpr allocation failed");
 	}
 	fe->freeExpr = &freeFilterExpr;
 	fe->evalBoolean = &evalBoolean_fe;
