@@ -114,6 +114,8 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 										 number_format_exception,
 										 xpath_parse_exception,
 										 xpath_eval_exception,
+										 modify_exception,
+										 io_exception,
 										 other};
 
 
@@ -128,6 +130,8 @@ typedef struct vtd_exception {
 					define_exception_type(exception);
 					extern struct exception_context the_exception_context[1];
 
+extern void throwException(enum exception_type et1, int sub_type, char* msg, char* submsg);
+extern void throwException2(enum exception_type et1, char *msg);
 //#define NaN  (0/0.0)
 #ifndef isNaN
 #define isNaN(x) ((x) != (x))
