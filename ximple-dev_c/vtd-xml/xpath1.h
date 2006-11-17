@@ -46,6 +46,8 @@ typedef struct intHash {
 /* function for intHash
  see intHash.c for implemenation*/
 IntHash* createIntHash();
+IntHash* createIntHash2(int hashWidthExpo);
+int determineHashWidth(int i);
 void freeIntHash(IntHash *ih);
 Boolean isUniqueIntHash(IntHash *ih,int i);
 void resetIntHash(IntHash *ih);
