@@ -41,7 +41,6 @@ public class VTDGen {
 	private final static int STATE_PI_TAG =8;
 	private final static int STATE_PI_VAL = 9;
 	private final static int STATE_DEC_ATTR_NAME = 10;
-
 	private final static int STATE_COMMENT = 11;
 	private final static int STATE_CDATA = 12;
 	private final static int STATE_DOCTYPE = 13;
@@ -1251,7 +1250,7 @@ public class VTDGen {
 		boolean is_ns = false;
 		encoding = FORMAT_UTF8;
 		boolean helper=false;
-		boolean main_loop = true,hasDTD = false,docEnd = false;
+		boolean docEnd = false;
 
 		// first check first several bytes to figure out the encoding
 		decide_encoding();
@@ -1259,7 +1258,7 @@ public class VTDGen {
 		// enter the main finite state machine
 		try {
 			writeVTD(0,0,TOKEN_DOCUMENT,depth);
-			while (main_loop) {
+			while (true) {
 				switch (parser_state) {
 					case STATE_LT_SEEN : //if (depth < -1)
 						//    throw new ParseException("Other Errors: Invalid depth");
@@ -1274,10 +1273,10 @@ public class VTDGen {
 									parser_state = STATE_END_TAG;
 									break;
 								case '?' :
-									parser_state = process_qt_seen();
+									parser_state = process_qm_seen();
 									break;
 								case '!' : // three possibility (comment, CDATA, DOCTYPE)
-									parser_state = process_ex_seen(hasDTD);
+									parser_state = process_ex_seen();
 									break;
 								default :
 									throw new ParseException(
@@ -1758,7 +1757,7 @@ public class VTDGen {
 						parser_state = process_start_doc();
 						break;
 					case STATE_DOC_END :
-						docEnd = true;
+						//docEnd = true;
 						parser_state = process_end_doc();
 						break;
 					case STATE_PI_TAG :
@@ -2725,7 +2724,7 @@ public class VTDGen {
 			"Other Error: XML not terminated properly"
 				+ formatLineNumber());
 	}
-	private int process_qt_seen()throws ParseException, EncodingException, EOFException {
+	private int process_qm_seen()throws ParseException, EncodingException, EOFException {
 	    temp_offset = offset;
 		ch = r.getChar();
 		if (XMLChar.isNameStartChar(ch)) {
@@ -2748,8 +2747,9 @@ public class VTDGen {
 				+ formatLineNumber());
 	}
 	
-	private int process_ex_seen(boolean hasDTD)throws ParseException, EncodingException, EOFException {
+	private int process_ex_seen()throws ParseException, EncodingException, EOFException {
 	    int parser_state;
+	    boolean hasDTD = false;
 	    ch = r.getChar();
 		switch (ch) {
 			case '-' :

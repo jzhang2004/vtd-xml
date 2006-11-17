@@ -1154,7 +1154,6 @@ public class VTDGen1 {
 		boolean is_ns = false;
 		encoding = FORMAT_UTF8;
 		boolean helper=false;
-		boolean  hasDTD = false, docEnd = false;
 		
 		decide_encoding();
 		
@@ -1180,7 +1179,7 @@ public class VTDGen1 {
 						case '?':
 						    parser_state = process_qm_seen();
 						case '!': // three possibility (comment, CDATA, DOCTYPE)
-						    parser_state = process_ex_seen(hasDTD);
+						    parser_state = process_ex_seen();
 							break;
 						default:
 							throw new ParseException(
@@ -1622,7 +1621,6 @@ public class VTDGen1 {
 				    parser_state = process_start_doc();
 				    break;
 				case STATE_DOC_END:
-					docEnd = true;
 					parser_state = process_end_doc();
 				    break;
 				case STATE_PI_TAG:
@@ -2554,8 +2552,9 @@ public class VTDGen1 {
 
 	}
 	
-	private int process_ex_seen(boolean hasDTD) throws ParseException,
+	private int process_ex_seen() throws ParseException,
             EncodingException, EOFException {
+	    boolean hasDTD = false;
         int parser_state;
         ch = getChar();
         switch (ch) {
