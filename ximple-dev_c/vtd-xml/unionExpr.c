@@ -23,15 +23,12 @@ Boolean isUnique_une(unionExpr *une, int i){
 }
 
 unionExpr *createUnionExpr(expr *e){
-	exception ee;
+
 	unionExpr *une = (unionExpr *)malloc(sizeof(unionExpr));
 	if (une==NULL){
-		ee.et = out_of_mem;
-		ee.msg = "unionExpr allocation failed ";
-		Throw ee;
+		throwException2(out_of_mem,
+			"unionExpr allocation failed ");
 	}
-
-
 	une->freeExpr = &freeUnionExpr;
 	une->evalBoolean = &evalBoolean_une;
 	une->evalNodeSet = &evalNodeSet_une;
@@ -71,16 +68,15 @@ void freeUnionExpr(unionExpr *e){
 }
 
 int	evalNodeSet_une (unionExpr *e,VTDNav *vn){
-	exception ee;
 	int a;
 	if (e->next == NULL) {
 		return e->fe->evalNodeSet(e->fe,vn);
 	} else {
 		while (TRUE) {
-
 			switch (e->evalState) {
 				case 0:
 					if (e->ih == NULL ){
+						exception ee;
 						Try{
 							e->ih = createIntHash();
 						}
@@ -134,9 +130,8 @@ int	evalNodeSet_une (unionExpr *e,VTDNav *vn){
 					return -1;
 
 				default:
-					ee.et = other;
-					ee.msg = "Invalid state evaluating unionExpr";
-					Throw ee;
+					throwException2(other,
+						"Invalid state evaluating unionExpr");
 			}
 		}
 	}
@@ -242,7 +237,7 @@ Boolean isNodeSet_une (unionExpr *e){
 Boolean requireContextSize_une(unionExpr *e){
 	return FALSE;
 }
-void	reset_une(unionExpr *e, VTDNav *vn){
+void reset_une(unionExpr *e, VTDNav *vn){
 	unionExpr *tmp;
 	e->fe->reset(e->fe,vn);
 	e->current = e;
@@ -254,10 +249,9 @@ void	reset_une(unionExpr *e, VTDNav *vn){
 	if (e->ih!=NULL)
 		resetIntHash(e->ih);
 	e->evalState = 0;
-
-
 }
-void	setContextSize_une(unionExpr *e,int s){
+
+void setContextSize_une(unionExpr *e,int s){
 	unionExpr *tmp;
     e->current = e;
     e->current->fe->setContextSize(e->current->fe, s);

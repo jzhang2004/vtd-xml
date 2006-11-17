@@ -25,9 +25,8 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 	exception e;
 	pathExpr *pe = (pathExpr *)malloc(sizeof(pathExpr));
 	if (pe==NULL){
-		e.et = out_of_mem;
-		e.msg = "pathExpr allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"pathExpr allocation failed ");
 	}
 	Try{
 		pe->ih = createIntHash();
@@ -69,10 +68,9 @@ void freePathExpr(pathExpr *pe){
 
 int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 	int a;
-	exception e;
 	while (TRUE) {
 		switch (pe->evalState) {
-		case 0: //this state is teh initial state;
+		case 0: /*this state is teh initial state;*/
 			a = pe->fe->evalNodeSet(pe->fe,vn);
 			if (a == -1){
 				pe->evalState =4;
@@ -80,7 +78,7 @@ int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 			else
 				pe->evalState = 1;
 			break;
-		case 1: // fe returns valid value, then iterate the locationPath
+		case 1: /* fe returns valid value, then iterate the locationPath*/
 			push2(vn);
 			a = evalNodeSet_lpe(pe->lpe, vn);
 			if (a == -1) {
@@ -116,9 +114,8 @@ int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 		case 4:
 			return -1;
 		default:
-			e.et = other;
-			e.msg = "Invalid state evaluating PathExpr";
-			Throw e;
+			throwException2(other,
+				"Invalid state evaluating PathExpr");
 		}
 	}
 }
@@ -186,13 +183,13 @@ Boolean evalBoolean_pe (pathExpr *pe,VTDNav *vn){
 	Boolean b = FALSE;
 	int size;
 	push2(vn);
-	// record teh stack size
+	/* record teh stack size*/
 	size = vn->contextBuf2->size;
     Try{	
 		b = (evalNodeSet_pe(pe,vn) != -1);
 	}Catch (e){
 	}
-		//rewind stack
+	/*rewind stack*/
 	vn->contextBuf2->size = size;
 	reset_pe(pe,vn);
 	pop2(vn);
@@ -238,4 +235,3 @@ void toString_pe(pathExpr *pe, UCSChar* string){
 	wprintf(L")/");
 	toString_lpe(pe->lpe, string);
 }
-

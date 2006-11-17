@@ -17,23 +17,20 @@
  */
 #include "fastLongBuffer.h"
 
-// create FastLongBuffer with default page size of 1024 longs 
+/* create FastLongBuffer with default page size of 1024 longs */
 FastLongBuffer *createFastLongBuffer(){
-	exception e;
 	FastLongBuffer *flb = NULL;
 	ArrayList *al= createArrayList();
 	if (al==NULL) {
-		e.et = out_of_mem;
-		e.msg = "FastLongBuffer allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"FastLongBuffer allocation failed ");
 	}
 
 	flb = (FastLongBuffer *)malloc(sizeof(FastLongBuffer));
 	if (flb==NULL) {
 		freeArrayList(al); 
-		e.et = out_of_mem;
-		e.msg = "FastLongBuffer allocation failed ";
-		Throw e;	
+		throwException2(out_of_mem,
+			"FastLongBuffer allocation failed ");
 	}
 
 	flb->size = 0;
@@ -45,23 +42,20 @@ FastLongBuffer *createFastLongBuffer(){
 
 	return flb;
 }
-// create FastLongBuffer with page size of (1<<e) longs
+/* create FastLongBuffer with page size of (1<<e) longs*/
 FastLongBuffer *createFastLongBuffer2(int exp){
-	exception e;
 	FastLongBuffer *flb = NULL;
 	ArrayList *al= createArrayList();
 	if (al==NULL){
-		e.et = out_of_mem;
-		e.msg = "FastLongBuffer allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"FastLongBuffer allocation failed ");
 	}
 
 	flb = (FastLongBuffer *)malloc(sizeof(FastLongBuffer));
 	if (flb==NULL) {
 		freeArrayList(al); 
-		e.et = out_of_mem;
-		e.msg = "FastLongBuffer allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"FastLongBuffer allocation failed ");
 	}
 
 	flb->size = 0;
@@ -73,23 +67,20 @@ FastLongBuffer *createFastLongBuffer2(int exp){
 
 	return flb;
 }
-// create FastLongBuffer with page size of (1<<e) longs and initial capciaty of c longs
+/* create FastLongBuffer with page size of (1<<e) longs and initial capciaty of c longs*/
 FastLongBuffer *createFastLongBuffer3(int exp, int c){
-	exception e;
 	FastLongBuffer *flb = NULL;
 	ArrayList *al= createArrayList(c);
 	if (al==NULL){
-		e.et = out_of_mem;
-		e.msg = "FastLongBuffer allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"FastLongBuffer allocation failed ");
 	}
 
 	flb = (FastLongBuffer *)malloc(sizeof(FastLongBuffer));
 	if (flb==NULL) {
 		free(al); 
-		e.et = out_of_mem;
-		e.msg = "FastLongBuffer allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"FastLongBuffer allocation failed ");
 	}
 
 	flb->size = 0;
@@ -101,44 +92,29 @@ FastLongBuffer *createFastLongBuffer3(int exp, int c){
 
 	return flb;
 }
-// free FastLongBuffer 
+/* free FastLongBuffer */
 void freeFastLongBuffer(FastLongBuffer *flb){
 	if (flb != NULL) {
 		freeArrayList(flb->al);
 		free(flb);
 	}
 }
-// append a long array to the end of FastLongBuffer
+/* append a long array to the end of FastLongBuffer */
 void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
-	exception e;
 	Long *lastBuffer = NULL;
 	int lastBufferIndex;
 
-	
-
 	if (longArray == NULL || len <0) {
-		e.et = invalid_argument;
-		e.msg = "invalid argument for appendLongArray /n";
-		Throw e;
-        //throw new NullPointerException();
+		throwException2(invalid_argument,
+			"invalid argument for appendLongArray /n");
     }
-    // no additional buffer space needed
-
-    //long[] lastBuffer;
-    /*if (bufferArrayList.size() == 0) {
-        lastBuffer = new long[pageSize];
-        bufferArrayList.add(lastBuffer);
-        capacity = pageSize;
-    } else {
-        lastBuffer = (long[]) bufferArrayList.get(bufferArrayList.size() - 1);
-    }*/
+    /* no additional buffer space needed */
 	if (flb->al->size == 0)
 	{
 		lastBuffer = (Long *) malloc(sizeof(Long)<< flb->exp);
 		if (lastBuffer == NULL){
-			e.et = out_of_mem;
-			e.msg = " appendLongArray failed to allocate mem ";
-			Throw e;
+			throwException2(out_of_mem,
+				" appendLongArray failed to allocate mem ");
 		}
 		add(flb->al,lastBuffer);
 		lastBufferIndex = 0;
@@ -149,12 +125,7 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 	}
 
 
-    //if ((this.size + long_array.length) < this.capacity) {
 	if ((flb->size + len)< flb->capacity){
-        //get the last buffer from the bufferListArray
-        //obtain the starting offset in that buffer to which the data is to be copied
-        //update length
-
 		if (flb->size + len <(lastBufferIndex+1)<<flb->exp){
 			memcpy(lastBuffer+(flb->size&flb->r), longArray, len<<3);
 		} 
@@ -174,10 +145,9 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 				longArray + offset, (l & flb->r)<<3);
 
 		}
-		//memcpy(lastBuffer+(fib->size&fib->r), int_array, len<<2);
-        flb->size += len;
+		flb->size += len;
 		return;
-    } else // new buffers needed
+    } else
         {
 		int i;
 		Long *newBuffer = NULL;
@@ -185,21 +155,16 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 		int n = ((len + flb->size) >> flb->exp) 
 			+(((len + flb->size) & flb->r)> 0 ? 1 : 0)
 			- (flb->capacity >>flb->exp);
-        // create these buffers
-        // add to bufferArrayList
-        //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, capacity - size);
-        //System.arraycopy(long_array, 0, lastBuffer, size & r, capacity - size);
+       
 		memcpy(lastBuffer + (flb->size & flb->r),
 			longArray,
 			(flb->capacity - flb->size)<<3);
 
         for (i = 0; i < n; i++) {
-            //long[] newBuffer = new long[pageSize];
 			newBuffer = (Long *)malloc(sizeof(Long)<<flb->exp);
 			if (newBuffer == NULL){
-				e.et = out_of_mem;
-				e.msg = " appendLongArray failed to allocate mem ";
-				Throw e;
+				throwException2(out_of_mem,
+					" appendLongArray failed to allocate mem ");
 			}
             if (i < n - 1) {
 				memcpy( newBuffer,
@@ -211,41 +176,23 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 					longArray + (i<<flb->exp) + flb->capacity - flb->size,
 					(len + flb->size - (i<< flb->exp) - flb->capacity)<<3);
             }
-            //bufferArrayList.add(newBuffer);
 			add(flb->al,newBuffer);
         }
-        // update length
-        //size += long_array.length;
 		flb->size += len;
-        // update capacity
-        //capacity += n * pageSize;
 		flb->capacity += (n << flb->exp);
-        // update
     }
 }
 
-// append a long to the end of FastLongBuffer
+/* append a long to the end of FastLongBuffer */
 void appendLong(FastLongBuffer *flb, Long i){
-	exception e;
-	//long[] lastBuffer;
 	Long *lastBuffer = NULL;
 	int lastBufferIndex;
-
-
-	/*if (bufferArrayList.size() == 0) {
-        lastBuffer = new long[pageSize];
-        bufferArrayList.add(lastBuffer);
-        capacity = pageSize;
-    } else {
-        lastBuffer = (long[]) bufferArrayList.get(bufferArrayList.size() - 1);
-    }*/
 
 	if (flb->al->size == 0) {
 		lastBuffer = (Long *)malloc(sizeof(Long)<<flb->exp);
 		if (lastBuffer == NULL){
-			e.et = out_of_mem;
-			e.msg = "AppendLong failed to allocate mem";
-			Throw e;
+			throwException2(out_of_mem,
+				"AppendLong failed to allocate mem");
 		}
 		add(flb->al,lastBuffer);
 		flb->capacity = flb->pageSize;
@@ -253,31 +200,15 @@ void appendLong(FastLongBuffer *flb, Long i){
 		lastBufferIndex = min((flb->size>>flb->exp),flb->al->size-1);
 		lastBuffer = (Long *)get(flb->al, lastBufferIndex);
 	}
-    /*if ((this.size + 1) <= this.capacity) {
-        //get the last buffer from the bufferListArray
-        //obtain the starting offset in that buffer to which the data is to be copied
-        //update length
-        //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
-        //lastBuffer[size % pageSize] = i;
-        lastBuffer[size & r] = i;
-        size += 1;
-    } else // new buffers needed
-        {
-        long[] newBuffer = new long[pageSize];
-        size++;
-        capacity += pageSize;
-        bufferArrayList.add(newBuffer);
-        newBuffer[0] = i;
-    }*/
+
 	if (flb->size < flb->capacity){
 		lastBuffer[flb->size & flb->r] = i;
 		flb->size ++;
 	}else {
 		Long *newBuffer = (Long *)malloc(sizeof(Long)<<flb->exp);
 		if (newBuffer == NULL){
-			e.et = out_of_mem;
-			e.msg = "AppendLong failed to allocate mem";
-			Throw e;
+			throwException2(out_of_mem,
+				"AppendLong failed to allocate mem");
 		}
 		
 		flb->size ++;
@@ -287,62 +218,32 @@ void appendLong(FastLongBuffer *flb, Long i){
 	}
 }
 
-
-// get the capacity of FastLongBuffer
-/*int getCapacityFLB(FastLongBuffer *flb){
-	return flb->capacity;
-}*/
-
-
-// Return a selected chuck of long buffer as a long array.
+/* Return a selected chuck of long buffer as a long array.*/
 Long *getLongArray(FastLongBuffer *flb, int offset, int len){
-	exception e;
 	Long *result = NULL;
 	int first_index, last_index;
 	if (flb->size <= 0 
 		|| offset < 0 
 		|| len <0 
 		|| offset + len > flb->size) {
-			e.et  = invalid_argument;
-			e.msg = "Invalid argument for getLongArray in FastLongBuffer";
-			Throw e;
+			throwException2(out_of_mem,
+				"Invalid argument for getLongArray in FastLongBuffer");
 		}
-    /*if ((startingOffset + len) > size()) {
-        throw (new IndexOutOfBoundsException());
-    }*/
-
-    //long[] result = new long[len]; // allocate result array
+   
 	result = (Long *)malloc(sizeof(Long)*len);
 
 	if (result == NULL){
-		e.et = out_of_mem;
-		e.msg = " getLongArray failed to allocate mem in FastLongBuffer";
-		Throw e;
+		throwException2(out_of_mem,
+			" getLongArray failed to allocate mem in FastLongBuffer");
 	}
-    //int first_index =  (startingOffset >> exp);
-    //int last_index = ((startingOffset + len) >>exp);
-
 	first_index = offset >> flb->exp;
 	last_index = (offset+len) >> flb->exp;
-
-    //if ((startingOffset + len) % pageSize == 0) {
-    //if (((startingOffset + len) & r) == 0) {
-    //   last_index--;
-    //}
 
 	if (((offset + len) & flb->r)== 0){
 		last_index--;
 	}
 
     if (first_index == last_index) {
-        // to see if there is a need to go across buffer boundry
-        /*System.arraycopy(
-            (long[]) (bufferArrayList.get(first_index)),
-//            startingOffset % pageSize,
-			startingOffset & r,
-            result,
-            0,
-            len);*/
 		memcpy(result, 
 			(Long *)get(flb->al, first_index) + (offset & flb->r),
 			len <<3);
@@ -351,42 +252,25 @@ Long *getLongArray(FastLongBuffer *flb, int offset, int len){
 		int i;
 		Long *currentChunk;
         for (i = first_index; i <= last_index; i++) {
-            //long[] currentChunk = (long[]) bufferArrayList.get(i);
 			currentChunk = (Long *)get(flb->al, i);
-            if (i == first_index) // first section
+            if (i == first_index)
                 {
-                /*System.arraycopy(
-                    currentChunk,
-//                  startingOffset % pageSize,
-        			startingOffset & r,
-                    result,
-                    0,
-//                  pageSize - (startingOffset % r));
-					pageSize - (startingOffset & r)); */
+         
 				memcpy(result,
 					currentChunk + (offset & flb->r),
 					(flb->pageSize - (offset& flb->r))<<3);
-                //long_array_offset += pageSize - (startingOffset & r);
 				long_array_offset += flb->pageSize - (offset & flb->r);
-            } else if (i == last_index) // last sections
+            } else if (i == last_index)
                 {
-                /*System.arraycopy(
-                    currentChunk,
-                    0,
-                    result,
-                    long_array_offset,
-                    len - long_array_offset);*/
-				memcpy(result + long_array_offset,
+                memcpy(result + long_array_offset,
 					currentChunk,
 					(len - long_array_offset) <<3);
 
 
             } else {
-                //System.arraycopy(currentChunk, 0, result, long_array_offset, pageSize);
                 memcpy( result + long_array_offset,
 					currentChunk,
 					flb->pageSize <<3 );
-				//long_array_offset += pageSize;
 				long_array_offset += flb->pageSize;
             }
 		}
@@ -394,86 +278,8 @@ Long *getLongArray(FastLongBuffer *flb, int offset, int len){
 		return result;
 }
 
-
-
-
-// get the page size of FastLongBuffer
-// changed in macro
-/*int getPageSizeFLB(FastLongBuffer *flb){
-	return flb->pageSize;
-}*/
-
-
-// get the long at the index position from FastLongBuffer
-// inlined in .h
-/*Long longAt(FastLongBuffer *flb, int index){
-	int pageNum = (index >>flb->exp);
-    // int offset = index % r;
-    int offset = index & flb->r;
-    //return ((Long[]) bufferArrayList.get(pageNum))[offset];
-	return ((Long *)get(flb->al,pageNum))[offset];
-}*/
-
-
-// get the lower 32 bits from the index position from FastLongBuffer
-// inlined in .h
-/*int lower32At(FastLongBuffer *flb, int index){
-	exception e;
-	int pageNum,offset;
-    if (index < 0 || index > flb->size) {
-		e.et = invalid_argument;
-		e.msg = " invalid index range";
-        //throw new IndexOutOfBoundsException();
-		Throw e;
-    }
-    pageNum =  (index >> flb->exp);
-    // int offset = index % pageSize;
-    offset = index & flb->r;
-    //return (int) ((Long[]) bufferArrayList.get(pageNum))[offset];
-	return (int)((Long *)get(flb->al,pageNum))[offset];
-//	return 0;
-}*/
-
-
-// get the upper 32 bits from the index position from FastLongBuffer 
-// inlined in .h
-/*int upper32At(FastLongBuffer *flb, int index){
-	exception e;
-	int pageNum, offset;
-    if (index < 0 || index > flb->size) {
-		e.et = invalid_argument;
-		e.msg = " invalid index range";
-        //throw new IndexOutOfBoundsException();
-		Throw e;
-    }
-    pageNum = (index >>flb->exp);
-    offset = index & flb->r;
-    //return (int)
-    //    ((((long[]) bufferArrayList.get(pageNum))[offset] & (0xffffffffL << 32)) >> 32);
-	return (int) ((((Long *)get(flb->al,pageNum))[offset] & (0xffffffffL<<32))>>32);
-//	return 0;
-}*/
-
-// replace the entry at the index position of FastLongBuffer with l
-// inlined in .h
-/*void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
-	exception e;
-	//int pageNum, offset;
-    if (index < 0 || index > flb->size) {
-		e.et = invalid_argument;
-		e.msg = " invalid index range";
-        //throw new IndexOutOfBoundsException();
-		Throw e;
-    }
-    //((long[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
-    //((long[]) bufferArrayList.get(index >> exp))[index & r] = l;
-	((Long *)get(flb->al,index>>flb->exp))[index & flb->r] = l;
-}*/
-
-
-// convert FastLongBuffer into a Long array 
-Long* toLongArray(FastLongBuffer *flb){
-	exception e;
+/* convert FastLongBuffer into a Long array */
+Long* toLongArray(FastLongBuffer *flb){	
 	Long *resultArray = NULL;
 	int i;
     if (flb->size > 0) {
@@ -483,9 +289,8 @@ Long* toLongArray(FastLongBuffer *flb){
         int array_offset = 0;
 		resultArray = (Long *)malloc(sizeof(Long)*flb->size);
 		if (resultArray == NULL){
-			e.et = out_of_mem;
-			e.msg = "toLongArray failed to allocate mem";
-			Throw e;
+			throwException2(out_of_mem,
+				"toLongArray failed to allocate mem");
 		}
         //copy all the content int into the resultArray
 
@@ -511,12 +316,10 @@ Long* toLongArray(FastLongBuffer *flb){
 // get the long at the index position from FastLongBuffer
 //Long longAt(FastLongBuffer *flb, int index);
 Long longAt(FastLongBuffer *flb, int index){
-	exception e;
 	int pageNum,offset;
 	if (index < 0 || index > flb->size - 1) {
-        e.et = invalid_argument;
-		e.msg = "invalid index range";
-		Throw e;
+		throwException2(invalid_argument,
+			"invalid index range");
     }
 	pageNum = (index >>flb->exp);
     offset = index & flb->r;
@@ -525,12 +328,10 @@ Long longAt(FastLongBuffer *flb, int index){
 
 // get the lower 32 bits from the index position from FastLongBuffer
 int lower32At(FastLongBuffer *flb, int index){
-	exception e;
 	int pageNum,offset;
     if (index < 0 || index > flb->size) {
-		e.et = invalid_argument;
-		e.msg = " invalid index range";
-		Throw e;
+		throwException2(invalid_argument,
+			" invalid index range");
     }
     pageNum =  (index >> flb->exp);
     offset = index & flb->r;
@@ -540,12 +341,10 @@ int lower32At(FastLongBuffer *flb, int index){
 
 // get the upper 32 bits from the index position from FastLongBuffer 
 int upper32At(FastLongBuffer *flb, int index){
-	exception e;
 	int pageNum, offset;
     if (index < 0 || index > flb->size) {
-		e.et = invalid_argument;
-		e.msg = " invalid index range";
-		Throw e;
+		throwException2(invalid_argument,
+			" invalid index range");
     }
     pageNum = (index >>flb->exp);
     offset = index & flb->r;
@@ -554,11 +353,9 @@ int upper32At(FastLongBuffer *flb, int index){
 
 // replace the entry at the index position of FastLongBuffer with l
 void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
-	exception e;
     if (index < 0 || index > flb->size) {
-		e.et = invalid_argument;
-		e.msg = " invalid index range";
-		Throw e;
+		throwException2(invalid_argument,
+			" invalid index range");
     }
 	((Long *)get(flb->al,index>>flb->exp))[index & flb->r] = l;
 }

@@ -18,12 +18,9 @@
 #include "xpath1.h"
 
 literalExpr *createLiteralExpr(UCSChar *st){
-	exception e;
 	literalExpr *l = (literalExpr*) malloc(sizeof(literalExpr));
 	if (l==NULL){
-		e.et = out_of_mem;
-		e.msg = "literalExpr allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,"literalExpr allocation failed ");
 	}
 	l->freeExpr = &freeLiteralExpr;
 	l->evalBoolean = &evalBoolean_le;
@@ -53,10 +50,8 @@ void freeLiteralExpr(literalExpr *le){
 }
 
 int	evalNodeSet_le (literalExpr *le,VTDNav *vn){
-	exception e;
-	e.et = xpath_eval_exception;
-	e.msg = "LiteralExpr can't eval to a node set!";
-	Throw e;	
+	throwException2(xpath_eval_exception,
+		"LiteralExpr can't eval to a node set!");
 }
 
 double	evalNumber_le (literalExpr *le,VTDNav *vn){

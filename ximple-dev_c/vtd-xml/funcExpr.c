@@ -39,11 +39,12 @@ static double round(double v)
  return (v>0.0) ? floor(v+0.5) : ceil(v-0.5);
 }
 
+
 static UCSChar *fname(funcExpr *fne,funcName i);
 
 static UCSChar *getString(funcExpr *fne, VTDNav *vn){
-	exception e;
 	if (argCount(fne)== 0){
+		exception e;
 		Try{
 			if (vn->atTerminal){
 				if (getTokenType(vn,vn->LN) == TOKEN_CDATA_VAL )
@@ -59,9 +60,8 @@ static UCSChar *getString(funcExpr *fne, VTDNav *vn){
 	else if (argCount(fne) == 1){
 		return fne->al->e->evalString(fne->al->e, vn);
 	} else {
-		e.et = invalid_argument;
-		e.msg = "string()'s  <funcExpr> argument count is invalid";
-		Throw e;			        
+		throwException2(invalid_argument,
+			"string()'s  <funcExpr> argument count is invalid");
 	}
 	return createEmptyString();
 }
@@ -126,9 +126,8 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
 			 // this will almost never occur
 		}		
 	} else {
-		e.et = invalid_argument;
-		e.msg = "local-name()'s  <funcExpr> argument count is invalid";
-		Throw e;			        
+		throwException2(invalid_argument,
+			"local-name()'s  <funcExpr> argument count is invalid");
 	}
 	return createEmptyString();
 }
@@ -232,12 +231,10 @@ static UCSChar *getName(funcExpr *fne, VTDNav *vn){
 
 
 aList *createAlist(){
-	exception e;
 	aList *al = (aList *)malloc(sizeof(aList));
 	if (al==NULL){
-		e.et = out_of_mem;
-		e.msg = "funcExpr allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+		  "funcExpr allocation failed ");
 	}
 	al->next  = NULL;
 	return al;
@@ -460,21 +457,18 @@ int	evalNodeSet_fne (funcExpr *fne,VTDNav *vn){
 	Throw e;
 }
 double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
-	exception e;
 	int ac;
 	size_t len;
 	UCSChar *tmpString = NULL;
 	switch(fne->opCode){
 			case FN_LAST:  if (argCount(fne)!=0 ){
-								e.et = invalid_argument;
-								e.msg = "floor()'s <funcExpr> argument count is invalid";
-								Throw e;
+								throwException2(invalid_argument,
+										"last()'s  <funcExpr> argument count is invalid");
 							}
 						   return fne->contextSize;			
 			case FN_POSITION:   if (argCount(fne)!=0 ){
-									e.et = invalid_argument;
-									e.msg = "position()'s  <funcExpr> argument count is invalid";
-									Throw e;
+									throwException2(invalid_argument,
+										"position()'s  <funcExpr> argument count is invalid");
 								}
 										 
 								return fne->position;
@@ -482,30 +476,28 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 			case FN_COUNT: 		return count(fne, vn);
 
 			case FN_NUMBER:		if (argCount(fne)!=1){
-									e.et = invalid_argument;
-									e.msg = "number()'s  <funcExpr> argument count is invalid";
-									Throw e;
+									throwException2(invalid_argument,
+										"number()'s  <funcExpr> argument count is invalid");
 								}
 								return fne->al->e->evalNumber(fne->al->e,vn);
 
 			case FN_SUM:	    return sum(fne,vn);
 			case FN_FLOOR: 		if (argCount(fne)!=1 ){
-									e.et = invalid_argument;
-									e.msg = "floor()'s  <funcExpr> argument count is invalid";
-									Throw e;
+									throwException2(invalid_argument,
+										"floor()'s  <funcExpr> argument count is invalid");
 								}
 								return floor(fne->al->e->evalNumber(fne->al->e,vn));
 
 			case FN_CEILING:	if (argCount(fne)!=1 ){
-									e.et = invalid_argument;
-									e.msg = "ceiling()'s  <funcExpr> argument count is invalid";
-									Throw e;
+									throwException2(invalid_argument,
+										"ceiling()'s  <funcExpr> argument count is invalid");
 								}
 								return ceil(fne->al->e->evalNumber(fne->al->e,vn));
 
 			case FN_STRING_LENGTH:
 								ac = argCount(fne);
 			    				if (ac == 0){
+									exception e;
 			    				    Try{
 			    				        if (vn->atTerminal == TRUE){
 			    				            tokenType type = getTokenType(vn,vn->LN);
@@ -542,9 +534,8 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 									free(tmpString);
 			    				    return len;
 			    				} else {
-			    				   	e.et = invalid_argument;
-									e.msg = "string-length()'s  <funcExpr> argument count is invalid";
-									Throw e;
+									throwException2(invalid_argument,
+										"string-length()'s  <funcExpr> argument count is invalid");
 			    				}
 
 			case FN_ROUND: 	if (argCount(fne)!=1 )
@@ -579,7 +570,6 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 }
 
 UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
-	exception e;
 	UCSChar *tmp;
 
 	switch(fne->opCode){
@@ -598,9 +588,8 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 			case FN_SUBSTRING_AFTER: return subStringAfter(fne,vn);
 									
 			case FN_SUBSTRING: 	return subString(fne,vn);	
-			case FN_TRANSLATE: 	e.et = other;
-								e.msg = "Some functions are not supported";
-								Throw e;
+			case FN_TRANSLATE: 	
+				throwException2(other,"Some functions are not supported");
 			case FN_NORMALIZE_SPACE: return normalizeString(fne,vn);
 								
 			default: if (isBoolean_fne(fne)){
@@ -609,9 +598,8 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 			    		else 
 			    		    tmp = _wcsdup(L"false");
 						if (tmp == NULL){
-							e.et = out_of_mem;
-							e.msg = "allocate string failed in funcExpr's evalString()";
-							Throw e;
+							throwException2(out_of_mem,
+								"allocate string failed in funcExpr's evalString()");
 						}
 						return tmp;
 					 } else {
@@ -633,9 +621,8 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 								tmp = malloc(sizeof(UCSChar)<<8);
 		
 							if (tmp == NULL) {
-									e.et = out_of_mem;
-									e.msg = "allocate string failed in funcExpr's evalString()";
-									Throw e;
+									throwException2(out_of_mem,
+										"allocate string failed in funcExpr's evalString()");
 							}
 							if(b)
 								return tmp;
@@ -652,50 +639,43 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 
 /* evaluate boolean value of a functional expression*/
 Boolean evalBoolean_fne (funcExpr *fne,VTDNav *vn){
-	exception e;
 	switch(fne->opCode){
 			case FN_STARTS_WITH:			
 				if (argCount(fne)!=2){
-					e.et = invalid_argument;
-					e.msg = "starts-with()'s <funcExpr> argument count is invalid";
-					Throw e;
+					throwException2(invalid_argument,
+						"starts-with()'s <funcExpr> argument count is invalid");
 				}
 				return startsWith(fne,vn);
 
 			case FN_CONTAINS:
 				if (argCount(fne)!=2){
-					e.et = invalid_argument;
-					e.msg = "contains()'s <funcExpr> argument count is invalid";
-					Throw e;
+					throwException2(invalid_argument,
+						"contains()'s <funcExpr> argument count is invalid");
 				}
 				return contains(fne,vn);
 
 			case FN_TRUE: 
 				if (argCount(fne)!=0){
-					e.et = invalid_argument;
-					e.msg = "true()'s <funcExpr> argument count is invalid";
-					Throw e;
+					throwException2(invalid_argument,
+						"true()'s <funcExpr> argument count is invalid");
 				}
 				return TRUE;			
 			case FN_FALSE:
 				if (argCount(fne)!=0){
-					e.et = invalid_argument;
-					e.msg = "false()'s <funcExpr> argument count is invalid";
-					Throw e;
+					throwException2(invalid_argument,
+						"false()'s <funcExpr> argument count is invalid");
 				}						  
 				return FALSE;	
 			case FN_BOOLEAN:
 				if (argCount(fne)!=1){
-					e.et = invalid_argument;
-					e.msg = "boolean()'s <funcExpr> argument count is invalid";
-					Throw e;
+					throwException2(invalid_argument,
+						"boolean()'s <funcExpr> argument count is invalid");
 				}
 				return fne->al->e->evalBoolean(fne->al->e, vn);	
 			case FN_NOT:	
 				if (argCount(fne)!=1){
-					e.et = invalid_argument;
-					e.msg = "not()'s <funcExpr> argument count is invalid";
-					Throw e;
+					throwException2(invalid_argument,
+						"not()'s <funcExpr> argument count is invalid");
 				}
 				return !fne->al->e->evalBoolean(fne->al->e,vn);
 
@@ -801,14 +781,12 @@ static Boolean contains(funcExpr *fne, VTDNav *vn){
     return b;
 }
 static UCSChar* concat(funcExpr *fne, VTDNav *vn){	
-	exception e;
 	int totalLen = 0,len = 0,capacity = 16;
 	UCSChar *result = NULL, *s = NULL, *tempBuf = NULL;
 	result = malloc(sizeof(UCSChar)<<4);
 	if (result==NULL){
-		e.et = out_of_mem;
-		e.msg = "String allocation failed in concat";
-		Throw e;
+		throwException2(out_of_mem,
+			"String allocation failed in concat");
 	}
 	result[0]=0;/*end of string set*/
 	
@@ -827,9 +805,8 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 				if (result == NULL) {
 					free(tempBuf);
 					free(s);
-					e.et = out_of_mem;
-					e.msg = "String allocation failed in concat";
-					Throw e;
+					throwException2(out_of_mem,
+						"String allocation failed in concat");
 				}
 			}
 			wcscat(result,s);			
@@ -837,10 +814,8 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 		}
 		return result;
 	}
-	e.et = invalid_argument;							
-	e.msg = "concat()'s <funcExpr> argument count is invalid";
-	Throw e;
-
+	throwException2(invalid_argument,
+		"concat()'s <funcExpr> argument count is invalid");
 }
 static Boolean startsWith(funcExpr *fne, VTDNav *vn){
 	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
@@ -854,10 +829,8 @@ static Boolean startsWith(funcExpr *fne, VTDNav *vn){
     return b;
 }
 static UCSChar* subString(funcExpr *fne, VTDNav *vn){
-	exception e;
 	UCSChar *str;
 	int len;
-
 	if (argCount(fne)==2){
 		double d1;
 		int temp;
@@ -885,16 +858,14 @@ static UCSChar* subString(funcExpr *fne, VTDNav *vn){
 		*(str+temp2-temp1)=0;
 		return str;
 	}
-	e.et = invalid_argument;							
-	e.msg = "substring()'s <funcExpr> argument count is invalid";
-	Throw e;
+	throwException2(invalid_argument,
+		"substring()'s <funcExpr> argument count is invalid");
 }
 
 
 
 
 static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn){
-	exception e;
 	if (argCount(fne) == 2){
 		UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 		UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
@@ -910,13 +881,11 @@ static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn){
 			return s2;
 		}
 	}
-	e.et = invalid_argument;							
-	e.msg = "substring-before()'s <funcExpr> argument count is invalid";
-	Throw e;
+	throwException2(invalid_argument,
+		"substring-before()'s <funcExpr> argument count is invalid");
 }
 
 static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
-	exception e;
 	if (argCount(fne) == 2){
 		UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 		UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
@@ -935,16 +904,16 @@ static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
 			return s2;
 		}
 	}
-	e.et = invalid_argument;							
-	e.msg = "substring-after()'s <funcExpr> argument count is invalid";
-	Throw e;
+	throwException2(invalid_argument,
+		"substring-after()'s <funcExpr> argument count is invalid");
+
 }
 
 
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
-	exception e;
 	if (argCount(fne) == 0){
 		UCSChar *s = NULL;
+		exception e;
 		Try{
 			if (vn->atTerminal)
 			{
@@ -962,10 +931,10 @@ static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 		UCSChar *s = fne->al->e->evalString(fne->al->e, vn);
 		return normalize(s);
 	}
-
-	e.et = invalid_argument;							
-	e.msg = "normalize-space()'s <funcExpr> argument count is invalid";
-	Throw e;
+	{
+		throwException2(invalid_argument,
+			"normalize-space()'s <funcExpr> argument count is invalid");
+	}
 }
 
 static UCSChar* normalize(UCSChar *s){

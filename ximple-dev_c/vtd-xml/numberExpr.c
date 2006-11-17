@@ -19,12 +19,10 @@
 #include "xpath1.h"
 
 numberExpr *createNumberExpr (double d){
-	exception e;
 	numberExpr *n = (numberExpr*) malloc(sizeof(numberExpr));
 	if (n==NULL){
-		e.et = out_of_mem;
-		e.msg = "numberExpr allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"numberExpr allocation failed ");
 	}
 	n->freeExpr = &freeNumberExpr;
 	n->evalBoolean = &evalBoolean_ne;
@@ -50,10 +48,8 @@ void freeNumberExpr(numberExpr *ne){
 }
 
 int	evalNodeSet_ne (numberExpr *ne,VTDNav *vn){
-	exception e;
-	e.et = xpath_eval_exception;
-	e.msg = "numberExpr can't eval to a node set!";
-	Throw e;	
+	throwException2(xpath_eval_exception,
+		"numberExpr can't eval to a node set!");
 }
 
 double	evalNumber_ne (numberExpr *ne,VTDNav *vn){
@@ -61,28 +57,26 @@ double	evalNumber_ne (numberExpr *ne,VTDNav *vn){
 }
 
 UCSChar* evalString_ne  (numberExpr *ne,VTDNav *vn){
-	exception e;
 	Boolean b = FALSE;
 	double d = 0;
 	UCSChar *tmp;
 	if (ne->dval != ne->dval){
-		tmp = wcsdup(L"NaN");
+		tmp = _wcsdup(L"NaN");
 		b = TRUE;
 	}
 	else if ( ne->dval == 1/d){
-		tmp = wcsdup(L"Infinity");
+		tmp = _wcsdup(L"Infinity");
 		b= TRUE;
 	}
 	else if (ne->dval == -1/d){
-		tmp = wcsdup(L"-Infinity");
+		tmp = _wcsdup(L"-Infinity");
 		b = TRUE;
 	}	else 
 	tmp = malloc(sizeof(UCSChar)<<8);
 
 	if (tmp == NULL) {
-		e.et = out_of_mem;
-		e.msg = "string allocation in evalString_ne failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"string allocation in evalString_ne failed ");
 	}
 	if (b)
 		return tmp;

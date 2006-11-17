@@ -318,12 +318,10 @@ Boolean computeEQNE(binaryExpr *be, opType op,VTDNav *vn){
 }
 
 binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
-	exception e;
 	binaryExpr *be = malloc(sizeof(binaryExpr));
 	if (be == NULL){
-		e.et = out_of_mem;
-		e.msg = "binaryExpr allocation failed";
-		Throw e;
+		throwException2(out_of_mem,
+			"binaryExpr allocation failed");
 	}
 	be->freeExpr = &freeBinaryExpr;
 	be->evalBoolean = &evalBoolean_be;
@@ -393,7 +391,6 @@ double	evalNumber_be (binaryExpr *be,VTDNav *vn){
 
 
 UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
-	exception e;
 	double n = 0.0;
 	Boolean b = FALSE;
 	UCSChar *tmp;
@@ -414,9 +411,8 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 		tmp = malloc(sizeof(UCSChar)<<8);
 
 		if (tmp == NULL) {
-			e.et = out_of_mem;
-			e.msg = "string allocation in evalString_be failed ";
-			Throw e;
+			throwException2(out_of_mem,
+				"string allocation in evalString_be failed ");
 		}
 		if (b)
 			return tmp;
@@ -433,9 +429,8 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 		else
 			tmp= _wcsdup(L"false");
 		if (tmp == NULL){
-			e.et = out_of_mem;
-			e.msg = "String allocation failed in evalString_be";
-			Throw e;
+			throwException2(out_of_mem,
+				"String allocation failed in evalString_be");
 		}
 		return tmp;
 
@@ -526,13 +521,11 @@ void    toString_be(binaryExpr *be, UCSChar* string){
 }
 
 UCSChar* createEmptyString(){
-	exception e;
 	UCSChar* es =  malloc(sizeof(UCSChar));
 	if (es!=NULL){
 		es[0] = 0;
 		return es;
 	}
-	e.et = out_of_mem;
-	e.msg = "string allocation faild in createEmptyString ";
-	Throw e;
+	throwException2(out_of_mem, 
+		"string allocation faild in createEmptyString ");
 }

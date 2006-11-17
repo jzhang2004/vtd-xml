@@ -18,13 +18,11 @@
 #include "xpath1.h"
 
 unaryExpr *createUnaryExpr(opType op, expr *e1){
-	exception e;
 	unaryExpr* ue = (unaryExpr *)malloc(sizeof(unaryExpr));
 	if (ue == NULL){
 		//e1->freeExpr(e1);
-		e.et = out_of_mem;
-		e.msg = "unaryExpr allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"unaryExpr allocation failed ");
 	}
 	ue->freeExpr = &freeUnaryExpr;
 	ue->evalBoolean = &evalBoolean_ue;
@@ -52,10 +50,8 @@ void freeUnaryExpr(unaryExpr *ue){
 }
 
 int	evalNodeSet_ue (unaryExpr *ue,VTDNav *vn){
-	exception e;
-	e.et = xpath_eval_exception;
-	e.msg = "unaryExpr can't eval to a node set!";
-	Throw e;
+	throwException2(xpath_eval_exception,
+		"unaryExpr can't eval to a node set!");
 }
 
 double	evalNumber_ue (unaryExpr *ue,VTDNav *vn){
@@ -63,14 +59,12 @@ double	evalNumber_ue (unaryExpr *ue,VTDNav *vn){
 }
 
 UCSChar* evalString_ue  (unaryExpr *ue,VTDNav *vn){
-	exception e;
 	UCSChar *string1 = (ue->e->evalString)(ue->e,vn);
 	size_t len = wcslen(string1);
 	UCSChar *string = (UCSChar*) malloc((len+1)*sizeof(UCSChar));
 	if (string == NULL) {
-			e.et = out_of_mem;
-			e.msg = "allocate string failed in funcExpr's evalString()";
-			Throw e;
+			throwException2(out_of_mem,
+				"allocate string failed in funcExpr's evalString()");
 	}
 
 	swprintf(string,64,L"-%ls",string1);

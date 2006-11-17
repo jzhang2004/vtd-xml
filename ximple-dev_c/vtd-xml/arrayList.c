@@ -23,21 +23,19 @@
 // allocate arrayList with initial capacity of 10, 
 // throw exception if allocation failed
  ArrayList *createArrayList(){
-	exception e;
+	
 	int i=0;
 	ArrayList *al = (ArrayList*) malloc(sizeof(ArrayList));
 	if (al==NULL) {
-		e.et = out_of_mem;
-		e.msg = "ArrayList allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"ArrayList allocation failed ");
 	}
 	
 	al->storage = (void **)malloc(10 * sizeof(void *)); // initial capacity of 10;
 	if (al->storage == NULL){
-		free(al);
-		e.et = out_of_mem;
-		e.msg = "ArrayList allocation failed ";
-		Throw e;
+		free(al);		
+		throwException2(out_of_mem,
+			"ArrayList allocation failed ");
 	}
 	for ( i=0;i<10;i++){
 		al->storage[i] = NULL;
@@ -51,20 +49,16 @@
  // return NULL if allocation failed
 
  ArrayList *createArrayList2(int initialCapacity){
-	 exception e;
 	 int i;
 	ArrayList *al = (ArrayList*) malloc(sizeof(ArrayList));
 	if (al==NULL) {
-		e.et = out_of_mem;
-		e.msg = "ArrayList allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,"ArrayList allocation failed ");
 	}
 	al->storage = (void **)malloc(initialCapacity * sizeof(void *)); // initial capacity of 10;
 	if (al->storage == NULL){
-		free(al);
-		e.et = out_of_mem;
-		e.msg = "ArrayList allocation failed ";
-		Throw e;
+		free(al);		
+		throwException2(out_of_mem,
+			"ArrayList allocation failed ");
 	}
 
 	for (i=0;i<initialCapacity;i++)
@@ -88,7 +82,6 @@
 // return the status of add
 // 1 if ok, 0 if failed
  int add(ArrayList *al, void *element){
-	exception e;
 	int t = 0,k=0;
 	void **v=NULL;
 	if (al->size < al->capacity){
@@ -100,9 +93,8 @@
 		t = al->capacity + AL_GROW_INC;
 		v = (void **)malloc(t*sizeof(void *));
 		if (v==NULL) {
-			e.et = out_of_mem;
-			e.msg = "ArrayList add failed ";
-			Throw e;
+			throwException2(out_of_mem,
+				"ArrayList add failed ");
 		} // add failed
 	
 		
