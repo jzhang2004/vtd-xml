@@ -70,19 +70,16 @@ UCSChar *lookup(NsList *l, UCSChar *prefix){
 
 /*create AutoPilot throw exception if allocation failed*/
 AutoPilot *createAutoPilot(VTDNav *v){
-	exception e;
 	AutoPilot *ap = NULL;
 	if (v == NULL){
-		e.et = invalid_argument;
-		e.msg = " createAutoPilot failed: can't take NULL VTDNav pointer";
-		Throw e;
+		throwException2(invalid_argument,
+			" createAutoPilot failed: can't take NULL VTDNav pointer");
 	}
 
 	ap = (AutoPilot *)malloc(sizeof(AutoPilot));
 	if (ap == NULL){
-		e.et = out_of_mem;
-		e.msg = "createAutoPilot failed";
-		Throw e;
+		throwException2(out_of_mem,
+			"createAutoPilot failed");
 	}
     ap->elementName = NULL;
 	ap->localName = NULL;
@@ -101,13 +98,11 @@ AutoPilot *createAutoPilot(VTDNav *v){
 /* a argument-less constructor for autoPilot, 
    out_of_mem exception if allocation failed  */
 AutoPilot *createAutoPilot2(){
-	exception e;
 	AutoPilot *ap = NULL;
 	ap = (AutoPilot *)malloc(sizeof(AutoPilot));
 	if (ap == NULL){
-		e.et = out_of_mem;
-		e.msg = "createAutoPilot failed";
-		Throw e;
+		throwException2(out_of_mem,
+			"createAutoPilot failed");
 	}
     ap->elementName = NULL;
 	ap->localName = NULL;
@@ -122,7 +117,6 @@ AutoPilot *createAutoPilot2(){
 	ap->contextCopy = NULL;
 	ap->special = FALSE;
 	return ap;
-
 }
 
 /* free AutoPilot */
@@ -153,11 +147,9 @@ void printExprString(AutoPilot *ap){
 /* Select an attribute name for iteration, * choose all attributes of an element
    this function is not called directly */
 void selectAttr(AutoPilot *ap, UCSChar *an){
-	exception e;
 	if (an == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElement, elementName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElement, elementName can't be NULL");
 	}
 	ap->it= ATTR;
     ap->ft = TRUE;
@@ -167,11 +159,9 @@ void selectAttr(AutoPilot *ap, UCSChar *an){
 
 /* Select an attribute name, both local part and namespace URL part*/
 void selectAttrNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
-	exception e;
 	if (ln == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElement, localName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElement, localName can't be NULL");
 	}
 	ap->it = ATTR_NS;
     ap->ft = TRUE;
@@ -183,11 +173,9 @@ void selectAttrNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 
 /*Select the element name before iterating*/
 void selectElement(AutoPilot *ap, UCSChar *en){
-	exception e;
     if (en == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElement, elementName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElement, elementName can't be NULL");
 	 }
     ap->it = SIMPLE;
     ap->depth = getCurrentDepth(ap->vn);
@@ -200,11 +188,9 @@ void selectElement(AutoPilot *ap, UCSChar *en){
 // * URL, if set to null, indicates the namespace is undefined.
 // * localname, if set to *, matches any localname */
 void selectElementNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
-	exception e;
     if (ln == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElementNS, localName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElementNS, localName can't be NULL");
 	}
     ap->it = SIMPLE_NS;
     ap->depth = getCurrentDepth(ap->vn);
@@ -220,11 +206,9 @@ void selectElementNS(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
  * @param en
  */
 void selectElement_D(AutoPilot *ap, UCSChar *en){
-	exception e;
     if (en == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElement_D, elementName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElement_D, elementName can't be NULL");
 	 }
 	ap->it = DESCENDANT;
 	ap->depth = getCurrentDepth(ap->vn);
@@ -237,11 +221,9 @@ void selectElement_D(AutoPilot *ap, UCSChar *en){
  * Select all descendent elements along the Descendent axis, with ns awareness
  */
 void selectElementNS_D(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
-	exception e;
     if (ln == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElementNS_D, localName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElementNS_D, localName can't be NULL");
 	}
 	ap->it = DESCENDANT_NS;
     ap->depth = getCurrentDepth(ap->vn);
@@ -257,11 +239,9 @@ void selectElementNS_D(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
  * @param en
  */
 void selectElement_F(AutoPilot *ap, UCSChar *en){
-	exception e;
     if (en == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElement_F, elementName can't be NULL";
-		 Throw e;
+		throwException2( invalid_argument,
+			" invalid argument for selectElement_F, elementName can't be NULL");
 	 }
 	ap->it = FOLLOWING;
 	ap->ft = TRUE;
@@ -272,11 +252,9 @@ void selectElement_F(AutoPilot *ap, UCSChar *en){
  * Select all descendent elements along the following axis, with ns awareness
  */
 void selectElementNS_F(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
-	exception e;
     if (ln == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElementNS_F, localName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElementNS_F, localName can't be NULL");
 	}
 	ap->it = FOLLOWING_NS;
     ap->ft= TRUE;
@@ -292,11 +270,9 @@ void selectElementNS_F(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 void selectElement_P(AutoPilot *ap, UCSChar *en){
 	int i;
 	int a = sizeof(int)* ap->vn->nestingLevel;
-	exception e;
     if (en == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElement_P, elementName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElement_P, elementName can't be NULL");
 	 }
 	ap->depth = getCurrentDepth(ap->vn);
 	ap->it = PRECEDING;
@@ -317,11 +293,9 @@ void selectElement_P(AutoPilot *ap, UCSChar *en){
 void selectElementNS_P(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 	int i;
 	int a = sizeof(int)* ap->vn->nestingLevel;
-	exception e;
     if (ln == NULL){
-		 e.et = invalid_argument;
-		 e.msg = " invalid argument for selectElementNS_P, localName can't be NULL";
-		 Throw e;
+		 throwException2( invalid_argument,
+			 " invalid argument for selectElementNS_P, localName can't be NULL");
 	}
 	ap->depth = getCurrentDepth(ap->vn);
 	ap->it = PRECEDING_NS;
@@ -348,7 +322,6 @@ void setSpecial(AutoPilot *ap, Boolean b){
 
 /*Iterate over all the selected element nodes in document order.*/
 Boolean iterateAP(AutoPilot *ap){
-	exception e;
 	switch (ap->it) {
 		case SIMPLE :
 			if (ap->vn->atTerminal)
@@ -431,16 +404,13 @@ Boolean iterateAP(AutoPilot *ap){
          	    return FALSE;
          	return iterate_precedingNS(ap->vn, ap->URL,ap->localName,ap->contextCopy);
 		default :
-			
-			e.et = pilot_exception;
-			e.msg = "unknow iteration type for iterateAP";
-			Throw e;
+			throwException2(pilot_exception,
+				"unknow iteration type for iterateAP");
 	}
 }
 
 /* This method implements the attribute axis for XPath*/
 int iterateAttr(AutoPilot *ap){
-	exception e;
 	int i;
 	switch(ap->it){
 			case ATTR:
@@ -501,9 +471,8 @@ int iterateAttr(AutoPilot *ap){
 						return -1;
 				} 
 			default:
-				e.et = pilot_exception;
-				e.msg = "unknow iteration type for iterateAP";
-				Throw e;
+				throwException2(pilot_exception,
+					"unknow iteration type for iterateAP");
 	}
 	
 }
@@ -513,11 +482,10 @@ int iterateAttr(AutoPilot *ap){
  * Usually evalXPath is called afterwards
  */
 Boolean selectXPath(AutoPilot *ap, UCSChar *s){
-	exception e;
+	
 	if (s==NULL){
-		e.et = xpath_parse_exception;
-		e.msg = " xpath input string can't be NULL ";
-		Throw e;
+		throwException2(xpath_parse_exception,
+			" xpath input string can't be NULL ");
 	}
 	if(ap->xpe!=NULL)
 		ap->xpe->freeExpr(ap->xpe);
@@ -539,14 +507,14 @@ Boolean evalXPathToBoolean(AutoPilot *ap){
  * Evaluate XPath to a String
  */
 UCSChar* evalXPathToString(AutoPilot *ap){
-	ap->xpe->evalString(ap->xpe,ap->vn);
+	return ap->xpe->evalString(ap->xpe,ap->vn);
 }
 
 /* 
  * Evaluate XPath to a number
  */
 double evalXPathToNumber(AutoPilot *ap){
-	ap->xpe->evalNumber(ap->xpe,ap->vn);
+	return ap->xpe->evalNumber(ap->xpe,ap->vn);
 }
 
 /*
