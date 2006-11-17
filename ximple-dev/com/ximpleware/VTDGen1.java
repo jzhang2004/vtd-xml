@@ -1178,6 +1178,7 @@ public class VTDGen1 {
 							break;
 						case '?':
 						    parser_state = process_qm_seen();
+						    break;
 						case '!': // three possibility (comment, CDATA, DOCTYPE)
 						    parser_state = process_ex_seen();
 							break;
