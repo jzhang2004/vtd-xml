@@ -21,13 +21,11 @@
 
 /* the constructor */
 IntHash* createIntHash(){
-	exception e;
 	int i=0;
 	IntHash *ih = (IntHash *) malloc(sizeof(IntHash));
 	if (ih==NULL) {
-		e.et = out_of_mem;
-		e.msg = "IntHash allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,
+			"IntHash allocation failed ");
 	}
 	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)<<ih_hashWidthE);
 	ih->hw = ih_hashWidth;
@@ -40,6 +38,25 @@ IntHash* createIntHash(){
 		ih->storage[i]= NULL;
 	}
 
+	return ih;
+}
+IntHash* createIntHash2(int hashWidthExpo){
+	int i=0;
+	IntHash *ih = (IntHash *) malloc(sizeof(IntHash));
+	if (ih==NULL) {
+		throwException2(out_of_mem,
+			"IntHash allocation failed ");
+	}
+	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)<<ih_hashWidthE);
+	ih->hw = 1<<hashWidthExpo;
+	ih->m1 = ih->hw -1;
+	ih->m2 = (~ih->m1) & 0xffffffff;
+	ih->maxDepth = 0;
+	ih->pse = ih_pageSizeE;
+	/* initialize everything to null */
+	for (i=0;i<ih->hw;i++){
+		ih->storage[i]= NULL;
+	}
 	return ih;
 }
 /* free intHash */
@@ -57,7 +74,6 @@ void freeIntHash(IntHash *ih){
    if not, insert into the hash table and return false
    otherwise, return true */
 Boolean isUniqueIntHash(IntHash *ih,int i){
-	exception e;
 	int j,size;
 	int temp = i & ih->m1;
 	if (temp>ih->maxDepth){
@@ -66,9 +82,8 @@ Boolean isUniqueIntHash(IntHash *ih,int i){
 	if (ih->storage[temp]==NULL) {
 		ih->storage[temp]= createFastIntBuffer2(ih->pse);
 		if (ih->storage[temp]==NULL) {
-			e.et = out_of_mem;
-			e.msg = "FastIntBuffer allocation failed ";
-			Throw e;
+			throwException2(out_of_mem,
+				"FastIntBuffer allocation failed ");
 		}
 		appendInt(ih->storage[temp],i);
 		return TRUE;
@@ -93,4 +108,12 @@ void resetIntHash(IntHash *ih){
 			clearFastIntBuffer(ih->storage[i]);
 		}
 	}
+}
+
+int determineHashWidth(int i){
+	if (i<(1<<9))
+		return 6;
+	if (i<(1<<13))
+		return 9;		
+	return 12;
 }
