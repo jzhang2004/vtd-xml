@@ -383,24 +383,23 @@ namespace com.ximpleware
             }
         }
         // internal parser state
-        private const int STATE_DOC_START = 0; // beginning of document
-        private const int STATE_DOC_END = 1; // end of document
-        private const int STATE_LT_SEEN = 2; // encounter the first <
-        private const int STATE_START_TAG = 3;
-        private const int STATE_END_TAG = 4;
-        private const int STATE_UNRECORDED_TEXT = 5;
-        private const int STATE_TEXT = 6;
-        private const int STATE_PI_TAG = 7;
-        private const int STATE_PI_VAL = 8;
-        private const int STATE_DEC_ATTR_NAME = 9;
-        private const int STATE_ATTR_NAME = 10;
-        private const int STATE_ATTR_VAL = 11;
-        private const int STATE_COMMENT = 12;
-        private const int STATE_CDATA = 13;
-        private const int STATE_DOCTYPE = 14;
-        private const int STATE_END_COMMENT = 15;
+        private const int STATE_LT_SEEN = 0; // encounter the first <
+        private const int STATE_START_TAG = 1;
+        private const int STATE_END_TAG = 2;
+        private const int STATE_ATTR_NAME = 3;
+        private const int STATE_ATTR_VAL = 4;
+        private const int STATE_TEXT = 5;
+        private const int STATE_DOC_START = 6; // beginning of document
+        private const int STATE_DOC_END = 7; // end of document 
+        private const int STATE_PI_TAG = 8;
+        private const int STATE_PI_VAL = 9;
+        private const int STATE_DEC_ATTR_NAME = 10;
+        private const int STATE_COMMENT = 11;
+        private const int STATE_CDATA = 12;
+        private const int STATE_DOCTYPE = 13;
+        private const int STATE_END_COMMENT = 14;
         // comment appear after the last ending tag
-        private const int STATE_END_PI = 16;
+        private const int STATE_END_PI = 15;
         //private final static int STATE_END_PI_VAL = 17;
 
         // token type
@@ -1348,7 +1347,6 @@ namespace com.ximpleware
             bool is_ns = false;
             encoding = FORMAT_UTF8;
             bool helper = false;
-            bool hasDTD = false;//, docEnd = false;
             //char char_temp; //holds the ' or " indicating start of attr val
             //boolean must_utf_8 = false;
 
@@ -1374,57 +1372,6 @@ namespace com.ximpleware
                     switch (parser_state)
                     {
 
-                        case STATE_DOC_START:
-                            if (Char == '<')
-                            {
-                                temp_offset = offset;
-                                // xml decl has to be right after the start of the
-                                // document
-                                if (skipChar('?') && (skipChar('x') || skipChar('X')) && (skipChar('m') || skipChar('M')) && (skipChar('l') || skipChar('L')))
-                                {
-                                    if (skipChar(' ') || skipChar('\t') || skipChar('\n') || skipChar('\r'))
-                                    {
-                                        ch = getCharAfterS();
-                                        temp_offset = offset;
-                                        parser_state = STATE_DEC_ATTR_NAME;
-                                        break;
-                                    }
-                                    else if (skipChar('?'))
-                                        throw new ParseException("Error in XML decl: premature ending" + formatLineNumber());
-                                }
-                                offset = temp_offset;
-                                parser_state = STATE_LT_SEEN;
-                                break;
-                            }
-                            throw new ParseException("Other Error: XML not starting properly" + formatLineNumber());
-
-
-                        case STATE_DOC_END:
-                            //docEnd = true;
-                            ch = getCharAfterS();
-                            // eof exception should be thrown here for premature ending
-                            if (ch == '<')
-                            {
-
-                                if (skipChar('?'))
-                                {
-                                    // processing instruction after end tag of root
-                                    // element
-                                    temp_offset = offset;
-                                    parser_state = STATE_END_PI;
-                                    break;
-                                }
-                                else if (skipChar('!') && skipChar('-') && skipChar('-'))
-                                {
-                                    // comments allowed after the end tag of the root
-                                    // element
-                                    temp_offset = offset;
-                                    parser_state = STATE_END_COMMENT;
-                                    break;
-                                }
-                            }
-                            throw new ParseException("Other Error: XML not terminated properly" + formatLineNumber());
-
 
                         case STATE_LT_SEEN:  //if (depth < -1)
                             //    throw new ParseException("Other Errors: Invalid depth");
@@ -1449,80 +1396,10 @@ namespace com.ximpleware
                                         break;
 
                                     case '?':
-                                        temp_offset = offset;
-                                        ch = Char;
-                                        if (XMLChar.isNameStartChar(ch))
-                                        {
-                                            //temp_offset = offset;
-                                            if ((ch == 'x' || ch == 'X') && (skipChar('m') || skipChar('M')) && (skipChar('l') || skipChar('L')))
-                                            {
-                                                ch = Char;
-                                                if (ch == '?' || XMLChar.isSpaceChar(ch))
-                                                    throw new ParseException("Error in PI: [xX][mM][lL] not a valid PI targetname" + formatLineNumber());
-                                                offset = PrevOffset;
-                                            }
-
-                                            parser_state = STATE_PI_TAG;
-                                            break;
-                                        }
-
-                                        throw new ParseException("Other Error: First char after <? invalid" + formatLineNumber());
-
-
+                                        parser_state = process_qm_seen();
+                                        break;
                                     case '!':  // three possibility (comment, CDATA, DOCTYPE)
-                                        ch = Char;
-                                        switch (ch)
-                                        {
-
-                                            case '-':
-                                                if (skipChar('-'))
-                                                {
-                                                    temp_offset = offset;
-                                                    parser_state = STATE_COMMENT;
-                                                    break;
-                                                }
-                                                else
-                                                    throw new ParseException("Error in comment: Invalid char sequence to start a comment" + formatLineNumber());
-                                            //goto case '[';
-
-                                            case '[':
-                                                if (skipChar('C') && skipChar('D') && skipChar('A') && skipChar('T') && skipChar('A') && skipChar('[') && (depth != -1))
-                                                {
-                                                    temp_offset = offset;
-                                                    parser_state = STATE_CDATA;
-                                                    break;
-                                                }
-                                                else
-                                                {
-                                                    if (depth == -1)
-                                                        throw new ParseException("Error in CDATA: Wrong place for CDATA" + formatLineNumber());
-                                                    throw new ParseException("Error in CDATA: Invalid char sequence for CDATA" + formatLineNumber());
-                                                }
-                                            //goto case 'D';
-
-
-                                            case 'D':
-                                                if (skipChar('O') && skipChar('C') && skipChar('T') && skipChar('Y') && skipChar('P') && skipChar('E') && (depth == -1) && !hasDTD)
-                                                {
-                                                    hasDTD = true;
-                                                    temp_offset = offset;
-                                                    parser_state = STATE_DOCTYPE;
-                                                    break;
-                                                }
-                                                else
-                                                {
-                                                    if (hasDTD == true)
-                                                        throw new ParseException("Error for DOCTYPE: Only DOCTYPE allowed" + formatLineNumber());
-                                                    if (depth != -1)
-                                                        throw new ParseException("Error for DOCTYPE: DTD at wrong place" + formatLineNumber());
-                                                    throw new ParseException("Error for DOCTYPE: Invalid char sequence for DOCTYPE" + formatLineNumber());
-                                                }
-                                            //goto default;
-
-                                            default:
-                                                throw new ParseException("Other Error: Unrecognized char after <!" + formatLineNumber());
-
-                                        }
+                                        parser_state = process_ex_seen();
                                         break;
 
                                     default:
@@ -1711,89 +1588,6 @@ namespace com.ximpleware
                             else
                                 parser_state = STATE_DOC_END;
                             break;
-
-
-                        case STATE_UNRECORDED_TEXT:
-                            break;
-
-
-                        case STATE_PI_TAG:
-                            parser_state = process_pi_tag();
-                            break;
-
-                        //throw new ParseException("Error in PI: Invalid char");
-
-                        case STATE_PI_VAL:
-                            parser_state = process_pi_val();
-                            break;
-
-
-                        case STATE_DEC_ATTR_NAME:
-                            parser_state = process_dec_attr();
-                            break;
-
-
-                        case STATE_COMMENT:
-                            parser_state = process_comment();
-                            break;
-
-
-                        case STATE_CDATA:
-                            parser_state = process_cdata();
-                            break;
-
-
-                        case STATE_DOCTYPE:
-                            parser_state = process_doc_type();
-                            break;
-
-
-                        case STATE_TEXT:
-                            if (depth == -1)
-                                throw new ParseException("Error in text content: Char data at the wrong place" + formatLineNumber());
-                            while (true)
-                            {
-                                ch = Char;
-                                if (XMLChar.isContentChar(ch))
-                                {
-                                }
-                                else if (ch == '&')
-                                {
-                                    //has_amp = true;
-                                    if (!XMLChar.isValidChar(entityIdentifier()))
-                                        throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
-                                    //parser_state = STATE_TEXT;
-                                }
-                                else if (ch == '<')
-                                {
-                                    break;
-                                }
-                                else if (ch == ']')
-                                {
-                                    if (skipChar(']'))
-                                    {
-                                        while (skipChar(']'))
-                                        {
-                                        }
-                                        if (skipChar('>'))
-                                            throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-                                    }
-                                }
-                                else
-                                    throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
-                            }
-                            length1 = offset - increment - temp_offset;
-
-                            if (encoding < FORMAT_UTF_16BE)
-                                writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
-                            else
-                                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA, depth);
-
-                            //has_amp = true;
-                            parser_state = STATE_LT_SEEN;
-                            break;
-
-
                         case STATE_ATTR_NAME:
 
                             if (ch == 'x')
@@ -2021,6 +1815,97 @@ namespace com.ximpleware
                             throw new ParseException("Starting tag Error: Invalid char in starting tag" + formatLineNumber());
 
 
+                        case STATE_TEXT:
+                            if (depth == -1)
+                                throw new ParseException("Error in text content: Char data at the wrong place" + formatLineNumber());
+                            while (true)
+                            {
+                                ch = Char;
+                                if (XMLChar.isContentChar(ch))
+                                {
+                                }
+                                else if (ch == '&')
+                                {
+                                    //has_amp = true;
+                                    if (!XMLChar.isValidChar(entityIdentifier()))
+                                        throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
+                                    //parser_state = STATE_TEXT;
+                                }
+                                else if (ch == '<')
+                                {
+                                    break;
+                                }
+                                else if (ch == ']')
+                                {
+                                    if (skipChar(']'))
+                                    {
+                                        while (skipChar(']'))
+                                        {
+                                        }
+                                        if (skipChar('>'))
+                                            throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                                    }
+                                }
+                                else
+                                    throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
+                            }
+                            length1 = offset - increment - temp_offset;
+
+                            if (encoding < FORMAT_UTF_16BE)
+                                writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
+                            else
+                                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA, depth);
+
+                            //has_amp = true;
+                            parser_state = STATE_LT_SEEN;
+                            break;
+
+                        case STATE_DOC_START:
+                            parser_state = process_start_doc();
+                            break;
+
+
+                        case STATE_DOC_END:
+                            //docEnd = true;
+                            ch = getCharAfterS();
+                            // eof exception should be thrown here for premature ending
+                            parser_state = process_end_doc();
+                            break;
+
+                        case STATE_PI_TAG:
+                            parser_state = process_pi_tag();
+                            break;
+
+                        //throw new ParseException("Error in PI: Invalid char");
+
+                        case STATE_PI_VAL:
+                            parser_state = process_pi_val();
+                            break;
+
+
+                        case STATE_DEC_ATTR_NAME:
+                            parser_state = process_dec_attr();
+                            break;
+
+
+                        case STATE_COMMENT:
+                            parser_state = process_comment();
+                            break;
+
+
+                        case STATE_CDATA:
+                            parser_state = process_cdata();
+                            break;
+
+
+                        case STATE_DOCTYPE:
+                            parser_state = process_doc_type();
+                            break;
+
+
+
+
+ 
                         case STATE_END_PI:
                             parser_state = process_end_pi();
                             break;
@@ -2604,6 +2489,89 @@ namespace com.ximpleware
             parser_state = STATE_PI_VAL;
             return parser_state;
         }
+
+        private int process_qm_seen()
+        {
+
+            temp_offset = offset;
+            ch = Char;
+            if (XMLChar.isNameStartChar(ch))
+            {
+                //temp_offset = offset;
+                if ((ch == 'x' || ch == 'X') && (skipChar('m') || skipChar('M')) && (skipChar('l') || skipChar('L')))
+                {
+                    ch = Char;
+                    if (ch == '?' || XMLChar.isSpaceChar(ch))
+                        throw new ParseException("Error in PI: [xX][mM][lL] not a valid PI targetname" + formatLineNumber());
+                    offset = PrevOffset;
+                }
+
+                return STATE_PI_TAG;
+            }
+
+            throw new ParseException("Other Error: First char after <? invalid" + formatLineNumber());
+
+        }
+
+        private int process_ex_seen()
+        {
+            int parser_state;
+            bool hasDTD = false;
+            ch = Char;
+            switch (ch)
+            {
+
+                case '-':
+                    if (skipChar('-'))
+                    {
+                        temp_offset = offset;
+                        parser_state = STATE_COMMENT;
+                        break;
+                    }
+                    else
+                        throw new ParseException("Error in comment: Invalid char sequence to start a comment" + formatLineNumber());
+                //goto case '[';
+
+                case '[':
+                    if (skipChar('C') && skipChar('D') && skipChar('A') && skipChar('T') && skipChar('A') && skipChar('[') && (depth != -1))
+                    {
+                        temp_offset = offset;
+                        parser_state = STATE_CDATA;
+                        break;
+                    }
+                    else
+                    {
+                        if (depth == -1)
+                            throw new ParseException("Error in CDATA: Wrong place for CDATA" + formatLineNumber());
+                        throw new ParseException("Error in CDATA: Invalid char sequence for CDATA" + formatLineNumber());
+                    }
+                //goto case 'D';
+
+
+                case 'D':
+                    if (skipChar('O') && skipChar('C') && skipChar('T') && skipChar('Y') && skipChar('P') && skipChar('E') && (depth == -1) && !hasDTD)
+                    {
+                        hasDTD = true;
+                        temp_offset = offset;
+                        parser_state = STATE_DOCTYPE;
+                        break;
+                    }
+                    else
+                    {
+                        if (hasDTD == true)
+                            throw new ParseException("Error for DOCTYPE: Only DOCTYPE allowed" + formatLineNumber());
+                        if (depth != -1)
+                            throw new ParseException("Error for DOCTYPE: DTD at wrong place" + formatLineNumber());
+                        throw new ParseException("Error for DOCTYPE: Invalid char sequence for DOCTYPE" + formatLineNumber());
+                    }
+                //goto default;
+
+                default:
+                    throw new ParseException("Other Error: Unrecognized char after <!" + formatLineNumber());
+
+            }
+            return parser_state;
+        }
         /// <summary> This private method processes PI val </summary>
         /// <returns> the parser state after which the parser loop jumps to
         /// </returns>
@@ -2683,6 +2651,55 @@ namespace com.ximpleware
             else
                 throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
             return parser_state;
+        }
+
+
+        private int process_start_doc()
+        {
+            if (Char == '<')
+            {
+                temp_offset = offset;
+                // xml decl has to be right after the start of the
+                // document
+                if (skipChar('?') && (skipChar('x') || skipChar('X')) && (skipChar('m') || skipChar('M')) && (skipChar('l') || skipChar('L')))
+                {
+                    if (skipChar(' ') || skipChar('\t') || skipChar('\n') || skipChar('\r'))
+                    {
+                        ch = getCharAfterS();
+                        temp_offset = offset;
+                        return STATE_DEC_ATTR_NAME;
+                    }
+                    else if (skipChar('?'))
+                        throw new ParseException("Error in XML decl: premature ending" + formatLineNumber());
+                }
+                offset = temp_offset;
+                return STATE_LT_SEEN;
+            }
+            throw new ParseException("Other Error: XML not starting properly" + formatLineNumber());
+
+        }
+        private int process_end_doc()
+        {
+            if (ch == '<')
+            {
+
+                if (skipChar('?'))
+                {
+                    // processing instruction after end tag of root
+                    // element
+                    temp_offset = offset;
+                    return STATE_END_PI;
+                }
+                else if (skipChar('!') && skipChar('-') && skipChar('-'))
+                {
+                    // comments allowed after the end tag of the root
+                    // element
+                    temp_offset = offset;
+                    return STATE_END_COMMENT;
+                }
+            }
+            throw new ParseException("Other Error: XML not terminated properly" + formatLineNumber());
+
         }
         /// <summary> This private method process comment</summary>
         /// <returns> the parser state after which the parser loop jumps to

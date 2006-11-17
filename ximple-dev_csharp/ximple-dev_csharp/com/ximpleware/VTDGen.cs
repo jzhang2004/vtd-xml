@@ -170,24 +170,24 @@ namespace com.ximpleware
 
 		}
 		// internal parser state
-		private const int STATE_DOC_START = 0; // beginning of document
-		private const int STATE_DOC_END = 1; // end of document 
-		private const int STATE_LT_SEEN = 2; // encounter the first <
-		private const int STATE_START_TAG = 3;
-		private const int STATE_END_TAG = 4;
-		private const int STATE_UNRECORDED_TEXT = 5;
-		private const int STATE_TEXT = 6;
-		private const int STATE_PI_TAG = 7;
-		private const int STATE_PI_VAL = 8;
-		private const int STATE_DEC_ATTR_NAME = 9;
-		private const int STATE_ATTR_NAME = 10;
-		private const int STATE_ATTR_VAL = 11;
-		private const int STATE_COMMENT = 12;
-		private const int STATE_CDATA = 13;
-		private const int STATE_DOCTYPE = 14;
-		private const int STATE_END_COMMENT = 15;
+
+		private const int STATE_LT_SEEN = 0; // encounter the first <
+		private const int STATE_START_TAG = 1;
+		private const int STATE_END_TAG = 2;
+        private const int STATE_ATTR_NAME = 3;
+        private const int STATE_ATTR_VAL = 4;
+		private const int STATE_TEXT = 5;
+        private const int STATE_DOC_START = 6; // beginning of document
+        private const int STATE_DOC_END = 7; // end of document 
+		private const int STATE_PI_TAG = 8;
+		private const int STATE_PI_VAL = 9;
+		private const int STATE_DEC_ATTR_NAME = 10;
+		private const int STATE_COMMENT = 11;
+		private const int STATE_CDATA = 12;
+		private const int STATE_DOCTYPE = 13;
+		private const int STATE_END_COMMENT = 14;
 		// comment appear after the last ending tag
-		private const int STATE_END_PI = 16;
+		private const int STATE_END_PI = 15;
 		//private final static int STATE_END_PI_VAL = 17;
 		
 		// token type
@@ -1905,698 +1905,584 @@ namespace com.ximpleware
 		/// <throws>  EOFException End of file exception.     </throws>
 		/// <throws>  EntityException Entity resolution exception. </throws>
 		/// <throws>  EncodingException UTF/native encoding exception. </throws>
-		public void  parse(bool NS)
-		{
-			
-			// define internal variables	
-			ns = NS;
-			int length1 = 0, length2 = 0;
-			int attr_count = 0;
-			int parser_state = STATE_DOC_START;
-			//boolean has_amp = false; 
-			bool is_ns = false;
-			encoding = FORMAT_UTF8;
-			bool helper = false;
-			bool main_loop = true, hasDTD = false;
-			//char char_temp; //holds the ' or " indicating start of attr val
-			//boolean must_utf_8 = false;
-			//boolean BOM_detected = false;
-			//long[] tag_stack = new long[256];
-			//long[] attr_name_array = new long[512]; // 512 attributes limit
-			//ASCII UTF-8 UTF-16 UTF-16BE UTF-16LE ISO-8859-1
-			//
-			//int[] scratch_buffer = new int[10];
-			
-			// first check first several bytes to figure out the encoding
-			decide_encoding();
-			
-			// enter the main finite state machine
-			try
-			{
-				writeVTD(0, 0, TOKEN_DOCUMENT, depth);
-				while (main_loop)
-				{
-					switch (parser_state)
-					{
-						
-						case STATE_DOC_START: 
-							if (r.Char == '<')
-							{
-								temp_offset = offset;
-								// xml decl has to be right after the start of the document
-								if (r.skipChar('?') && (r.skipChar('x') || r.skipChar('X')) && (r.skipChar('m') || r.skipChar('M')) && (r.skipChar('l') || r.skipChar('L')))
-								{
-									if (r.skipChar(' ') || r.skipChar('\t') || r.skipChar('\n') || r.skipChar('\r'))
-									{
-										ch = CharAfterS;
-										temp_offset = offset;
-										parser_state = STATE_DEC_ATTR_NAME;
-										break;
-									}
-									else if (r.skipChar('?'))
-										throw new ParseException("Error in XML decl: Premature ending" + formatLineNumber());
-								}
-								offset = temp_offset;
-								parser_state = STATE_LT_SEEN;
-								break;
-							}
-							throw new ParseException("Other Error: XML not starting properly" + formatLineNumber());
-						
-						
-						case STATE_DOC_END: 
-							//docEnd = true;
-							ch = CharAfterS;
-							// eof exception should be thrown here for premature ending
-							if (ch == '<')
-							{
-								
-								if (r.skipChar('?'))
-								{
-									// processing instruction after end tag of root element
-									temp_offset = offset;
-									parser_state = STATE_END_PI;
-									break;
-								}
-								else if (r.skipChar('!') && r.skipChar('-') && r.skipChar('-'))
-								{
-									// comments allowed after the end tag of the root element
-									temp_offset = offset;
-									parser_state = STATE_END_COMMENT;
-									break;
-								}
-							}
-							throw new ParseException("Other Error: XML not terminated properly" + formatLineNumber());
-						
-						
-						case STATE_LT_SEEN:  //if (depth < -1)
-							//    throw new ParseException("Other Errors: Invalid depth");
-							temp_offset = offset;
-							ch = r.Char;
-							if (XMLChar.isNameStartChar(ch))
-							{
-								//temp_offset = offset;
-								//length1++;
-								depth++;
-								//if (ch == ':')
-								//   length2 = 0;
-								parser_state = STATE_START_TAG;
-							}
-							else
-							{
-								switch (ch)
-								{
-									
-									case '/': 
-										parser_state = STATE_END_TAG;
-										break;
-									
-									case '?': 
-										temp_offset = offset;
-										ch = r.Char;
-										if (XMLChar.isNameStartChar(ch))
-										{
-											//temp_offset = offset;
-											if ((ch == 'x' || ch == 'X') && (r.skipChar('m') || r.skipChar('M')) && (r.skipChar('l') || r.skipChar('L')))
-											{
-												ch = r.Char;
-												if (ch == '?' || XMLChar.isSpaceChar(ch))
-													throw new ParseException("Error in PI: [xX][mM][lL] not a valid PI targetname" + formatLineNumber());
-												offset = PrevOffset;
-											}
-											
-											parser_state = STATE_PI_TAG;
-											break;
-										}
-										
-										throw new ParseException("Other Error: First char after <? invalid" + formatLineNumber());
-									
-									
-									case '!':  // three possibility (comment, CDATA, DOCTYPE)
-										ch = r.Char;
-										switch (ch)
-										{
-											
-											case '-': 
-												if (r.skipChar('-'))
-												{
-													temp_offset = offset;
-													parser_state = STATE_COMMENT;
-													break;
-												}
-												else
-													throw new ParseException("Error in comment: Invalid char sequence to start a comment" + formatLineNumber());
-												//goto case '[';
-											
-											case '[': 
-												if (r.skipChar('C') && r.skipChar('D') && r.skipChar('A') && r.skipChar('T') && r.skipChar('A') && r.skipChar('[') && (depth != - 1))
-												{
-													temp_offset = offset;
-													parser_state = STATE_CDATA;
-													break;
-												}
-												else
-												{
-													if (depth == - 1)
-														throw new ParseException("Error in CDATA: Wrong place for CDATA" + formatLineNumber());
-													throw new ParseException("Error in CDATA: Invalid char sequence for CDATA" + formatLineNumber());
-												}
-												//goto case 'D';
-											
-											
-											case 'D': 
-												if (r.skipChar('O') && r.skipChar('C') && r.skipChar('T') && r.skipChar('Y') && r.skipChar('P') && r.skipChar('E') && (depth == - 1) && !hasDTD)
-												{
-													hasDTD = true;
-													temp_offset = offset;
-													parser_state = STATE_DOCTYPE;
-													break;
-												}
-												else
-												{
-													if (hasDTD == true)
-														throw new ParseException("Error for DOCTYPE: Only DOCTYPE allowed" + formatLineNumber());
-													if (depth != - 1)
-														throw new ParseException("Error for DOCTYPE: DTD at wrong place" + formatLineNumber());
-													throw new ParseException("Error for DOCTYPE: Invalid char sequence for DOCTYPE" + formatLineNumber());
-												}
-												//goto default;
-											
-											default: 
-												throw new ParseException("Other Error: Unrecognized char after <!" + formatLineNumber());
-											
-										}
-										break;
-									
-									default: 
-										throw new ParseException("Other Error: Invalid char after <" + formatLineNumber());
-									
-								}
-							}
-							break;
-						
-						
-						case STATE_START_TAG:  //name space is handled by
-							while (true)
-							{
-								ch = r.Char;
-								if (XMLChar.isNameChar(ch))
-								{
-									if (ch == ':')
-									{
-										length2 = offset - temp_offset - increment;
-									}
-								}
-								else
-									break;
-							}
-							length1 = offset - temp_offset - increment;
-							if (depth > MAX_DEPTH)
-							{
-								throw new ParseException("Other Error: Depth exceeds MAX_DEPTH" + formatLineNumber());
-							}
-							//writeVTD(offset, TOKEN_STARTING_TAG, length2:length1, depth)
-							long x = ((long) length1 << 32) + temp_offset;
-							tag_stack[depth] = x;
-							
-							// System.out.println(
-							//     " " + (temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
-							if (depth > VTDDepth)
-								VTDDepth = depth;
-							if (encoding < FORMAT_UTF_16BE)
-							{
-								if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
-									throw new ParseException("Token Length Error: Starting tag prefix or qname length too long" + formatLineNumber());
-								writeVTD((temp_offset), (length2 << 11) | length1, TOKEN_STARTING_TAG, depth);
-							}
-							else
-							{
-								if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
-									throw new ParseException("Token Length Error: Starting tag prefix or qname length too long" + formatLineNumber());
-								writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG, depth);
-							}
-							//offset += length1;
-							length2 = 0;
-							if (XMLChar.isSpaceChar(ch))
-							{
-								ch = CharAfterS;
-								if (XMLChar.isNameStartChar(ch))
-								{
-									// seen an attribute here
-									temp_offset = PrevOffset;
-									parser_state = STATE_ATTR_NAME;
-									break;
-								}
-							}
-							helper = true;
-							if (ch == '/')
-							{
-								depth--;
-								helper = false;
-								ch = r.Char;
-							}
-							if (ch == '>')
-							{
-								if (depth != - 1)
-								{
-									temp_offset = offset;
-									ch = CharAfterSe; // consume WSs
-									if (ch == '<')
-									{
-										parser_state = STATE_LT_SEEN;
-										if (r.skipChar('/'))
-										{
-											if (helper == true)
-											{
-												length1 = offset - temp_offset - (increment << 1);
-												//if (length1 > 0)
-												//{
-													if (encoding < FORMAT_UTF_16BE)
-														writeVTD((temp_offset), length1, TOKEN_CHARACTER_DATA, depth);
-													else
-														writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_CHARACTER_DATA, depth);
-												//}
-											}
-											parser_state = STATE_END_TAG;
-											break;
-										}
-									}
-									else if (XMLChar.isContentChar(ch))
-									{
-										//temp_offset = offset;
-										parser_state = STATE_TEXT;
-									}
-									else if (ch == '&')
-									{
-										//has_amp = true;
-										//temp_offset = offset;
-										entityIdentifier();
-										parser_state = STATE_TEXT;
-									}
-									else if (ch == ']')
-									{
-										if (r.skipChar(']'))
-										{
-											while (r.skipChar(']'))
-											{
-											}
-											if (r.skipChar('>'))
-												throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-										}
-										parser_state = STATE_TEXT;
-									}
-									else
-										throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
-								}
-								else
-								{
-									parser_state = STATE_DOC_END;
-								}
-								break;
-							}
-							throw new ParseException("Starting tag Error: Invalid char in starting tag" + formatLineNumber());
-						
-						
-						case STATE_END_TAG: 
-							temp_offset = offset;
-							int sos = (int) tag_stack[depth];
-							int sl = (int) (tag_stack[depth] >> 32);
-							
-							offset = temp_offset + sl;
-							
-							if (offset >= endOffset)
-								throw new EOFException("permature EOF reached, XML document incomplete");
-							for (int i = 0; i < sl; i++)
-							{
-								if (XMLDoc[sos + i] != XMLDoc[temp_offset + i])
-									throw new ParseException("Ending tag error: Start/ending tag mismatch" + formatLineNumber());
-							}
-							depth--;
-							ch = CharAfterS;
-							if (ch != '>')
-								throw new ParseException("Ending tag error: Invalid char in ending tag " + formatLineNumber());
-							
-							if (depth != - 1)
-							{
-								temp_offset = offset;
-								ch = CharAfterS;
-								if (ch == '<')
-									parser_state = STATE_LT_SEEN;
-								else if (XMLChar.isContentChar(ch))
-								{
-									parser_state = STATE_TEXT;
-								}
-								else if (ch == '&')
-								{
-									//has_amp = true;
-									entityIdentifier();
-									parser_state = STATE_TEXT;
-								}
-								else if (ch == ']')
-								{
-									if (r.skipChar(']'))
-									{
-										while (r.skipChar(']'))
-										{
-										}
-										if (r.skipChar('>'))
-											throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-									}
-									parser_state = STATE_TEXT;
-								}
-								else
-									throw new ParseException("Other Error: Invalid char in xml" + formatLineNumber());
-							}
-							else
-								parser_state = STATE_DOC_END;
-							break;
-						
-						
-						case STATE_UNRECORDED_TEXT: 
-							break;
-						
-						case STATE_PI_TAG: 
-							parser_state = process_pi_tag();
-							break;
-							//throw new ParseException("Error in PI: Invalid char");
-						
-						case STATE_PI_VAL: 
-							parser_state = process_pi_val();
-							break;
-						
-						
-						case STATE_DEC_ATTR_NAME: 
-							parser_state = process_dec_attr();
-							break;
-						
-						
-						case STATE_COMMENT: 
-							parser_state = process_comment();
-							break;
-						
-						
-						case STATE_CDATA: 
-							parser_state = process_cdata();
-							break;
-						
-						
-						case STATE_DOCTYPE: 
-							parser_state = process_doc_type();
-							break;
-						
-						
-						case STATE_TEXT: 
-							if (depth == - 1)
-								throw new ParseException("Error in text content: Char data at the wrong place" + formatLineNumber());
-							while (true)
-							{
-								ch = r.Char;
-								if (XMLChar.isContentChar(ch))
-								{
-								}
-								else if (ch == '&')
-								{
-									//has_amp = true;
-									if (!XMLChar.isValidChar(entityIdentifier()))
-										throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
-									//parser_state = STATE_TEXT;
-								}
-								else if (ch == '<')
-								{
-									break;
-								}
-								else if (ch == ']')
-								{
-									if (r.skipChar(']'))
-									{
-										while (r.skipChar(']'))
-										{
-										}
-										if (r.skipChar('>'))
-											throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-									}
-								}
-								else
-									throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
-							}
-							length1 = offset - increment - temp_offset;
-							
-							if (encoding < FORMAT_UTF_16BE)
-								writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
-							else
-								writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA, depth);
-							
-							//has_amp = true;
-							parser_state = STATE_LT_SEEN;
-							break;
-						
-						
-						case STATE_ATTR_NAME: 
-							
-							if (ch == 'x')
-							{
-								if (r.skipChar('m') && r.skipChar('l') && r.skipChar('n') && r.skipChar('s'))
-								{
-									ch = r.Char;
-									if (ch == '=' || XMLChar.isSpaceChar(ch) || ch == ':')
-									{
-										is_ns = true; //break;
-									}
-								}
-							}
-							while (true)
-							{
-								if (XMLChar.isNameChar(ch))
-								{
-									if (ch == ':')
-									{
-										length2 = offset - temp_offset - increment;
-									}
-									ch = r.Char;
-								}
-								else
-									break;
-							}
-							length1 = PrevOffset - temp_offset;
-							// check for uniqueness here
-							bool unique = true;
-							bool unequal;
-							for (int i = 0; i < attr_count; i++)
-							{
-								unequal = false;
-								int prevLen = (int) attr_name_array[i];
-								if (length1 == prevLen)
-								{
-									int prevOffset = (int) (attr_name_array[i] >> 32);
-									for (int j = 0; j < prevLen; j++)
-									{
-										if (XMLDoc[prevOffset + j] != XMLDoc[temp_offset + j])
-										{
-											unequal = true;
-											break;
-										}
-									}
-								}
-								else
-									unequal = true;
-								unique = unique && unequal;
-							}
-							if (!unique && attr_count != 0)
-								throw new ParseException("Error in attr: Attr name not unique" + formatLineNumber());
-							unique = true;
-							if (attr_count < attr_name_array.Length)
-							{
-								attr_name_array[attr_count] = ((long) (temp_offset) << 32) + length1;
-								attr_count++;
-							}
-							// grow the attr_name_array by 16
-							else
-							{
-								long[] temp_array = attr_name_array;
-								/*System.out.println(
-								"size increase from "
-								+ temp_array.length
-								+ "  to "
-								+ (attr_count + 16));*/
-								attr_name_array = new long[attr_count + ATTR_NAME_ARRAY_SIZE];
-								for (int i = 0; i < attr_count; i++)
-								{
-									attr_name_array[i] = temp_array[i];
-								}
-								attr_name_array[attr_count] = ((long) (temp_offset) << 32) + length1;
-								attr_count++;
-							}
-							
-							// after checking, write VTD
-							if (is_ns)
-							{
-								if (encoding < FORMAT_UTF_16BE)
-								{
-									if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
-										throw new ParseException("Token length overflow error: Attr NS tag prefix or qname length too long" + formatLineNumber());
-									writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NS, depth);
-								}
-								else
-								{
-									if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
-										throw new ParseException("Token length overflow error: Attr NS prefix or qname length too long" + formatLineNumber());
-									writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NS, depth);
-								}
-								is_ns = false;
-							}
-							else
-							{
-								if (encoding < FORMAT_UTF_16BE)
-								{
-									if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
-										throw new ParseException("Token Length Error: Attr name prefix or qname length too long" + formatLineNumber());
-									writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NAME, depth);
-								}
-								else
-								{
-									if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
-										throw new ParseException("Token Length overflow error: Attr name prefix or qname length too long" + formatLineNumber());
-									writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NAME, depth);
-								}
-							}
-							/*System.out.println(
-							" " + temp_offset + " " + length2 + ":" + length1 + " attr name " + depth);*/
-							length2 = 0;
-							if (XMLChar.isSpaceChar(ch))
-							{
-								ch = CharAfterS;
-							}
-							if (ch != '=')
-								throw new ParseException("Error in attr: invalid char" + formatLineNumber());
-							ch_temp = CharAfterS;
-							if (ch_temp != '"' && ch_temp != '\'')
-								throw new ParseException("Error in attr: invalid char (should be ' or \" )" + formatLineNumber());
-							temp_offset = offset;
-							parser_state = STATE_ATTR_VAL;
-							break;
-						
-						case STATE_ATTR_VAL: 
-							while (true)
-							{
-								ch = r.Char;
-								if (XMLChar.isValidChar(ch) && ch != '<')
-								{
-									if (ch == ch_temp)
-										break;
-									if (ch == '&')
-									{
-										// as in vtd spec, we mark attr val with entities
-										if (!XMLChar.isValidChar(entityIdentifier()))
-										{
-											throw new ParseException("Error in attr: Invalid XML char" + formatLineNumber());
-										}
-									}
-								}
-								else
-									throw new ParseException("Error in attr: Invalid XML char" + formatLineNumber());
-							}
-							
-							length1 = offset - temp_offset - increment;
-							if (encoding < FORMAT_UTF_16BE)
-							{
-								if (length1 > MAX_TOKEN_LENGTH)
-									throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
-								writeVTD(temp_offset, length1, TOKEN_ATTR_VAL, depth);
-							}
-							else
-							{
-								if (length1 > (MAX_TOKEN_LENGTH << 1))
-									throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
-								writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_ATTR_VAL, depth);
-							}
-							ch = r.Char;
-							if (XMLChar.isSpaceChar(ch))
-							{
-								ch = CharAfterS;
-								if (XMLChar.isNameStartChar(ch))
-								{
-									temp_offset = offset - increment;
-									parser_state = STATE_ATTR_NAME;
-									break;
-								}
-							}
-							
-							if (ch == '/')
-							{
-								depth--;
-								ch = r.Char;
-							}
-							
-							if (ch == '>')
-							{
-								attr_count = 0;
-								if (depth != - 1)
-								{
-									temp_offset = offset;
-									ch = CharAfterSe;
-									if (ch == '<')
-									{
-										parser_state = STATE_LT_SEEN;
-									}
-									else if (XMLChar.isContentChar(ch))
-									{
-										//temp_offset = offset;
-										parser_state = STATE_TEXT;
-									}
-									else if (ch == '&')
-									{
-										//has_amp = true;
-										//temp_offset = offset;
-										entityIdentifier();
-										parser_state = STATE_TEXT;
-									}
-									else if (ch == ']')
-									{
-										if (r.skipChar(']'))
-										{
-											while (r.skipChar(']'))
-											{
-											}
-											if (r.skipChar('>'))
-												throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-										}
-										parser_state = STATE_TEXT;
-									}
-									else
-										throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
-								}
-								else
-								{
-									parser_state = STATE_DOC_END;
-								}
-								break;
-							}
-							
-							throw new ParseException("Starting tag Error: Invalid char in starting tag" + formatLineNumber());
-						
-						
-						case STATE_END_PI: 
-							parser_state = process_end_pi();
-							break;
-						
-						
-						case STATE_END_COMMENT: 
-							parser_state = process_end_comment();
-							break;
-						
-						
-						default: 
-							throw new ParseException("Other error: invalid parser state" + formatLineNumber());
-						
-					}
-				}
-			}
-			catch (EOFException e)
-			{
-				if (parser_state != STATE_DOC_END)
-					throw e;
-				finishUp();
-			}
-		}
+        public void parse(bool NS)
+        {
+
+            // define internal variables	
+            ns = NS;
+            int length1 = 0, length2 = 0;
+            int attr_count = 0;
+            int parser_state = STATE_DOC_START;
+            //boolean has_amp = false; 
+            bool is_ns = false;
+            encoding = FORMAT_UTF8;
+            bool helper = false;
+            //char char_temp; //holds the ' or " indicating start of attr val
+            //boolean must_utf_8 = false;
+            //boolean BOM_detected = false;
+            //long[] tag_stack = new long[256];
+            //long[] attr_name_array = new long[512]; // 512 attributes limit
+            //ASCII UTF-8 UTF-16 UTF-16BE UTF-16LE ISO-8859-1
+            //
+            //int[] scratch_buffer = new int[10];
+
+            // first check first several bytes to figure out the encoding
+            decide_encoding();
+
+            // enter the main finite state machine
+            try
+            {
+                writeVTD(0, 0, TOKEN_DOCUMENT, depth);
+                while (true)
+                {
+                    switch (parser_state)
+                    {
+
+                        case STATE_LT_SEEN:  //if (depth < -1)
+                            //    throw new ParseException("Other Errors: Invalid depth");
+                            temp_offset = offset;
+                            ch = r.Char;
+                            if (XMLChar.isNameStartChar(ch))
+                            {
+                                //temp_offset = offset;
+                                //length1++;
+                                depth++;
+                                //if (ch == ':')
+                                //   length2 = 0;
+                                parser_state = STATE_START_TAG;
+                            }
+                            else
+                            {
+                                switch (ch)
+                                {
+
+                                    case '/':
+                                        parser_state = STATE_END_TAG;
+                                        break;
+
+                                    case '?':
+                                        parser_state = process_qm_seen();
+                                        break;
+
+                                    case '!':  // three possibility (comment, CDATA, DOCTYPE)
+                                        parser_state = process_ex_seen();
+                                        break;
+
+                                    default:
+                                        throw new ParseException("Other Error: Invalid char after <" + formatLineNumber());
+
+                                }
+                            }
+                            break;
+
+
+                        case STATE_START_TAG:  //name space is handled by
+                            while (true)
+                            {
+                                ch = r.Char;
+                                if (XMLChar.isNameChar(ch))
+                                {
+                                    if (ch == ':')
+                                    {
+                                        length2 = offset - temp_offset - increment;
+                                    }
+                                }
+                                else
+                                    break;
+                            }
+                            length1 = offset - temp_offset - increment;
+                            if (depth > MAX_DEPTH)
+                            {
+                                throw new ParseException("Other Error: Depth exceeds MAX_DEPTH" + formatLineNumber());
+                            }
+                            //writeVTD(offset, TOKEN_STARTING_TAG, length2:length1, depth)
+                            long x = ((long)length1 << 32) + temp_offset;
+                            tag_stack[depth] = x;
+
+                            // System.out.println(
+                            //     " " + (temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
+                            if (depth > VTDDepth)
+                                VTDDepth = depth;
+                            if (encoding < FORMAT_UTF_16BE)
+                            {
+                                if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
+                                    throw new ParseException("Token Length Error: Starting tag prefix or qname length too long" + formatLineNumber());
+                                writeVTD((temp_offset), (length2 << 11) | length1, TOKEN_STARTING_TAG, depth);
+                            }
+                            else
+                            {
+                                if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
+                                    throw new ParseException("Token Length Error: Starting tag prefix or qname length too long" + formatLineNumber());
+                                writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG, depth);
+                            }
+                            //offset += length1;
+                            length2 = 0;
+                            if (XMLChar.isSpaceChar(ch))
+                            {
+                                ch = CharAfterS;
+                                if (XMLChar.isNameStartChar(ch))
+                                {
+                                    // seen an attribute here
+                                    temp_offset = PrevOffset;
+                                    parser_state = STATE_ATTR_NAME;
+                                    break;
+                                }
+                            }
+                            helper = true;
+                            if (ch == '/')
+                            {
+                                depth--;
+                                helper = false;
+                                ch = r.Char;
+                            }
+                            if (ch == '>')
+                            {
+                                if (depth != -1)
+                                {
+                                    temp_offset = offset;
+                                    ch = CharAfterSe; // consume WSs
+                                    if (ch == '<')
+                                    {
+                                        parser_state = STATE_LT_SEEN;
+                                        if (r.skipChar('/'))
+                                        {
+                                            if (helper == true)
+                                            {
+                                                length1 = offset - temp_offset - (increment << 1);
+                                                //if (length1 > 0)
+                                                //{
+                                                if (encoding < FORMAT_UTF_16BE)
+                                                    writeVTD((temp_offset), length1, TOKEN_CHARACTER_DATA, depth);
+                                                else
+                                                    writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_CHARACTER_DATA, depth);
+                                                //}
+                                            }
+                                            parser_state = STATE_END_TAG;
+                                            break;
+                                        }
+                                    }
+                                    else if (XMLChar.isContentChar(ch))
+                                    {
+                                        //temp_offset = offset;
+                                        parser_state = STATE_TEXT;
+                                    }
+                                    else if (ch == '&')
+                                    {
+                                        //has_amp = true;
+                                        //temp_offset = offset;
+                                        entityIdentifier();
+                                        parser_state = STATE_TEXT;
+                                    }
+                                    else if (ch == ']')
+                                    {
+                                        if (r.skipChar(']'))
+                                        {
+                                            while (r.skipChar(']'))
+                                            {
+                                            }
+                                            if (r.skipChar('>'))
+                                                throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                                        }
+                                        parser_state = STATE_TEXT;
+                                    }
+                                    else
+                                        throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
+                                }
+                                else
+                                {
+                                    parser_state = STATE_DOC_END;
+                                }
+                                break;
+                            }
+                            throw new ParseException("Starting tag Error: Invalid char in starting tag" + formatLineNumber());
+
+
+                        case STATE_END_TAG:
+                            temp_offset = offset;
+                            int sos = (int)tag_stack[depth];
+                            int sl = (int)(tag_stack[depth] >> 32);
+
+                            offset = temp_offset + sl;
+
+                            if (offset >= endOffset)
+                                throw new EOFException("permature EOF reached, XML document incomplete");
+                            for (int i = 0; i < sl; i++)
+                            {
+                                if (XMLDoc[sos + i] != XMLDoc[temp_offset + i])
+                                    throw new ParseException("Ending tag error: Start/ending tag mismatch" + formatLineNumber());
+                            }
+                            depth--;
+                            ch = CharAfterS;
+                            if (ch != '>')
+                                throw new ParseException("Ending tag error: Invalid char in ending tag " + formatLineNumber());
+
+                            if (depth != -1)
+                            {
+                                temp_offset = offset;
+                                ch = CharAfterS;
+                                if (ch == '<')
+                                    parser_state = STATE_LT_SEEN;
+                                else if (XMLChar.isContentChar(ch))
+                                {
+                                    parser_state = STATE_TEXT;
+                                }
+                                else if (ch == '&')
+                                {
+                                    //has_amp = true;
+                                    entityIdentifier();
+                                    parser_state = STATE_TEXT;
+                                }
+                                else if (ch == ']')
+                                {
+                                    if (r.skipChar(']'))
+                                    {
+                                        while (r.skipChar(']'))
+                                        {
+                                        }
+                                        if (r.skipChar('>'))
+                                            throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                                    }
+                                    parser_state = STATE_TEXT;
+                                }
+                                else
+                                    throw new ParseException("Other Error: Invalid char in xml" + formatLineNumber());
+                            }
+                            else
+                                parser_state = STATE_DOC_END;
+                            break;
+                        case STATE_ATTR_NAME:
+
+                            if (ch == 'x')
+                            {
+                                if (r.skipChar('m') && r.skipChar('l') && r.skipChar('n') && r.skipChar('s'))
+                                {
+                                    ch = r.Char;
+                                    if (ch == '=' || XMLChar.isSpaceChar(ch) || ch == ':')
+                                    {
+                                        is_ns = true; //break;
+                                    }
+                                }
+                            }
+                            while (true)
+                            {
+                                if (XMLChar.isNameChar(ch))
+                                {
+                                    if (ch == ':')
+                                    {
+                                        length2 = offset - temp_offset - increment;
+                                    }
+                                    ch = r.Char;
+                                }
+                                else
+                                    break;
+                            }
+                            length1 = PrevOffset - temp_offset;
+                            // check for uniqueness here
+                            bool unique = true;
+                            bool unequal;
+                            for (int i = 0; i < attr_count; i++)
+                            {
+                                unequal = false;
+                                int prevLen = (int)attr_name_array[i];
+                                if (length1 == prevLen)
+                                {
+                                    int prevOffset = (int)(attr_name_array[i] >> 32);
+                                    for (int j = 0; j < prevLen; j++)
+                                    {
+                                        if (XMLDoc[prevOffset + j] != XMLDoc[temp_offset + j])
+                                        {
+                                            unequal = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else
+                                    unequal = true;
+                                unique = unique && unequal;
+                            }
+                            if (!unique && attr_count != 0)
+                                throw new ParseException("Error in attr: Attr name not unique" + formatLineNumber());
+                            unique = true;
+                            if (attr_count < attr_name_array.Length)
+                            {
+                                attr_name_array[attr_count] = ((long)(temp_offset) << 32) + length1;
+                                attr_count++;
+                            }
+                            // grow the attr_name_array by 16
+                            else
+                            {
+                                long[] temp_array = attr_name_array;
+                                /*System.out.println(
+                                "size increase from "
+                                + temp_array.length
+                                + "  to "
+                                + (attr_count + 16));*/
+                                attr_name_array = new long[attr_count + ATTR_NAME_ARRAY_SIZE];
+                                for (int i = 0; i < attr_count; i++)
+                                {
+                                    attr_name_array[i] = temp_array[i];
+                                }
+                                attr_name_array[attr_count] = ((long)(temp_offset) << 32) + length1;
+                                attr_count++;
+                            }
+
+                            // after checking, write VTD
+                            if (is_ns)
+                            {
+                                if (encoding < FORMAT_UTF_16BE)
+                                {
+                                    if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
+                                        throw new ParseException("Token length overflow error: Attr NS tag prefix or qname length too long" + formatLineNumber());
+                                    writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NS, depth);
+                                }
+                                else
+                                {
+                                    if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
+                                        throw new ParseException("Token length overflow error: Attr NS prefix or qname length too long" + formatLineNumber());
+                                    writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NS, depth);
+                                }
+                                is_ns = false;
+                            }
+                            else
+                            {
+                                if (encoding < FORMAT_UTF_16BE)
+                                {
+                                    if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
+                                        throw new ParseException("Token Length Error: Attr name prefix or qname length too long" + formatLineNumber());
+                                    writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NAME, depth);
+                                }
+                                else
+                                {
+                                    if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
+                                        throw new ParseException("Token Length overflow error: Attr name prefix or qname length too long" + formatLineNumber());
+                                    writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NAME, depth);
+                                }
+                            }
+                            /*System.out.println(
+                            " " + temp_offset + " " + length2 + ":" + length1 + " attr name " + depth);*/
+                            length2 = 0;
+                            if (XMLChar.isSpaceChar(ch))
+                            {
+                                ch = CharAfterS;
+                            }
+                            if (ch != '=')
+                                throw new ParseException("Error in attr: invalid char" + formatLineNumber());
+                            ch_temp = CharAfterS;
+                            if (ch_temp != '"' && ch_temp != '\'')
+                                throw new ParseException("Error in attr: invalid char (should be ' or \" )" + formatLineNumber());
+                            temp_offset = offset;
+                            parser_state = STATE_ATTR_VAL;
+                            break;
+
+                        case STATE_ATTR_VAL:
+                            while (true)
+                            {
+                                ch = r.Char;
+                                if (XMLChar.isValidChar(ch) && ch != '<')
+                                {
+                                    if (ch == ch_temp)
+                                        break;
+                                    if (ch == '&')
+                                    {
+                                        // as in vtd spec, we mark attr val with entities
+                                        if (!XMLChar.isValidChar(entityIdentifier()))
+                                        {
+                                            throw new ParseException("Error in attr: Invalid XML char" + formatLineNumber());
+                                        }
+                                    }
+                                }
+                                else
+                                    throw new ParseException("Error in attr: Invalid XML char" + formatLineNumber());
+                            }
+
+                            length1 = offset - temp_offset - increment;
+                            if (encoding < FORMAT_UTF_16BE)
+                            {
+                                if (length1 > MAX_TOKEN_LENGTH)
+                                    throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
+                                writeVTD(temp_offset, length1, TOKEN_ATTR_VAL, depth);
+                            }
+                            else
+                            {
+                                if (length1 > (MAX_TOKEN_LENGTH << 1))
+                                    throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
+                                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_ATTR_VAL, depth);
+                            }
+                            ch = r.Char;
+                            if (XMLChar.isSpaceChar(ch))
+                            {
+                                ch = CharAfterS;
+                                if (XMLChar.isNameStartChar(ch))
+                                {
+                                    temp_offset = offset - increment;
+                                    parser_state = STATE_ATTR_NAME;
+                                    break;
+                                }
+                            }
+
+                            if (ch == '/')
+                            {
+                                depth--;
+                                ch = r.Char;
+                            }
+
+                            if (ch == '>')
+                            {
+                                attr_count = 0;
+                                if (depth != -1)
+                                {
+                                    temp_offset = offset;
+                                    ch = CharAfterSe;
+                                    if (ch == '<')
+                                    {
+                                        parser_state = STATE_LT_SEEN;
+                                    }
+                                    else if (XMLChar.isContentChar(ch))
+                                    {
+                                        //temp_offset = offset;
+                                        parser_state = STATE_TEXT;
+                                    }
+                                    else if (ch == '&')
+                                    {
+                                        //has_amp = true;
+                                        //temp_offset = offset;
+                                        entityIdentifier();
+                                        parser_state = STATE_TEXT;
+                                    }
+                                    else if (ch == ']')
+                                    {
+                                        if (r.skipChar(']'))
+                                        {
+                                            while (r.skipChar(']'))
+                                            {
+                                            }
+                                            if (r.skipChar('>'))
+                                                throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                                        }
+                                        parser_state = STATE_TEXT;
+                                    }
+                                    else
+                                        throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
+                                }
+                                else
+                                {
+                                    parser_state = STATE_DOC_END;
+                                }
+                                break;
+                            }
+
+                            throw new ParseException("Starting tag Error: Invalid char in starting tag" + formatLineNumber());
+
+
+                        case STATE_TEXT:
+                            if (depth == -1)
+                                throw new ParseException("Error in text content: Char data at the wrong place" + formatLineNumber());
+                            while (true)
+                            {
+                                ch = r.Char;
+                                if (XMLChar.isContentChar(ch))
+                                {
+                                }
+                                else if (ch == '&')
+                                {
+                                    //has_amp = true;
+                                    if (!XMLChar.isValidChar(entityIdentifier()))
+                                        throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
+                                    //parser_state = STATE_TEXT;
+                                }
+                                else if (ch == '<')
+                                {
+                                    break;
+                                }
+                                else if (ch == ']')
+                                {
+                                    if (r.skipChar(']'))
+                                    {
+                                        while (r.skipChar(']'))
+                                        {
+                                        }
+                                        if (r.skipChar('>'))
+                                            throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                                    }
+                                }
+                                else
+                                    throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
+                            }
+                            length1 = offset - increment - temp_offset;
+
+                            if (encoding < FORMAT_UTF_16BE)
+                                writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
+                            else
+                                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA, depth);
+
+                            //has_amp = true;
+                            parser_state = STATE_LT_SEEN;
+                            break;
+                        case STATE_DOC_START:
+                            parser_state = process_start_doc();
+                            break;
+
+                        case STATE_DOC_END:
+                            //docEnd = true;
+                            ch = CharAfterS;
+                            parser_state = process_end_doc();
+                            break;
+
+
+                        case STATE_PI_TAG:
+                            parser_state = process_pi_tag();
+                            break;
+                        //throw new ParseException("Error in PI: Invalid char");
+
+                        case STATE_PI_VAL:
+                            parser_state = process_pi_val();
+                            break;
+
+
+                        case STATE_DEC_ATTR_NAME:
+                            parser_state = process_dec_attr();
+                            break;
+
+
+                        case STATE_COMMENT:
+                            parser_state = process_comment();
+                            break;
+
+
+                        case STATE_CDATA:
+                            parser_state = process_cdata();
+                            break;
+
+
+                        case STATE_DOCTYPE:
+                            parser_state = process_doc_type();
+                            break;
+
+
+
+                        case STATE_END_PI:
+                            parser_state = process_end_pi();
+                            break;
+
+
+                        case STATE_END_COMMENT:
+                            parser_state = process_end_comment();
+                            break;
+
+
+                        default:
+                            throw new ParseException("Other error: invalid parser state" + formatLineNumber());
+
+                    }
+                }
+            }
+            catch (EOFException e)
+            {
+                if (parser_state != STATE_DOC_END)
+                    throw e;
+                finishUp();
+            }
+        }
 
         private void matchCPEncoding()
         {
@@ -3357,7 +3243,161 @@ namespace com.ximpleware
 			else
 				throw new ParseException("Error in comment: Invalid terminating sequence" + formatLineNumber());
 		}
-		
+
+
+        private int process_start_doc()
+        {
+            if (r.Char == '<')
+            {
+                temp_offset = offset;
+                // xml decl has to be right after the start of the document
+                if (r.skipChar('?') && (r.skipChar('x') || r.skipChar('X')) && (r.skipChar('m') || r.skipChar('M')) && (r.skipChar('l') || r.skipChar('L')))
+                {
+                    if (r.skipChar(' ') || r.skipChar('\t') || r.skipChar('\n') || r.skipChar('\r'))
+                    {
+                        ch = CharAfterS;
+                        temp_offset = offset;
+                        return STATE_DEC_ATTR_NAME;
+                    }
+                    else if (r.skipChar('?'))
+                        throw new ParseException("Error in XML decl: Premature ending" + formatLineNumber());
+                }
+                offset = temp_offset;
+                return STATE_LT_SEEN;
+            }
+            throw new ParseException("Other Error: XML not starting properly" + formatLineNumber());	
+        }
+
+        private int process_end_doc()
+        {
+            // eof exception should be thrown here for premature ending
+            if (ch == '<')
+            {
+
+                if (r.skipChar('?'))
+                {
+                    // processing instruction after end tag of root element
+                    temp_offset = offset;
+                    return STATE_END_PI;
+                }
+                else if (r.skipChar('!') && r.skipChar('-') && r.skipChar('-'))
+                {
+                    // comments allowed after the end tag of the root element
+                    temp_offset = offset;
+                    return STATE_END_COMMENT;
+                }
+            }
+            throw new ParseException("Other Error: XML not terminated properly" + formatLineNumber());
+						
+        }
+
+        private int process_qm_seen()
+        {
+            temp_offset = offset;
+            ch = r.Char;
+            if (XMLChar.isNameStartChar(ch))
+            {
+                //temp_offset = offset;
+                if ((ch == 'x' || ch == 'X')
+                    && (r.skipChar('m') || r.skipChar('M'))
+                    && (r.skipChar('l') || r.skipChar('L')))
+                {
+                    ch = r.Char;
+                    if (ch == '?' || XMLChar.isSpaceChar(ch))
+                        throw new ParseException
+                            ("Error in PI: [xX][mM][lL] not a valid PI targetname"
+                                + formatLineNumber());
+                    offset = PrevOffset;
+                }
+                return STATE_PI_TAG;
+            }
+
+            throw new ParseException("Other Error: First char after <? invalid" + formatLineNumber());
+        }
+
+        private int process_ex_seen()
+        {
+            int parser_state;
+            bool hasDTD = false;
+            ch = r.Char;
+            switch (ch)
+            {
+                case '-':
+                    if (r.skipChar('-'))
+                    {
+                        temp_offset = offset;
+                        parser_state = STATE_COMMENT;
+                        break;
+                    }
+                    else
+                        throw new ParseException
+                            ("Error in comment: Invalid char sequence to start a comment" 
+                            + formatLineNumber());
+                //goto case '[';
+
+                case '[':
+                    if (r.skipChar('C') 
+                        && r.skipChar('D') 
+                        && r.skipChar('A') 
+                        && r.skipChar('T') 
+                        && r.skipChar('A') 
+                        && r.skipChar('[') 
+                        && (depth != -1))
+                    {
+                        temp_offset = offset;
+                        parser_state = STATE_CDATA;
+                        break;
+                    }
+                    else
+                    {
+                        if (depth == -1)
+                            throw new ParseException
+                                ("Error in CDATA: Wrong place for CDATA" 
+                                + formatLineNumber());
+                        throw new ParseException
+                            ("Error in CDATA: Invalid char sequence for CDATA" 
+                            + formatLineNumber());
+                    }
+                //goto case 'D';
+
+
+                case 'D':
+                    if (r.skipChar('O') 
+                        && r.skipChar('C') 
+                        && r.skipChar('T') 
+                        && r.skipChar('Y') 
+                        && r.skipChar('P') 
+                        && r.skipChar('E') 
+                        && (depth == -1) 
+                        && !hasDTD)
+                    {
+                        hasDTD = true;
+                        temp_offset = offset;
+                        parser_state = STATE_DOCTYPE;
+                        break;
+                    }
+                    else
+                    {
+                        if (hasDTD == true)
+                            throw new ParseException
+                                ("Error for DOCTYPE: Only DOCTYPE allowed" 
+                                + formatLineNumber());
+                        if (depth != -1)
+                            throw new ParseException
+                                ("Error for DOCTYPE: DTD at wrong place" 
+                                + formatLineNumber());
+                        throw new ParseException
+                            ("Error for DOCTYPE: Invalid char sequence for DOCTYPE" 
+                            + formatLineNumber());
+                    }
+                //goto default;
+
+                default:
+                    throw new ParseException("Other Error: Unrecognized char after <!" + formatLineNumber());
+
+            }
+            return parser_state;
+        }
 		/// <summary> This private method processes CDATA section</summary>
 		/// <returns> the parser state after which the parser loop jumps to
 		/// </returns>
