@@ -91,4 +91,12 @@ class intHash {
         for(int i=0;i<667;i++)
         System.out.println("" + i + " " + a.isUnique(i));
     }
+    
+    public static int determineHashWidth(int i){    
+        if (i<(1<<9))
+            	return 6;
+        if (i< (1<<13))
+            	return 9;
+        return 12;
+    }
 }
