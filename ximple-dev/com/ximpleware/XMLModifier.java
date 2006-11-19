@@ -301,8 +301,8 @@ public class XMLModifier {
      *
      */
     protected void sort(){
-        quickSort(0,flb.size()-1);
-        
+        if (flb.size()>0)
+            quickSort(0,flb.size()-1);        
     }
     
     /**
