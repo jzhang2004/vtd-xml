@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/*This file defines XML char validation lookup table and various functions */
 #ifndef XMLCHAR_H
 #define XMLCHAR_H
 #include "customTypes.h"
@@ -22,14 +23,14 @@
 #define LENGTH(x,y) (sizeof(x)/sizeof(y))
 
 
- int MASK_VALID;//= 0x01;
- int MASK_SPACE; //= 0x01<<1;
- int MASK_NAME_START; //= 0x01<<2;
- int MASK_NAME; //= 0x01<<3;
- int MASK_PUBID; //= 0x01<<4;
- int MASK_CONTENT; //= 0x01<<5;
- int MASK_NCNAME_START; //= 0x01 << 6;
- int MASK_NCNAME;// = 0x01 << 7;
+ int MASK_VALID;/*= 0x01;*/
+ int MASK_SPACE; /*= 0x01<<1;*/
+ int MASK_NAME_START; /*= 0x01<<2;*/
+ int MASK_NAME; /*= 0x01<<3;*/
+ int MASK_PUBID; /*= 0x01<<4;*/
+ int MASK_CONTENT; /*= 0x01<<5;*/
+ int MASK_NCNAME_START; /*= 0x01 << 6;*/
+ int MASK_NCNAME;  /* = 0x01 << 7;*/
 
 unsigned char CHARS[1<<16];// = unsigned Byte[1<<16];
 
