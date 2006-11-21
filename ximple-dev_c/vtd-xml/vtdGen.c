@@ -54,7 +54,7 @@ static Boolean skipUTF8(VTDGen *vg,int temp,int ch);
 static Boolean skip_16be(VTDGen *vg, int ch);
 static Boolean skip_16le(VTDGen *vg, int ch);
 static int getCharAfterSe(VTDGen *vg);
-static int getCharAfterS(VTDGen *vg);
+static inline int getCharAfterS(VTDGen *vg);
 static inline Boolean skipChar(VTDGen *vg, int ch);
 static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth);
 static void finishUp(VTDGen *vg);
@@ -622,7 +622,7 @@ static int handle_utf8(VTDGen *vg, int temp){
 
 static void throwInvalidEncodingException (){
 	throwException(parse_exception,0,
-		"Parse Exception in parse()",
+		"Parse exception in parse()",
 		"XML decl error: Invalid Encoding");
 }
 
@@ -645,7 +645,7 @@ static void matchISOEncoding(VTDGen *vg){
 				&& vg->encoding	!= FORMAT_UTF_16BE) {
 					if (vg->must_utf_8){
 						throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch from UTF-8");
 					}
 					if(skipChar(vg,'1')){
@@ -738,7 +738,7 @@ static void matchISOEncoding(VTDGen *vg){
 						return;
 			} else{
 				throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch encoding to ISO-8859");
 			}
 
@@ -758,7 +758,7 @@ static void matchCPEncoding(VTDGen *vg){
 				&& vg->encoding	!= FORMAT_UTF_16BE) {
 					if (vg->must_utf_8){
 						throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch from UTF-8");
 					}
 					if(skipChar(vg,'0')){						
@@ -842,7 +842,7 @@ static void matchCPEncoding(VTDGen *vg){
 			}
 			else{
 				throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch encoding to ISO-8859");
 			}
 	}
@@ -871,7 +871,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 				&& vg->encoding	!= FORMAT_UTF_16BE) {
 					if (vg->must_utf_8){
 						throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch from UTF-8");
 					}
 					if(skipChar(vg,'0')){						
@@ -955,7 +955,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 			}
 			else{
 				throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch encoding to ISO-8859");
 			}
 
@@ -985,7 +985,7 @@ static void matchUTFEncoding(VTDGen *vg){
 						!= FORMAT_UTF_16BE) {
 							if (vg->must_utf_8){
 								throwException(parse_exception,0,
-									"Parse Exception in parse()",
+									"Parse exception in parse()",
 									"Can't switch from UTF-8");
 							}
 							vg->encoding = FORMAT_ASCII;							
@@ -1010,12 +1010,12 @@ static void matchUTFEncoding(VTDGen *vg){
 					} else
 					{		
 						throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch encoding to US-ASCII");
 					}
 			} else{		
 				throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Invalid Encoding");
 			}
 	}
@@ -1052,7 +1052,7 @@ static void matchUTFEncoding(VTDGen *vg){
 					} else
 					{		
 						throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch encoding to UTF-8");
 					}					
 			}
@@ -1065,7 +1065,7 @@ static void matchUTFEncoding(VTDGen *vg){
 							== FORMAT_UTF_16BE) {
 								if (vg->BOM_detected == FALSE){
 									throwException(parse_exception,0,
-										"Parse Exception in parse()",
+										"Parse exception in parse()",
 										"BOM not detected for UTF-16");
 								}
 								if (vg->encoding
@@ -1089,7 +1089,7 @@ static void matchUTFEncoding(VTDGen *vg){
 						}
 
 					throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Can't switch encoding to UTF-16");
 					} else if (
 						(skipChar(vg,'l')
@@ -1120,7 +1120,7 @@ static void matchUTFEncoding(VTDGen *vg){
 									return;
 							}
 							throwException(parse_exception,0,
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: Can't switch encoding to UTF-16LE");					
 					} else if (
 						(skipChar(vg,'b')
@@ -1150,11 +1150,11 @@ static void matchUTFEncoding(VTDGen *vg){
 									return;
 							}
 							throwException(parse_exception,0,
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: Can't switch encoding to UTF-16BE");				
 					}
 					throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: Invalid encoding");
 			}
 	}
@@ -1190,7 +1190,7 @@ static Boolean skipUTF8(VTDGen *vg,int temp, int ch){
 				break;
 			default :
 				throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"UTF 8 encoding error: should never happen");
 	}
 	val = (temp & c) << d;
@@ -1199,7 +1199,7 @@ static Boolean skipUTF8(VTDGen *vg,int temp, int ch){
 		temp = vg->XMLDoc[vg->offset + a - i];
 		if ((temp & 0xc0) != 0x80){
 			throwException(parse_exception,0,			
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"UTF 8 encoding error: should never happen");
 		}
 		val = val | ((temp & 0x3f) << ((i<<2)+(i<<1)));
@@ -1230,7 +1230,7 @@ static Boolean skip_16be(VTDGen *vg, int ch){
 		if (temp < 0xdc00 || temp > 0xdfff) {
 			// has to be a low surrogate here{
 			throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"UTF 16 BE encoding error: should never happen");
 		}
 		val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
@@ -1259,7 +1259,7 @@ static Boolean skip_16le(VTDGen *vg, int ch){
 			// has to be high surrogate
 			// has to be a low surrogate here{
 			throwException(parse_exception,0,			
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"UTF 16 LE encoding error: should never happen");
 		}
 		val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
@@ -1371,7 +1371,7 @@ static int getPrevOffset(VTDGen *vg){
 					return vg->offset - 4;
 			default :
 				throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"Other Error: Should never happen");			
 	}
 }
@@ -1429,7 +1429,7 @@ void parse(VTDGen *vg, Boolean ns){
 						parser_state = process_ex_seen(vg);
 						break;
 					default :throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Other Error: Invalid char after <");
 							}
 						}
@@ -1450,7 +1450,7 @@ void parse(VTDGen *vg, Boolean ns){
 						vg->tag_stack[vg->depth] = x;
 						if (vg->depth > MAX_DEPTH) {
 							throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Other Error: Depth exceeds MAX_DEPTH");
 						}
 						if (vg->depth > vg->VTDDepth)
@@ -1459,7 +1459,7 @@ void parse(VTDGen *vg, Boolean ns){
 							if (length2>MAX_PREFIX_LENGTH 
 								|| length1 > MAX_QNAME_LENGTH){
 									throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Token Length Error: Starting tag prefix or qname length too long");
 							}
 
@@ -1473,7 +1473,7 @@ void parse(VTDGen *vg, Boolean ns){
 							if ((length2>(MAX_PREFIX_LENGTH<<1)) 
 								|| (length1 > (MAX_QNAME_LENGTH <<1))){
 									throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Token Length Error: Starting tag prefix or qname length too long");
 							}
 
@@ -1541,13 +1541,13 @@ void parse(VTDGen *vg, Boolean ns){
 										}
 										if (skipChar(vg,'>')){		
 											throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text content: ]]> in text content");
 										}
 									}
 									parser_state = STATE_TEXT;
 								} else{	throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text content: Invalid char");
 								}
 							} else {
@@ -1557,7 +1557,7 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 
 						throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Starting tag Error: Invalid char in starting tag");
 
 					case STATE_END_TAG :
@@ -1568,13 +1568,13 @@ void parse(VTDGen *vg, Boolean ns){
 						vg->offset = vg->temp_offset + sl;
 						if (vg->offset >= vg->endOffset){
 							throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Premature EOF reached, XML document incomplete");
 						}
 
 						if (memcmp(vg->XMLDoc+vg->temp_offset, vg->XMLDoc+sos, sl)!=0){
 							throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Ending tag error: Start/ending tag mismatch");
 						}
 
@@ -1583,7 +1583,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 						if (vg->ch!='>'){
 							throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Ending tag error: Invalid char in end tag");
 
 						}
@@ -1606,7 +1606,7 @@ void parse(VTDGen *vg, Boolean ns){
 									}
 									if (skipChar(vg,'>')){		
 										throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text content: ]]> in text content");
 									}
 
@@ -1615,7 +1615,7 @@ void parse(VTDGen *vg, Boolean ns){
 							}
 							else
 							{	throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Other Error: Invalid char in xml");
 							}
 
@@ -1669,7 +1669,7 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 						if (!unique && attr_count != 0){		
 							throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in attr: Attr name not unique");
 						}
 						unique = TRUE;
@@ -1686,7 +1686,7 @@ void parse(VTDGen *vg, Boolean ns){
 							
 							if (vg->attr_name_array == NULL){
 								throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"alloc mem for attr_name_array_failed");
 							}
 							vg->anaLen = attr_count + ATTR_NAME_ARRAY_SIZE;
@@ -1704,7 +1704,7 @@ void parse(VTDGen *vg, Boolean ns){
 								if (length2>MAX_PREFIX_LENGTH 
 									|| length1 > MAX_QNAME_LENGTH){
 										throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Token Length Error: Attr NS prefix or qname length too long");
 								}
 
@@ -1719,7 +1719,7 @@ void parse(VTDGen *vg, Boolean ns){
 								if (length2>(MAX_PREFIX_LENGTH<<1) 
 									|| length1 >(MAX_QNAME_LENGTH<<1)){
 										throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Token Length Error: Attr NS prefix or qname length too long");
 								}
 
@@ -1736,7 +1736,7 @@ void parse(VTDGen *vg, Boolean ns){
 								if (length2>MAX_PREFIX_LENGTH 
 									|| length1 > MAX_QNAME_LENGTH){
 										throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Token Length Error: Attr name prefix or qname length too long");
 								}
 								writeVTD(vg,
@@ -1750,7 +1750,7 @@ void parse(VTDGen *vg, Boolean ns){
 								if (length2> (MAX_PREFIX_LENGTH <<1)
 									|| length1 > (MAX_QNAME_LENGTH<<1)){
 										throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Token Length Error: Attr name prefix or qname length too long");
 								}
 
@@ -1768,13 +1768,13 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 						if (vg->ch != '='){		
 							throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in attr: invalid char");
 						}
 						vg->ch_temp = getCharAfterS(vg);
 						if (vg->ch_temp != '"' && vg->ch_temp != '\''){		
 							throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in attr: invalid char (should be ' or \" )");
 						}
 						vg->temp_offset = vg->offset;
@@ -1790,14 +1790,14 @@ void parse(VTDGen *vg, Boolean ns){
 								if (vg->ch == '&') {
 									if (!XMLChar_isValidChar(entityIdentifier(vg))) {		
 										throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in attr: Invalid XML char");
 									}
 								}
 
 							} else {		
 								throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in attr: Invalid XML char");
 							}
 						}
@@ -1806,7 +1806,7 @@ void parse(VTDGen *vg, Boolean ns){
 						if (vg->encoding < FORMAT_UTF_16BE){
 							if (length1 > MAX_TOKEN_LENGTH){
 								throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Token Length Error: ATTR_VAL length too long");
 							}
 							writeVTD(vg,
@@ -1818,7 +1818,7 @@ void parse(VTDGen *vg, Boolean ns){
 						else{
 							if (length1 > (MAX_TOKEN_LENGTH << 1)){
 								throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Token Length Error: ATTR_VAL length too long");
 							}
 							writeVTD(vg,
@@ -1860,7 +1860,7 @@ void parse(VTDGen *vg, Boolean ns){
 										}
 										if (skipChar(vg,'>')){		
 											throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text content: ]]> in text content");
 										}
 									}
@@ -1868,7 +1868,7 @@ void parse(VTDGen *vg, Boolean ns){
 								}
 								else{		
 									throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text content: Invalid char");
 								}
 							} else {
@@ -1878,12 +1878,12 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 
 						throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Starting tag Error: Invalid char in starting tag");
 
 					case STATE_TEXT :
 						if (vg->depth == -1){throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text: Char data at the wrong place");
 						}
 						while (TRUE) {
@@ -1892,7 +1892,7 @@ void parse(VTDGen *vg, Boolean ns){
 							} else if (vg->ch == '&') {
 								if (!XMLChar_isValidChar(entityIdentifier(vg))){		
 									throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text content: Invalid char in text content");
 								}
 							} else if (vg->ch == '<') {
@@ -1903,13 +1903,13 @@ void parse(VTDGen *vg, Boolean ns){
 									}
 									if (skipChar(vg,'>')){		
 										throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text content: ]]> in text content");
 									}
 								}
 							} else{		
 								throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Error in text content: Invalid char in text content");
 							}
 						}
@@ -1974,7 +1974,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 					default :	
 						throwException(parse_exception,0,
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Other error: invalid parser state");
 			}
 		}
@@ -2165,7 +2165,7 @@ static Boolean skipChar(VTDGen *vg, int ch){
 	int temp = 0;
 	if (vg->offset >= vg->endOffset){
 		throwException(parse_exception,0,
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"Premature EOF reached, XML document incomplete");
 	}	
 	switch (vg->encoding) {
@@ -2173,7 +2173,7 @@ static Boolean skipChar(VTDGen *vg, int ch){
 				temp = vg->XMLDoc[vg->offset];
 				if (temp>127){
 					throwException(parse_exception,0,
-						"Parse Exception in parse()",
+						"Parse exception in parse()",
 						"Invalid char for ASCII encoding");
 				}
 				if (ch == temp) {
@@ -2377,7 +2377,7 @@ void decide_encoding(VTDGen *vg){
 			vg->BOM_detected = TRUE;
 		} else{
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Unknown Character encoding: should be 0xff 0xfe");
 		}
 	} else if (vg->XMLDoc[vg->offset] == (UByte)-1) {
@@ -2388,7 +2388,7 @@ void decide_encoding(VTDGen *vg){
 			vg->BOM_detected = TRUE;
 		} else{
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Unknown Character encoding");
 		}
 	} else if (vg->XMLDoc[vg->offset] == (UByte)-17) {
@@ -2398,7 +2398,7 @@ void decide_encoding(VTDGen *vg){
 		}
 		else {
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Unknown Character encoding: not UTF-8");
 		}
 
@@ -2411,7 +2411,7 @@ void decide_encoding(VTDGen *vg){
 		}
 		else{
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Unknown Character encoding: not UTF-16BE");
 		}
 	} else if (vg->XMLDoc[vg->offset] == 0x3c) {
@@ -2427,20 +2427,20 @@ void decide_encoding(VTDGen *vg){
 		if (vg->ns == TRUE) {
 			if (((Long) vg->offset + vg->docLen) >= (1U << 30)){
 				throwException(parse_exception,0,	
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"Other error: file size too large >=1G ");
 			}
 		}else {
 			if (((Long) vg->offset + vg->docLen) >= (1U << 31)){
 				throwException(parse_exception,0,	
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"Other error: file size too large >=2G ");
 			}
 		}
 	} else {
 		if ((unsigned int)(vg->offset - 2 + vg->docLen) >= (1U<< 31)){
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Other error: file size too large");
 		}
 	}
@@ -2456,7 +2456,7 @@ int process_end_pi(VTDGen *vg){
 				vg->ch = getChar(vg);
 				if (XMLChar_isSpaceChar(vg->ch) || vg->ch == '?'){		
 					throwException(parse_exception,0,	
-						"Parse Exception in parse()",
+						"Parse exception in parse()",
 						"Error in PI: [xX][mM][lL] not a valid PI target");
 				}
 		}
@@ -2473,7 +2473,7 @@ int process_end_pi(VTDGen *vg){
 		if (vg->encoding < FORMAT_UTF_16BE){
 			if (length1 > MAX_TOKEN_LENGTH){
 				throwException(parse_exception,0,	
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"Token Length Error: PI_NAME length too long");
 			}
 			writeVTD(vg,
@@ -2485,7 +2485,7 @@ int process_end_pi(VTDGen *vg){
 		else{
 			if (length1 > (MAX_TOKEN_LENGTH<<1)){
 				throwException(parse_exception,0,	
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"Token Length Error: PI_NAME length too long");
 			}
 			writeVTD(vg,
@@ -2507,13 +2507,13 @@ int process_end_pi(VTDGen *vg){
 							break;
 						} else{		
 							throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"Error in PI: invalid termination sequence");
 						}
 					}
 				} else{		
 					throwException(parse_exception,0,	
-						"Parse Exception in parse()",
+						"Parse exception in parse()",
 						"Error in PI: Invalid char in PI val");
 				}
 				vg->ch = getChar(vg);
@@ -2522,7 +2522,7 @@ int process_end_pi(VTDGen *vg){
 			if (vg->encoding < FORMAT_UTF_16BE){
 				if (length1 > MAX_TOKEN_LENGTH){
 					throwException(parse_exception,0,	
-						"Parse Exception in parse()",
+						"Parse exception in parse()",
 						"Token Length Error: PI_VAL length too long");
 				}
 				writeVTD(vg,
@@ -2534,7 +2534,7 @@ int process_end_pi(VTDGen *vg){
 			else{
 				if (length1 > (MAX_TOKEN_LENGTH << 1)){
 					throwException(parse_exception,0,	
-						"Parse Exception in parse()",
+						"Parse exception in parse()",
 						"Token Length Error: PI_VAL length too long");
 				}
 				writeVTD(vg,
@@ -2548,13 +2548,13 @@ int process_end_pi(VTDGen *vg){
 				parser_state = STATE_DOC_END;
 			} else{		
 				throwException(parse_exception,0,	
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"Error in PI: invalid termination sequence");
 			}
 		}
 	} else{		
 		throwException(parse_exception,0,	
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"Error in PI: invalid char in PI target");
 	}
 	return parser_state;
@@ -2571,7 +2571,7 @@ int process_end_comment(VTDGen *vg){
 			}
 		} else{		
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Error in comment: Invalid Char");
 		}
 		/*throw new ParseException(
@@ -2600,7 +2600,7 @@ int process_end_comment(VTDGen *vg){
 		return parser_state;
 	}		
 	throwException(parse_exception,0,	
-		"Parse Exception in parse()",
+		"Parse exception in parse()",
 		"Error in comment: '-->' expected");
 
 }
@@ -2616,7 +2616,7 @@ int process_comment(VTDGen *vg){
 			}
 		} else{		
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Error in comment: Invalid Char");
 		}
 	}
@@ -2650,7 +2650,7 @@ int process_comment(VTDGen *vg){
 				}
 				if (skipChar(vg,'>')){		
 					throwException(parse_exception,0,	
-						"Parse Exception in parse()",
+						"Parse exception in parse()",
 						"Error in text content: ]]> in text content");
 				}
 			}
@@ -2658,13 +2658,13 @@ int process_comment(VTDGen *vg){
 		}
 		else{		
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"XML decl error");
 		}
 		return parser_state;
 	} else{		
 		throwException(parse_exception,0,	
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"Error in comment: Invalid terminating sequence");
 	}
 }
@@ -2683,7 +2683,7 @@ int process_doc_type(VTDGen *vg){
 				break;
 		} else{		
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Error in DOCTYPE: Invalid char");
 		}
 	}
@@ -2691,7 +2691,7 @@ int process_doc_type(VTDGen *vg){
 	if (vg->encoding < FORMAT_UTF_16BE){
 		if (length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Token Length Error: DTD_VAL length too long");
 		}
 		writeVTD(vg,
@@ -2703,7 +2703,7 @@ int process_doc_type(VTDGen *vg){
 	else{
 		if (length1 > (MAX_TOKEN_LENGTH<<1)){
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Token Length Error: DTD_VAL length too long");
 		}
 		writeVTD(vg,
@@ -2717,7 +2717,7 @@ int process_doc_type(VTDGen *vg){
 		parser_state = STATE_LT_SEEN;
 	} else{		
 		throwException(parse_exception,0,	
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"Other Error: Invalid char in xml");
 	}
 	return parser_state;
@@ -2736,7 +2736,7 @@ static int process_cdata(VTDGen *vg){
 			}
 		} else{		
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Error in CDATA: Invalid Char");
 		}
 	}
@@ -2771,7 +2771,7 @@ static int process_cdata(VTDGen *vg){
 			}
 			if (skipChar(vg,'>')){		
 				throwException(parse_exception,0,	
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"Error in text content: ]]> in text content");
 			}
 		}
@@ -2779,7 +2779,7 @@ static int process_cdata(VTDGen *vg){
 	}
 	else{		
 		throwException(parse_exception,0,	
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"Other Error: Invalid char in xml");
 	}
 	return parser_state;
@@ -2793,13 +2793,13 @@ int length1,parser_state;
 					break;
 				} else{		
 					throwException(parse_exception,0,	
-						"Parse Exception in parse()",
+						"Parse exception in parse()",
 						"Error in PI: invalid termination sequence for PI");
 				}
 			}
 		} else{		
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Errors in PI: Invalid char in PI val");
 		}
 		vg->ch = getChar(vg);
@@ -2808,7 +2808,7 @@ int length1,parser_state;
 	if (vg->encoding < FORMAT_UTF_16BE){
 		if (length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Token Length Error: PI_VAL length too long");
 		}
 		writeVTD(vg,vg->temp_offset, length1, TOKEN_PI_VAL, vg->depth);
@@ -2816,7 +2816,7 @@ int length1,parser_state;
 	else{
 		if (length1 > (MAX_TOKEN_LENGTH << 1)){
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Token Length Error: PI_VAL length too long");
 		}
 		writeVTD(vg,
@@ -2840,7 +2840,7 @@ int length1,parser_state;
 			}
 			if (skipChar(vg,'>')){		
 				throwException(parse_exception,0,	
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"Error in text content: ]]> in text content");
 			}
 		}
@@ -2848,7 +2848,7 @@ int length1,parser_state;
 	}
 	else{		
 		throwException(parse_exception,0,	
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"Error in text content: Invalid char");
 	}
 	return parser_state;
@@ -2865,7 +2865,7 @@ int process_pi_tag(VTDGen *vg){
 	if (vg->encoding < FORMAT_UTF_16BE){
 		if (length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Token Length Error: PI_TAG length too long");
 		}
 		writeVTD(vg,
@@ -2877,7 +2877,7 @@ int process_pi_tag(VTDGen *vg){
 	else{													
 		if (length1 > (MAX_TOKEN_LENGTH << 1)){
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Token Length Error: PI_TAG length too long");
 		}
 		writeVTD(vg,
@@ -2908,7 +2908,7 @@ int process_pi_tag(VTDGen *vg){
 					}
 					if (skipChar(vg,'>')){		
 						throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"Error in text content: ]]> in text content");
 					}
 				}
@@ -2916,14 +2916,14 @@ int process_pi_tag(VTDGen *vg){
 			}else
 			{		
 				throwException(parse_exception,0,
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"Error in text content: Invalid char");
 			}
 			return parser_state;
 		} else
 		{		
 			throwException(parse_exception,0,	
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Error in PI: invalid termination sequence");
 		}
 	}
@@ -2959,19 +2959,19 @@ static int process_dec_attr(VTDGen *vg){
 			else
 			{		
 				throwException(parse_exception,0,	
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"XML decl error: Invalid char");
 			}
 	} else{		
 		throwException(parse_exception,0,
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"XML decl error: should be version");
 	}
 	vg->ch_temp = getCharAfterS(vg);
 	if (vg->ch_temp != '\'' && vg->ch_temp != '"')
 	{		
 		throwException(parse_exception,0,
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"XML decl error: Invalid char to start attr name");
 	}
 	vg->temp_offset = vg->offset;
@@ -2996,13 +2996,13 @@ static int process_dec_attr(VTDGen *vg){
 	} else
 	{		
 		throwException(parse_exception,0,	
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"XML decl error: Invalid version(other than 1.0 or 1.1) detected");
 	}
 	if (!skipChar(vg,vg->ch_temp))
 	{		
 		throwException(parse_exception,0,		
-			"Parse Exception in parse()",
+			"Parse exception in parse()",
 			"XML decl error: version not terminated properly");
 	}
 	vg->ch = getChar(vg);
@@ -3038,14 +3038,14 @@ static int process_dec_attr(VTDGen *vg){
 						}
 					} else{		
 						throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: Invalid char");
 					}
 					vg->ch_temp = getCharAfterS(vg);
 					if (vg->ch_temp != '"' && vg->ch_temp != '\'')
 					{		
 						throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: Invalid char to start attr name");
 					}
 					vg->temp_offset = vg->offset;
@@ -3067,7 +3067,7 @@ static int process_dec_attr(VTDGen *vg){
 									!= FORMAT_UTF_16BE) {
 										if (vg->must_utf_8){
 											throwException(parse_exception,0,	
-												"Parse Exception in parse()",
+												"Parse exception in parse()",
 												"Can't switch from UTF-8");
 										}
 										vg->encoding = FORMAT_ASCII;
@@ -3091,14 +3091,14 @@ static int process_dec_attr(VTDGen *vg){
 								} else
 								{		
 									throwException(parse_exception,0,	
-										"Parse Exception in parse()",
+										"Parse exception in parse()",
 										"XML decl error: Can't switch encoding to ASCII");
 								}
 								
 						}
 
 						throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: Invalid Encoding");
 							  }
 							
@@ -3128,7 +3128,7 @@ static int process_dec_attr(VTDGen *vg){
 					vg->temp_offset = vg->offset - vg->increment;
 			} else{		
 				throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl Error: Invalid char");
 			}
 		}
@@ -3147,7 +3147,7 @@ static int process_dec_attr(VTDGen *vg){
 					vg->ch = getCharAfterS(vg);
 					if (vg->ch != '='){		
 						throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: Invalid char");
 					}
 					if (vg->encoding < FORMAT_UTF_16BE){
@@ -3168,7 +3168,7 @@ static int process_dec_attr(VTDGen *vg){
 					vg->temp_offset = vg->offset;
 					if (vg->ch_temp != '"' && vg->ch_temp != '\''){		
 						throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: Invalid char to start attr name");
 					}
 					vg->ch = getChar(vg);
@@ -3190,7 +3190,7 @@ static int process_dec_attr(VTDGen *vg){
 									vg->depth);
 						} else{		
 							throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: invalid val for standalone");
 						}
 					} else if (vg->ch == 'n') {
@@ -3210,17 +3210,17 @@ static int process_dec_attr(VTDGen *vg){
 									vg->depth);
 						} else{		
 							throwException(parse_exception,0,	
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"XML decl error: invalid val for standalone");
 						}
 					} else{		
 						throwException(parse_exception,0,	
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"XML decl error: invalid val for standalone");
 					}
 			} else{		
 				throwException(parse_exception,0,
-					"Parse Exception in parse()",
+					"Parse exception in parse()",
 					"XML decl error");
 			}
 			vg->ch = getChar(vg);
@@ -3236,12 +3236,12 @@ static int process_dec_attr(VTDGen *vg){
 			parser_state = STATE_LT_SEEN;
 		} else{		
 			throwException(parse_exception,0,
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"Other Error: Invalid Char in XML");
 		}
 	} else{		
 		throwException(parse_exception,0,
-				"Parse Exception in parse()",
+				"Parse exception in parse()",
 				"XML decl Error: Invalid termination sequence");
 	}
 	return parser_state;
@@ -3266,7 +3266,7 @@ static int process_start_doc(VTDGen *vg){
 						return STATE_DEC_ATTR_NAME;
 				} else if (skipChar(vg,'?')){
 					throwException(parse_exception,0,
-						"Parse Exception in parse()",
+						"Parse exception in parse()",
 						"Error in XML decl: premature ending");
 				}
 		}
@@ -3274,7 +3274,7 @@ static int process_start_doc(VTDGen *vg){
 		return STATE_LT_SEEN;
 	}
 	throwException(parse_exception,0,
-		"Parse Exception in parse()",
+		"Parse exception in parse()",
 		"Other Error: XML not starting properly");
 
 }
@@ -3294,7 +3294,7 @@ static int process_end_doc(VTDGen *vg){
 		}
 	}
 	throwException(parse_exception,-1,
-		"Parse Exception in parse()",
+		"Parse exception in parse()",
 		"Other Error: XML not terminated properly");
 }
 
@@ -3309,7 +3309,7 @@ static int process_qm_seen(VTDGen *vg){
 				if (vg->ch == '?'
 					|| XMLChar_isSpaceChar(vg->ch)){
 						throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"Error in PI: [xX][mM][lL] not a valid PI targetname");
 				}
 				vg->offset = getPrevOffset(vg);
@@ -3317,7 +3317,7 @@ static int process_qm_seen(VTDGen *vg){
 		return STATE_PI_TAG;
 	}
 	throwException(parse_exception,0,
-		"Parse Exception in parse()",
+		"Parse exception in parse()",
 		"Other Error: First char after <? invalid");
 }
 
@@ -3334,7 +3334,7 @@ static int process_ex_seen(VTDGen *vg){
 						} else
 						{		
 							throwException(parse_exception,0,
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"Error in comment: Invalid char sequence to start a comment");
 						}
 					case '[' :
@@ -3351,11 +3351,11 @@ static int process_ex_seen(VTDGen *vg){
 						} else {
 							if (vg->depth == -1){
 								throwException(parse_exception,0,
-									"Parse Exception in parse()",
+									"Parse exception in parse()",
 									"Error in CDATA: Invalid char sequence for CDATA");
 							}
 							throwException(parse_exception,0,
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"Error in CDATA: Invalid char sequence for CDATA");
 						}
 
@@ -3375,23 +3375,23 @@ static int process_ex_seen(VTDGen *vg){
 						} else {
 							if (hasDTD == TRUE){
 								throwException(parse_exception,0,
-									"Parse Exception in parse()",
+									"Parse exception in parse()",
 									"Error for DOCTYPE: Only DOCTYPE allowed");
 							}
 							if (vg->depth != -1){
 								throwException(parse_exception,0,
-									"Parse Exception in parse()",
+									"Parse exception in parse()",
 									"Error for DOCTYPE: DTD at wrong place");
 							}
 
 							throwException(parse_exception,0,
-								"Parse Exception in parse()",
+								"Parse exception in parse()",
 								"Error for DOCTYPE: Invalid char sequence for DOCTYPE");
 						}
 					default :
 
 						throwException(parse_exception,0,
-							"Parse Exception in parse()",
+							"Parse exception in parse()",
 							"Other Error: Unrecognized char after <!");
 	}
 	return parser_state;
