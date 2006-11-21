@@ -53,7 +53,6 @@ void freeAllObj(){
 void resetObj(){
 	ptr1 = objList;
 	while(ptr1!=NULL){
-		//free(ptr1->object);
 		ptr2 = ptr1->next;
 		free(ptr1);
 		ptr1 = ptr2;
