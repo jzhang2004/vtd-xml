@@ -341,7 +341,7 @@ namespace com.ximpleware
         private bool compStringNodeSet(Expr left, Expr right, VTDNav vn, int op)
         {
             int i, t, i1 = 0, stackSize;
-            String st1, st2;
+            String st1;
             try
             {
                 vn.push2();
@@ -446,8 +446,6 @@ namespace com.ximpleware
                 //fib2.clear();
                 throw new System.SystemException("Undefined behavior");
             }
-
-            return false;
         }
 
         private bool compNodeSetNodeSet(Expr left, Expr right, VTDNav vn, int op)
@@ -592,7 +590,6 @@ namespace com.ximpleware
                 //fib2.clear();
                 throw new System.SystemException("Undefined behavior");
             }
-            return false;
         }
     }
 }
