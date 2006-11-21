@@ -513,7 +513,7 @@ public double evalXPathToNumber(){
  * @return
  *
  */
-public String evalXPath2String(){
+public String evalXPathToString(){
     return xpe.evalString(vn);
 }
 /**
