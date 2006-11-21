@@ -875,7 +875,6 @@ namespace com.ximpleware
             if (argCount() >= 2)
             {
                 Alist temp = argumentList;
-                int count = 0;
                 while (temp != null)
                 {
                     sb.Append(temp.e.evalString(vn));
