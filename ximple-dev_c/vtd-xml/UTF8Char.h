@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/*this file defines the data and functions used in performing UTF8 char decoding*/
 #ifndef UTF8CHAR_H
 #define UTF8CHAR_H
 
