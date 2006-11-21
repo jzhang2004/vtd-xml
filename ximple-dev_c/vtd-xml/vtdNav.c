@@ -43,9 +43,8 @@ static int decode(VTDNav *vn,int offset);
 
 
 
-//Create VTDNav object
+/*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, int temp, int offset){
-	exception e;
 	int c,d,a,i;
 	Long val;
 	//temp = vn->XMLDoc[vn->currentOffset];
@@ -77,12 +76,11 @@ static Long handle_utf8(VTDNav *vn, int temp, int offset){
 				d = 30;
 				a = 5;
 				break;
-			default :
-				e.et = nav_exception;
-				e.msg = "navigation exception during getChar";
-				e.sub_msg = "UTF 8 encoding error: should never happen";
-				Throw e;
-				//throw new NavException("UTF 8 encoding error: should never happen");
+			default :{
+				throwException(nav_exception,0,
+						"navigation exception during getChar",
+						"UTF 8 encoding error: should never happen");
+					 }
 	}
 
 	val = (temp & c) << d;
@@ -90,12 +88,10 @@ static Long handle_utf8(VTDNav *vn, int temp, int offset){
 	while (i >= 0) {
 		temp = vn->XMLDoc[offset + a - i];
 		if ((temp & 0xc0) != 0x80){
-			e.et = nav_exception;
-			e.msg = "navigation exception during getChar";
-			e.sub_msg = "UTF 8 encoding error: should never happen";
-			Throw e;
+			throwException(nav_exception,0,
+				"navigation exception during getChar",
+				"UTF 8 encoding error: should never happen");
 		}
-		//throw new NavException("UTF 8 encoding error: should never happen");
 		val = val | ((temp & 0x3f) << ((i<<2)+ (i<<1)));
 		i--;
 	}
@@ -103,12 +99,11 @@ static Long handle_utf8(VTDNav *vn, int temp, int offset){
 	return val | ((Long)(a+1)<<32);
 }
 
-static Long handle_utf16le(VTDNav *vn, int offset){
-	exception e;
+static Long handle_utf16le(VTDNav *vn, int offset){	
 	int val,temp =
 		vn->XMLDoc[(offset << 1) + 1]
 	<< 8 | vn->XMLDoc[offset << 1];
-	if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
+	if (temp < 0xdc00 || temp > 0xdfff) {
 			if (temp == '\r') {
    				if (vn->XMLDoc[(offset << 1) + 2] == '\n'
    					&& vn->XMLDoc[(offset << 1) + 3] == 0) {
@@ -124,12 +119,9 @@ static Long handle_utf16le(VTDNav *vn, int offset){
 			(vn->XMLDoc[(offset << 1) + 3]
 		<< 8) | vn->XMLDoc[(offset << 1) + 2];
 		if (temp < 0xd800 || temp > 0xdc00) {
-			// has to be high surrogate
-			e.et = nav_exception;
-			e.msg = "navigation exception during getChar";
-			e.sub_msg = "UTF 16 LE encoding error: should never happen";
-			Throw e;
-			//throw new NavException("UTF 16 BE encoding error: should never happen");
+			throwException(nav_exception,0,
+				"navigation exception during getChar",
+				"UTF 16 LE encoding error: should never happen");
 		}
 		val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
 		
@@ -137,7 +129,6 @@ static Long handle_utf16le(VTDNav *vn, int offset){
 	}
 }
 static Long handle_utf16be(VTDNav *vn, int offset){
-	exception e;
 	int val, temp =
 		vn->XMLDoc[offset << 1]
 	<< 8 | vn->XMLDoc[(offset << 1) + 1];
@@ -159,12 +150,9 @@ static Long handle_utf16be(VTDNav *vn, int offset){
 			vn->XMLDoc[(offset << 1) + 2]
 		<< 8 | vn->XMLDoc[(offset << 1) + 3];
 		if (temp < 0xdc00 || temp > 0xdfff) {
-			// has to be a low surrogate here
-			e.et = nav_exception;
-			e.msg = "navigation exception during getChar";
-			e.sub_msg = "UTF 16 BE encoding error: should never happen";
-			Throw e;
-			//throw new NavException("UTF 16 BE encoding error: should never happen");
+			throwException(nav_exception,0,
+				"navigation exception during getChar",
+				"UTF 16 BE encoding error: should never happen");
 		}
 		val = ((val - 0xd800) <<10) + (temp - 0xdc00) + 0x10000;
 		return val | (2LL<<32);
@@ -174,8 +162,6 @@ static Long handle_utf16be(VTDNav *vn, int offset){
 VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len, Boolean br){
-
-						 exception e;
 						 VTDNav* vn = NULL;
 						 int i;
 
@@ -193,16 +179,14 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 enc>FORMAT_UTF_16LE) 
 							 )
 						 {
-							 e.et = invalid_argument;
-							 e.msg = " invalid argument when creating VTDGen failed ";
-							 Throw e;							
+							 throwException2(invalid_argument,
+								 " invalid argument when creating VTDGen failed ");
 						 }
 
 						 vn = (VTDNav *) malloc(sizeof(VTDNav));
 						 if (vn==NULL){
-							 e.et = out_of_mem;
-							 e.msg = "VTDNav allocation failed ";
-							 Throw e;
+							throwException2(out_of_mem,							 
+								"VTDNav allocation failed ");
 						 }
 						 vn->l1Buffer = l1;
 						 vn->l2Buffer = l2;
@@ -233,10 +217,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->atTerminal = FALSE;
 						 vn->context = (int *)malloc(vn->nestingLevel*sizeof(int));
 						 if (vn->context == NULL){
-							 free(vn);
-							 e.et = out_of_mem;
-							 e.msg = "VTDNav allocation failed ";
-							 Throw e;
+							 throwException2(out_of_mem,							 
+								"VTDNav allocation failed ");
 						 }
 						 vn->context[0] = 0;
 						 for (i=1;i<vn->nestingLevel;i++){
@@ -255,9 +237,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 free(vn->stackTemp);
 								 free(vn->context);
 								 free(vn);
-								 e.et = out_of_mem;
-								 e.msg = "VTDNav allocation failed ";
-								 Throw e;
+								 throwException2(out_of_mem,							 
+									 "VTDNav allocation failed ");
 							 }
 							 vn->l1index = vn->l2index = vn->l3index = -1;
 							 vn->l2lower = vn->l2upper = -1;
@@ -454,7 +435,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //UCS2 char representation .
 					 //Also it resolves built-in entity and character references.
 					 static Long getCharResolved(VTDNav *vn,int offset){
-						 exception e;
 						 int ch = 0;
 						 int val = 0;
 						 Long inc =2;
@@ -490,10 +470,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							inc++;
 							break;
 						} else{
-							e.et = nav_exception;
-							e.msg = "navigation exception during getCharResolved";
-							e.sub_msg = "Illegal char in a char reference";
-							Throw e;
+							throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"Illegal char in a char reference");
 						}
 						//throw new NavException("Illegal char in a char reference");
 					}
@@ -508,12 +487,10 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						} else if (ch == ';') {
 							break;
 						} else{
-							e.et = nav_exception;
-							e.msg = "navigation exception during getCharResolved";
-							e.sub_msg = "Illegal char in a char reference";
-							Throw e;
+							throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"Illegal char in a char reference");
 						}
-						//throw new NavException("Illegal char in char reference");
 					}
 				}
 				break;
@@ -526,10 +503,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							inc = 5;
 							val = '&';
 						} else{
-							e.et = nav_exception;
-							e.msg = "navigation exception during getCharResolved";
-							e.sub_msg = "illegal builtin reference";
-							Throw e;
+							throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"illegal builtin reference");
 						}
 						//	throw new NavException("illegal builtin reference");
 				} else if (ch == 'p') {
@@ -539,17 +515,15 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							inc = 6;
 							val = '\'';
 						} else{
-							e.et = nav_exception;
-							e.msg = "navigation exception during getCharResolved";
-							e.sub_msg = "illegal builtin reference";
-							Throw e;
+							throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"illegal builtin reference");
 						}
 						//throw new NavException("illegal builtin reference");
 				} else{
-					e.et = nav_exception;
-					e.msg = "navigation exception during getCharResolved";
-					e.sub_msg = "illegal builtin reference";
-					Throw e;
+					throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"illegal builtin reference");
 				}
 				//	throw new NavException("illegal builtin reference");
 				break;
@@ -563,10 +537,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						inc = 5;
 						val = '\"';
 					} else{
-						e.et = nav_exception;
-						e.msg = "navigation exception during getCharResolved";
-						e.sub_msg = "illegal builtin reference";
-						Throw e;
+						throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"illegal builtin reference");
 					}
 					//throw new NavException("illegal builtin reference");
 					break;
@@ -576,10 +549,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						inc = 4;
 						val = '<';
 					} else{
-						e.et = nav_exception;
-						e.msg = "navigation exception during getCharResolved";
-						e.sub_msg = "illegal builtin reference";
-						Throw e;
+						throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"illegal builtin reference");
 					}
 					//throw new NavException("illegal builtin reference");
 					break;
@@ -589,32 +561,24 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						inc = 4;
 						val = '>';
 					} else{
-						e.et = nav_exception;
-						e.msg = "navigation exception during getCharResolved";
-						e.sub_msg = "illegal builtin reference";
-						Throw e;
+						throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"illegal builtin reference");
 					}
-					//throw new NavException("illegal builtin reference");
 					break;
 
 			default :
 
-				e.et = nav_exception;
-				e.msg = "navigation exception during getCharResolved";
-				e.sub_msg = "Invalid entity char";
-				Throw e;
-
-				//throw new NavException("Invalid entity char");
-
+				throwException(nav_exception,0,
+								"navigation exception during getCharResolved",
+								"Invalid entity char");
 						 }
-
-						 //currentOffset++;
 						 return val | (inc << 32);
 					 }
 
 
 		
-					 //Get the next char unit which gets decoded automatically
+					 /*Get the next char unit which gets decoded automatically*/
 					 static int getCharUnit(VTDNav *vn, int offset){
 						 return (vn->encoding <=FORMAT_UTF8)
 							 ? vn->XMLDoc[offset]:
@@ -1151,11 +1115,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Test if the current element matches the given name.
 					 Boolean matchElement(VTDNav *vn, UCSChar *en){
-						 exception e;
 						 if (en == NULL){
-							 e.et = invalid_argument;
-							 e.msg = "matchElement's element name can't be null";
-							 Throw e;
+							 throwException2(invalid_argument,
+								 "matchElement's element name can't be null");
 						 }
 						
 						 // throw new IllegalArgumentException(" Element name can't be null ");
@@ -1205,14 +1167,11 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s){
 						 int i,l, endOffset;
 						 Long l1;
-						 exception e;
 						 if (s == NULL){
-							 e.et = invalid_argument;
-							 e.msg = " invalid argument for matchRawTokenString2, s can't be NULL";
-							 Throw e;
+							  throwException2(invalid_argument,
+								  " invalid argument for matchRawTokenString2, s can't be NULL");
 						 }
 
-						 //vn->currentOffset = offset;
 						 endOffset = offset + len;
 						 if (vn->encoding < FORMAT_UTF8) {
 							 if (wcslen(s) != len)
@@ -1243,13 +1202,11 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Match a string with a token represented by a long (upper 32 len, lower 32 offset).
 					 static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCSChar *s){
-						 exception e;
 						 int len;
 						 int offset;
 						 if (s == NULL){
-							 e.et = invalid_argument;
-							 e.msg = " invalid argument for matchRawTokenString2, s can't be NULL";
-							 Throw e;
+							  throwException2(invalid_argument,
+								  " invalid argument for matchRawTokenString2, s can't be NULL");
 						 }
 						 //throw new IllegalArgumentException("string can't be null");
 #if BIG_ENDIAN
@@ -1265,14 +1222,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Match the string against the token at the given index value. When a token
 					 //is an attribute name or starting tag, qualified name is what gets matched against
 					 Boolean matchRawTokenString(VTDNav *vn, int index, UCSChar *s){	
-						 exception e;
 						 tokenType type;
 						 int len;
 						 int offset;
 						 if (s == NULL){
-							 e.et = invalid_argument;
-							 e.msg = " invalid argument for matchRawTokenString, s can't be NULL";
-							 Throw e;
+							 throwException2(invalid_argument,
+								 " invalid argument for matchRawTokenString, s can't be NULL");
 						 }
 						 type = getTokenType(vn,index);
 						 len =
@@ -1292,14 +1247,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Match a string against a token with given offset and len, entities get 
 					 //resolved properly.
 					 static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCSChar *s){
-						 exception e;
 						 int endOffset;
 						 int l;
 						 Long l1;
 						 if (s == NULL){ 
-							 e.et = invalid_argument;
-							 e.msg = " invalid argument for matchRawTokenString1, s can't be NULL";
-							 Throw e;
+							  throwException2(invalid_argument,
+								  " invalid argument for matchRawTokenString1, s can't be NULL");
 						 }
 						 //throw new IllegalArgumentException("string can't be null");
 
@@ -1346,12 +1299,10 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Match a string against a "non-extractive" token represented by a 
 					 //long (upper 32 len, lower 32 offset).
 					 static Boolean matchTokenString2(VTDNav *vn, Long l, UCSChar *s){
-						 exception e;
 						 int len,offset;
 						 if (s == NULL){
-							 e.et = invalid_argument;
-							 e.msg = " invalid argument for matchTokenString2, s can't be NULL";
-							 Throw e;
+							   throwException2(invalid_argument,
+								   " invalid argument for matchTokenString2, s can't be NULL");
 						 }
 						 //	 throw new IllegalArgumentException("string can't be null");
 #if BIG_ENDIAN
@@ -1418,14 +1369,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 //Match the string against the token at the given index value. When a token
 					 //is an attribute name or starting tag, qualified name is what gets matched against
 					 Boolean matchTokenString(VTDNav *vn, int index, UCSChar *s){
-						 exception e;
 						 tokenType type;
 						 int offset;
 						 int len;
 						 if (s == NULL){
-							 e.et = invalid_argument;
-							 e.msg = " invalid argument for matchTokenString, s can't be NULL";
-							 Throw e;
+							  throwException2(invalid_argument,
+								  " invalid argument for matchTokenString, s can't be NULL");
 						 }
 						 type = getTokenType(vn,index);
 						 len =
@@ -1458,7 +1407,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 Long l;
 						 int t = getTokenType(vn,index);
 						 Boolean b = (t==TOKEN_CHARACTER_DATA) || (t== TOKEN_ATTR_VAL);
-						 //exception e;
 						 Long left, right, scale, exp;
 						 double v;
 						 Boolean neg;
@@ -1472,7 +1420,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 ch = (int)l;
 							 offset += (int)(l>>32);
 						 }
-						 while (offset <= end) { // trim leading whitespaces
+						 while (offset <= end) { /* trim leading whitespaces*/
 							 if (!isWS(ch))
 								 break;
 							  l = b? getCharResolved(vn,offset):getChar(vn,offset);
@@ -1480,10 +1428,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 offset += (int)(l>>32);
 						 }
 
-						 if (offset > end) {// all whitespace
+						 if (offset > end) {/* all whitespace */
 							  double d1 = 0.0;
 							 return d1/d1;
-							 //throw new NavException("Empty string");
 						 }
 
 						 neg = (ch == '-');
@@ -1493,14 +1440,14 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 l = b? getCharResolved(vn,offset):getChar(vn,offset);
 							 ch = (int)l;
 							 offset += (int)(l>>32);
-						 } //get another one if it is sign.
+						 }
 
-						 //left part of decimal
+						 /*left part of decimal*/
 						 left = 0;
 						 while (offset <= end) {
-							 //must be <= since we get the next one at last.
+							 /*must be <= since we get the next one at last.*/
 
-							 int dig = Character_digit((char) ch, 10); //only consider decimal
+							 int dig = Character_digit((char) ch, 10); /*only consider decimal*/
 							 if (dig < 0)
 								 break;
 
@@ -1513,7 +1460,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 }
 						 }
 
-						 //right part of decimal
+						 /*right part of decimal*/
 						 right = 0;
 						 scale = 1;
 						 if (ch == '.') {
@@ -1524,10 +1471,10 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 
 							 while (offset <= end) {
-								 //must be <= since we get the next one at last.
+								 /*must be <= since we get the next one at last.*/
 
 								 int dig = Character_digit((char) ch, 10);
-								 //only consider decimal
+								 /*only consider decimal */
 								 if (dig < 0)
 									 break;
 
@@ -1542,7 +1489,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 }
 						 }
 
-						 //exponent
+						 /*exponent*/
 						 exp = 0;
 						 if (ch == 'E' || ch == 'e') {
 							 Boolean expneg;
@@ -1552,22 +1499,22 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 ch = (int)l;
 							 offset += (int)(l>>32);
 						 }
-							 expneg = (ch == '-'); //sign for exp
+							 expneg = (ch == '-'); /*sign for exp*/
 							 if (ch == '+' || ch == '-')
 								 {
 							 l = b? getCharResolved(vn,offset):getChar(vn,offset);
 							 ch = (int)l;
 							 offset += (int)(l>>32);
-						 } //skip the +/- sign
+						 } /*skip the +/- sign*/
 
 							 cur = offset;
-							 //remember the indx, used to find a invalid number like 1.23E
+							 /*remember the indx, used to find a invalid number like 1.23E*/
 
 							 while (offset <= end) {
-								 //must be <= since we get the next one at last.
+								 /*must be <= since we get the next one at last.*/
 
 								 int dig = Character_digit((char) ch, 10);
-								 //only consider decimal
+								 /*only consider decimal*/
 								 if (dig < 0)
 									 break;
 								 exp = exp * 10 + dig;
@@ -1620,8 +1567,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 int t = getTokenType(vn,index);
 						 Boolean b = (t==TOKEN_CHARACTER_DATA) || (t== TOKEN_ATTR_VAL);
 						 Boolean neg;
-						 //exception e;
-						 //Long exp;
 						 double v;
 						 Long l;
 						 int offset = getTokenOffset(vn,index);
@@ -1755,22 +1700,17 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 exp = (-exp);
 						 }
 
-						 //anything left must be space
+						 /*anything left must be space*/
 						 while (offset <= end) {
-							 if (!isWS(ch)){// all whitespace
-								 /*e.et = number_format_exception;
-								 e.msg = " parseFloat failed, invalid format, invalid char encountered";
-								 Throw e;*/
+							 if (!isWS(ch)){/* all whitespace */
 								 float f = 0.0;
 								 return f/f;
 							 }
-							 // throw new NavException(toString(index));
-
-							  {
-							 l = b? getCharResolved(vn,offset):getChar(vn,offset);
-							 ch = (int)l;
-							 offset += (int)(l>>32);
-						 }
+							 {
+								 l = b? getCharResolved(vn,offset):getChar(vn,offset);
+								 ch = (int)l;
+								 offset += (int)(l>>32);
+							 }
 						 }
 
 						 v = (double) left;
@@ -1783,7 +1723,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 f = (float) v;
 
-						 //try to handle overflow/underflow
+						 /*try to handle overflow/underflow */
 						 if (v >= MAXFLOAT)
 							 f = MAXFLOAT;
 						 else if (v <= MINFLOAT)
@@ -1792,20 +1732,19 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 if (neg)
 							 f = -f;
 						 return f;
-						 //return 1.0;
 					 }
 
-					 //Convert a vtd token into an int
+					 /*Convert a vtd token into an int*/
 					 int parseInt(VTDNav *vn, int index){
 						 return parseInt2(vn,index,10);
 					 }
 
-					 //Convert a vtd token into an Int according to given radix.
+					 /*Convert a vtd token into an Int according to given radix.*/
 					 static int parseInt2(VTDNav *vn, int index, int radix){
 						 Long pos, result;
 						 int endOffset, c;
 						 Boolean neg;
-						 exception e;
+						
 						 Long l;
 						 int t = getTokenType(vn,index);
 						 Boolean b = (t==TOKEN_CHARACTER_DATA) || (t== TOKEN_ATTR_VAL);
@@ -1828,9 +1767,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 
 						 if (offset > endOffset) {// all whitespace
-							 e.et = number_format_exception;
-							 e.msg = " empty string for parseInt2";
-							 Throw e;
+							 throwException2(number_format_exception,
+								 " empty string for parseInt2");
 						 }
 
 						 neg = (c == '-');
@@ -1860,9 +1798,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 
 						 if (result > MAXINT) {// all whitespace
-							 e.et = number_format_exception;
-							 e.msg = " integer value over(under) flow";
-							 Throw e;
+							   throwException2(number_format_exception,
+								   " integer value over(under) flow");
 						 }
 						 // throw new NumberFormatException("Overflow: " + toString(index));
 
@@ -1875,9 +1812,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 if (offset == (endOffset + 1))
 							 return (int) ((neg) ? (-result) : result);
 						 else{// all whitespace
-							 e.et = number_format_exception;
-							 e.msg = " invalid char during parseInt2";
-							 Throw e;
+							   throwException2(number_format_exception,
+								   " invalid char during parseInt2");
 						 }
 						 // throw new NumberFormatException(toString(index));
 					 }
@@ -1889,7 +1825,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 //Convert a vtd token into a long according to given radix.
 					 static Long parseLong2(VTDNav *vn, int index, int radix){
-						 exception e;
 						 int endOffset, c;
 						 Long result, pos;
 						 Boolean neg;
@@ -1915,9 +1850,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 
 						 if (offset > endOffset) {// all whitespace
-							 e.et = number_format_exception;
-							 e.msg = " empty string for parseLong2";
-							 Throw e;
+							   throwException2(number_format_exception,
+								   " empty string for parseLong2");
 						 }
 
 						 neg = (c == '-');
@@ -1947,9 +1881,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 }
 
 						 if (result > MAXLONG) {// all whitespace
-							 e.et = number_format_exception;
-							 e.msg = " long value over(under) flow";
-							 Throw e;
+							   throwException2(number_format_exception,
+								   " long value over(under) flow");
 						 }
 						 // throw new NumberFormatException("Overflow: " + toString(index));
 
@@ -1964,9 +1897,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 if (offset == (endOffset + 1))
 							 return  ((neg) ? (-result) : result);
 						 else{// all whitespace
-							 e.et = number_format_exception;
-							 e.msg = " invalid char during parseLong2";
-							 Throw e;
+							   throwException2(number_format_exception,
+								   " invalid char during parseLong2");
 						 }
 						 //throw new NumberFormatException(toString(index));
 					 }
@@ -2281,152 +2213,6 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 								 }
 						 }
 					 }
-//					 static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len){
-//						 Long l; 
-//						 int i,k;
-//						 tokenType type;
-//						 Boolean hasNS = FALSE;
-//						 int size = vn->vtdBuffer->size;
-//						 // look for a match in the current hiearchy and return true
-//						 for (i = vn->context[0]; i >= 0; i--) {
-//							 int s = (i != 0) ? vn->context[i] : vn->rootIndex;
-//							 switch (NSval(vn,s)) { // checked the ns marking
-//				case 0xc0000000 :
-//					s = s + 1;
-//					if (s>=size)
-//						break;
-//					type = getTokenType(vn,s);
-//
-//					while (s < size
-//						&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
-//							if (type == TOKEN_ATTR_NS) {
-//								// Get the token length
-//								int temp = getTokenLength(vn, s);
-//								int preLen = ((temp >> 16) & 0xffff);
-//								int fullLen = temp & 0xffff;
-//								int os = getTokenOffset(vn, s);
-//								// xmlns found
-//								if (temp == 5 && len == 0) {
-//									if (URL != NULL) {
-//										return matchTokenString(vn, s + 1, URL);
-//									} else { //xmlns is found but shouldn't be
-//										return FALSE;
-//									}
-//								} else if ((fullLen - preLen - 1) == len) {
-//									// prefix length identical to local part of ns declaration
-//									Boolean a = TRUE;
-//									int j;
-//									for (j = 0; j < len; j++) {
-//										if (getCharUnit(vn,os + preLen + 1 + j)
-//											!= getCharUnit(vn,offset + j)) {
-//												a = FALSE;
-//												break;
-//											}
-//									}
-//									if (a == TRUE) {
-//										return (URL != NULL)
-//											? matchTokenString(vn, s + 1, URL)
-//											: FALSE;
-//									}
-//								}
-//							}
-//							//return (URL != null) ? true : false;
-//							s += 2;
-//							type = getTokenType(vn,s);
-//						}
-//						break;
-//				case 0x80000000 :
-//					break;
-//				default : // check the ns existence, mark bit 31:30 to 11 or 10
-//					k = s + 1;
-//					if (k>=size)
-//						break;
-//					type = getTokenType(vn,k);
-//
-//					while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
-//							if (type == TOKEN_ATTR_NS) {
-//								// Get the token length
-//
-//								int temp = getTokenLength(vn, k);
-//								int preLen = ((temp >> 16) & 0xffff);
-//								int fullLen = temp & 0xffff;
-//								int os = getTokenOffset(vn, k);
-//								hasNS = TRUE;
-//								// xmlns found
-//								if (temp == 5 && len == 0) {
-//									l = longAt(vn->vtdBuffer,s);
-//									hasNS = FALSE;
-//#if BIG_ENDIAN
-//									modifyEntryFLB(vn->vtdBuffer,
-//										s,
-//										l | 0x00000000c0000000L);
-//#else
-//									modifyEntryFLB(vn->vtdBuffer,
-//										s,
-//										l | 0x000000c000000000L);
-//#endif
-//									if (URL != NULL) {
-//										return matchRawTokenString(vn,k + 1, URL);
-//									} else { //xmlns is found but shouldn't be
-//										return FALSE;
-//									}
-//								} else if ((fullLen - preLen - 1) == len) {
-//									// prefix length identical to local part of ns declaration
-//									Boolean a = TRUE;
-//									int j;
-//									for (j = 0; j < len; j++) {
-//										if (getCharUnit(vn, os + preLen + 1 + j)
-//											!= getCharUnit(vn, offset + j)) {
-//												a = FALSE;
-//												break;
-//											}
-//									}
-//									if (a == TRUE) {
-//										l = longAt(vn->vtdBuffer,s);
-//										//hasNS = false;
-//#if BIG_ENDIAN
-//										modifyEntryFLB(vn->vtdBuffer,
-//											s,
-//											l | 0x00000000c0000000L);
-//#else
-//										modifyEntryFLB(vn->vtdBuffer,
-//											s,
-//											l | 0x000000c000000000L);
-//#endif
-//										return (URL != NULL)
-//											? matchTokenString(vn, k + 1, URL)
-//											: FALSE;
-//									}
-//								}
-//							}
-//							//return (URL != null) ? true : false;
-//							k += 2;
-//							if (k>=size)
-//								break;
-//							type = getTokenType(vn,k);
-//						}
-//						l = longAt(vn->vtdBuffer, s);
-//#if BIG_ENDIAN
-//						if (hasNS) {
-//							hasNS = FALSE;
-//							modifyEntryFLB(vn->vtdBuffer, s, l | 0x00000000c0000000L);
-//						} else {
-//							modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000000080000000L);
-//						}
-//#else
-//						if (hasNS) {
-//							hasNS = FALSE;
-//							modifyEntryFLB(vn->vtdBuffer, s, l | 0x000000c000000000L);
-//						} else {
-//							modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000008000000000L);
-//						}
-//#endif
-//						break;
-//							 }
-//						 }
-//						 return (URL != NULL) ? FALSE : TRUE;
-//						 //return FALSE;
-//					 }
 
 					 void sampleState(VTDNav *vn, FastIntBuffer *fib){
 						 if (vn->context[0]>=1)							
@@ -2771,12 +2557,9 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 int temp;
 						 int d;
 						 int val = 0;
-						 exception e;
 						 if (en == NULL){
-							 e.et = invalid_argument;
-							 e.msg = "inavlid argument for toElement2";
-							 Throw e;
-							 //throw new IllegalArgumentException(" Element name can't be null ");
+							  throwException2(invalid_argument,
+								  "inavlid argument for toElement2");
 						 }
 						 if (wcscmp(en,L"*") == 0)
 							 return toElement(vn,direction);
@@ -3026,13 +2809,12 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 					 }
 
-					 //This method normalizes a token into a string in a way that resembles DOM.
-					 //The leading and trailing white space characters will be stripped.
-					 //The entity and character references will be resolved
-					 //Multiple whitespaces char will be collapsed into one.
+					 /*This method normalizes a token into a string in a way that resembles DOM.
+					   The leading and trailing white space characters will be stripped.
+					   The entity and character references will be resolved
+					   Multiple whitespaces char will be collapsed into one.*/
 
 					 UCSChar *toNormalizedString(VTDNav *vn, int index){
-						 exception e;
 						 tokenType type = getTokenType(vn,index);
 						 int len, endOffset;
 						 int ch,k,offset;
@@ -3051,9 +2833,8 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
 						 if (s == NULL)
 						 {
-							 e.et = out_of_mem;
-							 e.msg = " string allocation failed in toString ";
-							 Throw e;							
+							  throwException2(out_of_mem,
+								  " string allocation failed in toString ");
 						 }
 
 						 offset = getTokenOffset(vn ,index);
@@ -3100,16 +2881,13 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 return s;
 					 }
 
-					 //Convert a token at the given index to a String, 
-					 //(built-in entity and char references not resolved)
-					 //(entities and char references not expanded).
-					 UCSChar *toRawString(VTDNav *vn, int index){
-						
+					 /*Convert a token at the given index to a String, 
+					   (built-in entity and char references not resolved)
+					   (entities and char references not expanded).*/
+					 UCSChar *toRawString(VTDNav *vn, int index){						
 						 int offset;
 						 tokenType type = getTokenType(vn,index);
-						 int len;
-						 
-						 
+						 int len;						 
 						 UCSChar *s = NULL;
 
 						 if (type == TOKEN_STARTING_TAG
@@ -3124,16 +2902,14 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 
 					 UCSChar *toRawString2(VTDNav *vn, int os, int len){
-						 exception e;
 						 int offset = os, endOffset=os+len,k=0;
 						 Long l;
 						 UCSChar *s = NULL;
 						 s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
 						 if (s == NULL)
 						 {
-							 e.et = out_of_mem;
-							 e.msg = " string allocation failed in toString ";
-							 Throw e;							
+							  throwException2(out_of_mem,
+								  " string allocation failed in toString ");
 						 }
 						 while (offset < endOffset) {
 							 l = getChar(vn,offset);
@@ -3170,16 +2946,14 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 }
 					 
 					 UCSChar *toString2(VTDNav *vn, int os, int len){
-						 exception e;
 						 int offset = os, endOffset=os+len,k=0;
 						 Long l;
 						 UCSChar *s = NULL;
 						 s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
 						 if (s == NULL)
 						 {
-							 e.et = out_of_mem;
-							 e.msg = " string allocation failed in toString ";
-							 Throw e;							
+							  throwException2(out_of_mem,
+								  " string allocation failed in toString ");
 						 }
 						 while (offset < endOffset) {
 							 l = getCharResolved(vn,offset);
@@ -3445,7 +3219,7 @@ Boolean getAtTerminal(VTDNav *vn){
  }
 
  static Long getChar4OtherEncoding(VTDNav *vn, int offset){
-	 exception e;
+	 
 	 if (vn->encoding <= FORMAT_WIN_1258) 
 	 { 
 		 int temp = decode(vn,offset); 
@@ -3462,10 +3236,11 @@ Boolean getAtTerminal(VTDNav *vn){
 		 } 
 		 return temp | (1LL << 32); 
 	 } 
-	 e.et = nav_exception;
-	 e.msg = "navigation exception during getChar4OtherEncoding";
-	 e.sub_msg = "Unknown encoding error: should never happen";
-	 Throw e;
+	 {
+		  throwException(nav_exception,0,
+			  "navigation exception during getChar4OtherEncoding",	
+			  "Unknown encoding error: should never happen");
+	 }
 }
 
 static int decode(VTDNav *vn,int offset)
@@ -3511,3 +3286,19 @@ static int decode(VTDNav *vn,int offset)
                     return windows_1258_decode(ch);
             }
         }
+
+void throwException(enum exception_type et, int sub_type, char* msg, char* submsg){
+	exception e;
+	e.et = et;
+	e.subtype = sub_type;
+	e.msg = msg;
+	e.sub_msg = submsg;
+	Throw e;
+}
+
+void throwException2 (enum exception_type et, char *msg){
+	exception e;
+	e.et = et;
+	e.msg = msg;
+	Throw e;
+}

@@ -210,11 +210,11 @@ void XMLChar_init()
 		'<', '&', ']',
     };
 
-    //
+    /*
     // Initialize
     //
 
-    // set valid characters
+    // set valid characters*/
     unsigned int i;
 	int j;
 
@@ -346,12 +346,10 @@ static void init_Character()
 }
 
 int Character_digit(int ch, int radix){
-	exception e;
 	int i;
 	if (radix <= 1 || radix >36){
-		e.et = invalid_argument;
-		e.msg = "radix out of range ( <2 or > 36 )";
-		Throw e;
+		throwException2(invalid_argument,
+			"radix out of range ( <2 or > 36 )");
 	}
 	if (isCharacterReady == FALSE)
 		init_Character();

@@ -23,14 +23,12 @@ static int isText(TextIter *ti, int i);
 
 // create text iterator
 TextIter *createTextIter(){
-	exception e;
 	TextIter *ti = NULL;
 	ti = (TextIter *)malloc(sizeof(TextIter));
 	
 	if (ti == NULL){
-		e.et = out_of_mem;
-		e.msg = "createTextIter failed";
-		Throw e;
+		throwException2(out_of_mem,
+			"createTextIter failed");
 	}
 	ti->vn = NULL;
 	
