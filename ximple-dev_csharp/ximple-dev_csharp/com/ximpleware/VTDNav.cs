@@ -119,7 +119,7 @@ namespace com.ximpleware
                     }
                     return temp | (1L << 32);
 
-                case FORMAT_ISO_8859:
+                case FORMAT_ISO_8859_1:
                     temp = XMLDoc.byteAt(offset);
                     if (temp == '\r')
                     {
@@ -510,11 +510,6 @@ namespace com.ximpleware
 
         }
         /// <summary> Get the encoding of the XML document.
-        /// <pre>   0  ASCII       </pre>
-        /// <pre>   1  ISO-8859-1  </pre>
-        /// <pre>   2  UTF-8       </pre>
-        /// <pre>   3  UTF-16BE    </pre>
-        /// <pre>   4  UTF-16LE    </pre>
         /// </summary>
         /// <returns> int
         /// </returns>
@@ -786,7 +781,7 @@ namespace com.ximpleware
         // encoding format definition here
 
         public const int FORMAT_ASCII = 0;
-        public const int FORMAT_ISO_8859 = 1;
+        public const int FORMAT_ISO_8859_1 = 1;
         public const int FORMAT_UTF8 = 2;
         public const int FORMAT_ISO_8859_2 = 3;
         public const int FORMAT_ISO_8859_3 = 4;
