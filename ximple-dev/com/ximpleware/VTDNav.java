@@ -1052,11 +1052,6 @@ public class VTDNav {
 	}
 	/**
 	 * Get the encoding of the XML document.
-	 * <pre>   0  ASCII       </pre>
-	 * <pre>   1  ISO-8859-1  </pre>
-	 * <pre>   2  UTF-8       </pre>
-	 * <pre>   63  UTF-16BE    </pre>
-	 * <pre>   64  UTF-16LE    </pre>
 	 * @return int
 	 */
 	public int getEncoding() {
