@@ -2121,7 +2121,8 @@ class Yylex: sym, TUVienna.CS_CUP.Runtime.Scanner {
            
 				isName = 0;
 				len = yytext().Length;
-				literal = yytext().Substring(1, len-1);
+				literal = yytext().Substring(1, len-2);
+                //Console.WriteLine(" literal string ==> " + literal);
 				return sym(LITERAL,literal);
 			
 #line default
