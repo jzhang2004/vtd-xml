@@ -72,7 +72,7 @@ namespace com.ximpleware
 		/// <summary> Attach master document to this instance of XMLModifier</summary>
 		/// <param name="masterDocument">*
 		/// </param>
-		public virtual void  bind(VTDNav masterDocument)
+		public void  bind(VTDNav masterDocument)
 		{
 			if (masterDocument == null)
 				throw new System.ArgumentException("MasterDocument can't be null");
@@ -124,10 +124,8 @@ namespace com.ximpleware
 		/// delimiting text surrounding the content, is removed
 		/// 
 		/// </summary>
-		public virtual void  remove()
+		public void  remove()
 		{
-			if (md == null)
-				throw new System.ArgumentException("MasterDocument can't be null");
 			int i = md.getCurrentIndex();
 			int type = md.getTokenType(i);
 			if (type == VTDNav.TOKEN_STARTING_TAG)
@@ -151,19 +149,15 @@ namespace com.ximpleware
 		/// </summary>
 		/// <param name="i">*
 		/// </param>
-		public virtual void  removeToken(int i)
-		{
-			if (md == null)
-				throw new System.ArgumentException("MasterDocument can't be null");
-			
+		public void  removeToken(int i)
+		{		
 			int type = md.getTokenType(i);
-			int os, len;
+            int os = md.getTokenOffset(i);
+            int len = md.getTokenLength(i);
 			switch (type)
 			{
 				
-				case VTDNav.TOKEN_CDATA_VAL: 
-					os = md.getTokenOffset(i);
-					len = md.getTokenLength(i);
+				case VTDNav.TOKEN_CDATA_VAL:					
 					if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
 						removeContent(os - 9, len + 12);
 					else
@@ -171,10 +165,7 @@ namespace com.ximpleware
 					return ;
 				
 				
-				case VTDNav.TOKEN_COMMENT: 
-					
-					os = md.getTokenOffset(i);
-					len = md.getTokenLength(i);
+				case VTDNav.TOKEN_COMMENT:					
 					if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
 						removeContent(os - 4, len + 7);
 					else
@@ -183,9 +174,7 @@ namespace com.ximpleware
 				
 				
 				default: 
-					os = md.getTokenOffset(i);
-					len = md.getTokenLength(i);
-					if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
+                    if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
 						removeContent(os, len);
 					else
 						removeContent((os) << 1, (len) << 1);
@@ -196,10 +185,8 @@ namespace com.ximpleware
 		/// <summary> remove an attribute name value pair from the master document</summary>
 		/// <param name="attrNameIndex">*
 		/// </param>
-		public virtual void  removeAttribute(int attrNameIndex)
+		public void  removeAttribute(int attrNameIndex)
 		{
-			if (md == null)
-				throw new System.ArgumentException("MasterDocument can't be null");
 			int type = md.getTokenType(attrNameIndex);
 			if (type != VTDNav.TOKEN_ATTR_NAME && type != VTDNav.TOKEN_ATTR_NS)
 				throw new ModifyException("token type should be attribute name");
@@ -219,14 +206,12 @@ namespace com.ximpleware
 		/// </param>
 		private void  removeContent(int offset, int len)
 		{
-			if (md == null)
-				throw new System.ArgumentException("MasterDocument can't be null");
 			if (offset < md.docOffset || len > md.docLen || offset + len > md.docOffset + md.docLen)
 			{
 				throw new ModifyException("Invalid offset or length for removeContent");
 			}
 			if (deleteHash.isUnique(offset) == false)
-				throw new ModifyException("There can be only one insertion per offset value");
+				throw new ModifyException("There can be only one deletion per offset value");
 			
 			flb.append(((long) len) << 32 | offset | MASK_DELETE);
 			fob.append((System.Object) null);
@@ -239,8 +224,7 @@ namespace com.ximpleware
 		/// </param>
 		private void  insertBytesAt(int offset, byte[] content)
 		{
-			if (md == null)
-				throw new System.ArgumentException("MasterDocument can't be null");
+			
 			if (insertHash.isUnique(offset) == false)
 			{
 				throw new ModifyException("There can be only one insert per offset");
@@ -248,6 +232,54 @@ namespace com.ximpleware
 			flb.append((long) offset | MASK_INSERT_BYTE);
 			fob.append(content);
 		}
+
+        /// <summary> Update the token with the byte array content,
+        /// according to the encoding of the master document
+        /// </summary>
+        /// <param name="offset">
+        /// </param>
+        /// <param name="newContentBytes">*
+        /// </param>
+        public void updateToken(int index, byte[] newContentBytes)
+        {
+            if (newContentBytes == null)
+                throw new System.ArgumentException("String newContent can't be null");
+            int offset = md.getTokenOffset(index);
+            int len = md.getTokenLength(index);
+            int type = md.getTokenType(index);
+            // one insert
+            switch (type)
+            {
+
+                case VTDNav.TOKEN_CDATA_VAL:
+                    if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset - 9, newContentBytes);
+                    else
+                        insertBytesAt((offset - 9) << 1, newContentBytes);
+                    break;
+
+                case VTDNav.TOKEN_COMMENT:
+                    if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
+                    {
+                        //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
+                        insertBytesAt(offset - 4, newContentBytes);
+                    }
+                    else
+                    {
+                        //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
+                        insertBytesAt((offset - 4) << 1, newContentBytes);
+                    }
+                    break;
+
+
+                default:
+                    insertBytesAt(offset, newContentBytes);
+                    break;
+
+            }
+            // one delete
+            removeToken(index);
+        }
 		/// <summary> Update the token with the given string value,
 		/// notice that string will be converted into byte array
 		/// according to the encoding of the master document
@@ -256,10 +288,10 @@ namespace com.ximpleware
 		/// </param>
 		/// <param name="newContent">*
 		/// </param>
-		public virtual void  updateToken(int index, System.String newContent)
+		public void  updateToken(int index, System.String newContent)
 		{
-			if (md == null || newContent == null)
-				throw new System.ArgumentException("MasterDocument or newContent can't be null");
+			if (newContent == null)
+				throw new System.ArgumentException("String newContent can't be null");
 			int offset = md.getTokenOffset(index);
 			int len = md.getTokenLength(index);
 			int type = md.getTokenType(index);
@@ -301,7 +333,7 @@ namespace com.ximpleware
 		/// 
 		/// 
 		/// </summary>
-		protected internal virtual void  sort()
+		protected internal void  sort()
 		{
 			quickSort(0, flb.size() - 1);
 		}
@@ -313,7 +345,7 @@ namespace com.ximpleware
 		/// Delete can't overlap with, nor contains, another delete
 		/// 
 		/// </summary>
-		protected internal virtual void  check()
+		protected internal void  check()
 		{
 			int os1, os2, temp;
 			int size = flb.size();
@@ -330,6 +362,24 @@ namespace com.ximpleware
 				}
 			}
 		}
+
+        /// <summary> This method will first call getCurrentIndex() to get the cursor index value
+        /// then insert the byte array content after the element
+        /// </summary>
+        /// <param name="b">*
+        /// </param>
+        public void insertAfterElement(byte[] b)
+        {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+            long l = md.getElementFragment();
+            int offset = (int)l;
+            int len = (int)(l >> 32);
+            //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
+            insertBytesAt(offset + len, b);
+        }
 		/// <summary> This method will first call getCurrentIndex() to get the cursor index value
 		/// then insert the byte value of s before the element
 		/// </summary>
@@ -337,7 +387,7 @@ namespace com.ximpleware
 		/// </param>
 		/// <param name="s">*
 		/// </param>
-		public virtual void  insertAfterElement(System.String s)
+		public void  insertAfterElement(System.String s)
 		{
 			int startTagIndex = md.getCurrentIndex();
 			int type = md.getTokenType(startTagIndex);
@@ -349,6 +399,32 @@ namespace com.ximpleware
 			//UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
             insertBytesAt(offset + len, eg.GetBytes(s));
 		}
+
+        /// <summary> This method will first call getCurrentIndex() to get the cursor index value
+        /// then insert the byte content before the element
+        /// </summary>
+        /// <param name="b">*
+        /// </param>
+        public void insertBeforeElement(byte[] b)
+        {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+
+            int offset = md.getTokenOffset(startTagIndex) - 1;
+            int encoding = md.getTokenType(startTagIndex);
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+            {
+                //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
+                insertBytesAt(offset, b);
+            }
+            else
+            {
+                //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
+                insertBytesAt((offset) << 1, b);
+            }
+        }
 		/// <summary> This method will first call getCurrentIndex() to get the cursor index value
 		/// then insert the byte value of s before the element
 		/// </summary>
@@ -356,7 +432,7 @@ namespace com.ximpleware
 		/// </param>
 		/// <param name="s">*
 		/// </param>
-		public virtual void  insertBeforeElement(System.String s)
+		public void  insertBeforeElement(System.String s)
 		{
 			int startTagIndex = md.getCurrentIndex();
 			int type = md.getTokenType(startTagIndex);
@@ -376,6 +452,38 @@ namespace com.ximpleware
                 insertBytesAt((offset) << 1, eg.GetBytes(s));
 			}
 		}
+
+        /// <summary> Insert byte array of an attribute after the starting tag
+        /// This method will first call getCurrentIndex() to get the cursor index value
+        /// if the index is of type "starting tag", then teh attribute is inserted
+        /// after the starting tag
+        /// </summary>
+        /// <param name="attrBytes">e.g. " attrName='attrVal' ",notice the starting and ending 
+        /// white space
+        /// 
+        /// </param>
+        public void insertAttribute(byte[] attrBytes)
+        {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+            int offset = md.getTokenOffset(startTagIndex);
+            int len = md.getTokenLength(startTagIndex);
+            int encoding = md.getTokenType(startTagIndex);
+
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+            {
+                //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
+                insertBytesAt(offset + len, attrBytes);
+            }
+            else
+            {
+                //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
+                insertBytesAt((offset + len) << 1, attrBytes);
+            }
+            //insertBytesAt()
+        }
 		
 		/// <summary> Insert an attribute after the starting tag
 		/// This method will first call getCurrentIndex() to get the cursor index value
@@ -386,7 +494,7 @@ namespace com.ximpleware
 		/// white space
 		/// 
 		/// </param>
-		public virtual void  insertAttribute(System.String attr)
+		public void  insertAttribute(System.String attr)
 		{
 			int startTagIndex = md.getCurrentIndex();
 			int type = md.getTokenType(startTagIndex);
@@ -414,10 +522,10 @@ namespace com.ximpleware
 		/// </summary>
 		/// <param name="os">*
 		/// </param>
-		public virtual void  output(System.IO.Stream os)
+		public void  output(System.IO.Stream os)
 		{
-			if (md == null)
-				throw new System.ArgumentException("MasterDocument can't be null");
+			if (os == null)
+				throw new System.ArgumentException("OutputStream can't be null");
 			sort();
 			check();
 			long l;
@@ -484,7 +592,7 @@ namespace com.ximpleware
 			}
 		}
 		
-		internal virtual void  quickSort(int lo, int hi)
+		internal void  quickSort(int lo, int hi)
 		{
 			//      lo is the lower index, hi is the upper index
 			//      of the region of array a that is to be sorted
@@ -524,7 +632,7 @@ namespace com.ximpleware
 		}
 		
 		
-		public virtual void  reset()
+		public void  reset()
 		{
 			if (flb != null)
 				flb.clear();
