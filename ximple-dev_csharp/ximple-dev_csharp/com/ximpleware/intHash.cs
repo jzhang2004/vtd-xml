@@ -86,6 +86,25 @@ namespace com.ximpleware
 		{
 			storage = new FastIntBuffer[hashWidth];
 		}
+
+        public intHash(int hashWidthExpo)
+        {
+            hashWidth = 1 << hashWidthExpo;
+            mask1 = (hashWidth) - 1;
+            mask2 = (int)((~mask1) & 0xffffffffU);
+            storage = new FastIntBuffer[hashWidth];
+        }
+
+        public static int determineHashWidth(int i)
+        {
+            if (i < (1 << 9))
+                return 6;
+            if (i < (1 << 13))
+                return 9;
+            return 12;
+        }
+
+
         //[STAThread]
         //public static void  Main(System.String[] args)
         //{
