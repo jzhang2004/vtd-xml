@@ -57,6 +57,7 @@ int	evalNodeSet_fe (filterExpr *fe,VTDNav *vn){
 	if (fe->first_time && requireContextSize_p(fe->p)){
 		fe->first_time = FALSE;
 		i = 0;
+		fe->e->adjust(fe->e,vn->vtdSize);
 		while(fe->e->evalNodeSet(fe->e,vn)!=-1)
 			i++;
 		setContextSize_p(fe->p,i);

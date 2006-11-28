@@ -185,6 +185,7 @@ namespace com.ximpleware
 				first_time = false;
 				int i = 0;
 				//vn.push2();
+                e.adjust(vn.getTokenCount());
 				while (e.evalNodeSet(vn) != - 1)
 					i++;
 				//vn.pop2();
