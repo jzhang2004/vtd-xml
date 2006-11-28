@@ -26,6 +26,7 @@ namespace com.ximpleware
 	/// </summary>
 	public class LocationPathExpr:Expr
 	{
+
 		public Step Step
 		{
 			set
@@ -2263,5 +2264,12 @@ forward_brk: ;
 			}
 			//return 8;
 		}
+        public override void adjust(int n)
+        {
+            int i = intHash.determineHashWidth(n);
+            if (ih != null && i == ih.e)
+                return;
+            ih = new intHash(i);
+        }
 	}
 }

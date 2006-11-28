@@ -30,6 +30,7 @@ namespace com.ximpleware
 	/// </summary>
 	public class FuncExpr:Expr
 	{
+        public override void adjust(int n) { }
 		override public bool NodeSet
 		{
 			get

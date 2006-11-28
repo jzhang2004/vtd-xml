@@ -24,6 +24,7 @@ namespace com.ximpleware.xpath
 	/// </summary>
 	public class LiteralExpr:Expr
 	{
+        public override void adjust(int n) { }
 		override public bool NodeSet
 		{
 			get

@@ -27,6 +27,13 @@ namespace com.ximpleware
 	/// </summary>
 	public class PathExpr:Expr
 	{
+        public override void adjust(int n)
+        {
+            int i = intHash.determineHashWidth(n);
+            if (ih != null && i == ih.e)
+                return;
+            ih = new intHash(i);
+        }
 		override public bool Numerical
 		{
 			get

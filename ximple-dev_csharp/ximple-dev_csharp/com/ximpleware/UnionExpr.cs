@@ -19,7 +19,14 @@ namespace com.ximpleware
 		internal UnionExpr current;
 		
 		internal int state;
-		
+
+        public override void adjust(int n)
+        {
+            int i = intHash.determineHashWidth(n);
+            if (ih != null && i == ih.e)
+                return;
+            ih = new intHash(i);
+        }
 		public UnionExpr(Expr e1)
 		{
 			e = e1;
