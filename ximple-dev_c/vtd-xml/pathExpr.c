@@ -50,6 +50,7 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 	pe->setPosition = &setPosition_pe;
 	pe->reset = &reset_pe;
 	pe->toString = &toString_pe;
+	pe->adjust = &adjust_pe;
 	pe->fe = f;
 	pe->lpe= l;
 	pe->evalState = 0;
@@ -234,4 +235,12 @@ void toString_pe(pathExpr *pe, UCSChar* string){
 	pe->fe->toString(pe->fe,string);
 	wprintf(L")/");
 	toString_lpe(pe->lpe, string);
+}
+
+void adjust_pe(pathExpr *pe, int n){
+	int i=determineHashWidth(n);
+	if (pe->ih!=NULL && i==pe->ih->e)
+		return;
+	freeIntHash(pe->ih);
+	pe->ih = createIntHash2(i);
 }

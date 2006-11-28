@@ -38,6 +38,7 @@ unaryExpr *createUnaryExpr(opType op, expr *e1){
 	ue->setPosition = &setPosition_ue;
 	ue->reset = &reset_ue;
 	ue->toString = &toString_ue;
+	ue->adjust = &adjust_ue;
 	ue->e = e1;
 	ue->op = op;
 
@@ -113,3 +114,5 @@ void    toString_ue(unaryExpr *ue, UCSChar* string){
 	wprintf(L"-");
 	(ue->e->toString)(ue->e, string);
 }
+
+void adjust_ue(unaryExpr *e, int n){}

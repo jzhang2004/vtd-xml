@@ -37,6 +37,7 @@ filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 	fe->setPosition = &setPosition_fe;
 	fe->reset = &reset_fe;
 	fe->toString = &toString_fe;
+	fe->adjust = &adjust_fe;
 
 	fe->e = e1;
 	fe->p = pr;
@@ -182,4 +183,7 @@ void toString_fe(filterExpr *fe, UCSChar* string){
 void reset2_fe(filterExpr *fe, VTDNav *vn){
 	fe->e->reset(fe->e,vn);
 	reset_p(fe->p,vn);
+}
+
+void adjust_fe(filterExpr *fe, int n){
 }

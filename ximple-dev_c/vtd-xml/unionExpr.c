@@ -43,6 +43,7 @@ unionExpr *createUnionExpr(expr *e){
 	une->setPosition = &setPosition_une;
 	une->reset = &reset_une;
 	une->toString = &toString_une;
+	une->adjust = &adjust_une;
 	une->fe = e;
 	une->next = NULL;
 	une->current = une;
@@ -281,4 +282,19 @@ void    toString_une(unionExpr *e, UCSChar* string){
 			wprintf(L" | ");
 			e->next->toString(e->next, string);
 	   }
+}
+
+void adjust_une(unionExpr *une, int n){
+	    int i=determineHashWidth(n);
+		unionExpr *tmp = NULL;
+		if (une->ih!=NULL && i==une->ih->e)
+            return;
+		freeIntHash(une->ih);
+	    une->ih = createIntHash2(i);
+		une->fe->adjust(une->fe,n);
+        tmp = une->next;
+        while (tmp != NULL) {
+            tmp->fe->adjust(tmp->fe,n);
+            tmp = tmp->next;
+        }
 }

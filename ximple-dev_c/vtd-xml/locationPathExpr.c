@@ -1841,6 +1841,7 @@ locationPathExpr *createLocationPathExpr(){
 	lpe->setPosition = &setPosition_lpe;
 	lpe->reset = &reset_lpe;
 	lpe->toString = &toString_lpe;
+	lpe->adjust = &adjust_lpe;
 	
 	lpe->state = XPATH_EVAL_START;
 	lpe->s = NULL;
@@ -2059,4 +2060,12 @@ void    toString_lpe(locationPathExpr *lpe, UCSChar* string){
 
 void setStep(locationPathExpr *lpe, Step* st){
 	lpe->s = st;
+}
+
+void adjust_lpe(locationPathExpr *lpe, int n){
+	int i=determineHashWidth(n);
+	if (lpe->ih!=NULL && i==lpe->ih->e)
+		return;
+	freeIntHash(lpe->ih);
+	lpe->ih = createIntHash2(i);
 }

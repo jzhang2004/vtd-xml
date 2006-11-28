@@ -36,6 +36,7 @@ literalExpr *createLiteralExpr(UCSChar *st){
 	l->setPosition = &setPosition_le;
 	l->reset = &reset_le;
 	l->toString = &toString_le;
+	l->adjust= &adjust_le;
 	l->s= st;
 
 	
@@ -113,4 +114,6 @@ void    toString_le(literalExpr *le, UCSChar* string){
 	wprintf(L"\"");
 	wprintf(L"%ls",le->s);
 	wprintf(L"\"");
+}
+void adjust_le(literalExpr *le, int n){
 }

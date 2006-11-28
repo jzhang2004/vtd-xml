@@ -38,6 +38,7 @@ numberExpr *createNumberExpr (double d){
 	n->setPosition = &setPosition_ne;
 	n->reset = &reset_ne;
 	n->toString = &toString_ne;
+	n->adjust = &adjust_ne;
 	n->dval= d;
 
 	return n;
@@ -129,4 +130,6 @@ void    toString_ne(numberExpr *ne, UCSChar* string){
 		wprintf(L"%d",(long)ne->dval);
 	}else 
 		wprintf(L"%f",ne->dval);
+}
+void adjust_ne(numberExpr *ne, int n){
 }

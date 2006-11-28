@@ -337,6 +337,7 @@ binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
 	be->setPosition = &setPosition_be;
 	be->reset = &reset_be;
 	be->toString = &toString_be;
+	be->adjust = &adjust_be;
 	be->left = e1;
 	be->op = op;
 	be->right = e2;
@@ -528,4 +529,7 @@ UCSChar* createEmptyString(){
 	}
 	throwException2(out_of_mem, 
 		"string allocation faild in createEmptyString ");
+}
+
+void adjust_be(binaryExpr *be, int n){
 }

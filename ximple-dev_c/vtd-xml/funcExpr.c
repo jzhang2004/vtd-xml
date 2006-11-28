@@ -409,6 +409,7 @@ funcExpr *createFuncExpr(funcName oc, aList *a){
 	fne->setPosition = &setPosition_fne;
 	fne->reset = &reset_fne;
 	fne->toString = &toString_fne;
+	fne->adjust = &adjust_fne;
 	fne->a = 0;
 	fne->opCode = oc;
 	fne->al = a;
@@ -983,4 +984,7 @@ static Boolean isWS(UCSChar c)
 	if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
 		return TRUE;
 	return FALSE;
+}
+
+void adjust_fne(funcExpr *fne, int n){
 }
