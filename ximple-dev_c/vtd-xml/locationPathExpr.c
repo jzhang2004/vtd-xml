@@ -79,11 +79,11 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 		case AXIS_DESCENDANT:
 		case AXIS_PRECEDING:								
 		case AXIS_FOLLOWING:
-		    
+
 			if (lpe->currentStep->nt->testType == NT_NODE){
-			    helper = L"*";
+				helper = L"*";
 			}else {
-			    helper = lpe->currentStep->nt->nodeName;
+				helper = lpe->currentStep->nt->nodeName;
 			}
 			ap = createAutoPilot(vn);
 			if (lpe->currentStep->axis_type == AXIS_DESCENDANT_OR_SELF )
@@ -92,156 +92,156 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 				else
 					setSpecial(ap,FALSE);
 			//currentStep.o = ap = new AutoPilot(vn);
-		    if (lpe->currentStep->axis_type == AXIS_DESCENDANT_OR_SELF)
-		        if (lpe->currentStep->nt->localName!=NULL)
-		            selectElementNS(ap,lpe->currentStep->nt->URL,lpe->currentStep->nt->localName);
-		        else 
-		            selectElement(ap,helper);
+			if (lpe->currentStep->axis_type == AXIS_DESCENDANT_OR_SELF)
+				if (lpe->currentStep->nt->localName!=NULL)
+					selectElementNS(ap,lpe->currentStep->nt->URL,lpe->currentStep->nt->localName);
+				else 
+					selectElement(ap,helper);
 			else if (lpe->currentStep->axis_type == AXIS_DESCENDANT)
-			    if (lpe->currentStep->nt->localName!=NULL)
-			        selectElementNS_D(ap,lpe->currentStep->nt->URL,lpe->currentStep->nt->localName);
-			    else 
-			        selectElement_D(ap,helper);
+				if (lpe->currentStep->nt->localName!=NULL)
+					selectElementNS_D(ap,lpe->currentStep->nt->URL,lpe->currentStep->nt->localName);
+				else 
+					selectElement_D(ap,helper);
 			else if (lpe->currentStep->axis_type == AXIS_PRECEDING)
-			    if (lpe->currentStep->nt->localName!=NULL)
-			        selectElementNS_P(ap,lpe->currentStep->nt->URL,lpe->currentStep->nt->localName);
-			    else 
-			        selectElement_P(ap,helper);
+				if (lpe->currentStep->nt->localName!=NULL)
+					selectElementNS_P(ap,lpe->currentStep->nt->URL,lpe->currentStep->nt->localName);
+				else 
+					selectElement_P(ap,helper);
 			else 
-			    if (lpe->currentStep->nt->localName!=NULL)
-			        selectElementNS_F(ap,lpe->currentStep->nt->URL,lpe->currentStep->nt->localName);
-			    else 
-			        selectElement_F(ap,helper);
-		    push2(vn);
-   			while(iterateAP(ap)){
-   				if (evalPredicates2(lpe->currentStep,vn,p)){
-   					i++;
-   				}
-   			}
-   			pop2(vn);
-   			resetP2_s(lpe->currentStep,vn,p);
+				if (lpe->currentStep->nt->localName!=NULL)
+					selectElementNS_F(ap,lpe->currentStep->nt->URL,lpe->currentStep->nt->localName);
+				else 
+					selectElement_F(ap,helper);
+			push2(vn);
+			while(iterateAP(ap)){
+				if (evalPredicates2(lpe->currentStep,vn,p)){
+					i++;
+				}
+			}
+			pop2(vn);
+			resetP2_s(lpe->currentStep,vn,p);
 			freeAutoPilot(ap);
-   			return i;
-			  
+			return i;
+
 		case AXIS_PARENT:
-		    push2(vn);
+			push2(vn);
 			i = 0;
 			if (toElement(vn, PARENT)){
 				if (eval_s2(lpe->currentStep,vn,p)){
-			        i++;
-			    }
+					i++;
+				}
 			}			    
 			pop2(vn);
 			resetP2_s(lpe->currentStep,vn,p);
 			return i;
-			
-			case AXIS_ANCESTOR:
-			    push2(vn);
-				i = 0;
-				while (toElement(vn,PARENT)) {
-					if (eval_s2(lpe->currentStep,vn, p)) {
-                    	i++;
-    		        }
-				}				
-				pop2(vn);
-				resetP2_s(lpe->currentStep,vn,p);
-				return i;
-				
-			case AXIS_ANCESTOR_OR_SELF:
-			    push2(vn);
-				i = 0;
-				do {
-				    if (eval_s2(lpe->currentStep,vn, p)) {
-                    	i++;
-    		        }
-				}while(toElement(vn,PARENT));
-				pop2(vn);
-				resetP2_s(lpe->currentStep,vn,p);
-				return i;
-				
-			case AXIS_SELF:
-			    i = 0;
-				if (toElement(vn,PARENT)){
-					if (eval_s2(lpe->currentStep,vn,p)){
-				        i++;
-				    }
-				}			    
-				resetP2_s(lpe->currentStep,vn,p);
-				return i;
-			    
-			case AXIS_FOLLOWING_SIBLING:
-			    push2(vn);
-				while(toElement(vn,NEXT_SIBLING)){
-				    if (evalPredicates2(lpe->currentStep,vn,p)){
-				        i++;
-				    }
-				}			    
-			    pop2(vn);
-				resetP2_s(lpe->currentStep,vn,p);
-				return i;
-			    
-			case AXIS_PRECEDING_SIBLING:
-			    push2(vn);
-				while(toElement(vn,PREV_SIBLING)){
-					if (eval_s2(lpe->currentStep,vn,p)){
-				        i++;
-				    }
-				}			    
-				pop2(vn);
-				resetP2_s(lpe->currentStep,vn,p);
-				return i;
-				
-			case AXIS_ATTRIBUTE:
-			    ap = createAutoPilot(vn);
-				if (lpe->currentStep->nt->localName!=NULL)
-				    selectAttrNS(ap,lpe->currentStep->nt->URL,
-			            lpe->currentStep->nt->localName);
-				else 
-				    selectAttr(ap,lpe->currentStep->nt->nodeName);
-				i = 0;
-				while(iterateAttr(ap)!=-1){
-				    if (eval_s2(lpe->currentStep, vn, p)){
-				        i++;
-				    }
+
+		case AXIS_ANCESTOR:
+			push2(vn);
+			i = 0;
+			while (toElement(vn,PARENT)) {
+				if (eval_s2(lpe->currentStep,vn, p)) {
+					i++;
 				}
-				freeAutoPilot(ap);
-				return i;
-			    
-	    	default:
-				throwException2(xpath_eval_exception,
-					"unknown state");
-	    }
-	    
+			}				
+			pop2(vn);
+			resetP2_s(lpe->currentStep,vn,p);
+			return i;
+
+		case AXIS_ANCESTOR_OR_SELF:
+			push2(vn);
+			i = 0;
+			do {
+				if (eval_s2(lpe->currentStep,vn, p)) {
+					i++;
+				}
+			}while(toElement(vn,PARENT));
+			pop2(vn);
+			resetP2_s(lpe->currentStep,vn,p);
+			return i;
+
+		case AXIS_SELF:
+			i = 0;
+			if (toElement(vn,PARENT)){
+				if (eval_s2(lpe->currentStep,vn,p)){
+					i++;
+				}
+			}			    
+			resetP2_s(lpe->currentStep,vn,p);
+			return i;
+
+		case AXIS_FOLLOWING_SIBLING:
+			push2(vn);
+			while(toElement(vn,NEXT_SIBLING)){
+				if (evalPredicates2(lpe->currentStep,vn,p)){
+					i++;
+				}
+			}			    
+			pop2(vn);
+			resetP2_s(lpe->currentStep,vn,p);
+			return i;
+
+		case AXIS_PRECEDING_SIBLING:
+			push2(vn);
+			while(toElement(vn,PREV_SIBLING)){
+				if (eval_s2(lpe->currentStep,vn,p)){
+					i++;
+				}
+			}			    
+			pop2(vn);
+			resetP2_s(lpe->currentStep,vn,p);
+			return i;
+
+		case AXIS_ATTRIBUTE:
+			ap = createAutoPilot(vn);
+			if (lpe->currentStep->nt->localName!=NULL)
+				selectAttrNS(ap,lpe->currentStep->nt->URL,
+				lpe->currentStep->nt->localName);
+			else 
+				selectAttr(ap,lpe->currentStep->nt->nodeName);
+			i = 0;
+			while(iterateAttr(ap)!=-1){
+				if (eval_s2(lpe->currentStep, vn, p)){
+					i++;
+				}
+			}
+			freeAutoPilot(ap);
+			return i;
+
+		default:
+			throwException2(xpath_eval_exception,
+				"unknown state");
+	}
+
 }
 
 static int process_ancestor_or_self(locationPathExpr *lpe, VTDNav *vn){
 	Boolean b = FALSE, b1= FALSE;
 	int result;
 	//int contextSize;
-    Predicate *t= NULL;
+	Predicate *t= NULL;
 
 	switch ( lpe->state) {
 		case  XPATH_EVAL_START:
-		   	t = lpe->currentStep->p;
-	    	while (t != NULL) {
-	    	    if (requireContextSize_p(t)) {
-	    	        int i = computeContextSize(lpe, t, vn);
-	    	        if (i == 0) {
-	    	             b1 = TRUE;
-	    	             break;
-	    	        } else
-	    	            setContextSize_p(t,i);
-	    	        }
-	    	        t = t->nextP;	    	   
+			t = lpe->currentStep->p;
+			while (t != NULL) {
+				if (requireContextSize_p(t)) {
+					int i = computeContextSize(lpe, t, vn);
+					if (i == 0) {
+						b1 = TRUE;
+						break;
+					} else
+						setContextSize_p(t,i);
+				}
+				t = t->nextP;	    	   
 			}
-    	   if (b1) {
-    	       lpe->state = XPATH_EVAL_END;
-    	       break;
-    	   }
-		
-			   lpe->state =  XPATH_EVAL_END;
+			if (b1) {
+				lpe->state = XPATH_EVAL_END;
+				break;
+			}
+
+			lpe->state =  XPATH_EVAL_END;
 			push2(vn);
-			
+
 			if (get_ft(lpe->currentStep)== TRUE){						
 				set_ft(lpe->currentStep,FALSE);
 				if (eval_s(lpe->currentStep, vn)) {
@@ -253,38 +253,38 @@ static int process_ancestor_or_self(locationPathExpr *lpe, VTDNav *vn){
 						//vn.pop();
 						lpe->state =  XPATH_EVAL_TERMINAL;
 						if (vn->atTerminal)
-						    result = vn->LN;
+							result = vn->LN;
 						else 
-						    result = getCurrentIndex(vn);
+							result = getCurrentIndex(vn);
 						if ( isUnique_lpe(lpe,result))
 							return result;
 					}
 				}
 			}
-			
-				while (toElement(vn,PARENT)) {
-					if (eval_s(lpe->currentStep,vn)) {
-						if (lpe->currentStep->nextS != NULL) {
-							 lpe->state =  XPATH_EVAL_FORWARD;
-							lpe->currentStep = lpe->currentStep->nextS;
-							break;
-						} else {
-							//vn.pop();
-							 lpe->state =  XPATH_EVAL_TERMINAL;
-							result = getCurrentIndex(vn);
-							if ( isUnique_lpe(lpe,result))
-								return result;
-						}
+
+			while (toElement(vn,PARENT)) {
+				if (eval_s(lpe->currentStep,vn)) {
+					if (lpe->currentStep->nextS != NULL) {
+						lpe->state =  XPATH_EVAL_FORWARD;
+						lpe->currentStep = lpe->currentStep->nextS;
+						break;
+					} else {
+						//vn.pop();
+						lpe->state =  XPATH_EVAL_TERMINAL;
+						result = getCurrentIndex(vn);
+						if ( isUnique_lpe(lpe,result))
+							return result;
 					}
 				}
-			
+			}
+
 			if ( lpe->state ==  XPATH_EVAL_END) {
 				resetP_s(lpe->currentStep, vn);
 				pop2(vn);
 			}
 
 			break;
-			
+
 		case  XPATH_EVAL_FORWARD:
 			t = lpe->currentStep->p;
 			while (t != NULL) {
