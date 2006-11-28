@@ -649,6 +649,7 @@ namespace com.ximpleware
 						stackSize = vn.contextStack2.size;
 					}
 					ft = false;
+                    xpe.adjust(vn.getTokenCount());
 				}
 				return xpe.evalNodeSet(vn);
 			}
