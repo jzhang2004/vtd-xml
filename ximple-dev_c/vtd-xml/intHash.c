@@ -112,8 +112,20 @@ void resetIntHash(IntHash *ih){
 
 int determineHashWidth(int i){
 	if (i<(1<<9))
+		return 4;
+	if (i<(1<<10))
+		return 5;
+	if (i<(1<<11))
 		return 6;
+	if (i<(1<<12))
+		return 7;
 	if (i<(1<<13))
-		return 9;		
+		return 8;
+	if (i<(1<<14))
+		return 9;
+	if (i<(1<<15))
+		return 10;
+	if (i<(1<<16))
+		return 11;
 	return 12;
 }
