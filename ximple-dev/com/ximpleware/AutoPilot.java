@@ -537,7 +537,9 @@ public int evalXPath() throws XPathEvalException, NavException{
 	            stackSize = vn.contextStack2.size;
 	        }
 			ft = false;
+    		xpe.adjust(vn.getTokenCount());
 	    }
+	   
 		return xpe.evalNodeSet(vn);
 	}
 	throw new PilotException(" Null XPath expression "); 
