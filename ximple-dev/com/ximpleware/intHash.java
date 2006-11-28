@@ -27,10 +27,11 @@ class intHash {
     private int mask1 = 0x7ff;
      //2048
     private int mask2 = 0xfffff800;
-    private int pageSizeE = 5; // 32 * 4 bytes
+    private int pageSizeE = 4; // 32 * 4 bytes
     protected FastIntBuffer[] storage;
     private int hashWidth = 1<<11;
     private int maxDepth;
+    protected int e;
     /**
      * Test whether the input i is unique; 
      * if not, insert into the hash table and return false
@@ -75,10 +76,15 @@ class intHash {
      *
      */
     public intHash(){
+        hashWidth = 1<<0;
+        mask1 = (hashWidth) -1;
+        mask2 = (~mask1) & 0xffffffff;    
         storage = new FastIntBuffer[hashWidth];
+        e=0;
     }
     
     public intHash(int hashWidthExpo){
+        e=hashWidthExpo;
         hashWidth = 1<<hashWidthExpo;
         mask1 = (hashWidth) -1;
         mask2 = (~mask1) & 0xffffffff;    
