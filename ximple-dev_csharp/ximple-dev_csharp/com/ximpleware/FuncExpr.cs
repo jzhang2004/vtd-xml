@@ -896,6 +896,7 @@ namespace com.ximpleware
 			try
 			{
 				a = 0;
+                argumentList.e.adjust(vn.getTokenCount());
 				while (argumentList.e.evalNodeSet(vn) != - 1)
 				{
 					a++;

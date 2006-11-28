@@ -341,6 +341,7 @@ int count(funcExpr *fne, VTDNav *vn){
 	push2(vn);
 	Try{
 		a = 0;
+		fne->al->e->adjust(fne->al->e,vn->vtdSize);
 		while(fne->al->e->evalNodeSet(fne->al->e,vn)!=-1){
 			a ++;
 		}
