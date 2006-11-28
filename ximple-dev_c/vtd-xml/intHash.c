@@ -21,7 +21,7 @@
 
 /* the constructor */
 IntHash* createIntHash(){
-	int i=0;
+	/*int i=0;
 	IntHash *ih = (IntHash *) malloc(sizeof(IntHash));
 	if (ih==NULL) {
 		throwException2(out_of_mem,
@@ -32,13 +32,13 @@ IntHash* createIntHash(){
 	ih->m1 = ih_mask1;
 	ih->m2 = ih_mask2;
 	ih->maxDepth = 0;
-	ih->pse = ih_pageSizeE;
+	ih->pse = ih_pageSizeE;*/
 	/* initialize everything to null */
-	for (i=0;i<ih->hw;i++){
+	/*for (i=0;i<ih->hw;i++){
 		ih->storage[i]= NULL;
-	}
+	}*/
 
-	return ih;
+	return createIntHash2(0);
 }
 IntHash* createIntHash2(int hashWidthExpo){
 	int i=0;
