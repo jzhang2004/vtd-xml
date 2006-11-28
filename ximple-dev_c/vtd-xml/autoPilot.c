@@ -520,23 +520,18 @@ double evalXPathToNumber(AutoPilot *ap){
 /*
  * Evaluate XPath
  */
-int evalXPath(AutoPilot *ap){
-	exception e;
+int evalXPath(AutoPilot *ap){	
 	if (ap->xpe != NULL){
 		if (ap->ft == TRUE){
 			if (ap->vn != NULL){
 	            ap->stackSize = ap->vn->contextBuf2->size;
 			}
 			ap->ft = FALSE;
+			ap->xpe->adjust(ap->xpe, ap->vn->vtdSize);
 		}
 		return ap->xpe->evalNodeSet(ap->xpe,ap->vn);
 	}
-	else {
-		e.et = other;
-		e.msg = " xpe is NULL in autoPilot ";
-		Throw e;
-	}
-
+	throwException2(other,"xpe is NULL in autoPilot");
 }
 
 /*
