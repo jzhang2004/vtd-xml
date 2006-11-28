@@ -33,6 +33,7 @@ namespace com.ximpleware
 		protected internal FastIntBuffer[] storage;
 		private int hashWidth = 1 << 11;
 		private int maxDepth;
+        protected internal int e;
 		/// <summary> Test whether the input i is unique; 
 		/// if not, insert into the hash table and return false
 		/// otherwise, return true
@@ -84,7 +85,11 @@ namespace com.ximpleware
 		/// </summary>
 		public intHash()
 		{
-			storage = new FastIntBuffer[hashWidth];
+            hashWidth = 1 << 0;
+            mask1 = (hashWidth) - 1;
+            unchecked { mask2 = (~mask1) & (int)0xffffffff; }
+            storage = new FastIntBuffer[hashWidth];
+            e = 0;
 		}
 
         public intHash(int hashWidthExpo)
