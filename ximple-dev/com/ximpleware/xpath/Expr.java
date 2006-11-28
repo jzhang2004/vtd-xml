@@ -45,6 +45,7 @@ abstract public class Expr {
 	abstract public void setContextSize(int size);
 	
 	abstract public void setPosition(int pos);
+	abstract public void adjust(int n);
 	// to support computer context size 
 	// needs to add 
 	//abstract public boolean needContextSize();

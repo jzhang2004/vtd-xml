@@ -494,4 +494,5 @@ public class BinaryExpr extends Expr {
 	          throw new RuntimeException("Undefined behavior");
 	      }
 	}
+	public void adjust(int n){}
 }

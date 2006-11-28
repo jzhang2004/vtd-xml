@@ -166,7 +166,7 @@ public class LocationPathExpr extends Expr{
 		}
 		
 		
-		int process_child(VTDNav vn)throws XPathEvalException,NavException{
+		private final int process_child(VTDNav vn)throws XPathEvalException,NavException{
 		    int result;
 		    boolean b = false, b1 = false;
 		    int contextSize;
@@ -591,7 +591,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	int process_parent(VTDNav vn)
+	private final int process_parent(VTDNav vn)
 	throws XPathEvalException, NavException{
 	    boolean b = false, b1 = false;
 	    int contextSize;
@@ -681,7 +681,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	int process_ancestor( VTDNav vn)
+	private final int process_ancestor( VTDNav vn)
 	throws XPathEvalException, NavException{
 	    int result;
 	    boolean b = false, b1 = false;
@@ -841,7 +841,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	int process_ancestor_or_self(VTDNav vn)
+	private final int process_ancestor_or_self(VTDNav vn)
 	throws XPathEvalException,NavException{
 	    boolean b = false, b1 = false;
 	    int contextSize;
@@ -1756,6 +1756,12 @@ public class LocationPathExpr extends Expr{
 	    
 	}
 	
+	public void adjust(int n){
+	    int i=intHash.determineHashWidth(n);
+        if (ih!=null && i==ih.e)
+            return;
+	    ih = new intHash(i);
+	}
 	
 }
 

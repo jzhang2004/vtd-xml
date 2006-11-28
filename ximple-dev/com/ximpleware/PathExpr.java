@@ -227,4 +227,11 @@ public class PathExpr extends Expr {
 	public void setPosition(int pos){
 	    
 	}
+	
+	public void adjust(int n){
+	    int i=intHash.determineHashWidth(n);
+        if (ih!=null && i==ih.e)
+            return;
+	    ih = new intHash(i);
+	}
 }

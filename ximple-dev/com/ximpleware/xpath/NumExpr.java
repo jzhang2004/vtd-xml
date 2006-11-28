@@ -85,4 +85,5 @@ public class NumExpr extends Expr{
 	public void setPosition(int pos){
 	    
 	}
+	public void adjust(int n){}
 }

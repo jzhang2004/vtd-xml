@@ -162,7 +162,7 @@ public class UnionExpr extends Expr {
 
                 default:
                     throw new XPathEvalException(
-                            "Invalid state evaluating PathExpr");
+                            "Invalid state evaluating UnionExpr");
                 }
             }
         }
@@ -327,6 +327,19 @@ public class UnionExpr extends Expr {
     public boolean isUnique(int i) {
         return ih.isUnique(i);
 
+    }
+    
+    public void adjust(int n){
+        int i=intHash.determineHashWidth(n);
+        if (ih!=null && i==ih.e)
+            return;
+	    ih = new intHash(i);
+	    e.adjust(n);
+        UnionExpr tmp = this.next;
+        while (tmp != null) {
+            tmp.e.adjust(n);
+            tmp = tmp.next;
+        }
     }
 
 }

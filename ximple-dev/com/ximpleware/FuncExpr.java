@@ -623,12 +623,12 @@ public class FuncExpr extends Expr{
 		vn.push2();
 		try{
 			a = 0;
+			argumentList.e.adjust(vn.getTokenCount());
 			while(argumentList.e.evalNodeSet(vn)!=-1){
 				a ++;
 			}
 			argumentList.e.reset(vn);
-			vn.pop2();
-			
+			vn.pop2();			
 		}catch(Exception e){
 			argumentList.e.reset(vn);
 			vn.pop2();
@@ -723,4 +723,5 @@ public class FuncExpr extends Expr{
 	        }
 	    }
 	}
+	public void adjust(int n){}
 }

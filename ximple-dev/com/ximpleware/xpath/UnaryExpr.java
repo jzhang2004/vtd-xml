@@ -87,4 +87,5 @@ public class UnaryExpr extends Expr {
 	public void setPosition (int pos){
 	    operand.setPosition(pos);
 	}
+	public void adjust(int n){}
 }
