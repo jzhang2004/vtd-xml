@@ -209,19 +209,34 @@ Boolean evalBoolean_une (unionExpr *e,VTDNav *vn){
 	int size;
 	if (e->fe->isBoolean(e->fe)){
 		return e->fe->evalBoolean(e->fe,vn);
+	}else if (e->fe->isBoolean(e->fe)){
+			push2(vn);
+			/* record teh stack size*/
+			size = vn->contextBuf2->size;
+			Try{	
+				b = (evalNodeSet_une(e,vn) != -1);
+			}Catch (ee){
+			}
+			/*rewind stack */
+			vn->contextBuf2->size = size;
+			reset_une(e,vn);
+			pop2(vn);
+			return b;
+	}else if (e->fe->isNumerical(e->fe)){
+           double dval = e->fe->evalNumber(e->fe,vn);
+            if (dval == 0.0 || dval!=dval )
+    			return FALSE;
+    		return TRUE;
+	}else {
+		 UCSChar *s = e->fe->evalString(e->fe,vn);
+		 if (s==NULL || wcslen(s)==0){
+			 free(s);
+             return FALSE;
+		 }
+		 free(s);
+         return TRUE;
 	}
-	push2(vn);
-	/* record teh stack size*/
-	size = vn->contextBuf2->size;
-    Try{	
-		b = (evalNodeSet_une(e,vn) != -1);
-	}Catch (ee){
-	}
-		/*rewind stack */
-	vn->contextBuf2->size = size;
-	reset_une(e,vn);
-	pop2(vn);
-	return b;
+
 }
 Boolean isBoolean_une (unionExpr *e){
 	return e->fe->isBoolean(e->fe);
