@@ -327,11 +327,17 @@ public class FuncExpr extends Expr{
 	        String s =null;
 	        try{
 	            if (vn.atTerminal){
-	                if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_CDATA_VAL )
+	                int ttype = vn.getTokenType(vn.LN);
+	                if (ttype == VTDNav.TOKEN_CDATA_VAL )
 	                    s= vn.toRawString(vn.LN);
-	                s= vn.toString(vn.LN);
+	                else if (ttype == VTDNav.TOKEN_ATTR_NAME ||
+	                         ttype == VTDNav.TOKEN_ATTR_NS){
+	                    s = vn.toString(vn.LN+1);
+	                } else
+	                    s= vn.toString(vn.LN);	                
+	            }else {
+	                s= vn.toString(vn.getCurrentIndex());
 	            }
-	            s= vn.toString(vn.getCurrentIndex());
 	            return normalize(s);
 	        }
 	    	catch(NavException e){
@@ -383,7 +389,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	private String concat(VTDNav vn){
-	    StringBuilder  sb = new StringBuilder();
+	    StringBuffer  sb = new StringBuffer();
 	    if (argCount()>=2){
 			Alist temp = argumentList;
 			while(temp!=null){
