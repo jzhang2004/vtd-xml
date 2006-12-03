@@ -222,28 +222,40 @@ public class LocationPathExpr extends Expr{
 						if (state == END)
 						    vn.toElement(VTDNav.PARENT);
 					 }
-		    	    }else {
+		    	    } else {
 						if (vn.getAtTerminal()==true){
 							state = END;
 						}else {
 							result = vn.getText();
 							if (result != -1){
 								vn.setAtTerminal(true);
-								if (currentStep.getNextStep() != null){
-								    vn.LN = result;
-									state =  FORWARD;
-									currentStep = currentStep.getNextStep();
-								} else {
-									state =  TERMINAL;
-									//result = vn.getText();
-									if ( isUnique(result)){
-										//vn.setAtTerminal(true);
-									    vn.LN = result;
-										return result;
-									}
-								}					
-							}else {							
-								state = END;							
+								vn.LN = result;
+								t = currentStep.p;
+				    	        while(t!=null){
+				    	            if (t.requireContextSize()){
+				    	               t.setContextSize(1); // assuming only one text node per
+				    	            }
+				    	            t = t.nextP;
+				    	        }
+				    	        state = END;
+				    	        if (currentStep.evalPredicates(vn)) {
+                                   if (currentStep.getNextStep() != null) {
+                                       	vn.LN = result;
+                                       	state = FORWARD;
+                                       	currentStep = currentStep.getNextStep();
+                                   } else {
+                                       	state = TERMINAL;
+                                       	//result = vn.getText();
+                                       	if (isUnique(result)) {
+                                       	   //vn.setAtTerminal(true);
+                                       	    vn.LN = result;
+                                       	    return result;
+                                       	}
+                                   }
+				    	        }
+                    
+							} else {
+							    state = END;
 							}
 						}		    	        
 		    	    }
@@ -299,24 +311,36 @@ public class LocationPathExpr extends Expr{
 			    	}else {
 			    	    // predicate at an attribute is not evaled
 						if (vn.getAtTerminal() == true){
+						    t = currentStep.p;
 							state = BACKWARD;
 							currentStep = currentStep.getPrevStep();
 						}else {
 							result = vn.getText();
 							if (result != -1){
 								vn.setAtTerminal(true);
-								if (currentStep.getNextStep() != null){
-								    vn.LN = result;
-									state =  FORWARD;
-									currentStep = currentStep.getNextStep();
-								} else {
-									state =  TERMINAL;
-									//result = vn.getText();
-									if (isUnique(result)){
-									    vn.LN = result;
-										return result;
-									}
-								}					
+								vn.LN= result;
+								t = currentStep.p;
+				    	        while(t!=null){
+				    	            if (t.requireContextSize()){
+				    	               t.setContextSize(1); // assuming only one text node per
+				    	            }
+				    	            t = t.nextP;
+				    	        }
+				    	        state = END;
+				    	        if (currentStep.evalPredicates(vn)){
+				    	            if (currentStep.getNextStep() != null){
+				    	                vn.LN = result;
+				    	                state =  FORWARD;
+				    	                currentStep = currentStep.getNextStep();
+				    	            } else {
+				    	                state =  TERMINAL;
+				    	                //result = vn.getText();
+				    	                if (isUnique(result)){
+				    	                    vn.LN = result;
+				    	                    return result;
+				    	                }
+				    	            }					
+				    	        }
 							}else {
 									state = BACKWARD;
 									currentStep = currentStep.getPrevStep();
