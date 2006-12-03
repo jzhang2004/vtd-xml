@@ -919,11 +919,16 @@ static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 		Try{
 			if (vn->atTerminal)
 			{
-				if (getTokenType(vn,vn->LN) == TOKEN_CDATA_VAL)
+				int ttype = getTokenType(vn,vn->LN);
+				if (ttype == TOKEN_CDATA_VAL)
 					s =toRawString(vn,vn->LN);
-				s = toString(vn,vn->LN);
-			}
-			s = toString(vn,getCurrentIndex(vn));
+				else if (ttype == TOKEN_ATTR_NAME 
+					|| ttype == TOKEN_ATTR_NS){
+						s = toString(vn,vn->LN+1);
+				}else 
+					s = toString(vn,vn->LN);
+			}else 
+				s = toString(vn,getCurrentIndex(vn));
 			return normalize(s);
 		}
 		Catch(e){

@@ -802,11 +802,18 @@ namespace com.ximpleware
                 {
                     if (vn.atTerminal)
                     {
-                        if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_CDATA_VAL)
+                        int ttype = vn.getTokenType(vn.LN);
+                        if (ttype == VTDNav.TOKEN_CDATA_VAL)
                             s = vn.toRawString(vn.LN);
-                        s = vn.toString(vn.LN);
-                    }
-                    s = vn.toString(vn.getCurrentIndex());
+                        else if (ttype == VTDNav.TOKEN_ATTR_NAME ||
+                             ttype == VTDNav.TOKEN_ATTR_NS)
+                        {
+                            s = vn.toString(vn.LN + 1);
+                        }
+                        else
+                            s = vn.toString(vn.LN);
+                    }else
+                        s = vn.toString(vn.getCurrentIndex());
                     return normalize(s);
                 }
                 catch (NavException e)
