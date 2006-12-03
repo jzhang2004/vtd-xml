@@ -325,6 +325,7 @@ namespace com.ximpleware
 								int type = vn.getTokenType(index);
 								if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
 								{
+                                    vn.LN = index;
 									return index;
 								}
 								else
@@ -343,6 +344,7 @@ namespace com.ximpleware
 								{
 									if (type == VTDNav.TOKEN_ATTR_NAME)
 									{
+                                        vn.LN = index;
 										return index;
 									}
 									else
@@ -366,10 +368,13 @@ namespace com.ximpleware
 						{
 							ft = false;
 							int i = vn.getAttrVal(name);
-							if (i != - 1)
-								return i - 1;
-							else
-								return - 1;
+                            if (i != -1)
+                            {
+                                vn.LN = i - 1;
+                                return i - 1;
+                            }
+                            else
+                                return -1;
 						}
 					}
 					//goto case ATTR_NS;
@@ -383,10 +388,13 @@ namespace com.ximpleware
 					{
 						ft = false;
 						int i = vn.getAttrValNS(URL, localName);
-						if (i != - 1)
-							return i - 1;
-						else
-							return - 1;
+                        if (i != -1)
+                        {
+                            vn.LN = i - 1;
+                            return i - 1;
+                        }
+                        else
+                            return -1;
 					}
 					//goto default;
 				

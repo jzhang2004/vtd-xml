@@ -425,6 +425,7 @@ int iterateAttr(AutoPilot *ap){
 							tokenType type = getTokenType(ap->vn,ap->index);
 							if (type == TOKEN_ATTR_NAME
 								|| type == TOKEN_ATTR_NS){
+									ap->vn->LN = ap->index;
 									return ap->index;
 								}else{   	    				
 									return -1;
@@ -437,6 +438,7 @@ int iterateAttr(AutoPilot *ap){
 							if (type == TOKEN_ATTR_NAME
 								|| type == TOKEN_ATTR_NS){
 									if (type == TOKEN_ATTR_NAME){
+										ap->vn->LN = ap->index;
 										return ap->index;
 									}
 									else 
@@ -453,8 +455,10 @@ int iterateAttr(AutoPilot *ap){
 					} else {
 						ap->ft = FALSE;
 						i = getAttrVal(ap->vn,ap->elementName);
-						if(i!=-1)
+						if(i!=-1){
+							ap->vn->LN = i-1;
 							return i-1;
+						}
 						else 
 							return -1;
 					}   	    			
@@ -465,8 +469,10 @@ int iterateAttr(AutoPilot *ap){
 				} else {
 					ap->ft = FALSE;
 				    i = getAttrValNS(ap->vn,ap->URL,ap->localName);
-					if(i!=-1)
+					if(i!=-1){
+						ap->vn->LN = i-1;
 						return i-1;
+					}
 					else 
 						return -1;
 				} 
