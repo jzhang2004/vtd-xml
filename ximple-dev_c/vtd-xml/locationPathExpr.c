@@ -799,19 +799,30 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 							result = getText(vn);
 							if (result != -1){
 								setAtTerminal(vn,TRUE);
-								if (lpe->currentStep->nextS != NULL){
-									vn->LN = result;
-									lpe->state =  XPATH_EVAL_FORWARD;
-									lpe->currentStep = lpe->currentStep->nextS;
-								} else {
-									lpe->state =  XPATH_EVAL_TERMINAL;
-									//result = getText(vn);
-									if ( isUnique_lpe(lpe,result)){
-										//vn.setAtTerminal(TRUE);
+								vn->LN = result;
+								t = lpe->currentStep->p;
+				    	        while(t!=NULL){
+				    	            if (requireContextSize_p(t)){
+				    	                setContextSize_p(t,1); // assuming only one text node per
+				    	            }
+									t = t->nextP;
+				    	        }
+				    	        lpe->state = XPATH_EVAL_END;
+								if (evalPredicates(lpe->currentStep,vn)) {
+									if (lpe->currentStep->nextS != NULL){
 										vn->LN = result;
-										return result;
-									}
-								}					
+										lpe->state =  XPATH_EVAL_FORWARD;
+										lpe->currentStep = lpe->currentStep->nextS;
+									} else {
+										lpe->state =  XPATH_EVAL_TERMINAL;
+										//result = getText(vn);
+										if ( isUnique_lpe(lpe,result)){
+											//vn.setAtTerminal(TRUE);
+											vn->LN = result;
+											return result;
+										}
+									}	
+								}
 							}else {							
 								lpe->state = XPATH_EVAL_END;							
 							}
@@ -876,18 +887,29 @@ forward:;
 							result = getText(vn);
 							if (result != -1){
 								setAtTerminal(vn,TRUE);
-								if (lpe->currentStep->nextS != NULL){
-									vn->LN = result;
-									lpe->state =  XPATH_EVAL_FORWARD;
-									lpe->currentStep = lpe->currentStep->nextS;
-								} else {
-									lpe->state =  XPATH_EVAL_TERMINAL;
-									//result = getText(vn);
-									if (isUnique_lpe(lpe,result)){
+								vn->LN = result;
+								t = lpe->currentStep->p;
+				    	        while(t!=NULL){
+				    	            if (requireContextSize_p(t)){
+				    	                setContextSize_p(t,1); // assuming only one text node per
+				    	            }
+									t = t->nextP;
+				    	        }
+				    	        lpe->state = XPATH_EVAL_END;
+								if (evalPredicates(lpe->currentStep,vn)) {
+									if (lpe->currentStep->nextS != NULL){
 										vn->LN = result;
-										return result;
-									}
-								}					
+										lpe->state =  XPATH_EVAL_FORWARD;
+										lpe->currentStep = lpe->currentStep->nextS;
+									} else {
+										lpe->state =  XPATH_EVAL_TERMINAL;
+										//result = getText(vn);
+										if (isUnique_lpe(lpe,result)){
+											vn->LN = result;
+											return result;
+										}
+									}	
+								}
 							}else {
 								lpe->state = XPATH_EVAL_BACKWARD;
 								lpe->currentStep = lpe->currentStep->prevS;
