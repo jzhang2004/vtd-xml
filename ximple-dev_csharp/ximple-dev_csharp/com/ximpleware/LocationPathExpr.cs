@@ -249,7 +249,7 @@ namespace com.ximpleware
 		}
 		
 		
-		internal int process_child(VTDNav vn)
+		private int process_child(VTDNav vn)
 		{
 			int result;
 			bool b = false, b1 = false;
@@ -334,23 +334,37 @@ namespace com.ximpleware
 							if (result != - 1)
 							{
 								vn.AtTerminal = true;
-								if (currentStep.NextStep != null)
-								{
-									vn.LN = result;
-									state = FORWARD;
-									currentStep = currentStep.NextStep;
-								}
-								else
-								{
-									state = TERMINAL;
-									//result = vn.getText();
-									if (isUnique(result))
-									{
-										//vn.setAtTerminal(true);
-										vn.LN = result;
-										return result;
-									}
-								}
+                                vn.LN = result;
+                                t = currentStep.p;
+                                while (t != null)
+                                {
+                                    if (t.requireContextSize())
+                                    {
+                                        t.ContextSize= 1; // assuming only one text node per
+                                    }
+                                    t = t.nextP;
+                                }
+                                state = END;
+                                if (currentStep.evalPredicates(vn))
+                                {
+                                    if (currentStep.NextStep != null)
+                                    {
+                                        vn.LN = result;
+                                        state = FORWARD;
+                                        currentStep = currentStep.NextStep;
+                                    }
+                                    else
+                                    {
+                                        state = TERMINAL;
+                                        //result = vn.getText();
+                                        if (isUnique(result))
+                                        {
+                                            //vn.setAtTerminal(true);
+                                            vn.LN = result;
+                                            return result;
+                                        }
+                                    }
+                                }
 							}
 							else
 							{
@@ -444,22 +458,34 @@ forward_brk: ;
 							if (result != - 1)
 							{
 								vn.AtTerminal = true;
-								if (currentStep.NextStep != null)
-								{
-									vn.LN = result;
-									state = FORWARD;
-									currentStep = currentStep.NextStep;
-								}
-								else
-								{
-									state = TERMINAL;
-									//result = vn.getText();
-									if (isUnique(result))
-									{
-										vn.LN = result;
-										return result;
-									}
-								}
+                                vn.LN = result;
+								t = currentStep.p;
+				    	        while(t!=null){
+				    	            if (t.requireContextSize()){
+				    	               t.ContextSize = 1; // assuming only one text node per
+				    	            }
+				    	            t = t.nextP;
+				    	        }
+				    	        state = END;
+                                if (currentStep.evalPredicates(vn))
+                                {
+                                    if (currentStep.NextStep != null)
+                                    {
+                                        vn.LN = result;
+                                        state = FORWARD;
+                                        currentStep = currentStep.NextStep;
+                                    }
+                                    else
+                                    {
+                                        state = TERMINAL;
+                                        //result = vn.getText();
+                                        if (isUnique(result))
+                                        {
+                                            vn.LN = result;
+                                            return result;
+                                        }
+                                    }
+                                }
 							}
 							else
 							{
@@ -568,7 +594,7 @@ forward_brk: ;
 			return - 2;
 		}
 		
-		internal int process_DDFP(VTDNav vn)
+		private int process_DDFP(VTDNav vn)
 		{
 			AutoPilot ap;
 			bool b = false, b1 = false;
@@ -803,7 +829,7 @@ forward_brk: ;
 			return - 2;
 		}
 		
-		internal int process_parent(VTDNav vn)
+		private int process_parent(VTDNav vn)
 		{
 			bool b1 = false;
 			//int contextSize;
@@ -920,7 +946,7 @@ forward_brk: ;
 			return - 2;
 		}
 		
-		internal int process_ancestor(VTDNav vn)
+		private int process_ancestor(VTDNav vn)
 		{
 			int result;
 			bool b = false, b1 = false;
@@ -1122,7 +1148,7 @@ forward_brk: ;
 			return - 2;
 		}
 		
-		internal int process_ancestor_or_self(VTDNav vn)
+		private int process_ancestor_or_self(VTDNav vn)
 		{
 			bool b = false, b1 = false;
 			//int contextSize;
@@ -1374,7 +1400,7 @@ forward_brk: ;
 			}
 			return - 2;
 		}
-		internal int process_self(VTDNav vn)
+		private int process_self(VTDNav vn)
 		{
 			bool b1 = false;
 			//int contextSize;
@@ -1468,7 +1494,7 @@ forward_brk: ;
 			return - 2;
 		}
 		
-		internal int process_following_sibling(VTDNav vn)
+		private int process_following_sibling(VTDNav vn)
 		{
 			bool b = false, b1 = false;
 			//int contextSize;
@@ -1622,7 +1648,7 @@ forward_brk: ;
 			return - 2;
 		}
 		
-		internal int process_preceding_sibling(VTDNav vn)
+		private int process_preceding_sibling(VTDNav vn)
 		{
 			bool b = false, b1 = false;
 			//int contextSize;
@@ -1774,7 +1800,7 @@ forward_brk: ;
 			return - 2;
 		}
 		
-		internal int process_attribute(VTDNav vn)
+		private int process_attribute(VTDNav vn)
 		{
 			AutoPilot ap = null;
 			bool  b1 = false;
