@@ -256,8 +256,8 @@ public class BinaryExpr extends Expr {
             else
                 return true;
 
-        return (op == EQ) ? (st1.compareTo(st2) == 0)
-                : (st1.compareTo(st2) == 0);
+        return (op == EQ) ? (st1.equals(st2))
+                : (!st1.equals(st2));
 	}
 	
 	public boolean requireContextSize(){
