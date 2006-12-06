@@ -329,8 +329,8 @@ namespace com.ximpleware
                 else
                     return true;
 
-            return (op == EQ) ? (st1.CompareTo(st2) == 0)
-                    : (st1.CompareTo(st2) == 0);
+            return (op == EQ) ? (st1.Equals(st2))
+                    : (!st1.Equals(st2));
 
         }
 
