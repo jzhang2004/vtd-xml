@@ -44,7 +44,14 @@ import com.ximpleware.parser.WIN1256;
 import com.ximpleware.parser.WIN1257;
 import com.ximpleware.parser.WIN1258;
 
-
+/**
+ * 
+ * VTDNav is a cursor-based VTD record navigator.
+ * The core navigation routines are toElement() and toElementNS()
+ * push() and pop() allows one to save and restore the location of the cursor
+ * String comparsions and primitive data type conversions are done directly from VTD records
+ * without intermediatary string creation.
+ */
 public class VTDNav {
 	// Navigation directions
 	public final static int ROOT = 0;
