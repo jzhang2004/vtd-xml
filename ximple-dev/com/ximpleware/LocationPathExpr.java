@@ -311,7 +311,6 @@ public class LocationPathExpr extends Expr{
 			    	}else {
 			    	    // predicate at an attribute is not evaled
 						if (vn.getAtTerminal() == true){
-						    t = currentStep.p;
 							state = BACKWARD;
 							currentStep = currentStep.getPrevStep();
 						}else {
@@ -426,7 +425,7 @@ public class LocationPathExpr extends Expr{
 		    return -2;
 		}
 		
-		int process_DDFP(VTDNav vn) 
+		private int process_DDFP(VTDNav vn) 
 		throws XPathEvalException, NavException {
 		AutoPilot ap;
 		boolean b = false, b1 = false;
@@ -1064,7 +1063,7 @@ public class LocationPathExpr extends Expr{
 		}
 	    return -2;
 	}
-	int process_self(VTDNav vn)
+	private int process_self(VTDNav vn)
 		throws XPathEvalException,NavException{
 	    boolean b = false, b1 = false;
 	    int contextSize;
@@ -1137,7 +1136,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	int process_following_sibling(VTDNav vn)
+	private int process_following_sibling(VTDNav vn)
 	throws XPathEvalException,NavException{
 	    boolean b = false, b1 = false;
 	    int contextSize;
@@ -1255,7 +1254,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	int process_preceding_sibling(VTDNav vn)
+	private int process_preceding_sibling(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    boolean b = false, b1 = false;
 	    int contextSize;
@@ -1371,7 +1370,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	int process_attribute(VTDNav vn)
+	private int process_attribute(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    AutoPilot ap = null;
 	    boolean b = false, b1 = false;
