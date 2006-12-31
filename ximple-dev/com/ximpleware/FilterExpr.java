@@ -216,5 +216,7 @@ public class FilterExpr extends Expr {
 	public void setPosition(int pos){
 	    
 	}
-	public void adjust(int n){}
+	public void adjust(int n){
+	    e.adjust(n);
+	}
 }
