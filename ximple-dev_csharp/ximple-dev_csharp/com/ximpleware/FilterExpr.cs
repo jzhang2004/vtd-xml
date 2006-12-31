@@ -28,7 +28,9 @@ namespace com.ximpleware
 	/// </summary>
 	public class FilterExpr:Expr
 	{
-        public override void adjust(int n) { }
+        public override void adjust(int n) {
+            e.adjust(n);
+        }
 		override public bool Numerical
 		{
 			get
