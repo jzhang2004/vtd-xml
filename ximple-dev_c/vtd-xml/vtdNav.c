@@ -447,6 +447,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 
 						 // let us handle references here
 						 //currentOffset++;
+						 offset++;
 						 ch = getCharUnit(vn,offset);
 						 offset++;
 						 switch (ch) {

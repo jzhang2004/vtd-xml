@@ -200,7 +200,7 @@ namespace com.ximpleware
                 return l;
 
             // let us handle references here
-            //currentOffset++;
+            offset++;
             ch = getCharUnit(offset);
             offset++;
             switch (ch)
