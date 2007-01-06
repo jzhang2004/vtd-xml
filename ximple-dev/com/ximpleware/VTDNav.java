@@ -626,7 +626,7 @@ public class VTDNav {
 		
 		// let us handle references here
 		//currentOffset++;
-		//offset++;
+		offset++;
 		ch = getCharUnit(offset);
 		offset++;
 		switch (ch) {
@@ -1123,7 +1123,7 @@ public class VTDNav {
 	 * Get total number of VTD tokens for the current XML document.
 	 * @return int
 	 */
-	public int getTokenCount() {
+	final public int getTokenCount() {
 		return vtdSize;
 	}
 	/**
@@ -1131,7 +1131,7 @@ public class VTDNav {
 	 * @return int
 	 * @param index int
 	 */
-	public int getTokenDepth(int index) {
+	final public int getTokenDepth(int index) {
 		int i = (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_DEPTH) >> 52);
 		if (i != 255)
 			return i;
@@ -1190,7 +1190,7 @@ public class VTDNav {
 	 * @param index int
 	 * @exception
 	 */
-	public int getTokenOffset(int index) {
+	final public int getTokenOffset(int index) {
 		//return (context[0] != 0)
 		//    ? (int) (vtdBuffer.longAt(context[context[0]]) & MASK_TOKEN_OFFSET)
 		//    : (int) (vtdBuffer.longAt(rootIndex) & MASK_TOKEN_OFFSET);
@@ -1210,7 +1210,7 @@ public class VTDNav {
 	 * @param index int
 	 * @exception
 	 */
-	public int getTokenType(int index) {
+	final public int getTokenType(int index) {
 		return (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
 	}
 	/**
