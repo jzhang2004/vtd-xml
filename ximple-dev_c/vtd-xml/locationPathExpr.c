@@ -2085,9 +2085,14 @@ void setStep(locationPathExpr *lpe, Step* st){
 }
 
 void adjust_lpe(locationPathExpr *lpe, int n){
-	int i=determineHashWidth(n);
+	int i;
+	if (lpe->pathType == RELATIVE_PATH){
+		i= 6;//hashwidth 64
+	} else {
+		i=determineHashWidth(n);
+	}
 	if (lpe->ih!=NULL && i==lpe->ih->e)
-		return;
+		return;  
 	freeIntHash(lpe->ih);
 	lpe->ih = createIntHash2(i);
 }

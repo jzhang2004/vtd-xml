@@ -532,4 +532,6 @@ UCSChar* createEmptyString(){
 }
 
 void adjust_be(binaryExpr *be, int n){
+	be->left->adjust(be->left,n);
+	be->right->adjust(be->right,n);
 }

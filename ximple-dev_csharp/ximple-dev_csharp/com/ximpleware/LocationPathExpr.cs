@@ -2292,7 +2292,15 @@ forward_brk: ;
 		}
         public override void adjust(int n)
         {
-            int i = intHash.determineHashWidth(n);
+            int i;
+            if (pathType == RELATIVE_PATH)
+            {
+                i = 6; // hash width 64 
+            }
+            else
+            {
+                i = intHash.determineHashWidth(n);
+            }
             if (ih != null && i == ih.e)
                 return;
             ih = new intHash(i);
