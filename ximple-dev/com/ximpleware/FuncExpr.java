@@ -731,5 +731,13 @@ public class FuncExpr extends Expr{
 	        }
 	    }
 	}
-	public void adjust(int n){}
+	public void adjust(int n){
+	    switch(opCode){
+	    	case FuncName.COUNT: 
+	        case FuncName.SUM:
+	            argumentList.e.adjust(n);
+	    		break;
+	    	default: 
+	    }
+	}
 }
