@@ -993,4 +993,12 @@ static Boolean isWS(UCSChar c)
 }
 
 void adjust_fne(funcExpr *fne, int n){
+	switch(fne->opCode){
+		case FN_COUNT: 
+		case FN_SUM:
+			fne->al->e->adjust(fne->al->e,n);
+			break;
+		default:
+			break;
+	}
 }
