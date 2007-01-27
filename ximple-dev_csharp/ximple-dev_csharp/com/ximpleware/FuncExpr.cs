@@ -30,14 +30,26 @@ namespace com.ximpleware
 	/// </summary>
 	public class FuncExpr:Expr
 	{
-        public override void adjust(int n) { }
+        public override void adjust(int n)
+        {
+            switch (opCode)
+            {
+                case FuncName.COUNT: 
+                    argumentList.e.adjust(n);
+                    return;
+                case FuncName.SUM:
+                    argumentList.e.adjust(n);
+                    return;
+                default:
+                    return;
+            }
+        }
 		override public bool NodeSet
 		{
 			get
 			{
 				return false;
-			}
-			
+			}			
 		}
 		override public bool Numerical
 		{

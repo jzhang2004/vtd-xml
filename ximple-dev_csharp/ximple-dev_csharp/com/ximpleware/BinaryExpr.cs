@@ -27,7 +27,11 @@ namespace com.ximpleware
     /// </summary>
     public class BinaryExpr : Expr
     {
-        public override void adjust(int n) { }
+        public override void adjust(int n)
+        {
+            left.adjust(n);
+            right.adjust(n);
+        }
         override public bool NodeSet
         {
             get
