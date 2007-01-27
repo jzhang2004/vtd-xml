@@ -1779,11 +1779,16 @@ public class LocationPathExpr extends Expr{
 	    
 	}
 	
-	public void adjust(int n){
-	    int i=intHash.determineHashWidth(n);
-        if (ih!=null && i==ih.e)
+	public void adjust(int n) {
+	    int i;
+        if (pathType == RELATIVE_PATH) {
+            i = 6; // hash width 64 
+        } else {
+            i = intHash.determineHashWidth(n);
+        }
+        if (ih!=null && i== ih.e)
             return;
-	    ih = new intHash(i);
+        ih = new intHash(i);
 	}
 	
 }
