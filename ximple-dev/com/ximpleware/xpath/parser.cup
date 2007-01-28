@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ parser code {:
       parser p = new parser(System.in);
       Object result = p.parse().value;
       //System.out.println(((Expr)result).evalNumber(null));
-      System.out.println(((Expr)result));
+      //System.out.println(((Expr)result));
     }
     catch (Exception e) {
 		System.out.println("caught: "+e);
@@ -279,11 +279,14 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
 		{: RESULT = new Step();
       	   RESULT.setAxisType(as.i);
       	   RESULT.setNodeTest(nt);
-		   RESULT.setPredicate(pl);	
+		   RESULT.setPredicate(pl);
+		   	
 		   //System.out.println(" Step 3 ");
+		   
 		:}
       		|    AbbreviatedStep:abs			 
-		{: RESULT = abs; /*System.out.println(" step 4");*/ 
+		{: RESULT = abs; 
+		   //System.out.println(" step 4"); 
 		:}
 		;
 
@@ -340,6 +343,7 @@ AbbreviatedStep	::=    DOT
   		    parser.tempNt.setTestType(NodeTest.NODE);
 		    RESULT.setAxisType(AxisType.PARENT);
 		    RESULT.setNodeTest(parser.tempNt);
+		    // System.out.println("result  " + RESULT.toString());
 		:}
 		;
 
