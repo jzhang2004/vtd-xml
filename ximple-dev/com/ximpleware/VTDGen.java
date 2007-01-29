@@ -1109,27 +1109,6 @@ public class VTDGen {
 		}
 	}
 
-	public static void main(String[] argv){
-		VTDGen vg = new VTDGen();
-		try{
-			vg.setDoc("<?xml version=\"1.0\" encoding=\"ascii\"?><this><?abc?> aaaabbbbccccdddd</this>".getBytes("UTF-8"));
-			vg.parse(false);
-			System.out.println("A success");
-			VTDNav vn = vg.getNav();
-			vg.clear();
-			int size = vn.getTokenCount();
-			for(int i=0;i<size;i++){
-				System.out.print(" type --> "+vn.getTokenType(i));
-				System.out.print(" length -->"+vn.getTokenLength(i));
-				System.out.println("  offset -->"+vn.getTokenOffset(i));
-				System.out.println(" i -->"+i);
-			}
-			System.out.println(vn.toString(vn.getText()));
-		}
-		catch(Exception e){
-			System.out.println(e);
-		}		
-	}
 	/**
 	 * A private method that detects the BOM and decides document encoding
 	 * @throws EncodingException
@@ -3150,6 +3129,10 @@ public class VTDGen {
 	 *
 	 */
 	public void setDoc_BR(byte[] ba){
+	    if (ba == null)
+	    {
+	        throw new IllegalArgumentException("Illegal argument for setDoc_BR");
+	    }
 		int a;
 		br = true;
 		depth = -1;
@@ -3205,6 +3188,13 @@ public class VTDGen {
 	 *
 	 */
 	public void setDoc_BR(byte[] ba, int os, int len){
+	    if (ba == null ||
+	            os <0 || 
+	            len ==0 || 
+	            ba.length< os+len)
+	    {
+	        throw new IllegalArgumentException("Illegal argument for setDoc_BR");
+	    }
 		int a;
 		br = true;
 		depth = -1;
@@ -3251,6 +3241,10 @@ public class VTDGen {
 	 * @param ba byte[]
 	 */
 	public void setDoc(byte[] ba) {
+	    if (ba == null)
+	    {
+	        throw new IllegalArgumentException("Illegal argument for setDoc");
+	    }
 		int a;
 		br = false;
 		depth = -1;
@@ -3297,7 +3291,13 @@ public class VTDGen {
 	 * @param len int (in byte)
 	 */
 	public void setDoc(byte[] ba, int os, int len) {
-
+	    if (ba == null ||
+	            os <0 || 
+	            len ==0 || 
+	            ba.length< os+len)
+	    {
+	        throw new IllegalArgumentException("Illegal argument for setDoc");
+	    }
 		int a;
 		br = false;
 		depth = -1;
@@ -3331,8 +3331,6 @@ public class VTDGen {
 		l1Buffer = new FastLongBuffer(7);
 		l2Buffer = new FastLongBuffer(9);
 		l3Buffer = new FastIntBuffer(11);
-		;
-
 	}
 	/**
 	 * Write the VTD and LC into their storage container.
