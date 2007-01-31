@@ -151,7 +151,7 @@ public class VTDNav {
 	protected ILongBuffer l1Buffer;
 	protected ILongBuffer l2Buffer;
 	protected IIntBuffer l3Buffer;
-	private IByteBuffer XMLDoc;
+	protected IByteBuffer XMLDoc;
 
 	//private int recentNS; // most recently visited NS node, experiment for now
 	// Hierarchical representation is an array of integers addressing elements tokens 
@@ -160,7 +160,7 @@ public class VTDNav {
 
 	protected int LN; // record txt and attrbute for XPath eval purposes
 	// the document encoding	     
-	private int encoding;
+	protected int encoding;
 	// for string to token comparison
 	//protected int currentOffset;
 	//protected int currentOffset2;
@@ -169,7 +169,7 @@ public class VTDNav {
 	protected boolean ns;
 
 	// intermediate buffer for push and pop purposes  
-	private int[] stackTemp;
+	protected int[] stackTemp;
 	protected int docOffset;
 	// length of the document
 	protected int docLen;
