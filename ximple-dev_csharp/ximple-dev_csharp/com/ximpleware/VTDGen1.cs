@@ -455,7 +455,7 @@ namespace com.ximpleware
 
 
         //namespace aware flag
-        private bool ns;
+        protected internal bool ns;
         protected internal int VTDDepth; // Maximum Depth of VTDs
         protected internal int encoding;
         private int last_depth;
@@ -469,7 +469,7 @@ namespace com.ximpleware
         private int ch_temp;
         protected internal int offset; // this is byte offset, not char offset as encoded in VTD
         private int temp_offset;
-        private int depth;
+        protected internal int depth;
 
 
         protected internal int prev_offset;
