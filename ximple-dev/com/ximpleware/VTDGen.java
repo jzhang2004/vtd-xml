@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
+
 
 import com.ximpleware.parser.*;
 
@@ -98,7 +98,7 @@ public class VTDGen {
 	public final static int FORMAT_UTF_16LE = 64;
 	public final static int FORMAT_UTF_16BE = 63;
 	//namespace aware flag
-	private boolean ns;
+	protected boolean ns;
 	protected int VTDDepth; // Maximum Depth of VTDs
 	protected int encoding;
 	private int last_depth;
@@ -112,7 +112,7 @@ public class VTDGen {
 	private int ch_temp;
 	protected int offset;	// this is byte offset, not char offset as encoded in VTD
 	private int temp_offset;
-	private int depth;
+	protected int depth;
 
 
 	protected int prev_offset;
@@ -3416,5 +3416,64 @@ public class VTDGen {
 				l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
 			}
 		}*/
+	}
+	/**
+	 * This method loads the VTD+XML from an input stream
+	 * @param is
+	 * @throws IOException
+	 * @throws IndexReadException
+	 *
+	 */
+	public void loadIndex(InputStream is) throws IOException,IndexReadException{
+	    IndexHandler.readIndex(is, this);
+	}
+	/**
+	 * This method loads the VTD+XML from a file
+	 * @param fileName
+	 * @throws IOException
+	 * @throws IndexReadException
+	 *
+	 */
+	public void loadIndex(String fileName)throws IOException,IndexReadException{
+	    FileInputStream fis = new FileInputStream(fileName);
+	    loadIndex(fis);
+	    fis.close();
+	}
+	/**
+	 * This method writes the VTD+XML into an output streams
+	 * @param os
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeIndex(OutputStream os) throws IOException,IndexWriteException{
+	    IndexHandler.writeIndex((byte)1,
+	            this.encoding,
+	            this.ns,
+	            true,
+	            this.VTDDepth,
+	            3,
+	            this.rootIndex,
+	            this.XMLDoc,
+	            this.docOffset,
+	            this.docLen,
+	            this.VTDBuffer,
+	            this.l1Buffer,
+	            this.l2Buffer,
+	            this.l3Buffer,
+	            os);
+	}
+	
+	/**
+	 * This method writes the VTD+XML file into a file of the given name
+	 * @param fileName
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeIndex(String fileName) throws IOException,IndexWriteException{
+	    FileOutputStream fos = new FileOutputStream(fileName);
+	    writeIndex(fos);
+	    fos.close();
 	}
 }
