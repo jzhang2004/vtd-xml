@@ -65,6 +65,8 @@ class IndexHandler {
         ba[1]= ba[2] = ba[3] = 0;
         dos.write(ba);
         dos.write(ba);
+        dos.write(ba);
+        dos.write(ba);
         // write XML doc in bytes
         dos.writeLong(docLen);
         dos.write(xmlDoc,docOffset, docLen);
@@ -139,16 +141,22 @@ class IndexHandler {
         
         // skip a long
         dis.readLong();
-        
+        dis.readLong();
+        int size = 0;
         // read XML size
-        int size = (int)dis.readLong();
-        
+        if (endian == 1)
+           size = (int)dis.readLong();
+        else
+           size = (int)reverseLong(dis.readLong());
         // read XML bytes
         byte[] XMLDoc = new byte[size];
         dis.read(XMLDoc);
         if ((size & 0x7)!= 0){
             int t = (((size>>3)+1)<<3) - size;
-            dis.skipBytes(t);    
+            while(t>0){
+                dis.readByte();
+                t--;
+            }
         }
         
         vg.setDoc(XMLDoc);
@@ -162,16 +170,21 @@ class IndexHandler {
             }
             // read L1 LC records
             int l1Size = (int)dis.readLong();
+                     
             while(l1Size > 0){
-                vg.l1Buffer.append(dis.readLong());
+                long l = dis.readLong();
+                System.out.println(" l-==> "+Long.toHexString(l));
+                vg.l1Buffer.append(l);
                 l1Size--;
             }
+            System.out.println("++++++++++ ");
             // read L2 LC records
             int l2Size = (int)dis.readLong();
             while(l2Size > 0){
                 vg.l2Buffer.append(dis.readLong());
                 l2Size--;
             }
+            System.out.println("++++++++++ ");   
             // read L3 LC records
             int l3Size = (int)dis.readLong();
             if (intLongSwitch == 1){ //l3 uses ints
@@ -193,19 +206,25 @@ class IndexHandler {
                 vtdSize--;
             }
             // read L1 LC records
+            //System.out.println(" ++++++++++ ");
             int l1Size = (int)reverseLong(dis.readLong());
             while(l1Size > 0){
-                vg.l1Buffer.append(reverseLong(dis.readLong()));
+                long l = reverseLong(dis.readLong());
+                vg.l1Buffer.append(l);
                 l1Size--;
             }
+            System.out.println(" ++++++++++ ");
             // read L2 LC records
             int l2Size = (int)reverseLong(dis.readLong());
             while(l2Size > 0){
-                vg.l2Buffer.append(reverseLong(dis.readLong()));
+                long l = reverseLong(dis.readLong());
+                System.out.println(" l--=->"+Long.toHexString(l));
+                vg.l2Buffer.append(l);
                 l2Size--;
             }
+            System.out.println(" ++++++++++ ");
             // read L3 LC records
-            int l3Size = (int)dis.readLong();
+            int l3Size = (int)reverseLong(dis.readLong());
             if (intLongSwitch == 1){ //l3 uses ints
                 while(l3Size > 0 ){
                     vg.l3Buffer.append(reverseInt(dis.readInt()));
@@ -221,22 +240,23 @@ class IndexHandler {
     }
     
     private static long reverseLong(long l){
-        long t = ((l & 0xff00000000000000L)>>56)
-        & ((l & 0xff000000000000L)>>40)
-        & ((l & 0xff0000000000L)>>24)
-        & ((l & 0xff00000000L)>>8)
-        & ((l & 0xff000000L)<<8)
-        & ((l & 0xff0000L)<<24)
-        & ((l & 0xff00L)<<40)
-        & ((l & 0xffL)<<56);
+        long t = ((l & 0xff00000000000000L)>>>56)
+        | ((l & 0xff000000000000L)>>40)
+        | ((l & 0xff0000000000L)>>24)
+        | ((l & 0xff00000000L)>>8)
+        | ((l & 0xff000000L)<<8)
+        | ((l & 0xff0000L)<<24)
+        | ((l & 0xff00L)<<40)
+        | ((l & 0xffL)<<56);
+        //System.out.println(" t ==> "+Long.toHexString(l));
         return t;
     }
     
     private static int reverseInt(int i){
         int t = ((i & 0xff000000) >> 24)
-        & ((i & 0xff0000) >> 8)
-        & ((i & 0xff00) << 8)
-        & ((i & 0xff) << 24);
+        | ((i & 0xff0000) >> 8)
+        | ((i & 0xff00) << 8)
+        | ((i & 0xff) << 24);
         return t;
     }
 }
