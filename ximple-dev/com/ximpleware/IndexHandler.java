@@ -253,7 +253,7 @@ class IndexHandler {
     }
     
     private static int reverseInt(int i){
-        int t = ((i & 0xff000000) >> 24)
+        int t = ((i & 0xff000000) >>> 24)
         | ((i & 0xff0000) >> 8)
         | ((i & 0xff00) << 8)
         | ((i & 0xff) << 24);
