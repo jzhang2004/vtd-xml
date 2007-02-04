@@ -4031,5 +4031,70 @@ namespace com.ximpleware
 			}
 			}*/
 		}
+        /// <summary> This method loads the VTD+XML from an input stream</summary>
+        /// <param name="is">
+        /// </param>
+        /// <throws>  IOException </throws>
+        /// <throws>  IndexReadException </throws>
+        /// <summary> 
+        /// </summary>
+        public virtual void loadIndex(System.IO.Stream is_Renamed)
+        {
+            IndexHandler.readIndex(is_Renamed, this);
+        }
+        /// <summary> This method loads the VTD+XML from a file</summary>
+        /// <param name="fileName">
+        /// </param>
+        /// <throws>  IOException </throws>
+        /// <throws>  IndexReadException </throws>
+        /// <summary> 
+        /// </summary>
+        public virtual void loadIndex(System.String fileName)
+        {
+            //UPGRADE_TODO: Constructor 'java.io.FileInputStream.FileInputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileInputStreamFileInputStream_javalangString'"
+            System.IO.FileStream fis = new System.IO.FileStream(fileName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+            loadIndex(fis);
+            fis.Close();
+        }
+        /// <summary> This method writes the VTD+XML into an output streams</summary>
+        /// <param name="os">
+        /// </param>
+        /// <throws>  IOException </throws>
+        /// <throws>  IndexWriteException </throws>
+        /// <summary> 
+        /// </summary>
+        public virtual void writeIndex(System.IO.Stream os)
+        {
+            IndexHandler.writeIndex(1, 
+                this.encoding, 
+                this.ns, 
+                true, 
+                this.VTDDepth, 
+                3, 
+                this.rootIndex, 
+                this.XMLDoc, 
+                this.docOffset, 
+                this.docLen, 
+                this.VTDBuffer, 
+                this.l1Buffer, 
+                this.l2Buffer, 
+                this.l3Buffer, 
+                os);
+        }
+
+        /// <summary> This method writes the VTD+XML file into a file of the given name</summary>
+        /// <param name="fileName">
+        /// </param>
+        /// <throws>  IOException </throws>
+        /// <throws>  IndexWriteException </throws>
+        /// <summary> 
+        /// </summary>
+        public virtual void writeIndex(System.String fileName)
+        {
+            //UPGRADE_TODO: Constructor 'java.io.FileOutputStream.FileOutputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileOutputStreamFileOutputStream_javalangString'"
+            System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
+            writeIndex(fos);
+            fos.Close();
+        }
 	}
 }
