@@ -52,7 +52,7 @@ class IndexHandler {
         byte[] ba = new byte[4];
         ba[0] = (byte)version;  // version # is 1 
         ba[1] = (byte)encodingType;
-        ba[2] = (byte)(ns? 0xd0 : 0x90); // big endien
+        ba[2] = (byte)(ns? 0xe0 : 0xa0); // big endien
         ba[3] = (byte)nestDepth;
         dos.write(ba);
         // second 4 bytes
@@ -119,10 +119,10 @@ class IndexHandler {
         else 
            intLongSwitch = 0;
         if ((b & 0x40)!=0)
-            ns = 1;
+            vg.ns = true;
         else
-            ns = 0;
-        if ((b & 0x10) !=0)
+            vg.ns = false;
+        if ((b & 0x20) !=0)
             endian = 1;
         else 
             endian = 0;
