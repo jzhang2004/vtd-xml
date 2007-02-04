@@ -39,7 +39,7 @@ public UniByteBuffer(byte[] b) {
  * @return byte
  * @param index int
  */
-public byte byteAt(int index) {
+public final byte byteAt(int index) {
 	return (byte) ba[index];
 }
 /**
@@ -49,7 +49,7 @@ public byte byteAt(int index) {
  * @param offset int
  * @param len int
  */
-public byte[] getBytes(int offset, int len) {
+public final byte[] getBytes(int offset, int len) {
     byte[] b = new byte[len];
     System.arraycopy(ba, offset, b, 0, len);
     return b;
