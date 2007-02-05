@@ -177,14 +177,14 @@ class IndexHandler {
                 vg.l1Buffer.append(l);
                 l1Size--;
             }
-            System.out.println("++++++++++ ");
+            //System.out.println("++++++++++ ");
             // read L2 LC records
             int l2Size = (int)dis.readLong();
             while(l2Size > 0){
                 vg.l2Buffer.append(dis.readLong());
                 l2Size--;
             }
-            System.out.println("++++++++++ ");   
+            //System.out.println("++++++++++ ");   
             // read L3 LC records
             int l3Size = (int)dis.readLong();
             if (intLongSwitch == 1){ //l3 uses ints
@@ -213,16 +213,16 @@ class IndexHandler {
                 vg.l1Buffer.append(l);
                 l1Size--;
             }
-            System.out.println(" ++++++++++ ");
+            //System.out.println(" ++++++++++ ");
             // read L2 LC records
             int l2Size = (int)reverseLong(dis.readLong());
             while(l2Size > 0){
                 long l = reverseLong(dis.readLong());
-                System.out.println(" l--=->"+Long.toHexString(l));
+                //System.out.println(" l--=->"+Long.toHexString(l));
                 vg.l2Buffer.append(l);
                 l2Size--;
             }
-            System.out.println(" ++++++++++ ");
+            //System.out.println(" ++++++++++ ");
             // read L3 LC records
             int l3Size = (int)reverseLong(dis.readLong());
             if (intLongSwitch == 1){ //l3 uses ints
