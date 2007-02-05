@@ -132,6 +132,6 @@ namespace com.ximpleware.xpath
 			return false;
 		}
 
-        public override void adjust(int n) { }
+        public override int adjust(int n) { return 0; }
 	}
 }

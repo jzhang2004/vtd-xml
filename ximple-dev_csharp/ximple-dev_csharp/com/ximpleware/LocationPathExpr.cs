@@ -2290,20 +2290,22 @@ forward_brk: ;
 			}
 			//return 8;
 		}
-        public override void adjust(int n)
+        public override int adjust(int n)
         {
             int i;
             if (pathType == RELATIVE_PATH)
             {
-                i = 6; // hash width 64 
+                i = Math.Min(intHash.determineHashWidth(n), 6); // hash width 64 
             }
             else
             {
                 i = intHash.determineHashWidth(n);
             }
             if (ih != null && i == ih.e)
-                return;
-            ih = new intHash(i);
+            { }
+            else
+                ih = new intHash(i);
+            return i;
         }
 	}
 }

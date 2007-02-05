@@ -20,12 +20,20 @@ namespace com.ximpleware
 		
 		internal int state;
 
-        public override void adjust(int n)
+        public override int adjust(int n)
         {
-            int i = intHash.determineHashWidth(n);
+            int i = e.adjust(n);
             if (ih != null && i == ih.e)
-                return;
-            ih = new intHash(i);
+            { }
+            else
+                ih = new intHash(i);
+            UnionExpr tmp = this.next;
+            while (tmp != null)
+            {
+                tmp.e.adjust(n);
+                tmp = tmp.next;
+            }
+            return i;
         }
 		public UnionExpr(Expr e1)
 		{

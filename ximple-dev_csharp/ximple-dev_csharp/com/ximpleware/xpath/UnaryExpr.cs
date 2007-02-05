@@ -24,7 +24,7 @@ namespace com.ximpleware.xpath
 	/// </summary>
 	public class UnaryExpr:Expr
 	{
-        public override void adjust(int n) { }
+        public override int adjust(int n) { return 0; }
 		override public bool NodeSet
 		{
 			get

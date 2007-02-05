@@ -45,6 +45,6 @@ namespace com.ximpleware.xpath
 		abstract public override System.String ToString();
 		
 		abstract public bool requireContextSize();
-        abstract public void adjust(int n);
+        abstract public int adjust(int n);
 	}
 }
