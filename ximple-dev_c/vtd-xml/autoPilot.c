@@ -406,6 +406,7 @@ Boolean iterateAP(AutoPilot *ap){
 		default :
 			throwException2(pilot_exception,
 				"unknow iteration type for iterateAP");
+			return FALSE;
 	}
 }
 
@@ -479,6 +480,7 @@ int iterateAttr(AutoPilot *ap){
 			default:
 				throwException2(pilot_exception,
 					"unknow iteration type for iterateAP");
+				return -1;
 	}
 	
 }
@@ -506,7 +508,7 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
  * Evaluate XPath to a boolean
  */ 
 Boolean evalXPathToBoolean(AutoPilot *ap){
-	ap->xpe->evalBoolean(ap->xpe,ap->vn);
+	return	ap->xpe->evalBoolean(ap->xpe,ap->vn);
 }
 
 /*
@@ -538,6 +540,7 @@ int evalXPath(AutoPilot *ap){
 		return ap->xpe->evalNodeSet(ap->xpe,ap->vn);
 	}
 	throwException2(other,"xpe is NULL in autoPilot");
+	return -1;
 }
 
 /*

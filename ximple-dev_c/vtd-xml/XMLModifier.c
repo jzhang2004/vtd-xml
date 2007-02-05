@@ -81,7 +81,7 @@ static Long getBytes_UTF8(UCSChar *s){
 		}else
 			throwException2(modify_exception, "Invalid XML char for getBytes_UTF_8");
 	}
-	return ((Long)k<<32)|(int)ba;
+	return ((Long)k<<32)|(Long)ba;
 }
 
 static Long getBytes_UTF16LE(UCSChar *s){
@@ -112,7 +112,7 @@ static Long getBytes_UTF16LE(UCSChar *s){
 		}else 
 			throwException2(modify_exception, "Invalid XML char for getBytes_UTF_16LE");
 	}
-	return ((Long)k<<32)|(int)ba;
+	return ((Long)k<<32)|(Long)ba;
 }
 
 static Long getBytes_UTF16BE(UCSChar *s){
@@ -142,7 +142,7 @@ static Long getBytes_UTF16BE(UCSChar *s){
 		}else 
 			throwException2(modify_exception, "Invalid XML char for getBytes_UTF_16BE");
 	}
-	return ((Long)k<<32)|(int)ba;
+	return ((Long)k<<32)|(Long)ba;
 }
 
 static Long getBytes_ISO_8859_1(UCSChar *s){
@@ -155,7 +155,7 @@ static Long getBytes_ISO_8859_1(UCSChar *s){
 			throwException2(modify_exception,"Invalid char for ISO_8859_1");
 		ba[i]=(UByte)s[i];
 	}
-	return ((Long)len<<32)|(int)ba;
+	return ((Long)len<<32)|(Long)ba;
 }
 
 static Long getBytes_ASCII(UCSChar *s){
@@ -168,7 +168,7 @@ static Long getBytes_ASCII(UCSChar *s){
 			throwException2(modify_exception,"Invalid char for ASCII");
 		ba[i]=(UByte)s[i];
 	}
-	return ((Long)len<<32)|(int)ba;
+	return ((Long)len<<32)|(Long)ba;
 }
 
 
@@ -499,7 +499,6 @@ void insertAttribute(XMLModifier *xm, UCSChar *attr){
 
 void output(XMLModifier *xm, FILE *f){
 	 Long l;
-	 int i;
 	 size_t k;
 	 UByte *ba;
 	if (f == NULL){
@@ -626,7 +625,6 @@ static quickSort(XMLModifier* xm, int lo, int hi){
 	if (i<hi) quickSort(xm,i, hi);
 }
 static void sort(XMLModifier *xm){
-	int i;
 	if (xm->flb->size >0)
 		quickSort(xm,0,xm->flb->size-1);
 }

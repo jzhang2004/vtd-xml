@@ -21,7 +21,7 @@
 static Long getChar(VTDNav *vn,int offset);
 static Long getCharResolved(VTDNav *vn,int offset);
 static int getCharUnit(VTDNav *vn, int index);
-static Long handle_utf8(VTDNav *vn, int temp, int offset);
+static Long handle_utf8(VTDNav *vn, Long temp, int offset);
 static Long handle_utf16le(VTDNav *vn, int offset);
 static Long handle_utf16be(VTDNav *vn, int offset);
 static inline Boolean isElement(VTDNav  *vn, int index);
@@ -44,7 +44,7 @@ static int decode(VTDNav *vn,int offset);
 
 
 /*Create VTDNav object*/
-static Long handle_utf8(VTDNav *vn, int temp, int offset){
+static Long handle_utf8(VTDNav *vn, Long temp, int offset){
 	int c,d,a,i;
 	Long val;
 	//temp = vn->XMLDoc[vn->currentOffset];
@@ -1815,6 +1815,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 else{// all whitespace
 							   throwException2(number_format_exception,
 								   " invalid char during parseInt2");
+							   return -1;
 						 }
 						 // throw new NumberFormatException(toString(index));
 					 }
@@ -1900,6 +1901,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 else{// all whitespace
 							   throwException2(number_format_exception,
 								   " invalid char during parseLong2");
+							   return -1;
 						 }
 						 //throw new NumberFormatException(toString(index));
 					 }
@@ -3241,6 +3243,7 @@ Boolean getAtTerminal(VTDNav *vn){
 		  throwException(nav_exception,0,
 			  "navigation exception during getChar4OtherEncoding",	
 			  "Unknown encoding error: should never happen");
+		  return 0;
 	 }
 }
 

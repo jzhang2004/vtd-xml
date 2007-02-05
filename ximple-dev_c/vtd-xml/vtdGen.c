@@ -1372,7 +1372,8 @@ static int getPrevOffset(VTDGen *vg){
 			default :
 				throwException(parse_exception,0,
 							"Parse exception in parse()",
-							"Other Error: Should never happen");			
+							"Other Error: Should never happen");	
+				return 0;
 	}
 }
 
@@ -2602,6 +2603,7 @@ int process_end_comment(VTDGen *vg){
 	throwException(parse_exception,0,	
 		"Parse exception in parse()",
 		"Error in comment: '-->' expected");
+	return 0;
 
 }
 int process_comment(VTDGen *vg){
@@ -2666,6 +2668,7 @@ int process_comment(VTDGen *vg){
 		throwException(parse_exception,0,	
 			"Parse exception in parse()",
 			"Error in comment: Invalid terminating sequence");
+		return 0;
 	}
 }
 int process_doc_type(VTDGen *vg){
@@ -3276,6 +3279,7 @@ static int process_start_doc(VTDGen *vg){
 	throwException(parse_exception,0,
 		"Parse exception in parse()",
 		"Other Error: XML not starting properly");
+	return 0;
 
 }
 
@@ -3296,6 +3300,7 @@ static int process_end_doc(VTDGen *vg){
 	throwException(parse_exception,-1,
 		"Parse exception in parse()",
 		"Other Error: XML not terminated properly");
+	return 0;
 }
 
 static int process_qm_seen(VTDGen *vg){
@@ -3319,6 +3324,7 @@ static int process_qm_seen(VTDGen *vg){
 	throwException(parse_exception,0,
 		"Parse exception in parse()",
 		"Other Error: First char after <? invalid");
+	return 0;
 }
 
 static int process_ex_seen(VTDGen *vg){
