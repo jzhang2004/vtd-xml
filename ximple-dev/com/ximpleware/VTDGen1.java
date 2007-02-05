@@ -18,6 +18,10 @@
 package com.ximpleware;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import com.ximpleware.parser.*;
 //import java.io.*;
@@ -95,7 +99,7 @@ public class VTDGen1 {
 	public final static int FORMAT_UTF_16LE = 64;
 	public final static int FORMAT_UTF_16BE = 63;
 	//namespace aware flag
-	private boolean ns;
+	protected boolean ns;
 	protected int VTDDepth; // Maximum Depth of VTDs
 	protected int encoding;
 	private int last_depth;
@@ -109,7 +113,7 @@ public class VTDGen1 {
 	private int ch_temp;
 	protected int offset;	// this is byte offset, not char offset as encoded in VTD
 	private int temp_offset;
-	private int depth;
+	protected int depth;
 
 
 	protected int prev_offset;
@@ -998,36 +1002,6 @@ public class VTDGen1 {
 	}
 
 
-	public static void main(String[] argv) {
-		VTDGen1 vg = new VTDGen1();
-
-		try {
-			int k = 0x1fffff;
-			StringBuffer sb = new StringBuffer(k);
-			for (int z = 0; z < k; z++) {
-				sb.append('z');
-			}
-			vg.setDoc(("\ufeff<this><!--" + sb.toString() + "--></this>")
-					.getBytes("UTF-8"));
-			vg.parse(false);
-			System.out.println("A success");
-			VTDNav vn = vg.getNav();
-			vg.clear();
-			/*
-			 * int size = vn.getTokenCount(); for(int i=0;i <size;i++){
-			 * System.out.print(" type --> "+vn.getTokenType(i));
-			 * System.out.print(" length -->"+vn.getTokenLength(i));
-			 * System.out.println(" offset -->"+vn.getTokenOffset(i));
-			 * System.out.println(" i -->"+i); }
-			 */
-			//int l = vn.getText();
-			System.out.println("type ===> " + vn.getTokenType(1));
-			//if (l!=-1)
-			System.out.println(Integer.toHexString(vn.getTokenLength(1)));
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-	}
 	/**
 	 * A private method that detects the BOM and decides document encoding
 	 * @throws EncodingException
@@ -2880,6 +2854,10 @@ public class VTDGen1 {
 	 *
 	 */
 	public void setDoc_BR(byte[] ba){
+	    if (ba == null)
+	    {
+	        throw new IllegalArgumentException("Illegal argument for setDoc_BR");
+	    }
 		int a;
 		br = true;
 		depth = -1;
@@ -2933,6 +2911,13 @@ public class VTDGen1 {
 	 *
 	 */
 	public void setDoc_BR(byte[] ba, int os, int len){
+	    if (ba == null ||
+	            os <0 || 
+	            len ==0 || 
+	            ba.length< os+len)
+	    {	     
+	        throw new IllegalArgumentException("Illegal argument for setDoc_BR");
+	    }
 		int a;
 		br = true;
 		depth = -1;
@@ -2987,7 +2972,13 @@ public class VTDGen1 {
 	 *            int (in byte)
 	 */
 	public void setDoc(byte[] ba, int os, int len) {
-
+	    if (ba == null ||
+	            os <0 || 
+	            len ==0 || 
+	            ba.length< os+len)
+	    {
+	        throw new IllegalArgumentException("Illegal argument for setDoc");
+	    }
 		int a;
 		br = false;
 		depth = -1;
@@ -3034,6 +3025,10 @@ public class VTDGen1 {
 	 *            byte[]
 	 */
 	public void setDoc(byte[] ba) {
+	    if (ba == null)
+	    {
+	        throw new IllegalArgumentException("Illegal argument for setDoc");
+	    }
 		int a;
 		br = false;
 		increment = 1;
@@ -3247,5 +3242,43 @@ public class VTDGen1 {
 		   * 0xffffffffL); } else if (last_depth == 2) { l2Buffer.append(((long)
 		   * last_l2_index < < 32) | 0xffffffffL); } }
 		   */
+	}
+
+	/**
+	 * This method writes the VTD+XML into an output streams
+	 * @param os
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeIndex(OutputStream os) throws IOException,IndexWriteException{
+	    IndexHandler.writeIndex((byte)1,
+	            this.encoding,
+	            this.ns,
+	            true,
+	            this.VTDDepth,
+	            3,
+	            this.rootIndex,
+	            this.XMLDoc,
+	            this.docOffset,
+	            this.docLen,
+	            this.VTDBuffer,
+	            this.l1Buffer,
+	            this.l2Buffer,
+	            this.l3Buffer,
+	            os);
+	}
+	
+	/**
+	 * This method writes the VTD+XML file into a file of the given name
+	 * @param fileName
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeIndex(String fileName) throws IOException,IndexWriteException{
+	    FileOutputStream fos = new FileOutputStream(fileName);
+	    writeIndex(fos);
+	    fos.close();
 	}
 }
