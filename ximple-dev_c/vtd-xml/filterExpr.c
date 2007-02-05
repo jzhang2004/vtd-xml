@@ -186,6 +186,6 @@ void reset2_fe(filterExpr *fe, VTDNav *vn){
 	reset_p(fe->p,vn);
 }
 
-void adjust_fe(filterExpr *fe, int n){
-	fe->e->adjust(fe->e,n);
+int adjust_fe(filterExpr *fe, int n){
+	return fe->e->adjust(fe->e,n);
 }

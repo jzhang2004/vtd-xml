@@ -818,6 +818,7 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 	}
 	throwException2(invalid_argument,
 		"concat()'s <funcExpr> argument count is invalid");
+	return NULL;
 }
 static Boolean startsWith(funcExpr *fne, VTDNav *vn){
 	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
@@ -862,6 +863,7 @@ static UCSChar* subString(funcExpr *fne, VTDNav *vn){
 	}
 	throwException2(invalid_argument,
 		"substring()'s <funcExpr> argument count is invalid");
+	return NULL;
 }
 
 
@@ -885,6 +887,7 @@ static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn){
 	}
 	throwException2(invalid_argument,
 		"substring-before()'s <funcExpr> argument count is invalid");
+	return NULL;
 }
 
 static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
@@ -908,6 +911,7 @@ static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
 	}
 	throwException2(invalid_argument,
 		"substring-after()'s <funcExpr> argument count is invalid");
+	return NULL;
 
 }
 
@@ -941,6 +945,7 @@ static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 	{
 		throwException2(invalid_argument,
 			"normalize-space()'s <funcExpr> argument count is invalid");
+		return NULL;
 	}
 }
 
@@ -992,13 +997,13 @@ static Boolean isWS(UCSChar c)
 	return FALSE;
 }
 
-void adjust_fne(funcExpr *fne, int n){
+int adjust_fne(funcExpr *fne, int n){
 	switch(fne->opCode){
 		case FN_COUNT: 
 		case FN_SUM:
-			fne->al->e->adjust(fne->al->e,n);
-			break;
+			return fne->al->e->adjust(fne->al->e,n);
+			
 		default:
-			break;
+			return 0;
 	}
 }

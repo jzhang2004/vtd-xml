@@ -68,7 +68,7 @@ typedef void	(*reset_)(struct Expr *e, VTDNav *vn);
 typedef void	(*set_ContextSize)(struct Expr *e, int s);
 typedef void	(*set_Position)(struct Expr *e, int pos);
 typedef void    (*to_String)(struct Expr *e, UCSChar* string);
-typedef void    (*adjust_)(struct Expr *e, int n);
+typedef int    (*adjust_)(struct Expr *e, int n);
 typedef struct Expr {
 	free_Expr freeExpr;
 	eval_NodeSet evalNodeSet;
@@ -124,7 +124,7 @@ void	reset_le(literalExpr *e, VTDNav *vn);
 void	setContextSize_le(literalExpr *e,int s);
 void	setPosition_le(literalExpr *e,int pos);
 void    toString_le(literalExpr *e, UCSChar* string);
-void	adjust_le(literalExpr *e, int n);
+int	adjust_le(literalExpr *e, int n);
  /*number expression*/
 typedef struct NumberExpr {
 	free_Expr freeExpr;
@@ -161,7 +161,7 @@ void	reset_ne(numberExpr *e, VTDNav *vn);
 void	setContextSize_ne(numberExpr *e,int s);
 void	setPosition_ne(numberExpr *e,int pos);
 void    toString_ne(numberExpr *e, UCSChar* string);
-void	adjust_ne(numberExpr *e, int n);
+int	adjust_ne(numberExpr *e, int n);
 /* binary Expr*/
 /*  define operand */
 typedef enum OpType{		
@@ -220,7 +220,7 @@ void	reset_be(binaryExpr *e, VTDNav *vn);
 void	setContextSize_be(binaryExpr *e,int s);
 void	setPosition_be(binaryExpr *e,int pos);
 void    toString_be(binaryExpr *e, UCSChar* string);
-void	adjust_be(binaryExpr *e, int n);
+int	adjust_be(binaryExpr *e, int n);
 /* unary Expr */
 typedef struct UnaryExpr {
 	free_Expr freeExpr;
@@ -257,7 +257,7 @@ void	reset_ue(unaryExpr *e, VTDNav *vn);
 void	setContextSize_ue(unaryExpr *e,int s);
 void	setPosition_ue(unaryExpr *e,int pos);
 void    toString_ue(unaryExpr *e, UCSChar* string);
-void	adjust_ue(unaryExpr *e, int n);
+int	adjust_ue(unaryExpr *e, int n);
 /* function Expr */
 typedef enum FuncName {FN_LAST,
 		   FN_POSITION,
@@ -337,7 +337,7 @@ void	reset_fne(funcExpr *e, VTDNav *vn);
 void	setContextSize_fne(funcExpr *e,int s);
 void	setPosition_fne(funcExpr *e,int pos);
 void    toString_fne(funcExpr *e, UCSChar* string);
-void	adjust_fne(funcExpr *e, int n);
+int	adjust_fne(funcExpr *e, int n);
 /* location Expr */
 typedef enum AxisType {  AXIS_CHILD,
 						 AXIS_DESCENDANT,
@@ -478,7 +478,7 @@ void	reset_lpe(locationPathExpr *e, VTDNav *vn);
 void	setContextSize_lpe(locationPathExpr *e,int s);
 void	setPosition_lpe(locationPathExpr *e,int pos);
 void    toString_lpe(locationPathExpr *e, UCSChar* string);
-void	adjust_lpe(locationPathExpr *e, int n);
+int	adjust_lpe(locationPathExpr *e, int n);
 Boolean isUnique(locationPathExpr *e,int i);
 void setStep(locationPathExpr *e, Step* st);
 
@@ -522,7 +522,7 @@ void	setContextSize_fe(filterExpr *e,int s);
 void	setPosition_fe(filterExpr *e,int pos);
 void    toString_fe(filterExpr *e, UCSChar* string);
 void	reset2_fe(filterExpr *e, VTDNav *vn);
-void	adjust_fe(filterExpr *e, int n);
+int	adjust_fe(filterExpr *e, int n);
 
 /* path expr */
 
@@ -564,7 +564,7 @@ void	reset_pe(pathExpr *e, VTDNav *vn);
 void	setContextSize_pe(pathExpr *e,int s);
 void	setPosition_pe(pathExpr *e,int pos);
 void    toString_pe(pathExpr *e, UCSChar* string);
-void	adjust_pe(pathExpr *e, int n);
+int	adjust_pe(pathExpr *e, int n);
 
 /* Union Expr */
 
@@ -607,7 +607,7 @@ void	reset_une(unionExpr *e, VTDNav *vn);
 void	setContextSize_une(unionExpr *e,int s);
 void	setPosition_une(unionExpr *e,int pos);
 void    toString_une(unionExpr *e, UCSChar* string);
-void	adjust_une(unionExpr *e, int n);
+int	adjust_une(unionExpr *e, int n);
 int yylex();
 /*void yyrestart(FILE *i);*/
 int yyerror(char *s);

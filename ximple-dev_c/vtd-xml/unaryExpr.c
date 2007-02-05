@@ -53,6 +53,7 @@ void freeUnaryExpr(unaryExpr *ue){
 int	evalNodeSet_ue (unaryExpr *ue,VTDNav *vn){
 	throwException2(xpath_eval_exception,
 		"unaryExpr can't eval to a node set!");
+	return -1;
 }
 
 double	evalNumber_ue (unaryExpr *ue,VTDNav *vn){
@@ -115,4 +116,4 @@ void    toString_ue(unaryExpr *ue, UCSChar* string){
 	(ue->e->toString)(ue->e, string);
 }
 
-void adjust_ue(unaryExpr *e, int n){}
+int adjust_ue(unaryExpr *e, int n){return 0;}

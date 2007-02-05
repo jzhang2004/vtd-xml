@@ -53,6 +53,7 @@ void freeLiteralExpr(literalExpr *le){
 int	evalNodeSet_le (literalExpr *le,VTDNav *vn){
 	throwException2(xpath_eval_exception,
 		"LiteralExpr can't eval to a node set!");
+	return -1;
 }
 
 double	evalNumber_le (literalExpr *le,VTDNav *vn){
@@ -115,5 +116,6 @@ void    toString_le(literalExpr *le, UCSChar* string){
 	wprintf(L"%ls",le->s);
 	wprintf(L"\"");
 }
-void adjust_le(literalExpr *le, int n){
+int adjust_le(literalExpr *le, int n){
+	return 0;
 }

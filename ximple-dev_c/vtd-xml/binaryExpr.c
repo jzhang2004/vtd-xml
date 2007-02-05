@@ -529,9 +529,11 @@ UCSChar* createEmptyString(){
 	}
 	throwException2(out_of_mem, 
 		"string allocation faild in createEmptyString ");
+	return NULL;
 }
 
-void adjust_be(binaryExpr *be, int n){
-	be->left->adjust(be->left,n);
-	be->right->adjust(be->right,n);
+int adjust_be(binaryExpr *be, int n){
+	int i = be->left->adjust(be->left,n);
+	int j = be->right->adjust(be->right,n);
+	return min(i,j);
 }

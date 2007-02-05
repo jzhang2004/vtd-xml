@@ -210,6 +210,7 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 		default:
 			throwException2(xpath_eval_exception,
 				"unknown state");
+			return 0;
 	}
 
 }
@@ -2084,15 +2085,17 @@ void setStep(locationPathExpr *lpe, Step* st){
 	lpe->s = st;
 }
 
-void adjust_lpe(locationPathExpr *lpe, int n){
+int adjust_lpe(locationPathExpr *lpe, int n){
 	int i;
 	if (lpe->pathType == RELATIVE_PATH){
-		i= 6;//hashwidth 64
+		i= min(6,determineHashWidth(n));//hashwidth 64
 	} else {
 		i=determineHashWidth(n);
 	}
 	if (lpe->ih!=NULL && i==lpe->ih->e)
-		return;  
-	freeIntHash(lpe->ih);
-	lpe->ih = createIntHash2(i);
+	{}else {
+		freeIntHash(lpe->ih);
+		lpe->ih = createIntHash2(i);
+	}
+	return i;
 }

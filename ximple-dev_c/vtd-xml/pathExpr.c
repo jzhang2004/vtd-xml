@@ -237,10 +237,13 @@ void toString_pe(pathExpr *pe, UCSChar* string){
 	toString_lpe(pe->lpe, string);
 }
 
-void adjust_pe(pathExpr *pe, int n){
-	int i=determineHashWidth(n);
+int adjust_pe(pathExpr *pe, int n){
+	int i=pe->fe->adjust(pe->fe,n);
+	pe->lpe->adjust(pe->lpe,n);
 	if (pe->ih!=NULL && i==pe->ih->e)
-		return;
-	freeIntHash(pe->ih);
-	pe->ih = createIntHash2(i);
+	{}else{
+		freeIntHash(pe->ih);
+		pe->ih = createIntHash2(i);
+	}
+	return i;
 }

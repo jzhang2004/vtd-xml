@@ -299,17 +299,18 @@ void    toString_une(unionExpr *e, UCSChar* string){
 	   }
 }
 
-void adjust_une(unionExpr *une, int n){
-	    int i=determineHashWidth(n);
-		unionExpr *tmp = NULL;
-		if (une->ih!=NULL && i==une->ih->e)
-            return;
-		freeIntHash(une->ih);
-	    une->ih = createIntHash2(i);
-		une->fe->adjust(une->fe,n);
+int adjust_une(unionExpr *une, int n){
+	    int i=une->fe->adjust(une->fe,n);
+		unionExpr *tmp = NULL;		
         tmp = une->next;
         while (tmp != NULL) {
             tmp->fe->adjust(tmp->fe,n);
             tmp = tmp->next;
         }
+		if (une->ih!=NULL && i==une->ih->e)
+		{}else{
+			freeIntHash(une->ih);
+			une->ih = createIntHash2(i);
+		}
+		return i;
 }

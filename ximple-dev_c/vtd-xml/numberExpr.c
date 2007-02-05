@@ -51,6 +51,7 @@ void freeNumberExpr(numberExpr *ne){
 int	evalNodeSet_ne (numberExpr *ne,VTDNav *vn){
 	throwException2(xpath_eval_exception,
 		"numberExpr can't eval to a node set!");
+	return -1;
 }
 
 double	evalNumber_ne (numberExpr *ne,VTDNav *vn){
@@ -131,5 +132,6 @@ void    toString_ne(numberExpr *ne, UCSChar* string){
 	}else 
 		wprintf(L"%f",ne->dval);
 }
-void adjust_ne(numberExpr *ne, int n){
+int adjust_ne(numberExpr *ne, int n){
+	return 0;
 }
