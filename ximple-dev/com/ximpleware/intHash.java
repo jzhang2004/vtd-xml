@@ -98,7 +98,9 @@ class intHash {
         System.out.println("" + i + " " + a.isUnique(i));
     }
     
-    public static int determineHashWidth(int i){    
+    public static int determineHashWidth(int i){  
+        if (i<(1<<8))
+            return 3;
     	if (i<(1<<9))
     		return 4;
     	if (i<(1<<10))
