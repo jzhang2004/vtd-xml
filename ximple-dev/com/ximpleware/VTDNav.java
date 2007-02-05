@@ -24,6 +24,10 @@
  */
 package com.ximpleware;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import com.ximpleware.parser.ISO8859_10;
 import com.ximpleware.parser.ISO8859_2;
 import com.ximpleware.parser.ISO8859_3;
@@ -3583,5 +3587,43 @@ public class VTDNav {
 	 */
 	protected boolean getAtTerminal(){
 		return atTerminal;
+	}
+	/**
+	 * This method writes the VTD+XML into an output streams
+	 * @param os
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeIndex(OutputStream os) throws IOException,IndexWriteException{
+	    IndexHandler.writeIndex((byte)1,
+	            this.encoding,
+	            this.ns,
+	            true,
+	            this.nestingLevel -1,
+	            3,
+	            this.rootIndex,
+	            this.XMLDoc.getBytes(),
+	            this.docOffset,
+	            this.docLen,
+	            (FastLongBuffer) this.vtdBuffer,
+	            (FastLongBuffer) this.l1Buffer,
+	            (FastLongBuffer) this.l2Buffer,
+	            (FastIntBuffer) this.l3Buffer,
+	            os);
+	}
+	
+	/**
+	 * This method writes the VTD+XML file into a file of the given name
+	 * Suggested file extension is ".vxl"
+	 * @param fileName
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeIndex(String fileName) throws IOException,IndexWriteException{
+	    FileOutputStream fos = new FileOutputStream(fileName);
+	    writeIndex(fos);
+	    fos.close();
 	}
 }
