@@ -340,17 +340,18 @@ public class UnionExpr extends Expr {
 
     }
     
-    public void adjust(int n){
-        int i=intHash.determineHashWidth(n);
-        if (ih!=null && i==ih.e)
-            return;
+    public int adjust(int n){        
+	    int i = e.adjust(n);
+	    if (ih!=null && i==ih.e)
+        {}
+	    else
 	    ih = new intHash(i);
-	    e.adjust(n);
         UnionExpr tmp = this.next;
         while (tmp != null) {
             tmp.e.adjust(n);
             tmp = tmp.next;
         }
+        return i;
     }
 
 }

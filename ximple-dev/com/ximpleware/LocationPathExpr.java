@@ -57,7 +57,7 @@ public class LocationPathExpr extends Expr{
 		public void setPathType(int ptype){
 			pathType = ptype;
 		}
-//		 Improved version for uniquness checking
+//		 Improved version for uniqueness checking
 		public boolean isUnique(int i){
 		    return ih.isUnique(i);
 		}
@@ -1779,16 +1779,18 @@ public class LocationPathExpr extends Expr{
 	    
 	}
 	
-	public void adjust(int n) {
+	public int adjust(int n) {
 	    int i;
         if (pathType == RELATIVE_PATH) {
-            i = 6; // hash width 64 
+            i = Math.min(intHash.determineHashWidth(n),6); // hash width 64 
         } else {
             i = intHash.determineHashWidth(n);
         }
         if (ih!=null && i== ih.e)
-            return;
-        ih = new intHash(i);
+        {}
+        else 
+            ih = new intHash(i);
+        return i;
 	}
 	
 }

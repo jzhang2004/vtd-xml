@@ -494,8 +494,9 @@ public class BinaryExpr extends Expr {
 	          throw new RuntimeException("Undefined behavior");
 	      }
 	}
-	public void adjust(int n){
-	    left.adjust(n);
-	    right.adjust(n);
+	public int adjust(int n){
+	    int i = left.adjust(n);
+	    int j = right.adjust(n);
+	    if (i>j)return i; else return j;
 	}
 }

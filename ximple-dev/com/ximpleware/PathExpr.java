@@ -228,10 +228,14 @@ public class PathExpr extends Expr {
 	    
 	}
 	
-	public void adjust(int n){
-	    int i=intHash.determineHashWidth(n);
+	public int adjust(int n){
+	    int i = fe.adjust(n);
+	    lpe.adjust(n);
+	    
         if (ih!=null && i==ih.e)
-            return;
-	    ih = new intHash(i);
+        {}
+	    else 
+	        ih = new intHash(i);
+	    return i;
 	}
 }
