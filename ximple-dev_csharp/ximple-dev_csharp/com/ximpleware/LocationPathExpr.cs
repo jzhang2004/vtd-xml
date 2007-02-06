@@ -2295,7 +2295,7 @@ forward_brk: ;
             int i;
             if (pathType == RELATIVE_PATH)
             {
-                i = Math.Min(intHash.determineHashWidth(n), 6); // hash width 64 
+                i = Math.Min(intHash.determineHashWidth(n), 5); // hash width 64 
             }
             else
             {
