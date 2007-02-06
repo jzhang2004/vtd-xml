@@ -21,11 +21,12 @@ namespace com.ximpleware
 	
 	public class IndexHandler
 	{
-		public static void  writeIndex(byte version, int encodingType, bool ns, bool byteOrder, int nestDepth, int LCLevel, int rootIndex, byte[] xmlDoc, int docOffset, int docLen, FastLongBuffer vtdBuffer, FastLongBuffer l1Buffer, FastLongBuffer l2Buffer, FastIntBuffer l3Buffer, System.IO.Stream os)
+		public static bool  writeIndex(byte version, int encodingType, bool ns, bool byteOrder, int nestDepth, int LCLevel, int rootIndex, byte[] xmlDoc, int docOffset, int docLen, FastLongBuffer vtdBuffer, FastLongBuffer l1Buffer, FastLongBuffer l2Buffer, FastIntBuffer l3Buffer, System.IO.Stream os)
 		{
 			if (xmlDoc == null || docLen <= 0 || vtdBuffer == null || vtdBuffer.size() == 0 || l1Buffer == null || l2Buffer == null || l3Buffer == null)
 			{
-				throw new IndexWriteException("Invalid VTD index ");
+				throw new IndexWriteException("Invalid  ");
+                return false;
 			}
 			int i;
 			//UPGRADE_TODO: Class 'java.io.DataOutputStream' was converted to 'System.IO.BinaryWriter' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioDataOutputStream'"
@@ -92,12 +93,16 @@ namespace com.ximpleware
 			if ((l3Buffer.size() & 1) != 0)
 				dos.Write(0);
 			dos.Close();
+            return true;
 		}
 		
-		public static void  readIndex(System.IO.Stream is_Renamed, VTDGen vg)
+		public static bool  readIndex(System.IO.Stream is_Renamed, VTDGen vg)
 		{
-			if (is_Renamed == null || vg == null)
-				throw new IndexReadException("Invalid argument(s) for readIndex()");
+            if (is_Renamed == null || vg == null)
+            {
+                throw new IndexReadException("Invalid argument(s) for readIndex()");
+                return false;
+            }
 			//UPGRADE_TODO: Class 'java.io.DataInputStream' was converted to 'System.IO.BinaryReader' 
             //which has a different behavior. 
             //"ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioDataInputStream'"
@@ -130,8 +135,11 @@ namespace com.ximpleware
 			
 			// 5th and 6th byte
 			int LCLevels = (((int) dis.ReadByte()) << 8) | dis.ReadByte();
-			if (LCLevels < 3)
-				throw new IndexReadException("LC levels must be at least 3");
+            if (LCLevels < 3)
+            {
+                throw new IndexReadException("LC levels must be at least 3");
+                return false;
+            }
 			// 7th and 8th byte
 			vg.rootIndex = (((int) dis.ReadByte()) << 8) | dis.ReadByte();
 			
@@ -253,6 +261,7 @@ namespace com.ximpleware
 					}
 				}
 			}
+            return true;
 		}
 		
 		private static long reverseLong(long l)
