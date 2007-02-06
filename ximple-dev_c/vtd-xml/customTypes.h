@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,6 +115,8 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 										 xpath_parse_exception,
 										 xpath_eval_exception,
 										 modify_exception,
+										 index_write_exception,
+										 index_read_exception,
 										 io_exception,
 										 other};
 
