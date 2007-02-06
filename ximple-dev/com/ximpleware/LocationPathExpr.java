@@ -1782,7 +1782,7 @@ public class LocationPathExpr extends Expr{
 	public int adjust(int n) {
 	    int i;
         if (pathType == RELATIVE_PATH) {
-            i = Math.min(intHash.determineHashWidth(n),6); // hash width 64 
+            i = Math.min(intHash.determineHashWidth(n),5); // hash width 64 
         } else {
             i = intHash.determineHashWidth(n);
         }
