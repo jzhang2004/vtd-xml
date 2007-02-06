@@ -607,7 +607,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 if (depth == -1)
 							return ((Long)vn->docLen)<<32 | vn->docOffset;
 						 // for an element with next sibling
-						 so = getTokenOffset(vn,getCurrentIndex(vn)) - 1;
+						 so = getTokenOffset(vn,getCurrentIndex2(vn)) - 1;
 						 if (toElement(vn,NEXT_SIBLING)) {
 
 							 int temp = getCurrentIndex(vn);

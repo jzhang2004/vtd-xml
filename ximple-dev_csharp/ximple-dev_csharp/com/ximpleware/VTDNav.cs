@@ -388,7 +388,7 @@ namespace com.ximpleware
             //		 document length and offset returned if depth == -1
             if (depth == -1)
                 return ((long)docLen) << 32 | docOffset;
-            int so = getTokenOffset(getCurrentIndex()) - 1;
+            int so = getTokenOffset(getCurrentIndex2()) - 1;
             int length = 0;
 
 
