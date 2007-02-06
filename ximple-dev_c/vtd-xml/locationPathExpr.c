@@ -2088,7 +2088,7 @@ void setStep(locationPathExpr *lpe, Step* st){
 int adjust_lpe(locationPathExpr *lpe, int n){
 	int i;
 	if (lpe->pathType == RELATIVE_PATH){
-		i= min(6,determineHashWidth(n));//hashwidth 64
+		i= min(5,determineHashWidth(n));//hashwidth 64
 	} else {
 		i=determineHashWidth(n);
 	}
