@@ -1,6 +1,6 @@
 %{
 /* 
-* Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.qname = NULL;
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
-		yylval.name.qname = wcsdup(L"*");
+		yylval.name.qname = _wcsdup(L"*");
 		//addObj(yylval.name.qname);
 		//yylval.name.localname = NULL;
 		//yylval.name.prefix = NULL;
@@ -102,7 +102,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.qname = NULL;
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
-		yylval.name.qname = wcsdup(L"div");
+		yylval.name.qname = _wcsdup(L"div");
 		addObj(yylval.name.qname);
 		return NAME;
 	 } 
@@ -116,7 +116,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
 		isName = 0;
-		yylval.name.qname = wcsdup(L"mod");
+		yylval.name.qname = _wcsdup(L"mod");
 		addObj(yylval.name.qname);
 		return NAME;
 	 } 
@@ -131,7 +131,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
 		isName = 0;
-		yylval.name.qname = wcsdup(L"and");
+		yylval.name.qname = _wcsdup(L"and");
 		addObj(yylval.name.qname);
 		return NAME;
 	 } 
@@ -146,7 +146,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%")
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
 		isName = 0;
-		yylval.name.qname = wcsdup(L"or");
+		yylval.name.qname = _wcsdup(L"or");
 		addObj(yylval.name.qname);
 		return NAME;
 	 }
@@ -454,7 +454,7 @@ self{ws}*::		{	isName = 1;
 				}
 				free(tmpstring);
 				tmpstring = NULL;
-				yylval.name.localname = wcsdup(L"*");
+				yylval.name.localname = _wcsdup(L"*");
 				addObj(yylval.name.localname);
 				return NAME;
 			}
