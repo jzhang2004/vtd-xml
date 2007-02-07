@@ -21,15 +21,37 @@ namespace com.ximpleware
 	
 	public class IndexHandler
 	{
-		public static bool  writeIndex(byte version, int encodingType, bool ns, bool byteOrder, int nestDepth, int LCLevel, int rootIndex, byte[] xmlDoc, int docOffset, int docLen, FastLongBuffer vtdBuffer, FastLongBuffer l1Buffer, FastLongBuffer l2Buffer, FastIntBuffer l3Buffer, System.IO.Stream os)
+		public static bool  writeIndex(byte version, 
+            int encodingType, 
+            bool ns, 
+            bool byteOrder, 
+            int nestDepth, 
+            int LCLevel, 
+            int rootIndex, 
+            byte[] xmlDoc, 
+            int docOffset, 
+            int docLen, 
+            FastLongBuffer vtdBuffer, 
+            FastLongBuffer l1Buffer, 
+            FastLongBuffer l2Buffer, 
+            FastIntBuffer l3Buffer, 
+            System.IO.Stream os)
 		{
-			if (xmlDoc == null || docLen <= 0 || vtdBuffer == null || vtdBuffer.size() == 0 || l1Buffer == null || l2Buffer == null || l3Buffer == null)
+			if (xmlDoc == null 
+                || docLen <= 0 
+                || vtdBuffer == null 
+                ||  l1Buffer == null 
+                || l2Buffer == null 
+                || l3Buffer == null)
 			{
-				throw new IndexWriteException("Invalid  ");
-                return false;
+                throw new System.ArgumentException("Invalid argument for writeIndex ");
 			}
+            if (vtdBuffer.size() == 0)
+            {
+                throw new IndexWriteException("VTDBuffer can't be zero length");
+            }
 			int i;
-			//UPGRADE_TODO: Class 'java.io.DataOutputStream' was converted to 'System.IO.BinaryWriter' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioDataOutputStream'"
+			
 			System.IO.BinaryWriter dos = new System.IO.BinaryWriter(os);
 			// first 4 bytes
 			byte[] ba = new byte[4];
@@ -100,8 +122,7 @@ namespace com.ximpleware
 		{
             if (is_Renamed == null || vg == null)
             {
-                throw new IndexReadException("Invalid argument(s) for readIndex()");
-                return false;
+                throw new System.ArgumentException("Invalid argument(s) for readIndex()");
             }
 			//UPGRADE_TODO: Class 'java.io.DataInputStream' was converted to 'System.IO.BinaryReader' 
             //which has a different behavior. 
@@ -112,7 +133,6 @@ namespace com.ximpleware
 			// second byte
 			vg.encoding = (sbyte) dis.ReadByte();
 			int intLongSwitch;
-			int ns;
 			int endian;
 			// third byte
 			b = dis.ReadByte();
@@ -129,6 +149,8 @@ namespace com.ximpleware
 				endian = 1;
 			else
 				endian = 0;
+            if ((b & 0x1f) != 0)
+                throw new IndexReadException("Last 5 bits of the third byte should be zero"); 
 			
 			// fourth byte
 			vg.VTDDepth = dis.ReadByte();
@@ -145,11 +167,11 @@ namespace com.ximpleware
 			
 			// skip a long
 			long l =dis.ReadInt64();
-            Console.WriteLine(" l ==>" + l);
+            //Console.WriteLine(" l ==>" + l);
             l =dis.ReadInt64();
-            Console.WriteLine(" l ==>" + l);
+            //Console.WriteLine(" l ==>" + l);
             l = dis.ReadInt64();
-            Console.WriteLine(" l ==>" + l);
+            //Console.WriteLine(" l ==>" + l);
 			int size;
 			// read XML size
             if (BitConverter.IsLittleEndian && endian == 0
