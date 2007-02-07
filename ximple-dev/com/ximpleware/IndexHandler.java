@@ -39,13 +39,16 @@ class IndexHandler {
         if ( xmlDoc == null
                 || docLen <=0
                 || vtdBuffer == null 
-                || vtdBuffer.size()==0 // impossible to occur
+                 // impossible to occur
                 || l1Buffer == null // setDoc not called
                 || l2Buffer == null
                 || l3Buffer == null
                 ){
             throw new IndexWriteException("Invalid VTD index ");
         }
+        if (vtdBuffer.size()==0)
+            throw new IndexWriteException("VTDBuffer can't be zero length");
+        
         int i;
         DataOutputStream dos = new DataOutputStream(os);
         // first 4 bytes
@@ -128,7 +131,8 @@ class IndexHandler {
             endian = 1;
         else 
             endian = 0;
-        
+        if ((b & 0x1f) != 0)
+            throw new IndexReadException("Last 5 bits of the third byte should be zero");
         // fourth byte
         vg.VTDDepth =  dis.readByte();
         
