@@ -109,4 +109,9 @@ void setDoc_BR(VTDGen *vg, UByte *byteArray, int arrayLen);
 //Set the XMLDoc container.Also set the offset and len of the document 
 void setDoc_BR2(VTDGen *vg, UByte *byteArray, int arrayLen, int offset, int docLen);
 
+/* Load VTD+XML from a FILE pointer */
+Boolean loadIndex_VTDGen(VTDGen *vg, FILE *f); 
+
+/* Write VTD+XML into a FILE pointer */
+Boolean writeIndex_VTDGen(VTDGen *vg, FILE *f);
 #endif

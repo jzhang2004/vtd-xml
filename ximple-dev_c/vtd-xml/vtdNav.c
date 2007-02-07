@@ -17,6 +17,7 @@
 */
 
 #include "vtdNav.h"
+#include "indexHandler.h"
 
 static Long getChar(VTDNav *vn,int offset);
 static Long getCharResolved(VTDNav *vn,int offset);
@@ -3305,4 +3306,23 @@ void throwException2 (enum exception_type et, char *msg){
 	e.et = et;
 	e.msg = msg;
 	Throw e;
+}
+
+/*write VTD+XML into FILE */
+Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
+	return _writeIndex(1, 
+                vn->encoding, 
+                vn->ns, 
+                TRUE, 
+				vn->nestingLevel-1, 
+                3, 
+                vn->rootIndex, 
+                vn->XMLDoc, 
+                vn->docOffset, 
+                vn->docLen, 
+                vn->vtdBuffer, 
+                vn->l1Buffer, 
+                vn->l2Buffer, 
+                vn->l3Buffer, 
+                f);
 }

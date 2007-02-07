@@ -16,7 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 #include "vtdGen.h"
-
+#include "indexHandler.h"
 
 typedef enum pState {
 STATE_LT_SEEN,
@@ -3401,4 +3401,29 @@ static int process_ex_seen(VTDGen *vg){
 							"Other Error: Unrecognized char after <!");
 	}
 	return parser_state;
+}
+
+
+/* Load VTD+XML from a FILE pointer */
+Boolean loadIndex_VTDGen(VTDGen *vg, FILE *f){
+	return _readIndex(f,vg);
+}
+
+/* Write VTD+XML into a FILE pointer */
+Boolean writeIndex_VTDGen(VTDGen *vg, FILE *f){
+	 return _writeIndex(1, 
+                vg->encoding, 
+                vg->ns, 
+                TRUE, 
+                vg->VTDDepth, 
+                3, 
+                vg->rootIndex, 
+                vg->XMLDoc, 
+                vg->docOffset, 
+                vg->docLen, 
+                vg->VTDBuffer, 
+                vg->l1Buffer, 
+                vg->l2Buffer, 
+                vg->l3Buffer, 
+                f);
 }

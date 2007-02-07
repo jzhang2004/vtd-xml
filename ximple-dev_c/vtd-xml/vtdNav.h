@@ -331,4 +331,7 @@ Boolean getAtTerminal(VTDNav *vn);
 extern inline int swap_bytes(int i);
 int lookupNS(VTDNav *vn);
 
+/* Write VTD+XML into a FILE pointer */
+Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f);
+
 #endif
