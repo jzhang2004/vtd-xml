@@ -3326,3 +3326,62 @@ Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
                 vn->l3Buffer, 
                 f);
 }
+
+/* overwrite */
+Boolean overWrite(VTDNav *vn, int index, UByte* ba, int offset, int len){
+			int t;
+            if (ba == NULL
+                    || index >= vn->vtdSize
+                    || offset < 0){
+                throwException2(invalid_argument,"Illegal argument for overwrite");
+				return FALSE;
+			}
+            if (vn->encoding >= FORMAT_UTF_16BE
+                    && (((len & 1) == 1)
+                    || ((offset & 1) == 1)))
+            {
+                // for UTF 16, len and offset must be integer multiple
+                // of 2
+                return FALSE;
+            }
+            t = getTokenType(vn,index);
+            if (t == TOKEN_CHARACTER_DATA
+                    || t == TOKEN_ATTR_VAL
+                    || t == TOKEN_CDATA_VAL)
+            {
+				int os, length,temp,k;
+                length = getTokenLength(vn,index);
+                if (length < len)
+                    return FALSE;
+                os = getTokenOffset(vn,index);
+                temp = length - len;
+                // get XML doc
+                //Array.Copy(ba, offset, XMLDoc.getBytes(), os, len);
+				memcpy(vn->XMLDoc+os,ba+offset,len);
+                for (k = 0; k < temp; )
+                {
+                    if (vn->encoding < FORMAT_UTF_16BE)
+                    {
+                        // write white spaces
+						vn->XMLDoc[os + len + k] = ' ';
+                        k++;
+                    }
+                    else
+                    {
+                        if (vn->encoding == FORMAT_UTF_16BE)
+                        {
+                            vn->XMLDoc[os + len + k] = 0;
+                            vn->XMLDoc[os + len + k+1] = ' ';
+                        }
+                        else
+                        {
+							vn->XMLDoc[os + len + k] = ' ';
+                            vn->XMLDoc[os + len + k + 1] = 0;                            
+                        }
+                        k += 2;
+                    }
+                }
+				return TRUE;
+            }
+            return FALSE;
+}
