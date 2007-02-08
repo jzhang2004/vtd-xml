@@ -17,7 +17,6 @@
  */
 
 /*
- * Created on Jul 12, 2006
  *
  * this class is created to update VTDNav's implementation with 
  * a more thread safe version
@@ -239,7 +238,7 @@ public class VTDNav {
 		atTerminal = false; //this variable will only change value during XPath eval
 
 		// initialize the context object
-		context = new int[nestingLevel];
+		this.context = new int[nestingLevel];
 		//depth value is the first entry in the context because root is singular.
 		context[0] = 0;
 		//set the value to zero
@@ -945,7 +944,7 @@ public class VTDNav {
 //		 document length and offset returned if depth == -1
 		if (depth == -1)
 			return ((long)docLen)<<32 | docOffset;
-		int so = getTokenOffset(getCurrentIndex()) - 1;
+		int so = getTokenOffset(getCurrentIndex2()) - 1;
 		int length = 0;
 		
 
@@ -1855,6 +1854,105 @@ public class VTDNav {
 	final private int NSval(int i) {
 
 		return (int) (vtdBuffer.longAt(i) & MASK_TOKEN_NS_MARK);
+	}
+	
+	/**
+	 * overWrite is introduced in version 2.0 that allows you to 
+	 * directly overwrite the XML content if the token is long enough
+	 * If the operation is successful, white spaces will be used to fill
+	 * the available token space, and there will be no need to regenerate
+	 * the VTD and LCs
+	 * <em> The current version (2.0) only allows overwrites on attribute value,
+	 * character data, and CDATA</em>
+	 * 
+	 * Consider the XML below:
+	 *  <a>  good </a> 
+	 * After overwriting the token "good" with "bad," the new XML looks
+	 * like:
+	 *  <a>  bad  </a>
+	 * as you can see, "goo" is replaced with "bad" character-by-character, 
+	 * and the remaining "d" is replace with a white space  
+	 *  
+	 * @param index
+	 * @param ba the byte array contains the new content to be overwritten 
+	 * @return boolean as the status of the overwrite operation
+	 *
+	 */
+	public boolean overWrite(int index, byte[] ba){
+	    return overWrite(index,ba,0,ba.length);
+	}
+	
+	
+	/**
+	 * overWrite is introduced in version 2.0 that allows you to 
+	 * directly overwrite the XML content if the token is long enough
+	 * If the operation is successful, white spaces will be used to fill
+	 * the available token space, and there will be no need to regenerate
+	 * the VTD and LCs
+	 * <em> The current version (2.0) only allows overwrites on attribute value,
+	 * character data, and CDATA</em>
+	 *  
+	 * Consider the XML below:
+	 *  <a>  good </a> 
+	 * After overwriting the token "good" with "bad," the new XML looks
+	 * like:
+	 *  <a>  bad  </a>
+	 * as you can see, "goo" is replaced with "bad", and the remaining
+	 * "d" is replace with a white space  
+	 *  
+	 * @param index the VTD record to which the change will be applied
+	 * @param ba the byte array contains the new content to be overwritten 
+	 * @param offset
+	 * @param len
+	 * @return boolean as the status of the overwrite operation
+	 *
+	 */
+	public boolean overWrite(int index, byte[] ba, int offset, int len){
+	    if ( ba == null 
+	            || index >= this.vtdSize
+	            || offset<0 
+	            || offset + len > ba.length)
+	        throw new IllegalArgumentException("Illegal argument for overwrite");
+	    if (encoding >=VTDNav.FORMAT_UTF_16BE 
+	            && (((len & 1)==1 )
+	            || ((offset&1)==1))){
+	        // for UTF 16, len and offset must be integer multiple
+	        // of 2
+	        return false;
+	    }
+	    int t = getTokenType(index);
+	    if ( t== VTDNav.TOKEN_CHARACTER_DATA
+	            || t==VTDNav.TOKEN_ATTR_VAL 
+	            || t==VTDNav.TOKEN_CDATA_VAL){
+	        int length = getTokenLength(index);
+	        if ( length < len)
+	            return false;
+	        int os = getTokenOffset(index);
+	        int temp = length - len;
+	        //System.out.println("temp ==>"+temp);
+	        // get XML doc
+	        System.arraycopy(ba, offset, XMLDoc.getBytes(),os, len);
+	        for (int k=0;k<temp;){
+	            //System.out.println("encoding ==>"+encoding);
+	            if (encoding < VTDNav.FORMAT_UTF_16BE){
+	             // write white spaces
+	               // System.out.println("replacing...");
+	                (XMLDoc.getBytes())[os+len+k] = ' ';
+	                k++;
+	            }else{
+	                if (encoding == VTDNav.FORMAT_UTF_16BE){
+	                    XMLDoc.getBytes()[os+len+k] = 0;
+	                    XMLDoc.getBytes()[os+len+k+1] = ' ';
+	                }else{	                    
+	                    XMLDoc.getBytes()[os+len+k] = ' ';
+	                    XMLDoc.getBytes()[os+len+k+1] = 0;
+	                }
+	                k += 2;
+	            }
+	        }    
+	        return true;
+	    }	    
+	    return false;
 	}
 	/**
 	 * Convert a vtd token into a double.
