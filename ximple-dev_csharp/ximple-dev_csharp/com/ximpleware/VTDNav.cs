@@ -1963,6 +1963,108 @@ namespace com.ximpleware
 
             return (int)(vtdBuffer.longAt(i) & MASK_TOKEN_NS_MARK);
         }
+        /// <summary>
+        /// overWrite is introduced in version 2.0 that allows you to 
+        /// directly overwrite the XML content if the token is long enough
+        /// If the operation is successful, white spaces will be used to fill
+        /// the available token space, and there will be no need to regenerate
+        /// the VTD and LCs
+        /// <em> The current version (2.0) only allows overwrites on attribute value,
+        /// character data, and CDATA</em>
+        /// 
+        /// Consider the XML below:
+        ///  <a>  good </a> 
+        /// After overwriting the token "good" with "bad," the new XML looks
+        /// like:
+        ///  <a>  bad  </a>
+        /// as you can see, "goo" is replaced with "bad" character-by-character, 
+        /// and the remaining "d" is replace with a white space  
+        ///  
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="ba"></param>
+        /// <returns></returns>
+        public bool overWrite(int index, byte[] ba)
+        {
+            return overWrite(index, ba, 0, ba.Length);
+        }
+        /// <summary>
+        ///  overWrite is introduced in version 2.0 that allows you to 
+        /// directly overwrite the XML content if the token is long enough
+	    /// If the operation is successful, white spaces will be used to fill
+	    /// the available token space, and there will be no need to regenerate
+	    /// the VTD and LCs
+	    /// <em> The current version (2.0) only allows overwrites on attribute value,
+	    /// character data, and CDATA</em>
+	    /// 
+	    /// Consider the XML below:
+	    ///  <a>  good </a> 
+	    /// After overwriting the token "good" with "bad," the new XML looks
+	    /// like:
+	    ///  <a>  bad  </a>
+	    /// as you can see, "goo" is replaced with "bad" character-by-character, 
+	    /// and the remaining "d" is replace with a white space  
+	    ///  
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="ba"></param>
+        /// <param name="offset"></param>
+        /// <param name="len"></param>
+        /// <returns>status of overwrite</returns>
+        public bool overWrite(int index, byte[] ba, int offset, int len)
+        {
+            if (ba == null
+                    || index >= this.vtdSize
+                    || offset < 0
+                    || offset + len > ba.Length)
+                throw new ArgumentException("Illegal argument for overwrite");
+            if (encoding >= VTDNav.FORMAT_UTF_16BE
+                    && (((len & 1) == 1)
+                    || ((offset & 1) == 1)))
+            {
+                // for UTF 16, len and offset must be integer multiple
+                // of 2
+                return false;
+            }
+            int t = getTokenType(index);
+            if (t == VTDNav.TOKEN_CHARACTER_DATA
+                    || t == VTDNav.TOKEN_ATTR_VAL
+                    || t == VTDNav.TOKEN_CDATA_VAL)
+            {
+                int length = getTokenLength(index);
+                if (length < len)
+                    return false;
+                int os = getTokenOffset(index);
+                int temp = length - len;
+                // get XML doc
+                Array.Copy(ba, offset, XMLDoc.getBytes(), os, len);
+                for (int k = 0; k < temp; )
+                {
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                    {
+                        // write white spaces
+                        XMLDoc.getBytes()[os + len+k] = (byte)' ';
+                        k++;
+                    }
+                    else
+                    {
+                        if (encoding == VTDNav.FORMAT_UTF_16BE)
+                        {
+                            XMLDoc.getBytes()[os + len + k] = 0;
+                            XMLDoc.getBytes()[os + len + k + 1] = (byte)' ';
+                        }
+                        else
+                        {
+                            XMLDoc.getBytes()[os + len + k + 1] = 0;
+                            XMLDoc.getBytes()[os + len + k] = (byte)' ';
+                        }
+                        k += 2;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
         /// <summary> Convert a vtd token into a double.
         /// Creation date: (12/8/03 2:28:31 PM)
         /// </summary>
