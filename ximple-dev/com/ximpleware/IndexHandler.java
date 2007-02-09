@@ -177,7 +177,7 @@ class IndexHandler {
                      
             while(l1Size > 0){
                 long l = dis.readLong();
-                System.out.println(" l-==> "+Long.toHexString(l));
+               // System.out.println(" l-==> "+Long.toHexString(l));
                 vg.l1Buffer.append(l);
                 l1Size--;
             }
