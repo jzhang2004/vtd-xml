@@ -4115,11 +4115,11 @@ namespace com.ximpleware
                     return -1;
             }
 
-            if (offset1 == endOffset2
-                    && offset2 < endOffset1)
+            if (offset1 == endOffset1
+                    && offset2 < endOffset2)
                 return -1;
-            else if (offset1 < endOffset2
-                    && offset2 == endOffset1)
+            else if (offset1 < endOffset1
+                    && offset2 == endOffset2)
                 return 1;
             else
                 return 0;
