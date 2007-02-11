@@ -201,15 +201,14 @@ namespace com.ximpleware
                 case AND: return left.evalBoolean(vn) && right.evalBoolean(vn);
 
                 case EQ:
-                case NE: return computeEQNE(op, vn);
+                case NE:
 
-                case LE: return left.evalNumber(vn) <= right.evalNumber(vn);
+                case LE:
 
-                case GE: return left.evalNumber(vn) >= right.evalNumber(vn);
+                case GE:
 
-                case LT: return left.evalNumber(vn) < right.evalNumber(vn);
-
-                case GT: return left.evalNumber(vn) > right.evalNumber(vn);
+                case LT:
+                case GT: return computeComp(op, vn);
 
                 default: double dval = evalNumber(vn);
                     if (dval == -0.0 || dval == +0.0 || System.Double.IsNaN(dval))
@@ -284,8 +283,9 @@ namespace com.ximpleware
         /// <returns></returns>
         /// 
         /// 
-        private bool computeEQNE(int op, VTDNav vn)
+        private bool computeComp(int op, VTDNav vn)
         {
+            //int i, t, i1 = 0, stackSize, s1, s2;
             String st1, st2;
             if (left.NodeSet && right.NodeSet)
             {
@@ -293,12 +293,13 @@ namespace com.ximpleware
             }
             else
             {
-                if (left.Numerical && right.NodeSet){
+                if (left.Numerical && right.NodeSet)
+                {
                     return compNumericalNodeSet(left, right, vn, op);
                 }
                 if (left.NodeSet && right.Numerical)
                 {
-                    return compNumericalNodeSet(right, left, vn, op);
+                    return compNodeSetNumerical(left, right, vn, op);
                 }
                 if (left.String && right.NodeSet)
                 {
@@ -306,157 +307,82 @@ namespace com.ximpleware
                 }
                 if (left.NodeSet && right.String)
                 {
-                    return compStringNodeSet(right, left, vn, op);
+                    return compNodeSetString(left, right, vn, op);
                 }
             }
-
-            if (left.Boolean || right.Boolean)
+            if (op == EQ || op == NE)
             {
-                if (op == EQ)
-                    return left.evalBoolean(vn) == right.evalBoolean(vn);
-                else
-                    return left.evalBoolean(vn) != right.evalBoolean(vn);
+                if (left.Boolean || right.Boolean)
+                {
+                    if (op == EQ)
+                        return left.evalBoolean(vn) == right.evalBoolean(vn);
+                    else
+                        return left.evalBoolean(vn) != right.evalBoolean(vn);
+                }
+
+                if (left.Numerical || right.Numerical)
+                {
+                    if (op == EQ)
+                        return left.evalNumber(vn) == right.evalNumber(vn);
+                    else
+                        return left.evalNumber(vn) != right.evalNumber(vn);
+                }
+
+                st1 = left.evalString(vn);
+                st2 = right.evalString(vn);
+                if (st1 == null || st2 == null)
+                    if (op == EQ)
+                        return false;
+                    else
+                        return true;
+
+                return (op == EQ) ? (st1.Equals(st2)) : (!st1.Equals(st2));
             }
-
-            if (left.Numerical || right.Numerical)
-            {
-                if (op == EQ)
-                    return left.evalNumber(vn) == right.evalNumber(vn);
-                else
-                    return left.evalNumber(vn) != right.evalNumber(vn);
-            }
-            st1 = left.evalString(vn);
-            st2 = right.evalString(vn);
-
-            if (st1 == null || st2 == null)
-                if (op == EQ)
-                    return false;
-                else
-                    return true;
-
-            return (op == EQ) ? (st1.Equals(st2))
-                    : (!st1.Equals(st2));
+            return compareNumbers(left.evalNumber(vn), right.evalNumber(vn), op);
 
         }
-
+        private bool compareNumbers(double d1, double d2, int op)
+        {
+            switch (op)
+            {
+                case LE:
+                    return d1 <= d2;
+                case GE:
+                    return d1 >= d2;
+                case LT:
+                    return d1 < d2;
+                case GT:
+                    return d1 > d2;
+            }
+            return false;
+        }
         public override bool requireContextSize()
         {
             return left.requireContextSize() || right.requireContextSize();
         }
 
-        private bool compStringNodeSet(Expr left, Expr right, VTDNav vn, int op)
+
+
+        private int getStringVal(VTDNav vn, int i)
         {
-            int i, t, i1 = 0, stackSize;
-            String st1;
-            try
+            int i1, t = vn.getTokenType(i);
+            if (t == VTDNav.TOKEN_STARTING_TAG)
             {
-                vn.push2();
-                stackSize = vn.contextStack2.size;
-                st1 = left.evalString(vn);
-
-                if (st1 != null)
-                    while ((i = right.evalNodeSet(vn)) != -1)
-                    {
-                        t = vn.getTokenType(i);
-                        if (t == VTDNav.TOKEN_STARTING_TAG)
-                        {
-                            i1 = vn.getText();
-                            if (i1 == -1)
-                                break;
-                            t = vn.getTokenType(i1);
-                            if (i1 == VTDNav.TOKEN_CHARACTER_DATA)
-                            {
-                                if (vn.matchTokenString(i1, st1))
-                                {
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else
-                                        return false;
-                                }
-                            }
-                            else
-                            {
-                                if (vn.matchRawTokenString(i1, st1))
-                                {
-                                    vn.contextStack2.size = stackSize;
-                                    vn.pop2();
-                                    left.reset(vn);
-                                    right.reset(vn);
-                                    if (op == EQ)
-                                        return true;
-                                    else
-                                        return false;
-                                }
-                            }
-                        }
-                        else if (t == VTDNav.TOKEN_ATTR_NAME || t == VTDNav.TOKEN_ATTR_NS)
-                        {
-                            if (vn.matchTokenString(i + 1, st1))
-                            {
-                                vn.contextStack2.size = stackSize;
-                                vn.pop2();
-                                left.reset(vn);
-                                right.reset(vn);
-                                if (op == EQ)
-                                    return true;
-                                else
-                                    return false;
-                            }
-                        }
-                        else if (t == VTDNav.TOKEN_CHARACTER_DATA || t == VTDNav.TOKEN_CDATA_VAL)
-                        {
-                            if (vn.matchTokenString(i, st1))
-                            {
-                                vn.contextStack2.size = stackSize;
-                                vn.pop2();
-                                left.reset(vn);
-                                right.reset(vn);
-                                if (op == EQ)
-                                    return true;
-                                else
-                                    return false;
-                            }
-                        }
-                        else if (t == VTDNav.TOKEN_CDATA_VAL)
-                        {
-                            if (vn.matchRawTokenString(i, st1))
-                            {
-                                vn.contextStack2.size = stackSize;
-                                vn.pop2();
-                                left.reset(vn);
-                                right.reset(vn);
-                                if (op == EQ)
-                                    return true;
-                                else
-                                    return false;
-                            }
-                        }
-                    }
-                vn.contextStack2.size = stackSize;
-                vn.pop2();
-                left.reset(vn);
-                right.reset(vn);
-                if (op == EQ)
-                    return false;
-                else
-                    return true;
-
+                i1 = vn.getText();
+                return i1;
             }
-            catch (System.Exception e)
-            {
-                //fib1.clear();
-                //fib2.clear();
-                throw new System.SystemException("Undefined behavior");
-            }
+            else if (t == VTDNav.TOKEN_ATTR_NAME
+                    || t == VTDNav.TOKEN_ATTR_NS)
+                return i + 1;
+            else /*if (t == VTDNav.TOKEN_CHARACTER_DATA
+                || t == VTDNav.TOKEN_CDATA_VAL)
+            return i;*/
+                return i;
         }
 
         private bool compNodeSetNodeSet(Expr left, Expr right, VTDNav vn, int op)
         {
-            int i, t, i1 = 0, s1, s2;
+            int i, t, i1 = 0, stackSize, s1, s2;
             try
             {
                 if (fib1 == null)
@@ -464,31 +390,26 @@ namespace com.ximpleware
                 if (fib2 == null)
                     fib2 = new FastIntBuffer(BUF_SZ_EXP);
                 vn.push2();
+                stackSize = vn.contextStack2.size;
                 while ((i = left.evalNodeSet(vn)) != -1)
                 {
-                    t = vn.getTokenType(i);
-                    if (t == VTDNav.TOKEN_STARTING_TAG)
-                        i1 = vn.getText();
+                    i1 = getStringVal(vn, i);
                     if (i1 != -1)
                         fib1.append(i1);
-                    else if (t == VTDNav.TOKEN_ATTR_NAME || t == VTDNav.TOKEN_ATTR_NS)
-                        fib1.append(i + 1);
-                    else if (t == VTDNav.TOKEN_CHARACTER_DATA || t == VTDNav.TOKEN_CDATA_VAL)
-                        fib1.append(i);
                 }
+                vn.contextStack2.size = stackSize;
                 vn.pop2();
                 vn.push2();
+                stackSize = vn.contextStack2.size;
                 while ((i = right.evalNodeSet(vn)) != -1)
                 {
-                    t = vn.getTokenType(i);
-                    if (t == VTDNav.TOKEN_STARTING_TAG)
-                        fib2.append(vn.getText());
-                    else if (t == VTDNav.TOKEN_ATTR_NAME || t == VTDNav.TOKEN_ATTR_NS)
-                        fib2.append(i + 1);
-                    else if (t == VTDNav.TOKEN_CHARACTER_DATA || t == VTDNav.TOKEN_CDATA_VAL)
-                        fib2.append(i);
+                    i1 = getStringVal(vn, i);
+                    if (i1 != -1)
+                        fib2.append(i1);
                 }
+                vn.contextStack2.size = stackSize;
                 vn.pop2();
+                left.reset(vn); right.reset(vn);
                 s1 = fib1.size();
                 s2 = fib2.size();
 
@@ -497,105 +418,271 @@ namespace com.ximpleware
                 {
                     for (int k = 0; k < s2; k++)
                     {
-                        if (vn.matchTokens(fib1.intAt(j), vn, fib2.intAt(k)))
+                        //i = vn.compareTokens(fib1.intAt(j), vn, fib2.intAt(k)); 
+                        bool b = compareVV(fib1.intAt(j), vn, fib2.intAt(k), op);
+
+                        if (b)
                         {
                             fib1.clear();
                             fib2.clear();
-                            if (op == EQ)
-                                return true;
-                            else
-                                return false;
+                            return true;
                         }
                     }
                 }
                 fib1.clear();
                 fib2.clear();
-                if (op == EQ)
-                    return false;
-                else
-                    return true;
+                return false;
+
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 fib1.clear();
                 fib2.clear();
                 throw new System.SystemException("Undefined behavior");
             }
+        }
+        private bool compareVNumber1(int k, VTDNav vn, double d, int op)
+        {
+            double d1 = vn.parseDouble(k);
+            switch (op)
+            {
+                case EQ:
+                    return d == d1;
+                case NE:
+                    return d != d1;
+                case GE:
+                    return d >= d1;
+                case LE:
+                    return d <= d1;
+                case GT:
+                    return d > d1;
+                default:
+                    return d < d1;
+            }
+        }
+
+        private bool compareVString1(int k, VTDNav vn, String s, int op)
+        {
+            int i = vn.compareTokenString(k, s);
+            switch (i)
+            {
+                case -1:
+                    if (op == NE || op == LT || op == LE)
+                    {
+                        return true;
+                    }
+                    break;
+                case 0:
+                    if (op == EQ || op == LE || op == GE)
+                    {
+                        return true;
+                    }
+                    break;
+                case 1:
+                    if (op == NE || op == GE || op == GT)
+                    {
+                        return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+        private bool compareVString2(int k, VTDNav vn, String s, int op)
+        {
+            int i = vn.compareTokenString(k, s);
+            switch (i)
+            {
+                case -1:
+                    if (op == NE || op == GT || op == GE)
+                    {
+                        return true;
+                    }
+                    break;
+                case 0:
+                    if (op == EQ || op == LE || op == GE)
+                    {
+                        return true;
+                    }
+                    break;
+                case 1:
+                    if (op == NE || op == LE || op == LT)
+                    {
+                        return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
+        private bool compareVNumber2(int k, VTDNav vn, double d, int op)
+        {
+            double d1 = vn.parseDouble(k);
+            switch (op)
+            {
+                case EQ:
+                    return d1 == d;
+                case NE:
+                    return d1 != d;
+                case GE:
+                    return d1 >= d;
+                case LE:
+                    return d1 <= d;
+                case GT:
+                    return d1 > d;
+                default:
+                    return d1 < d;
+            }
+        }
+        private bool compareVV(int k, VTDNav vn, int j, int op)
+        {
+            int i = vn.compareTokens(k, vn, j);
+            switch (i)
+            {
+
+                case -1:
+                    if (op == NE || op == LT || op == LE)
+                    {
+
+                        return true;
+                    }
+                    break;
+                case 0:
+                    if (op == EQ || op == LE || op == GE)
+                    {
+                        return true;
+                    }
+                    break;
+               
+                case 1:
+                    if (op == NE || op == GE || op == GT)
+                    {
+
+                        return true;
+                    }
+                    break;
+            }
+            return false;
         }
 
         private bool compNumericalNodeSet(Expr left, Expr right, VTDNav vn, int op)
         {
-            int i, t, i1 = 0, stackSize;
+            int i, t, i1 = 0, stackSize, s1, s2;
+            double d;
+            bool b;
             try
             {
-
+                d = left.evalNumber(vn);
                 vn.push2();
                 stackSize = vn.contextStack2.size;
                 while ((i = right.evalNodeSet(vn)) != -1)
                 {
-                    t = vn.getTokenType(i);
-                    if (t == VTDNav.TOKEN_STARTING_TAG)
+                    i1 = getStringVal(vn, i);
+                    if (i1 != -1 && compareVNumber1(i1, vn, d, op))
                     {
-                        i1 = vn.getText();
-                        if (i1 == -1)
-                            break;
-                        if (vn.parseDouble(i1) == left.evalNumber(vn))
-                        {
-                            vn.contextStack2.size = stackSize;
-                            vn.pop2();
-                            left.reset(vn);
-                            right.reset(vn);
-                            if (op == EQ)
-                                return true;
-                            else
-                                return false;
-                        }
-                    }
-                    else if (t == VTDNav.TOKEN_ATTR_NAME || t == VTDNav.TOKEN_ATTR_NS)
-                    {
-                        if (vn.parseDouble(i + 1) == left.evalNumber(vn))
-                        {
-                            vn.contextStack2.size = stackSize;
-                            vn.pop2();
-                            left.reset(vn);
-                            right.reset(vn);
-                            if (op == EQ)
-                                return true;
-                            else
-                                return false;
-                        }
-                    }
-                    else if (t == VTDNav.TOKEN_CHARACTER_DATA || t == VTDNav.TOKEN_CDATA_VAL)
-                    {
-                        if (vn.parseDouble(i) == left.evalNumber(vn))
-                        {
-                            vn.contextStack2.size = stackSize;
-                            vn.pop2();
-                            left.reset(vn);
-                            right.reset(vn);
-                            if (op == EQ)
-                                return true;
-                            else
-                                return false;
-                        }
+                        right.reset(vn);
+                        vn.contextStack2.size = stackSize;
+                        vn.pop2();
+                        return true;
                     }
                 }
                 vn.contextStack2.size = stackSize;
                 vn.pop2();
-                left.reset(vn);
                 right.reset(vn);
-                if (op == EQ)
-                    return false;
-                else
-                    return true;
-
+                return false;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                //fib1.clear();
-                //fib2.clear();
                 throw new System.SystemException("Undefined behavior");
             }
         }
+	private bool compNodeSetNumerical(Expr left, Expr right, VTDNav vn, int op ){
+	     int i, t, i1 = 0, stackSize, s1, s2;
+	     double d;
+	     bool b;
+       try {
+           d = right.evalNumber(vn);
+           vn.push2();
+           stackSize = vn.contextStack2.size;
+           while ((i = left.evalNodeSet(vn)) != -1) {
+               i1 = getStringVal(vn,i); 
+               if (i1!=-1 && compareVNumber2(i1,vn,d,op)){
+                   left.reset(vn);
+                   vn.contextStack2.size = stackSize;
+                   vn.pop2();
+                   return true;
+               }
+           }    
+           vn.contextStack2.size = stackSize;
+           vn.pop2();
+           left.reset(vn);            
+           return false; 
+       } catch (Exception e) {
+           throw new System.SystemException("Undefined behavior");
+       }
+	}
+
+    private bool compNodeSetString(Expr left, Expr right, VTDNav vn, int op)
+    {
+        int i, t, i1 = 0, stackSize, s1, s2;
+        String s;
+        bool b;
+        try
+        {
+            s = right.evalString(vn);
+            vn.push2();
+            stackSize = vn.contextStack2.size;
+            while ((i = left.evalNodeSet(vn)) != -1)
+            {
+                i1 = getStringVal(vn, i);
+                if (i1 != -1 && compareVString1(i1, vn, s, op))
+                {
+                    left.reset(vn);
+                    vn.contextStack2.size = stackSize;
+                    vn.pop2();
+                    return true;
+                }
+            }
+            vn.contextStack2.size = stackSize;
+            vn.pop2();
+            left.reset(vn);
+            return false;
+        }
+        catch (Exception e)
+        {
+            throw new System.SystemException("Undefined behavior");
+        }
     }
+    private bool compStringNodeSet(Expr left, Expr right, VTDNav vn, int op)
+    {
+        int i, t, i1 = 0, stackSize, s1, s2;
+        String s;
+        bool b;
+        try
+        {
+            s = left.evalString(vn);
+            vn.push2();
+            stackSize = vn.contextStack2.size;
+            while ((i = right.evalNodeSet(vn)) != -1)
+            {
+                i1 = getStringVal(vn, i);
+                if (i1 != -1 && compareVString2(i1, vn, s, op))
+                {
+                    right.reset(vn);
+                    vn.contextStack2.size = stackSize;
+                    vn.pop2();
+                    return true;
+                }
+            }
+            vn.contextStack2.size = stackSize;
+            vn.pop2();
+            right.reset(vn);
+            return false;
+        }
+        catch (Exception e)
+        {
+            throw new System.SystemException("Undefined behavior");
+        }
+    }
+	
+	}
 }
