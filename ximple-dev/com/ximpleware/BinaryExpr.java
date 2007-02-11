@@ -231,7 +231,7 @@ public class BinaryExpr extends Expr {
                 return compStringNodeSet(left, right, vn, op);
             }
             if (left.isNodeSet() && right.isString()) {
-                return compStringNodeSet(right, left, vn, op);
+                return compNodeSetString(left, right, vn, op);
             }
         }
         if (op==EQ || op==NE){
