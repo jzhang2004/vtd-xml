@@ -361,7 +361,7 @@ round{ws}*"("		{  	isName = 1;
 '[^']*'			{
 				isName = 0;
 				len = yytext().Length;
-				literal = yytext().Substring(1, len-1);
+				literal = yytext().Substring(1, len-2);
 				return sym(LITERAL,literal);
 			}
 
