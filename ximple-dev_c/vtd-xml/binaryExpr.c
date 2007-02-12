@@ -438,10 +438,9 @@ void freeBinaryExpr(binaryExpr *be){
 }
 
 int	evalNodeSet_be (binaryExpr *be,VTDNav *vn){
-	exception e;
-	e.et = xpath_eval_exception;
-	e.msg = "can't evaluate nodeset on a binary expr";
-	Throw e;
+	throwException2(xpath_eval_exception,
+		"can't evaluate nodeset on a binary expr");
+	return -1;
 }
 
 double	evalNumber_be (binaryExpr *be,VTDNav *vn){
