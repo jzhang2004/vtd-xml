@@ -191,7 +191,7 @@ namespace com.ximpleware
         {
             int ch = 0;
             int val = 0;
-            int inc = 2;
+            long inc = 2;
             long l = getChar(offset);
 
             ch = (int)l;
@@ -4184,7 +4184,7 @@ namespace com.ximpleware
             //currentOffset = getTokenOffset(index);
             // point currentOffset to the beginning of the token
             // for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
-            return compareTokenString(getTokenOffset(index), len, s);
+            return compareRawTokenString(getTokenOffset(index), len, s);
         }
 
         /// <summary>
