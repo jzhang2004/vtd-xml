@@ -337,4 +337,9 @@ Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f);
 /* overwrite */
 Boolean overWrite(VTDNav *vn, int index, UByte* ba, int offset, int len);
 
+int compareTokenString(VTDNav *vn,int index, UCSChar *s);
+
+int compareRawTokenString(VTDNav *vn, int index, UCSChar *s);
+
+int compareTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
 #endif
