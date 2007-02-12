@@ -200,7 +200,6 @@ typedef struct BinaryExpr {
 	opType op;
 	expr *right;
 	FastIntBuffer *fib1;
-	FastIntBuffer *fib2;
 	Boolean isBool;
 	Boolean isNum;
 } binaryExpr;
