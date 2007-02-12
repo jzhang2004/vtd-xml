@@ -110,7 +110,7 @@ namespace com.ximpleware
         protected internal Expr left;
         protected internal Expr right;
 
-        protected internal FastIntBuffer fib1, fib2;
+        protected internal FastIntBuffer fib1;
         /// <summary> constructor</summary>
         /// <param name="l">
         /// </param>
@@ -123,7 +123,7 @@ namespace com.ximpleware
             op = o;
             left = l;
             right = r;
-            fib1 = fib2 = null;
+            fib1 = null;
             switch (op)
             {
 
@@ -338,10 +338,10 @@ namespace com.ximpleware
 
                 return (op == EQ) ? (st1.Equals(st2)) : (!st1.Equals(st2));
             }
-            return compareNumbers(left.evalNumber(vn), right.evalNumber(vn), op);
+            return compNumbers(left.evalNumber(vn), right.evalNumber(vn), op);
 
         }
-        private bool compareNumbers(double d1, double d2, int op)
+        private bool compNumbers(double d1, double d2, int op)
         {
             switch (op)
             {
@@ -382,13 +382,11 @@ namespace com.ximpleware
 
         private bool compNodeSetNodeSet(Expr left, Expr right, VTDNav vn, int op)
         {
-            int i, t, i1 = 0, stackSize, s1, s2;
+            int i, i1 = 0, stackSize, s1;
             try
             {
                 if (fib1 == null)
                     fib1 = new FastIntBuffer(BUF_SZ_EXP);
-                if (fib2 == null)
-                    fib2 = new FastIntBuffer(BUF_SZ_EXP);
                 vn.push2();
                 stackSize = vn.contextStack2.size;
                 while ((i = left.evalNodeSet(vn)) != -1)
@@ -397,6 +395,7 @@ namespace com.ximpleware
                     if (i1 != -1)
                         fib1.append(i1);
                 }
+                left.reset(vn);
                 vn.contextStack2.size = stackSize;
                 vn.pop2();
                 vn.push2();
@@ -405,39 +404,31 @@ namespace com.ximpleware
                 {
                     i1 = getStringVal(vn, i);
                     if (i1 != -1)
-                        fib2.append(i1);
-                }
-                vn.contextStack2.size = stackSize;
-                vn.pop2();
-                left.reset(vn); right.reset(vn);
-                s1 = fib1.size();
-                s2 = fib2.size();
-
-                // start a while loop comparison
-                for (int j = 0; j < s1; j++)
-                {
-                    for (int k = 0; k < s2; k++)
                     {
-                        //i = vn.compareTokens(fib1.intAt(j), vn, fib2.intAt(k)); 
-                        bool b = compareVV(fib1.intAt(j), vn, fib2.intAt(k), op);
-
-                        if (b)
+                        s1 = fib1.size();
+                        for (int k = 0; k < s1; k++)
                         {
-                            fib1.clear();
-                            fib2.clear();
-                            return true;
+                            bool b = compareVV(fib1.intAt(k), vn, i1, op);
+                            if (b)
+                            {
+                                fib1.clear();
+                                vn.contextStack2.size = stackSize;
+                                vn.pop2();
+                                right.reset(vn);
+                                return true;
+                            }
                         }
                     }
                 }
+                vn.contextStack2.size = stackSize;
+                vn.pop2();
+                right.reset(vn);
                 fib1.clear();
-                fib2.clear();
                 return false;
-
             }
             catch (Exception e)
             {
                 fib1.clear();
-                fib2.clear();
                 throw new System.SystemException("Undefined behavior");
             }
         }
@@ -566,9 +557,8 @@ namespace com.ximpleware
 
         private bool compNumericalNodeSet(Expr left, Expr right, VTDNav vn, int op)
         {
-            int i, t, i1 = 0, stackSize, s1, s2;
+            int i, i1 = 0, stackSize;
             double d;
-            bool b;
             try
             {
                 d = left.evalNumber(vn);
@@ -596,9 +586,8 @@ namespace com.ximpleware
             }
         }
 	private bool compNodeSetNumerical(Expr left, Expr right, VTDNav vn, int op ){
-	     int i, t, i1 = 0, stackSize, s1, s2;
+	     int i, i1 = 0, stackSize;
 	     double d;
-	     bool b;
        try {
            d = right.evalNumber(vn);
            vn.push2();
@@ -623,9 +612,8 @@ namespace com.ximpleware
 
     private bool compNodeSetString(Expr left, Expr right, VTDNav vn, int op)
     {
-        int i, t, i1 = 0, stackSize, s1, s2;
+        int i, i1 = 0, stackSize;
         String s;
-        bool b;
         try
         {
             s = right.evalString(vn);
@@ -654,9 +642,8 @@ namespace com.ximpleware
     }
     private bool compStringNodeSet(Expr left, Expr right, VTDNav vn, int op)
     {
-        int i, t, i1 = 0, stackSize, s1, s2;
+        int i, i1 = 0, stackSize;
         String s;
-        bool b;
         try
         {
             s = left.evalString(vn);
