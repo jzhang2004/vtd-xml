@@ -295,7 +295,7 @@ namespace com.ximpleware
                         && getCharUnit(offset + 2) == 't'
                         && getCharUnit(offset + 3) == ';')
                     {
-                        inc = 5;
+                        inc = 6;
                         val = '\"';
                     }
                     else

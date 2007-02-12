@@ -698,8 +698,8 @@ public class VTDNav {
 				if (getCharUnit(offset) == 'u'
 					&& getCharUnit(offset + 1) == 'o'
 					&& getCharUnit(offset + 2) == 't'
-					&& getCharUnit(offset + 3) == ';') {
-					inc = 5;
+					&& getCharUnit(offset + 3) ==';') {
+					inc = 6;
 					val = '\"';
 				} else
 					throw new NavException("illegal builtin reference");

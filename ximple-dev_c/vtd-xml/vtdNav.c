@@ -538,7 +538,7 @@ static Long getCharResolved(VTDNav *vn,int offset){
 					&& getCharUnit(vn,offset + 1) == 'o'
 					&& getCharUnit(vn,offset + 2) == 't'
 					&& getCharUnit(vn,offset + 3) == ';') {
-						inc = 5;
+						inc = 6;
 						val = '\"';
 				} else{
 					throwException(nav_exception,0,
