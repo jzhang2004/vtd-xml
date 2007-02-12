@@ -48,7 +48,7 @@ public class BinaryExpr extends Expr {
 	protected Expr left;
 	protected Expr right;
 	
-	protected FastIntBuffer fib1, fib2;
+	protected FastIntBuffer fib1;
 	/**
 	 * constructor
 	 * @param l
@@ -59,7 +59,7 @@ public class BinaryExpr extends Expr {
 		op = o;
 		left = l;
 		right = r;
-		fib1 = fib2 = null;
+		fib1 =  null;
 		switch(op){
 		 	case ADD:
 			case SUB:
@@ -235,7 +235,7 @@ public class BinaryExpr extends Expr {
             }
         }
         if (op==EQ || op==NE){
-        if (left.isBoolean() || right.isBoolean()) {
+            if (left.isBoolean() || right.isBoolean()) {
                 if (op == EQ)
                     return left.evalBoolean(vn) == right.evalBoolean(vn);
                 else
@@ -259,7 +259,7 @@ public class BinaryExpr extends Expr {
 
             return (op == EQ) ? (st1.equals(st2)) : (!st1.equals(st2));
         }
-        return compareNumbers(left.evalNumber(vn),right.evalNumber(vn),op);
+        return compNumbers(left.evalNumber(vn),right.evalNumber(vn),op);
         
 	}
 	
@@ -279,9 +279,8 @@ public class BinaryExpr extends Expr {
 	// this function computes the case where one expr is a node set, the other is a string
 	
 	private boolean compNodeSetString(Expr left, Expr right, VTDNav vn,int op){
-	     int i, t, i1 = 0, stackSize, s1, s2;
-	     String s;
-	     boolean b;
+	     int i, i1 = 0, stackSize;
+	     String s;	     
        try {
            s = right.evalString(vn);
            vn.push2();
@@ -304,9 +303,8 @@ public class BinaryExpr extends Expr {
        }
 	}
 	private boolean compStringNodeSet(Expr left, Expr right, VTDNav vn,int op){
-	     int i, t, i1 = 0, stackSize, s1, s2;
+	     int i, i1 = 0, stackSize;
 	     String s;
-	     boolean b;
         try {
             s = left.evalString(vn);
             vn.push2();
@@ -329,7 +327,7 @@ public class BinaryExpr extends Expr {
         }
 	}
 	
-	private boolean compareNumbers(double d1, double d2, int op) {
+	private boolean compNumbers(double d1, double d2, int op) {
         switch (op) {
         case LE:
             return d1 <= d2;
@@ -345,9 +343,8 @@ public class BinaryExpr extends Expr {
 	// this function computes the boolean when one expression is node set
 	// the other is numerical
 	private boolean compNumericalNodeSet(Expr left, Expr right, VTDNav vn, int op ){
-	     int i, t, i1 = 0, stackSize, s1, s2;
+	     int i, t, i1 = 0, stackSize;
 	     double d;
-	     boolean b;
         try {
             d = left.evalNumber(vn);
             vn.push2();
@@ -370,9 +367,8 @@ public class BinaryExpr extends Expr {
         }
 	}
 	private boolean compNodeSetNumerical(Expr left, Expr right, VTDNav vn, int op ){
-	     int i, t, i1 = 0, stackSize, s1, s2;
+	     int i,i1 = 0, stackSize;
 	     double d;
-	     boolean b;
        try {
            d = right.evalNumber(vn);
            vn.push2();
@@ -404,10 +400,8 @@ public class BinaryExpr extends Expr {
         else if (t == VTDNav.TOKEN_ATTR_NAME
                 || t == VTDNav.TOKEN_ATTR_NS)
         	return i+1;
-        else /*if (t == VTDNav.TOKEN_CHARACTER_DATA
-                || t == VTDNav.TOKEN_CDATA_VAL)
-            return i;*/
-        return i;
+        else 
+            return i;
 	}
 	
 	private boolean compareVNumber1(int k, VTDNav vn, double d, int op)
@@ -493,12 +487,10 @@ public class BinaryExpr extends Expr {
 	private boolean compareVV(int k,  VTDNav vn, int j,int op) 
 	throws NavException {
 	    int i = vn.compareTokens(k, vn, j);
-        switch(i){       	
-        	    
+        switch(i){        	    
         	case 1:
         	    if (op == NE || op==GE  || op == GT ){
-        	     
-                return true;
+        	        return true;
         	    }
         	    break;
         	case 0: 
@@ -508,8 +500,7 @@ public class BinaryExpr extends Expr {
         	    break;
         	case -1:
         	    if (op== NE || op == LT || op == LE){
-        	     
-                return true;
+        	        return true;
         	    }
         }
         return false;
@@ -517,12 +508,10 @@ public class BinaryExpr extends Expr {
 	
 	// this method compare node set with another node set
 	private boolean compNodeSetNodeSet(Expr left, Expr right, VTDNav vn, int op){
-	    int i,t,i1 = 0,stackSize, s1,s2; 
+	    int i,i1,stackSize,s1; 
 	    try {
 	          if (fib1 == null)
 	              fib1 = new FastIntBuffer(BUF_SZ_EXP);
-	          if (fib2 == null)
-	              fib2 = new FastIntBuffer(BUF_SZ_EXP);
 	          vn.push2();
 	          stackSize = vn.contextStack2.size;
 	          while ((i = left.evalNodeSet(vn)) != -1) {
@@ -530,41 +519,34 @@ public class BinaryExpr extends Expr {
 	              if (i1 != -1)
 	              fib1.append(i1);
 	          }
+	          left.reset(vn);
 	          vn.contextStack2.size = stackSize; 
 	          vn.pop2();
 	          vn.push2();
 	          stackSize = vn.contextStack2.size;
 	          while ((i = right.evalNodeSet(vn)) != -1) {
 	              i1 = getStringVal(vn,i);
-	              if (i1 != -1)
-	              fib2.append(i1);
+	              if (i1 != -1){
+	                  s1 = fib1.size();
+	                  for (int k = 0; k < s1; k++) { 
+		                  boolean b = compareVV(fib1.intAt(k),vn,i1,op);
+		                  if (b){
+		                      fib1.clear();
+		                      vn.contextStack2.size = stackSize; 
+		        	          vn.pop2();
+		        	          right.reset(vn);
+		                      return true;
+		                  }
+		              }
+	              }
 	          }
 	          vn.contextStack2.size = stackSize; 
 	          vn.pop2();
-	          left.reset(vn);right.reset(vn);
-	          s1 = fib1.size();
-	          s2 = fib2.size();
-
-	          // start a while loop comparison
-	          for (int j = 0; j < s1; j++) {
-	              for (int k = 0; k < s2; k++) { 
-	                  //i = vn.compareTokens(fib1.intAt(j), vn, fib2.intAt(k)); 
-	                  boolean b = compareVV(fib1.intAt(j),vn,fib2.intAt(k),op);
-	                  	
-	                  if (b){
-	                      fib1.clear();
-	                      fib2.clear();
-	                      return true;
-	                  }
-	              }
-	          }
+	          right.reset(vn);	         
 	          fib1.clear();
-	          fib2.clear();
-	          return false;	         
-
+	          return false;
 	      } catch (Exception e) {
 	          fib1.clear();
-	          fib2.clear();
 	          throw new RuntimeException("Undefined behavior");
 	      }
 	}
