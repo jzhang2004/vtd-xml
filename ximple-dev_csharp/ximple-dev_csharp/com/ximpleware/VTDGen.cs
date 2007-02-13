@@ -2807,7 +2807,6 @@ namespace com.ximpleware
 		/// <throws>  EOFException </throws>
         private int process_dec_attr()
         {
-            int length1;
             int parser_state;
             if (ch == 'v' && r.skipChar('e') && r.skipChar('r') && r.skipChar('s') && r.skipChar('i') && r.skipChar('o') && r.skipChar('n'))
             {
