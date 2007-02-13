@@ -3321,9 +3321,6 @@ int compareRawTokenString2(VTDNav *vn, int offset, int len, UCSChar *s){
 	for (i = 0; i < l && offset < endOffset; i++) {
 		l1 = getChar(vn,offset);
 		offset += (int)(l1>>32);
-		if (s[i] != (int)l1) {
-			return FALSE;
-		}
 		if (s[i] < (int) l1)
             return 1;
         if (s[i] > (int) l1)
@@ -3351,9 +3348,6 @@ int compareTokenString2(VTDNav *vn, int offset, int len, UCSChar *s){
 	for (i = 0; i < l && offset < endOffset; i++) {
 		l1 = getCharResolved(vn,offset);
 		offset += (int)(l1>>32);
-		if (s[i] != (int)l1) {
-			return FALSE;
-		}
 		if (s[i] < (int) l1)
             return 1;
         if (s[i] > (int) l1)
