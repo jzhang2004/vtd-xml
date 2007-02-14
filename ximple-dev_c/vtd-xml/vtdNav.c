@@ -3416,7 +3416,7 @@ int compareTokens(VTDNav *vn1, int i1, VTDNav *vn2, int i2){
 	}*/
 
 	if ( i1 ==i2 && vn1 == vn2)
-		return TRUE;
+		return 0;
 
 	t1 = getTokenType(vn1,i1);
 	t2 = getTokenType(vn2,i2);
@@ -3445,8 +3445,10 @@ int compareTokens(VTDNav *vn1, int i1, VTDNav *vn2, int i2){
 		}
 		ch2 = (int)l;
 		offset2 += (int)(l>>32);
-		if (ch1 != ch2)
-			return FALSE;
+		if (ch1 > ch2)
+			return 1;
+		if (ch1 < ch2)
+			return -1;
 	}
 
 	if (offset1 == endOffset1 
