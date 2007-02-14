@@ -1008,7 +1008,9 @@ public class VTDGen1 {
 	 * @throws ParseException
 	 */
 	private void decide_encoding() throws EncodingException,ParseException {
-		if (XMLDoc[offset] == -2) {
+	    if (XMLDoc.length==0)
+	        throw new EncodingException("Document is zero sized ");
+	    if (XMLDoc[offset] == -2) {
 			increment = 2;
 			if (XMLDoc[offset + 1] == -1) {
 				offset += 2;
