@@ -167,7 +167,7 @@ static Boolean compNodeSetNumerical(binaryExpr *be, expr* left, expr* right, VTD
 			stackSize = vn->contextBuf2->size;
             while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
                 i1 = getStringVal(vn,i); 
-                if (i1!=-1 && compareVNumber1(be,i1,vn,d,op)){
+                if (i1!=-1 && compareVNumber2(be,i1,vn,d,op)){
                     be->left->reset(be->left,vn);
                     vn->contextBuf2->size = stackSize;
                     pop2(vn);
