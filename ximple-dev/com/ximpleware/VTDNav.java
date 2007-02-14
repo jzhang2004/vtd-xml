@@ -264,21 +264,6 @@ public class VTDNav {
 		//recentNS = -1;
 	}
 	/**
-	 * This method print out the current state info of the navigation object.
-	 * It is for debugging purpose.
-	 */
-	public void dumpContext() {
-		for (int i = 0; i < context.length; i++) {
-			System.out.println("context[" + i + "] ==>" + context[i]);
-		}
-		try {
-			System.out.println(
-				"element name -->" + toRawString(getCurrentIndex()));
-		} catch (NavException e) {
-			System.out.println("toString exception condition occurred " + e);
-		}
-	}
-	/**
 	 * Return the attribute count of the element at the cursor position.
 	 * when ns is false, ns tokens are considered attributes;
 	 * otherwise, ns tokens are not considered attributes
@@ -1727,8 +1712,10 @@ public class VTDNav {
 			return 0;
 	}
 	/**
-	 * Compare a string against a token with given offset and len, entities doesn't get resolved.
-	 * @return int (-1 is the token is less than s, 0 if equal, 1 otherwise)
+	 * Lexicographically compare a string against a token with given 
+	 * offset and len, entities doesn't get resolved. 
+	 * @return int (0 if they are equal, 1 if  greater, else -1)
+	 * 
 	 * @param offset int
 	 * @param len int
 	 * @param s java.lang.String
@@ -2564,50 +2551,6 @@ public class VTDNav {
 		return true;
 	}
 	/**
-	 * Insert the method's description here.
-	 * Creation date: (3/11/04 1:46:06 PM)*/
-
-	public void printL2Buffer() {
-
-		for (int i = 0; i < l1Buffer.size(); i++)
-			System.out.println(Long.toHexString(l1Buffer.longAt(i)));
-
-		System.out.println("==================");
-		for (int i = 0; i < l2Buffer.size(); i++)
-			System.out.println(Long.toHexString(l2Buffer.longAt(i)));
-		System.out.println(
-			" l1index :"
-				+ l1index
-				+ "  l2index :"
-				+ l2index
-				+ " l3index :"
-				+ l3index);
-		System.out.println(
-			"          " + "l2lower :" + l2lower + " l3lower: " + l3lower);
-		System.out.println(
-			"          " + "l2upper :" + l2upper + " l3upper: " + l3upper);
-
-	}
-	/**
-	 * printLC for debugging purpose.
-	 * Creation date: (3/12/04 6:07:40 PM)
-	 */
-	public void printLC() {
-		int a = 0, b = 0, c = 0;
-		int depth = getCurrentDepth();
-		if (depth == 1) {
-			System.out.println("l1index --->" + l1index);
-		} else if (depth == 2) {
-			System.out.println("l2index --->" + l2index);
-			System.out.println("l2lower --->" + l2lower);
-			System.out.println("l2upper --->" + l2upper);
-		} else if (depth == 3) {
-			System.out.println("l3index --->" + l3index);
-			System.out.println("l3lower --->" + l3lower);
-			System.out.println("l3upper --->" + l3upper);
-		}
-	}
-	/**
 	 * Store the context info into the ContextBuffer.
 	 * Info saved including LC and current state of the context 
 	 * Creation date: (11/16/03 7:00:27 PM)
@@ -2667,31 +2610,6 @@ public class VTDNav {
 	}
 	
 	
-	/**
-	 * This is for debugging purpose
-	 * @param fib
-	 */
-	
-	public void sampleState(FastIntBuffer fib){
-//		for(int i=0;i<context.)
-//			context[i] = -1;
-//		fib.append(context);
-		if (context[0]>=1)
-			fib.append(l1index);
-		
-		
-		if (context[0]>=2){
-			fib.append(l2index);
-			fib.append(l2lower);
-			fib.append(l2upper);				
-		}
-		
-		if (context[0]>=3){
-		   fib.append(l3index);
-		   fib.append(l3lower);
-		   fib.append(l3upper);
-		}
-	}
 	/**
 	 * Sync up the current context with location cache.
 	 * This operation includes finding out l1index, l2index, 
@@ -3763,5 +3681,31 @@ public class VTDNav {
 	    FileOutputStream fos = new FileOutputStream(fileName);
 	    writeIndex(fos);
 	    fos.close();
+	}
+	
+	/**
+	 * This is for debugging purpose
+	 * @param fib
+	 */
+	
+	public void sampleState(FastIntBuffer fib){
+//		for(int i=0;i<context.)
+//			context[i] = -1;
+//		fib.append(context);
+		if (context[0]>=1)
+			fib.append(l1index);
+		
+		
+		if (context[0]>=2){
+			fib.append(l2index);
+			fib.append(l2lower);
+			fib.append(l2upper);				
+		}
+		
+		if (context[0]>=3){
+		   fib.append(l3index);
+		   fib.append(l3lower);
+		   fib.append(l3upper);
+		}
 	}
 }
