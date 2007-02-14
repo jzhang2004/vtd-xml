@@ -2370,6 +2370,8 @@ void finishUp(VTDGen *vg){
 }
 
 void decide_encoding(VTDGen *vg){
+	if (vg->docLen==0)
+	        throwException2(parse_exception,"Document is zero sized ");
 	if (vg->XMLDoc[vg->offset] == (UByte) -2) {
 		vg->increment = 2;
 		if (vg->XMLDoc[vg->offset + 1] == (UByte)-1) {

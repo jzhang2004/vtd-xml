@@ -1780,6 +1780,8 @@ namespace com.ximpleware
 		/// <throws>  ParseException </throws>
 		private void  decide_encoding()
 		{
+            if (XMLDoc.Length == 0)
+                throw new EncodingException("Document is zero sized ");
 			if (XMLDoc[offset] == 0xfe)
 			{
 				increment = 2;
