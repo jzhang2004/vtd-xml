@@ -3452,10 +3452,14 @@ public class VTDGen {
 	 *
 	 */
 	public VTDNav loadIndex(String fileName)throws IOException,IndexReadException{
-	    FileInputStream fis = new FileInputStream(fileName);
-	    loadIndex(fis);
-	    fis.close();
-	    return getNav();
+	    FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(fileName);
+            return loadIndex(fis);
+        } finally {
+            if (fis != null)
+                fis.close();
+        }
 	}
 	/**
 	 * This method writes the VTD+XML into an output streams
