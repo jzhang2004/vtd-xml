@@ -20,6 +20,7 @@ import java.io.*;
 import java.nio.*;
 
 class IndexHandler {
+    public static final int OFFSET_ADJUSTMENT =32;
     public static void writeIndex(byte version,
             int encodingType,
             boolean ns,
@@ -73,7 +74,7 @@ class IndexHandler {
         dos.write(ba);
         // write XML doc in bytes
         dos.writeLong(docLen);
-        dos.write(xmlDoc,docOffset, docLen);
+        dos.write(xmlDoc,docOffset,docLen);
         // zero padding to make it integer multiple of 64 bits
         if ((docLen & 0x07) !=0 ){
             int t = (((docLen>>3)+1)<<3) - docLen;
@@ -83,7 +84,7 @@ class IndexHandler {
         // write VTD
         dos.writeLong(vtdBuffer.size());
         for(i=0;i< vtdBuffer.size();i++){
-            dos.writeLong(vtdBuffer.longAt(i));
+            dos.writeLong(vtdBuffer.longAt(i)-docOffset);
         }
         // write L1 
         dos.writeLong(l1Buffer.size());
@@ -105,6 +106,14 @@ class IndexHandler {
             dos.writeInt(0);
         dos.close();
     }
+    /**
+     * The assumption for this function is that when VTD+XML index
+     * is loaded into memory (ba), the first 32 bytes are not XML bytes
+     * @param ba
+     * @param vg
+     * @throws IndexReadException
+     *
+     */
     public static void readIndex(byte[] ba, VTDGen vg)
     throws IndexReadException{
         if (ba == null || vg == null)
@@ -161,7 +170,7 @@ class IndexHandler {
             t = (((size>>3)+1)<<3) - size;            
         }
         
-        vg.setDoc(ba,32,size);
+        vg.setDoc(ba);
         
         bb = ByteBuffer.wrap(ba,32+size+t,ba.length-32-size-t);
         
@@ -169,7 +178,7 @@ class IndexHandler {
             // read vtd records
             int vtdSize = (int)bb.getLong();
             while(vtdSize>0){
-                vg.VTDBuffer.append(bb.getLong());
+                vg.VTDBuffer.append(adjust(bb.getLong()));
                 vtdSize--;
             }
             // read L1 LC records
@@ -206,7 +215,7 @@ class IndexHandler {
             // read vtd records
             int vtdSize = (int)reverseLong(bb.getLong());
             while(vtdSize>0){
-                vg.VTDBuffer.append(reverseLong(bb.getLong()));
+                vg.VTDBuffer.append(adjust(reverseLong(bb.getLong())));
                 vtdSize--;
             }
             // read L1 LC records
@@ -399,6 +408,13 @@ class IndexHandler {
         | ((i & 0xff00) << 8)
         | ((i & 0xff) << 24);
         return t;
+    }
+    
+    private static long adjust(long l){
+        long l1 = (l & 0xffffffffL)+ OFFSET_ADJUSTMENT;
+        System.out.println("lower 32 bit  "+l1);
+        long l2 = l & 0xffffffff00000000L;
+        return l1|l2;        
     }
 }
 
