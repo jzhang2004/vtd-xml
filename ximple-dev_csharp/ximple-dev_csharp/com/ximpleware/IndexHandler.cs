@@ -21,6 +21,27 @@ namespace com.ximpleware
 	
 	public class IndexHandler
 	{
+        public const int OFFSET_ADJUSTMENT = 32;
+        /// <summary>
+        /// This function is called within VTDGen and 
+        /// VTDNav's writeIndex
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="encodingType"></param>
+        /// <param name="ns"></param>
+        /// <param name="byteOrder"></param>
+        /// <param name="nestDepth"></param>
+        /// <param name="LCLevel"></param>
+        /// <param name="rootIndex"></param>
+        /// <param name="xmlDoc"></param>
+        /// <param name="docOffset"></param>
+        /// <param name="docLen"></param>
+        /// <param name="vtdBuffer"></param>
+        /// <param name="l1Buffer"></param>
+        /// <param name="l2Buffer"></param>
+        /// <param name="l3Buffer"></param>
+        /// <param name="os"></param>
+        /// <returns></returns>
 		public static bool  writeIndex(byte version, 
             int encodingType, 
             bool ns, 
@@ -89,10 +110,20 @@ namespace com.ximpleware
 			// write VTD
             
 			dos.Write((long)vtdBuffer.size());
-			for (i = 0; i < vtdBuffer.size(); i++)
-			{
-				dos.Write(vtdBuffer.longAt(i));
-			}
+            if (docOffset != 0)
+            {
+                for (i = 0; i < vtdBuffer.size(); i++)
+                {
+                    dos.Write(adjust(vtdBuffer.longAt(i), -docOffset));
+                }
+            }
+            else
+            {
+                for (i = 0; i < vtdBuffer.size(); i++)
+                {
+                    dos.Write(vtdBuffer.longAt(i));
+                }
+            }
 			// write L1 
 			dos.Write((long)l1Buffer.size());
 			for (i = 0; i < l1Buffer.size(); i++)
@@ -117,7 +148,12 @@ namespace com.ximpleware
 			dos.Close();
             return true;
 		}
-		
+		/// <summary>
+		/// This function is called within VTDGen's loadIndex
+		/// </summary>
+		/// <param name="is_Renamed"></param>
+		/// <param name="vg"></param>
+		/// <returns></returns>
 		public static bool  readIndex(System.IO.Stream is_Renamed, VTDGen vg)
 		{
             if (is_Renamed == null || vg == null)
@@ -131,7 +167,7 @@ namespace com.ximpleware
 			byte b = dis.ReadByte(); // first byte
 			// no check on version number for now
 			// second byte
-			vg.encoding = (sbyte) dis.ReadByte();
+			vg.encoding = dis.ReadByte();
 			int intLongSwitch;
 			int endian;
 			// third byte
@@ -160,7 +196,6 @@ namespace com.ximpleware
             if (LCLevels < 3)
             {
                 throw new IndexReadException("LC levels must be at least 3");
-                return false;
             }
 			// 7th and 8th byte
 			vg.rootIndex = (((int) dis.ReadByte()) << 8) | dis.ReadByte();
@@ -285,7 +320,177 @@ namespace com.ximpleware
 			}
             return true;
 		}
-		
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ba"></param>
+        /// <param name="vg"></param>
+        /// <returns></returns>
+        public static bool readIndex(byte[] ba, VTDGen vg)
+        {
+            if (ba == null || vg == null)
+            {
+                throw new System.ArgumentException("Invalid argument(s) for readIndex()");
+            }
+            //UPGRADE_TODO: Class 'java.io.DataInputStream' was converted to 'System.IO.BinaryReader' 
+            //which has a different behavior. 
+            //"ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioDataInputStream'"
+            System.IO.BinaryReader dis = new System.IO.BinaryReader(new System.IO.MemoryStream(ba));
+            byte b = dis.ReadByte(); // first byte
+            // no check on version number for now
+            // second byte
+            vg.encoding = dis.ReadByte();
+            int intLongSwitch;
+            int endian;
+            // third byte
+            b = dis.ReadByte();
+            if ((b & 0x80) != 0)
+                intLongSwitch = 1;
+            //use ints
+            else
+                intLongSwitch = 0;
+            if ((b & 0x40) != 0)
+                vg.ns = true;
+            else
+                vg.ns = false;
+            if ((b & 0x20) != 0)
+                endian = 1;
+            else
+                endian = 0;
+            if ((b & 0x1f) != 0)
+                throw new IndexReadException("Last 5 bits of the third byte should be zero");
+
+            // fourth byte
+            vg.VTDDepth = dis.ReadByte();
+
+            // 5th and 6th byte
+            int LCLevels = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
+            if (LCLevels < 3)
+            {
+                throw new IndexReadException("LC levels must be at least 3");
+            }
+            // 7th and 8th byte
+            vg.rootIndex = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
+
+            // skip a long
+            long l = dis.ReadInt64();
+            //Console.WriteLine(" l ==>" + l);
+            l = dis.ReadInt64();
+            //Console.WriteLine(" l ==>" + l);
+            l = dis.ReadInt64();
+            //Console.WriteLine(" l ==>" + l);
+            int size;
+            // read XML size
+            if (BitConverter.IsLittleEndian && endian == 0
+                || BitConverter.IsLittleEndian == false && endian == 1)
+                size = (int)l;
+            else
+                size = (int)reverseLong(l);
+
+            
+            // read XML bytes
+            //byte[] XMLDoc = new byte[size];
+            //dis.Read(XMLDoc, 0, size);
+            vg.setDoc(ba, OFFSET_ADJUSTMENT, size + OFFSET_ADJUSTMENT);
+            int t = 0;
+            
+            if ((size & 0x7) != 0)
+            {
+                t = (((size >> 3) + 1) << 3) - size;
+            }
+
+            dis = new System.IO.BinaryReader(new System.IO.MemoryStream(ba, 32 + size + t, ba.Length - 32 - size - t));
+            if (BitConverter.IsLittleEndian && endian == 0
+                || BitConverter.IsLittleEndian == false && endian == 1)
+            {
+                // read vtd records
+                int vtdSize = (int)dis.ReadInt64();
+                while (vtdSize > 0)
+                {
+                    vg.VTDBuffer.append(adjust(dis.ReadInt64(),OFFSET_ADJUSTMENT));
+                    vtdSize--;
+                }
+                // read L1 LC records
+                int l1Size = (int)dis.ReadInt64();
+                while (l1Size > 0)
+                {
+                    vg.l1Buffer.append(dis.ReadInt64());
+                    l1Size--;
+                }
+                // read L2 LC records
+                int l2Size = (int)dis.ReadInt64();
+                while (l2Size > 0)
+                {
+                    vg.l2Buffer.append(dis.ReadInt64());
+                    l2Size--;
+                }
+                // read L3 LC records
+                int l3Size = (int)dis.ReadInt64();
+                if (intLongSwitch == 1)
+                {
+                    //l3 uses ints
+                    while (l3Size > 0)
+                    {
+                        vg.l3Buffer.append(dis.ReadInt32());
+                        l3Size--;
+                    }
+                }
+                else
+                {
+                    while (l3Size > 0)
+                    {
+                        vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
+                        l3Size--;
+                    }
+                }
+            }
+            else
+            {
+                // read vtd records
+                int vtdSize = (int)reverseLong(dis.ReadInt64());
+                while (vtdSize > 0)
+                {
+                    vg.VTDBuffer.append(adjust(reverseLong(dis.ReadInt64()),OFFSET_ADJUSTMENT));
+                    vtdSize--;
+                }
+                // read L1 LC records
+                int l1Size = (int)reverseLong(dis.ReadInt64());
+                while (l1Size > 0)
+                {
+                    vg.l1Buffer.append(reverseLong(dis.ReadInt64()));
+                    l1Size--;
+                }
+                // read L2 LC records
+                int l2Size = (int)reverseLong(dis.ReadInt64());
+                while (l2Size > 0)
+                {
+                    vg.l2Buffer.append(reverseLong(dis.ReadInt64()));
+                    l2Size--;
+                }
+                // read L3 LC records
+                int l3Size = (int)reverseLong(dis.ReadInt64());
+                if (intLongSwitch == 1)
+                {
+                    //l3 uses ints
+                    while (l3Size > 0)
+                    {
+                        vg.l3Buffer.append(reverseInt(dis.ReadInt32()));
+                        l3Size--;
+                    }
+                }
+                else
+                {
+                    while (l3Size > 0)
+                    {
+                        vg.l3Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                        l3Size--;
+                    }
+                }
+            }
+            return true;
+        }
+
 		private static long reverseLong(long l)
 		{
 			//UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
@@ -308,5 +513,15 @@ namespace com.ximpleware
                 | ((i & 0xff) << 24);
 			return t;
 		}
+
+        private static long adjust(long l, int i)
+        {
+            unchecked
+            {
+                long l1 = (l & 0xffffffffL) + i;
+                long l2 = l & (long)0xffffffff00000000L;
+                return l1 | l2;
+            }
+        }
 	}
 }
