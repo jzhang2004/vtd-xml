@@ -3430,6 +3430,16 @@ public class VTDGen {
 	    IndexHandler.readIndex(is, this);
 	}
 	/**
+	 * This method loads the VTD+XML from a byte array
+	 * @param ba
+	 * @throws IOException
+	 * @throws IndexReadException
+	 *
+	 */
+	public void loadIndex(byte[] ba)throws IOException,IndexReadException{
+	    IndexHandler.readIndex(ba,this);
+	}
+	/**
 	 * This method loads the VTD+XML from a file
 	 * @param fileName
 	 * @throws IOException

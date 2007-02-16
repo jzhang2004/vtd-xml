@@ -17,6 +17,7 @@
  */
 package com.ximpleware;
 import java.io.*;
+import java.nio.*;
 
 class IndexHandler {
     public static void writeIndex(byte version,
@@ -104,7 +105,143 @@ class IndexHandler {
             dos.writeInt(0);
         dos.close();
     }
-    
+    public static void readIndex(byte[] ba, VTDGen vg)
+    throws IndexReadException{
+        if (ba == null || vg == null)
+            throw new IllegalArgumentException("Invalid argument(s) for readIndex()");
+
+        ByteBuffer bb = ByteBuffer.wrap(ba);
+        byte b= bb.get(); // first byte
+        // no check on version number for now
+        // second byte
+        vg.encoding = bb.get();
+        int intLongSwitch;
+        int ns;
+        int endian;
+        // third byte
+        b= bb.get();
+        if ((b&0x80)!=0)
+           intLongSwitch = 1; //use ints
+        else 
+           intLongSwitch = 0;
+        if ((b & 0x40)!=0)
+            vg.ns = true;
+        else
+            vg.ns = false;
+        if ((b & 0x20) !=0)
+            endian = 1;
+        else 
+            endian = 0;
+        if ((b & 0x1f) != 0)
+            throw new IndexReadException("Last 5 bits of the third byte should be zero");
+        // fourth byte
+        vg.VTDDepth =  bb.get();
+        
+        // 5th and 6th byte
+        int LCLevels = (((int)bb.get())<<8) | bb.get();
+        if (LCLevels < 3)
+            throw new IndexReadException("LC levels must be at least 3");
+        // 7th and 8th byte
+        vg.rootIndex = (((int)bb.get())<<8) | bb.get();
+        
+        // skip a long
+        bb.getLong();
+        bb.getLong();
+        int size = 0;
+        // read XML size
+        if (endian == 1)
+           size = (int)bb.getLong();
+        else
+           size = (int)reverseLong(bb.getLong());
+        // read XML bytes
+        //byte[] XMLDoc = new byte[size];
+        //bb.get(XMLDoc);
+        int t=0;
+        if ((size & 0x7)!= 0){
+            t = (((size>>3)+1)<<3) - size;            
+        }
+        
+        vg.setDoc(ba,32,size);
+        
+        bb = ByteBuffer.wrap(ba,32+size+t,ba.length-32-size-t);
+        
+        if (endian ==1){
+            // read vtd records
+            int vtdSize = (int)bb.getLong();
+            while(vtdSize>0){
+                vg.VTDBuffer.append(bb.getLong());
+                vtdSize--;
+            }
+            // read L1 LC records
+            int l1Size = (int)bb.getLong();
+                     
+            while(l1Size > 0){
+                long l = bb.getLong();
+               // System.out.println(" l-==> "+Long.toHexString(l));
+                vg.l1Buffer.append(l);
+                l1Size--;
+            }
+            //System.out.println("++++++++++ ");
+            // read L2 LC records
+            int l2Size = (int)bb.getLong();
+            while(l2Size > 0){
+                vg.l2Buffer.append(bb.getLong());
+                l2Size--;
+            }
+            //System.out.println("++++++++++ ");   
+            // read L3 LC records
+            int l3Size = (int)bb.getLong();
+            if (intLongSwitch == 1){ //l3 uses ints
+                while(l3Size > 0 ){
+                    vg.l3Buffer.append(bb.getInt());
+                    l3Size --;
+                }
+            } else {
+                while(l3Size > 0 ){
+                    vg.l3Buffer.append((int)(bb.getLong()>>32));
+                    l3Size --;
+                }
+            }
+        } else {
+            // read vtd records
+            int vtdSize = (int)reverseLong(bb.getLong());
+            while(vtdSize>0){
+                vg.VTDBuffer.append(reverseLong(bb.getLong()));
+                vtdSize--;
+            }
+            // read L1 LC records
+            //System.out.println(" ++++++++++ ");
+            int l1Size = (int)reverseLong(bb.getLong());
+            while(l1Size > 0){
+                long l = reverseLong(bb.getLong());
+                vg.l1Buffer.append(l);
+                l1Size--;
+            }
+            //System.out.println(" ++++++++++ ");
+            // read L2 LC records
+            int l2Size = (int)reverseLong(bb.getLong());
+            while(l2Size > 0){
+                long l = reverseLong(bb.getLong());
+                //System.out.println(" l--=->"+Long.toHexString(l));
+                vg.l2Buffer.append(l);
+                l2Size--;
+            }
+            //System.out.println(" ++++++++++ ");
+            // read L3 LC records
+            int l3Size = (int)reverseLong(bb.getLong());
+            if (intLongSwitch == 1){ //l3 uses ints
+                while(l3Size > 0 ){
+                    vg.l3Buffer.append(reverseInt(bb.getInt()));
+                    l3Size --;
+                }
+            } else {
+                while(l3Size > 0 ){
+                    vg.l3Buffer.append(reverseInt((int)(bb.getLong()>>32)));
+                    l3Size --;
+                }
+            }
+        }
+    }
     public static void readIndex(InputStream is, VTDGen vg) 
     throws IndexReadException,IOException{
         if (is == null || vg == null)
