@@ -3421,35 +3421,41 @@ public class VTDGen {
 	}
 	/**
 	 * This method loads the VTD+XML from an input stream
+	 * @return VTDNav
 	 * @param is
 	 * @throws IOException
 	 * @throws IndexReadException
 	 *
 	 */
-	public void loadIndex(InputStream is) throws IOException,IndexReadException{
+	public VTDNav loadIndex(InputStream is) throws IOException,IndexReadException{
 	    IndexHandler.readIndex(is, this);
+	    return getNav();
 	}
 	/**
 	 * This method loads the VTD+XML from a byte array
+	 * @return VTDNav
 	 * @param ba
 	 * @throws IOException
 	 * @throws IndexReadException
 	 *
 	 */
-	public void loadIndex(byte[] ba)throws IOException,IndexReadException{
+	public VTDNav loadIndex(byte[] ba)throws IOException,IndexReadException{
 	    IndexHandler.readIndex(ba,this);
+	    return getNav();
 	}
 	/**
 	 * This method loads the VTD+XML from a file
+	 * @return VTDNav
 	 * @param fileName
 	 * @throws IOException
 	 * @throws IndexReadException
 	 *
 	 */
-	public void loadIndex(String fileName)throws IOException,IndexReadException{
+	public VTDNav loadIndex(String fileName)throws IOException,IndexReadException{
 	    FileInputStream fis = new FileInputStream(fileName);
 	    loadIndex(fis);
 	    fis.close();
+	    return getNav();
 	}
 	/**
 	 * This method writes the VTD+XML into an output streams
