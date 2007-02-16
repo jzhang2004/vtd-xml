@@ -83,9 +83,14 @@ class IndexHandler {
         }
         // write VTD
         dos.writeLong(vtdBuffer.size());
-        for(i=0;i< vtdBuffer.size();i++){
-            dos.writeLong(vtdBuffer.longAt(i)-docOffset);
-        }
+        if (docOffset != 0)
+            for (i = 0; i < vtdBuffer.size(); i++) {
+                dos.writeLong(adjust(vtdBuffer.longAt(i), -docOffset));
+            }
+        else
+            for (i = 0; i < vtdBuffer.size(); i++) {
+                dos.writeLong(vtdBuffer.longAt(i));
+            }
         // write L1 
         dos.writeLong(l1Buffer.size());
         for(i=0;i< l1Buffer.size();i++){
@@ -178,7 +183,7 @@ class IndexHandler {
             // read vtd records
             int vtdSize = (int)bb.getLong();
             while(vtdSize>0){
-                vg.VTDBuffer.append(adjust(bb.getLong()));
+                vg.VTDBuffer.append(adjust(bb.getLong(),OFFSET_ADJUSTMENT));
                 vtdSize--;
             }
             // read L1 LC records
@@ -215,7 +220,7 @@ class IndexHandler {
             // read vtd records
             int vtdSize = (int)reverseLong(bb.getLong());
             while(vtdSize>0){
-                vg.VTDBuffer.append(adjust(reverseLong(bb.getLong())));
+                vg.VTDBuffer.append(adjust(reverseLong(bb.getLong()),OFFSET_ADJUSTMENT));
                 vtdSize--;
             }
             // read L1 LC records
@@ -410,8 +415,8 @@ class IndexHandler {
         return t;
     }
     
-    private static long adjust(long l){
-        long l1 = (l & 0xffffffffL)+ OFFSET_ADJUSTMENT;
+    private static long adjust(long l, int i){
+        long l1 = (l & 0xffffffffL)+ i;
         long l2 = l & 0xffffffff00000000L;
         return l1|l2;        
     }
