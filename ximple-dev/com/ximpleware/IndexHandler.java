@@ -412,7 +412,6 @@ class IndexHandler {
     
     private static long adjust(long l){
         long l1 = (l & 0xffffffffL)+ OFFSET_ADJUSTMENT;
-        System.out.println("lower 32 bit  "+l1);
         long l2 = l & 0xffffffff00000000L;
         return l1|l2;        
     }
