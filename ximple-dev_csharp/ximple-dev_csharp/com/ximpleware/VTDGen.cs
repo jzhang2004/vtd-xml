@@ -4032,30 +4032,54 @@ namespace com.ximpleware
 			}
 			}*/
 		}
-        /// <summary> This method loads the VTD+XML from an input stream</summary>
-        /// <param name="is">
-        /// </param>
-        /// <throws>  IOException </throws>
-        /// <throws>  IndexReadException </throws>
-        /// <summary> 
-        /// </summary>
-        public virtual void loadIndex(System.IO.Stream is_Renamed)
+
+       
+  
+       /// <summary>
+       /// This method loads the VTD+XML from an input stream
+       /// </summary>
+       /// <param name="is_Renamed"></param>
+       /// <returns>VTDNav</returns>
+        
+        public VTDNav loadIndex(System.IO.Stream is_Renamed)
         {
             IndexHandler.readIndex(is_Renamed, this);
+            return getNav();
         }
-        /// <summary> This method loads the VTD+XML from a file</summary>
-        /// <param name="fileName">
-        /// </param>
-        /// <throws>  IOException </throws>
-        /// <throws>  IndexReadException </throws>
-        /// <summary> 
+
+       
+        /// <summary>
+        /// This method loads the VTD+XML from a file 
         /// </summary>
-        public virtual void loadIndex(System.String fileName)
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public VTDNav loadIndex(System.String fileName)
         {
             //UPGRADE_TODO: Constructor 'java.io.FileInputStream.FileInputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileInputStreamFileInputStream_javalangString'"
-            System.IO.FileStream fis = new System.IO.FileStream(fileName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
-            loadIndex(fis);
-            fis.Close();
+            System.IO.FileStream fis = null;
+            try
+            {
+               fis = new System.IO.FileStream(fileName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+                return loadIndex(fis);
+            }
+            finally
+            {
+                if (fis!=null)
+                    fis.Close();
+            }
+            
+        }
+
+        /// <summary>
+        /// This method loads the VTD+XML from a byte array, assuming the first 32
+        /// bytes are not XML bytes (but instead header of the VTD+XML index)
+        /// </summary>
+        /// <param name="ba"></param>
+        /// <returns></returns>
+        public VTDNav loadIndex(byte[] ba)
+        {
+            IndexHandler.readIndex(ba, this);
+            return getNav();
         }
         /// <summary> This method writes the VTD+XML into an output streams</summary>
         /// <param name="os">
@@ -4064,7 +4088,7 @@ namespace com.ximpleware
         /// <throws>  IndexWriteException </throws>
         /// <summary> 
         /// </summary>
-        public virtual bool writeIndex(System.IO.Stream os)
+        public bool writeIndex(System.IO.Stream os)
         {
            return IndexHandler.writeIndex(1, 
                 this.encoding, 
@@ -4090,7 +4114,7 @@ namespace com.ximpleware
         /// <throws>  IndexWriteException </throws>
         /// <summary> 
         /// </summary>
-        public virtual bool writeIndex(System.String fileName)
+        public bool writeIndex(System.String fileName)
         {
             //UPGRADE_TODO: Constructor 'java.io.FileOutputStream.FileOutputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileOutputStreamFileOutputStream_javalangString'"
             System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
