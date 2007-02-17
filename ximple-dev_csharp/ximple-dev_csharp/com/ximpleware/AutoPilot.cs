@@ -588,6 +588,7 @@ namespace com.ximpleware
 				com.ximpleware.xpath.parser p = new com.ximpleware.xpath.parser(new System.IO.StringReader(s));
 				p.ht = ht;
 				xpe = (com.ximpleware.xpath.Expr) p.parse().value;
+                ft = true;
 			}
 			catch (System.Exception e)
 			{
