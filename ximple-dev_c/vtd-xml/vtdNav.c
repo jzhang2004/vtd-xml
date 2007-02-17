@@ -3230,25 +3230,6 @@ void throwException2 (enum exception_type et, char *msg){
 	Throw e;
 }
 
-/*write VTD+XML into FILE */
-Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
-	return _writeIndex(1, 
-		vn->encoding, 
-		vn->ns, 
-		TRUE, 
-		vn->nestingLevel-1, 
-		3, 
-		vn->rootIndex, 
-		vn->XMLDoc, 
-		vn->docOffset, 
-		vn->docLen, 
-		vn->vtdBuffer, 
-		vn->l1Buffer, 
-		vn->l2Buffer, 
-		vn->l3Buffer, 
-		f);
-}
-
 /* overwrite */
 Boolean overWrite(VTDNav *vn, int index, UByte* ba, int offset, int len){
 	int t;
