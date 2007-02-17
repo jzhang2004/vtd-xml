@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+
 // define document encoding
 
 // other constants
@@ -97,6 +99,8 @@ VTDNav *getNav(VTDGen *vg);
 // One specifies whether the parsing is namespace aware or not.
 void parse(VTDGen *vg, Boolean ns);
 
+Boolean parseFile(VTDGen *vg, Boolean ns,char *fileName);
+
 // Set the XMLDoc container.
 void setDoc(VTDGen *vg, UByte *byteArray, int arrayLen);
 
@@ -110,8 +114,10 @@ void setDoc_BR(VTDGen *vg, UByte *byteArray, int arrayLen);
 void setDoc_BR2(VTDGen *vg, UByte *byteArray, int arrayLen, int offset, int docLen);
 
 /* Load VTD+XML from a FILE pointer */
-Boolean loadIndex_VTDGen(VTDGen *vg, FILE *f); 
+VTDNav* loadIndex(VTDGen *vg, FILE *f); 
 
+/* load VTD+XML from a byte array */
+VTDNav* loadIndex2(VTDGen *vg, UByte* ba,int len);
 /* Write VTD+XML into a FILE pointer */
-Boolean writeIndex_VTDGen(VTDGen *vg, FILE *f);
+Boolean writeIndex(VTDGen *vg, FILE *f);
 #endif
