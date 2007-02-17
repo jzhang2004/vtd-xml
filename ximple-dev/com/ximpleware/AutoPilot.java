@@ -485,7 +485,7 @@ public void selectXPath(String s) throws XPathParseException{
 		parser p = new parser(new StringReader(s));
 		p.ht = ht;
 		xpe = (com.ximpleware.xpath.Expr) p.parse().value;
-
+		ft = true;
 	}
 	catch(Exception e){
 	    e.printStackTrace();
