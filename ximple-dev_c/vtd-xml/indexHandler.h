@@ -44,5 +44,5 @@ Boolean _writeIndex(Byte version,
 /*readIndex loads VTD+XML into VTDGen*/
 Boolean _readIndex(FILE *f, VTDGen *vg);
 
-
+Boolean _readIndex2(UByte *ba, int len, VTDGen *vg);
 #endif
