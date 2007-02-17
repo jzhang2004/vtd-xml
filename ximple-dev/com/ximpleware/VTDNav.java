@@ -164,6 +164,7 @@ public class VTDNav {
 	protected int LN; // record txt and attrbute for XPath eval purposes
 	// the document encoding	     
 	protected int encoding;
+	//protected boolean writeOffsetAdjustment;
 	// for string to token comparison
 	//protected int currentOffset;
 	//protected int currentOffset2;
@@ -260,7 +261,7 @@ public class VTDNav {
 		//System.out.println("offset " + offset + "  length " + length);
 		//printL2Buffer();
 		vtdSize = vtd.size();
-
+		//writeOffsetAdjustment = false;
 		//recentNS = -1;
 	}
 	/**
@@ -3644,45 +3645,6 @@ public class VTDNav {
 	protected boolean getAtTerminal(){
 		return atTerminal;
 	}
-	/**
-	 * This method writes the VTD+XML into an output streams
-	 * @param os
-	 * @throws IOException
-	 * @throws IndexWriteException
-	 *
-	 */
-	public void writeIndex(OutputStream os) throws IOException,IndexWriteException{
-	    IndexHandler.writeIndex((byte)1,
-	            this.encoding,
-	            this.ns,
-	            true,
-	            this.nestingLevel -1,
-	            3,
-	            this.rootIndex,
-	            this.XMLDoc.getBytes(),
-	            this.docOffset,
-	            this.docLen,
-	            (FastLongBuffer) this.vtdBuffer,
-	            (FastLongBuffer) this.l1Buffer,
-	            (FastLongBuffer) this.l2Buffer,
-	            (FastIntBuffer) this.l3Buffer,
-	            os);
-	}
-	
-	/**
-	 * This method writes the VTD+XML file into a file of the given name
-	 * Suggested file extension is ".vxl"
-	 * @param fileName
-	 * @throws IOException
-	 * @throws IndexWriteException
-	 *
-	 */
-	public void writeIndex(String fileName) throws IOException,IndexWriteException{
-	    FileOutputStream fos = new FileOutputStream(fileName);
-	    writeIndex(fos);
-	    fos.close();
-	}
-	
 	/**
 	 * This is for debugging purpose
 	 * @param fib
