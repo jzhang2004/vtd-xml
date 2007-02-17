@@ -3131,53 +3131,7 @@ public class VTDGen {
 	 *
 	 */
 	public void setDoc_BR(byte[] ba){
-	    if (ba == null)
-	    {
-	        throw new IllegalArgumentException("Illegal argument for setDoc_BR");
-	    }
-		int a;
-		br = true;
-		depth = -1;
-		increment =1;
-		BOM_detected = false;
-		must_utf_8 = false;
-		ch = ch_temp = 0;
-		temp_offset = 0;
-		XMLDoc = ba;
-		docOffset = offset = 0;
-		docLen = ba.length;
-		endOffset = docLen;
-		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
-
-		if (docLen <= 1024) {
-			//a = 1024; //set the floor
-			a = 8;
-		} else if (docLen <=4096){
-		    a = 10;
-		}else if (docLen <= 1024 * 16 * 4) {
-			//a = 2048;
-			a = 11;
-		} else if (docLen <= 1024 * 256) {
-			//a = 1024 * 4;
-			a = 12;
-		} else {
-			//a = 1 << 15;
-			a = 15;
-		}
-		
-		if (VTDBuffer == null){
-		    // those buffers are always created together
-			VTDBuffer = new FastLongBuffer(a, ba.length >> (a+1));
-			l1Buffer = new FastLongBuffer(7);
-			l2Buffer = new FastLongBuffer(9);
-			l3Buffer = new FastIntBuffer(11);
-		}
-		else {
-		    VTDBuffer.clear();
-		    l1Buffer.clear();
-		    l2Buffer.clear();
-		    l3Buffer.clear();
-		}
+	    setDoc_BR(ba,0,ba.length);
 	}
 	
 	/**
@@ -3243,47 +3197,7 @@ public class VTDGen {
 	 * @param ba byte[]
 	 */
 	public void setDoc(byte[] ba) {
-	    if (ba == null)
-	    {
-	        throw new IllegalArgumentException("Illegal argument for setDoc");
-	    }
-		int a;
-		br = false;
-		depth = -1;
-		increment =1;
-		BOM_detected = false;
-		must_utf_8 = false;
-		ch = ch_temp = 0;
-		temp_offset = 0;
-		XMLDoc = ba;
-		docOffset = offset = 0;
-		docLen = ba.length;
-		endOffset = docLen;
-		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
-		if (docLen <= 1024) {
-			//a = 1024; //set the floor
-			a = 8;
-		} else if (docLen <=4096){
-		    a = 10;
-		}else if (docLen <= 1024 * 16 * 4) {
-			//a = 2048;
-			a = 11;
-		} else if (docLen <= 1024 * 256) {
-			//a = 1024 * 4;
-			a = 12;
-		} else {
-			//a = 1 << 15;
-			a = 15;
-		}
-//		VTDBuffer = new FastLongBuffer(a);
-//		l1Buffer = new FastLongBuffer(128);
-//		l2Buffer = new FastLongBuffer(512);
-//		l3Buffer = new FastIntBuffer(2048);
-		VTDBuffer = new FastLongBuffer(a, ba.length >> (a+1));
-		l1Buffer = new FastLongBuffer(7);
-		l2Buffer = new FastLongBuffer(9);
-		l3Buffer = new FastIntBuffer(11);
-	
+	    setDoc(ba,0,ba.length);
 	}
 	/**
 	 * Set the XMLDoc container. Also set the offset and len of the document 
