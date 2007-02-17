@@ -52,12 +52,14 @@ ContextBuffer *createContextBuffer2(int exp, int i){
 	if (al==NULL){
 		throwException2(out_of_mem,
 			"ContextBuffer allocation failed ");
+		return NULL;
 	}
 	cb = (ContextBuffer *)malloc(sizeof(ContextBuffer));
 	if (cb == NULL || exp<0 || i<0){
 		freeArrayList(al);
 		throwException2(out_of_mem,
 			"ContextBuffer allocation failed ");
+		return NULL;
 	}
 
 	cb->capacity = 0;

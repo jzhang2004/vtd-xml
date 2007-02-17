@@ -23,6 +23,7 @@ unaryExpr *createUnaryExpr(opType op, expr *e1){
 		//e1->freeExpr(e1);
 		throwException2(out_of_mem,
 			"unaryExpr allocation failed ");
+		return NULL;
 	}
 	ue->freeExpr = &freeUnaryExpr;
 	ue->evalBoolean = &evalBoolean_ue;

@@ -24,6 +24,7 @@ FastLongBuffer *createFastLongBuffer(){
 	if (al==NULL) {
 		throwException2(out_of_mem,
 			"FastLongBuffer allocation failed ");
+		return NULL;
 	}
 
 	flb = (FastLongBuffer *)malloc(sizeof(FastLongBuffer));
@@ -31,6 +32,7 @@ FastLongBuffer *createFastLongBuffer(){
 		freeArrayList(al); 
 		throwException2(out_of_mem,
 			"FastLongBuffer allocation failed ");
+		return NULL;
 	}
 
 	flb->size = 0;
@@ -49,6 +51,7 @@ FastLongBuffer *createFastLongBuffer2(int exp){
 	if (al==NULL){
 		throwException2(out_of_mem,
 			"FastLongBuffer allocation failed ");
+		return NULL;
 	}
 
 	flb = (FastLongBuffer *)malloc(sizeof(FastLongBuffer));
@@ -56,6 +59,7 @@ FastLongBuffer *createFastLongBuffer2(int exp){
 		freeArrayList(al); 
 		throwException2(out_of_mem,
 			"FastLongBuffer allocation failed ");
+		return NULL;
 	}
 
 	flb->size = 0;

@@ -27,6 +27,7 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 	if (pe==NULL){
 		throwException2(out_of_mem,
 			"pathExpr allocation failed ");
+		return NULL;
 	}
 	Try{
 		pe->ih = createIntHash();

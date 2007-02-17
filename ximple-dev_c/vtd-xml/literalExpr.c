@@ -21,6 +21,7 @@ literalExpr *createLiteralExpr(UCSChar *st){
 	literalExpr *l = (literalExpr*) malloc(sizeof(literalExpr));
 	if (l==NULL){
 		throwException2(out_of_mem,"literalExpr allocation failed ");
+		return NULL;
 	}
 	l->freeExpr = &freeLiteralExpr;
 	l->evalBoolean = &evalBoolean_le;

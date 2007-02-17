@@ -74,12 +74,14 @@ AutoPilot *createAutoPilot(VTDNav *v){
 	if (v == NULL){
 		throwException2(invalid_argument,
 			" createAutoPilot failed: can't take NULL VTDNav pointer");
+		return NULL;
 	}
 
 	ap = (AutoPilot *)malloc(sizeof(AutoPilot));
 	if (ap == NULL){
 		throwException2(out_of_mem,
 			"createAutoPilot failed");
+		return NULL;
 	}
     ap->elementName = NULL;
 	ap->localName = NULL;
@@ -103,6 +105,7 @@ AutoPilot *createAutoPilot2(){
 	if (ap == NULL){
 		throwException2(out_of_mem,
 			"createAutoPilot failed");
+		return NULL;
 	}
     ap->elementName = NULL;
 	ap->localName = NULL;

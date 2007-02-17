@@ -84,12 +84,14 @@ VTDGen *createVTDGen(){
 	if (l==NULL){
 		throwException2(out_of_mem,
 			"VTDGen allocation failed ");
+		return NULL;
 	}
 	ts = (Long*) malloc(TAG_STACK_SIZE * sizeof(Long));
 	if (ts==NULL) {
 		free(l);
 		throwException2(out_of_mem,
 			"VTDGen allocation failed ");
+		return NULL;
 	}
 
 	vg = (VTDGen *)malloc(sizeof(VTDGen));
@@ -98,6 +100,7 @@ VTDGen *createVTDGen(){
 		free(ts);
 		throwException2(out_of_mem,
 			"VTDGen allocation failed ");
+		return NULL;
 	}
 	vg->anaLen = ATTR_NAME_ARRAY_SIZE;
 	vg->attr_name_array = l;

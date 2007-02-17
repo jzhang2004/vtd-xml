@@ -29,6 +29,7 @@ TextIter *createTextIter(){
 	if (ti == NULL){
 		throwException2(out_of_mem,
 			"createTextIter failed");
+		return NULL;
 	}
 	ti->vn = NULL;
 	
@@ -204,7 +205,7 @@ int getNext(TextIter *ti){
                         //if (sp == temp2) { // last child element
                         //} else 
                         if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 1){
-                        	//System.out.println("depth ->"+vn.getTokenDepth(sp));
+                        	//System.out.println("depth ->"+nr->vn->getTokenDepth(sp));
                             ti->prevLocation = sp;
                             return sp;
                         } else if (getTokenDepth(ti->vn,sp) <2) {

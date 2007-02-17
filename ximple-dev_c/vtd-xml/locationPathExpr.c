@@ -1843,6 +1843,7 @@ locationPathExpr *createLocationPathExpr(){
 	if (lpe==NULL){
 		throwException2(out_of_mem,
 			"locationPathExpr allocation failed ");
+		return NULL;
 	}
 	Try{
 		lpe->ih = createIntHash();

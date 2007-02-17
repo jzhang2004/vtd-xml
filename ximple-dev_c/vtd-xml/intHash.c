@@ -46,6 +46,7 @@ IntHash* createIntHash2(int hashWidthExpo){
 	if (ih==NULL) {
 		throwException2(out_of_mem,
 			"IntHash allocation failed ");
+		return NULL;
 	}
 	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)<<ih_hashWidthE);
 	ih->hw = 1<<hashWidthExpo;

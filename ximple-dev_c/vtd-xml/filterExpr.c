@@ -22,6 +22,7 @@ filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 	if (fe ==NULL){
 		throwException2(out_of_mem,
 			"filterExpr allocation failed");
+		return NULL;
 	}
 	fe->freeExpr = &freeFilterExpr;
 	fe->evalBoolean = &evalBoolean_fe;

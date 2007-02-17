@@ -178,6 +178,7 @@ XMLModifier *createXMLModifier(){
 	xm = (XMLModifier *)malloc(sizeof(XMLModifier));
 	if (xm == NULL){
 		throwException2(out_of_mem, "xm failed");
+		return NULL;
 	}
 	xm->deleteHash = NULL;
 	xm->insertHash = NULL;
@@ -192,11 +193,13 @@ XMLModifier *createXMLModifier2(VTDNav *vn){
 	if (vn==NULL){
 		 throwException2(invalid_argument,
 			 "createXMLModifier failed: can't take NULL VTDNav pointer");
+		 return NULL;
 	}	
 	xm = (XMLModifier *)malloc(sizeof(XMLModifier));
 	if (xm == NULL){
 		 throwException2(invalid_argument,
 			 "XMLModifier allocation failed");
+		 return NULL;
 	}
 	bind4XMLModifier(xm, vn);
 	return xm;

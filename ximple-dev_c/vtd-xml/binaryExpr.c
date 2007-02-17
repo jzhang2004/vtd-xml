@@ -391,6 +391,7 @@ binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
 	if (be == NULL){
 		throwException2(out_of_mem,
 			"binaryExpr allocation failed");
+		return NULL;
 	}
 	be->freeExpr = &freeBinaryExpr;
 	be->evalBoolean = &evalBoolean_be;

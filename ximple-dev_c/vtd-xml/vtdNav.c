@@ -167,6 +167,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len, Boolean br){
 						 VTDNav* vn = NULL;
 						 int i;
+						 exception e;
 
 						 if (l1 == NULL ||
 							 l2 == NULL ||
@@ -183,13 +184,15 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 							 )
 						 {
 							 throwException2(invalid_argument,
-								 " invalid argument when creating VTDGen failed ");
+								 "Invalid argument when creating VTDGen failed ");
+							 return NULL;
 						 }
 
 						 vn = (VTDNav *) malloc(sizeof(VTDNav));
 						 if (vn==NULL){
 							 throwException2(out_of_mem,							 
 								 "VTDNav allocation failed ");
+							 return NULL;
 						 }
 						 vn->l1Buffer = l1;
 						 vn->l2Buffer = l2;
@@ -222,26 +225,39 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 if (vn->context == NULL){
 							 throwException2(out_of_mem,							 
 								 "VTDNav allocation failed ");
+							 return NULL;
 						 }
 						 vn->context[0] = 0;
 						 for (i=1;i<vn->nestingLevel;i++){
 							 vn->context[i] = -1;
 						 }
 						 //vn->currentOffset = 0;
-
-						 vn->contextBuf = createContextBuffer2(10, vn->nestingLevel+9);
-						 vn->contextBuf2 = createContextBuffer2(10,vn->nestingLevel+9);
+						 Try{
+							 vn->contextBuf = createContextBuffer2(10, vn->nestingLevel+9);
+							 vn->contextBuf2 = createContextBuffer2(10,vn->nestingLevel+9);
+						 }Catch(e){
+							 freeContextBuffer(vn->contextBuf);
+							 freeContextBuffer(vn->contextBuf2);
+							 //free(vn->stackTemp);
+							 free(vn->context);
+							 free(vn);
+							 throwException2(out_of_mem,							 
+								 "VTDNav allocation failed ");
+							 return NULL;
+						 }
 
 						 vn->stackTemp = (int *)malloc((vn->nestingLevel+9)*sizeof(int));
 
 						 if (vn->contextBuf == NULL 
 							 || vn->stackTemp == NULL){
 								 freeContextBuffer(vn->contextBuf);
+								 freeContextBuffer(vn->contextBuf2);
 								 free(vn->stackTemp);
 								 free(vn->context);
 								 free(vn);
 								 throwException2(out_of_mem,							 
 									 "VTDNav allocation failed ");
+								 return NULL;
 						 }
 						 vn->l1index = vn->l2index = vn->l3index = -1;
 						 vn->l2lower = vn->l2upper = -1;

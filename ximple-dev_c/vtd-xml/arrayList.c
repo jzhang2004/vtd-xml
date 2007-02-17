@@ -21,7 +21,7 @@
 
 
 // allocate arrayList with initial capacity of 10, 
-// throw exception if allocation failed
+// throw exception and return NULL if allocation failed
  ArrayList *createArrayList(){
 	
 	int i=0;

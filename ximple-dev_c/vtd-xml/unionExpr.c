@@ -28,6 +28,7 @@ unionExpr *createUnionExpr(expr *e){
 	if (une==NULL){
 		throwException2(out_of_mem,
 			"unionExpr allocation failed ");
+		return NULL;
 	}
 	une->freeExpr = &freeUnionExpr;
 	une->evalBoolean = &evalBoolean_une;

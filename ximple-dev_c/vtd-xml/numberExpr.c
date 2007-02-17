@@ -23,6 +23,7 @@ numberExpr *createNumberExpr (double d){
 	if (n==NULL){
 		throwException2(out_of_mem,
 			"numberExpr allocation failed ");
+		return NULL;
 	}
 	n->freeExpr = &freeNumberExpr;
 	n->evalBoolean = &evalBoolean_ne;

@@ -24,13 +24,15 @@ FastIntBuffer *createFastIntBuffer(){
 	if (al==NULL){
 		throwException2(out_of_mem,
 			"FastIntBuffer allocation failed ");
+		return NULL;
 	}
 
 	fib = (FastIntBuffer *)malloc(sizeof(FastIntBuffer));
 	if (fib==NULL) {
-		freeArrayList(al); 
+		freeArrayList(al);
 		throwException2(out_of_mem,
 			"FastIntBuffer allocation failed ");
+		return NULL;
 	}
 
 	fib->size = 0;

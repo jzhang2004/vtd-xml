@@ -388,12 +388,10 @@ UCSChar *fname(funcExpr *fne, funcName i){
 }
 
 funcExpr *createFuncExpr(funcName oc, aList *a){
-	exception e;
 	funcExpr *fne = (funcExpr *)malloc(sizeof(funcExpr));
 	if (fne==NULL){
-		e.et = out_of_mem;
-		e.msg = "funcExpr allocation failed ";
-		Throw e;
+		throwException2(out_of_mem,"funcExpr allocation failed ");
+		return NULL;
 	}
 
 	fne->freeExpr = &freeFuncExpr;
@@ -453,10 +451,9 @@ void freeFuncExpr(funcExpr *fne){
 }
 
 int	evalNodeSet_fne (funcExpr *fne,VTDNav *vn){
-	exception e;
-	e.et = xpath_eval_exception;
-	e.msg = "funcExpr can't eval to a node set!";
-	Throw e;
+	throwException2(xpath_eval_exception,
+		"funcExpr can't eval to a node set!");
+	return -1;
 }
 double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 	int ac;
