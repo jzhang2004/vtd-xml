@@ -199,6 +199,7 @@ public class NodeRecorder {
      */
     public void clear() {
         size = position = count = 0;
+        fib.clear();
     }
 
     /**
