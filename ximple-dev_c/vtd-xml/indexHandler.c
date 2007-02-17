@@ -19,6 +19,9 @@
 static Long reverseLong(Long l);
 static int reverseInt(int i);
 
+#define OFFSET_ADJUSTMENT 32
+
+static Long adjust(Long l,int i);
 static Long reverseLong(Long l){
 	Long t = (((l & -0x0100000000000000L) >> 56) & 0xffL)
 		| ((l & 0xff000000000000L) >> 40) 
@@ -220,7 +223,6 @@ Boolean _writeIndex(Byte version,
   this function throws index_read_exception*/
 Boolean _readIndex(FILE *f, VTDGen *vg){
 	int intLongSwitch;
-	int ns;
 	int endian;
 	Byte ba[4];
 	int LCLevels;
@@ -236,14 +238,14 @@ Boolean _readIndex(FILE *f, VTDGen *vg){
 	
 	// first byte
 	if (fread(ba,1,1,f) != 1){
-		throwException2(index_write_exception,"fread error occurred");
+		throwException2(index_read_exception,"fread error occurred");
 		return FALSE;
 	}
 
 	// no check on version number for now
 	// second byte
 	if (fread(ba,1,1,f) != 1){
-		throwException2(index_write_exception,"fread error occurred");
+		throwException2(index_read_exception,"fread error occurred");
 		return FALSE;
 	}
 
@@ -251,7 +253,7 @@ Boolean _readIndex(FILE *f, VTDGen *vg){
 	
 	// third byte
 	if (fread(ba,1,1,f) != 1){
-		throwException2(index_write_exception,"fread error occurred");
+		throwException2(index_read_exception,"fread error occurred");
 		return FALSE;
 	}
 	if ((ba[0] & 0x80) != 0)
@@ -325,7 +327,7 @@ Boolean _readIndex(FILE *f, VTDGen *vg){
 		return FALSE;
 	}
 	if (fread(XMLDoc,1,size,f)!= size){
-		throwException2(index_write_exception,"fread error occurred");
+		throwException2(index_read_exception,"fread error occurred");
 		return FALSE;
 	}
 	//dis.Read(XMLDoc,0,size);
@@ -335,7 +337,7 @@ Boolean _readIndex(FILE *f, VTDGen *vg){
 		while (t > 0)
 		{
 			if (fread(ba,1,1,f) != 1){
-				throwException2(index_write_exception,"fread error occurred");
+				throwException2(index_read_exception,"fread error occurred");
 				return FALSE;
 			}
 			t--;
@@ -506,7 +508,290 @@ Boolean _readIndex(FILE *f, VTDGen *vg){
 			}
 		}
 	}
-	fclose(f);
+	//fclose(f);
 	return TRUE;
 	
+}
+
+Boolean _readIndex2(UByte *ba, int len, VTDGen *vg){
+	int intLongSwitch;
+	int endian;
+	int LCLevels;
+	Long l;
+	int size;
+	int count;
+	int t=0;
+	Boolean littleEndian = isLittleEndian();
+	if (ba == NULL || vg == NULL)
+	{
+		throwException2(invalid_argument,"Invalid argument(s) for readIndex()");
+		return FALSE;
+	}
+	
+	// first byte
+	if (len < 32){
+		throwException2(index_read_exception,"Invalid Index error");
+		return FALSE;
+	}	
+
+	vg->encoding = ba[1];	
+	
+	if ((ba[2] & 0x80) != 0)
+		intLongSwitch = 1;
+	//use ints
+	else
+		intLongSwitch = 0;
+	if ((ba[2] & 0x40) != 0)
+		vg->ns = TRUE;
+	else
+		vg->ns = FALSE;
+	if ((ba[2] & 0x20) != 0)
+		endian = 1;
+	else
+		endian = 0;
+
+	// fourth byte
+	
+	vg->VTDDepth = ba[3];
+
+	// 5th and 6th byte
+	
+	LCLevels = (((int) ba[4]) << 8) | ba[5];
+	if (LCLevels < 3)
+	{
+		throwException2(index_read_exception,"LC levels must be at least 3");
+		return FALSE;
+	}
+	// 7th and 8th byte
+	vg->rootIndex = (((int) ba[6]) << 8) | ba[7];
+
+	//Console.WriteLine(" l ==>" + l);
+	l=((Long*)(ba+24))[0];
+	//Console.WriteLine(" l ==>" + l);
+	
+	// read XML size
+	if (littleEndian && (endian == 0)
+		|| (littleEndian == FALSE) && (endian == 1))
+		size = (int)l;
+	else
+		size = (int)reverseLong(l);
+
+	if (len < 32+size){
+		throwException2(index_read_exception,"Invalid Index error");
+		return FALSE;
+	}
+	setDoc2(vg,ba,len,0,size+32);
+	//dis.Read(XMLDoc,0,size);
+	if ((size & 0x7) != 0)
+	{
+		t = (((size >> 3) + 1) << 3) - size;
+	}
+
+	count = 32 + size +t;
+	if ( (littleEndian && (endian == 0))
+		|| (littleEndian == FALSE && endian == 1))
+	{
+		int vtdSize,l1Size,l2Size,l3Size;
+		// read vtd records
+		if (len < count+8){
+			throwException2(index_read_exception,"Invalid Index error");
+			return FALSE;
+		}
+		l = ((Long*)(ba+count))[0];
+		count+=8;
+		vtdSize = (int) l;
+		while (vtdSize > 0)
+		{
+			if (len < count+8){
+				throwException2(index_read_exception,"Invalid Index error");
+				return FALSE;
+			}
+			l = ((Long*)(ba+count))[0];
+			count+=8;
+			appendLong(vg->VTDBuffer ,adjust(l,OFFSET_ADJUSTMENT));
+			vtdSize--;
+		}
+		// read L1 LC records
+		if (len < count+8){
+			throwException2(index_read_exception,"Invalid Index error");
+			return FALSE;
+		}
+		l = ((Long*)(ba+count))[0];
+		count+=8;
+		l1Size = (int) l;
+		while (l1Size > 0)
+		{
+			if (len < count+8){
+				throwException2(index_read_exception,"Invalid Index error");
+				return FALSE;
+			}
+			l = ((Long*)(ba+count))[0];
+			count+=8;
+			appendLong(vg->l1Buffer,l);
+			l1Size--;
+		}
+		// read L2 LC records
+		if (len < count+8){
+			throwException2(index_read_exception,"Invalid Index error");
+			return FALSE;
+		}
+		l = ((Long*)(ba+count))[0];
+		count+=8;
+		l2Size = (int) l;
+		while (l2Size > 0)
+		{
+			if (len < count+8){
+				throwException2(index_read_exception,"Invalid Index error");
+				return FALSE;
+			}
+			l = ((Long*)(ba+count))[0];
+			count+=8;
+			appendLong(vg->l2Buffer, l);
+			l2Size--;
+		}
+		// read L3 LC records
+		if (len < count+8){
+			throwException2(index_read_exception,"Invalid Index error");
+			return FALSE;
+		}
+		l = ((Long*)(ba+count))[0];
+		count+=8;
+		l3Size = (int) l;
+		if (intLongSwitch == 1)
+		{
+			//l3 uses ints
+			while (l3Size > 0)
+			{
+				if (len < count+4){
+					throwException2(index_read_exception,"Invalid Index error");
+					return FALSE;
+				}
+				l = ((Long*)(ba+count))[0];
+				count+=4;
+				appendInt(vg->l3Buffer,size);
+				l3Size--;
+			}
+		}
+		else
+		{
+			while (l3Size > 0)
+			{
+				if (len < count+8){
+					throwException2(index_read_exception,"Invalid Index error");
+					return FALSE;
+				}
+				l = ((Long*)(ba+count))[0];
+				count+=8;
+				appendLong(vg->l3Buffer,(int)(l >> 32));
+				l3Size--;
+			}
+		}
+	}
+	else
+	{
+		// read vtd records
+		int vtdSize,l1Size,l2Size,l3Size;
+		// read vtd records
+		if (len < count+8){
+			throwException2(index_read_exception,"Invalid Index error");
+			return FALSE;
+		}
+		l = ((Long*)(ba+count))[0];
+		count+=8;
+		vtdSize = (int) reverseLong(l);
+		while (vtdSize > 0)
+		{
+			if (len < count+8){
+				throwException2(index_read_exception,"Invalid Index error");
+				return FALSE;
+			}
+			l = ((Long*)(ba+count))[0];
+			count+=8;
+			appendLong(vg->VTDBuffer,adjust(reverseLong(l),OFFSET_ADJUSTMENT));
+			vtdSize--;
+		}
+		// read L1 LC records
+		if (len < count+8){
+			throwException2(index_read_exception,"Invalid Index error");
+			return FALSE;
+		}
+		l = ((Long*)(ba+count))[0];
+		count+=8;
+		l1Size = (int) reverseLong(l);
+		while (l1Size > 0)
+		{
+			if (len < count+8){
+				throwException2(index_read_exception,"Invalid Index error");
+				return FALSE;
+			}
+			l = ((Long*)(ba+count))[0];
+			count+=8;
+			appendLong(vg->l1Buffer,reverseLong(l));
+			l1Size--;
+		}
+		// read L2 LC records
+		if (len < count+8){
+			throwException2(index_read_exception,"Invalid Index error");
+			return FALSE;
+		}
+		l = ((Long*)(ba+count))[0];
+		count+=8;
+		l2Size = (int) reverseLong(l);
+		while (l2Size > 0)
+		{
+			if (len < count+8){
+				throwException2(index_read_exception,"Invalid Index error");
+				return FALSE;
+			}
+			l = ((Long*)(ba+count))[0];
+			count+=8;
+			appendLong(vg->l2Buffer, reverseLong(l));
+			l2Size--;
+		}
+		// read L3 LC records
+		if (len < count+8){
+			throwException2(index_read_exception,"Invalid Index error");
+			return FALSE;
+		}
+		l = ((Long*)(ba+count))[0];
+		count+=8;
+		l3Size = (int) reverseLong(l);
+		if (intLongSwitch == 1)
+		{
+			//l3 uses ints
+			int i;
+			while (l3Size > 0)
+			{
+				if (len < count+4){
+					throwException2(index_read_exception,"Invalid Index error");
+					return FALSE;
+				}
+				i = ((int*)(ba+count))[0];
+				count+=4;
+				appendInt(vg->l3Buffer,reverseInt(i));
+				l3Size--;
+			}
+		}
+		else
+		{
+			while (l3Size > 0)
+			{
+				if (len < count+8){
+					throwException2(index_read_exception,"Invalid Index error");
+					return FALSE;
+				}
+				l = ((Long*)(ba+count))[0];
+				count+=8;
+				appendInt(vg->l3Buffer,reverseInt((int) (l >> 32)));
+				l3Size--;
+			}
+		}
+	}
+	//fclose(f);
+	return TRUE;
+}
+Long adjust(Long l,int i){
+       Long l1 = (l & 0xffffffffL)+ i;
+       Long l2 = l & 0xffffffff00000000L;
+       return l1|l2;   
 }
