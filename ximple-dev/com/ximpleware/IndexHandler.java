@@ -18,7 +18,12 @@
 package com.ximpleware;
 import java.io.*;
 import java.nio.*;
-
+/**
+ * IndexWrite adjusts the offset so that the XML segment
+ * contains only the XML document
+ * IndexRead, if from byte array, will move adjust the offset 
+ * 
+ */
 class IndexHandler {
     public static final int OFFSET_ADJUSTMENT =32;
     public static void writeIndex(byte version,
@@ -66,7 +71,7 @@ class IndexHandler {
         ba[2] = (byte) ((rootIndex & 0xff00)>> 8 );
         ba[3] = (byte) (rootIndex & 0xff);
         dos.write(ba);
-        // 2 reserved 32-bit words set to zero
+        // 2 reserved 64-bit words set to zero
         ba[1]= ba[2] = ba[3] = 0;
         dos.write(ba);
         dos.write(ba);
@@ -83,14 +88,16 @@ class IndexHandler {
         }
         // write VTD
         dos.writeLong(vtdBuffer.size());
-        if (docOffset != 0)
-            for (i = 0; i < vtdBuffer.size(); i++) {
-                dos.writeLong(adjust(vtdBuffer.longAt(i), -docOffset));
-            }
-        else
+        if (docOffset == 0)
             for (i = 0; i < vtdBuffer.size(); i++) {
                 dos.writeLong(vtdBuffer.longAt(i));
             }
+        else
+            for (i = 0; i < vtdBuffer.size(); i++) {
+                dos.writeLong(adjust(vtdBuffer.longAt(i), 
+                        -docOffset));
+            }
+          
         // write L1 
         dos.writeLong(l1Buffer.size());
         for(i=0;i< l1Buffer.size();i++){
@@ -175,7 +182,7 @@ class IndexHandler {
             t = (((size>>3)+1)<<3) - size;            
         }
         
-        vg.setDoc(ba);
+        vg.setDoc(ba,0,size+32);
         
         bb = ByteBuffer.wrap(ba,32+size+t,ba.length-32-size-t);
         
