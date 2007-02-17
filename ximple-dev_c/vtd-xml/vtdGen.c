@@ -17,7 +17,7 @@
 */
 #include "vtdGen.h"
 #include "indexHandler.h"
-
+#include <sys/stat.h>
 typedef enum pState {
 STATE_LT_SEEN,
 STATE_START_TAG,
@@ -1991,46 +1991,49 @@ void parse(VTDGen *vg, Boolean ns){
 
 
 }
+
+// parse a file directly (from a given FILE *)
+// be careful that you must manually obtain the byte * to free the XML document
+Boolean parseFile(VTDGen *vg, Boolean ns,char *fileName){
+	FILE *f = NULL;
+	exception e;
+	int status,len;
+	UByte *ba=NULL;
+	struct stat buffer;
+	f = fopen(fileName,"rb");
+	if (f==NULL){
+		//throwException2(invalid_argument,"fileName not valid");
+		return FALSE;
+	}
+	status = stat(fileName,&buffer);
+	if (status !=0){
+		fclose(f);
+		//throwException2(parse_exception,"error occurred in parseFile");
+		return FALSE;
+	}
+	len = buffer.st_size;
+	ba = malloc(len);
+	if (ba == NULL){
+		fclose(f);
+		//throwException2(out_of_mem,"error occurred in parseFile");
+		return FALSE;
+	}
+	setDoc(vg,ba,len);
+	Try{
+		parse(vg,ns);
+	}Catch(e){
+		free(ba);
+		clear(vg);
+		fclose(f);
+		//throwException2(out_of_mem,"error occurred in parseFile");
+		return FALSE;
+	}
+	return TRUE;
+}
+
 // set the XML Doc container and turn on buffer reuse
 void setDoc_BR(VTDGen *vg, UByte *ba, int len){
-	int a;
-	vg->br = TRUE;
-	vg->depth = -1;
-	vg->increment = 1;
-	vg->BOM_detected = FALSE;
-	vg->must_utf_8 = FALSE;
-	vg->ch = vg->ch_temp = 0;
-	vg->temp_offset = 0;
-	vg->XMLDoc = ba;
-	vg->docOffset = vg->offset = 0;
-	vg->docLen = len;
-	vg->endOffset = len;
-	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
-	if (vg->VTDBuffer == NULL){
-		if (vg->docLen <= 1024) {
-			a = 7;
-		} else if (vg->docLen <= 4096 * 2){
-			a = 9;
-		}
-		else if (vg->docLen <= 1024 * 16 * 4) {
-			a = 10;
-		} else if (vg->docLen <= 1024 * 256) {			
-			a = 12;
-		} else {
-			a = 15;
-		}
-		vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1));
-		vg->l1Buffer = createFastLongBuffer2(7);
-		vg->l2Buffer = createFastLongBuffer2(9);
-		vg->l3Buffer = createFastIntBuffer2(11);
-
-	} else {
-		clearFastLongBuffer(vg->VTDBuffer);
-		clearFastLongBuffer(vg->l1Buffer);
-		clearFastLongBuffer(vg->l2Buffer);
-		clearFastIntBuffer(vg->l3Buffer);
-	}
-	vg->stateTransfered = FALSE;
+	setDoc_BR(vg,ba,len,0,len);
 }
 
 //Set the XMLDoc container.Also set the offset and len of the document 
@@ -2077,43 +2080,7 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 
 // Set the XMLDoc container.
 void setDoc(VTDGen *vg, UByte *ba, int len){
-	int a;
-	vg->br = FALSE;
-	vg->depth = -1;
-	vg->increment = 1;
-	vg->BOM_detected = FALSE;
-	vg->must_utf_8 = FALSE;
-	vg->ch = vg->ch_temp = 0;
-	vg->temp_offset = 0;
-	vg->XMLDoc = ba;
-	vg->docOffset = vg->offset = 0;
-	vg->docLen = len;
-	vg->endOffset = len;
-	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
-	if (vg->docLen <= 1024) {
-		a = 7;
-	} else if (vg->docLen <= 4096 * 2){
-		a = 9;
-	}
-	else if (vg->docLen <= 1024 * 16 * 4) {
-		a = 10;
-	} else if (vg->docLen <= 1024 * 256) {
-		a = 12;
-	} else {
-		a = 15;
-	}
-	if (vg->stateTransfered == FALSE && vg->VTDBuffer != NULL){
-		freeFastLongBuffer(vg->VTDBuffer);
-		freeFastLongBuffer(vg->l1Buffer);
-		freeFastLongBuffer(vg->l2Buffer);
-		freeFastIntBuffer(vg->l3Buffer);		
-	}
-
-	vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
-	vg->l1Buffer = createFastLongBuffer2(7); 
-	vg->l2Buffer = createFastLongBuffer2(9); 
-	vg->l3Buffer = createFastIntBuffer2(11); 
-	vg->stateTransfered = FALSE;
+	setDoc2(vg, ba, len, 0, len);
 }
 
 /* Set the XMLDoc container.Also set the offset and len of the document
@@ -2155,8 +2122,7 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
 	vg->l1Buffer = createFastLongBuffer2(7);
 	vg->l2Buffer = createFastLongBuffer2(9); 
-	vg->l3Buffer = createFastIntBuffer2(11); 
-
+	vg->l3Buffer = createFastIntBuffer2(11);
 
 	vg->stateTransfered = FALSE;
 }
@@ -3407,12 +3373,22 @@ static int process_ex_seen(VTDGen *vg){
 
 
 /* Load VTD+XML from a FILE pointer */
-Boolean loadIndex_VTDGen(VTDGen *vg, FILE *f){
-	return _readIndex(f,vg);
+VTDNav* loadIndex(VTDGen *vg, FILE *f){
+	if (_readIndex(f,vg))
+	return getNav(vg);
+	else 
+		return NULL;
+}
+
+/* load VTD+XML from a byte array */
+VTDNav* loadIndex2(VTDGen *vg, UByte* ba,int len){
+	if (_readIndex2(ba,len,vg))
+	return getNav(vg);
+	else return NULL;
 }
 
 /* Write VTD+XML into a FILE pointer */
-Boolean writeIndex_VTDGen(VTDGen *vg, FILE *f){
+Boolean writeIndex(VTDGen *vg, FILE *f){
 	 return _writeIndex(1, 
                 vg->encoding, 
                 vg->ns, 
