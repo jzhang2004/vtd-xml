@@ -136,6 +136,10 @@ class IndexHandler {
         // no check on version number for now
         // second byte
         vg.encoding = bb.get();
+        int adj = OFFSET_ADJUSTMENT;
+        if (vg.encoding >= VTDGen.FORMAT_UTF_16BE){
+            adj = OFFSET_ADJUSTMENT>>1;
+        }
         int intLongSwitch;
         int ns;
         int endian;
@@ -190,7 +194,7 @@ class IndexHandler {
             // read vtd records
             int vtdSize = (int)bb.getLong();
             while(vtdSize>0){
-                vg.VTDBuffer.append(adjust(bb.getLong(),OFFSET_ADJUSTMENT));
+                vg.VTDBuffer.append(adjust(bb.getLong(),adj));
                 vtdSize--;
             }
             // read L1 LC records
@@ -227,7 +231,7 @@ class IndexHandler {
             // read vtd records
             int vtdSize = (int)reverseLong(bb.getLong());
             while(vtdSize>0){
-                vg.VTDBuffer.append(adjust(reverseLong(bb.getLong()),OFFSET_ADJUSTMENT));
+                vg.VTDBuffer.append(adjust(reverseLong(bb.getLong()),adj));
                 vtdSize--;
             }
             // read L1 LC records
