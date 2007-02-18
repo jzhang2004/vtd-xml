@@ -469,20 +469,24 @@ public class parser extends java_cup.runtime.lr_parser {
 
   }
  
-  public void report_error(String message, Object info) {
+ /* public void report_error(String message, Object info) {
 	//throw new XPathParseException("Syntax error during parsing");
-  }
+  }*/
 
   public void report_fatal_error(String message, Object info) throws XPathParseException{
 	throw new XPathParseException("Syntax error during parsing: "+ message);
   }
 
   public void syntax_error(Symbol cur_token) {
-	
+    
   }
   
   public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseException{
-	throw new XPathParseException("XPath Syntax error: "+cur_token);
+      
+      if ((cur_token.sym==sym.EOF) && (prev_token.sym == sym.DSLASH
+              || prev_token.sym == sym.SLASH))
+          throw new XPathParseException("'/' and '//' can't terminate a location path");
+      throw new XPathParseException("XPath Syntax error: "+cur_token);
   }
  
 }
