@@ -262,6 +262,7 @@ public abstract class lr_parser {
 
   /** The current lookahead Symbol. */
   protected Symbol cur_token;
+    public Symbol prev_token;
 
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
 
@@ -420,7 +421,7 @@ public abstract class lr_parser {
    *
    * @param cur_token the current lookahead Symbol.
    */
-  public void unrecovered_syntax_error(Symbol cur_token)
+  public virtual void unrecovered_syntax_error(Symbol cur_token)
   
     {
       report_fatal_error("Couldn't repair and continue parse", cur_token);
@@ -578,6 +579,7 @@ public abstract class lr_parser {
 	      tos++;
 
 	      /* advance to the next Symbol */
+          prev_token = cur_token;
 	      cur_token = scan();
 	    }
 	  /* if its less than zero, then it encodes a reduce action */
