@@ -518,7 +518,7 @@ Boolean _readIndex2(UByte *ba, int len, VTDGen *vg){
 	int endian;
 	int LCLevels;
 	Long l;
-	int size;
+	int size,adj;
 	int count;
 	int t=0;
 	Boolean littleEndian = isLittleEndian();
@@ -534,7 +534,11 @@ Boolean _readIndex2(UByte *ba, int len, VTDGen *vg){
 		return FALSE;
 	}	
 
-	vg->encoding = ba[1];	
+	vg->encoding = ba[1];
+	adj = OFFSET_ADJUSTMENT;
+	if (vg->encoding >= FORMAT_UTF_16BE){
+		adj = OFFSET_ADJUSTMENT >> 1;
+	}
 	
 	if ((ba[2] & 0x80) != 0)
 		intLongSwitch = 1;
@@ -608,7 +612,7 @@ Boolean _readIndex2(UByte *ba, int len, VTDGen *vg){
 			}
 			l = ((Long*)(ba+count))[0];
 			count+=8;
-			appendLong(vg->VTDBuffer ,adjust(l,OFFSET_ADJUSTMENT));
+			appendLong(vg->VTDBuffer ,adjust(l,adj));
 			vtdSize--;
 		}
 		// read L1 LC records
@@ -662,13 +666,14 @@ Boolean _readIndex2(UByte *ba, int len, VTDGen *vg){
 			//l3 uses ints
 			while (l3Size > 0)
 			{
+				int i;
 				if (len < count+4){
 					throwException2(index_read_exception,"Invalid Index error");
 					return FALSE;
 				}
-				l = ((Long*)(ba+count))[0];
+				i = ((int*)(ba+count))[0];
 				count+=4;
-				appendInt(vg->l3Buffer,size);
+				appendInt(vg->l3Buffer,i);
 				l3Size--;
 			}
 		}
@@ -707,7 +712,7 @@ Boolean _readIndex2(UByte *ba, int len, VTDGen *vg){
 			}
 			l = ((Long*)(ba+count))[0];
 			count+=8;
-			appendLong(vg->VTDBuffer,adjust(reverseLong(l),OFFSET_ADJUSTMENT));
+			appendLong(vg->VTDBuffer,adjust(reverseLong(l),adj));
 			vtdSize--;
 		}
 		// read L1 LC records
