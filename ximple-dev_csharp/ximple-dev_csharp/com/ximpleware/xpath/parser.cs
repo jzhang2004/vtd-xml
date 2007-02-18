@@ -469,7 +469,13 @@ public class parser : TUVienna.CS_CUP.Runtime.lr_parser {
 		System.out.println("caught: "+e);
     }
   }*/
- 
+  public override void unrecovered_syntax_error(Symbol cur_token){
+      
+      if ((cur_token.sym==sym.EOF) && (prev_token.sym == sym.DSLASH
+              || prev_token.sym == sym.SLASH))
+          throw new XPathParseException("'/' and '//' can't terminate a location path");
+      throw new XPathParseException("XPath Syntax error: "+cur_token);
+  }
 
  
 }
