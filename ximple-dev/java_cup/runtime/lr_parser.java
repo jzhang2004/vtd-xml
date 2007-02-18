@@ -243,7 +243,7 @@ public abstract class lr_parser {
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
 
   /** The current lookahead Symbol. */
-  protected Symbol cur_token;
+  protected Symbol cur_token, prev_token;
 
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
 
@@ -560,6 +560,7 @@ public abstract class lr_parser {
 	      tos++;
 
 	      /* advance to the next Symbol */
+	      prev_token = cur_token;
 	      cur_token = scan();
 	    }
 	  /* if its less than zero, then it encodes a reduce action */
@@ -593,7 +594,6 @@ public abstract class lr_parser {
 	    {
 	      /* call user syntax error reporting routine */
 	      syntax_error(cur_token);
-
 	      /* try to error recover */
 	      if (!error_recovery(false))
 		{
