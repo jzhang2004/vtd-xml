@@ -341,6 +341,11 @@ namespace com.ximpleware
             // no check on version number for now
             // second byte
             vg.encoding = dis.ReadByte();
+            int adj = OFFSET_ADJUSTMENT;
+            if (vg.encoding >= VTDGen.FORMAT_UTF_16BE)
+            {
+                adj = OFFSET_ADJUSTMENT >> 1;
+            }
             int intLongSwitch;
             int endian;
             // third byte
@@ -408,7 +413,7 @@ namespace com.ximpleware
                 int vtdSize = (int)dis.ReadInt64();
                 while (vtdSize > 0)
                 {
-                    vg.VTDBuffer.append(adjust(dis.ReadInt64(),OFFSET_ADJUSTMENT));
+                    vg.VTDBuffer.append(adjust(dis.ReadInt64(),adj));
                     vtdSize--;
                 }
                 // read L1 LC records
@@ -451,7 +456,7 @@ namespace com.ximpleware
                 int vtdSize = (int)reverseLong(dis.ReadInt64());
                 while (vtdSize > 0)
                 {
-                    vg.VTDBuffer.append(adjust(reverseLong(dis.ReadInt64()),OFFSET_ADJUSTMENT));
+                    vg.VTDBuffer.append(adjust(reverseLong(dis.ReadInt64()),adj));
                     vtdSize--;
                 }
                 // read L1 LC records
