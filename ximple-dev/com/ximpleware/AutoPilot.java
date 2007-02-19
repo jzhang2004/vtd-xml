@@ -479,18 +479,18 @@ protected void selectAttrNS(String ns_URL, String ln){
  * @param s
  * @throws XPathParseException
  */
-public void selectXPath(String s) throws XPathParseException{
-	
-	try{
-		parser p = new parser(new StringReader(s));
-		p.ht = ht;
-		xpe = (com.ximpleware.xpath.Expr) p.parse().value;
-		ft = true;
-	}
-	catch(Exception e){
-	    e.printStackTrace();
-		throw new XPathParseException(e.toString());
-	}
+
+public void selectXPath(String s) throws XPathParseException {
+    try{
+       parser p = new parser(new StringReader(s));
+       p.ht = ht;
+       xpe = (com.ximpleware.xpath.Expr) p.parse().value;
+       ft = true;
+    }catch(XPathParseException e){
+        throw e;
+    }catch(Exception e){
+        throw new XPathParseException("Error occurred");
+    }
 }
 
 /**
