@@ -335,6 +335,7 @@ namespace com.ximpleware
 		/// </summary>
 		protected internal void  sort()
 		{
+            if (flb.size() > 0) 
 			quickSort(0, flb.size() - 1);
 		}
 		
@@ -534,13 +535,18 @@ namespace com.ximpleware
 			//{
 			//	System.Console.Out.WriteLine(" offset value is ==>" + flb.lower32At(i));
 			//}
+            int t = md.vtdBuffer.lower32At(0);
+            int start = (t == 0) ?
+                    md.docOffset : 32;
+            int len = (t == 0) ?
+                    md.docLen : (md.docLen - 32);
 			if (flb.size() == 0)
 			{
-				os.Write(ba, md.docOffset, md.docLen);
+				os.Write(ba, start,len);
 			}
 			else
 			{
-				int offset = md.docOffset;
+				int offset = start;
 				int inc = 1;
 				for (int i = 0; i < flb.size(); i = i + inc)
 				{
@@ -588,7 +594,7 @@ namespace com.ximpleware
 						}
 					}
 				}
-				os.Write(ba, offset, md.docOffset + md.docLen - offset);
+                os.Write(ba, offset, start + len - offset);
 			}
 		}
 		
