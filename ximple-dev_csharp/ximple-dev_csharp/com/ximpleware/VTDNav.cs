@@ -387,7 +387,13 @@ namespace com.ximpleware
             int depth = getCurrentDepth();
             //		 document length and offset returned if depth == -1
             if (depth == -1)
-                return ((long)docLen) << 32 | docOffset;
+            {
+                int ii = vtdBuffer.lower32At(0);
+                if (ii == 0)
+                    return ((long)docLen) << 32 | docOffset;
+                else
+                    return ((long)(docLen - 32)) | 32;
+            }
             int so = getTokenOffset(getCurrentIndex2()) - 1;
             int length = 0;
 

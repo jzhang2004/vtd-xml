@@ -625,6 +625,14 @@ Long getElementFragment(VTDNav *vn){
 
 	if (depth == -1)
 		return ((Long)vn->docLen)<<32 | vn->docOffset;
+
+	if (depth == -1){
+		    int i=lower32At(vn->vtdBuffer,0);
+		    if (i==0)
+		        return ((Long)vn->docLen)<<32| vn->docOffset;
+		    else
+		        return ((Long)(vn->docLen-32))| 32;
+	}
 	// for an element with next sibling
 	so = getTokenOffset(vn,getCurrentIndex2(vn)) - 1;
 	if (toElement(vn,NEXT_SIBLING)) {
