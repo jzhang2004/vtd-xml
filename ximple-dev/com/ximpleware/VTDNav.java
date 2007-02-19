@@ -928,8 +928,13 @@ public class VTDNav {
 		
 		int depth = getCurrentDepth();
 //		 document length and offset returned if depth == -1
-		if (depth == -1)
-			return ((long)docLen)<<32 | docOffset;
+		if (depth == -1){
+		    int i=vtdBuffer.lower32At(0);
+		    if (i==0)
+		        return ((long)docLen)<<32| docOffset;
+		    else
+		        return ((long)(docLen-32))| 32;
+		}
 		int so = getTokenOffset(getCurrentIndex2()) - 1;
 		int length = 0;
 		
