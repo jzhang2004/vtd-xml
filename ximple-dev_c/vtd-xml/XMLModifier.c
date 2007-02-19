@@ -504,22 +504,29 @@ void output(XMLModifier *xm, FILE *f){
 	 Long l;
 	 size_t k;
 	 UByte *ba;
+	 int t,start,len;
 	if (f == NULL){
 		throwException2(invalid_argument,
 			"FILE can't be a NULL");
 	}
            
+	t = lower32At(xm->md->vtdBuffer,0);
+	start = (t==0)?
+		xm->md->docOffset:32;
+	len = (t==0)?
+		xm->md->docLen:(xm->md->docLen-32);
 	sort(xm);
 	check(xm);
 	ba = xm->md->XMLDoc;
 
 	if (xm->flb->size==0){
-		k=fwrite(xm->md->XMLDoc+xm->md->docOffset,sizeof(UByte),xm->md->docLen,f);
+		k=fwrite(xm->md->XMLDoc+start,sizeof(UByte),len,f);
 		if (k!=xm->md->docLen){
 			throwException2(io_exception,"fwrite didn't complete");
 		}
 	}else{
-		int offset = xm->md->docOffset,i;
+		int offset = start;
+		int i;
 		int inc=1;
 		size_t t;
 		for(i=0;i<xm->flb->size;i=i+inc){
@@ -573,7 +580,7 @@ void output(XMLModifier *xm, FILE *f){
 				}                    
 			}
 		}  
-		t = xm->md->docOffset + xm->md->docLen-offset;
+		t = start+len-offset;
 		k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t,f);
 		if (k!=t)
 			throwException2(io_exception,"fwrite didn't complete");  
