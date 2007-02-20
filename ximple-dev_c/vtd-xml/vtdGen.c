@@ -2021,6 +2021,10 @@ Boolean parseFile(VTDGen *vg, Boolean ns,char *fileName){
 		//throwException2(out_of_mem,"error occurred in parseFile");
 		return FALSE;
 	}
+	if (fread(ba,1,len,f)!=len){
+		fclose(f);
+		return FALSE;
+	}
 	setDoc(vg,ba,len);
 	Try{
 		parse(vg,ns);
