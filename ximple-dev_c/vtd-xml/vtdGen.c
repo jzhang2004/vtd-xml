@@ -2036,7 +2036,7 @@ Boolean parseFile(VTDGen *vg, Boolean ns,char *fileName){
 
 // set the XML Doc container and turn on buffer reuse
 void setDoc_BR(VTDGen *vg, UByte *ba, int len){
-	setDoc_BR(vg,ba,len,0,len);
+	setDoc_BR2(vg,ba,len,0,len);
 }
 
 //Set the XMLDoc container.Also set the offset and len of the document 
@@ -2051,7 +2051,8 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->temp_offset = 0;
 	vg->XMLDoc = ba;
 	vg->docOffset = vg->offset = os;
-	vg->docLen = len;
+	vg->docLen = docLen;
+	vg->bufLen = len;
 	vg->endOffset = os + docLen;
 	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
 	if (vg->VTDBuffer == NULL){
@@ -2100,7 +2101,8 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->temp_offset = 0;
 	vg->XMLDoc = ba;
 	vg->docOffset = vg->offset = os;
-	vg->docLen = len;
+	vg->docLen = docLen;
+	vg->bufLen =len;
 	vg->endOffset = os + docLen;
 	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
 	if (vg->docLen <= 1024) {		
