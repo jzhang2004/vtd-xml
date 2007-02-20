@@ -4,7 +4,7 @@ using System.Text;
 
 namespace com.ximpleware
 {
-    class NodeRecorder
+    public class NodeRecorder
     {
         protected VTDNav vn;
 
