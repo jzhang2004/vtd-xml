@@ -27,8 +27,8 @@ typedef struct nodeRecorder{
 	int count;	
 } NodeRecorder;
 
-NodeRecorder* createNodeRecorder();
-NodeRecorder* createNodeRecorder2(VTDNav *vn);
+NodeRecorder* createNodeRecorder2();
+NodeRecorder* createNodeRecorder(VTDNav *vn);
 void freeNodeRecorder(NodeRecorder *nr);
 void record(NodeRecorder *nr);
 void resetPointer(NodeRecorder *nr);

@@ -17,7 +17,7 @@
  */
 #include "nodeRecorder.h"
 #define BUF_SZ_EXPO 7
-NodeRecorder* createNodeRecorder(){
+NodeRecorder* createNodeRecorder2(){
 	exception e;
 	NodeRecorder *nr = (NodeRecorder*) malloc(sizeof(NodeRecorder));
 	if (nr==NULL) {
@@ -39,7 +39,7 @@ NodeRecorder* createNodeRecorder(){
 	return nr;
 }
 
-NodeRecorder* createNodeRecorder2(VTDNav *vn){
+NodeRecorder* createNodeRecorder(VTDNav *vn){
 	exception e;
 	NodeRecorder *nr;
 	if (vn==NULL){
