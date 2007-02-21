@@ -521,7 +521,7 @@ void output(XMLModifier *xm, FILE *f){
 
 	if (xm->flb->size==0){
 		k=fwrite(xm->md->XMLDoc+start,sizeof(UByte),len,f);
-		if (k!=xm->md->docLen){
+		if (k!=len){
 			throwException2(io_exception,"fwrite didn't complete");
 		}
 	}else{
