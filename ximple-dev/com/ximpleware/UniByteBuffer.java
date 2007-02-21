@@ -19,7 +19,6 @@ package com.ximpleware;
 /**
  * A simple wrapper around monolithic byte array implementing IByteBuffer interface.
  * Creation date: (11/25/03 5:05:57 PM)
- * @author: 
  */
 public class UniByteBuffer implements IByteBuffer {
     private byte[] ba;
@@ -65,7 +64,7 @@ public int length() {
 
 /**
  * Return the byte array containing the original XML document
- * @return
+ * @return byte[]
  *
  */
 public byte[] getBytes(){

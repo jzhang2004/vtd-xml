@@ -47,7 +47,6 @@ public class TextIter {
  * Get the index vals for the text nodes in document order.
  * Creation date: (12/5/03 6:11:50 PM)
  * @return int  (-1 if no more left)
- * @param action int
  */
 public int getNext() {
     if (vn == null)
@@ -318,7 +317,7 @@ final private boolean isText(int index) {
      * Obtain the current navigation position and element info from VTDNav.
      * So one can instantiate it once and use it for many different elements
      * Creation date: (12/5/03 6:20:44 PM)
-     * @param vn com.ximpleware.VTDNav
+     * @param v com.ximpleware.VTDNav
      */
     public void touch(VTDNav v) {
         if (v == null)

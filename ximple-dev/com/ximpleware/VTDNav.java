@@ -1182,7 +1182,6 @@ public class VTDNav {
 	 * Get the starting offset of the token at the given index.
 	 * @return int
 	 * @param index int
-	 * @exception
 	 */
 	final public int getTokenOffset(int index) {
 		//return (context[0] != 0)
@@ -1202,7 +1201,6 @@ public class VTDNav {
 	 * Creation date: (11/16/03 6:41:51 PM)
 	 * @return int
 	 * @param index int
-	 * @exception
 	 */
 	final public int getTokenType(int index) {
 		return (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
@@ -1323,7 +1321,7 @@ public class VTDNav {
 	 * @param en element Name
 	 * @param a context of current position
 	 * @param special whether the test type is node()
-	 * @return 
+	 * @return boolean
 	 * @throws NavException
 	 */
 	protected boolean iterate_preceding(String en, int[] a, boolean special)
@@ -1368,7 +1366,7 @@ public class VTDNav {
 	 * This function is called by selectElementNS_P in autoPilot
 	 * @param URL
 	 * @param ln
-	 * @return
+	 * @return boolean
 	 * @throws NavException
 	 */
 	protected boolean iterate_precedingNS(String URL, String ln, int[] a )
@@ -1414,7 +1412,7 @@ public class VTDNav {
 	 * 
 	 * @param en ElementName
 	 * @param special whether it is a node()
-	 * @return
+	 * @return boolean
 	 * @throws NavException
 	 */
 
@@ -1442,7 +1440,7 @@ public class VTDNav {
 	 * This function is called by selectElementNS_F in autoPilot
 	 * @param URL
 	 * @param ln
-	 * @return
+	 * @return boolean
 	 * @throws NavException
 	 */
 	protected boolean iterate_followingNS(String URL, String ln) 
@@ -1766,8 +1764,8 @@ public class VTDNav {
 	 * The behavior is the same as calling toRawString on index, then compare to s
 	 * @param index
 	 * @param s
-	 * @return
-	 * @throws NavException
+	 * @return the result of lexical comparison
+	 * @exception NavException
 	 *
 	 */
 	public int compareRawTokenString(int index, String s)
@@ -1858,7 +1856,7 @@ public class VTDNav {
 	 * as well as entity reference comparison
 	 * @param index
 	 * @param s
-	 * @return
+	 * @return int
 	 * @throws NavException
 	 *
 	 */
@@ -2505,11 +2503,12 @@ public class VTDNav {
 		else
 			throw new NumberFormatException(toString(index));
 	}
+	
 	/**
 	 * Load the context info from ContextBuffer.
 	 * Info saved including LC and current state of the context 
-	 * Creation date: (11/16/03 6:59:20 PM)
-	 * @ret boolean
+	 * @return boolean
+	 *
 	 */
 	public boolean pop() {
 		boolean b = contextStack.load(stackTemp);
@@ -2530,12 +2529,12 @@ public class VTDNav {
 		LN = stackTemp[nestingLevel+8];
 		return true;
 	}
-	
 	/**
 	 * Load the context info from contextStack2.
 	 * This method is dedicated for XPath evaluation.
-	 * @return
+	 * @return status of pop2
 	 */
+	
 	
 	protected boolean pop2(){
 
@@ -2797,7 +2796,7 @@ public class VTDNav {
      * This function returns the VTD record index of the namespace 
      * that matches the prefix of cursor element
      * @param URL
-     * @return
+     * @return int
      *
      */
     protected int lookupNS(int offset, int len){
@@ -3357,10 +3356,10 @@ public class VTDNav {
 	 * If not ns enabled, return false immediately with no position change.
 	 * @return boolean
 	 * @param direction int
-	 * @param en String     
+	 * @param URL String
+	 * @param ln String     
 	 * @exception com.ximpleware.NavException  When direction value is illegal. Or there are errors 
 	 * in underlying byte representation of the document
-	 * @exception IllegalArguementException if ln is null
 	 */
 	public boolean toElementNS(int direction, String URL, String ln)
 		throws NavException {
@@ -3582,7 +3581,7 @@ public class VTDNav {
 	 * An attribute name or an element name will get the UCS2 string of qualified name 
 	 * Creation date: (11/16/03 7:27:19 PM)
 	 * @return java.lang.String
-	 * @param int index
+	 * @param index
 	 * @exception NavException
 	 */
 	public String toString(int index) throws NavException {
@@ -3645,7 +3644,7 @@ public class VTDNav {
 	/**
 	 * Get the value of atTerminal
 	 * This function only gets called in XPath eval
-	 * @return
+	 * @return boolean
 	 */
 	protected boolean getAtTerminal(){
 		return atTerminal;

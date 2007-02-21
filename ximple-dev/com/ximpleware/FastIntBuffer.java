@@ -61,7 +61,7 @@ public class FastIntBuffer implements IIntBuffer {
     }
     /**
      * Constructor with adjustable buffer page size of the value bfz
-     * @param bfz int  is the size of the internal buffer
+     * @param e int  is the size of the internal buffer
      */
     public FastIntBuffer(int e) {
         if (e < 0) {
@@ -217,7 +217,8 @@ public int getCapacity() {
  * Returns a single int array representing every int in this buffer instance
  * @return int[]  (null if there isn't anything left in the buffer   
  * @param startingOffset int
- * @param length int
+ * @param len int
+ * @return int[]
  */
 public int[] getIntArray(int startingOffset, int len) {
     if (size <= 0 || startingOffset < 0) {
@@ -309,7 +310,6 @@ public int intAt(int index) {
  * Assigns a new int value to location index of the buffer instance.
  * @param index int
  * @param newValue int
- * @Exception  Throws IndexOutOfBoundsException
  */
 public void modifyEntry(int index, int newValue) {
 	

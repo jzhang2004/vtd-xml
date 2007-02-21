@@ -58,7 +58,7 @@ public class FastObjectBuffer implements IObjectBuffer {
    }
    /**
     * Constructor with adjustable buffer page size of the value bfz
-    * @param bfz int  is the size of the internal buffer
+    * @param e int
     */
    public FastObjectBuffer(int e) {
        if (e < 0) {
@@ -170,7 +170,7 @@ public void append(Object[] obj_array) {
 }
 /**
 * Append a single object to the end of this buffer Instance
-* @param i int
+* @param obj
 */
 public void append(Object obj) {
 
@@ -214,7 +214,8 @@ public int getCapacity() {
 * Returns a single object array representing every object in this buffer instance
 * @return Object[]  (null if there isn't anything left in the buffer   
 * @param startingOffset int
-* @param length int
+* @param len int
+* @return Object[]
 */
 public Object[] getObjectArray(int startingOffset, int len) {
    if (size <= 0 || startingOffset < 0) {
@@ -306,7 +307,6 @@ public Object objectAt(int index) {
 * Assigns a new int value to location index of the buffer instance.
 * @param index int
 * @param newValue int
-* @Exception  Throws IndexOutOfBoundsException
 */
 public void modifyEntry(int index, Object newValue) {
 	

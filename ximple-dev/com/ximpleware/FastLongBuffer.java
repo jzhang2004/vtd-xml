@@ -181,7 +181,7 @@ public void append(long[] long_array) {
 }
 /**
  * Append an integer to the end of this array buffer
- * @param a long
+ * @param i long
  */
 public void append(long i) {
    long[] lastBuffer;
@@ -224,7 +224,7 @@ public int getCapacity() {
  * Return a selected chuck of long buffer as a long array.
  * @return long[]
  * @param startingOffset int
- * @param length int
+ * @param len int
  */
 public long[] getLongArray(int startingOffset, int len) {
     if (size <= 0 || startingOffset < 0) {
@@ -310,7 +310,7 @@ public long longAt(int index) {
 /**
  * Get the lower 32 bit of the integer at the given index.
  * @return int
- * @param i int
+ * @param index int
  */
  public int lower32At(int index) {
     if (index < 0 || index > size()) {
@@ -324,7 +324,7 @@ public long longAt(int index) {
 /**
  * Modify the value at the index to a new val.
  * @param index int
- * @param value long
+ * @param newValue long
  */
 public void modifyEntry(int index, long newValue) {
 

@@ -101,8 +101,8 @@ public AutoPilot(){
 }
 /** This function creates URL ns prefix 
  *  and is intended to be called prior to selectXPath
- *  @param String prefix
- *  @param String URL
+ *  @param prefix
+ *  @param URL
  */
 
 public void declareXPathNameSpace(String prefix, String URL){
@@ -334,10 +334,8 @@ public boolean iterate() throws PilotException, NavException {
  * undefined. localname, if set to *, matches any localname Creation date:
  * (12/4/03 6:05:19 PM)
  * 
- * @param URL
- *            java.lang.String
- * @param ln
- *            java.lang.String
+ * @param ns_URL String
+ * @param ln String
  */
 public void selectElementNS(String ns_URL, String ln) {
 	if (ln == null)
@@ -508,7 +506,7 @@ public void resetXPath(){
 }
 /**
  * evalXPathToNumber() evaluates the xpath expression to a double
- * @return 
+ * @return double
  *
  */
 public double evalXPathToNumber(){
@@ -516,7 +514,7 @@ public double evalXPathToNumber(){
 }
 /**
  * evalXPathToString() evaluates the xpath expression to a String
- * @return
+ * @return String
  *
  */
 public String evalXPathToString(){
@@ -565,7 +563,7 @@ protected void setSpecial(boolean b ){
 /**
  * Convert the expression to a string
  * For debugging purpose
- * @return
+ * @return String
  */
 public String getExprString(){
 	return xpe.toString();

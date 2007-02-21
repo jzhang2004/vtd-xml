@@ -30,8 +30,8 @@ int intAt(int i);
 /**
  * Modify the int at index to value val.
  * Creation date: (11/23/03 6:16:56 PM)
- * @param a int
- * @param b int
+ * @param index int
+ * @param val int
  */
 void modifyEntry(int index, int val);
 /**

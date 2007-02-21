@@ -40,7 +40,7 @@ public class ContextBuffer{
 /**
  * ContextBuffer constructor comment.
  * inc is the # of int to be pushed/pop to/from the underlying storage
- * @param pageSize int
+ * @param i int
  */
 public ContextBuffer(int i) {
 	super();

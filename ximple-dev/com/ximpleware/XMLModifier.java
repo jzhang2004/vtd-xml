@@ -217,14 +217,15 @@ public class XMLModifier {
         flb.append( (long)offset | MASK_INSERT_BYTE);
         fob.append(content);
     }
-    
-    /**
-     * Update the token with the given byte array content,
-     * @param offset
-     * @param newContentBytes
-     *
-     */
-    
+   
+   /**
+    * Update the token with the given byte array content,
+    * @param index
+    * @param newContentBytes
+    * @throws ModifyException
+    * @throws UnsupportedEncodingException
+    *
+    */
     public void updateToken(int index, byte[] newContentBytes) 
     	throws ModifyException,UnsupportedEncodingException{
         if (newContentBytes==null)
@@ -255,15 +256,16 @@ public class XMLModifier {
         removeToken(index);        	
     }
     
-    
-    /**
-     * Update the token with the given string value,
-     * notice that string will be converted into byte array
-     * according to the encoding of the master document
-     * @param offset
-     * @param newContent
-     *
-     */
+   /**
+    * Update the token with the given string value,
+    * notice that string will be converted into byte array
+    * according to the encoding of the master document
+    * @param index
+    * @param newContent
+    * @throws ModifyException
+    * @throws UnsupportedEncodingException
+    *
+    */
     
     public void updateToken(int index, String newContent) 
     	throws ModifyException,UnsupportedEncodingException{
