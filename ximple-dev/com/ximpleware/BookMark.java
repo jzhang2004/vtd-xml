@@ -29,7 +29,8 @@ public class BookMark {
         vn1 = null;
     }
     /**
-     * BookMark contructor 
+     * bind a BookMark object to a VTDNav object
+     * the cursor position is set to an invalid state
      * @param vn
      *
      */
@@ -38,7 +39,7 @@ public class BookMark {
             throw new IllegalArgumentException("vn can't be null");
         vn1 = vn;
         ba = new int[vn.nestingLevel + 9];    
-        ba[0]= -2 ;
+        ba[0]= -2 ; // this would never happen in a VTDNav obj's context
     }
     
     /**
@@ -107,7 +108,7 @@ public class BookMark {
 		ba[vn.nestingLevel + 5]= vn.l3lower ;
 		ba[vn.nestingLevel + 6]= vn.l3upper ;
 		ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
-		ba[vn.nestingLevel + 8] = vn.LN;
+		ba[vn.nestingLevel + 8]= vn.LN;
         return true;
     }
     
@@ -133,5 +134,13 @@ public class BookMark {
         if (!(obj instanceof BookMark))
             return false;
         return deepEquals((BookMark) obj);
+    }
+    
+    public final int hashCode(){
+        if (ba == null || vn1==null || ba[0]==-2)
+            return -2;
+        if (ba[0]==1)
+            return vn1.rootIndex;
+        return ba[ba[0]];
     }
 }
