@@ -38,6 +38,7 @@ public class BookMark {
             throw new IllegalArgumentException("vn can't be null");
         vn1 = vn;
         ba = new int[vn.nestingLevel + 9];    
+        ba[0]= -2 ;
     }
     
     /**
@@ -47,7 +48,7 @@ public class BookMark {
      */
     public BookMark(VTDNav vn){
        bind(vn);
-       ba[0]=-2;
+       recordCursorPosition(vn);
     }
     
     /**
@@ -106,7 +107,7 @@ public class BookMark {
 		ba[vn.nestingLevel + 5]= vn.l3lower ;
 		ba[vn.nestingLevel + 6]= vn.l3upper ;
 		ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
-		ba[vn.nestingLevel+8] = vn.LN;
+		ba[vn.nestingLevel + 8] = vn.LN;
         return true;
     }
     
