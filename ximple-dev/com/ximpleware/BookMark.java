@@ -15,6 +15,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+
+/* BookMark is based on (and inspired by) the implementation 
+ * contributed by Rodrigo Cunha. It corresponds to a single
+ * node position of VTDNav's cursor. 
+ * 
+ * setCursorPosition(VTDNav vn) sets the node position. 
+ * 
+ * recordCursorPosition(VTDNav vn) records the node position.
+ * 
+ * BookMark(VTDNav vn) implicitly sets the node position for 
+ * the created BookMark instance.
+ */
 package com.ximpleware;
 public class BookMark {
     VTDNav vn1;
@@ -38,7 +50,7 @@ public class BookMark {
         if (vn==null)
             throw new IllegalArgumentException("vn can't be null");
         vn1 = vn;
-        ba = new int[vn.nestingLevel + 9];    
+        ba = new int[vn.nestingLevel + 8];    
         ba[0]= -2 ; // this would never happen in a VTDNav obj's context
     }
     
@@ -74,8 +86,12 @@ public class BookMark {
 		vn.l2upper = ba[vn.nestingLevel + 4];
 		vn.l3lower = ba[vn.nestingLevel + 5];
 		vn.l3upper = ba[vn.nestingLevel + 6];
-		vn.atTerminal = (ba[vn.nestingLevel + 7] == 1);
-		vn.LN = ba[vn.nestingLevel+8];
+		if (ba[vn.nestingLevel+7] < 0){
+		    vn.atTerminal = true;		    
+		} else
+		    vn.atTerminal = false;
+		
+		vn.LN = ba[vn.nestingLevel+7] & 0x7fffffff;
 		return true;
     }
     /**
@@ -107,8 +123,10 @@ public class BookMark {
 		ba[vn.nestingLevel + 4]= vn.l2upper ;
 		ba[vn.nestingLevel + 5]= vn.l3lower ;
 		ba[vn.nestingLevel + 6]= vn.l3upper ;
-		ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
-		ba[vn.nestingLevel + 8]= vn.LN;
+		//ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
+		ba[vn.nestingLevel + 7]= 
+		    (vn.atTerminal == true)? 
+		        (vn.LN | 0x80000000) : vn.LN ;
         return true;
     }
     
@@ -119,7 +137,6 @@ public class BookMark {
                 return true;
         }
         return false;
-
     }
 
     public final boolean equals(BookMark bm2) {
