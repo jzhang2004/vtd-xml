@@ -53,6 +53,14 @@ public class BookMark {
         ba = new int[vn.nestingLevel + 8];    
         ba[0]= -2 ; // this would never happen in a VTDNav obj's context
     }
+    /**
+     * This method returns the embedded VTDNav Object 
+     * @return VTDNav
+     *
+     */
+    public VTDNav getNav(){
+        return vn1;
+    }
     
     /**
      * BookMark constructor with an instance of vn
