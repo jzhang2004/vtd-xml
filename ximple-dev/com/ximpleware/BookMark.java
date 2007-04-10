@@ -16,20 +16,26 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* BookMark is based on (and inspired by) the implementation 
- * contributed by Rodrigo Cunha. It corresponds to a single
- * node position of VTDNav's cursor. 
+/* BookMark is based on (and inspired by) the concept and 
+ * implementation contributed by Rodrigo Cunha. It corresponds 
+ * to a single node position of VTDNav's cursor. 
  * 
- * setCursorPosition(VTDNav vn) sets the node position. 
+ * setCursorPosition(VTDNav vn) sets the node position of vn. 
+ * setCursorPosition() sets the node position of the BookMark object's embeddd 
+ * VTDNav object
  * 
- * recordCursorPosition(VTDNav vn) records the node position.
+ * recordCursorPosition(VTDNav vn) records the node position of the VTDNav
+ * Object.
+ * 
+ * recordCursorPosition() records the node position of the BookMark object's 
+ * embedded VTDNav object
  * 
  * BookMark(VTDNav vn) implicitly sets the node position for 
  * the created BookMark instance.
  */
 package com.ximpleware;
 public class BookMark {
-    VTDNav vn1;
+    VTDNav vn1; // the reference to the corresponding VTDNav object
     int ba[];
     /**
      * Constructor for BookMark
@@ -50,9 +56,11 @@ public class BookMark {
         if (vn==null)
             throw new IllegalArgumentException("vn can't be null");
         vn1 = vn;
-        ba = new int[vn.nestingLevel + 8];    
+        if (ba == null || vn.nestingLevel+8 != ba.length)
+            ba = new int[vn.nestingLevel + 8];    
         ba[0]= -2 ; // this would never happen in a VTDNav obj's context
     }
+    
     /**
      * This method returns the embedded VTDNav Object 
      * @return VTDNav
@@ -73,7 +81,7 @@ public class BookMark {
     }
     
     /**
-     * setCursorPosition
+     * set cursor position
      * This method can only set the cursor position
      * of an VTDNav object identical to its internal copy 
      * @param vn
@@ -102,8 +110,18 @@ public class BookMark {
 		vn.LN = ba[vn.nestingLevel+7] & 0x7fffffff;
 		return true;
     }
+    
     /**
-     * Record Cursor position
+     * Set the cursor position of VTDNav object corresponding to the internal reference
+     * position of the embedded VTDNav object 
+     * @return
+     *
+     */
+    public boolean setCursorPostion(){
+        return setCursorPosition(vn1);
+    }
+    /**
+     * Record the cursor position
      * This method is implemented to be lenient on loading in
      * that it can load nodes from any VTDNav object
      * if vn is null, return false
@@ -137,8 +155,16 @@ public class BookMark {
 		        (vn.LN | 0x80000000) : vn.LN ;
         return true;
     }
-    
-      
+    /**
+     * Record cursor position of the VTDNav object as embedded in the
+     * bookmark
+     *   
+     * @return
+     *
+     */
+    public boolean recordCursorPosition(){
+        return recordCursorPosition(vn1);
+    }
     public final boolean deepEquals(BookMark bm2) {
         if (bm2.vn1 == this.vn1){
             if (bm2.ba[bm2.ba[0]]==this.ba[this.ba[0]])
