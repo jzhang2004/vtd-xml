@@ -23,6 +23,7 @@ import com.ximpleware.parser.*;
 
 %%
 %cup
+%unicode
 %extends sym
 %yylexthrow XPathParseException
 
