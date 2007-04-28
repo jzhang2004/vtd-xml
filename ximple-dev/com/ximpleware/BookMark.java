@@ -46,6 +46,16 @@ public class BookMark {
         ba = null;
         vn1 = null;
     }
+    
+    /**
+     * separate a bookMark object apart from its embedded
+     * VTDNav instance 
+     *
+     */
+    public void unbind(){
+        vn1 = null;
+    }
+    
     /**
      * bind a BookMark object to a VTDNav object
      * the cursor position is set to an invalid state
