@@ -205,20 +205,13 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->nestingLevel = depth +1;
 
 						 vn->ns = ns;
-#if BIG_ENDIAN
 
 						 if (ns == TRUE)
 							 vn->offsetMask = MASK_TOKEN_OFFSET1;
 						 else 
 							 vn->offsetMask = MASK_TOKEN_OFFSET2;
 
-#else 
-						 if (ns == TRUE)
-							 vn->offsetMask = MASK_TOKEN_OFFSET3;
-						 else 
-							 vn->offsetMask = MASK_TOKEN_OFFSET4;
 
-#endif
 
 						 vn->atTerminal = FALSE;
 						 vn->context = (int *)malloc(vn->nestingLevel*sizeof(int));
@@ -777,12 +770,8 @@ int getText(VTDNav *vn){
 //Get the depth value of a token (>=0)
 int getTokenDepth(VTDNav *vn, int index){
 	int i;
-#if BIG_ENDIAN
 	i = (int) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_DEPTH) >> 52);
-#else
-	i = (int) longAt(vn->vtdBuffer,index);
-	i = ((i & 0x0f) << 4) | ((i & 0xf000)>> 12); 
-#endif
+
 	if (i != 255)
 		return i;
 	return -1;
@@ -802,7 +791,7 @@ int getTokenLength(VTDNav *vn, int index){
 			case TOKEN_ATTR_NS :
 			case TOKEN_STARTING_TAG :
 				i = longAt(vn->vtdBuffer, index);
-#if BIG_ENDIAN
+
 				return (vn->ns == FALSE)
 					? (int) ((i & MASK_TOKEN_QN_LEN) >> 32)
 					: ((int) ((i & MASK_TOKEN_QN_LEN)
@@ -810,25 +799,18 @@ int getTokenLength(VTDNav *vn, int index){
 					| ((int) ((i & MASK_TOKEN_PRE_LEN)
 					>> 32)
 					<< 5));
-#else
-				j = swap_bytes(i);
-				return (vn->ns== FALSE)
-					? j & 0xfffff
-					: ((j & 0xff800) << 5) | (j & 0x7ff);
-#endif
+
 				break;
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
 			case TOKEN_COMMENT: // make sure this is total length
 				depth = getTokenDepth(vn,index);
 				do{
-#if BIG_ENDIAN
+
 					len = len +  (int)
 						((longAt(vn->vtdBuffer, index) 
 						& MASK_TOKEN_FULL_LEN) >> 32);
-#else
-					len = len + (swap_bytes(longAt(vn->vtdBuffer, index)) & 0xfffff);
-#endif
+
 					index++;						
 				}
 				while(index < vn->vtdSize && depth == getTokenDepth(vn,index) 
@@ -836,12 +818,10 @@ int getTokenLength(VTDNav *vn, int index){
 				//if (int k=0)
 				return len;
 			default :
-#if BIG_ENDIAN
+
 				return (int)
 					((longAt(vn->vtdBuffer,index) & MASK_TOKEN_FULL_LEN) >> 32);
-#else
-				return swap_bytes(longAt(vn->vtdBuffer, index)) & 0xfffff;
-#endif
+
 				break;
 	}
 }
@@ -916,25 +896,15 @@ Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName){
 
 //Test the token type, to see if it is a starting tag.
 static inline Boolean isElement(VTDNav  *vn, int index){
-#if BIG_ENDIAN
 	return (((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
 		== TOKEN_STARTING_TAG;
-#else
-	return ( ((longAt(vn->vtdBuffer,index) & 0xf0)>>4) == TOKEN_STARTING_TAG );
-#endif
 }
 
 // Test the token type, to see if it is a starting tag or document token
 static inline Boolean isElementOrDocument(VTDNav  *vn, int index){
 	int i = 0;
-#if BIG_ENDIAN		 
-	i= (int)(((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
+ 	i= (int)(((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
 	return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
-#else
-	i = ( ((longAt(vn->vtdBuffer,index) & 0xf0)>>4));
-	return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
-#endif
-
 }
 
 //Test whether ch is a white space character or not.
@@ -1205,11 +1175,7 @@ static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCSChar *s){
 	" invalid argument for matchRawTokenString2, s can't be NULL");
 	}*/
 	//throw new IllegalArgumentException("string can't be null");
-#if BIG_ENDIAN
 	len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 32);
-#else
-	len = swap_bytes(l>>32) & 0xfffff;
-#endif
 	// a little hardcode is always bad
 	offset = (int) l;
 	return compareRawTokenString2(vn, offset, len, s)==0;
@@ -1301,11 +1267,9 @@ static Boolean matchTokenString2(VTDNav *vn, Long l, UCSChar *s){
 			" invalid argument for matchTokenString2, s can't be NULL");
 	}
 	//	 throw new IllegalArgumentException("string can't be null");
-#if BIG_ENDIAN
+
 	len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 32);
-#else
-	len = swap_bytes(l>>32) & 0xfffff;
-#endif						 // a little hardcode is always bad
+						 // a little hardcode is always bad
 	offset = (int) l;
 	return matchRawTokenString1(vn,offset, len, s);
 }
@@ -1341,11 +1305,7 @@ Boolean matchTokenString(VTDNav *vn, int index, UCSChar *s){
 
 //Evaluate the namespace indicator in bit 31 and bit 30.
 static inline int NSval(VTDNav *vn, int i){
-#if BIG_ENDIAN
 	return (int) (longAt(vn->vtdBuffer,i) & MASK_TOKEN_NS_MARK);
-#else
-	return (int) (longAt(vn->vtdBuffer,i) & MASK_TOKEN_NS_MARK_LE);
-#endif
 }
 
 //Convert a vtd token into a double.
@@ -2293,22 +2253,17 @@ Boolean toElement(VTDNav *vn, navDir direction){
 					while (index < size) {
 						Long temp = longAt(vn->vtdBuffer,index);
 						int token_type;
-#if BIG_ENDIAN
+
 						token_type =
 							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
-#else
-						token_type = ((int)temp & 0xf0) >> 4;
-#endif
+
 
 						if (token_type == TOKEN_STARTING_TAG) {
-#if BIG_ENDIAN
+
 							int depth =
 								(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-#else
-							int depth = (((int) temp & 0x0f)<<4)
-								| (((int) temp & 0xf000)>> 12);
-#endif
+
 							if (depth <= vn->context[0]) {
 								return FALSE;
 							} else if (depth == (vn->context[0] + 1)) {
@@ -2329,20 +2284,16 @@ Boolean toElement(VTDNav *vn, navDir direction){
 						Long temp = longAt(vn->vtdBuffer,index);
 						int token_type;
 						int depth;
-#if BIG_ENDIAN
+
 						depth =
 							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-#else
-						depth = (((int)temp & 0x0f) <<4) | (((int) temp & 0xf000) >> 12);
-#endif
 
-#if BIG_ENDIAN
+
+
 						token_type =
 							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
-#else
-						token_type = ((int)temp & 0xf0) >> 4;
-#endif
+
 						if (token_type == TOKEN_STARTING_TAG) {
 							if (depth <= vn->context[0]) {
 								break;
@@ -2421,21 +2372,15 @@ Boolean toElement(VTDNav *vn, navDir direction){
 					while (index < size) {
 						Long temp = longAt(vn->vtdBuffer,index);
 						int token_type;
-#if BIG_ENDIAN
+
 						token_type =
 							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
-#else
-						token_type = ((int) temp & 0xf0) >> 4;
-#endif
+
 						if (token_type == TOKEN_STARTING_TAG) {
-#if BIG_ENDIAN
 							int depth =
 								(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-#else
-							int depth = (((int)temp & 0x0f) <<4) 
-								| (((int) temp & 0xf000) >> 12);
-#endif
+
 							if (depth < vn->context[0]) {
 								return FALSE;
 							} else if (depth == (vn->context[0])) {
@@ -2451,21 +2396,16 @@ Boolean toElement(VTDNav *vn, navDir direction){
 					while (index > vn->context[vn->context[0] - 1]) {
 						// scan backforward
 						Long temp =longAt(vn->vtdBuffer,index);
-#if BIG_ENDIAN
+
 						tokenType token_type =
 							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
-#else
-						tokenType token_type =
-							((int) temp & 0xf0)>>4;
-#endif
+
 						if (token_type == TOKEN_STARTING_TAG) {
-#if BIG_ENDIAN
+
 							int depth =
 								(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-#else			
-							int depth = (((int)temp & 0x0f) <<4) | (((int) temp & 0xf000) >> 12);
-#endif
+
 							/*if (depth < vn->context[0]) {
 							return false;
 							} else */
@@ -2917,11 +2857,9 @@ UCSChar *toString2(VTDNav *vn, int os, int len){
 //Get the starting offset of the token at the given index.
 
 int getTokenOffset(VTDNav *vn, int index){
-#if BIG_ENDIAN
+
 	return (int) (longAt(vn->vtdBuffer,index) & vn->offsetMask);
-#else
-	return swap_bytes((int)((longAt(vn->vtdBuffer,index) & vn->offsetMask) >> 32));
-#endif
+
 }
 // Get the XML document 
 UByte* getXML(VTDNav *vn){
@@ -2930,11 +2868,7 @@ UByte* getXML(VTDNav *vn){
 
 //Get the token type of the token at the given index value.
 tokenType getTokenType(VTDNav *vn, int index){
-#if BIG_ENDIAN
 	return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
-#else
-	return (tokenType) ((longAt(vn->vtdBuffer, index) & 0xf0) >> 4);
-#endif
 }
 
 //Get the depth (>=0) of the current element.
@@ -3088,15 +3022,10 @@ static int lookupNS2(VTDNav *vn, int offset, int len){
 							if (temp == 5 && len == 0) {
 								l = longAt(vn->vtdBuffer,s);
 								hasNS = FALSE;
-#if BIG_ENDIAN
+
 								modifyEntryFLB(vn->vtdBuffer,
 									s,
 									l | 0x00000000c0000000L);
-#else
-								modifyEntryFLB(vn->vtdBuffer,
-									s,
-									l | 0x000000c000000000L);
-#endif
 								return k+1;
 							} else if ((fullLen - preLen - 1) == len) {
 								// prefix length identical to local part of ns declaration
@@ -3112,15 +3041,11 @@ static int lookupNS2(VTDNav *vn, int offset, int len){
 								if (a == TRUE) {
 									l = longAt(vn->vtdBuffer,s);
 									//hasNS = false;
-#if BIG_ENDIAN
+
 									modifyEntryFLB(vn->vtdBuffer,
 										s,
 										l | 0x00000000c0000000L);
-#else
-									modifyEntryFLB(vn->vtdBuffer,
-										s,
-										l | 0x000000c000000000L);
-#endif
+
 									return k+1;
 								}
 							}
@@ -3132,21 +3057,14 @@ static int lookupNS2(VTDNav *vn, int offset, int len){
 						type = getTokenType(vn,k);
 					}
 					l = longAt(vn->vtdBuffer, s);
-#if BIG_ENDIAN
+
 					if (hasNS) {
 						hasNS = FALSE;
 						modifyEntryFLB(vn->vtdBuffer, s, l | 0x00000000c0000000L);
 					} else {
 						modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000000080000000L);
 					}
-#else
-					if (hasNS) {
-						hasNS = FALSE;
-						modifyEntryFLB(vn->vtdBuffer, s, l | 0x000000c000000000L);
-					} else {
-						modifyEntryFLB(vn->vtdBuffer, s, l | 0x0000008000000000L);
-					}
-#endif
+
 					break;
 		}
 	}

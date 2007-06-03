@@ -1986,7 +1986,8 @@ void parse(VTDGen *vg, Boolean ns){
 	Catch (e) {
 		if (parser_state != STATE_DOC_END 
 			|| e.subtype == -1){
-				printLineNumber(vg);		
+				printLineNumber(vg);
+				printf("\n Last Offset val ===> %d \n",vg->offset);
 				Throw e;
 		}
 		finishUp(vg);
@@ -2203,60 +2204,36 @@ static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, i
 				if (length > MAX_TOKEN_LENGTH) {
 					int k;
 					int r_offset = offset;
-#if BIG_ENDIAN
 					Long l = ((Long)((token_type << 28)
 						| ((depth & 0xff) << 20) 
 						| MAX_TOKEN_LENGTH) << 32);
-#else
-					Long l = ((Long)(token_type << 4)
-						| (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-						| swap_bytes(MAX_TOKEN_LENGTH));
-#endif
+
 					for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
-#if BIG_ENDIAN
+
 						appendLong(vg->VTDBuffer, l | r_offset);
-#else
-						appendLong(vg->VTDBuffer, l | (((Long)swap_bytes(r_offset))<< 32));
-#endif
+
 						r_offset += MAX_TOKEN_LENGTH;
 					}
-#if BIG_ENDIAN
+
 
 					appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
 						| ((depth & 0xff) << 20) | k) << 32)
 						| r_offset);
-#else
-					appendLong(vg->VTDBuffer,((Long) ((token_type << 4)
-						|(((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-						| swap_bytes(k))
-						| (((Long)swap_bytes(r_offset)) << 32)));
-#endif
+
 				} else {
-#if BIG_ENDIAN
+
 					appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
 						| ((depth & 0xff) << 20) | length) << 32)
 						| offset);
-#else
-					appendLong(vg->VTDBuffer,((Long) ((token_type << 4)
-						|(((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-						| swap_bytes(length))
-						| (((Long)swap_bytes(offset)) << 32)));
-#endif
+
 				}
 				break;
 			default:
-#if BIG_ENDIAN
 
 				appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
 					| ((depth & 0xff) << 20) | length) << 32)
 					| offset);
-#else
-				appendLong(vg->VTDBuffer,((Long) ((token_type << 4)
-					|(((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-					| swap_bytes(length))
-					| (((Long)swap_bytes(offset)) << 32)));
 
-#endif
 				break;
 	}
 
@@ -2270,61 +2247,40 @@ static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, i
 					break;
 				case 1 :
 					if (vg->last_depth == 1) {
-#if BIG_ENDIAN
+
 						appendLong(vg->l1Buffer,
 							((Long) vg->last_l1_index << 32) | 0xffffffffL);
-#else
-						appendLong(vg->l1Buffer,
-							((Long) vg->last_l1_index << 32) | 0xffffffffL);
-#endif
+
 					} else if (vg->last_depth == 2) {
-#if BIG_ENDIAN
+
 						appendLong(vg->l2Buffer,
 							((Long) vg->last_l2_index << 32) | 0xffffffffL);
-#else
-						appendLong(vg->l2Buffer,
-							((Long) vg->last_l2_index << 32) | 0xffffffffL);
-#endif
+
 					}
 					vg->last_l1_index = vg->VTDBuffer->size - 1;
 					vg->last_depth = 1;
 					break;
 				case 2 :
 					if (vg->last_depth == 1) {
-#if BIG_ENDIAN
 						appendLong(vg->l1Buffer,
 							((Long) vg->last_l1_index << 32) + vg->l2Buffer->size);
-#else
-						appendLong(vg->l1Buffer,
-							((Long) vg->last_l1_index << 32) + vg->l2Buffer->size);
-#endif
+
 					} else if (vg->last_depth == 2) {
-#if BIG_ENDIAN
 						appendLong(vg->l2Buffer,
 							((Long) vg->last_l2_index << 32) | 0xffffffffL);
-#else
-						appendLong(vg->l2Buffer,
-							((Long) vg->last_l2_index << 32) | 0xffffffffL);
-#endif
+
 					}
 					vg->last_l2_index = vg->VTDBuffer->size - 1;
 					vg->last_depth = 2;
 					break;
 
 				case 3 :
-#if BIG_ENDIAN
 					appendInt(vg->l3Buffer, vg->VTDBuffer->size - 1);
 					if (vg->last_depth == 2) {
 						appendLong(vg->l2Buffer,
 							((Long)vg->last_l2_index << 32) + vg->l3Buffer->size - 1);
 					}
-#else
-					appendInt(vg->l3Buffer, vg->VTDBuffer->size - 1);
-					if (vg->last_depth == 2) {
-						appendLong(vg->l2Buffer,
-							((Long)vg->last_l2_index << 32) + vg->l3Buffer->size - 1);
-					}
-#endif
+
 					vg->last_depth = 3;
 					break;
 				default :					
@@ -3274,6 +3230,9 @@ static int process_end_doc(VTDGen *vg){
 				return STATE_END_COMMENT;
 		}
 	}
+	printf("**********************\n");
+	printf(" char is %i \n", vg->ch);
+	printf("**********************\n");
 	throwException(parse_exception,-1,
 		"Parse exception in parse()",
 		"Other Error: XML not terminated properly");
