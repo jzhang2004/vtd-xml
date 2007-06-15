@@ -140,7 +140,7 @@ namespace com.ximpleware
         /// <returns>
         /// 
         /// </returns>
-        public bool setCursorPostion()
+        public bool setCursorPosition()
         {
             return setCursorPosition(vn1);
         }
