@@ -56,6 +56,9 @@ void bind4BookMark(BookMark *bm, VTDNav *vn){
             throwException2(invalid_argument,"vn can't be null");
         bm->vn1 = vn;
 		if (bm->ba == NULL || vn->nestingLevel+8 != bm->ba_len){
+			if (vn->nestingLevel+8 != bm->ba_len){
+				free(bm->ba);
+			}
             bm->ba = malloc(sizeof(int)*(vn->nestingLevel + 8)); 
 			if (bm->ba == NULL){
 				throwException2(out_of_mem,
