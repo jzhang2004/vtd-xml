@@ -260,7 +260,7 @@ VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
 						 vn->vtdSize = vtd->size;
 						 vn->bufLen = xLen;
 						 vn->br = br;
-
+						 vn->LN = 0;
 						 return vn;
 }
 
