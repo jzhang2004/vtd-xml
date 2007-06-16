@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:rss="http://purl.org/rss/1.0/" xmlns="http://purl.org/rss/1.0/">
+   <channel rdf:about="http://www.nwfusion.com/topics/servers.html">
+      <title>Network World on Servers</title>
+      <link>http://www.nwfusion.com/topics/servers.html</link>
+      <description>The latest server news, analysis, reviews and feature articles from Network World Fusion.</description>
+      <dc:publisher>Network World, Inc.</dc:publisher>
+      <dc:rights>Copyright(C) 1994 - 2003 Network World, Inc.</dc:rights>
+      <image rdf:resource="http://www.nwfusion.com/redesign2/logorss.gif"/>
+      <items>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0614amd.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0614rlxupdat.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0614dell.html"/>
+         </rdf:Seq>
+	 <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0610hpblades.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0610hpplans.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0607infrabriefs.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0607sunqna.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0601sunfujit.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0531environmental.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/news/2004/0531toocool.html"/>
+         </rdf:Seq>
+         <rdf:Seq>
+            <rdf:li resource="http://www.nwfusion.com/CNDC/RSS"/>
+         </rdf:Seq>
+      </items>
+   </channel>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0614amd.html">
+      <title>AMD readies dual-core Opteron</title>
+      <link>http://www.nwfusion.com/news/2004/0614amd.html</link>
+      <description>AMD Monday reiterated plans to ship dual-core Opteron processors for servers and workstations next year, saying it had finalized design of the chips that would show up in systems by mid-2005.</description>
+      <dc:creator>Jennifer Mears</dc:creator>
+      <dc:date>2004-06-14T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0614rlxupdat.html">
+      <title>RLX updates management software</title>
+      <link>http://www.nwfusion.com/news/2004/0614rlxupdat.html</link>
+      <description>RLX Technologies next month plans to release a major upgrade of its Control Tower server management software designed to simplify the task of monitoring and reprovisioning blade and 1U servers.</description>
+      <dc:creator>Robert McMillan</dc:creator>
+      <dc:date>2004-06-14T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0614dell.html">
+      <title>Dell tries 4-way Itanium again</title>
+      <link>http://www.nwfusion.com/news/2004/0614dell.html</link>
+      <description>Dell is expanding its 64-bit server line with a new, four-processor Itanium 2 server aimed at high-performance workloads such as databases, engineering clusters and heavy-duty ERP applications.</description>
+      <dc:creator/>
+      <dc:date>2004-06-14T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0610hpblades.html">
+      <title>HP ships dense blade server</title>
+      <link>http://www.nwfusion.com/news/2004/0610hpblades.html</link>
+      <description>Businesses looking to pack even more processing power into their data centers now have access to the BL30p, HP’s densest blade server yet.</description>
+      <dc:creator>Jennifer Mears</dc:creator>
+      <dc:date>2004-06-10T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0610hpplans.html">
+      <title>HP plans Itanium blade</title>
+      <link>http://www.nwfusion.com/news/2004/0610hpplans.html</link>
+      <description>Just days after NEC announced plans to ship blade servers based on Intel's Itanium 2 microprocessor, HP Thursday confirmed that it too expects to ship blade systems based on the 64-bit chips.</description>
+      <dc:creator>Robert McMillan</dc:creator>
+      <dc:date>2004-06-10T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0607infrabriefs.html">
+      <title>In brief: Dell rolls out database servers</title>
+      <link>http://www.nwfusion.com/news/2004/0607infrabriefs.html</link>
+      <description>Plus: Sun, Fujitsu to meld Sparc server lines.</description>
+      <dc:creator/>
+      <dc:date>2004-06-07T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0607sunqna.html">
+      <title>Sun CTO talks interconnects</title>
+      <link>http://www.nwfusion.com/news/2004/0607sunqna.html</link>
+      <description>On the eve of Sun's quarterly product announcements last week, Network World Senior Editor Deni Connor spoke with Balint Fleisher, CTO for Sun's storage division about the company's future direction for a number of popular server/storage interconnects and I/O products.</description>
+      <dc:creator>Deni Connor</dc:creator>
+      <dc:date>2004-06-07T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0601sunfujit.html">
+      <title>Sun, Fujitsu to merge Sparc server product lines</title>
+      <link>http://www.nwfusion.com/news/2004/0601sunfujit.html</link>
+      <description>Sun and Fujitsu are to merge their Sparc-based server product lines by 2006, expanding a longstanding partnership between the two companies, company officials said Tuesday.</description>
+      <dc:creator>Robert McMillan</dc:creator>
+      <dc:date>2004-06-01T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0531environmental.html">
+      <title>Users also taking steps to dial down server heat</title>
+      <link>http://www.nwfusion.com/news/2004/0531environmental.html</link>
+      <description>As server vendors roll out systems that are increasingly powerful - and increasingly small - IT managers need to consider the heat output and power demands of new configurations that pack more processing power into less space.</description>
+      <dc:creator>Deni Connor,Jennifer Mears</dc:creator>
+      <dc:date>2004-05-31T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/news/2004/0531toocool.html">
+      <title>Big chill for chips</title>
+      <link>http://www.nwfusion.com/news/2004/0531toocool.html</link>
+      <description>HP, Intel and a handful of start-ups are among those working feverishly to keep ever-more-powerful server processors from becoming too hot to handle.</description>
+      <dc:creator>Deni Connor</dc:creator>
+      <dc:date>2004-05-31T00:00:00Z</dc:date>
+   </item>
+   <item rdf:about="http://www.nwfusion.com/CNDC/RSS">
+      <title>Is your data center ready for tomorrow's applications?</title>
+      <link>http://www.nwfusion.com/CNDC/RSS</link>
+      <description>Click here to see what Gartner, Network World and other experts say about the new data center.</description>
+      <dc:creator/>
+      <dc:date>2004-04-12T00:00:00Z</dc:date>
+   </item>
+</rdf:RDF>

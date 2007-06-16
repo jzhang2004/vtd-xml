@@ -1,0 +1,21 @@
+<m:reservation xmlns:m="http://travelcompany.example.org/reservation" 
+     env:role="http://www.w3.org/2003/05/soap-envelope/role/next"
+        env:mustUnderstand="true">
+   <m:reference>uuid:093a2da1-q345-739r-ba5d-pqff98fe8j7d</m:reference>
+   <m:dateAndTime>2001-11-29T13:20:00.000-05:00</m:dateAndTime>
+  </m:reservation>
+=========
+<n:passenger xmlns:n="http://mycompany.example.com/employees"
+     env:role="http://www.w3.org/2003/05/soap-envelope/role/next"
+       env:mustUnderstand="true">
+   <n:name>Whoever</n:name>
+  </n:passenger>
+=========
+<z:travelPolicy 
+    xmlns:z="http://mycompany.example.com/policies" 
+      env:mustUnderstand="true">
+   <z:class>economy</z:class>
+   <z:fareBasis>non-refundable</z:fareBasis>
+   <z:exceptions>none</z:exceptions>
+  </z:travelPolicy>
+=========
