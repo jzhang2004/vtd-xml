@@ -16,7 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
-
+/**
+ * 
+ * IndexWriteException is thrown when there are exception
+ * condition when wrting VTD+XML index
+ */
 public class IndexWriteException extends Exception {
     public IndexWriteException(String s){
         super(s);

@@ -18,10 +18,9 @@
 package com.ximpleware;
 
 /**
- * @author jimmy zhang
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * 
+ * IndexReadException is thrown when there are exception 
+ * conditions during index loading
  */
 public class IndexReadException extends Exception {
     public IndexReadException(String s){
