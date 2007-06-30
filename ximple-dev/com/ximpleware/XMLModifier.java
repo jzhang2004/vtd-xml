@@ -49,6 +49,12 @@ public class XMLModifier {
     protected intHash insertHash;   // one insert per offset val
     protected String charSet;
     int encoding;
+    
+    public class ByteSegment{
+        byte[] ba;
+        int offset;
+        int len;
+    }
     /**
      * Constructor for XMLModifier that takes VTDNav object as the master document
      * @param masterDocument is the document on which the modification is applied
@@ -204,7 +210,7 @@ public class XMLModifier {
     }
     
     /**
-     * 
+     * insert the content into XML
      * @param offset
      * @param content
      *
@@ -216,6 +222,62 @@ public class XMLModifier {
         }
         flb.append( (long)offset | MASK_INSERT_BYTE);
         fob.append(content);
+    }
+    
+    /**
+     * Insert a segment of the content into XML
+     * @param offset
+     * @param content
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     *
+     */
+    private void insertBytesAt(int offset, byte[] content, int contentOffset, int contentLen) 
+    throws ModifyException {
+        if (insertHash.isUnique(offset)==false){
+            throw new ModifyException("There can be only one insert per offset");
+        }
+        if (contentOffset < 0 
+                || contentLen <0 
+                || contentOffset+contentLen >= content.length){
+            throw new ModifyException("Invalid contentOffset and/or contentLen");
+        }
+        flb.append( (long)offset | MASK_INSERT_SEGMENT_BYTE);
+        ByteSegment bs = new ByteSegment();
+        bs.ba = content;
+        bs.len = contentLen;
+        bs.offset = contentOffset;
+       
+        fob.append(bs);
+    }
+    /**
+     * Insert a segment of content into XML
+     * l (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param offset
+     * @param content
+     * @param l
+     * @throws ModifyException
+     *
+     */
+    private void insertBytesAt(int offset, byte[] content, long l)
+    throws ModifyException {
+        if (insertHash.isUnique(offset)==false){
+            throw new ModifyException("There can be only one insert per offset");
+        }
+        int contentOffset = (int)l;
+        int contentLen = (int)(l>>32); 
+        if (contentOffset < 0 
+                || contentLen <0 
+                || contentOffset+contentLen >= content.length){
+            throw new ModifyException("Invalid contentOffset and/or contentLen");
+        }
+        flb.append( (long)offset | MASK_INSERT_SEGMENT_BYTE);
+        ByteSegment bs = new ByteSegment();
+        bs.ba = content;
+        bs.len = contentLen;
+        bs.offset = contentOffset;
+        fob.append(bs);
     }
    
    /**
@@ -330,11 +392,10 @@ public class XMLModifier {
                             +os1 + " and offset "+os2);
             }
         }
-    
-        
     }
+    
     /**
-     * This method will first call etCurrentIndex() to get the cursor index value
+     * This method will first call getCurrentIndex() to get the cursor index value
      * then insert the byte array b after the element
      * @param b  the byte array to be inserted into the master document
      *
@@ -349,6 +410,52 @@ public class XMLModifier {
         int offset = (int)l;
         int len = (int)(l>>32);
         insertBytesAt(offset+len,b);
+    }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert a segment of the byte array b after the element
+     * @param b
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     *
+     */
+    public void insertAfterElement(byte[] b, int contentOffset, int contentLen)
+            throws ModifyException, UnsupportedEncodingException, NavException {
+        int startTagIndex = md.getCurrentIndex();
+        int type = md.getTokenType(startTagIndex);
+        if (type != VTDNav.TOKEN_STARTING_TAG)
+            throw new ModifyException("Token type is not a starting tag");
+        long l = md.getElementFragment();
+        int offset = (int) l;
+        int len = (int) (l >> 32);
+        insertBytesAt(offset + len, b, contentOffset, contentLen);
+    }
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert a segment of the byte array b after the element,
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param b
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     *
+     */
+    public void insertAfterElement(byte[] b, long l1) throws ModifyException,
+            UnsupportedEncodingException, NavException {
+        int startTagIndex = md.getCurrentIndex();
+        int type = md.getTokenType(startTagIndex);
+        if (type != VTDNav.TOKEN_STARTING_TAG)
+            throw new ModifyException("Token type is not a starting tag");
+        long l = md.getElementFragment();
+        int offset = (int) l;
+        int len = (int) (l >> 32);
+        insertBytesAt(offset + len, b, l1);
     }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
@@ -370,7 +477,7 @@ public class XMLModifier {
     
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
-     * then insert the byte value of s before the element
+     * then insert the byte array b before the element
      * @param b the byte array to be inserted into the master document
      *
      */
@@ -387,6 +494,55 @@ public class XMLModifier {
             insertBytesAt(offset,b);
         else
             insertBytesAt((offset)<<1,b);        
+    }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert a segment of the byte array b before the element
+     * @param b
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     *
+     */
+    public void insertBeforeElement(byte[] b,int contentOffset, int contentLen) throws ModifyException,
+            UnsupportedEncodingException {
+        int startTagIndex = md.getCurrentIndex();
+        int type = md.getTokenType(startTagIndex);
+        if (type != VTDNav.TOKEN_STARTING_TAG)
+            throw new ModifyException("Token type is not a starting tag");
+
+        int offset = md.getTokenOffset(startTagIndex) - 1;
+
+        if (encoding < VTDNav.FORMAT_UTF_16BE)
+            insertBytesAt(offset, b, contentOffset, contentLen);
+        else
+            insertBytesAt((offset) << 1, b, contentOffset, contentLen);
+    }
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert a segment of the byte array b before the element
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param b
+     * @param l1
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     *
+     */
+    public void insertBeforeElement(byte[] b, long l1) throws ModifyException,
+            UnsupportedEncodingException {
+        int startTagIndex = md.getCurrentIndex();
+        int type = md.getTokenType(startTagIndex);
+        if (type != VTDNav.TOKEN_STARTING_TAG)
+            throw new ModifyException("Token type is not a starting tag");
+
+        int offset = md.getTokenOffset(startTagIndex) - 1;
+
+        if (encoding < VTDNav.FORMAT_UTF_16BE)
+            insertBytesAt(offset, b, l1);
+        else
+            insertBytesAt((offset) << 1, b, l1);
     }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
@@ -493,24 +649,34 @@ public class XMLModifier {
                     inc = 1;
                 l = flb.longAt(i);
                 if (inc == 1){                    
-                    if ((l & (~0x1fffffffffffffffL)) == XML_DELETE){
+                    if ((l & (~0x1fffffffffffffffL)) == MASK_DELETE){
                         os.write(ba,offset, flb.lower32At(i)-offset);
                         offset = flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff);
-                    }else { // insert
+                    }else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE ) { // insert
                         os.write(ba,offset, flb.lower32At(i)-offset);
                         os.write((byte[])fob.objectAt(i));                       
                         offset=flb.lower32At(i);
+                    } else { // XML_INSERT_SEGMENT_BYTE
+                        os.write(ba,offset, flb.lower32At(i)-offset);
+                        ByteSegment bs = (ByteSegment) fob.objectAt(i);
+                        os.write(bs.ba,bs.offset,bs.len);
+                        offset=flb.lower32At(i);
                     }
                 } else {
-                    if ((l & (~0x1fffffffffffffffL)) == XML_DELETE){
+                    if ((l & (~0x1fffffffffffffffL)) == MASK_DELETE){
                         os.write(ba,offset, flb.lower32At(i)-offset);
                         os.write((byte[])fob.objectAt(i+1));
                         offset = flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff);
-                    }else{
+                    }else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE ){ // insert
                         os.write(ba,offset, flb.lower32At(i+1)-offset);
                         os.write((byte[])fob.objectAt(i));
                         offset = flb.lower32At(i+1) + (flb.upper32At(i+1) & 0x1fffffff);
-                    }                    
+                    } else {// XML_INSERT_SEGMENT_BYTE
+                        os.write(ba,offset, flb.lower32At(i+1)-offset);
+                        ByteSegment bs = (ByteSegment) fob.objectAt(i);
+                        os.write(bs.ba,bs.offset,bs.len);
+                        offset = flb.lower32At(i+1) + (flb.upper32At(i+1) & 0x1fffffff);
+                    }
                 }
             }  
             os.write(ba,offset,start+len-offset);
