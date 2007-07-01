@@ -393,7 +393,27 @@ public class XMLModifier {
             }
         }
     }
-    
+    /**
+     * Compute the size of the updated XML document
+     * @return
+     *
+     */
+    public int getUpdatedDocumentSize(){
+        int size = flb.size();
+        int docSize = md.getXML().getBytes().length;
+        long l;
+        for (int i=0;i<size;i++){
+            l= flb.longAt(i);
+            if ((l & (~0x1fffffffffffffffL)) == MASK_DELETE) {
+                docSize -= (int) ((l & (0x1fffffffffffffffL))>> 32);
+            } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE){
+                docSize += ((byte[])fob.objectAt(i)).length;
+            } else { // MASK_INSERT_SEGMENT_BYTE
+                docSize += ((ByteSegment)fob.objectAt(i)).len;
+            }
+        }
+        return docSize;
+    }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert the byte array b after the element
