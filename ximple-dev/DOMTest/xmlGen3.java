@@ -1,8 +1,5 @@
 /*
- * Created on Nov 26, 2004
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * generate random xml with namespaces
  */
 package DOMTest;
 
@@ -10,12 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 
-/**
- * @author jimmy zhang
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+
 public class xmlGen3 {
 	public final static String testDir1 = 
 		"d://ximple-dev//testcases//VTDNav//";
@@ -25,9 +17,39 @@ public class xmlGen3 {
 	public final static String enc_utf_8 = "<?xml version='1.0' encoding=\"utf-8\"?>";
 	public final static String enc_utf_16le = "<?xml version='1.0' encoding=\"utf-16le\"?>";
 	public final static String enc_utf_16be = "<?xml version='1.0' encoding=\"utf-16be\"?>";
-	public static File rf,f0,f1,f2,f3,f4;
+	public final static String enc_8859_2="<?xml version='1.0' encoding=\"iso-8859-2\"?>";
+	public final static String enc_8859_3="<?xml version='1.0' encoding=\"iso-8859-3\"?>";
+	public final static String enc_8859_4="<?xml version='1.0' encoding=\"iso-8859-4\"?>";
+	public final static String enc_8859_5="<?xml version='1.0' encoding=\"iso-8859-5\"?>";
+	public final static String enc_8859_6="<?xml version='1.0' encoding=\"iso-8859-6\"?>";
+	public final static String enc_8859_7="<?xml version='1.0' encoding=\"iso-8859-7\"?>";
+	public final static String enc_8859_8="<?xml version='1.0' encoding=\"iso-8859-8\"?>";
+	public final static String enc_8859_9="<?xml version='1.0' encoding=\"iso-8859-9\"?>";
+	public final static String enc_8859_10="<?xml version='1.0' encoding=\"iso-8859-10\"?>";
+	public final static String enc_cp_1250="<?xml version='1.0' encoding=\"cp1250\"?>";
+	public final static String enc_cp_1251="<?xml version='1.0' encoding=\"cp1251\"?>";
+	public final static String enc_cp_1252="<?xml version='1.0' encoding=\"cp1252\"?>";
+	public final static String enc_cp_1253="<?xml version='1.0' encoding=\"cp1253\"?>";
+	public final static String enc_cp_1254="<?xml version='1.0' encoding=\"cp1254\"?>";
+	public final static String enc_cp_1255="<?xml version='1.0' encoding=\"cp1255\"?>";
+	public final static String enc_cp_1256="<?xml version='1.0' encoding=\"cp1256\"?>";
+	public final static String enc_cp_1257="<?xml version='1.0' encoding=\"cp1257\"?>";
+	public final static String enc_cp_1258="<?xml version='1.0' encoding=\"cp1258\"?>";
+	public final static String enc_win_1250 = "<?xml version='1.0' encoding=\"windows-1250\"?>";
+	public final static String enc_win_1251 = "<?xml version='1.0' encoding=\"windows-1251\"?>";
+	public final static String enc_win_1252 = "<?xml version='1.0' encoding=\"windows-1252\"?>";
+	public final static String enc_win_1253 = "<?xml version='1.0' encoding=\"windows-1253\"?>";
+	public final static String enc_win_1254 = "<?xml version='1.0' encoding=\"windows-1254\"?>";
+	public final static String enc_win_1255 = "<?xml version='1.0' encoding=\"windows-1255\"?>";
+	public final static String enc_win_1256 = "<?xml version='1.0' encoding=\"windows-1256\"?>";
+	public final static String enc_win_1257 = "<?xml version='1.0' encoding=\"windows-1257\"?>";
+	public final static String enc_win_1258 = "<?xml version='1.0' encoding=\"windows-1258\"?>";
+	public static File rf,f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,
+	f21,f22,f23,f24,f25,f26,f27,f28,f29,f30;
 	public static FileWriter fw;
-	public static FileOutputStream fos0, fos1, fos2, fos3, fos4;
+	public static FileOutputStream fos0, fos1, fos2, fos3, fos4,fos5,fos6,fos7,fos8,fos9,fos10,fos11,
+	fos12,fos13,fos14,fos15,fos16,fos17,fos18,fos19,fos20,fos21,fos22,fos23,fos24,fos25,fos26,fos27,
+	fos28,fos29,fos30;
     public static String s;
 	public static void composeXML2(String xml1, int i, String msg) throws Exception {
 		byte[] ba0 = null, ba1 = null, ba2 = null, ba3 = null, ba4 = null;
