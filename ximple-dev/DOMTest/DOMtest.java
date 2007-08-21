@@ -18,17 +18,6 @@ class DOMtest {
 	public static void main(String[] argv) {
 		String fileName = "d://ximple-dev//testcases//VTDGen//bad//"+argv[0];//"d://ximple-dev//testcases//VTDGen//bad//nt_0_4.xml";
 		System.out.println("filename ==>"+argv[0]);
-		/*try{
-			String test = "<a><b>test</b></a>";
-			VTDGen vg = new VTDGen();
-			vg.setDoc(test.getBytes());
-			vg.parse(true);
-			VTDNav vn = vg.getNav();
-			vn.toElement(VTDNav.FIRST_CHILD);
-		}catch (ParseException e){			
-		}catch (NavException e){			
-		}*/
-		if (false)
 		try {
 			//File f = new File("d://ximple-dev//testcases//xml_gen//test_utf16le.xml");
 			//byte[] ba1 = new byte[(int)f.length()];
@@ -94,7 +83,7 @@ class DOMtest {
 		}
 		
 		// test vtdGen
-		if (true)
+		
 		try{
 			VTDGen vg = new VTDGen();
 			File f = new File(fileName);
@@ -112,14 +101,13 @@ class DOMtest {
 		    System.out.println("vtdgen ok");
 		}catch (ParseException e){
 			System.out.println("ParserException: "+e);
-			e.printStackTrace();
+			//e.printStackTrace();
 		}catch (Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 			System.out.println("other exceptions");
 		}
 		
 		// test vtdGen1
-		if (false)
 		try{
 			VTDGen1 vg = new VTDGen1();
 			File f = new File(fileName);
@@ -131,11 +119,11 @@ class DOMtest {
 			System.out.println("vtdgen1 ok");
 		
 		}catch (ParseException e){
-			e.printStackTrace();
 			System.out.println("ParserException: "+e);
+			//e.printStackTrace();
 		}catch (Exception e){
-			e.printStackTrace();
-			System.out.println("other exceptions");
+			//e.printStackTrace();
+			System.out.println("other exceptions"+e);
 		}
 	}
 }
