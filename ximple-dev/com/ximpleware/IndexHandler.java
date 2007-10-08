@@ -26,6 +26,27 @@ import java.nio.*;
  */
 class IndexHandler {
     public static final int OFFSET_ADJUSTMENT =32;
+    /**
+     * Write VTD+XML index to OutputStream
+     * @param version
+     * @param encodingType
+     * @param ns
+     * @param byteOrder
+     * @param nestDepth
+     * @param LCLevel
+     * @param rootIndex
+     * @param xmlDoc
+     * @param docOffset
+     * @param docLen
+     * @param vtdBuffer
+     * @param l1Buffer
+     * @param l2Buffer
+     * @param l3Buffer
+     * @param os
+     * @throws IndexWriteException
+     * @throws IOException
+     *
+     */
     public static void writeIndex(byte version,
             int encodingType,
             boolean ns,
@@ -267,6 +288,15 @@ class IndexHandler {
             }
         }
     }
+    
+    /**
+     * Load VTD+XML index from an inputStream
+     * @param is
+     * @param vg
+     * @throws IndexReadException
+     * @throws IOException
+     *
+     */
     public static void readIndex(InputStream is, VTDGen vg) 
     throws IndexReadException,IOException{
         if (is == null || vg == null)
@@ -404,7 +434,12 @@ class IndexHandler {
             }
         }
     }
-    
+    /**
+     * reverse a long's endianess
+     * @param l
+     * @return
+     *
+     */
     private static long reverseLong(long l){
         long t = ((l & 0xff00000000000000L)>>>56)
         | ((l & 0xff000000000000L)>>40)
@@ -418,6 +453,12 @@ class IndexHandler {
         return t;
     }
     
+    /**
+     * reverse the endianess of an int
+     * @param i
+     * @return
+     *
+     */
     private static int reverseInt(int i){
         int t = ((i & 0xff000000) >>> 24)
         | ((i & 0xff0000) >> 8)
