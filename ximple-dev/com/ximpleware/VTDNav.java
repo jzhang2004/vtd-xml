@@ -801,7 +801,7 @@ public class VTDNav {
 	 * @throws NavException
 	 *
 	 */
-	public ElementFragment getElementFragmentNS() throws NavException{
+	public ElementFragmentNs getElementFragmentNs() throws NavException{
 	     if (this.ns == false)
 	        throw new NavException("getElementFragmentNS can only be called ");
 	     
@@ -815,7 +815,7 @@ public class VTDNav {
 	     
 	     
 	     int len = (c == 0 || c == rootIndex )? 0: 
-	         (getTokenLength(c) & 0x0000ffff); // get the length of qualified node
+	         (getTokenLength(c) & 0xffff); // get the length of qualified node
 	     
 	     // put the neighboring ATTR_NS nodes into the array
 	     // and record the total # of them	     
@@ -880,7 +880,7 @@ public class VTDNav {
 	     }
 	     
 	     long l = getElementFragment();
-	     return new ElementFragment(this,l,fib,len);
+	     return new ElementFragmentNs(this,l,fib,len);
 	}
 	
 	
