@@ -20,28 +20,25 @@ import java.io.*;
 
 /**
  * XMLModifier offers an easy-to-use interface for users to
- * take advantage of the incremental update information
+ * take advantage of the incremental update of VTD-XML
  * The XML modifier assumes there is a master document on which
  * the modification is applied: users can remove an element, update
  * a token, or insert new content anywhere in the document
+ * 
+ * The process:
+ * * The modification operations are recorded first
+ * * The output() is called to generate output document
  *
  */
 public class XMLModifier {
     protected VTDNav md; // master document
-   
     
-    public static final int XML_DELETE = 0;
-    public static final int XML_INSERT_BYTE = 1;
-    public static final int XML_INSERT_SEGMENT_BYTE = 2;
-    public static final int XML_INSERT_STRING = 3;
-    public static final int XML_INSERT_SEGMENT_STRING = 4;
-
-    public static final int DELETE_LIMIT = 0x1ffffff;
     private static final long MASK_DELETE = 0x00000000000000000L; //0000
     private static final long MASK_INSERT_SEGMENT_BYTE = 0x2000000000000000L; //0010
     private static final long MASK_INSERT_BYTE = 0x4000000000000000L;//0100
     private static final long MASK_INSERT_SEGMENT_STRING = 0x6000000000000000L; //0110
     private static final long MASK_INSERT_STRING = 0x8000000000000000L; //1000
+    private static final long MASK_INSERT_FRAGMENT_NS = 0xa000000000000000L; //1010
     
     protected FastObjectBuffer fob;
     protected FastLongBuffer flb;
@@ -138,6 +135,19 @@ public class XMLModifier {
     }
     
     /**
+     * Remove a byte segment from XML 
+     * l's upper 32 bits is length in # of bytes
+     * l's lower 32 bits is byte offset 
+     * @param l
+     * @throws NavException
+     * @throws ModifyException
+     *
+     */
+    public void remove(long l) throws NavException,ModifyException{
+        removeContent((int)l, (int)(l>>32));
+    }
+    
+    /**
      * Remove the token content, if the token type is text, CDATA
      * or comment, then the entire node, including the starting and 
      * ending delimiting text, will be removed as well
@@ -222,6 +232,18 @@ public class XMLModifier {
         }
         flb.append( (long)offset | MASK_INSERT_BYTE);
         fob.append(content);
+    }
+    /**
+     * Insert ns compensated element fragment into the document
+     * @param ef
+     *
+     */
+    private void insertElementFragmentNsAt(int offset, ElementFragmentNs ef) throws ModifyException{
+        if (insertHash.isUnique(offset)==false){
+            throw new ModifyException("There can be only one insert per offset");
+        }
+        flb.append( (long)offset | MASK_INSERT_FRAGMENT_NS);
+        fob.append(ef);
     }
     
     /**
@@ -318,7 +340,7 @@ public class XMLModifier {
         removeToken(index);        	
     }
     
-   /**
+    /**
     * Update the token with the given string value,
     * notice that string will be converted into byte array
     * according to the encoding of the master document
@@ -358,6 +380,9 @@ public class XMLModifier {
         // one delete
         removeToken(index);        	
     }
+    
+    
+  
     
     /**
      * 
@@ -430,6 +455,25 @@ public class XMLModifier {
         int offset = (int)l;
         int len = (int)(l>>32);
         insertBytesAt(offset+len,b);
+    }
+    /**
+     * Insert a namespace compensated element after cursor element
+     * @param ef (an ElementFragmentNs object)
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     *
+     */
+    public void insertAfterElement(ElementFragmentNs ef)
+            throws ModifyException, UnsupportedEncodingException, NavException {
+        int startTagIndex = md.getCurrentIndex();
+        int type = md.getTokenType(startTagIndex);
+        if (type != VTDNav.TOKEN_STARTING_TAG)
+            throw new ModifyException("Token type is not a starting tag");
+        long l = md.getElementFragment();
+        int offset = (int) l;
+        int len = (int) (l >> 32);
+        insertElementFragmentNsAt(offset + len, ef);
     }
     
     /**
@@ -515,6 +559,29 @@ public class XMLModifier {
         else
             insertBytesAt((offset)<<1,b);        
     }
+    
+   /**
+    * Insert a namespace compensated fragment before the cursor element
+    * @param ef
+    * @throws ModifyException
+    * @throws UnsupportedEncodingException
+    *
+    */
+    public void insertBeforeElement(ElementFragmentNs ef)
+    	throws ModifyException,UnsupportedEncodingException{
+        int startTagIndex =md.getCurrentIndex();
+        int type = md.getTokenType(startTagIndex);
+        if (type!=VTDNav.TOKEN_STARTING_TAG)
+            throw new ModifyException("Token type is not a starting tag");
+        
+        int offset = md.getTokenOffset(startTagIndex)-1;
+        
+        if (encoding < VTDNav.FORMAT_UTF_16BE)
+            insertElementFragmentNsAt(offset,ef);
+        else
+            insertElementFragmentNsAt((offset)<<1,ef);        
+    }
+    
     
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
@@ -635,7 +702,7 @@ public class XMLModifier {
         //insertBytesAt()
     }
     /**
-     * This method applys the modification to the XML document
+     * This method applies the modification to the XML document
      * and generate output byte content accordingly
      * Notice that output is not guaranteed to be well-formed 
      * @param os
@@ -676,10 +743,17 @@ public class XMLModifier {
                         os.write(ba,offset, flb.lower32At(i)-offset);
                         os.write((byte[])fob.objectAt(i));                       
                         offset=flb.lower32At(i);
-                    } else { // XML_INSERT_SEGMENT_BYTE
+                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE) { 
+                        // XML_INSERT_SEGMENT_BYTE
                         os.write(ba,offset, flb.lower32At(i)-offset);
                         ByteSegment bs = (ByteSegment) fob.objectAt(i);
                         os.write(bs.ba,bs.offset,bs.len);
+                        offset=flb.lower32At(i);
+                    } else {
+                        //ElementFragmentNs
+                        os.write(ba,offset, flb.lower32At(i)-offset);
+                        ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
+                        ef.writeToOutputStream(os);
                         offset=flb.lower32At(i);
                     }
                 } else {
@@ -691,10 +765,17 @@ public class XMLModifier {
                         os.write(ba,offset, flb.lower32At(i+1)-offset);
                         os.write((byte[])fob.objectAt(i));
                         offset = flb.lower32At(i+1) + (flb.upper32At(i+1) & 0x1fffffff);
-                    } else {// XML_INSERT_SEGMENT_BYTE
+                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE){
+                        // XML_INSERT_SEGMENT_BYTE
                         os.write(ba,offset, flb.lower32At(i+1)-offset);
                         ByteSegment bs = (ByteSegment) fob.objectAt(i);
                         os.write(bs.ba,bs.offset,bs.len);
+                        offset = flb.lower32At(i+1) + (flb.upper32At(i+1) & 0x1fffffff);
+                    } else {
+                        //ElementFragmentNs
+                        os.write(ba,offset, flb.lower32At(i+1)-offset);
+                        ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
+                        ef.writeToOutputStream(os);
                         offset = flb.lower32At(i+1) + (flb.upper32At(i+1) & 0x1fffffff);
                     }
                 }
