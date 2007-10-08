@@ -366,4 +366,10 @@ public int[] toIntArray() {
  	size = 0;
  }
  
+ // 
+ public void resize(int newSz){
+     if (newSz<0)
+         throw new IllegalArgumentException("New size can't be negative ");
+     size = newSz;
+ }
 }
