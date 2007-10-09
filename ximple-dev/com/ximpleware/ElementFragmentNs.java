@@ -35,7 +35,7 @@ public class ElementFragmentNs {
         ws[3]='=';
         ws[4]=0;
     }
-    public ElementFragmentNs(VTDNav vn1, long l1, FastIntBuffer fib1, int len){
+    protected ElementFragmentNs(VTDNav vn1, long l1, FastIntBuffer fib1, int len){
         vn = vn1;
         l = l1;
         fib = fib1;
