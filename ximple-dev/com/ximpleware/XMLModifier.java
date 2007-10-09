@@ -72,6 +72,8 @@ public class XMLModifier {
     }
     /**
      * Attach master document to this instance of XMLModifier
+     * so all the operations occuring aftewards are based on this instance
+     * of VTDNav
      * @param masterDocument
      *
      */
@@ -135,7 +137,7 @@ public class XMLModifier {
     }
     
     /**
-     * Remove a byte segment from XML 
+     * Remove a byte segment from XML.
      * l's upper 32 bits is length in # of bytes
      * l's lower 32 bits is byte offset 
      * @param l
@@ -148,10 +150,10 @@ public class XMLModifier {
     }
     
     /**
-     * Remove the token content, if the token type is text, CDATA
+     * Remove the token content. If the token type is text, CDATA
      * or comment, then the entire node, including the starting and 
      * ending delimiting text, will be removed as well
-     * @param i
+     * @param i the index for the content
      *
      */
     public void removeToken(int i) throws ModifyException{        
@@ -182,7 +184,7 @@ public class XMLModifier {
         }
     }
     /**
-     * remove an attribute name value pair from the master document
+     * Remove an attribute name value pair from the master document.
      * @param attrNameIndex
      *
      */
@@ -201,7 +203,7 @@ public class XMLModifier {
     }
     
     /**
-     * Remove a segment of byte content from master XML doc
+     * Remove a segment of byte content from master XML doc.
      * The segment is denoted by its offset and len. 
      * @param offset
      * @param len
@@ -221,12 +223,12 @@ public class XMLModifier {
     }
     
     /**
-     * insert the content into XML
+     * insert the byte content into XML
      * @param offset
      * @param content
      *
      */
-    private void insertBytesAt(int offset, byte[] content) throws ModifyException{
+    public void insertBytesAt(int offset, byte[] content) throws ModifyException{
 
         if (insertHash.isUnique(offset)==false){
             throw new ModifyException("There can be only one insert per offset");
@@ -248,7 +250,7 @@ public class XMLModifier {
     }
     
     /**
-     * Insert a segment of the content into XML
+     * Insert a segment of the byte content into XML
      * @param offset
      * @param content
      * @param contentOffset
@@ -256,7 +258,7 @@ public class XMLModifier {
      * @throws ModifyException
      *
      */
-    private void insertBytesAt(int offset, byte[] content, int contentOffset, int contentLen) 
+    public  void insertBytesAt(int offset, byte[] content, int contentOffset, int contentLen) 
     throws ModifyException {
         if (insertHash.isUnique(offset)==false){
             throw new ModifyException("There can be only one insert per offset");
@@ -543,10 +545,11 @@ public class XMLModifier {
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert the byte array b before the element
      * @param b the byte array to be inserted into the master document
+     * @throws ModifyException
      *
      */
     public void insertBeforeElement(byte[] b)
-    	throws ModifyException,UnsupportedEncodingException{
+    	throws ModifyException{
         int startTagIndex =md.getCurrentIndex();
         int type = md.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
@@ -703,7 +706,7 @@ public class XMLModifier {
     }
     /**
      * This method applies the modification to the XML document
-     * and generate output byte content accordingly
+     * and write the output byte content accordingly to an outputStream
      * Notice that output is not guaranteed to be well-formed 
      * @param os
      *
@@ -818,7 +821,12 @@ public class XMLModifier {
         if (i<hi) quickSort(i, hi);
     }
 
-    
+    /**
+     * This method reset the internal state of XMLModify instance so 
+     * it can be reused
+     * 
+     *
+     */
     public void reset(){
         if (flb!=null)
             flb.clear();
