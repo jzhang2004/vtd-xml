@@ -460,12 +460,11 @@ public class XMLModifier {
      * Insert a namespace compensated element after cursor element
      * @param ef (an ElementFragmentNs object)
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      *
      */
     public void insertAfterElement(ElementFragmentNs ef)
-            throws ModifyException, UnsupportedEncodingException, NavException {
+            throws ModifyException, NavException {
         int startTagIndex = md.getCurrentIndex();
         int type = md.getTokenType(startTagIndex);
         if (type != VTDNav.TOKEN_STARTING_TAG)
@@ -564,11 +563,11 @@ public class XMLModifier {
     * Insert a namespace compensated fragment before the cursor element
     * @param ef
     * @throws ModifyException
-    * @throws UnsupportedEncodingException
+    * 
     *
     */
     public void insertBeforeElement(ElementFragmentNs ef)
-    	throws ModifyException,UnsupportedEncodingException{
+    	throws ModifyException{
         int startTagIndex =md.getCurrentIndex();
         int type = md.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
