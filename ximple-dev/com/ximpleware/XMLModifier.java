@@ -201,12 +201,13 @@ public class XMLModifier {
     }
     
     /**
-     * 
+     * Remove a segment of byte content from master XML doc
+     * The segment is denoted by its offset and len. 
      * @param offset
      * @param len
      *
      */
-    private void removeContent(int offset, int len) throws ModifyException{
+    public void removeContent(int offset, int len) throws ModifyException{
 
         if (offset < md.docOffset || len > md.docLen 
                 || offset + len > md.docOffset + md.docLen){
