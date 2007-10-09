@@ -19,6 +19,7 @@ package com.ximpleware;
 import java.io.*;
 /**
  * ElementFragmentNs is class representing namespace compensated elementFragment
+ * its constructor is protected, only intended to be called by getElementFragmentNs(). 
  * 
  */
 public class ElementFragmentNs {
@@ -74,7 +75,7 @@ public class ElementFragmentNs {
         
         int tos =0,tlen=0;
         for (int i = 0; i < fib.size(); i++) {
-            System.out.println("i ==>"+fib.intAt(i));
+            //System.out.println("i ==>"+fib.intAt(i));
             switch (enc) {
             case VTDNav.FORMAT_UTF_16BE:
                 //write a 0 and ws
