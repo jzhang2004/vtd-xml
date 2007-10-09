@@ -141,7 +141,7 @@ public class ElementFragmentNs {
     }
    
     /**
-     * getSize gets the fragment with ns compensation
+     * getSize gets the fragment with byte copying
      * @return
      *
      */
@@ -265,7 +265,7 @@ public class ElementFragmentNs {
         ost.write(xml,os+temp,len-temp);
     }
     /**
-     * 
+     * Get the long encoding the len and offset of uncompensated element fragment
      * @return
      *
      */
