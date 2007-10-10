@@ -1877,7 +1877,19 @@ namespace com.ximpleware
 
                 byte[] b = new byte[(int)f.Length];
                 fis.Read(b, 0, (int)f.Length);
-
+                int numBytesToRead = (int)f.Length;
+                //int numBytesToRead = (int)s.Length;
+                int numBytesRead = 0;
+                while (numBytesToRead > 0)
+                {
+                    // Read may return anything from 0 to numBytesToRead.
+                    int n = fis.Read(b, numBytesRead, numBytesToRead);
+                    // The end of the file is reached.
+                    if (n == 0)
+                        break;
+                    numBytesRead += n;
+                    numBytesToRead -= n;
+                }
                 this.setDoc(b);
                 this.parse(true);
                 return true;
@@ -1900,6 +1912,84 @@ namespace com.ximpleware
             }
             return false;
         }
+
+        /// <summary>
+        /// This method grabs an XML doc from the net using HTTP get
+        /// </summary>
+        /// <param name="URL">The URL, e.g. "http://vtd-xml.sf.net/codeSample/old.xml"</param>
+        /// <param name="ns"> namespace aware or not </param>
+        /// <returns>status of the parsing, true if successful, false otherwise</returns>
+        public bool parseHttpUrl(String url, bool ns)
+        {
+            System.IO.Stream in_Renamed = null;
+            System.Net.HttpWebRequest urlConnection = null;
+            System.Net.HttpWebResponse response = null;
+            try
+            {
+                urlConnection = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
+                response = (System.Net.HttpWebResponse)urlConnection.GetResponse();
+                in_Renamed = response.GetResponseStream();
+                //in_Renamed.
+                int len = (int)response.ContentLength;
+                if (len > 0)
+                {
+                    byte[] ba = new byte[len];
+                    int numBytesToRead = len;
+                    //int numBytesToRead = (int)s.Length;
+                    int numBytesRead = 0;
+                    while (numBytesToRead > 0)
+                    {
+                        // Read may return anything from 0 to numBytesToRead.
+                        int n = in_Renamed.Read(ba, numBytesRead, numBytesToRead);
+                        // The end of the file is reached.
+                        if (n == 0)
+                            break;
+                        numBytesRead += n;
+                        numBytesToRead -= n;
+                    }
+
+                    //char[] ca = new char[len];
+                    //int len2 =in_Renamed.Read(ba, 0, len);
+                    //Console.WriteLine(" len2 " + len2);
+                    //for (int k = 0; k < ba.Length; k++)
+                    //{
+                    //     ca[k] = (char)ba[k];
+                    //}
+                    //Console.WriteLine(ba.ToString());
+                    //String s = new String(ca,0,ca.Length);
+                    //Console.WriteLine(s);
+                    setDoc(ba);
+                    parse(ns);
+                    return true;
+                }
+            }
+            catch (System.IO.IOException e)
+            {
+            }
+            catch (ParseException e)
+            {
+                Console.WriteLine(e);
+            }
+            catch (System.Net.WebException e)
+            {
+            }
+            finally
+            {
+                try
+                {
+                    if (in_Renamed != null)
+                        in_Renamed.Close();
+                    if (response != null)
+                        response.Close();
+                }
+                catch (System.Exception e)
+                {
+                }
+            }
+            return false;
+        }
+
+
 		/// <summary> Generating VTD tokens and Location cache info.</summary>
 		/// <param name="NS">boolean Enable namespace or not
 		/// </param>
@@ -3942,7 +4032,7 @@ namespace com.ximpleware
        /// This method loads the VTD+XML from an input stream
        /// </summary>
        /// <param name="is_Renamed"></param>
-       /// <returns>VTDNav</returns>
+       /// <returns>The VTDNav object</returns>
         
         public VTDNav loadIndex(System.IO.Stream is_Renamed)
         {
@@ -3955,7 +4045,7 @@ namespace com.ximpleware
         /// This method loads the VTD+XML from a file 
         /// </summary>
         /// <param name="fileName"></param>
-        /// <returns></returns>
+        /// <returns>the VTDNav object</returns>
         public VTDNav loadIndex(System.String fileName)
         {
             //UPGRADE_TODO: Constructor 'java.io.FileInputStream.FileInputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileInputStreamFileInputStream_javalangString'"
@@ -3978,7 +4068,7 @@ namespace com.ximpleware
         /// bytes are not XML bytes (but instead header of the VTD+XML index)
         /// </summary>
         /// <param name="ba"></param>
-        /// <returns></returns>
+        /// <returns> The VTDNav object</returns>
         public VTDNav loadIndex(byte[] ba)
         {
             IndexHandler.readIndex(ba, this);
@@ -4024,6 +4114,33 @@ namespace com.ximpleware
             bool b = writeIndex(fos);
             fos.Close();
             return b;
+        }
+        /// <summary>
+        /// Precompute the size of VTD+XML index without actully generating it
+        /// </summary>
+        /// <returns> the VTD+XML index size</returns>
+
+        public long getIndexSize()
+        {
+            int size;
+            if ((docLen & 7) == 0)
+                size = docLen;
+            else
+                size = ((docLen >> 3) + 1) << 3;
+
+            size += (VTDBuffer.size() << 3) +
+                    (l1Buffer.size() << 3) +
+                    (l2Buffer.size() << 3);
+
+            if ((l3Buffer.size() & 1) == 0)
+            { //even
+                size += l3Buffer.size() << 2;
+            }
+            else
+            {
+                size += (l3Buffer.size() + 1) << 2; //odd
+            }
+            return size + 64;
         }
 	}
 }
