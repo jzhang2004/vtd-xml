@@ -515,6 +515,107 @@ namespace com.ximpleware
 
 
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ElementFragmentNs getElementFragnmentNs()
+        {
+            if (this.ns == false)
+                throw new NavException("getElementFragmentNS can only be called ");
+
+            FastIntBuffer fib = new FastIntBuffer(3); // init size 8
+
+            //fill the fib with integer 
+            // first get the list of name space nodes 
+            int[] ia = context;
+            int d = ia[0]; // -1 for document node, 0 for root element;
+            int c = getCurrentIndex2();
+
+
+            int len = (c == 0 || c == rootIndex) ? 0 :
+                (getTokenLength(c) & 0xffff); // get the length of qualified node
+
+            // put the neighboring ATTR_NS nodes into the array
+            // and record the total # of them	     
+            int i = 0;
+            int count = 0;
+            if (d > 0)
+            { // depth > 0 every node except document and root element
+                int k = getCurrentIndex2() + 1;
+                if (k < this.vtdSize)
+                {
+                    int type = this.getTokenType(k);
+                    while (k < this.vtdSize &&
+                            (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS))
+                    {
+                        if (type == VTDNav.TOKEN_ATTR_NS)
+                        {
+                            fib.append(k);
+                            //System.out.println(" ns name ==>" + toString(k));
+                        }
+                        k += 2;
+                        type = this.getTokenType(k);
+                    }
+                }
+                count = fib.size();
+                d--;
+                while (d >= 0)
+                {
+                    // then search for ns node in the vinicity of the ancestor nodes
+                    if (d > 0)
+                    {
+                        // starting point
+                        k = ia[d] + 1;
+                    }
+                    else
+                    {
+                        // starting point
+                        k = this.rootIndex + 1;
+                    }
+                    if (k < this.vtdSize)
+                    {
+                        int type = this.getTokenType(k);
+                        while (k < this.vtdSize &&
+                             (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS))
+                        {
+                            bool unique = true;
+                            if (type == VTDNav.TOKEN_ATTR_NS)
+                            {
+                                for (int z = 0; z < fib.size(); z++)
+                                {
+                                    //System.out.println("fib size ==> "+fib.size());
+                                    if (fib.size() == 4) ;
+                                    if (matchTokens(fib.intAt(z), this, k))
+                                    {
+                                        unique = false;
+                                        break;
+                                    }
+
+                                }
+                                if (unique)
+                                    fib.append(k);
+                            }
+                            k += 2;
+                            type = this.getTokenType(k);
+                        }
+                    }
+                    d--;
+                }
+                // System.out.println("count ===> "+count);
+                // then restore the name space node by shifting the array
+                int newSz = fib.size() - count;
+                for (i = 0; i < newSz; i++)
+                {
+                    fib.modifyEntry(i, fib.intAt(i + count));
+                }
+                fib.resize(newSz);
+            }
+
+            long l = getElementFragment();
+            return new ElementFragmentNs(this, l, fib, len);
+        }
         /// <summary> Get the encoding of the XML document.
         /// </summary>
         /// <returns> int
@@ -4213,6 +4314,74 @@ namespace com.ximpleware
             // for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
             return compareTokenString(getTokenOffset(index), len, s);
         }
-  
+
+        /// <summary> This method writes the VTD+XML into an output streams</summary>
+        /// <param name="os">
+        /// </param>
+        /// <throws>  IOException </throws>
+        /// <throws>  IndexWriteException </throws>
+        /// <summary> 
+        /// </summary>
+        public bool writeIndex(System.IO.Stream os)
+        {
+            return IndexHandler.writeIndex(1,
+                 this.encoding,
+                 this.ns,
+                 true,
+                 this.nestingLevel-1,
+                 3,
+                 this.rootIndex,
+                 this.XMLDoc.getBytes(),
+                 this.docOffset,
+                 this.docLen,
+                 (FastLongBuffer)this.vtdBuffer,
+                 (FastLongBuffer)this.l1Buffer,
+                 (FastLongBuffer)this.l2Buffer,
+                 (FastIntBuffer)this.l3Buffer,
+                 os);
+        }
+
+        /// <summary> This method writes the VTD+XML file into a file of the given name</summary>
+        /// <param name="fileName">
+        /// </param>
+        /// <throws>  IOException </throws>
+        /// <throws>  IndexWriteException </throws>
+        /// <summary> 
+        /// </summary>
+        public bool writeIndex(System.String fileName)
+        {
+            //UPGRADE_TODO: Constructor 'java.io.FileOutputStream.FileOutputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileOutputStreamFileOutputStream_javalangString'"
+            System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
+            bool b = writeIndex(fos);
+            fos.Close();
+            return b;
+        }
+
+        /// <summary>
+        /// Precompute the size of VTD+XML index without actully generating it
+        /// </summary>
+        /// <returns>the size of VTD+XML index</returns>
+        public long getIndexSize()
+        {
+            int size;
+            if ((docLen & 7) == 0)
+                size = docLen;
+            else
+                size = ((docLen >> 3) + 1) << 3;
+
+            size += (vtdBuffer.size() << 3) +
+                    (l1Buffer.size() << 3) +
+                    (l2Buffer.size() << 3);
+
+            if ((l3Buffer.size() & 1) == 0)
+            { //even
+                size += l3Buffer.size() << 2;
+            }
+            else
+            {
+                size += (l3Buffer.size() + 1) << 2; //odd
+            }
+            return size + 64;
+        }
     }
 }
