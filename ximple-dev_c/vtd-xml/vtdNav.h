@@ -25,6 +25,7 @@
 #include "XMLChar.h"
 #include "decoder.h"
 #include <math.h>
+//#include "elementFragmentNs.h"
 
 
 #define MASK_TOKEN_FULL_LEN 0x000fffff00000000L
@@ -126,6 +127,10 @@ extern inline int getCurrentIndex2(VTDNav *vn);
 // Get the starting offset and length of an element
 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
 Long getElementFragment(VTDNav *vn);
+
+// Get the element fragment object corresponding to a ns 
+// compensated element
+struct elementFragmentNs *getElementFragmentNs(VTDNav *vn);
 
 /**
  * Get the encoding of the XML document.
@@ -337,4 +342,14 @@ int compareTokenString(VTDNav *vn,int index, UCSChar *s);
 int compareRawTokenString(VTDNav *vn, int index, UCSChar *s);
 
 int compareTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
+
+/* Write VTD+XML into a FILE pointer */
+Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f);
+
+/* Write VTD+XML into a file of given name */
+Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName);
+
+/* pre-calculate the VTD+XML index size without generating the actual index */
+Long getIndexSize2(VTDNav *vn);
+
 #endif

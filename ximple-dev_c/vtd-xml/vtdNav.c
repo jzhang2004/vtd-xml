@@ -18,6 +18,8 @@
 
 #include "vtdNav.h"
 #include "indexHandler.h"
+#include "elementFragmentNs.h"
+#include "fastIntBuffer.h"
 
 static Long getChar(VTDNav *vn,int offset);
 static Long getCharResolved(VTDNav *vn,int offset);
@@ -3382,4 +3384,145 @@ int compareTokens(VTDNav *vn1, int i1, VTDNav *vn2, int i2){
 		return 1;
 	else
 		return 0;
+}
+
+/* Write VTD+XML into a FILE pointer */
+Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
+	return _writeIndex(1, 
+                vn->encoding, 
+                vn->ns, 
+                TRUE, 
+				vn->nestingLevel-1, 
+                3, 
+                vn->rootIndex, 
+                vn->XMLDoc, 
+                vn->docOffset, 
+                vn->docLen, 
+				vn->vtdBuffer, 
+                vn->l1Buffer, 
+                vn->l2Buffer, 
+                vn->l3Buffer, 
+                f);
+}
+Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName){
+	FILE *f = NULL;
+	Boolean b = FALSE;
+	f = fopen(fileName,"wb");
+	
+	if (f==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		return FALSE;
+	}
+	b = writeIndex_VTDNav(vn,f);
+	fclose(f);
+	return b;
+}
+/* pre-calculate the VTD+XML index size without generating the actual index */
+Long getIndexSize2(VTDNav *vn){
+		int size;
+	    if ( (vn->docLen & 7)==0)
+	       size = vn->docLen;
+	    else
+	       size = ((vn->docLen >>3)+1)<<3;
+	    
+	    size += (vn->vtdBuffer->size<<3)+
+	            (vn->l1Buffer->size<<3)+
+	            (vn->l2Buffer->size<<3);
+	    
+		if ((vn->l3Buffer->size & 1) == 0){ //even
+	        size += vn->l3Buffer->size<<2;
+	    } else {
+	        size += (vn->l3Buffer->size+1)<<2; //odd
+	    }
+	    return size+64;
+}
+
+// Get the element fragment object corresponding to a ns 
+// compensated element 
+ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
+
+	if (vn->ns == FALSE){  
+		throwException2(nav_exception,"getElementFragmentNS can only be called when ns is tured on");
+		return NULL;
+	}else {
+		//fill the fib with integer 
+		// first get the list of name space nodes 
+		FastIntBuffer *fib = NULL;
+		int i = 0;	    
+		int count=0;
+
+		int* ia = vn->context;
+		int d =ia[0]; // -1 for document node, 0 for root element;
+		int c = getCurrentIndex2(vn);
+		int len = (c == 0 || c == vn->rootIndex )? 0: 
+			(getTokenLength(vn,c) & 0xffff); // get the length of qualified node
+		int newSz; Long l;
+		fib = createFastIntBuffer2(3); // init size 8
+
+
+		// put the neighboring ATTR_NS nodes into the array
+		// and record the total # of them	     
+
+		if (d > 0){ // depth > 0 every node except document and root element
+			int k=getCurrentIndex2(vn)+1;
+			if (k<vn->vtdSize){
+				int type = getTokenType(vn,k);
+				while(k<vn->vtdSize && 
+					(type==TOKEN_ATTR_NAME || type==TOKEN_ATTR_NS)){
+						if (type == TOKEN_ATTR_NS){    
+							appendInt(fib,k);
+							//System.out.println(" ns name ==>" + toString(k));
+						}
+						k+=2;
+						type = getTokenType(vn,k);
+				}
+			}
+			count = fib->size;
+			d--; 
+			while (d >= 0) {                
+				// then search for ns node in the vinicity of the ancestor nodes
+				if (d > 0) {
+					// starting point
+					k = ia[d]+1;
+				} else {
+					// starting point
+					k = vn->rootIndex+1;
+				}
+				if (k<vn->vtdSize){
+					int type = getTokenType(vn,k);
+					while(k<vn->vtdSize && 
+						(type==TOKEN_ATTR_NAME || type==TOKEN_ATTR_NS)){
+							Boolean unique = TRUE;
+							if (type == TOKEN_ATTR_NS){
+								int z = 0;
+								for (z=0;z<fib->size;z++){
+									//System.out.println("fib size ==> "+fib.size());
+									if (fib->size==4);
+									if (matchTokens(vn, intAt(fib,z),vn,k)){
+										unique = FALSE;
+										break;
+									} 
+
+								}            
+								if (unique)
+									appendInt(fib,k);
+							}
+							k+=2;
+							type = getTokenType(vn,k);
+					}
+				}
+				d--;
+			}
+			// System.out.println("count ===> "+count);
+			// then restore the name space node by shifting the array
+			newSz= fib->size-count;
+			for (i= 0; i<newSz; i++ ){
+				modifyEntryFIB(fib,i,intAt(fib,i+count));                
+			}
+			resizeFIB(fib,newSz);
+		}
+
+		l= getElementFragment(vn);
+		return createElementFragmentNs(vn,l,fib,len);
+	}
 }
