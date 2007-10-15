@@ -43,8 +43,8 @@ public class ElementFragmentNs {
         stLen = len;        
     }   
     /**
-     * Return a byte array with namespace compensation
-     * witht the orginal encoding format
+     * Return a byte array of an element with namespace compensation
+     * in its orginal encoding format
      * @return
      *
      */
@@ -171,6 +171,7 @@ public class ElementFragmentNs {
         if (stLen==0){
             //System.arraycopy(xml,os,ba,0,len);
             ost.write(xml,os,len);
+            return;
             //return ba;
         }
         int enc = vn.getEncoding();
