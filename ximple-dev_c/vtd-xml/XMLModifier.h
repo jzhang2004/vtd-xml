@@ -18,18 +18,16 @@
 #ifndef XMLMODIFIER_H
 #define XMLMODIFIER_H
 #include "vtdGen.h"
+#include "elementFragmentNs.h"
 #include "xpath1.h"
-#define XML_DELETE  0
-#define XML_INSERT_BYTE  1
-#define XML_INSERT_SEGMENT_BYTE  2
-#define XML_INSERT_STRING  3
-#define XML_INSERT_SEGMENT_STRING 4
-#define DELETE_LIMIT 0x1ffffff
+
 #define MASK_DELETE 0x00000000000000000LL
 #define MASK_INSERT_SEGMENT_BYTE  0x2000000000000000LL
 #define MASK_INSERT_BYTE 0x4000000000000000LL
 #define MASK_INSERT_SEGMENT_STRING 0x6000000000000000LL 
 #define MASK_INSERT_STRING 0x8000000000000000LL 
+#define MASK_INSERT_FRAGMENT_NS  0xa000000000000000LL
+//#define MASK_INSERT_BYTE2 0xc000000000000000L
 
 typedef Long (*getBytes)(UCSChar *s);
 typedef struct xMLModifier{
@@ -43,6 +41,15 @@ typedef struct xMLModifier{
 	VTDNav *md; /*master document*/
 	getBytes gbytes;
 } XMLModifier;
+
+/*typedef struct byteSegment{
+	UByte* byteArray;
+	int contentOffset;
+	int contentLen;
+} ByteSegment;
+
+ByteSegment* createByteSegment();
+void freeByteSegment(ByteSegment *bs);*/
 
 XMLModifier *createXMLModifier();
 XMLModifier *createXMLModifier2(VTDNav *vn);
@@ -63,12 +70,21 @@ void bind4XMLModifier(XMLModifier *xm, VTDNav *md);
 void remove4XMLModifier(XMLModifier *xm);
 void removeToken(XMLModifier *xm, int i);
 void removeAttribute(XMLModifier *xm,int attrNameIndex);
-/*void removeContent(XMLModifier *xm, int offset, int len);*/
+void removeContent(XMLModifier *xm, int offset, int len);
 
 void updateToken(XMLModifier *xm, int index, UCSChar *newContent);
 void insertAfterElement(XMLModifier *xm, UCSChar *s);
 void insertBeforeElement(XMLModifier *xm, UCSChar *s);
 void insertAttribute(XMLModifier *xm, UCSChar *attr);
+
+void insertAfterElement2(XMLModifier *xm, UByte* ba, int arrayLen);
+void insertBeforeElement2(XMLModifier *xm, UByte* ba, int arrayLen);
+
+void insertAfterElement3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen);
+void insertBeforeElement3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen);
+
+void insertBeforeElement4(XMLModifier *xm, ElementFragmentNs *ef);
+void insertAfterElement4(XMLModifier *xm, ElementFragmentNs *ef);
 
 /*
 void updateToken2(XMLModifier *xm, int index, UByte *newContentBytes, int len);
