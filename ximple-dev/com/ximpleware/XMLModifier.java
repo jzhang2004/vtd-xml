@@ -342,6 +342,47 @@ public class XMLModifier {
         // one delete
         removeToken(index);        	
     }
+    /**
+     * Update token with a segment of byte array (in terms of offset and length)
+     * @param index
+     * @param newContentBytes
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     *
+     */
+    public void updateToken(int index, byte[] newContentBytes, int contentOffset, int contentLen) 
+	throws ModifyException,UnsupportedEncodingException{
+    if (newContentBytes==null)
+        throw new IllegalArgumentException
+        ("newContentBytes can't be null");
+
+    int offset = md.getTokenOffset(index);
+    int len = md.getTokenLength(index);
+    int type = md.getTokenType(index);
+    
+    // one insert
+    switch(type){
+    	case VTDNav.TOKEN_CDATA_VAL:
+    	    if (encoding < VTDNav.FORMAT_UTF_16BE)
+    	        insertBytesAt(offset-9,newContentBytes,contentOffset, contentLen);
+    	    else 
+    	        insertBytesAt((offset-9)<<1,newContentBytes,contentOffset, contentLen);
+    		break;
+    	case VTDNav.TOKEN_COMMENT:
+       	    if (encoding < VTDNav.FORMAT_UTF_16BE)
+    	        insertBytesAt(offset-4,newContentBytes,contentOffset, contentLen);
+    	    else 
+    	        insertBytesAt((offset-4)<<1,newContentBytes,contentOffset, contentLen);
+    		break;
+    	    
+    	default: 
+    	    insertBytesAt(offset,newContentBytes,contentOffset, contentLen);
+    }
+    // one delete
+    removeToken(index);        	
+}
     
     /**
     * Update the token with the given string value,
@@ -422,8 +463,8 @@ public class XMLModifier {
         }
     }
     /**
-     * Compute the size of the updated XML document
-     * @return
+     * Compute the size of the updated XML document without composing it
+     * @return updated document size
      *
      */
     public int getUpdatedDocumentSize(){
@@ -436,8 +477,11 @@ public class XMLModifier {
                 docSize -= (int) ((l & (0x1fffffffffffffffL))>> 32);
             } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE){
                 docSize += ((byte[])fob.objectAt(i)).length;
-            } else { // MASK_INSERT_SEGMENT_BYTE
+            } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE){ 
+                // MASK_INSERT_SEGMENT_BYTE
                 docSize += ((ByteSegment)fob.objectAt(i)).len;
+            } else{
+                docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize();
             }
         }
         return docSize;
@@ -706,7 +750,7 @@ public class XMLModifier {
     }
     /**
      * This method applies the modification to the XML document
-     * and write the output byte content accordingly to an outputStream
+     * and writes the output byte content accordingly to an outputStream
      * Notice that output is not guaranteed to be well-formed 
      * @param os
      *
@@ -759,27 +803,42 @@ public class XMLModifier {
                         ef.writeToOutputStream(os);
                         offset=flb.lower32At(i);
                     }
-                } else {
-                    if ((l & (~0x1fffffffffffffffL)) == MASK_DELETE){
-                        os.write(ba,offset, flb.lower32At(i)-offset);
-                        os.write((byte[])fob.objectAt(i+1));
-                        offset = flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff);
-                    }else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE ){ // insert
-                        os.write(ba,offset, flb.lower32At(i+1)-offset);
-                        os.write((byte[])fob.objectAt(i));
-                        offset = flb.lower32At(i+1) + (flb.upper32At(i+1) & 0x1fffffff);
-                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE){
+                } else { // share the same offset value one insert, one delete
+                    // to make sure that l's offset val is >= k's
+                    // also to make sure that the first token is a delete
+                    long k = flb.longAt(i+1),temp;
+                    int i1 = i,temp2;
+                    int i2 = i+1;
+                    if ((l & (~0x1fffffffffffffffL)) != MASK_DELETE){
+                        temp = l;
+                        l= k;
+                        k = temp;
+                        temp2 = i1;
+                        i1 = i2;
+                        i2 = temp2;
+                    }
+                    // first is definitely
+                    os.write(ba,offset, flb.lower32At(i1)-offset);
+                    //os.write((byte[])fob.objectAt(i2));
+                    //offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                    
+                    
+                    if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE ){ // insert
+                        //os.write(ba,offset, flb.lower32At(i2)-offset);
+                        os.write((byte[])fob.objectAt(i2));
+                        offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE){
                         // XML_INSERT_SEGMENT_BYTE
-                        os.write(ba,offset, flb.lower32At(i+1)-offset);
-                        ByteSegment bs = (ByteSegment) fob.objectAt(i);
+                        //os.write(ba,offset, flb.lower32At(i2)-offset);
+                        ByteSegment bs = (ByteSegment) fob.objectAt(i2);
                         os.write(bs.ba,bs.offset,bs.len);
-                        offset = flb.lower32At(i+1) + (flb.upper32At(i+1) & 0x1fffffff);
+                        offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                     } else {
                         //ElementFragmentNs
-                        os.write(ba,offset, flb.lower32At(i+1)-offset);
-                        ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
+                        //os.write(ba,offset, flb.lower32At(i2)-offset);
+                        ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
                         ef.writeToOutputStream(os);
-                        offset = flb.lower32At(i+1) + (flb.upper32At(i+1) & 0x1fffffff);
+                        offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                     }
                 }
             }  
