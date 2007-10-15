@@ -3373,3 +3373,37 @@ Boolean writeIndex(VTDGen *vg, FILE *f){
                 vg->l3Buffer, 
                 f);
 }
+/* Write VTD+XML into a file */
+Boolean writeIndex2(VTDGen *vg, char *fileName){
+	FILE *f = NULL;
+	Boolean b = FALSE;
+	f = fopen(fileName,"wb");
+	
+	if (f==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		return FALSE;
+	}
+	b = writeIndex(vg,f);
+	fclose(f);
+	return b;
+}
+
+/* pre-calculate the VTD+XML index size without generating the actual index */
+Long getIndexSize(VTDGen *vg){
+		int size;
+	    if ( (vg->docLen & 7)==0)
+	       size = vg->docLen;
+	    else
+	       size = ((vg->docLen >>3)+1)<<3;
+	    
+	    size += (vg->VTDBuffer->size<<3)+
+	            (vg->l1Buffer->size<<3)+
+	            (vg->l2Buffer->size<<3);
+	    
+		if ((vg->l3Buffer->size & 1) == 0){ //even
+	        size += vg->l3Buffer->size<<2;
+	    } else {
+	        size += (vg->l3Buffer->size+1)<<2; //odd
+	    }
+	    return size+64;
+}
