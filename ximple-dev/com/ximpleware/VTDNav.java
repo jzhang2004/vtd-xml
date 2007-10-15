@@ -854,7 +854,7 @@ public class VTDNav {
                         if (type == VTDNav.TOKEN_ATTR_NS){
                             for (int z=0;z<fib.size();z++){
                                 //System.out.println("fib size ==> "+fib.size());
-                                if (fib.size()==4);
+                                //if (fib.size()==4);
                                 if (matchTokens(fib.intAt(z),this,k)){
                                    unique = false;
                                    break;
