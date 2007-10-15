@@ -24,8 +24,9 @@
 #include "vtdGen.h"
 
 Boolean isLittleEndian();
+
 /*writeIndex writes VTD+XML into a file
-  This function throws */
+  This function throws index_write_exception*/
 Boolean _writeIndex(Byte version, 
 				int encodingType, 
 				Boolean ns, 
@@ -41,6 +42,8 @@ Boolean _writeIndex(Byte version,
 				FastLongBuffer *l2Buffer, 
 				FastIntBuffer *l3Buffer, 
 				FILE *f);
+
+
 /*readIndex loads VTD+XML into VTDGen*/
 Boolean _readIndex(FILE *f, VTDGen *vg);
 
