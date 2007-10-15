@@ -74,4 +74,7 @@ int* toIntArray(FastIntBuffer *fib);
 // set the buffer size to zero, capacity untouched,
 void clearFastIntBuffer (FastIntBuffer *fib);
 
+// reset the size of fastIntBuffer
+Boolean resizeFIB(FastIntBuffer *fib, int newSz);
+
 #endif

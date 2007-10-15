@@ -296,3 +296,15 @@ void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){
 void clearFastIntBuffer (FastIntBuffer *fib){
 	fib->size = 0;
 }
+
+/* Resize the fastIntBuffer, return true if resized successfully, otherwise,
+  the size doesn't change, return false*/
+Boolean resizeFIB(FastIntBuffer *fib, int newSz){
+	 if (newSz <= fib->capacity && newSz >=0){
+		 fib->size = newSz;
+		 return TRUE;
+	 }	 
+	 else
+		 return FALSE;
+}
+
