@@ -118,6 +118,13 @@ VTDNav* loadIndex(VTDGen *vg, FILE *f);
 
 /* load VTD+XML from a byte array */
 VTDNav* loadIndex2(VTDGen *vg, UByte* ba,int len);
+
 /* Write VTD+XML into a FILE pointer */
 Boolean writeIndex(VTDGen *vg, FILE *f);
+
+/* Write VTD+XML into a file of given name, this file will be created on hard disk */
+Boolean writeIndex2(VTDGen *vg, char *fileName);
+
+/* pre-calculate the VTD+XML index size without generating the actual index */
+Long getIndexSize(VTDGen *vg);
 #endif
