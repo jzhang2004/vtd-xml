@@ -35,7 +35,10 @@ ElementFragmentNs* createElementFragmentNs(VTDNav *vn, Long l1, FastIntBuffer *f
 
 /* Free an ElementFragmentNs object */
 void freeElementFragmentNs(ElementFragmentNs *ef){
-	free(ef);
+	if (ef!=NULL){
+		freeFastIntBuffer(ef->fib);
+		free(ef);
+	}
 }
 
 /* getSize recomputes the fragment size without byte copying 
