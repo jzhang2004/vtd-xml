@@ -73,6 +73,8 @@ void removeAttribute(XMLModifier *xm,int attrNameIndex);
 void removeContent(XMLModifier *xm, int offset, int len);
 
 void updateToken(XMLModifier *xm, int index, UCSChar *newContent);
+void updateToken2(XMLModifier *xm, int index, UByte *byteContent, int contentoffset, int contentLen);
+
 void insertAfterElement(XMLModifier *xm, UCSChar *s);
 void insertBeforeElement(XMLModifier *xm, UCSChar *s);
 void insertAttribute(XMLModifier *xm, UCSChar *attr);
