@@ -702,7 +702,7 @@ public class XMLModifier {
     /**
      * Insert an attribute after the starting tag
      * This method will first call getCurrentIndex() to get the cursor index value
-     * if the index is of type "starting tag", then teh attribute is inserted
+     * if the index is of type "starting tag", then the attribute is inserted
      * after the starting tag
      * @param attr e.g. " attrName='attrVal' ",notice the starting and ending 
      * white space
@@ -844,7 +844,21 @@ public class XMLModifier {
             }  
             os.write(ba,offset,start+len-offset);
         } 
-    }    
+    }
+    
+    /**
+     * Generate the updated output XML document and write it into 
+     * a file of given name
+     * @param fileName
+     * @throws IOException
+     * @throws ModifyException
+     *
+     */
+    public void output(String fileName) throws IOException, ModifyException{
+        FileOutputStream fos = new FileOutputStream(fileName);
+        output(fos);
+        fos.close();
+    }
     
     void quickSort (int lo, int hi)
     {
@@ -881,7 +895,7 @@ public class XMLModifier {
     }
 
     /**
-     * This method reset the internal state of XMLModify instance so 
+     * This method resets the internal state of XMLModify instance so 
      * it can be reused
      * 
      *
@@ -896,5 +910,13 @@ public class XMLModifier {
         if (deleteHash!=null)
             deleteHash.reset();
     }
-
+    
+    /**
+     * Replace the cursor element's name with a new name
+     */
+    public void updateElementName(String newElementName) throws NavException{
+        int i = md.getCurrentIndex2();
+        long l = md.getElementFragment();
+        int encoding = md.getEncoding();
+    }
 }
