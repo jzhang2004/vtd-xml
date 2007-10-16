@@ -192,7 +192,7 @@ namespace com.ximpleware
         {
             int os = (int)l;
             int len = (int)(l >> 32);
-            int os1 = 0;
+            
             byte[] xml = vn.getXML().getBytes();
             if (stLen == 0)
             {
