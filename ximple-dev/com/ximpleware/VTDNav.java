@@ -258,7 +258,7 @@ public class VTDNav {
 	}
 	/**
 	 * Return the attribute count of the element at the cursor position.
-	 * when ns is false, ns tokens are considered attributes;
+	 * when ns is false, attr_ns tokens are considered attributes;
 	 * otherwise, ns tokens are not considered attributes
 	 * @return int
 	 */
@@ -887,7 +887,7 @@ public class VTDNav {
 	
 	/**
 	 * Get the starting offset and length of an element
-	 * encoded in a long, upper 32 bit is length; lower 32 bit is offset
+	 * encoded in a long, upper 32 bits is length; lower 32 bits is offset
 	 * Unit is in byte.
 	 * Creation date: (3/15/04 1:47:55 PM)
 	 */
@@ -1037,7 +1037,7 @@ public class VTDNav {
 		return nestingLevel;
 	}
 	/**
-	 * Get root index value , which is the index val of document element
+	 * Get root index value , which is the index val of root element
 	 * @return int
 	 */
 	final public int getRootIndex() {
@@ -1149,7 +1149,7 @@ public class VTDNav {
 
 	}
 	/**
-	 * Get the starting offset of the token at the given index.
+	 * Get the starting offset (unit in native char) of the token at the given index.
 	 * @return int
 	 * @param index int
 	 */
@@ -1575,7 +1575,8 @@ public class VTDNav {
 	 *<em>New in 2.0</em>
 	 * This method compares two VTD tokens of VTDNav objects
 	 * The behavior of this method is like compare the strings corresponds
-	 * to i1 and i2
+	 * to i1 and i2, meaning for text or attribute val, entities will be converted into
+	 * the corresponding char 
 	 * @param i1
 	 * @param vn2
 	 * @param i2
@@ -1858,9 +1859,9 @@ public class VTDNav {
 	/**
 	 * overWrite is introduced in version 2.0 that allows you to 
 	 * directly overwrite the XML content if the token is long enough
-	 * If the operation is successful, white spaces will be used to fill
-	 * the available token space, and there will be no need to regenerate
-	 * the VTD and LCs
+	 * If the operation is successful, the new content along with
+	 * whitespaces will fill the available token space, and there 
+	 * will be no need to regenerate the VTD and LCs !!!
 	 * <em> The current version (2.0) only allows overwrites on attribute value,
 	 * character data, and CDATA</em>
 	 * 
@@ -3523,6 +3524,14 @@ public class VTDNav {
 		return toString(offset, len);
 	}
 	
+	/**
+	 * Convert the byte content segment (in terms of offset and length) to String
+	 * @param os  the offset of the segment
+	 * @param len the length of the segment
+	 * @return the corresponding string value
+	 * @throws NavException
+	 *
+	 */
 	final public String toString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
@@ -3538,9 +3547,9 @@ public class VTDNav {
 	
 /**
  * This method matches two VTD tokens of VTDNav objects
- * @param i1
- * @param vn2
- * @param i2
+ * @param i1 index of the first token
+ * @param vn2 the second VTDNav instance
+ * @param i2  index of the second token
  * @return boolean true if two tokens are lexically identical
  *
  */
