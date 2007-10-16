@@ -392,11 +392,11 @@ namespace com.ximpleware
             set
             {
                 current = this;
-                current.e.Position = value;
+                current.e.ContextSize = value;
                 UnionExpr tmp = this.next;
                 while (tmp != null)
                 {
-                    tmp.e.Position = value;
+                    tmp.e.ContextSize = value;
                     tmp = tmp.next;
                 }
             }
@@ -413,11 +413,11 @@ namespace com.ximpleware
             set
             {
                 current = this;
-                current.e.ContextSize = value;
+                current.e.Position = value;
                 UnionExpr tmp = this.next;
                 while (tmp != null)
                 {
-                    tmp.e.ContextSize = value;
+                    tmp.e.Position = value;
                     tmp = tmp.next;
                 }
 
