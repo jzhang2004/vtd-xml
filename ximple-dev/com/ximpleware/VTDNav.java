@@ -49,7 +49,7 @@ import com.ximpleware.parser.WIN1257;
 import com.ximpleware.parser.WIN1258;
 /**
  * The VTD Navigator allows one to navigate XML document represented in VTD records
- * and Location caches 
+ * and Location caches * 
  */
 public class VTDNav {
 	// Navigation directions

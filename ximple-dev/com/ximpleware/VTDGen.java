@@ -3392,7 +3392,7 @@ public class VTDGen {
 		}
 	}
 	/**
-	 * This method writes the VTD+XML into an output streams
+	 * This method writes the VTD+XML into an outputStream
 	 * @param os
 	 * @throws IOException
 	 * @throws IndexWriteException
