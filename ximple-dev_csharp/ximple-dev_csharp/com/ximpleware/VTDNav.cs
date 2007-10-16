@@ -520,7 +520,7 @@ namespace com.ximpleware
         /// 
         /// </summary>
         /// <returns></returns>
-        public ElementFragmentNs getElementFragnmentNs()
+        public ElementFragmentNs getElementFragmentNs()
         {
             if (this.ns == false)
                 throw new NavException("getElementFragmentNS can only be called ");
@@ -586,7 +586,7 @@ namespace com.ximpleware
                                 for (int z = 0; z < fib.size(); z++)
                                 {
                                     //System.out.println("fib size ==> "+fib.size());
-                                    if (fib.size() == 4) ;
+                                    //if (fib.size() == 4) ;
                                     if (matchTokens(fib.intAt(z), this, k))
                                     {
                                         unique = false;
