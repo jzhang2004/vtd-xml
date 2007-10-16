@@ -275,7 +275,6 @@ namespace com.ximpleware
             // one insert
             switch (type)
             {
-
                 case VTDNav.TOKEN_CDATA_VAL:
                     if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
                         insertBytesAt(offset - 9, newContentBytes);
@@ -295,15 +294,47 @@ namespace com.ximpleware
                         insertBytesAt((offset - 4) << 1, newContentBytes);
                     }
                     break;
-
-
                 default:
                     insertBytesAt(offset, newContentBytes);
                     break;
-
             }
             // one delete
             removeToken(index);
+        }
+
+
+        public void updateToken(int index, byte[] newContentBytes, int contentOffset, int contentLen)
+        {
+            if (newContentBytes == null)
+                throw new System.ArgumentException
+                ("newContentBytes can't be null");
+
+            int offset = md.getTokenOffset(index);
+            int len = md.getTokenLength(index);
+            int type = md.getTokenType(index);
+
+            // one insert
+            switch (type)
+            {
+                case VTDNav.TOKEN_CDATA_VAL:
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset - 9, newContentBytes, contentOffset, contentLen);
+                    else
+                        insertBytesAt((offset - 9) << 1, newContentBytes, contentOffset, contentLen);
+                    break;
+                case VTDNav.TOKEN_COMMENT:
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset - 4, newContentBytes, contentOffset, contentLen);
+                    else
+                        insertBytesAt((offset - 4) << 1, newContentBytes, contentOffset, contentLen);
+                    break;
+
+                default:
+                    insertBytesAt(offset, newContentBytes, contentOffset, contentLen);
+                    break;
+            }
+            // one delete
+            removeToken(index); 
         }
         /// <summary> Update the token with the given string value,
         /// notice that string will be converted into byte array
@@ -678,36 +709,43 @@ namespace com.ximpleware
                     }
                     else
                     {
-                        if ((l & (~0x1fffffffffffffffL)) == XML_DELETE)
+                        long k = flb.longAt(i + 1), temp;
+                        int i1 = i, temp2;
+                        int i2 = i + 1;
+                        if ((l & (~0x1fffffffffffffffL)) != MASK_DELETE)
                         {
-                            os.Write(ba, offset, flb.lower32At(i) - offset);
-                            byte[] temp_byteArray2;
-                            temp_byteArray2 = (byte[])fob.objectAt(i + 1);
-                            os.Write(temp_byteArray2, 0, temp_byteArray2.Length);
-                            offset = flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff);
+                            temp = l;
+                            l = k;
+                            k = temp;
+                            temp2 = i1;
+                            i1 = i2;
+                            i2 = temp2;
                         }
-                        else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
+                        
+                        os.Write(ba, offset, flb.lower32At(i) - offset);
+                        
+                        if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
                         {
-                            os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
                             byte[] temp_byteArray3;
-                            temp_byteArray3 = (byte[])fob.objectAt(i);
+                            temp_byteArray3 = (byte[])fob.objectAt(i2);
                             os.Write(temp_byteArray3, 0, temp_byteArray3.Length);
-                            offset = flb.lower32At(i + 1) + (flb.upper32At(i + 1) & 0x1fffffff);
+                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                         }
-                        else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
+                        else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
                         {
-                            os.Write(ba, offset, flb.lower32At(i + 1) - offset);
-                            ByteSegment bs = (ByteSegment)fob.objectAt(i);
+                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                            ByteSegment bs = (ByteSegment)fob.objectAt(i2);
                             os.Write(bs.ba, bs.offset, bs.len);
-                            offset = flb.lower32At(i + 1) + (flb.upper32At(i + 1) & 0x1fffffff);
+                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                         }
                         else
                         {
                             //ElementFragmentNs
-                            os.Write(ba, offset, flb.lower32At(i + 1) - offset);
-                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
+                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
                             ef.writeToOutputStream(os);
-                            offset = flb.lower32At(i + 1) + (flb.upper32At(i + 1) & 0x1fffffff);
+                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                         }
                     }
                 }
@@ -715,6 +753,18 @@ namespace com.ximpleware
             }
         }
 
+        /// <summary>
+        /// Generate updated output XML document and write it into 
+        /// a file of given name
+        /// </summary>
+        /// <param name="fileName"></param>
+        public void output(String fileName)
+        {
+            System.IO.FileStream fs = new System.IO.FileStream(fileName, System.IO.FileMode.OpenOrCreate);
+            output(fs);
+            fs.Close();
+        }
+        
         internal void quickSort(int lo, int hi)
         {
             //      lo is the lower index, hi is the upper index
@@ -807,6 +857,37 @@ namespace com.ximpleware
                 fob.append(ef);
             }
 
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public int getUpdatedDocumentSize()
+        {
+            int size = flb.size();
+            int docSize = md.getXML().getBytes().Length;
+            long l;
+            for (int i = 0; i < size; i++)
+            {
+                l = flb.longAt(i);
+                if ((l & (~0x1fffffffffffffffL)) == MASK_DELETE)
+                {
+                    docSize -= (int)((l & (0x1fffffffffffffffL)) >> 32);
+                }
+                else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
+                {
+                    docSize += ((byte[])fob.objectAt(i)).Length;
+                }
+                else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
+                { // MASK_INSERT_SEGMENT_BYTE
+                    docSize += ((ByteSegment)fob.objectAt(i)).len;
+                }
+                else
+                {
+                    docSize += ((ElementFragmentNs)fob.objectAt(i)).Size;
+                }
+            }
+            return docSize;
         }
 
     }
