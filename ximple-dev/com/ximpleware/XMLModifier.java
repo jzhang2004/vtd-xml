@@ -36,8 +36,8 @@ public class XMLModifier {
     private static final long MASK_DELETE = 0x00000000000000000L; //0000
     private static final long MASK_INSERT_SEGMENT_BYTE = 0x2000000000000000L; //0010
     private static final long MASK_INSERT_BYTE = 0x4000000000000000L;//0100
-    private static final long MASK_INSERT_SEGMENT_STRING = 0x6000000000000000L; //0110
-    private static final long MASK_INSERT_STRING = 0x8000000000000000L; //1000
+    //private static final long MASK_INSERT_SEGMENT_STRING = 0x6000000000000000L; //0110
+    //private static final long MASK_INSERT_STRING = 0x8000000000000000L; //1000
     private static final long MASK_INSERT_FRAGMENT_NS = 0xa000000000000000L; //1010
     
     protected FastObjectBuffer fob;
