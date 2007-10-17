@@ -765,9 +765,9 @@ public class VTDNav {
 			? XMLDoc.byteAt(offset) & 0xff
 			: (encoding <= FORMAT_WIN_1258)
 			? decode(offset):(encoding == FORMAT_UTF_16BE)
-			? (XMLDoc.byteAt(offset << 1)
+			? (((int)XMLDoc.byteAt(offset << 1))
 				<< 8 | XMLDoc.byteAt((offset << 1) + 1))
-			: (XMLDoc.byteAt((offset << 1) + 1)
+			: (((int)XMLDoc.byteAt((offset << 1) + 1))
 				<< 8 | XMLDoc.byteAt(offset << 1));
 	}
 	/**
@@ -948,7 +948,7 @@ public class VTDNav {
 				so2 =
 					(encoding <= FORMAT_WIN_1258 )
 						? (docOffset + docLen - 1)
-						: ((docOffset + docLen) << 1) - 1;
+						: ((docOffset + docLen) >> 1) - 1;
 			else
 				so2 = getTokenOffset(temp + 1);
 			while (getCharUnit(so2) != '>') {
@@ -1008,7 +1008,7 @@ public class VTDNav {
 		int so2 =
 			(encoding <= FORMAT_WIN_1258)
 				? (docOffset + docLen - 1)
-				: ((docOffset + docLen) << 1) - 1;
+				: ((docOffset + docLen) >> 1) - 1;
 		int d = depth + 1;
 		int i = 0;
 		while (i < d) {
