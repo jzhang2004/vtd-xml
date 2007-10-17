@@ -435,7 +435,7 @@ namespace com.ximpleware
                     b = true;
                 }
                 if (b == false)
-                    so2 = (encoding < FORMAT_WIN_1258) ? (docOffset + docLen - 1) : ((docOffset + docLen) << 1) - 1;
+                    so2 = (encoding < FORMAT_WIN_1258) ? (docOffset + docLen - 1) : ((docOffset + docLen) >> 1) - 1;
                 else
                     so2 = getTokenOffset(temp + 1);
                 while (getCharUnit(so2) != '>')
@@ -494,7 +494,7 @@ namespace com.ximpleware
             }
             // temp is the last entry
             // scan forward search for /> or </cc>
-            so2 = (encoding <= FORMAT_WIN_1258) ? (docOffset + docLen - 1) : ((docOffset + docLen) << 1) - 1;
+            so2 = (encoding <= FORMAT_WIN_1258) ? (docOffset + docLen - 1) : ((docOffset + docLen) >> 1) - 1;
             d = depth + 1;
             i = 0;
             while (i < d)
