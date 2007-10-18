@@ -159,7 +159,13 @@ public class XMLModifier {
     public void removeToken(int i) throws ModifyException{        
         int type = md.getTokenType(i);
         int os = md.getTokenOffset(i);
-		int len = md.getTokenLength(i);
+		//int len = md.getTokenLength(i)&0xffff;
+		int len =
+			(type == VTDNav.TOKEN_STARTING_TAG
+				|| type == VTDNav.TOKEN_ATTR_NAME
+				|| type == VTDNav.TOKEN_ATTR_NS)
+				? md.getTokenLength(i) & 0xffff
+				: md.getTokenLength(i);
         switch(type){
         	case VTDNav.TOKEN_CDATA_VAL:        	   
         		if (encoding < VTDNav.FORMAT_UTF_16BE)
@@ -327,17 +333,20 @@ public class XMLModifier {
         	    if (encoding < VTDNav.FORMAT_UTF_16BE)
         	        insertBytesAt(offset-9,newContentBytes);
         	    else 
-        	        insertBytesAt((offset-9)<<1,newContentBytes);
+        	        insertBytesAt((offset-9)>>1,newContentBytes);
         		break;
         	case VTDNav.TOKEN_COMMENT:
            	    if (encoding < VTDNav.FORMAT_UTF_16BE)
         	        insertBytesAt(offset-4,newContentBytes);
         	    else 
-        	        insertBytesAt((offset-4)<<1,newContentBytes);
+        	        insertBytesAt((offset-4)>>1,newContentBytes);
         		break;
         	    
         	default: 
-        	    insertBytesAt(offset,newContentBytes);
+        	    if (encoding < VTDNav.FORMAT_UTF_16BE)
+        	        insertBytesAt(offset,newContentBytes);
+        	    else
+        	        insertBytesAt(offset<<1,newContentBytes);
         }
         // one delete
         removeToken(index);        	
@@ -378,7 +387,10 @@ public class XMLModifier {
     		break;
     	    
     	default: 
-    	    insertBytesAt(offset,newContentBytes,contentOffset, contentLen);
+    	    if (encoding < VTDNav.FORMAT_UTF_16BE)
+    	        insertBytesAt(offset,newContentBytes,contentOffset, contentLen);
+    	    else 
+    	        insertBytesAt(offset<<1,newContentBytes,contentOffset, contentLen);
     }
     // one delete
     removeToken(index);        	
@@ -419,7 +431,10 @@ public class XMLModifier {
         		break;
         	    
         	default: 
-        	    insertBytesAt(offset,newContent.getBytes(charSet));
+        	    if (encoding < VTDNav.FORMAT_UTF_16BE)
+        	        insertBytesAt(offset,newContent.getBytes(charSet));
+        	    else 
+        	        insertBytesAt(offset<<1,newContent.getBytes(charSet));
         }
         // one delete
         removeToken(index);        	
@@ -911,12 +926,64 @@ public class XMLModifier {
             deleteHash.reset();
     }
     
-    /**
-     * Replace the cursor element's name with a new name
-     */
-    public void updateElementName(String newElementName) throws NavException{
-        int i = md.getCurrentIndex2();
+     /**
+      * Replace the cursor element's name with a new name
+      * @param newElementName
+      * @throws ModifyException
+      * @throws NavException
+      *
+      */
+    public void updateElementName(String newElementName) throws ModifyException,
+    NavException,UnsupportedEncodingException{
+        int i = md.getCurrentIndex();
+        int type = md.getTokenType(i);
+        if (type!=VTDNav.TOKEN_STARTING_TAG){
+            throw new ModifyException("You can only update a element name");
+        }
+        int offset = md.getTokenOffset(i);
+        int len = md.getTokenLength(i)& 0xffff;
+        updateToken(i,newElementName);
         long l = md.getElementFragment();
         int encoding = md.getEncoding();
+        byte[] xml = md.getXML().getBytes();
+        int temp = (int)l+(int)(l>>32);
+        if (encoding < VTDNav.FORMAT_UTF_16BE) {
+            //scan backwards for />
+            //int temp = (int)l+(int)(l>>32);
+            if (xml[temp - 2] == (byte) '/')
+                return;
+            //look for </
+            temp--;
+            while (xml[temp] != (byte) '/') {
+                temp--;
+            }
+            insertBytesAt(temp + 1, newElementName.getBytes(charSet));
+            removeContent(temp + 1, len);
+            return;
+            //
+        } else if (encoding == VTDNav.FORMAT_UTF_16BE) {
+            
+            //scan backwards for />
+            if (xml[temp - 3] == (byte) '/' && xml[temp - 4] == 0)
+                return;
+            
+            temp-=2;
+            while (!(xml[temp+1] == (byte) '/' && xml[temp ] == 0)) {
+                temp-=2;
+            }
+            insertBytesAt(temp+2, newElementName.getBytes(charSet));
+            removeContent(temp+2, len<<1);            
+        } else {
+            //scan backwards for />
+            if (xml[temp - 3] == 0 && xml[temp - 4] == '/')
+                return;
+            
+            temp-=2;
+            while (!(xml[temp] == (byte) '/' && xml[temp+1 ] == 0) ) {
+                temp-=2;
+            }
+            insertBytesAt(temp+2 , newElementName.getBytes(charSet));
+            removeContent(temp+2 , len<<1);
+        }
     }
 }
