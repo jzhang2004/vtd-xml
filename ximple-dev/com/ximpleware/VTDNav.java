@@ -1604,8 +1604,8 @@ public class VTDNav {
 		int offset1 = this.getTokenOffset(i1);
 		int offset2 = vn2.getTokenOffset(i2);
 		
-		endOffset1 = this.getTokenLength(i1)+offset1;
-		endOffset2 = vn2.getTokenLength(i2) + offset2;
+		endOffset1 = (this.getTokenLength(i1)&0xffff)+offset1;
+		endOffset2 = (vn2.getTokenLength(i2)&0xffff) + offset2;
 
 		for(;offset1<endOffset1&& offset2< endOffset2;){
 		    if(t1 == VTDNav.TOKEN_CHARACTER_DATA
