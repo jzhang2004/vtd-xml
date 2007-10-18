@@ -229,7 +229,7 @@ void freeXMLModifier(XMLModifier *xm){
 				)
 				free((void *)lower32At(xm->fob,i));
 			else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
-				freeElementFragmentNs((ElementFragmentNs *)lower32At(xm->fob,i));
+				//freeElementFragmentNs((ElementFragmentNs *)lower32At(xm->fob,i));
 			}
 		}
 		freeFastLongBuffer(xm->flb);
@@ -554,17 +554,18 @@ void insertBeforeElement2(XMLModifier *xm, UByte* ba, int arrayLen){
 void insertAfterElement3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen){
 	int startTagIndex = getCurrentIndex(xm->md);
 	int type =  getTokenType(xm->md, startTagIndex);
-	int offset;
+	int offset,len;
+	Long l;
 	if (type!=TOKEN_STARTING_TAG){
 		throwException2(modify_exception,
 			"Token type is not a starting tag");
 	}
-	offset = getTokenOffset(xm->md,startTagIndex)-1;
+	//offset = getTokenOffset(xm->md,startTagIndex)-1;
+	l = getElementFragment(xm->md);
+	offset = (int)l;
+	len = (int)(l>>32);	
+	insertBytesAt2(xm,offset+len, (((Long)contentLen)<<32)|((int)ba+contentOffset));
 	
-	if (xm->encoding < FORMAT_UTF_16BE)
-		insertBytesAt2(xm,offset, (((Long)contentLen)<<32)|((int)ba+contentOffset));
-	else
-		insertBytesAt2(xm,(offset)<<1, (((Long)contentLen)<<32)|((int)ba+contentOffset));
 }
 
 void insertBeforeElement3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen){
@@ -601,16 +602,17 @@ void insertBeforeElement4(XMLModifier *xm, ElementFragmentNs *ef){
 void insertAfterElement4(XMLModifier *xm, ElementFragmentNs *ef){
 	int startTagIndex = getCurrentIndex(xm->md);
 	int type =  getTokenType(xm->md, startTagIndex);
-	int offset;
+	int offset,len;
+	Long l;
 	if (type!=TOKEN_STARTING_TAG){
 		throwException2(modify_exception,
 			"Token type is not a starting tag");
 	}
-	offset = getTokenOffset(xm->md,startTagIndex)-1;
-	if (xm->encoding < FORMAT_UTF_16BE)
-		insertBytesAt3(xm,offset, ef);
-	else
-		insertBytesAt3(xm,(offset)<<1, ef);
+	//offset = getTokenOffset(xm->md,startTagIndex)-1;
+	l = getElementFragment(xm->md);
+	offset = (int)l;
+	len = (int)(l>>32);
+	insertBytesAt3(xm,offset+len, ef);	
 }
 
 
@@ -890,7 +892,7 @@ void resetXMLModifier(XMLModifier *xm){
 					)
 					free((void *)lower32At(xm->fob,i));
 				else if ( (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
-					freeElementFragmentNs((ElementFragmentNs *)lower32At(xm->fob,i));
+					//freeElementFragmentNs((ElementFragmentNs *)lower32At(xm->fob,i));
 				}
 			}
 			clearFastLongBuffer(xm->fob);
