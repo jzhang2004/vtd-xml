@@ -665,7 +665,7 @@ Long getElementFragment(VTDNav *vn){
 			so2 =
 			(vn->encoding <= FORMAT_WIN_1258)
 			? (vn->docOffset + vn->docLen - 1)
-			: ((vn->docOffset + vn->docLen) << 1) - 1;
+			: ((vn->docOffset + vn->docLen) >> 1) - 1;
 		else
 			so2 = getTokenOffset(vn,temp + 1);
 		while (getCharUnit(vn,so2) != '>') {
@@ -710,7 +710,7 @@ Long getElementFragment(VTDNav *vn){
 	so2 =
 		(vn->encoding <= FORMAT_WIN_1258)
 		? (vn->docOffset + vn->docLen - 1)
-		: ((vn->docOffset + vn->docLen) << 1) - 1;
+		: ((vn->docOffset + vn->docLen) >> 1) - 1;
 	d = depth + 1;
 	i = 0;
 	while (i < d) {
