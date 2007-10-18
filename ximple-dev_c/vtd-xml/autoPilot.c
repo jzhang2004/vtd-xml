@@ -497,6 +497,7 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 	if (s==NULL){
 		throwException2(xpath_parse_exception,
 			" xpath input string can't be NULL ");
+		return FALSE;
 	}
 	if(ap->xpe!=NULL)
 		ap->xpe->freeExpr(ap->xpe);
