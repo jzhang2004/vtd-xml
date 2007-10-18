@@ -325,8 +325,14 @@ public class XMLModifier {
             throw new IllegalArgumentException
             ("newContentBytes can't be null");
         int offset = md.getTokenOffset(index);
-        int len = md.getTokenLength(index);
+        
         int type = md.getTokenType(index);
+        int len =
+			(type == VTDNav.TOKEN_STARTING_TAG
+				|| type == VTDNav.TOKEN_ATTR_NAME
+				|| type == VTDNav.TOKEN_ATTR_NS)
+				? md.getTokenLength(index) & 0xffff
+				: md.getTokenLength(index);
         // one insert
         switch(type){
         	case VTDNav.TOKEN_CDATA_VAL:
@@ -368,9 +374,14 @@ public class XMLModifier {
         ("newContentBytes can't be null");
 
     int offset = md.getTokenOffset(index);
-    int len = md.getTokenLength(index);
+    //int len = md.getTokenLength(index);
     int type = md.getTokenType(index);
-    
+    int len =
+		(type == VTDNav.TOKEN_STARTING_TAG
+			|| type == VTDNav.TOKEN_ATTR_NAME
+			|| type == VTDNav.TOKEN_ATTR_NS)
+			? md.getTokenLength(index) & 0xffff
+			: md.getTokenLength(index);
     // one insert
     switch(type){
     	case VTDNav.TOKEN_CDATA_VAL:
@@ -413,8 +424,14 @@ public class XMLModifier {
             throw new IllegalArgumentException
             ("String newContent can't be null");
         int offset = md.getTokenOffset(index);
-        int len = md.getTokenLength(index);
+        //int len = md.getTokenLength(index);
         int type = md.getTokenType(index);
+        int len =
+			(type == VTDNav.TOKEN_STARTING_TAG
+				|| type == VTDNav.TOKEN_ATTR_NAME
+				|| type == VTDNav.TOKEN_ATTR_NS)
+				? md.getTokenLength(index) & 0xffff
+				: md.getTokenLength(index);
         // one insert
         switch(type){
         	case VTDNav.TOKEN_CDATA_VAL:
