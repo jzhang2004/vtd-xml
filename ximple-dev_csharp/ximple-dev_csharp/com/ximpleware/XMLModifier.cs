@@ -149,7 +149,12 @@ namespace com.ximpleware
         {
             int type = md.getTokenType(i);
             int os = md.getTokenOffset(i);
-            int len = md.getTokenLength(i);
+            int len =
+            (type == VTDNav.TOKEN_STARTING_TAG
+                || type == VTDNav.TOKEN_ATTR_NAME
+                || type == VTDNav.TOKEN_ATTR_NS)
+                ? md.getTokenLength(i) & 0xffff
+                : md.getTokenLength(i);
             switch (type)
             {
 
@@ -270,8 +275,14 @@ namespace com.ximpleware
             if (newContentBytes == null)
                 throw new System.ArgumentException("String newContent can't be null");
             int offset = md.getTokenOffset(index);
-            int len = md.getTokenLength(index);
+            //int len = md.getTokenLength(index);
             int type = md.getTokenType(index);
+            int len =
+            (type == VTDNav.TOKEN_STARTING_TAG
+                || type == VTDNav.TOKEN_ATTR_NAME
+                || type == VTDNav.TOKEN_ATTR_NS)
+                ? md.getTokenLength(index) & 0xffff
+                : md.getTokenLength(index);
             // one insert
             switch (type)
             {
@@ -295,7 +306,10 @@ namespace com.ximpleware
                     }
                     break;
                 default:
-                    insertBytesAt(offset, newContentBytes);
+                    if (md.getEncoding() < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset, newContentBytes);
+                    else
+                        insertBytesAt(offset << 1, newContentBytes);
                     break;
             }
             // one delete
@@ -310,9 +324,14 @@ namespace com.ximpleware
                 ("newContentBytes can't be null");
 
             int offset = md.getTokenOffset(index);
-            int len = md.getTokenLength(index);
+            //int len = md.getTokenLength(index);
             int type = md.getTokenType(index);
-
+            int len =
+            (type == VTDNav.TOKEN_STARTING_TAG
+                || type == VTDNav.TOKEN_ATTR_NAME
+                || type == VTDNav.TOKEN_ATTR_NS)
+                ? md.getTokenLength(index) & 0xffff
+                : md.getTokenLength(index);
             // one insert
             switch (type)
             {
@@ -330,11 +349,14 @@ namespace com.ximpleware
                     break;
 
                 default:
-                    insertBytesAt(offset, newContentBytes, contentOffset, contentLen);
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset, newContentBytes, contentOffset, contentLen);
+                    else
+                        insertBytesAt(offset << 1, newContentBytes, contentOffset, contentLen);
                     break;
             }
             // one delete
-            removeToken(index); 
+            removeToken(index);
         }
         /// <summary> Update the token with the given string value,
         /// notice that string will be converted into byte array
@@ -349,8 +371,14 @@ namespace com.ximpleware
             if (newContent == null)
                 throw new System.ArgumentException("String newContent can't be null");
             int offset = md.getTokenOffset(index);
-            int len = md.getTokenLength(index);
+            //int len = md.getTokenLength(index);
             int type = md.getTokenType(index);
+            int len =
+            (type == VTDNav.TOKEN_STARTING_TAG
+                || type == VTDNav.TOKEN_ATTR_NAME
+                || type == VTDNav.TOKEN_ATTR_NS)
+                ? md.getTokenLength(index) & 0xffff
+                : md.getTokenLength(index);
             // one insert
             switch (type)
             {
@@ -721,9 +749,9 @@ namespace com.ximpleware
                             i1 = i2;
                             i2 = temp2;
                         }
-                        
+
                         os.Write(ba, offset, flb.lower32At(i) - offset);
-                        
+
                         if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
                         {
                             //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
@@ -764,7 +792,7 @@ namespace com.ximpleware
             output(fs);
             fs.Close();
         }
-        
+
         internal void quickSort(int lo, int hi)
         {
             //      lo is the lower index, hi is the upper index
@@ -889,6 +917,72 @@ namespace com.ximpleware
             }
             return docSize;
         }
+        /// <summary>
+        /// update the cursor element with a new name
+        /// </summary>
+        /// <param name="newElementName"></param>
 
+        public void updateElementName(String newElementName)
+        {
+            int i = md.getCurrentIndex();
+            int type = md.getTokenType(i);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+            {
+                throw new ModifyException("You can only update a element name");
+            }
+            int offset = md.getTokenOffset(i);
+            int len = md.getTokenLength(i) & 0xffff;
+            updateToken(i, newElementName);
+            long l = md.getElementFragment();
+            int encoding = md.getEncoding();
+            byte[] xml = md.getXML().getBytes();
+            int temp = (int)l + (int)(l >> 32);
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+            {
+                //scan backwards for />
+                //int temp = (int)l+(int)(l>>32);
+                if (xml[temp - 2] == (byte)'/')
+                    return;
+                //look for </
+                temp--;
+                while (xml[temp] != (byte)'/')
+                {
+                    temp--;
+                }
+                insertBytesAt(temp + 1, eg.GetBytes(newElementName));
+                removeContent(temp + 1, len);
+                return;
+                //
+            }
+            else if (encoding == VTDNav.FORMAT_UTF_16BE)
+            {
+
+                //scan backwards for />
+                if (xml[temp - 3] == (byte)'/' && xml[temp - 4] == 0)
+                    return;
+
+                temp -= 2;
+                while (!(xml[temp + 1] == (byte)'/' && xml[temp] == 0))
+                {
+                    temp -= 2;
+                }
+                insertBytesAt(temp + 2, eg.GetBytes(newElementName));
+                removeContent(temp + 2, len << 1);
+            }
+            else
+            {
+                //scan backwards for />
+                if (xml[temp - 3] == 0 && xml[temp - 4] == '/')
+                    return;
+
+                temp -= 2;
+                while (!(xml[temp] == (byte)'/' && xml[temp + 1] == 0))
+                {
+                    temp -= 2;
+                }
+                insertBytesAt(temp + 2, eg.GetBytes(newElementName));
+                removeContent(temp + 2, len << 1);
+            }
+        }
     }
 }
