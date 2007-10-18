@@ -224,13 +224,13 @@ void freeXMLModifier(XMLModifier *xm){
 		
 		for (i=0;i<xm->fob->size;i++){
 			Long l = longAt(xm->flb,i);
-			if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE
+			if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE
 				//|| (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE
 				)
 				free((void *)lower32At(xm->fob,i));
-			else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
+			/*else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
 				//freeElementFragmentNs((ElementFragmentNs *)lower32At(xm->fob,i));
-			}
+			}*/
 		}
 		freeFastLongBuffer(xm->flb);
 		freeFastLongBuffer(xm->fob);
@@ -891,9 +891,9 @@ void resetXMLModifier(XMLModifier *xm){
 					//||(l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE
 					)
 					free((void *)lower32At(xm->fob,i));
-				else if ( (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
+				/*else if ( (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
 					//freeElementFragmentNs((ElementFragmentNs *)lower32At(xm->fob,i));
-				}
+				}*/
 			}
 			clearFastLongBuffer(xm->fob);
 		}
