@@ -79,7 +79,7 @@ UByte* toFragmentBytes(ElementFragmentNs *ef){
 		UByte *xml = ef->vn->XMLDoc;
 		if (ef->stLen==0){
 			//System.arraycopy(xml,os,ba,0,len);
-			memcpy(ba,xml,len);
+			memcpy(ba,xml+os,len);
 			return ba;
 		}
 		enc = getEncoding(ef->vn);
@@ -92,7 +92,7 @@ UByte* toFragmentBytes(ElementFragmentNs *ef){
 				temp = ef->stLen+1;
 		}            
 		//System.arraycopy(xml,os,ba,0,temp);
-		memcpy(ba,xml,temp);
+		memcpy(ba,xml+os,temp);
 		//namespace compensation
 		os1 += temp;
 
@@ -191,7 +191,7 @@ void writeFragmentToFile(ElementFragmentNs *ef, FILE *f){
 	if (ef->stLen==0){
 		//System.arraycopy(xml,os,ba,0,len);
 		//memcpy(ba,xml,sizeof(UByte),len);
-		temp2=fwrite(xml,sizeof(UByte),len,f);
+		temp2=fwrite(xml+os,sizeof(UByte),len,f);
 		if (temp2<len){
 			throwException2(io_exception,"fwrite incomplete in writeToFile");
 		}
@@ -208,7 +208,7 @@ void writeFragmentToFile(ElementFragmentNs *ef, FILE *f){
 	}            
 	//System.arraycopy(xml,os,ba,0,temp);
 	//memcpy(ba,xml,sizeof(UByte),temp);
-	temp2 = fwrite(xml,sizeof(UByte),temp,f); 
+	temp2 = fwrite(xml+os,sizeof(UByte),temp,f); 
 	if (temp2<temp){
 		throwException2(io_exception,"fwrite incomplete in writeToFile");
 	}
