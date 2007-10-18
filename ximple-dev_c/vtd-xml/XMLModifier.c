@@ -300,7 +300,12 @@ void removeToken(XMLModifier *xm, int i){
 	    int type = getTokenType(xm->md,i);
         int os,len;
 		os = getTokenOffset(xm->md,i);
-   		len = getTokenLength(xm->md,i);
+		len =
+			(type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_ATTR_NS)
+			? getTokenLength(xm->md,i) & 0xffff
+			: getTokenLength(xm->md,i);
         switch(type){
         	case TOKEN_CDATA_VAL:
         	    if (xm->encoding < FORMAT_UTF_16BE)
@@ -389,8 +394,14 @@ void updateToken(XMLModifier *xm, int index, UCSChar *newContent){
 			"String newContent can't be null");
 	}
 	offset = getTokenOffset(xm->md,index);
-	len = getTokenLength(xm->md,index);
+	//len = getTokenLength(xm->md,index);
 	type = getTokenType(xm->md,index);
+	len =
+		(type == TOKEN_STARTING_TAG
+		|| type == TOKEN_ATTR_NAME
+		|| type == TOKEN_ATTR_NS)
+		? getTokenLength(xm->md,index) & 0xffff
+		: getTokenLength(xm->md,index);
 	// one insert
 	switch(type){
 			case TOKEN_CDATA_VAL:
@@ -407,7 +418,10 @@ void updateToken(XMLModifier *xm, int index, UCSChar *newContent){
 				break;
 
 			default: 
-				insertBytesAt(xm, offset,xm->gbytes(newContent));
+				if (xm->md->encoding < FORMAT_UTF_16BE)
+					insertBytesAt(xm, offset,xm->gbytes(newContent));
+				else 
+					insertBytesAt(xm, offset<<1,xm->gbytes(newContent));
 	}
 	/* one delete */
 	removeToken(xm,index);      
@@ -421,8 +435,15 @@ void updateToken2(XMLModifier *xm, int index, UByte *byteContent, int contentOff
 			"byteContent can't be null");
 	}
 	offset = getTokenOffset(xm->md,index);
-	len = getTokenLength(xm->md,index);
+	//len = getTokenLength(xm->md,index);
 	type = getTokenType(xm->md,index);
+
+	len =
+		(type == TOKEN_STARTING_TAG
+		|| type == TOKEN_ATTR_NAME
+		|| type == TOKEN_ATTR_NS)
+		? getTokenLength(xm->md,index) & 0xffff
+		: getTokenLength(xm->md,index);
 	// one insert
 	switch(type){
 			case TOKEN_CDATA_VAL:
@@ -439,7 +460,10 @@ void updateToken2(XMLModifier *xm, int index, UByte *byteContent, int contentOff
 				break;
 
 			default: 
-				insertBytesAt2(xm, offset,(((Long)contentLen)<<32)|((int)byteContent+contentOffset));
+				if (xm->md->encoding < FORMAT_UTF_16BE)
+					insertBytesAt2(xm, offset,(((Long)contentLen)<<32)|((int)byteContent+contentOffset));
+				else 
+					insertBytesAt2(xm, offset<<1,(((Long)contentLen)<<32)|((int)byteContent+contentOffset));
 	}
 	/* one delete */
 	removeToken(xm,index);    
