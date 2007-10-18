@@ -222,6 +222,7 @@ void freeXMLModifier(XMLModifier *xm){
 		freeIntHash(xm->deleteHash);
 		freeIntHash(xm->insertHash);
 		
+		if (xm->fob != NULL)
 		for (i=0;i<xm->fob->size;i++){
 			Long l = longAt(xm->flb,i);
 			if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE
