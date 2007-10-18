@@ -377,9 +377,9 @@ void insertBytesAt3(XMLModifier *xm, int offset, ElementFragmentNs* ef){
 	if (isUniqueIntHash(xm->insertHash,offset)==FALSE){
 		throwException2(modify_exception,
 			"There can be only one insertion per offset value");
-		appendLong(xm->flb, offset | MASK_INSERT_FRAGMENT_NS);
-		appendLong(xm->fob, ef);
 	}
+	appendLong(xm->flb, offset | MASK_INSERT_FRAGMENT_NS);
+	appendLong(xm->fob, ef);
 }
 
 void updateToken(XMLModifier *xm, int index, UCSChar *newContent){
@@ -411,6 +411,38 @@ void updateToken(XMLModifier *xm, int index, UCSChar *newContent){
 	}
 	/* one delete */
 	removeToken(xm,index);      
+}
+
+/* replace token with a segment of byte array */
+void updateToken2(XMLModifier *xm, int index, UByte *byteContent, int contentOffset, int contentLen){
+	int offset, len, type;
+	if (byteContent==NULL){
+		throwException2(invalid_argument,
+			"byteContent can't be null");
+	}
+	offset = getTokenOffset(xm->md,index);
+	len = getTokenLength(xm->md,index);
+	type = getTokenType(xm->md,index);
+	// one insert
+	switch(type){
+			case TOKEN_CDATA_VAL:
+				if (xm->md->encoding < FORMAT_UTF_16BE)
+					insertBytesAt2(xm,offset-9,(((Long)contentLen)<<32)|((int)byteContent+contentOffset));
+				else 
+					insertBytesAt2(xm,(offset-9)<<1,(((Long)contentLen)<<32)|((int)byteContent+contentOffset));
+				break;
+			case TOKEN_COMMENT:
+				if (xm->md->encoding < FORMAT_UTF_16BE)
+					insertBytesAt2(xm,offset-4,(((Long)contentLen)<<32)|((int)byteContent+contentOffset));
+				else 
+					insertBytesAt2(xm,(offset-4)<<1,(((Long)contentLen)<<32)|((int)byteContent+contentOffset));
+				break;
+
+			default: 
+				insertBytesAt2(xm, offset,(((Long)contentLen)<<32)|((int)byteContent+contentOffset));
+	}
+	/* one delete */
+	removeToken(xm,index);    
 }
 
 void insertAfterElement(XMLModifier *xm, UCSChar *s){
@@ -707,36 +739,45 @@ void output(XMLModifier *xm, FILE *f){
 					offset=lower32At(xm->flb,i);
 				}
 			} else {
-				if ((l & (~0x1fffffffffffffffLL)) == MASK_DELETE){
-					t = lower32At(xm->flb,i);
+				    long k = longAt(xm->flb,i+1),temp;
+                    int i1 = i,temp2;
+                    int i2 = i+1;
+                    if ((l & (~0x1fffffffffffffffL)) != MASK_DELETE){
+                        temp = l;
+                        l= k;
+                        k = temp;
+                        temp2 = i1;
+                        i1 = i2;
+                        i2 = temp2;
+                    }									
+					
+					t = lower32At(xm->flb,i1);
 					k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 					if (k!=t-offset)
 						throwException2(io_exception,"fwrite didn't complete");
 					//os.write(ba,offset, flb.lower32At(i)-offset);
 					//os.write((byte[])fob.objectAt(i+1));
-					t = upper32At(xm->fob,i+1);/* the length */
-					k=fwrite((void *)lower32At(xm->fob,i+1),sizeof(UByte),t,f);
-					if (k!=t)
-						throwException2(io_exception,"fwrite didn't complete");  
-					offset = lower32At(xm->flb,i) + (upper32At(xm->flb,i) & 0x1fffffff);
-				}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE
-					|| (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE){
-					t = lower32At(xm->flb,i+1);
+					//t = upper32At(xm->fob,i+1);/* the length */
+								   
+					if ((k & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE
+					|| (k & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE){
+					/*t = lower32At(xm->flb,i+1);
 					k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 					if (k!=t-offset)
-						throwException2(io_exception,"fwrite didn't complete");
+						throwException2(io_exception,"fwrite didn't complete");*/
 					/*os.write(ba,offset, flb.lower32At(i+1)-offset);*/
-					t = upper32At(xm->fob,i);/* the length */
-					k=fwrite((void *)lower32At(xm->fob,i),sizeof(UByte),t,f);
+					t = upper32At(xm->fob,i2);   /* the length */
+					k=fwrite((void *)lower32At(xm->fob,i2),sizeof(UByte),t,f);
 					if (k!=t)
 						throwException2(io_exception,"fwrite didn't complete");  
-					offset = lower32At(xm->flb,i+1) + (upper32At(xm->flb,i+1) & 0x1fffffff);
+					offset = lower32At(xm->flb,i1) + (upper32At(xm->flb,i1) & 0x1fffffff);
 				}else {
-					t = lower32At(xm->flb,i+1);
-					k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
-					if (k!=t-offset)
-						throwException2(io_exception,"fwrite didn't complete");
-					offset = lower32At(xm->flb,i+1) + (upper32At(xm->flb,i+1) & 0x1fffffff);
+					/*t = lower32At(xm->flb,i+1);
+					  k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					  if (k!=t-offset)
+					 	throwException2(io_exception,"fwrite didn't complete");*/
+					writeFragmentToFile((ElementFragmentNs*)lower32At(xm->fob,i2),f);
+					offset = lower32At(xm->flb,i1) + (upper32At(xm->flb,i1) & 0x1fffffff);
 				}
 			}
 		}  
@@ -749,6 +790,17 @@ void output(XMLModifier *xm, FILE *f){
 
 }
 
+void output2(XMLModifier *xm, char *fileName){
+	FILE *f = NULL;
+	f = fopen(fileName,"wb");
+	
+	if (f==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		return FALSE;
+	}
+	output(xm,f);
+	fclose(f);
+}
 
 static void check(XMLModifier *xm){
 	int os1, os2, temp,i;
