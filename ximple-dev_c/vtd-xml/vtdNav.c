@@ -3333,6 +3333,7 @@ int compareRawTokenString(VTDNav *vn, int index, UCSChar *s){
 int compareTokens(VTDNav *vn1, int i1, VTDNav *vn2, int i2){
 	int t1, t2;
 	int ch1, ch2;
+	int len1, len2;
 	int endOffset1, endOffset2;
 	Long l;
 	int offset1, offset2;
@@ -3349,8 +3350,22 @@ int compareTokens(VTDNav *vn1, int i1, VTDNav *vn2, int i2){
 	offset1 = getTokenOffset(vn1,i1);
 	offset2 = getTokenOffset(vn2,i2);
 
-	endOffset1 = getTokenLength(vn1,i1) + offset1;
-	endOffset2 = getTokenLength(vn1,i2) + offset2;
+	len1 =
+		(t1 == TOKEN_STARTING_TAG
+		|| t1 == TOKEN_ATTR_NAME
+		|| t1 == TOKEN_ATTR_NS)
+		? getTokenLength(vn1,i1) & 0xffff
+		: getTokenLength(vn1,i1);
+
+	len2 = 
+		(t2 == TOKEN_STARTING_TAG
+		|| t2 == TOKEN_ATTR_NAME
+		|| t2 == TOKEN_ATTR_NS)
+		? getTokenLength(vn2,i2) & 0xffff
+		: getTokenLength(vn2,i2);
+
+	endOffset1 = len1 + offset1;
+	endOffset2 = len2 + offset2;
 
 	for(;offset1<endOffset1 && offset2< endOffset2;){
 		if(t1 == TOKEN_CHARACTER_DATA

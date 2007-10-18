@@ -4145,9 +4145,20 @@ namespace com.ximpleware
 
             int offset1 = this.getTokenOffset(i1);
             int offset2 = vn2.getTokenOffset(i2);
-
-            endOffset1 = this.getTokenLength(i1) + offset1;
-            endOffset2 = vn2.getTokenLength(i2) + offset2;
+            int len1 =
+            (t1 == TOKEN_STARTING_TAG
+                || t1 == TOKEN_ATTR_NAME
+                || t1 == TOKEN_ATTR_NS)
+                ? getTokenLength(i1) & 0xffff
+                : getTokenLength(i1);
+            int len2 =
+                (t2 == TOKEN_STARTING_TAG
+                    || t2 == TOKEN_ATTR_NAME
+                    || t2 == TOKEN_ATTR_NS)
+                    ? getTokenLength(i2) & 0xffff
+                    : getTokenLength(i2);
+            endOffset1 = len1 + offset1;
+            endOffset2 = len2 + offset2;
 
             for (; offset1 < endOffset1 && offset2 < endOffset2; )
             {
