@@ -337,9 +337,10 @@ namespace com.ximpleware
 						}
 						else
 						{
-							int type = vn.getTokenType(index);
+							
 							while (index <= size)
-							{
+                            {
+                                int type = vn.getTokenType(index);
 								if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
 								{
 									if (type == VTDNav.TOKEN_ATTR_NAME)

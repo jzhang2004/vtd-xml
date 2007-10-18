@@ -436,9 +436,9 @@ int iterateAttr(AutoPilot *ap){
 								}
 						}
 						return -1;
-					}else {
-						tokenType type = getTokenType(ap->vn,ap->index);
+					}else {						
 						while(ap->index<=ap->size){
+							tokenType type = getTokenType(ap->vn,ap->index);
 							if (type == TOKEN_ATTR_NAME
 								|| type == TOKEN_ATTR_NS){
 									if (type == TOKEN_ATTR_NAME){
