@@ -2871,7 +2871,7 @@ public class VTDNav {
     }
 	/**
 	 * A generic navigation method.
-	 * Move the current to the element according to the direction constants
+	 * Move the cursor to the element according to the direction constants
 	 * If no such element, no position change and return false.
 	 * Creation date: (12/2/03 1:43:50 PM)
 	 * Legal direction constants are
@@ -3143,7 +3143,7 @@ public class VTDNav {
 	}
 	/**
 	 * A generic navigation method.
-	 * Move the current to the element according to the direction constants and the element name
+	 * Move the cursor to the element according to the direction constants and the element name
 	 * If no such element, no position change and return false.
 	 * "*" matches any element
 	 * Creation date: (12/2/03 1:43:50 PM)
@@ -3277,7 +3277,7 @@ public class VTDNav {
 	}
 	/**
 	 * A generic navigation method with namespace support.
-	 * Move the current to the element according to the direction constants and the prefix and local names
+	 * Move the cursor to the element according to the direction constants and the prefix and local names
 	 * If no such element, no position change and return false.
 	 * URL * matches any namespace, including undefined namespaces
 	 * a null URL means hte namespace prefix is undefined for the element
