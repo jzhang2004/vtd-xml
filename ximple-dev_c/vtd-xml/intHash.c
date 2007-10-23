@@ -68,6 +68,8 @@ void freeIntHash(IntHash *ih){
 			freeFastIntBuffer(ih->storage[i]);
 		}
 	}
+	free(ih->storage);
+	free(ih);
 }
 
 
