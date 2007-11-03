@@ -756,6 +756,28 @@ public class VTDNav {
 		    return WIN1258.decode(ch);
 	    }
 	}
+	
+	/**
+	 * Dump the in memory XML text into output stream
+	 * @param os
+	 * @throws java.io.IOException
+	 *
+	 */
+	void dumpXML(OutputStream os) throws java.io.IOException{
+	    os.write(this.XMLDoc.getBytes(),this.docOffset,this.docLen);
+	}
+	
+	/**
+	 * Dump the in-memory copy of XML text into a file
+	 * @param fileName
+	 * @throws java.io.IOException
+	 *
+	 */
+	void dumpXML(String fileName) throws java.io.IOException{
+	    FileOutputStream fos = new FileOutputStream(fileName);
+	    dumpXML(fos);
+	    fos.close();
+	}
 	/**
 	 * Get the next char unit which gets decoded automatically
 	 * @return int
