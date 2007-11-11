@@ -775,8 +775,12 @@ public class VTDNav {
 	 */
 	public void dumpXML(String fileName) throws java.io.IOException{
 	    FileOutputStream fos = new FileOutputStream(fileName);
-	    dumpXML(fos);
-	    fos.close();
+	    try{
+	        dumpXML(fos);
+	    }
+	    finally{
+	        fos.close();
+	    }
 	}
 	/**
 	 * Get the next char unit which gets decoded automatically
