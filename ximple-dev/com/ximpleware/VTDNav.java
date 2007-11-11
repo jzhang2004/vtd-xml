@@ -763,7 +763,7 @@ public class VTDNav {
 	 * @throws java.io.IOException
 	 *
 	 */
-	void dumpXML(OutputStream os) throws java.io.IOException{
+	public void dumpXML(OutputStream os) throws java.io.IOException{
 	    os.write(this.XMLDoc.getBytes(),this.docOffset,this.docLen);
 	}
 	
@@ -773,7 +773,7 @@ public class VTDNav {
 	 * @throws java.io.IOException
 	 *
 	 */
-	void dumpXML(String fileName) throws java.io.IOException{
+	public void dumpXML(String fileName) throws java.io.IOException{
 	    FileOutputStream fos = new FileOutputStream(fileName);
 	    dumpXML(fos);
 	    fos.close();
