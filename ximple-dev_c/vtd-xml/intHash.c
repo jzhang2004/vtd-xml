@@ -67,9 +67,9 @@ void freeIntHash(IntHash *ih){
 		for (i=0;i<=ih->maxDepth;i++){
 			freeFastIntBuffer(ih->storage[i]);
 		}
+		free(ih->storage);
+		free(ih);
 	}
-	free(ih->storage);
-	free(ih);
 }
 
 
