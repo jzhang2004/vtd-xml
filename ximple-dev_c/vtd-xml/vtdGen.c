@@ -1514,20 +1514,20 @@ void parse(VTDGen *vg, Boolean ns){
 												vg->offset
 												- vg->temp_offset
 												- (vg->increment<<1);
-											if (length1 > 0) {
-												if (vg->encoding < FORMAT_UTF_16BE)
-													writeVTD(vg,
-													(vg->temp_offset),
-													length1,
-													TOKEN_CHARACTER_DATA,
-													vg->depth);
-												else
-													writeVTD(vg,
-													(vg->temp_offset) >> 1,
-													(length1 >> 1),
-													TOKEN_CHARACTER_DATA,
-													vg->depth);
-											}
+
+											if (vg->encoding < FORMAT_UTF_16BE)
+												writeVTD(vg,
+												(vg->temp_offset),
+												length1,
+												TOKEN_CHARACTER_DATA,
+												vg->depth);
+											else
+												writeVTD(vg,
+												(vg->temp_offset) >> 1,
+												(length1 >> 1),
+												TOKEN_CHARACTER_DATA,
+												vg->depth);
+
 										}
 										//offset += length1;
 										parser_state = STATE_END_TAG;
