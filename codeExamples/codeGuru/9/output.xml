@@ -1,0 +1,5 @@
+<root>
+  <a> text </a>
+  <ns2:b xmlns:ns1="someURL1" xmlns:ns2="someURL2"> text </ns2:b><b> text </b><ns2:b xmlns:ns1="someURL1" xmlns:ns2="someURL2"> text </ns2:b>
+  <c> text </c>
+</root>

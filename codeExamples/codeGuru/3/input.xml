@@ -1,0 +1,3 @@
+<ns1:a xmlns:ns1="someURL">
+	<ns1:b> hello world! </ns1:b>
+</ns1:a>

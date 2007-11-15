@@ -1,0 +1,28 @@
+// code guru example 
+There are 13 directories under codeGuru. Below is a list of brief 
+description of what each directory contains.
+
+basic
+1. hello world (parsing from a file) parse+ navigate
+2. using XPath without namespaces
+3. using XPath with name spaces
+
+indexing
+4. index writing
+5. index loading
+
+Incremental Modifier
+6. modify an attribute value
+7. remove element fragments
+8. insert fragments
+ 
+NS compensated fragments
+9. insert namespace compensated element fragments
+
+slicing
+10. re-arrange element fragments
+
+editing
+11. create a template
+12. edit the template
+13. erase the template

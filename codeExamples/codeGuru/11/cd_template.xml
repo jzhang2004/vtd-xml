@@ -1,0 +1,35 @@
+<CATALOG>
+    <CD>
+        <TITLE>                      </TITLE>
+        <ARTIST>              </ARTIST>
+        <COUNTRY>       </COUNTRY>
+        <COMPANY>              </COMPANY>
+        <PRICE>        </PRICE>
+        <YEAR>        </YEAR>
+    </CD>
+    <CD>
+        <TITLE>                      </TITLE>
+        <ARTIST>              </ARTIST>
+        <COUNTRY>       </COUNTRY>
+        <COMPANY>              </COMPANY>
+        <PRICE>        </PRICE>
+        <YEAR>        </YEAR>
+    </CD>
+    <CD>
+        <TITLE>                      </TITLE>
+        <ARTIST>              </ARTIST>
+        <COUNTRY>       </COUNTRY>
+        <COMPANY>              </COMPANY>
+        <PRICE>        </PRICE>
+        <YEAR>        </YEAR>
+    </CD> 
+    <CD>
+        <TITLE>                      </TITLE>
+        <ARTIST>              </ARTIST>
+        <COUNTRY>       </COUNTRY>
+        <COMPANY>              </COMPANY>
+        <PRICE>        </PRICE>
+        <YEAR>        </YEAR>
+     </CD>
+</CATALOG>
+

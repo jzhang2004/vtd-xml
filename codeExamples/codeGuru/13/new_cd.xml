@@ -1,0 +1,35 @@
+<CATALOG>
+    <CD>
+        <TITLE>Empire Burlesque      </TITLE>
+        <ARTIST>Bob Dylan     </ARTIST>
+        <COUNTRY>USA    </COUNTRY>
+        <COMPANY>Columbia      </COMPANY>
+        <PRICE>10.9    </PRICE>
+        <YEAR>1985    </YEAR>
+    </CD>
+    <CD>
+        <TITLE>                      </TITLE>
+        <ARTIST>              </ARTIST>
+        <COUNTRY>       </COUNTRY>
+        <COMPANY>              </COMPANY>
+        <PRICE>        </PRICE>
+        <YEAR>        </YEAR>
+    </CD>
+    <CD>
+        <TITLE>                      </TITLE>
+        <ARTIST>              </ARTIST>
+        <COUNTRY>       </COUNTRY>
+        <COMPANY>              </COMPANY>
+        <PRICE>        </PRICE>
+        <YEAR>        </YEAR>
+    </CD> 
+    <CD>
+        <TITLE>                      </TITLE>
+        <ARTIST>              </ARTIST>
+        <COUNTRY>       </COUNTRY>
+        <COMPANY>              </COMPANY>
+        <PRICE>        </PRICE>
+        <YEAR>        </YEAR>
+     </CD>
+</CATALOG>
+
