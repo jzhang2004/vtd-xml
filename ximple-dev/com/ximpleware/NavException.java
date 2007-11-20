@@ -20,7 +20,7 @@ package com.ximpleware;
  * This exception is for any exception conditions during navigation phase.
  * Creation date: (11/19/03 11:42:28 AM)
  */
-public class NavException extends Exception {
+public class NavException extends VTDException {
 /**
  * NavException constructor comment.
  */

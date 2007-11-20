@@ -17,22 +17,14 @@
  */
 package com.ximpleware;
 
-/**
- * This class is for any exception condition in the parsing phase.
- * Creation date: (11/19/03 11:43:03 AM)
+/** 
+ * VTDException is the root exception for all VTD-XML's exception
+ *
  */
-public class ParseException extends VTDException {
-/**
- * ParseException constructor comment.
- */
-public ParseException() {
-	super();
-}
-/**
- * ParseException constructor comment.
- * @param s java.lang.String
- */
-public ParseException(String s) {
-	super(s);
-}
+public class VTDException extends Exception{
+    public VTDException(String s){
+		super(s);
+	}
+    public VTDException(){
+	}
 }

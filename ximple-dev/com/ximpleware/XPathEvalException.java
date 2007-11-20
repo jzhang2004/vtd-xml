@@ -16,23 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
+/**
+ * This exception is thrown when there is something
+ * during XPath evaluation
+ *
+ */
+public class XPathEvalException extends VTDException{
+	public XPathEvalException(String s){
+		super(s);
+	}
+}
 
-/**
- * This class is for any exception condition in the parsing phase.
- * Creation date: (11/19/03 11:43:03 AM)
- */
-public class ParseException extends VTDException {
-/**
- * ParseException constructor comment.
- */
-public ParseException() {
-	super();
-}
-/**
- * ParseException constructor comment.
- * @param s java.lang.String
- */
-public ParseException(String s) {
-	super(s);
-}
-}

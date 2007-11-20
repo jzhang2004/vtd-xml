@@ -22,7 +22,7 @@ package com.ximpleware;
  * IndexReadException is thrown when there are exception 
  * conditions during index loading
  */
-public class IndexReadException extends Exception {
+public class IndexReadException extends VTDException {
     public IndexReadException(String s){
         super(s);
     }

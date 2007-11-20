@@ -21,7 +21,7 @@ package com.ximpleware;
  * IndexWriteException is thrown when there are exception
  * condition when wrting VTD+XML index
  */
-public class IndexWriteException extends Exception {
+public class IndexWriteException extends VTDException {
     public IndexWriteException(String s){
         super(s);
     }

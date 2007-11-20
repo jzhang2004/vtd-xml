@@ -22,7 +22,7 @@ package com.ximpleware;
  * XMLModifier throws ModifierException when there is an
  * exception condition during modification of XML
  */
-public class ModifyException extends Exception {
+public class ModifyException extends VTDException {
     public ModifyException(){
         super();
     }
