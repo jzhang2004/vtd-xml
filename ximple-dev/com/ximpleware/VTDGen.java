@@ -26,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import com.ximpleware.parser.ISO8859_10;
+import com.ximpleware.parser.ISO8859_11;
 import com.ximpleware.parser.ISO8859_2;
 import com.ximpleware.parser.ISO8859_3;
 import com.ximpleware.parser.ISO8859_4;
@@ -45,7 +46,10 @@ import com.ximpleware.parser.WIN1256;
 import com.ximpleware.parser.WIN1257;
 import com.ximpleware.parser.WIN1258;
 import com.ximpleware.parser.XMLChar;
-import java.net.MalformedURLException;
+import com.ximpleware.parser.ISO8859_11;
+import com.ximpleware.parser.ISO8859_13;
+import com.ximpleware.parser.ISO8859_14;
+import com.ximpleware.parser.ISO8859_15;
 /**
  * VTD Generator implementation.
  * Current support built-in entities only
@@ -53,7 +57,7 @@ import java.net.MalformedURLException;
  */
 public class VTDGen {
 
-	class ASCIIReader implements IReader {
+    class ASCIIReader implements IReader {
 		public ASCIIReader() {
 		}
 		public int getChar()
@@ -280,6 +284,87 @@ public class VTDGen {
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
 			if (ch == ISO8859_9.decode(XMLDoc[offset])) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	
+	class ISO8859_11Reader implements IReader {
+		public ISO8859_11Reader() {
+		}
+		public int getChar()
+			throws EOFException, ParseException, EncodingException {
+
+			if (offset >= endOffset)
+				throw new EOFException("permature EOF reached, XML document incomplete");
+			return ISO8859_11.decode(XMLDoc[offset++]);
+		}
+		public boolean skipChar(int ch)
+			throws EOFException, ParseException, EncodingException {
+			if (ch == ISO8859_11.decode(XMLDoc[offset])) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	class ISO8859_13Reader implements IReader {
+		public ISO8859_13Reader() {
+		}
+		public int getChar()
+			throws EOFException, ParseException, EncodingException {
+
+			if (offset >= endOffset)
+				throw new EOFException("permature EOF reached, XML document incomplete");
+			return ISO8859_13.decode(XMLDoc[offset++]);
+		}
+		public boolean skipChar(int ch)
+			throws EOFException, ParseException, EncodingException {
+			if (ch == ISO8859_13.decode(XMLDoc[offset])) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	class ISO8859_14Reader implements IReader {
+		public ISO8859_14Reader() {
+		}
+		public int getChar()
+			throws EOFException, ParseException, EncodingException {
+
+			if (offset >= endOffset)
+				throw new EOFException("permature EOF reached, XML document incomplete");
+			return ISO8859_14.decode(XMLDoc[offset++]);
+		}
+		public boolean skipChar(int ch)
+			throws EOFException, ParseException, EncodingException {
+			if (ch == ISO8859_14.decode(XMLDoc[offset])) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	class ISO8859_15Reader implements IReader {
+		public ISO8859_15Reader() {
+		}
+		public int getChar()
+			throws EOFException, ParseException, EncodingException {
+
+			if (offset >= endOffset)
+				throw new EOFException("permature EOF reached, XML document incomplete");
+			return ISO8859_15.decode(XMLDoc[offset++]);
+		}
+		public boolean skipChar(int ch)
+			throws EOFException, ParseException, EncodingException {
+			if (ch == ISO8859_15.decode(XMLDoc[offset])) {
 				offset++;
 				return true;
 			} else {
@@ -1375,7 +1460,31 @@ public class VTDGen {
 				     writeVTD(temp_offset, 11,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				 } 
+				 } else if (r.skipChar('1') ){
+				     encoding = FORMAT_ISO_8859_11;
+				     r = new ISO8859_11Reader();
+				     writeVTD(temp_offset, 11,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				 } else if (r.skipChar('3') ){
+				     encoding = FORMAT_ISO_8859_13;
+				     r = new ISO8859_13Reader();
+				     writeVTD(temp_offset, 11,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				 } else if (r.skipChar('4') ){
+				     encoding = FORMAT_ISO_8859_14;
+				     r = new ISO8859_14Reader();
+				     writeVTD(temp_offset, 11,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				 } else if (r.skipChar('5') ){
+				     encoding = FORMAT_ISO_8859_15;
+				     r = new ISO8859_14Reader();
+				     writeVTD(temp_offset, 15,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				 }
 				}else if (r.skipChar('2') ){
 				    encoding = FORMAT_ISO_8859_2;
 				    r = new ISO8859_2Reader();
