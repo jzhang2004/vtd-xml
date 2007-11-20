@@ -26,8 +26,10 @@ package com.ximpleware;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
-
+import com.ximpleware.parser.ISO8859_15;
+import com.ximpleware.parser.ISO8859_14;
+import com.ximpleware.parser.ISO8859_13;
+import com.ximpleware.parser.ISO8859_11;
 import com.ximpleware.parser.ISO8859_10;
 import com.ximpleware.parser.ISO8859_2;
 import com.ximpleware.parser.ISO8859_3;
@@ -736,6 +738,14 @@ public class VTDNav {
             return ISO8859_9.decode(ch);
         case FORMAT_ISO_8859_10:
             return ISO8859_10.decode(ch);
+        case FORMAT_ISO_8859_11:
+            return ISO8859_11.decode(ch);
+        case FORMAT_ISO_8859_13:
+            return ISO8859_13.decode(ch);
+        case FORMAT_ISO_8859_14:
+            return ISO8859_14.decode(ch);
+        case FORMAT_ISO_8859_15:
+            return ISO8859_15.decode(ch);
         case FORMAT_WIN_1250:
             return WIN1250.decode(ch);
         case FORMAT_WIN_1251:
