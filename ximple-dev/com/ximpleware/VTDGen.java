@@ -1287,6 +1287,10 @@ public class VTDGen {
 			case FORMAT_ISO_8859_8:
 			case FORMAT_ISO_8859_9:
 			case FORMAT_ISO_8859_10:
+			case FORMAT_ISO_8859_11:
+			case FORMAT_ISO_8859_13:
+			case FORMAT_ISO_8859_14:
+			case FORMAT_ISO_8859_15:
 			case FORMAT_WIN_1250:
 			case FORMAT_WIN_1251:
 			case FORMAT_WIN_1252:
