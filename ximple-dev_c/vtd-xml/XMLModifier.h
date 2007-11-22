@@ -98,6 +98,7 @@ void insertAttribute2(XMLModifier *xm, UByte *attr, int len);
 void output(XMLModifier *xm, FILE *f);
 void output2(XMLModifier *xm, char *fileName);
 
+void updateElementName(XMLModifier *xm, UCSChar* elementName);
 
 void resetXMLModifier(XMLModifier *xm);
 #endif

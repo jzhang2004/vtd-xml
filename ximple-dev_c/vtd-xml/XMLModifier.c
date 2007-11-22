@@ -549,8 +549,10 @@ void insertBeforeElement2(XMLModifier *xm, UByte* ba, int arrayLen){
 	if (xm->encoding < FORMAT_UTF_16BE)
 		insertBytesAt2(xm,offset, (((Long)arrayLen)<<32)|(int)ba);
 	else
-		insertBytesAt2(xm,(offset)<<1, (((Long)arrayLen)<<32)|(int)ba);
+		insertBytesAt2(xm,offset<<1, (((Long)arrayLen)<<32)|(int)ba);
 }
+
+/* insert a segment of an byte array after the cursor element*/
 
 void insertAfterElement3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen){
 	int startTagIndex = getCurrentIndex(xm->md);
@@ -568,7 +570,7 @@ void insertAfterElement3(XMLModifier *xm, UByte* ba, int contentOffset, int cont
 	insertBytesAt2(xm,offset+len, (((Long)contentLen)<<32)|((int)ba+contentOffset));
 	
 }
-
+/* insert a segment of an byte array before the cursor element*/
 void insertBeforeElement3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen){
 	int startTagIndex = getCurrentIndex(xm->md);
 	int type =  getTokenType(xm->md, startTagIndex);
@@ -581,7 +583,10 @@ void insertBeforeElement3(XMLModifier *xm, UByte* ba, int contentOffset, int con
 	l = getElementFragment(xm->md);
 	offset = (int)l;
 	len = (int)(l>>32);
-	insertBytesAt2(xm, offset+len, (((Long)contentLen)<<32)|((int)ba+contentOffset));
+	if (xm->encoding < FORMAT_UTF_16BE)
+		insertBytesAt2(xm, offset, (((Long)contentLen)<<32)|((int)ba+contentOffset));
+	else 
+		insertBytesAt2(xm, offset<<1, (((Long)contentLen)<<32)|((int)ba+contentOffset));
 }
 
 void insertBeforeElement4(XMLModifier *xm, ElementFragmentNs *ef){
@@ -596,7 +601,10 @@ void insertBeforeElement4(XMLModifier *xm, ElementFragmentNs *ef){
 	l = getElementFragment(xm->md);
 	offset = (int)l;
 	len = (int)(l>>32);
-	insertBytesAt3(xm,offset+len,ef);
+	if (xm->encoding < FORMAT_UTF_16BE)
+		insertBytesAt3(xm,offset,ef);
+	else 
+		insertBytesAt3(xm,offset<<1,ef);
 }
 
 
@@ -909,6 +917,68 @@ void resetXMLModifier(XMLModifier *xm){
 		}
 	}
 }
+
+void updateElementName(XMLModifier *xm, UCSChar* newElementName){
+	exception e;
+	int i = getCurrentIndex(xm->md);
+	int type = getTokenType(xm->md,i);
+	int len,offset,temp;
+	Long l;
+	UByte* xml;
+	encoding enc;
+	
+	if (type!=TOKEN_STARTING_TAG){
+		throwException2(modify_exception,"You can only update a element name");
+	}
+	offset = getTokenOffset(xm->md,i);
+	len = getTokenLength(xm->md,i)& 0xffff;
+	updateToken(xm,i,newElementName);
+	l = getElementFragment(xm->md);
+	enc = getEncoding(xm->md);
+	xml = xm->md->XMLDoc;
+
+	temp = (int)l+(int)(l>>32);
+	if (enc < FORMAT_UTF_16BE) {
+		//scan backwards for />
+		//int temp = (int)l+(int)(l>>32);
+		if (xml[temp - 2] == '/')
+			return;
+		//look for </
+		temp--;
+		while (xml[temp] != '/') {
+			temp--;
+		}
+		insertBytesAt(xm,temp + 1, xm->gbytes(newElementName));
+		//insertBytesAt(xm,offset-9,xm->gbytes(newContent))
+		removeContent(xm,temp + 1, len);
+		return;
+		//
+	} else if (enc == FORMAT_UTF_16BE) {
+
+		//scan backwards for />
+		if (xml[temp - 3] ==  '/' && xml[temp - 4] == 0)
+			return;
+
+		temp-=2;
+		while (!(xml[temp+1] == '/' && xml[temp ] == 0)) {
+			temp-=2;
+		}
+		insertBytesAt(xm,temp+2, xm->gbytes(newElementName));
+		removeContent(xm,temp+2, len<<1);            
+	} else {
+		//scan backwards for />
+		if (xml[temp - 3] == 0 && xml[temp - 4] == '/')
+			return;
+
+		temp-=2;
+		while (!(xml[temp] == '/' && xml[temp+1 ] == 0) ) {
+			temp-=2;
+		}
+		insertBytesAt(xm,temp+2 , xm->gbytes(newElementName));
+		removeContent(xm,temp+2 , len<<1);
+	}
+}
+
 /* 
 ByteSegment* createByteSegment(){
 	ByteSegment* bs = NULL;
