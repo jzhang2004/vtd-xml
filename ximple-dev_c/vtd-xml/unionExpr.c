@@ -132,7 +132,7 @@ int	evalNodeSet_une (unionExpr *e,VTDNav *vn){
 					return -1;
 
 				default:
-					throwException2(other,
+					throwException2(other_exception,
 						"Invalid state evaluating unionExpr");
 			}
 		}

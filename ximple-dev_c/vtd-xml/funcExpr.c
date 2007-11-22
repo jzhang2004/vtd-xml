@@ -588,7 +588,7 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 									
 			case FN_SUBSTRING: 	return subString(fne,vn);	
 			case FN_TRANSLATE: 	
-				throwException2(other,"Some functions are not supported");
+				throwException2(other_exception,"Some functions are not supported");
 			case FN_NORMALIZE_SPACE: return normalizeString(fne,vn);
 								
 			default: if (isBoolean_fne(fne)){

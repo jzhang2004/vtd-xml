@@ -181,7 +181,7 @@ static Boolean compNodeSetNumerical(binaryExpr *be, expr* left, expr* right, VTD
 	} Catch (e) {
 		//fib1.clear();
 		//fib2.clear();
-		e.et = other;
+		e.et = other_exception;
 		e.msg = "Undefined behavior in evalBoolean_be";
 		Throw e;
 		//throw new RuntimeException("Undefined behavior");
@@ -211,7 +211,7 @@ static Boolean compNumericalNodeSet(binaryExpr *be, expr* left, expr* right, VTD
             be->right->reset(be->right,vn);            
             return FALSE; 
 	} Catch (e) {
-		e.et = other;
+		e.et = other_exception;
 		e.msg = "Undefined behavior in evalBoolean_be";
 		Throw e;
 	}
@@ -239,7 +239,7 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
             be->right->reset(be->right,vn);            
             return FALSE; 
 	} Catch ( e) {
-		e.et = other;
+		e.et = other_exception;
 		e.msg = "undefined run time behavior in computerEQNE";
 		Throw e;
 	}
@@ -267,7 +267,7 @@ static Boolean compNodeSetString(binaryExpr *be, expr* left, expr* right, VTDNav
             be->left->reset(be->left,vn);            
             return FALSE; 
 	} Catch ( e) {
-		e.et = other;
+		e.et = other_exception;
 		e.msg = "undefined run time behavior in computerEQNE";
 		Throw e;
 	}
@@ -322,7 +322,7 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 		if(be->fib1!=NULL)
 			clearFastIntBuffer(be->fib1);
 
-		e.et = other;
+		e.et = other_exception;
 		e.msg = "undefined run time behavior in computerEQNE";
 		Throw e;
 	}

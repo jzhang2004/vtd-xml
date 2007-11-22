@@ -115,7 +115,7 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 										 index_write_exception,
 										 index_read_exception,
 										 io_exception,
-										 other};
+										 other_exception};
 
 
 

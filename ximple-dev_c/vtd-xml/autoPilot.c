@@ -544,7 +544,7 @@ int evalXPath(AutoPilot *ap){
 		}
 		return ap->xpe->evalNodeSet(ap->xpe,ap->vn);
 	}
-	throwException2(other,"xpe is NULL in autoPilot");
+	throwException2(other_exception,"xpe is NULL in autoPilot");
 	return -1;
 }
 

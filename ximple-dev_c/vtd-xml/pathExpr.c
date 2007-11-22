@@ -116,7 +116,7 @@ int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 		case 4:
 			return -1;
 		default:
-			throwException2(other,
+			throwException2(other_exception,
 				"Invalid state evaluating PathExpr");
 		}
 	}
