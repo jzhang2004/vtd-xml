@@ -74,5 +74,6 @@ public class Predicate implements LocationPathNode{
 	public void setContextSize(int size){
 	    expr.setContextSize(size);
 	}
+
 }
 

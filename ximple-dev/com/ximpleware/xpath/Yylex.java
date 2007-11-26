@@ -21,6 +21,8 @@
 
 package com.ximpleware.xpath;
 import java_cup.runtime.Symbol;
+
+import com.ximpleware.XPathParseException;
 import com.ximpleware.parser.*;
 
 
