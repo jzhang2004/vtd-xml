@@ -19,7 +19,6 @@ package com.ximpleware;
 
 import com.ximpleware.xpath.Expr;
 import com.ximpleware.xpath.Predicate;
-import com.ximpleware.xpath.XPathEvalException;
 
 /**
  * 

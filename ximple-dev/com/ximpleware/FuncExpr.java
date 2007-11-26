@@ -20,7 +20,6 @@ import com.ximpleware.xpath.Alist;
 import com.ximpleware.xpath.Expr;
 import com.ximpleware.xpath.FuncName;
 import com.ximpleware.xpath.UnsupportedException;
-import com.ximpleware.xpath.XPathEvalException;
 /**
  * FuncExpr implements the function expression defined
  * in XPath spec

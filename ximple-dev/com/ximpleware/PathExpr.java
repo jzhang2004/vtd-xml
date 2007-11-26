@@ -18,7 +18,6 @@
 package com.ximpleware;
 
 import com.ximpleware.xpath.Expr;
-import com.ximpleware.xpath.XPathEvalException;
 
 /**
  * PathExpr implements the Path expression as defined

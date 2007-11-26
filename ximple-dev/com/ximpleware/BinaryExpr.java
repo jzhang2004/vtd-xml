@@ -17,7 +17,6 @@
  */
 package com.ximpleware;
 import com.ximpleware.xpath.Expr;
-import com.ximpleware.xpath.XPathEvalException;
 /**
  * The parser.java uses this class to contruct the corresponding
  * AST for XPath expression when there are two operands and one
