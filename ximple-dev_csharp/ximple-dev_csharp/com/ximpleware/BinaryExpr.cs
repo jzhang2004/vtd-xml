@@ -17,7 +17,7 @@
 */
 using System;
 using Expr = com.ximpleware.xpath.Expr;
-using XPathEvalException = com.ximpleware.xpath.XPathEvalException;
+using XPathEvalException = com.ximpleware.XPathEvalException;
 namespace com.ximpleware
 {
     /// <summary> The parser.java uses this class to contruct the corresponding

@@ -21,7 +21,7 @@ using Alist = com.ximpleware.xpath.Alist;
 using Expr = com.ximpleware.xpath.Expr;
 using FuncName = com.ximpleware.xpath.FuncName;
 using UnsupportedException = com.ximpleware.xpath.UnsupportedException;
-using XPathEvalException = com.ximpleware.xpath.XPathEvalException;
+using XPathEvalException = com.ximpleware.XPathEvalException;
 namespace com.ximpleware
 {
 	/// <summary> FuncExpr implements the function expression defined

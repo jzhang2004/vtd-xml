@@ -18,7 +18,7 @@
 using System;
 using Expr = com.ximpleware.xpath.Expr;
 using Predicate = com.ximpleware.xpath.Predicate;
-using XPathEvalException = com.ximpleware.xpath.XPathEvalException;
+using XPathEvalException = com.ximpleware.XPathEvalException;
 namespace com.ximpleware
 {
 	
