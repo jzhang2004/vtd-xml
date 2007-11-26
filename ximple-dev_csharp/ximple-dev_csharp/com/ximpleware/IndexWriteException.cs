@@ -20,12 +20,12 @@ namespace com.ximpleware
 {
 	
 	[Serializable]
-	public class IndexWriteException:System.Exception
+	public class IndexWriteException:VTDException
 	{
 		public IndexWriteException(System.String s):base(s)
 		{
 		}
-		public IndexWriteException()
+        public IndexWriteException(): base()
 		{
 		}
 	}

@@ -22,7 +22,7 @@ namespace com.ximpleware
 	/// <summary> This class is for any exception condition in the parsing phase.
 	/// </summary>
 	[Serializable]
-	public class ParseException:System.Exception
+	public class ParseException:VTDException
 	{
 		/// <summary> ParseException constructor comment.</summary>
 		public ParseException():base()

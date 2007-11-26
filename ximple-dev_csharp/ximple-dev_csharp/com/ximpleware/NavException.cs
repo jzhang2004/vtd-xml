@@ -21,7 +21,7 @@ namespace com.ximpleware
 	/// <summary> This exception is for any exception conditions during navigation phase.
 	/// </summary>
 	[Serializable]
-	public class NavException:System.Exception
+	public class NavException:VTDException
 	{
 		/// <summary> NavException constructor comment.</summary>
 		public NavException():base()

@@ -25,12 +25,13 @@ namespace com.ximpleware
 	/// Window - Preferences - Java - Code Style - Code Templates
 	/// </author>
 	[Serializable]
-	public class IndexReadException:System.Exception
+	public class IndexReadException:VTDException
 	{
 		public IndexReadException(System.String s):base(s)
 		{
 		}
-		public IndexReadException()
+        public IndexReadException(): base()
+            
 		{
 		}
 	}

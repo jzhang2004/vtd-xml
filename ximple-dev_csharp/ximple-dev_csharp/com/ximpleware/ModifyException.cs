@@ -4,7 +4,7 @@ using System.Text;
 
 namespace com.ximpleware
 {
-    public class ModifyException : System.Exception
+    public class ModifyException : VTDException
     {
         		/// <summary> ModifyException constructor comment.</summary>
 		public ModifyException():base()
