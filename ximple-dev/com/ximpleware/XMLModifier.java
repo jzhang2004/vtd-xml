@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -955,7 +955,7 @@ public class XMLModifier {
         int i = md.getCurrentIndex();
         int type = md.getTokenType(i);
         if (type!=VTDNav.TOKEN_STARTING_TAG){
-            throw new ModifyException("You can only update a element name");
+            throw new ModifyException("You can only update an element name");
         }
         int offset = md.getTokenOffset(i);
         int len = md.getTokenLength(i)& 0xffff;

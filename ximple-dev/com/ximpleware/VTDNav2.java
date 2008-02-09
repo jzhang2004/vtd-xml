@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,38 +22,17 @@
  * a more thread safe version
  */
 package com.ximpleware;
+import com.ximpleware.parser.*;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import com.ximpleware.parser.ISO8859_15;
-import com.ximpleware.parser.ISO8859_14;
-import com.ximpleware.parser.ISO8859_13;
-import com.ximpleware.parser.ISO8859_11;
-import com.ximpleware.parser.ISO8859_10;
-import com.ximpleware.parser.ISO8859_2;
-import com.ximpleware.parser.ISO8859_3;
-import com.ximpleware.parser.ISO8859_4;
-import com.ximpleware.parser.ISO8859_5;
-import com.ximpleware.parser.ISO8859_6;
-import com.ximpleware.parser.ISO8859_7;
-import com.ximpleware.parser.ISO8859_8;
-import com.ximpleware.parser.ISO8859_9;
-import com.ximpleware.parser.UTF8Char;
-import com.ximpleware.parser.WIN1250;
-import com.ximpleware.parser.WIN1251;
-import com.ximpleware.parser.WIN1252;
-import com.ximpleware.parser.WIN1253;
-import com.ximpleware.parser.WIN1254;
-import com.ximpleware.parser.WIN1255;
-import com.ximpleware.parser.WIN1256;
-import com.ximpleware.parser.WIN1257;
-import com.ximpleware.parser.WIN1258;
 /**
- * The VTD Navigator allows one to navigate XML document represented in VTD records
- * and Location caches * 
+ * 
+ * VTDNav is a cursor-based VTD record navigator.
+ * The core navigation routines are toElement() and toElementNS()
+ * push() and pop() allows one to save and restore the location of the cursor
+ * String comparsions and primitive data type conversions are done directly from VTD records
+ * without intermediatary string creation.
  */
-public class VTDNav {
+public class VTDNav2 {
 	// Navigation directions
 	public final static int ROOT = 0;
 	public final static int PARENT = 1;
@@ -190,7 +169,7 @@ public class VTDNav {
 	 * @param so int  starting offset of the document(in byte)
 	 * @param length int length of the document (in byte)
 	 */
-	protected VTDNav(
+	protected VTDNav2(
 		int RootIndex,
 		int enc,
 		boolean NS,
@@ -264,7 +243,7 @@ public class VTDNav {
 	}
 	/**
 	 * Return the attribute count of the element at the cursor position.
-	 * when ns is false, attr_ns tokens are considered attributes;
+	 * when ns is false, ns tokens are considered attributes;
 	 * otherwise, ns tokens are not considered attributes
 	 * @return int
 	 */
@@ -502,20 +481,6 @@ public class VTDNav {
 		}
 	}
 
-	private long getChar4OtherEncoding(int offset) throws NavException{
-	    if (encoding <= FORMAT_WIN_1258){
-	        int	temp = decode(offset);
-	        if (temp == '\r') {
-	            if (XMLDoc.byteAt(offset + 1) == '\n') {
-	                return '\n'|(2L<<32);
-	            } else {
-				return '\n'|(1L<<32);
-	            }
-	        }
-	        return temp|(1L<<32);
-	    }
-	    throw new NavException("Unknown Encoding");
-	}
 	/**
 	 * This method decodes the underlying byte array into corresponding UCS2 char representation .
 	 * It doesn't resolves built-in entity and character references.
@@ -582,8 +547,7 @@ public class VTDNav {
 			    return handle_utf16le(offset);
 
 			default :
-			    return getChar4OtherEncoding(offset);
-				//throw new NavException("Unknown Encoding");
+				throw new NavException("Unknown Encoding");
 		}
 	}
 	/* the exact same copy of getChar except it operates on currentOffset2
@@ -715,83 +679,117 @@ public class VTDNav {
 		return val | (inc << 32);
 	}
 	
+	/* the exact same copy of getCharResolved except it operates on currentOffset2
+	 * this is needed to compare VTD tokens directly
+	 */
+/*	private int getCharResolved2() throws NavException {
+		int ch = 0;
+		int val = 0;
+		ch = getChar2();
+		if (ch != '&')
+			return ch;
 
+		// let us handle references here
+		//currentOffset++;
+		ch = getCharUnit(currentOffset2);
+		currentOffset2++;
+		switch (ch) {
+			case '#' :
+
+				ch = getCharUnit(currentOffset2);
+
+				if (ch == 'x') {
+					while (true) {
+						currentOffset2++;
+						ch = getCharUnit(currentOffset2);
+
+						if (ch >= '0' && ch <= '9') {
+							val = (val << 4) + (ch - '0');
+						} else if (ch >= 'a' && ch <= 'f') {
+							val = (val << 4) + (ch - 'a' + 10);
+						} else if (ch >= 'A' && ch <= 'F') {
+							val = (val << 4) + (ch - 'A' + 10);
+						} else if (ch == ';') {
+							currentOffset2++;
+							break;
+						} else
+							throw new NavException("Illegal char in a char reference");
+					}
+				} else {
+					while (true) {
+
+						ch = getCharUnit(currentOffset2);
+
+						if (ch >= '0' && ch <= '9') {
+							val = val * 10 + (ch - '0');
+						} else if (ch == ';') {
+							currentOffset2++;
+							break;
+						} else
+							throw new NavException("Illegal char in char reference");
+						currentOffset2++;
+					}
+				}
+				break;
+
+			case 'a' :
+				ch = getCharUnit(currentOffset2);
+				if (ch == 'm') {
+					if (getCharUnit(currentOffset2 + 1) == 'p'
+						&& getCharUnit(currentOffset2 + 2) == ';') {
+						currentOffset2 += 3;
+						val = '&';
+					} else
+						throw new NavException("illegal builtin reference");
+				} else if (ch == 'p') {
+					if (getCharUnit(currentOffset2 + 1) == 'o'
+						&& getCharUnit(currentOffset2 + 2) == 's'
+						&& getCharUnit(currentOffset2 + 3) == ';') {
+						currentOffset2 += 4;
+						val = '\'';
+					} else
+						throw new NavException("illegal builtin reference");
+				} else
+					throw new NavException("illegal builtin reference");
+				break;
+
+			case 'q' :
+
+				if (getCharUnit(currentOffset2) == 'u'
+					&& getCharUnit(currentOffset2 + 1) == 'o'
+					&& getCharUnit(currentOffset2 + 2) == 't'
+					&& getCharUnit(currentOffset2 + 3) == ';') {
+					currentOffset2 += 4;
+					val = '\"';
+				} else
+					throw new NavException("illegal builtin reference");
+				break;
+			case 'l' :
+				if (getCharUnit(currentOffset2) == 't'
+					&& getCharUnit(currentOffset2 + 1) == ';') {
+					currentOffset2 += 2;
+					val = '<';
+				} else
+					throw new NavException("illegal builtin reference");
+				break;
+			case 'g' :
+				if (getCharUnit(currentOffset2) == 't'
+					&& getCharUnit(currentOffset2 + 1) == ';') {
+					currentOffset2 += 2;
+					val = '>';
+				} else
+					throw new NavException("illegal builtin reference");
+				break;
+
+			default :
+				throw new NavException("Invalid entity char");
+
+		}
+
+		//currentOffset++;
+		return val;
+	}*/
 	
-	private int decode(int offset){
-	    byte ch = XMLDoc.byteAt(offset);
-	    switch(encoding){
-        case FORMAT_ISO_8859_2:
-            return ISO8859_2.decode(ch);
-        case FORMAT_ISO_8859_3:
-            return ISO8859_3.decode(ch);
-        case FORMAT_ISO_8859_4:
-            return ISO8859_4.decode(ch);
-        case FORMAT_ISO_8859_5:
-            return ISO8859_5.decode(ch);
-        case FORMAT_ISO_8859_6:
-            return ISO8859_6.decode(ch);
-        case FORMAT_ISO_8859_7:
-            return ISO8859_7.decode(ch);
-        case FORMAT_ISO_8859_8:
-            return ISO8859_8.decode(ch);
-        case FORMAT_ISO_8859_9:
-            return ISO8859_9.decode(ch);
-        case FORMAT_ISO_8859_10:
-            return ISO8859_10.decode(ch);
-        case FORMAT_ISO_8859_11:
-            return ISO8859_11.decode(ch);
-        case FORMAT_ISO_8859_13:
-            return ISO8859_13.decode(ch);
-        case FORMAT_ISO_8859_14:
-            return ISO8859_14.decode(ch);
-        case FORMAT_ISO_8859_15:
-            return ISO8859_15.decode(ch);
-        case FORMAT_WIN_1250:
-            return WIN1250.decode(ch);
-        case FORMAT_WIN_1251:
-            return WIN1251.decode(ch);
-        case FORMAT_WIN_1252:
-            return WIN1252.decode(ch);
-        case FORMAT_WIN_1253:
-            return WIN1253.decode(ch);
-        case FORMAT_WIN_1254:
-            return WIN1254.decode(ch);
-        case FORMAT_WIN_1255:
-            return WIN1255.decode(ch);
-        case FORMAT_WIN_1256:
-            return WIN1256.decode(ch);
-        case FORMAT_WIN_1257:
-            return WIN1257.decode(ch);
-		default:
-		    return WIN1258.decode(ch);
-	    }
-	}
-	
-	/**
-	 * Dump the in memory XML text into output stream
-	 * @param os
-	 * @throws java.io.IOException
-	 *
-	 */
-	public void dumpXML(OutputStream os) throws java.io.IOException{
-	    os.write(this.XMLDoc.getBytes(),this.docOffset,this.docLen);
-	}
-	
-	/**
-	 * Dump the in-memory copy of XML text into a file
-	 * @param fileName
-	 * @throws java.io.IOException
-	 *
-	 */
-	public void dumpXML(String fileName) throws java.io.IOException{
-	    FileOutputStream fos = new FileOutputStream(fileName);
-	    try{
-	        dumpXML(fos);
-	    }
-	    finally{
-	        fos.close();
-	    }
-	}
 	/**
 	 * Get the next char unit which gets decoded automatically
 	 * @return int
@@ -799,11 +797,10 @@ public class VTDNav {
 	private int getCharUnit(int offset) {
 		return (encoding <= 2)
 			? XMLDoc.byteAt(offset) & 0xff
-			: (encoding <= FORMAT_WIN_1258)
-			? decode(offset):(encoding == FORMAT_UTF_16BE)
-			? (((int)XMLDoc.byteAt(offset << 1))
+			: (encoding == FORMAT_UTF_16BE)
+			? (XMLDoc.byteAt(offset << 1)
 				<< 8 | XMLDoc.byteAt((offset << 1) + 1))
-			: (((int)XMLDoc.byteAt((offset << 1) + 1))
+			: (XMLDoc.byteAt((offset << 1) + 1)
 				<< 8 | XMLDoc.byteAt(offset << 1));
 	}
 	/**
@@ -822,7 +819,11 @@ public class VTDNav {
 	final public int getCurrentIndex() {
 	    if (atTerminal)
 	        return LN;
-		return getCurrentIndex2();
+		switch(context[0]){
+			case -1: return 0;
+			case 0: return rootIndex;
+			default: return context[context[0]];
+		}
 		//return (context[0] == 0) ? rootIndex : context[context[0]];
 	}
 	
@@ -835,99 +836,8 @@ public class VTDNav {
 	}
 	}
 	/**
-	 * getElementFragmentNS returns a ns aware version of the element
-	 * fragment encapsulated in an ElementFragment object
-	 * @return an ElementFragment object
-	 * @throws NavException
-	 *
-	 */
-	public ElementFragmentNs getElementFragmentNs() throws NavException{
-	     if (this.ns == false)
-	        throw new NavException("getElementFragmentNS can only be called ");
-	     
-	     FastIntBuffer fib = new FastIntBuffer(3); // init size 8
-	     
-	     //fill the fib with integer 
-	     // first get the list of name space nodes 
-	     int[] ia = context;
-	     int d =ia[0]; // -1 for document node, 0 for root element;
-	     int c = getCurrentIndex2();
-	     
-	     
-	     int len = (c == 0 || c == rootIndex )? 0: 
-	         (getTokenLength(c) & 0xffff); // get the length of qualified node
-	     
-	     // put the neighboring ATTR_NS nodes into the array
-	     // and record the total # of them	     
-	     int i = 0;	    
-	     int count=0;
-	     if (d > 0){ // depth > 0 every node except document and root element
-	         int k=getCurrentIndex2()+1;
-	         if (k<this.vtdSize){
-	             int type = this.getTokenType(k);
-	             while(k<this.vtdSize && 
-	                     (type==VTDNav.TOKEN_ATTR_NAME || type==VTDNav.TOKEN_ATTR_NS)){
-	                 if (type == VTDNav.TOKEN_ATTR_NS){    
-	                     fib.append(k);
-	                     //System.out.println(" ns name ==>" + toString(k));
-	                 }
-	                 k+=2;
-	                 type = this.getTokenType(k);
-	             }
-	         }
-	         count = fib.size();
-	        d--; 
-            while (d >= 0) {                
-                // then search for ns node in the vinicity of the ancestor nodes
-                if (d > 0) {
-                    // starting point
-                    k = ia[d]+1;
-                } else {
-                    // starting point
-                    k = this.rootIndex+1;
-                }
-                if (k<this.vtdSize){
-                    int type = this.getTokenType(k);
-                    while(k<this.vtdSize && 
-   	                     (type==VTDNav.TOKEN_ATTR_NAME || type==VTDNav.TOKEN_ATTR_NS)){
-                        boolean unique = true;
-                        if (type == VTDNav.TOKEN_ATTR_NS){
-                            for (int z=0;z<fib.size();z++){
-                                //System.out.println("fib size ==> "+fib.size());
-                                //if (fib.size()==4);
-                                if (matchTokens(fib.intAt(z),this,k)){
-                                   unique = false;
-                                   break;
-                                } 
-                                    
-                            }            
-                            if (unique)
-                              fib.append(k);
-                        }
-                        k+=2;
-                        type = this.getTokenType(k);
-                    }
-                }
-                d--;
-            }
-           // System.out.println("count ===> "+count);
-            // then restore the name space node by shifting the array
-            int newSz= fib.size()-count;
-            for (i= 0; i<newSz; i++ ){
-                fib.modifyEntry(i,fib.intAt(i+count));                
-            }
-            fib.resize(newSz);
-	     }
-	     
-	     long l = getElementFragment();
-	     return new ElementFragmentNs(this,l,fib,len);
-	}
-	
-	
-	
-	/**
 	 * Get the starting offset and length of an element
-	 * encoded in a long, upper 32 bits is length; lower 32 bits is offset
+	 * encoded in a long, upper 32 bit is length; lower 32 bit is offset
 	 * Unit is in byte.
 	 * Creation date: (3/15/04 1:47:55 PM)
 	 */
@@ -984,7 +894,7 @@ public class VTDNav {
 				so2 =
 					(encoding <= FORMAT_WIN_1258 )
 						? (docOffset + docLen - 1)
-						: ((docOffset + docLen) >> 1) - 1;
+						: ((docOffset + docLen) << 1) - 1;
 			else
 				so2 = getTokenOffset(temp + 1);
 			while (getCharUnit(so2) != '>') {
@@ -1044,7 +954,7 @@ public class VTDNav {
 		int so2 =
 			(encoding <= FORMAT_WIN_1258)
 				? (docOffset + docLen - 1)
-				: ((docOffset + docLen) >> 1) - 1;
+				: ((docOffset + docLen) << 1) - 1;
 		int d = depth + 1;
 		int i = 0;
 		while (i < d) {
@@ -1077,7 +987,7 @@ public class VTDNav {
 		return nestingLevel;
 	}
 	/**
-	 * Get root index value , which is the index val of root element
+	 * Get root index value , which is the index val of document element
 	 * @return int
 	 */
 	final public int getRootIndex() {
@@ -1189,7 +1099,7 @@ public class VTDNav {
 
 	}
 	/**
-	 * Get the starting offset (unit in native char) of the token at the given index.
+	 * Get the starting offset of the token at the given index.
 	 * @return int
 	 * @param index int
 	 */
@@ -1615,8 +1525,7 @@ public class VTDNav {
 	 *<em>New in 2.0</em>
 	 * This method compares two VTD tokens of VTDNav objects
 	 * The behavior of this method is like compare the strings corresponds
-	 * to i1 and i2, meaning for text or attribute val, entities will be converted into
-	 * the corresponding char 
+	 * to i1 and i2
 	 * @param i1
 	 * @param vn2
 	 * @param i2
@@ -1624,7 +1533,7 @@ public class VTDNav {
 	 * @throws NavException
 	 *
 	 */
-	public int compareTokens(int i1, VTDNav vn2, int i2) 
+	public int compareTokens(int i1, VTDNav2 vn2, int i2) 
 	throws NavException{
 	    int t1, t2;
 	    int ch1, ch2;
@@ -1640,21 +1549,8 @@ public class VTDNav {
 		int offset1 = this.getTokenOffset(i1);
 		int offset2 = vn2.getTokenOffset(i2);
 		
-		int len1 =
-			(t1 == TOKEN_STARTING_TAG
-				|| t1 == TOKEN_ATTR_NAME
-				|| t1 == TOKEN_ATTR_NS)
-				? getTokenLength(i1) & 0xffff
-				: getTokenLength(i1);
-		int len2 = 
-		    (t2 == TOKEN_STARTING_TAG
-				|| t2 == TOKEN_ATTR_NAME
-				|| t2 == TOKEN_ATTR_NS)
-				? getTokenLength(i2) & 0xffff
-				: getTokenLength(i2);
-		
-		endOffset1 = len1+offset1;
-		endOffset2 = len2+ offset2;
+		endOffset1 = this.getTokenLength(i1)+offset1;
+		endOffset2 = vn2.getTokenLength(i2) + offset2;
 
 		for(;offset1<endOffset1&& offset2< endOffset2;){
 		    if(t1 == VTDNav.TOKEN_CHARACTER_DATA
@@ -1912,9 +1808,9 @@ public class VTDNav {
 	/**
 	 * overWrite is introduced in version 2.0 that allows you to 
 	 * directly overwrite the XML content if the token is long enough
-	 * If the operation is successful, the new content along with
-	 * whitespaces will fill the available token space, and there 
-	 * will be no need to regenerate the VTD and LCs !!!
+	 * If the operation is successful, white spaces will be used to fill
+	 * the available token space, and there will be no need to regenerate
+	 * the VTD and LCs
 	 * <em> The current version (2.0) only allows overwrites on attribute value,
 	 * character data, and CDATA</em>
 	 * 
@@ -2907,7 +2803,7 @@ public class VTDNav {
     }
 	/**
 	 * A generic navigation method.
-	 * Move the cursor to the element according to the direction constants
+	 * Move the current to the element according to the direction constants
 	 * If no such element, no position change and return false.
 	 * Creation date: (12/2/03 1:43:50 PM)
 	 * Legal direction constants are
@@ -3179,7 +3075,7 @@ public class VTDNav {
 	}
 	/**
 	 * A generic navigation method.
-	 * Move the cursor to the element according to the direction constants and the element name
+	 * Move the current to the element according to the direction constants and the element name
 	 * If no such element, no position change and return false.
 	 * "*" matches any element
 	 * Creation date: (12/2/03 1:43:50 PM)
@@ -3313,7 +3209,7 @@ public class VTDNav {
 	}
 	/**
 	 * A generic navigation method with namespace support.
-	 * Move the cursor to the element according to the direction constants and the prefix and local names
+	 * Move the current to the element according to the direction constants and the prefix and local names
 	 * If no such element, no position change and return false.
 	 * URL * matches any namespace, including undefined namespaces
 	 * a null URL means hte namespace prefix is undefined for the element
@@ -3525,7 +3421,7 @@ public class VTDNav {
 	 * @param index int
 	 * @exception NavException When the encoding has errors
 	 */
-	final public String toRawString(int index) throws NavException {
+	public String toRawString(int index) throws NavException {
 		int type = getTokenType(index);
 		int len;
 		if (type == TOKEN_STARTING_TAG
@@ -3539,7 +3435,7 @@ public class VTDNav {
 
 	}
 	
-	final public String toRawString(int os, int len) throws NavException{
+	protected String toRawString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -3577,15 +3473,7 @@ public class VTDNav {
 		return toString(offset, len);
 	}
 	
-	/**
-	 * Convert the byte content segment (in terms of offset and length) to String
-	 * @param os  the offset of the segment
-	 * @param len the length of the segment
-	 * @return the corresponding string value
-	 * @throws NavException
-	 *
-	 */
-	final public String toString(int os, int len) throws NavException{
+	protected String toString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -3600,13 +3488,13 @@ public class VTDNav {
 	
 /**
  * This method matches two VTD tokens of VTDNav objects
- * @param i1 index of the first token
- * @param vn2 the second VTDNav instance
- * @param i2  index of the second token
+ * @param i1
+ * @param vn2
+ * @param i2
  * @return boolean true if two tokens are lexically identical
  *
  */
-	final public boolean matchTokens(int i1, VTDNav vn2, int i2) 
+	final public boolean matchTokens(int i1, VTDNav2 vn2, int i2) 
 	throws NavException{
 	    return compareTokens(i1,vn2,i2)==0;
 	}
@@ -3656,67 +3544,5 @@ public class VTDNav {
 		   fib.append(l3lower);
 		   fib.append(l3upper);
 		}
-	}
-	
-	/**
-	 * Write VTDNav's internal structure into an OutputStream
-	 * @param os
-	 * @throws IndexWriteException
-	 * @throws IOException
-	 *
-	 */
-	public void writeIndex(OutputStream os) throws IndexWriteException, IOException{
-	    IndexHandler.writeIndex((byte)1,
-	            this.encoding,
-	            this.ns,
-	            true,
-	            this.nestingLevel-1,
-	            3,
-	            this.rootIndex,
-	            this.XMLDoc.getBytes(),
-	            this.docOffset,
-	            this.docLen,
-	            (FastLongBuffer)this.vtdBuffer,
-	            (FastLongBuffer)this.l1Buffer,
-	            (FastLongBuffer)this.l2Buffer,
-	            (FastIntBuffer)this.l3Buffer,
-	            os);
-	}
-	/**
-	 * Write VTDNav's internal structure into a VTD+XML format
-	 * @param fileName
-	 * @throws IOException
-	 * @throws IndexWriteException
-	 *
-	 */
-	public void writeIndex(String fileName) throws IOException,IndexWriteException{
-	    FileOutputStream fos = new FileOutputStream(fileName);
-	    writeIndex(fos);
-	    fos.close();
-	}
-	
-	/**
-	 * Precompute the size of VTD+XML index
-	 * @return size of the index
-	 *
-	 */
-	 
-	public long getIndexSize(){
-	    int size;
-	    if ( (docLen & 7)==0)
-	       size = docLen;
-	    else
-	       size = ((docLen >>3)+1)<<3;
-	    
-	    size += (vtdBuffer.size()<<3)+
-	            (l1Buffer.size()<<3)+
-	            (l2Buffer.size()<<3);
-	    
-	    if ((l3Buffer.size() & 1) == 0){ //even
-	        size += l3Buffer.size()<<2;
-	    } else {
-	        size += (l3Buffer.size()+1)<<2; //odd
-	    }
-	    return size+64;
 	}
 }
