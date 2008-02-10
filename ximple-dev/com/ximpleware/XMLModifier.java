@@ -104,6 +104,77 @@ public class XMLModifier {
             case VTDNav.FORMAT_UTF_16LE:
                 charSet = "UnicodeLittleUnmarked";
             	break;
+            case VTDNav.FORMAT_ISO_8859_2:
+                charSet = "ISO8859_2";
+            	break;
+        	case VTDNav.FORMAT_ISO_8859_3:
+        	    charSet = "ISO8859_3";
+        		break;
+        	case VTDNav.FORMAT_ISO_8859_4:
+        	    charSet = "ISO8859_4";
+        	    break;
+        	case VTDNav.FORMAT_ISO_8859_5:
+        	    charSet = "ISO8859_5";
+        	    break;
+        	case VTDNav.FORMAT_ISO_8859_6:
+        	    charSet = "ISO8859_6";
+        		break;
+        	case VTDNav.FORMAT_ISO_8859_7:
+        	    charSet = "ISO8859_7";
+        		break;
+        	case VTDNav.FORMAT_ISO_8859_8:
+        	    charSet = "ISO8859_8";
+        		break;
+        	case VTDNav.FORMAT_ISO_8859_9:
+        	    charSet = "ISO8859_9";
+    			break;
+        	case VTDNav.FORMAT_ISO_8859_10:
+        	    charSet = "ISO8859_10";
+    			break;
+        	case VTDNav.FORMAT_ISO_8859_11:
+        	    charSet = "x-iso-8859-11";
+    			break;
+        	case VTDNav.FORMAT_ISO_8859_12:
+        	    charSet = "ISO8859_12";
+    			break;
+        	case VTDNav.FORMAT_ISO_8859_13:
+        	    charSet = "ISO8859_13";
+				break;
+        	case VTDNav.FORMAT_ISO_8859_14:
+        	    charSet = "ISO8859_14";
+				break;
+        	case VTDNav.FORMAT_ISO_8859_15:
+        	    charSet = "ISO8859_15";
+				break;
+        	
+        	
+        	case VTDNav.FORMAT_WIN_1250:
+        	    charSet = "Cp1250";
+				break;
+        	case VTDNav.FORMAT_WIN_1251:
+        	    charSet = "Cp1251";
+				break;
+        	case VTDNav.FORMAT_WIN_1252:
+        	    charSet = "Cp1252";
+				break;
+        	case VTDNav.FORMAT_WIN_1253:
+        	    charSet = "Cp1253";
+				break;
+        	case VTDNav.FORMAT_WIN_1254:
+        	    charSet = "Cp1254";
+				break;
+        	case VTDNav.FORMAT_WIN_1255:
+        	    charSet = "Cp1255";
+				break;
+        	case VTDNav.FORMAT_WIN_1256:
+        	    charSet = "Cp1256";
+				break;
+        	case VTDNav.FORMAT_WIN_1257:
+        	    charSet = "Cp1257";
+				break;
+        	case VTDNav.FORMAT_WIN_1258:
+        	    charSet = "Cp1258";
+				break;
             default:
                 throw new ModifyException
                 ("Master document encoding not yet supported by XML modifier");
