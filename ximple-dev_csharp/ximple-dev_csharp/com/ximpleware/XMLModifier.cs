@@ -102,6 +102,75 @@ namespace com.ximpleware
                 case VTDNav.FORMAT_UTF_16LE:
                     charSet = "utf-16le";
                     break;
+                case VTDNav.FORMAT_ISO_8859_2:
+                    charSet = "iso-8859-2";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_3:
+                    charSet = "iso-8859-3";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_4:
+                    charSet = "iso-8859-4";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_5:
+                    charSet = "iso-8859-5";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_6:
+                    charSet = "iso-8859-6";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_7:
+                    charSet = "iso-8859-7";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_8:
+                    charSet = "iso-8859-8";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_9:
+                    charSet = "iso-8859-9";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_10:
+                    charSet = "iso-8859-10";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_11:
+                    charSet = "iso-8859-11";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_12:
+                    charSet = "iso-8859-12";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_13:
+                    charSet = "iso-8859-13";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_14:
+                    charSet = "iso-8859-14";
+                    break;
+                case VTDNav.FORMAT_ISO_8859_15:
+                    charSet = "iso-8859-15";
+                    break;
+                case VTDNav.FORMAT_WIN_1250:
+                    charSet = "windows-1250";
+                    break;
+                case VTDNav.FORMAT_WIN_1251:
+                    charSet = "windows-1251";
+                    break;
+                case VTDNav.FORMAT_WIN_1252:
+                    charSet = "windows-1252";
+                    break;
+                case VTDNav.FORMAT_WIN_1253:
+                    charSet = "windows-1253";
+                    break;
+                case VTDNav.FORMAT_WIN_1254:
+                    charSet = "windows-1254";
+                    break;
+                case VTDNav.FORMAT_WIN_1255:
+                    charSet = "windows-1255";
+                    break;
+                case VTDNav.FORMAT_WIN_1256:
+                    charSet = "windows-1256";
+                    break;
+                case VTDNav.FORMAT_WIN_1257:
+                    charSet = "windows-1257";
+                    break;
+                case VTDNav.FORMAT_WIN_1258:
+                    charSet = "windows-1258";
+                    break;
 
                 default:
                     throw new ModifyException("Master document encoding not yet supported by XML modifier");
