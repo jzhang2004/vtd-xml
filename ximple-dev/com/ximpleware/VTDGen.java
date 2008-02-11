@@ -1488,7 +1488,9 @@ public class VTDGen {
 				     writeVTD(temp_offset, 15,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
-				 }
+				 } else throw new ParseException(
+								"XML decl error: Invalid Encoding"
+										+ formatLineNumber());
 				}else if (r.skipChar('2') ){
 				    encoding = FORMAT_ISO_8859_2;
 				    r = new ISO8859_2Reader();
