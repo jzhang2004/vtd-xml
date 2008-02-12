@@ -1484,7 +1484,7 @@ public class VTDGen {
 								depth);
 				 } else if (r.skipChar('5') ){
 				     encoding = FORMAT_ISO_8859_15;
-				     r = new ISO8859_14Reader();
+				     r = new ISO8859_15Reader();
 				     writeVTD(temp_offset, 15,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
