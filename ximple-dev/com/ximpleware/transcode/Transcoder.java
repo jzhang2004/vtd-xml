@@ -62,9 +62,9 @@ public class Transcoder {
         int len = 0;
         int k = offset;
         int c;
-        while (k <= offset + len) {
+        while (k < offset + length) {
             long l = decode(input, k, input_encoding);
-            k = (int) (l << 32);
+            k = (int) (l >>32);
             c = (int) l;
             len = len + getLen(c, output_encoding);
         }
@@ -88,9 +88,9 @@ public class Transcoder {
         int len = 0;
         int k = offset;
         int c, i = 0;
-        while (k <= offset + len) {
+        while (k < offset + length) {
             long l = decode(input, k, input_encoding);
-            k = (int) (l << 32);
+            k = (int) (l >> 32);
             c = (int) l;
             i = encode(output, i, c, output_encoding);
         }
