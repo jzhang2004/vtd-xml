@@ -18,18 +18,20 @@
 package com.ximpleware;
 import java.io.*;
 
+import com.ximpleware.transcode.*;
 /**
  * XMLModifier offers an easy-to-use interface for users to
  * take advantage of the incremental update of VTD-XML
  * The XML modifier assumes there is a master document on which
  * the modification is applied: users can remove an element, update
- * a token, or insert new content anywhere in the document
+ * a token, replace an element name, or insert new content anywhere in the document
  * 
  * The process:
  * * The modification operations are recorded first
  * * The output() is called to generate output document
  *
  */
+
 public class XMLModifier {
     protected VTDNav md; // master document
     
@@ -322,7 +324,7 @@ public class XMLModifier {
         if (insertHash.isUnique(offset)==false){
             throw new ModifyException("There can be only one insert per offset");
         }
-        flb.append( (long)offset | MASK_INSERT_FRAGMENT_NS);
+        flb.append((long)offset | MASK_INSERT_FRAGMENT_NS);
         fob.append(ef);
     }
     
@@ -428,6 +430,61 @@ public class XMLModifier {
         // one delete
         removeToken(index);        	
     }
+    
+    /**
+     * Update the token with the transcoded representation of 
+     * given byte array content,
+     * @param index
+     * @param newContentBytes
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws TranscodeException
+     *
+     */
+     public void updateToken(int index, byte[] newContentBytes, int src_encoding) 
+     	throws ModifyException,UnsupportedEncodingException,TranscodeException{
+         if (src_encoding == encoding){
+             updateToken(index,newContentBytes);
+             return;
+         }
+         if (newContentBytes==null)
+             throw new IllegalArgumentException
+             ("newContentBytes can't be null");
+         int offset = md.getTokenOffset(index);
+         
+         int type = md.getTokenType(index);
+         int len =
+ 			(type == VTDNav.TOKEN_STARTING_TAG
+ 				|| type == VTDNav.TOKEN_ATTR_NAME
+ 				|| type == VTDNav.TOKEN_ATTR_NS)
+ 				? md.getTokenLength(index) & 0xffff
+ 				: md.getTokenLength(index);
+         // one insert
+         byte[] bo = Transcoder.transcode(newContentBytes,0,
+                 newContentBytes.length,src_encoding,encoding);
+         switch(type){
+         	case VTDNav.TOKEN_CDATA_VAL:
+         	    if (encoding < VTDNav.FORMAT_UTF_16BE)
+         	        insertBytesAt(offset-9, bo);
+         	    else 
+         	        insertBytesAt((offset-9)>>1, bo);
+         		break;
+         	case VTDNav.TOKEN_COMMENT:
+            	    if (encoding < VTDNav.FORMAT_UTF_16BE)
+         	        insertBytesAt(offset-4, bo);
+         	    else 
+         	        insertBytesAt((offset-4)>>1, bo);
+         		break;
+         	    
+         	default: 
+         	    if (encoding < VTDNav.FORMAT_UTF_16BE)
+         	        insertBytesAt(offset, bo);
+         	    else
+         	        insertBytesAt(offset<<1, bo);
+         }
+         // one delete
+         removeToken(index);        	
+     }
     /**
      * Update token with a segment of byte array (in terms of offset and length)
      * @param index
@@ -476,6 +533,65 @@ public class XMLModifier {
     }
     // one delete
     removeToken(index);        	
+}
+    
+    /**
+     * Update token with the transcoded representation of 
+     * a segment of byte array (in terms of offset and length)
+     * @param index
+     * @param newContentBytes
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws TranscodeException
+     *
+     */
+    public void updateToken(int index, byte[] newContentBytes, 
+            int contentOffset, int contentLen,int src_encoding) 
+	throws ModifyException,UnsupportedEncodingException, TranscodeException{
+        
+        if (src_encoding == encoding) {
+            updateToken(index, newContentBytes, contentOffset, contentLen);
+            return;
+        }
+        if (newContentBytes == null)
+            throw new IllegalArgumentException("newContentBytes can't be null");
+
+        int offset = md.getTokenOffset(index);
+        //int len = md.getTokenLength(index);
+        int type = md.getTokenType(index);
+        int len = (type == VTDNav.TOKEN_STARTING_TAG
+                || type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS) ? md
+                .getTokenLength(index) & 0xffff
+                : md.getTokenLength(index);
+        
+        // one insert
+        byte[] bo = Transcoder.transcode(newContentBytes,contentOffset,
+                contentLen, src_encoding, encoding);
+        
+        switch (type) {
+        case VTDNav.TOKEN_CDATA_VAL:
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt(offset - 9, bo);
+            else
+                insertBytesAt((offset - 9) << 1, bo);
+            break;
+        case VTDNav.TOKEN_COMMENT:
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt(offset - 4, bo);
+            else
+                insertBytesAt((offset - 4) << 1, bo);
+            break;
+
+        default:
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt(offset, bo);
+            else
+                insertBytesAt(offset << 1, bo);
+        }
+        // one delete
+        removeToken(index);        	
 }
     
     /**
@@ -625,6 +741,8 @@ public class XMLModifier {
         insertElementFragmentNsAt(offset + len, ef);
     }
     
+ 
+    
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert a segment of the byte array b after the element
@@ -647,6 +765,36 @@ public class XMLModifier {
         int len = (int) (l >> 32);
         insertBytesAt(offset + len, b, contentOffset, contentLen);
     }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert the transcoded array of bytes of a segment of the byte array b after the element
+     * @param b
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterElement(int src_encoding, byte[] b, int contentOffset, int contentLen)
+            throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+        if (src_encoding == encoding) {
+            insertAfterElement(b,contentOffset,contentLen);
+        } else {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+            long l = md.getElementFragment();
+            int offset = (int) l;
+            int len = (int) (l >> 32);
+            // transcode in here
+            byte[] bo = Transcoder.transcode(b, contentOffset, contentLen, src_encoding, encoding);
+            insertBytesAt(offset + len, bo);
+        }
+}
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert a segment of the byte array b after the element,
@@ -669,6 +817,65 @@ public class XMLModifier {
         int offset = (int) l;
         int len = (int) (l >> 32);
         insertBytesAt(offset + len, b, l1);
+    }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert a segment of the byte array b (transcode into a byte array) after the element,
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param b
+     * @param l1
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterElement(int src_encoding, byte[] b, long l1) throws ModifyException,
+            UnsupportedEncodingException, NavException, TranscodeException {
+        if (src_encoding == encoding){
+            insertAfterElement(b,l1);
+        } else {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+            long l = md.getElementFragment();
+            int offset = (int) l;
+            int len = (int) (l >> 32);
+            byte[] bo = Transcoder.transcode(b, (int)l, (int)l>>32, src_encoding, encoding);
+            insertBytesAt(offset + len, bo, l1);
+        }
+    }
+    
+    /**
+     * Insert a byte array of given encoding into the master document
+     * transcoding is done underneath to ensure the correctness of output
+     * @param encoding The encoding format of the byte array 
+     * @param b
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterElement(int src_encoding, byte[] b)
+            throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+        if(src_encoding == encoding){
+            insertAfterElement(b);
+        }
+        else {    
+            int startTagIndex =md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type!=VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+            long l = md.getElementFragment();
+            int offset = (int)l;
+            int len = (int)(l>>32);
+            // transcoding logic
+            byte[] bo = Transcoder.transcode(b, 0, b.length, src_encoding, encoding);
+            insertBytesAt(offset+len,bo);
+        }
     }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
@@ -708,6 +915,33 @@ public class XMLModifier {
             insertBytesAt(offset,b);
         else
             insertBytesAt((offset)<<1,b);        
+    }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert the transcoded representatin of the byte array b  before the element
+     * @param b the byte array to be inserted into the master document
+     * @throws ModifyException
+     * @throws TranscodeException
+     *
+     */
+    public void insertBeforeElement(int src_encoding, byte[] b)
+    	throws ModifyException,TranscodeException{
+        if (encoding == md.encoding) {
+            insertBeforeElement(b);
+        } else {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+
+            int offset = md.getTokenOffset(startTagIndex) - 1;
+            byte[] bo = Transcoder.transcode(b,0,b.length,src_encoding, encoding); 
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt(offset, bo);
+            else
+                insertBytesAt((offset) << 1, bo);
+        }
     }
     
    /**
@@ -757,6 +991,39 @@ public class XMLModifier {
         else
             insertBytesAt((offset) << 1, b, contentOffset, contentLen);
     }
+    
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert the transcoded representation of a segment of the byte array b 
+     * before the element
+     * @param b
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws TranscodeException
+     *
+     */
+    public void insertBeforeElement(int src_encoding, byte[] b,int contentOffset, int contentLen) throws ModifyException,
+            UnsupportedEncodingException, TranscodeException {
+        if (src_encoding == encoding) {
+            insertBeforeElement(b,contentOffset, contentLen);
+        } else {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+
+            int offset = md.getTokenOffset(startTagIndex) - 1;
+            // do transcoding here
+            byte[] bo = Transcoder.transcode(b,contentOffset,contentLen,src_encoding, encoding);
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt(offset, bo);
+            else
+                insertBytesAt((offset) << 1, bo);
+        }
+    }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert a segment of the byte array b before the element
@@ -780,6 +1047,36 @@ public class XMLModifier {
             insertBytesAt(offset, b, l1);
         else
             insertBytesAt((offset) << 1, b, l1);
+    }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert the transcoded representation of a segment of the byte array b before the element
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param b
+     * @param l1
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws TranscodeException
+     *
+     */
+    public void insertBeforeElement(int src_encoding, byte[] b, long l1) throws ModifyException,
+            UnsupportedEncodingException, TranscodeException {
+        if (src_encoding == md.encoding) {
+            insertBeforeElement(b, l1);
+        } else {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+
+            int offset = md.getTokenOffset(startTagIndex) - 1;
+            byte[] bo = Transcoder.transcode(b, (int)l1, (int)(l1>>32),src_encoding, encoding);
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt(offset, bo );
+            else
+                insertBytesAt((offset) << 1, bo);
+        }
     }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
@@ -838,6 +1135,31 @@ public class XMLModifier {
      */
     public void insertAttribute(byte[] b) 
     	throws ModifyException,UnsupportedEncodingException{
+        int startTagIndex =md.getCurrentIndex();
+        int type = md.getTokenType(startTagIndex);
+        if (type!=VTDNav.TOKEN_STARTING_TAG)
+            throw new ModifyException("Token type is not a starting tag");
+        int offset = md.getTokenOffset(startTagIndex);
+        int len = md.getTokenLength(startTagIndex);
+        
+        if (encoding < VTDNav.FORMAT_UTF_16BE)
+            insertBytesAt(offset+len,b);
+        else
+            insertBytesAt((offset+len)<<1,b);
+        //insertBytesAt()
+    }
+    
+    /**
+     * Insert the transcoded representation of a byte arry of an attribute 
+     * after the starting tag This method will first call getCurrentIndex() 
+     * to get the cursor index value if the index is of type "starting tag", 
+     * then teh attribute is inserted after the starting tag
+     * @param b the byte content of e.g. " attrName='attrVal' ",notice the 
+     * starting and ending white space
+     *
+     */
+    public void insertAttribute(int src_encoding, byte[] b) 
+    	throws ModifyException,UnsupportedEncodingException,TranscodeException{
         int startTagIndex =md.getCurrentIndex();
         int type = md.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
