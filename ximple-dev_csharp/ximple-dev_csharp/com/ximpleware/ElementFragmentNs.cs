@@ -38,7 +38,16 @@ namespace com.ximpleware
                     for (int i = 0; i < fib.size(); i++)
                     {
                         int k = fib.intAt(i);
-                        len += (vn.getTokenLength(k) & 0xffff) + vn.getTokenLength(k + 1) + 4;
+                        if (vn.encoding < VTDNav.FORMAT_UTF_16BE)
+                        {
+                            len += (vn.getTokenLength(k) & 0xffff) 
+                                + vn.getTokenLength(k + 1) + 4;
+                        }
+                        else
+                        {
+                            len += ((vn.getTokenLength(k) & 0xffff)
+                                + vn.getTokenLength(k + 1) + 4) << 1;
+                        }
                     }
                 return len;
             }
