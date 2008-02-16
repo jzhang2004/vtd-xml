@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	VTDNav *vn = NULL;
 	struct stat s;
 		
-	f = fopen(argv[1],"r");
+	f = fopen(argv[1],"rb");
 	stat(argv[1],&s);
 	//i=(int)_filelength(f->_file);
 	printf("size of the file is %d \n",(int)s.st_size);

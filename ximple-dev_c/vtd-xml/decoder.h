@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,10 @@ int iso_8859_7_chars[256];
 int iso_8859_8_chars[256];
 int iso_8859_9_chars[256];
 int iso_8859_10_chars[256];
+int iso_8859_11_chars[256];
+int iso_8859_13_chars[256];
+int iso_8859_14_chars[256];
+int iso_8859_15_chars[256];
 int windows_1250_chars[256];
 int windows_1251_chars[256];
 int windows_1252_chars[256];
@@ -52,6 +56,11 @@ Boolean iso_8859_7_chars_ready;
 Boolean iso_8859_8_chars_ready;
 Boolean iso_8859_9_chars_ready;
 Boolean iso_8859_10_chars_ready;
+Boolean iso_8859_11_chars_ready;
+Boolean iso_8859_13_chars_ready;
+Boolean iso_8859_14_chars_ready;
+Boolean iso_8859_15_chars_ready;
+
 Boolean windows_1250_chars_ready;
 Boolean windows_1251_chars_ready;
 Boolean windows_1252_chars_ready;
@@ -71,6 +80,10 @@ Boolean windows_1258_chars_ready;
  void iso_8859_8_chars_init();
  void iso_8859_9_chars_init();
  void iso_8859_10_chars_init();
+ void iso_8859_11_chars_init();
+ void iso_8859_13_chars_init();
+ void iso_8859_14_chars_init();
+ void iso_8859_15_chars_init();
 
  void windows_1250_chars_init();
  void windows_1251_chars_init();
@@ -94,6 +107,11 @@ Boolean windows_1258_chars_ready;
 #define iso_8859_8_decode(b) iso_8859_8_chars[b]
 #define iso_8859_9_decode(b) iso_8859_9_chars[b]
 #define iso_8859_10_decode(b) iso_8859_10_chars[b]
+#define iso_8859_11_decode(b) iso_8859_11_chars[b]
+#define iso_8859_13_decode(b) iso_8859_13_chars[b]
+#define iso_8859_14_decode(b) iso_8859_14_chars[b]
+#define iso_8859_15_decode(b) iso_8859_15_chars[b]
+
 
 #define windows_1250_decode( b) windows_1250_chars[b]
 #define windows_1251_decode( b) windows_1251_chars[b]

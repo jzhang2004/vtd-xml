@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -3137,6 +3137,14 @@ static int decode(VTDNav *vn,int offset)
 		return iso_8859_9_decode(ch);
 	case FORMAT_ISO_8859_10:
 		return iso_8859_10_decode(ch);
+	case FORMAT_ISO_8859_11:
+		return iso_8859_11_decode(ch);
+	case FORMAT_ISO_8859_13:
+		return iso_8859_13_decode(ch);
+	case FORMAT_ISO_8859_14:
+		return iso_8859_14_decode(ch);
+	case FORMAT_ISO_8859_15:
+		return iso_8859_15_decode(ch);
 	case FORMAT_WIN_1250:
 		return windows_1250_decode(ch);
 	case FORMAT_WIN_1251:
@@ -3540,4 +3548,12 @@ ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
 		l= getElementFragment(vn);
 		return createElementFragmentNs(vn,l,fib,len);
 	}
+}
+
+/* dump XML text into a given file name */
+void dumpXML(char *fileName){
+}
+
+/* dump XML text into a given file descriptor */
+void dumpXML2(FILE *f){
 }

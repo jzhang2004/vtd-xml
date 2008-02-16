@@ -35,7 +35,7 @@ int main(){
 	exception e;
 	FILE *f = NULL;
 	FILE *fo = NULL;
-	int i = 0;
+	int i = 0,j=0;
 	
 	Long l = 0;
 	int len = 0;
@@ -48,7 +48,7 @@ int main(){
 	VTDNav *vn = NULL; // This is the VTDNav that navigates the VTD records
 	AutoPilot *ap = NULL;
 	UByte *sm = "\n================\n";
-
+	UCSChar *s1;
 	// allocate a piece of buffer then reads in the document content
 	// assume "c:\soap2.xml" is the name of the file
 	f = fopen(filename,"r");
@@ -57,15 +57,29 @@ int main(){
 	stat(filename,&s);
 
 	i = (int) s.st_size;	
-	printf("size of thefile is %d \n",i);
+	printf("size of the file is %d \n",i);
 	xml = (UByte *)malloc(sizeof(UByte) *i);
-	fread(xml,sizeof(UByte),i,f);
+	i=fread(xml,sizeof(UByte),i,f);
 	Try{
 		vg = createVTDGen();
 		setDoc(vg,xml,i);
 		parse(vg,TRUE);
 		vn = getNav(vg);
 		ap = createAutoPilot2();
+		s1 = toRawString(vn,2);
+		wprintf(L" string s ==> %s \n",s1);
+		s1 = toRawString(vn,3);
+		wprintf(L" string s ==> %s \n",s1);
+		s1 = toRawString(vn,4);
+		wprintf(L" string s ==> %s \n",s1);
+		s1 = toRawString(vn,5);
+		wprintf(L" string s ==> %s \n",s1);
+		s1 = toRawString(vn,6);
+		wprintf(L" string s ==> %s \n",s1);
+		s1 = toRawString(vn,7);
+		wprintf(L" string s ==> %s \n",s1);
+		s1 = toRawString(vn,8);
+		wprintf(L" string s ==> %s \n",s1);
 		declareXPathNameSpace(ap,L"ns1",L"http://www.w3.org/2003/05/soap-envelope");
 		if (selectXPath(ap,L"/ns1:Envelope/ns1:Header/*[@ns1:mustUnderstand]")){
 			bind(ap,vn);

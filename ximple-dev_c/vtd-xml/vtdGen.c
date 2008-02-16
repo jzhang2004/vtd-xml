@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -429,6 +429,22 @@ static Boolean skip4OtherEncoding(VTDGen *vg, int ch1){
 		temp = iso_8859_10_decode(ch);
 		break;
 
+	case FORMAT_ISO_8859_11:
+		temp = iso_8859_11_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_13:
+		temp = iso_8859_13_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_14:
+		temp = iso_8859_14_decode(ch);
+		break;
+
+	case FORMAT_ISO_8859_15:
+		temp = iso_8859_15_decode(ch);
+		break;
+
 	case FORMAT_WIN_1250:
 		temp = windows_1250_decode(ch);
 		break;
@@ -511,6 +527,18 @@ static int handleOtherEncoding(VTDGen *vg){
 
 	case FORMAT_ISO_8859_10:
 		return iso_8859_10_decode(ch);
+
+	case FORMAT_ISO_8859_11:
+		return iso_8859_11_decode(ch);
+
+	case FORMAT_ISO_8859_13:
+		return iso_8859_13_decode(ch);
+
+	case FORMAT_ISO_8859_14:
+		return iso_8859_14_decode(ch);
+
+	case FORMAT_ISO_8859_15:
+		return iso_8859_15_decode(ch);
 
 	case FORMAT_WIN_1250:
 		return windows_1250_decode(ch);
@@ -663,6 +691,38 @@ static void matchISOEncoding(VTDGen *vg){
 						} else if (skipChar(vg,'0')){
 							vg->encoding = FORMAT_ISO_8859_10;
 							iso_8859_10_chars_init();
+							writeVTD(vg,
+								vg->temp_offset,
+								11,
+								TOKEN_DEC_ATTR_VAL,
+								vg->depth);
+						}else if (skipChar(vg,'1')){
+							vg->encoding = FORMAT_ISO_8859_11;
+							iso_8859_11_chars_init();
+							writeVTD(vg,
+								vg->temp_offset,
+								11,
+								TOKEN_DEC_ATTR_VAL,
+								vg->depth);
+						}else if (skipChar(vg,'3')){
+							vg->encoding = FORMAT_ISO_8859_13;
+							iso_8859_13_chars_init();
+							writeVTD(vg,
+								vg->temp_offset,
+								11,
+								TOKEN_DEC_ATTR_VAL,
+								vg->depth);
+						}else if (skipChar(vg,'4')){
+							vg->encoding = FORMAT_ISO_8859_14;
+							iso_8859_14_chars_init();
+							writeVTD(vg,
+								vg->temp_offset,
+								11,
+								TOKEN_DEC_ATTR_VAL,
+								vg->depth);
+						}else if (skipChar(vg,'5')){
+							vg->encoding = FORMAT_ISO_8859_15;
+							iso_8859_15_chars_init();
 							writeVTD(vg,
 								vg->temp_offset,
 								11,
