@@ -20,108 +20,108 @@ using com.ximpleware.parser;
 
 namespace com.ximpleware
 {
-	
-	//import java.io.*;
-	/// <summary> VTD Generator implementation.
-	/// Current support built-in entities only
-	/// It parses DTD, but doesn't resolve declared entities
-	/// </summary>
-	public class VTDGen
-	{
-		/// <summary> The entity ignorant version of getCharAfterS.</summary>
-		/// <returns> int
-		/// </returns>
-		/// <throws>  ParseException  </throws>
-		/// <throws>  EncodingException  </throws>
-		/// <throws>  com.ximpleware.EOFException  </throws>
-		private int CharAfterS
-		{
-			get
-			{
-				int n;
-				while (true)
-				{
-					n = r.Char;
-					if (n == ' ' || n == '\t' || n == '\n' || n == '\r')
-					{
-					}
-					else
-						return n;
-				}
-				//throw new EOFException("should never come here");
-			}
-			
-		}
-		/// <summary> The entity aware version of getCharAfterS</summary>
-		/// <returns> int
-		/// </returns>
-		/// <throws>  ParseException Super class for any exception during parsing. </throws>
-		/// <throws>  EncodingException UTF/native encoding exception. </throws>
-		/// <throws>  com.ximpleware.EOFException End of file exception. </throws>
-		private int CharAfterSe
-		{
-			get
-			{
-				int n = 0;
-				int temp; //offset saver
-				while (true)
-				{
-					n = r.Char;
-					if (!XMLChar.isSpaceChar(n))
-					{
-						if (n != '&')
-							return n;
-						else
-						{
-							temp = offset;
-							if (!XMLChar.isSpaceChar(entityIdentifier()))
-							{
-								offset = temp; // rewind
-								return '&';
-							}
-						}
-					}
-				}
-			}
-			
-		}
-		/// <summary> This method returns the VTDNav object after parsing, it also cleans 
-		/// internal state so VTDGen can process the next file.
-		/// </summary>
-		/// <returns> com.ximpleware.VTDNav
-		/// </returns>
-		public VTDNav getNav()
-		{
-			// call VTDNav constructor
-				VTDNav vn = new VTDNav(rootIndex, encoding, ns, VTDDepth, new UniByteBuffer(XMLDoc), VTDBuffer, l1Buffer, l2Buffer, l3Buffer, docOffset, docLen);
-				clear();
-				return vn;
-			
-			
-		}
-		/// <summary> Get the offset value of previous character.</summary>
-		/// <returns> int
-		/// </returns>
-		/// <throws>  ParseException Super class for exceptions during parsing. </throws>
-		private int PrevOffset
-		{
-			get
-			{
-				int prevOffset = offset;
+
+    //import java.io.*;
+    /// <summary> VTD Generator implementation.
+    /// Current support built-in entities only
+    /// It parses DTD, but doesn't resolve declared entities
+    /// </summary>
+    public class VTDGen
+    {
+        /// <summary> The entity ignorant version of getCharAfterS.</summary>
+        /// <returns> int
+        /// </returns>
+        /// <throws>  ParseException  </throws>
+        /// <throws>  EncodingException  </throws>
+        /// <throws>  com.ximpleware.EOFException  </throws>
+        private int CharAfterS
+        {
+            get
+            {
+                int n;
+                while (true)
+                {
+                    n = r.Char;
+                    if (n == ' ' || n == '\t' || n == '\n' || n == '\r')
+                    {
+                    }
+                    else
+                        return n;
+                }
+                //throw new EOFException("should never come here");
+            }
+
+        }
+        /// <summary> The entity aware version of getCharAfterS</summary>
+        /// <returns> int
+        /// </returns>
+        /// <throws>  ParseException Super class for any exception during parsing. </throws>
+        /// <throws>  EncodingException UTF/native encoding exception. </throws>
+        /// <throws>  com.ximpleware.EOFException End of file exception. </throws>
+        private int CharAfterSe
+        {
+            get
+            {
+                int n = 0;
+                int temp; //offset saver
+                while (true)
+                {
+                    n = r.Char;
+                    if (!XMLChar.isSpaceChar(n))
+                    {
+                        if (n != '&')
+                            return n;
+                        else
+                        {
+                            temp = offset;
+                            if (!XMLChar.isSpaceChar(entityIdentifier()))
+                            {
+                                offset = temp; // rewind
+                                return '&';
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        /// <summary> This method returns the VTDNav object after parsing, it also cleans 
+        /// internal state so VTDGen can process the next file.
+        /// </summary>
+        /// <returns> com.ximpleware.VTDNav
+        /// </returns>
+        public VTDNav getNav()
+        {
+            // call VTDNav constructor
+            VTDNav vn = new VTDNav(rootIndex, encoding, ns, VTDDepth, new UniByteBuffer(XMLDoc), VTDBuffer, l1Buffer, l2Buffer, l3Buffer, docOffset, docLen);
+            clear();
+            return vn;
+
+
+        }
+        /// <summary> Get the offset value of previous character.</summary>
+        /// <returns> int
+        /// </returns>
+        /// <throws>  ParseException Super class for exceptions during parsing. </throws>
+        private int PrevOffset
+        {
+            get
+            {
+                int prevOffset = offset;
                 int temp;
-				switch (encoding)
-				{
-					
-					case FORMAT_UTF8: 
-						do 
-						{
-							prevOffset--;
-						}
-						while ((XMLDoc[prevOffset]) >127);
-						return prevOffset;
-					
-					case FORMAT_ASCII: 
-					case FORMAT_ISO_8859_1:
+                switch (encoding)
+                {
+
+                    case FORMAT_UTF8:
+                        do
+                        {
+                            prevOffset--;
+                        }
+                        while ((XMLDoc[prevOffset]) > 127);
+                        return prevOffset;
+
+                    case FORMAT_ASCII:
+                    case FORMAT_ISO_8859_1:
                     case FORMAT_ISO_8859_2:
                     case FORMAT_ISO_8859_3:
                     case FORMAT_ISO_8859_4:
@@ -141,74 +141,74 @@ namespace com.ximpleware
                     case FORMAT_WIN_1257:
                     case FORMAT_WIN_1258:
                         return offset - 1;
-					
-					case FORMAT_UTF_16LE:
-                        temp = (XMLDoc[offset + 1] ) << 8 | (XMLDoc[offset] );
+
+                    case FORMAT_UTF_16LE:
+                        temp = (XMLDoc[offset + 1]) << 8 | (XMLDoc[offset]);
                         if (temp < 0xd800 || temp > 0xdfff)
-						{
-							return offset - 2;
-						}
-						else
-							return offset - 4;
-						//goto case FORMAT_UTF_16BE;
-					
-					case FORMAT_UTF_16BE: 
+                        {
+                            return offset - 2;
+                        }
+                        else
+                            return offset - 4;
+                    //goto case FORMAT_UTF_16BE;
+
+                    case FORMAT_UTF_16BE:
                         temp = (XMLDoc[offset]) << 8 | (XMLDoc[offset + 1]);
                         if (temp < 0xd800 || temp > 0xdfff)
-						{
-							return offset - 2;
-						}
-						else
-							return offset - 4;
-						//goto default;
-					
-					default: 
-						throw new ParseException("Other Error: Should never happen");
-					
-				}
-			}
+                        {
+                            return offset - 2;
+                        }
+                        else
+                            return offset - 4;
+                    //goto default;
 
-		}
-		// internal parser state
+                    default:
+                        throw new ParseException("Other Error: Should never happen");
 
-		private const int STATE_LT_SEEN = 0; // encounter the first <
-		private const int STATE_START_TAG = 1;
-		private const int STATE_END_TAG = 2;
+                }
+            }
+
+        }
+        // internal parser state
+
+        private const int STATE_LT_SEEN = 0; // encounter the first <
+        private const int STATE_START_TAG = 1;
+        private const int STATE_END_TAG = 2;
         private const int STATE_ATTR_NAME = 3;
         private const int STATE_ATTR_VAL = 4;
-		private const int STATE_TEXT = 5;
+        private const int STATE_TEXT = 5;
         private const int STATE_DOC_START = 6; // beginning of document
         private const int STATE_DOC_END = 7; // end of document 
-		private const int STATE_PI_TAG = 8;
-		private const int STATE_PI_VAL = 9;
-		private const int STATE_DEC_ATTR_NAME = 10;
-		private const int STATE_COMMENT = 11;
-		private const int STATE_CDATA = 12;
-		private const int STATE_DOCTYPE = 13;
-		private const int STATE_END_COMMENT = 14;
-		// comment appear after the last ending tag
-		private const int STATE_END_PI = 15;
-		//private final static int STATE_END_PI_VAL = 17;
-		
-		// token type
-		public const int TOKEN_STARTING_TAG = 0;
-		public const int TOKEN_ENDING_TAG = 1;
-		public const int TOKEN_ATTR_NAME = 2;
-		public const int TOKEN_ATTR_NS = 3;
-		public const int TOKEN_ATTR_VAL = 4;
-		public const int TOKEN_CHARACTER_DATA = 5;
-		public const int TOKEN_COMMENT = 6;
-		public const int TOKEN_PI_NAME = 7;
-		public const int TOKEN_PI_VAL = 8;
-		public const int TOKEN_DEC_ATTR_NAME = 9;
-		public const int TOKEN_DEC_ATTR_VAL = 10;
-		public const int TOKEN_CDATA_VAL = 11;
-		public const int TOKEN_DTD_VAL = 12;
-		public const int TOKEN_DOCUMENT = 13;
-		
-		// encoding format
-		public const int FORMAT_UTF8 = 2;
-		public const int FORMAT_ASCII = 0;
+        private const int STATE_PI_TAG = 8;
+        private const int STATE_PI_VAL = 9;
+        private const int STATE_DEC_ATTR_NAME = 10;
+        private const int STATE_COMMENT = 11;
+        private const int STATE_CDATA = 12;
+        private const int STATE_DOCTYPE = 13;
+        private const int STATE_END_COMMENT = 14;
+        // comment appear after the last ending tag
+        private const int STATE_END_PI = 15;
+        //private final static int STATE_END_PI_VAL = 17;
+
+        // token type
+        public const int TOKEN_STARTING_TAG = 0;
+        public const int TOKEN_ENDING_TAG = 1;
+        public const int TOKEN_ATTR_NAME = 2;
+        public const int TOKEN_ATTR_NS = 3;
+        public const int TOKEN_ATTR_VAL = 4;
+        public const int TOKEN_CHARACTER_DATA = 5;
+        public const int TOKEN_COMMENT = 6;
+        public const int TOKEN_PI_NAME = 7;
+        public const int TOKEN_PI_VAL = 8;
+        public const int TOKEN_DEC_ATTR_NAME = 9;
+        public const int TOKEN_DEC_ATTR_VAL = 10;
+        public const int TOKEN_CDATA_VAL = 11;
+        public const int TOKEN_DTD_VAL = 12;
+        public const int TOKEN_DOCUMENT = 13;
+
+        // encoding format
+        public const int FORMAT_UTF8 = 2;
+        public const int FORMAT_ASCII = 0;
         public const int FORMAT_ISO_8859_1 = 1;
         public const int FORMAT_ISO_8859_2 = 3;
         public const int FORMAT_ISO_8859_3 = 4;
@@ -241,54 +241,54 @@ namespace com.ximpleware
         public const int FORMAT_UTF_16BE = 63;
 
 
-		
-		
-		//namespace aware flag
-		protected internal bool ns;
-		protected internal int VTDDepth; // Maximum Depth of VTDs
-		protected internal int encoding;
-		private int last_depth;
-		private int last_l1_index;
-		private int last_l2_index;
-		private int last_l3_index;
-		private int increment;
-		private bool BOM_detected;
-		private bool must_utf_8;
-		private int ch;
-		private int ch_temp;
-		protected internal int offset; // this is byte offset, not char offset as encoded in VTD
-		private int temp_offset;
-		protected internal int depth;
-		
-		
-		protected internal int prev_offset;
-		protected internal int rootIndex;
-		protected internal byte[] XMLDoc;
-		protected internal FastLongBuffer VTDBuffer;
-		protected internal FastLongBuffer l1Buffer;
-		protected internal FastLongBuffer l2Buffer;
-		protected internal FastIntBuffer l3Buffer;
-		protected internal bool br; //buffer reuse
-		
-		
-		protected internal int docLen;
-		// again, in terms of byte, not char as encoded in VTD
-		protected internal int endOffset;
-		protected internal long[] tag_stack;
-		public long[] attr_name_array;
-		public const int MAX_DEPTH = 254; // maximum depth value
-		protected internal int docOffset;
-		
-		// attr_name_array size
-		private const int ATTR_NAME_ARRAY_SIZE = 16;
-		// tag_stack size
-		private const int TAG_STACK_SIZE = 256;
-		// max prefix length
-		public const int MAX_PREFIX_LENGTH = (1 << 9) - 1;
-		// max Qname length
-		public const int MAX_QNAME_LENGTH = (1 << 11) - 1;
-		// max Token length
-		public const int MAX_TOKEN_LENGTH = (1 << 20) - 1;
+
+
+        //namespace aware flag
+        protected internal bool ns;
+        protected internal int VTDDepth; // Maximum Depth of VTDs
+        protected internal int encoding;
+        private int last_depth;
+        private int last_l1_index;
+        private int last_l2_index;
+        private int last_l3_index;
+        private int increment;
+        private bool BOM_detected;
+        private bool must_utf_8;
+        private int ch;
+        private int ch_temp;
+        protected internal int offset; // this is byte offset, not char offset as encoded in VTD
+        private int temp_offset;
+        protected internal int depth;
+
+
+        protected internal int prev_offset;
+        protected internal int rootIndex;
+        protected internal byte[] XMLDoc;
+        protected internal FastLongBuffer VTDBuffer;
+        protected internal FastLongBuffer l1Buffer;
+        protected internal FastLongBuffer l2Buffer;
+        protected internal FastIntBuffer l3Buffer;
+        protected internal bool br; //buffer reuse
+
+
+        protected internal int docLen;
+        // again, in terms of byte, not char as encoded in VTD
+        protected internal int endOffset;
+        protected internal long[] tag_stack;
+        public long[] attr_name_array;
+        public const int MAX_DEPTH = 254; // maximum depth value
+        protected internal int docOffset;
+
+        // attr_name_array size
+        private const int ATTR_NAME_ARRAY_SIZE = 16;
+        // tag_stack size
+        private const int TAG_STACK_SIZE = 256;
+        // max prefix length
+        public const int MAX_PREFIX_LENGTH = (1 << 9) - 1;
+        // max Qname length
+        public const int MAX_QNAME_LENGTH = (1 << 11) - 1;
+        // max Token length
+        public const int MAX_TOKEN_LENGTH = (1 << 20) - 1;
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_2Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
         internal class ISO8859_2Reader : IReader
@@ -692,268 +692,440 @@ namespace com.ximpleware
                 }
             }
         }
-		
-		//UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF8Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-		internal class UTF8Reader : IReader
-		{
-			private void  InitBlock(VTDGen enclosingInstance)
-			{
-				this.enclosingInstance = enclosingInstance;
-			}
-			private VTDGen enclosingInstance;
-			public int Char
-			{
-				get
-				{
-					if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-						throw new EOFException("permature EOF reached, XML document incomplete");
-					int temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
-					//int a = 0, c = 0, d = 0, val = 0;
-					if (temp <128)
-					{
-						Enclosing_Instance.offset++;
-						return temp;
-					}
-					return handleUTF8(temp);
-				}
-				
-			}
-			public VTDGen Enclosing_Instance
-			{
-				get
-				{
-					return enclosingInstance;
-				}
-				
-			}
-			public UTF8Reader(VTDGen enclosingInstance)
-			{
-				InitBlock(enclosingInstance);
-			}
-			private int handleUTF8(int temp)
-			{
-				int val, c, d, a, i;
-				//temp = temp & 0xff;
-				switch (UTF8Char.byteCount(temp))
-				{
-					
-					// handle multi-byte code
-					case 2: 
-						c = 0x1f;
-						// A mask determine the val portion of the first byte
-						d = 6; // 
-						a = 1; //
-						break;
-					
-					case 3: 
-						c = 0x0f;
-						d = 12;
-						a = 2;
-						break;
-					
-					case 4: 
-						c = 0x07;
-						d = 18;
-						a = 3;
-						break;
-					
-					case 5: 
-						c = 0x03;
-						d = 24;
-						a = 4;
-						break;
-					
-					case 6: 
-						c = 0x01;
-						d = 30;
-						a = 5;
-						break;
-					
-					default: 
-						throw new ParseException("UTF 8 encoding error: should never happen");
-					
-				}
-				val = (temp & c) << d;
-				i = a - 1;
-				while (i >= 0)
-				{
-					temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + a - i];
-					if ((temp & 0xc0) != 0x80)
-						throw new ParseException("UTF 8 encoding error: should never happen");
-					val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
-					i--;
-				}
-				Enclosing_Instance.offset += a + 1;
-				return val;
-			}
-			public bool skipChar(int ch)
-			{
-				//int a = 0, d = 0, val = 0;
-				int temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
-				if (temp <128)
-					if (ch == temp)
-					{
-						Enclosing_Instance.offset++;
-						return true;
-					}
-					else
-					{
-						return false;
-					}
-				return skipUTF8(temp, ch);
-			}
-			private bool skipUTF8(int temp, int ch)
-			{
-				int val, c, d, a, i;
-				//temp = temp & 0xff;
-				switch (UTF8Char.byteCount(temp))
-				{
-					
-					// handle multi-byte code
-					case 2: 
-						c = 0x1f;
-						// A mask determine the val portion of the first byte
-						d = 6; // 
-						a = 1; //
-						break;
-					
-					case 3: 
-						c = 0x0f;
-						d = 12;
-						a = 2;
-						break;
-					
-					case 4: 
-						c = 0x07;
-						d = 18;
-						a = 3;
-						break;
-					
-					case 5: 
-						c = 0x03;
-						d = 24;
-						a = 4;
-						break;
-					
-					case 6: 
-						c = 0x01;
-						d = 30;
-						a = 5;
-						break;
-					
-					default: 
-						throw new ParseException("UTF 8 encoding error: should never happen");
-					
-				}
-				val = (temp & c) << d;
-				i = a - 1;
-				while (i >= 0)
-				{
-					temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + a - i];
-					if ((temp & 0xc0) != 0x80)
-						throw new ParseException("UTF 8 encoding error: should never happen");
-					val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
-					i--;
-				}
-				if (val == ch)
-				{
-					Enclosing_Instance.offset += a + 1;
-					return true;
-				}
-				else
-					return false;
-			}
-		}
-		//UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF16BEReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-		internal class UTF16BEReader : IReader
-		{
-			private void  InitBlock(VTDGen enclosingInstance)
-			{
-				this.enclosingInstance = enclosingInstance;
-			}
-			private VTDGen enclosingInstance;
-			public int Char
-			{
-				get
-				{
-					int val = 0;
-					if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-						throw new EOFException("permature EOF reached, XML document incomplete");
-					int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]);
-					if ((temp < 0xd800) || (temp > 0xdfff))
-					{
-						// not a high surrogate
-						Enclosing_Instance.offset += 2;
-						return temp;
-					}
-					else
-					{
-						if (temp < 0xd800 || temp > 0xdbff)
-							throw new EncodingException("UTF 16 BE encoding error: should never happen");
-						val = temp;
-						temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 2]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 3]);
-						if (temp < 0xdc00 || temp > 0xdfff)
-						{
-							// has to be a low surrogate here
-							throw new EncodingException("UTF 16 BE encoding error: should never happen");
-						}
-						val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
-						Enclosing_Instance.offset += 4;
-						return val;
-					}
-				}
-				
-			}
-			public VTDGen Enclosing_Instance
-			{
-				get
-				{
-					return enclosingInstance;
-				}
-				
-			}
-			public UTF16BEReader(VTDGen enclosingInstance)
-			{
-				InitBlock(enclosingInstance);
-			}
-			public bool skipChar(int ch)
-			{
-				// implement UTF-16BE to UCS4 conversion
-				int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset] ) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]);
-				if ((temp < 0xd800) || (temp > 0xdfff))
-				{
-					// not a high surrogate
-					//offset += 2;
-					if (temp == ch)
-					{
-						Enclosing_Instance.offset += 2;
-						return true;
-					}
-					else
-						return false;
-				}
-				else
-				{
-					if (temp < 0xd800 || temp > 0xdbff)
-						throw new EncodingException("UTF 16 BE encoding error: should never happen");
-					int val = temp;
-					temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 2] ) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 3] );
-					if (temp < 0xdc00 || temp > 0xdfff)
-					{
-						// has to be a low surrogate here
-						throw new EncodingException("UTF 16 BE encoding error: should never happen");
-					}
-					val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
-					if (val == ch)
-					{
-						Enclosing_Instance.offset += 4;
-						return true;
-					}
-					else
-						return false;
-				}
-			}
-		}
+        internal class ISO8859_11Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_11.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_11Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_11.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        internal class ISO8859_13Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_13.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_13Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_13.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        internal class ISO8859_14Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_14.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_14Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_14.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        internal class ISO8859_15Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            virtual public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return ISO8859_15.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_15Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public virtual bool skipChar(int ch)
+            {
+                if (ch == ISO8859_15.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF8Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class UTF8Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            public int Char
+            {
+                get
+                {
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    int temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
+                    //int a = 0, c = 0, d = 0, val = 0;
+                    if (temp < 128)
+                    {
+                        Enclosing_Instance.offset++;
+                        return temp;
+                    }
+                    return handleUTF8(temp);
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public UTF8Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            private int handleUTF8(int temp)
+            {
+                int val, c, d, a, i;
+                //temp = temp & 0xff;
+                switch (UTF8Char.byteCount(temp))
+                {
+
+                    // handle multi-byte code
+                    case 2:
+                        c = 0x1f;
+                        // A mask determine the val portion of the first byte
+                        d = 6; // 
+                        a = 1; //
+                        break;
+
+                    case 3:
+                        c = 0x0f;
+                        d = 12;
+                        a = 2;
+                        break;
+
+                    case 4:
+                        c = 0x07;
+                        d = 18;
+                        a = 3;
+                        break;
+
+                    case 5:
+                        c = 0x03;
+                        d = 24;
+                        a = 4;
+                        break;
+
+                    case 6:
+                        c = 0x01;
+                        d = 30;
+                        a = 5;
+                        break;
+
+                    default:
+                        throw new ParseException("UTF 8 encoding error: should never happen");
+
+                }
+                val = (temp & c) << d;
+                i = a - 1;
+                while (i >= 0)
+                {
+                    temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + a - i];
+                    if ((temp & 0xc0) != 0x80)
+                        throw new ParseException("UTF 8 encoding error: should never happen");
+                    val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
+                    i--;
+                }
+                Enclosing_Instance.offset += a + 1;
+                return val;
+            }
+            public bool skipChar(int ch)
+            {
+                //int a = 0, d = 0, val = 0;
+                int temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
+                if (temp < 128)
+                    if (ch == temp)
+                    {
+                        Enclosing_Instance.offset++;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                return skipUTF8(temp, ch);
+            }
+            private bool skipUTF8(int temp, int ch)
+            {
+                int val, c, d, a, i;
+                //temp = temp & 0xff;
+                switch (UTF8Char.byteCount(temp))
+                {
+
+                    // handle multi-byte code
+                    case 2:
+                        c = 0x1f;
+                        // A mask determine the val portion of the first byte
+                        d = 6; // 
+                        a = 1; //
+                        break;
+
+                    case 3:
+                        c = 0x0f;
+                        d = 12;
+                        a = 2;
+                        break;
+
+                    case 4:
+                        c = 0x07;
+                        d = 18;
+                        a = 3;
+                        break;
+
+                    case 5:
+                        c = 0x03;
+                        d = 24;
+                        a = 4;
+                        break;
+
+                    case 6:
+                        c = 0x01;
+                        d = 30;
+                        a = 5;
+                        break;
+
+                    default:
+                        throw new ParseException("UTF 8 encoding error: should never happen");
+
+                }
+                val = (temp & c) << d;
+                i = a - 1;
+                while (i >= 0)
+                {
+                    temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + a - i];
+                    if ((temp & 0xc0) != 0x80)
+                        throw new ParseException("UTF 8 encoding error: should never happen");
+                    val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
+                    i--;
+                }
+                if (val == ch)
+                {
+                    Enclosing_Instance.offset += a + 1;
+                    return true;
+                }
+                else
+                    return false;
+            }
+        }
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF16BEReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class UTF16BEReader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            public int Char
+            {
+                get
+                {
+                    int val = 0;
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]);
+                    if ((temp < 0xd800) || (temp > 0xdfff))
+                    {
+                        // not a high surrogate
+                        Enclosing_Instance.offset += 2;
+                        return temp;
+                    }
+                    else
+                    {
+                        if (temp < 0xd800 || temp > 0xdbff)
+                            throw new EncodingException("UTF 16 BE encoding error: should never happen");
+                        val = temp;
+                        temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 2]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 3]);
+                        if (temp < 0xdc00 || temp > 0xdfff)
+                        {
+                            // has to be a low surrogate here
+                            throw new EncodingException("UTF 16 BE encoding error: should never happen");
+                        }
+                        val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+                        Enclosing_Instance.offset += 4;
+                        return val;
+                    }
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public UTF16BEReader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public bool skipChar(int ch)
+            {
+                // implement UTF-16BE to UCS4 conversion
+                int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]);
+                if ((temp < 0xd800) || (temp > 0xdfff))
+                {
+                    // not a high surrogate
+                    //offset += 2;
+                    if (temp == ch)
+                    {
+                        Enclosing_Instance.offset += 2;
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+                else
+                {
+                    if (temp < 0xd800 || temp > 0xdbff)
+                        throw new EncodingException("UTF 16 BE encoding error: should never happen");
+                    int val = temp;
+                    temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 2]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 3]);
+                    if (temp < 0xdc00 || temp > 0xdfff)
+                    {
+                        // has to be a low surrogate here
+                        throw new EncodingException("UTF 16 BE encoding error: should never happen");
+                    }
+                    val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+                    if (val == ch)
+                    {
+                        Enclosing_Instance.offset += 4;
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+            }
+        }
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1250Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
         internal class WIN1250Reader : IReader
         {
@@ -1360,504 +1532,504 @@ namespace com.ximpleware
                 }
             }
         }
-		//UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF16LEReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-		internal class UTF16LEReader : IReader
-		{
-			private void  InitBlock(VTDGen enclosingInstance)
-			{
-				this.enclosingInstance = enclosingInstance;
-			}
-			private VTDGen enclosingInstance;
-			public int Char
-			{
-				get
-				{
-					int val = 0;
-					if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-						throw new EOFException("permature EOF reached, XML document incomplete");
-					int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]);
-					if (temp < 0xd800 || temp > 0xdfff)
-					{
-						// check for low surrogate
-						Enclosing_Instance.offset += 2;
-						return temp;
-					}
-					else
-					{
-						if (temp < 0xd800 || temp > 0xdbff)
-							throw new EncodingException("UTF 16 LE encoding error: should never happen");
-						val = temp;
-						temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 3]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 2] );
-						if (temp < 0xdc00 || temp > 0xdfff)
-						{
-							// has to be high surrogate
-							throw new EncodingException("UTF 16 LE encoding error: should never happen");
-						}
-						val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
-						Enclosing_Instance.offset += 4;
-						return val;
-					}
-				}
-				
-			}
-			public VTDGen Enclosing_Instance
-			{
-				get
-				{
-					return enclosingInstance;
-				}
-				
-			}
-			
-			public UTF16LEReader(VTDGen enclosingInstance)
-			{
-				InitBlock(enclosingInstance);
-			}
-			public bool skipChar(int ch)
-			{
-				
-				int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset] );
-				if (temp < 0xd800 || temp > 0xdfff)
-				{
-					// check for low surrogate
-					if (temp == ch)
-					{
-						Enclosing_Instance.offset += 2;
-						return true;
-					}
-					else
-					{
-						return false;
-					}
-				}
-				else
-				{
-					if (temp < 0xd800 || temp > 0xdbff)
-						throw new EncodingException("UTF 16 LE encoding error: should never happen");
-					int val = temp;
-					temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 3] ) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 2]);
-					if (temp < 0xdc00 || temp > 0xdfff)
-					{
-						// has to be high surrogate
-						throw new EncodingException("UTF 16 LE encoding error: should never happen");
-					}
-					val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
-					if (val == ch)
-					{
-						Enclosing_Instance.offset += 4;
-						return true;
-					}
-					else
-						return false;
-				}
-			}
-		}
-		
-		//UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ASCIIReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-		internal class ASCIIReader : IReader
-		{
-			private void  InitBlock(VTDGen enclosingInstance)
-			{
-				this.enclosingInstance = enclosingInstance;
-			}
-			private VTDGen enclosingInstance;
-			public int Char
-			{
-				get
-				{
-					int a;
-					if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-						throw new EOFException("permature EOF reached, XML document incomplete");
-					a = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
-                    if (a>127)
-                      throw new EncodingException("ASCII encoding error: invalid ASCII char");
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF16LEReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class UTF16LEReader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            public int Char
+            {
+                get
+                {
+                    int val = 0;
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]);
+                    if (temp < 0xd800 || temp > 0xdfff)
+                    {
+                        // check for low surrogate
+                        Enclosing_Instance.offset += 2;
+                        return temp;
+                    }
+                    else
+                    {
+                        if (temp < 0xd800 || temp > 0xdbff)
+                            throw new EncodingException("UTF 16 LE encoding error: should never happen");
+                        val = temp;
+                        temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 3]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 2]);
+                        if (temp < 0xdc00 || temp > 0xdfff)
+                        {
+                            // has to be high surrogate
+                            throw new EncodingException("UTF 16 LE encoding error: should never happen");
+                        }
+                        val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+                        Enclosing_Instance.offset += 4;
+                        return val;
+                    }
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+
+            public UTF16LEReader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public bool skipChar(int ch)
+            {
+
+                int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]);
+                if (temp < 0xd800 || temp > 0xdfff)
+                {
+                    // check for low surrogate
+                    if (temp == ch)
+                    {
+                        Enclosing_Instance.offset += 2;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (temp < 0xd800 || temp > 0xdbff)
+                        throw new EncodingException("UTF 16 LE encoding error: should never happen");
+                    int val = temp;
+                    temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 3]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 2]);
+                    if (temp < 0xdc00 || temp > 0xdfff)
+                    {
+                        // has to be high surrogate
+                        throw new EncodingException("UTF 16 LE encoding error: should never happen");
+                    }
+                    val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
+                    if (val == ch)
+                    {
+                        Enclosing_Instance.offset += 4;
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+            }
+        }
+
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ASCIIReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ASCIIReader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            public int Char
+            {
+                get
+                {
+                    int a;
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    a = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
+                    if (a > 127)
+                        throw new EncodingException("ASCII encoding error: invalid ASCII char");
                     Enclosing_Instance.offset++;
-					return a;
-				}
-				
-			}
-			public VTDGen Enclosing_Instance
-			{
-				get
-				{
-					return enclosingInstance;
-				}
-				
-			}
-			public ASCIIReader(VTDGen enclosingInstance)
-			{
-				InitBlock(enclosingInstance);
-			}
-			public bool skipChar(int ch)
-			{
-				
-				if (ch == Enclosing_Instance.XMLDoc[Enclosing_Instance.offset])
-				{
-					Enclosing_Instance.offset++;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-		}
-		//UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-		internal class ISO8859_1Reader : IReader
-		{
-			private void  InitBlock(VTDGen enclosingInstance)
-			{
-				this.enclosingInstance = enclosingInstance;
-			}
-			private VTDGen enclosingInstance;
-			public int Char
-			{
-				get
-				{
-					
-					if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-						throw new EOFException("permature EOF reached, XML document incomplete");
-					return Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++];
-				}
-				
-			}
-			public VTDGen Enclosing_Instance
-			{
-				get
-				{
-					return enclosingInstance;
-				}
-				
-			}
-			public ISO8859_1Reader(VTDGen enclosingInstance)
-			{
-				InitBlock(enclosingInstance);
-			}
-			public bool skipChar(int ch)
-			{
-				if (ch == Enclosing_Instance.XMLDoc[Enclosing_Instance.offset])
-				{
-					Enclosing_Instance.offset++;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-		}
-		protected internal IReader r;
-		
-		/// <summary> VTDGen constructor method.</summary>
-		public VTDGen()
-		{
-			attr_name_array = new long[ATTR_NAME_ARRAY_SIZE];
-			tag_stack = new long[TAG_STACK_SIZE];
-			//scratch_buffer = new int[10];
-			VTDDepth = 0;
-			r = new UTF8Reader(this);
-			br = false;
-		}
-		/// <summary> Clear internal states so VTDGEn can process the next file.</summary>
-		public void  clear()
-		{
-			if (br == false)
-			{
-				VTDBuffer = null;
-				l1Buffer = null;
-				l2Buffer = null;
-				l3Buffer = null;
-			}
-			XMLDoc = null;
-			offset = temp_offset = 0;
-			last_depth = last_l1_index = last_l2_index = 0;
-			rootIndex = 0;
-			depth = - 1;
-			increment = 1;
-			BOM_detected = false;
-			must_utf_8 = false;
-			ch = ch_temp = 0;
-		}
-		/// <summary> This method will detect whether the entity is valid or not and increment offset.</summary>
-		/// <returns> int
-		/// </returns>
-		/// <throws>  com.ximpleware.ParseException Super class for any exception during parsing. </throws>
-		/// <throws>  com.ximpleware.EncodingException UTF/native encoding exception. </throws>
-		/// <throws>  com.ximpleware.EOFException End of file exception. </throws>
-		private int entityIdentifier()
-		{
-			int ch = r.Char;
-			int val = 0;
-			
-			switch (ch)
-			{
-				
-				case '#': 
-					ch = r.Char;
-					if (ch == 'x')
-					{
-						while (true)
-						{
-							ch = r.Char;
-							if (ch >= '0' && ch <= '9')
-							{
-								val = (val << 4) + (ch - '0');
-							}
-							else if (ch >= 'a' && ch <= 'f')
-							{
-								val = (val << 4) + (ch - 'a' + 10);
-							}
-							else if (ch >= 'A' && ch <= 'F')
-							{
-								val = (val << 4) + (ch - 'A' + 10);
-							}
-							else if (ch == ';')
-							{
-								return val;
-							}
-							else
-								throw new EntityException("Errors in char reference: Illegal char following &#x.");
-						}
-					}
-					else
-					{
-						while (true)
-						{
-							if (ch >= '0' && ch <= '9')
-							{
-								val = val * 10 + (ch - '0');
-							}
-							else if (ch == ';')
-							{
-								break;
-							}
-							else
-								throw new EntityException("Errors in char reference: Illegal char following &#.");
-							ch = r.Char;
-						}
-					}
-					if (!XMLChar.isValidChar(val))
-					{
-						throw new EntityException("Errors in entity reference: Invalid XML char.");
-					}
-					return val;
-					//break;
-				
-				
-				case 'a': 
-					ch = r.Char;
-					if (ch == 'm')
-					{
-						if (r.Char == 'p' && r.Char == ';')
-						{
-							//System.out.println(" entity for &");
-							return '&';
-						}
-						else
-							throw new EntityException("Errors in Entity: Illegal builtin reference");
-					}
-					else if (ch == 'p')
-					{
-						if (r.Char == 'o' && r.Char == 's' && r.Char == ';')
-						{
-							//System.out.println(" entity for ' ");
-							return '\'';
-						}
-						else
-							throw new EntityException("Errors in Entity: Illegal builtin reference");
-					}
-					else
-						throw new EntityException("Errors in Entity: Illegal builtin reference");
-					//goto case 'q';
-				
-				
-				case 'q': 
-					if (r.Char == 'u' && r.Char == 'o' && r.Char == 't' && r.Char == ';')
-					{
-						return '"';
-					}
-					else
-						throw new EntityException("Errors in Entity: Illegal builtin reference");
-					//goto case 'l';
-				
-				case 'l': 
-					if (r.Char == 't' && r.Char == ';')
-					{
-						return '<';
-					}
-					else
-						throw new EntityException("Errors in Entity: Illegal builtin reference");
-					//break;
-					//goto case 'g';
-				
-				case 'g': 
-					if (r.Char == 't' && r.Char == ';')
-					{
-						return '>';
-					}
-					else
-						throw new EntityException("Errors in Entity: Illegal builtin reference");
-					//goto default;
-				
-				default: 
-					throw new EntityException("Errors in Entity: Illegal entity char");
-				
-			}
-			//return val;
-		}
-		/// <summary> Format the string indicating the position (line number:offset)of the offset if 
-		/// there is an exception.
-		/// </summary>
-		/// <returns> java.lang.String indicating the line number and offset of the exception
-		/// </returns>
-		private System.String formatLineNumber()
-		{
-			int so = docOffset;
-			int lineNumber = 0;
-			int lineOffset = 0;
-			int end = offset;
-			
-			if (encoding < FORMAT_UTF_16BE)
-			{
-				while (so <= offset - 1)
-				{
-					if (XMLDoc[so] == '\n')
-					{
-						lineNumber++;
-						lineOffset = so;
-					}
-					//lineOffset++;
-					so++;
-				}
-				lineOffset = offset - lineOffset;
-			}
-			else if (encoding == FORMAT_UTF_16BE)
-			{
-				while (so <= offset - 2)
-				{
-					if (XMLDoc[so + 1] == '\n' && XMLDoc[so] == 0)
-					{
-						lineNumber++;
-						lineOffset = so;
-					}
-					so += 2;
-				}
-				lineOffset = (offset - lineOffset) >> 1;
-			}
-			else
-			{
-				while (so <= offset - 2)
-				{
-					if (XMLDoc[so] == '\n' && XMLDoc[so + 1] == 0)
-					{
-						lineNumber++;
-						lineOffset = so;
-					}
-					so += 2;
-				}
-				lineOffset = (offset - lineOffset) >> 1;
-			}
-			return "\nLine Number: " + (lineNumber + 1) + " Offset: " + (lineOffset - 1);
-		}
-		/// <summary> Write the remaining portion of LC info
-		/// 
-		/// </summary>
-		private void  finishUp()
-		{
-			if (last_depth == 1)
-			{
+                    return a;
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ASCIIReader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public bool skipChar(int ch)
+            {
+
+                if (ch == Enclosing_Instance.XMLDoc[Enclosing_Instance.offset])
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
+        internal class ISO8859_1Reader : IReader
+        {
+            private void InitBlock(VTDGen enclosingInstance)
+            {
+                this.enclosingInstance = enclosingInstance;
+            }
+            private VTDGen enclosingInstance;
+            public int Char
+            {
+                get
+                {
+
+                    if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
+                        throw new EOFException("permature EOF reached, XML document incomplete");
+                    return Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++];
+                }
+
+            }
+            public VTDGen Enclosing_Instance
+            {
+                get
+                {
+                    return enclosingInstance;
+                }
+
+            }
+            public ISO8859_1Reader(VTDGen enclosingInstance)
+            {
+                InitBlock(enclosingInstance);
+            }
+            public bool skipChar(int ch)
+            {
+                if (ch == Enclosing_Instance.XMLDoc[Enclosing_Instance.offset])
+                {
+                    Enclosing_Instance.offset++;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        protected internal IReader r;
+
+        /// <summary> VTDGen constructor method.</summary>
+        public VTDGen()
+        {
+            attr_name_array = new long[ATTR_NAME_ARRAY_SIZE];
+            tag_stack = new long[TAG_STACK_SIZE];
+            //scratch_buffer = new int[10];
+            VTDDepth = 0;
+            r = new UTF8Reader(this);
+            br = false;
+        }
+        /// <summary> Clear internal states so VTDGEn can process the next file.</summary>
+        public void clear()
+        {
+            if (br == false)
+            {
+                VTDBuffer = null;
+                l1Buffer = null;
+                l2Buffer = null;
+                l3Buffer = null;
+            }
+            XMLDoc = null;
+            offset = temp_offset = 0;
+            last_depth = last_l1_index = last_l2_index = 0;
+            rootIndex = 0;
+            depth = -1;
+            increment = 1;
+            BOM_detected = false;
+            must_utf_8 = false;
+            ch = ch_temp = 0;
+        }
+        /// <summary> This method will detect whether the entity is valid or not and increment offset.</summary>
+        /// <returns> int
+        /// </returns>
+        /// <throws>  com.ximpleware.ParseException Super class for any exception during parsing. </throws>
+        /// <throws>  com.ximpleware.EncodingException UTF/native encoding exception. </throws>
+        /// <throws>  com.ximpleware.EOFException End of file exception. </throws>
+        private int entityIdentifier()
+        {
+            int ch = r.Char;
+            int val = 0;
+
+            switch (ch)
+            {
+
+                case '#':
+                    ch = r.Char;
+                    if (ch == 'x')
+                    {
+                        while (true)
+                        {
+                            ch = r.Char;
+                            if (ch >= '0' && ch <= '9')
+                            {
+                                val = (val << 4) + (ch - '0');
+                            }
+                            else if (ch >= 'a' && ch <= 'f')
+                            {
+                                val = (val << 4) + (ch - 'a' + 10);
+                            }
+                            else if (ch >= 'A' && ch <= 'F')
+                            {
+                                val = (val << 4) + (ch - 'A' + 10);
+                            }
+                            else if (ch == ';')
+                            {
+                                return val;
+                            }
+                            else
+                                throw new EntityException("Errors in char reference: Illegal char following &#x.");
+                        }
+                    }
+                    else
+                    {
+                        while (true)
+                        {
+                            if (ch >= '0' && ch <= '9')
+                            {
+                                val = val * 10 + (ch - '0');
+                            }
+                            else if (ch == ';')
+                            {
+                                break;
+                            }
+                            else
+                                throw new EntityException("Errors in char reference: Illegal char following &#.");
+                            ch = r.Char;
+                        }
+                    }
+                    if (!XMLChar.isValidChar(val))
+                    {
+                        throw new EntityException("Errors in entity reference: Invalid XML char.");
+                    }
+                    return val;
+                //break;
+
+
+                case 'a':
+                    ch = r.Char;
+                    if (ch == 'm')
+                    {
+                        if (r.Char == 'p' && r.Char == ';')
+                        {
+                            //System.out.println(" entity for &");
+                            return '&';
+                        }
+                        else
+                            throw new EntityException("Errors in Entity: Illegal builtin reference");
+                    }
+                    else if (ch == 'p')
+                    {
+                        if (r.Char == 'o' && r.Char == 's' && r.Char == ';')
+                        {
+                            //System.out.println(" entity for ' ");
+                            return '\'';
+                        }
+                        else
+                            throw new EntityException("Errors in Entity: Illegal builtin reference");
+                    }
+                    else
+                        throw new EntityException("Errors in Entity: Illegal builtin reference");
+                //goto case 'q';
+
+
+                case 'q':
+                    if (r.Char == 'u' && r.Char == 'o' && r.Char == 't' && r.Char == ';')
+                    {
+                        return '"';
+                    }
+                    else
+                        throw new EntityException("Errors in Entity: Illegal builtin reference");
+                //goto case 'l';
+
+                case 'l':
+                    if (r.Char == 't' && r.Char == ';')
+                    {
+                        return '<';
+                    }
+                    else
+                        throw new EntityException("Errors in Entity: Illegal builtin reference");
+                //break;
+                //goto case 'g';
+
+                case 'g':
+                    if (r.Char == 't' && r.Char == ';')
+                    {
+                        return '>';
+                    }
+                    else
+                        throw new EntityException("Errors in Entity: Illegal builtin reference");
+                //goto default;
+
+                default:
+                    throw new EntityException("Errors in Entity: Illegal entity char");
+
+            }
+            //return val;
+        }
+        /// <summary> Format the string indicating the position (line number:offset)of the offset if 
+        /// there is an exception.
+        /// </summary>
+        /// <returns> java.lang.String indicating the line number and offset of the exception
+        /// </returns>
+        private System.String formatLineNumber()
+        {
+            int so = docOffset;
+            int lineNumber = 0;
+            int lineOffset = 0;
+            int end = offset;
+
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                while (so <= offset - 1)
+                {
+                    if (XMLDoc[so] == '\n')
+                    {
+                        lineNumber++;
+                        lineOffset = so;
+                    }
+                    //lineOffset++;
+                    so++;
+                }
+                lineOffset = offset - lineOffset;
+            }
+            else if (encoding == FORMAT_UTF_16BE)
+            {
+                while (so <= offset - 2)
+                {
+                    if (XMLDoc[so + 1] == '\n' && XMLDoc[so] == 0)
+                    {
+                        lineNumber++;
+                        lineOffset = so;
+                    }
+                    so += 2;
+                }
+                lineOffset = (offset - lineOffset) >> 1;
+            }
+            else
+            {
+                while (so <= offset - 2)
+                {
+                    if (XMLDoc[so] == '\n' && XMLDoc[so + 1] == 0)
+                    {
+                        lineNumber++;
+                        lineOffset = so;
+                    }
+                    so += 2;
+                }
+                lineOffset = (offset - lineOffset) >> 1;
+            }
+            return "\nLine Number: " + (lineNumber + 1) + " Offset: " + (lineOffset - 1);
+        }
+        /// <summary> Write the remaining portion of LC info
+        /// 
+        /// </summary>
+        private void finishUp()
+        {
+            if (last_depth == 1)
+            {
                 l1Buffer.append(((long)last_l1_index << 32) | 0x00000000ffffffff);
-			}
-			else if (last_depth == 2)
-			{
+            }
+            else if (last_depth == 2)
+            {
                 l2Buffer.append(((long)last_l2_index << 32) | 0x00000000ffffffff);
-			}
-		}
-		
-	
-		/// <summary> A private method that detects the BOM and decides document encoding</summary>
-		/// <throws>  EncodingException </throws>
-		/// <throws>  ParseException </throws>
-		private void  decide_encoding()
-		{
+            }
+        }
+
+
+        /// <summary> A private method that detects the BOM and decides document encoding</summary>
+        /// <throws>  EncodingException </throws>
+        /// <throws>  ParseException </throws>
+        private void decide_encoding()
+        {
             if (XMLDoc.Length == 0)
                 throw new EncodingException("Document is zero sized ");
-			if (XMLDoc[offset] == 0xfe)
-			{
-				increment = 2;
-				if (XMLDoc[offset + 1] == 0xff)
-				{
-					offset += 2;
-					encoding = FORMAT_UTF_16BE;
-					BOM_detected = true;
-					r = new UTF16BEReader(this);
-				}
-				else
-					throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
-			}
-			else if (XMLDoc[offset] == 0xff)
-			{
-				increment = 2;
-				if (XMLDoc[offset + 1] == 0xfe)
-				{
-					offset += 2;
-					encoding = FORMAT_UTF_16LE;
-					BOM_detected = true;
-					r = new UTF16LEReader(this);
-				}
-				else
-					throw new EncodingException("Unknown Character encoding: not UTF-16LE");
-			}
-			else if (XMLDoc[offset] == unchecked ((byte) -17))
-			{
-				if (XMLDoc[offset + 1] == unchecked ((byte) -69) && XMLDoc[offset + 2] == unchecked ((byte) -65))
-				{
-					offset += 3;
-					must_utf_8 = true;
-				}
-				else
-					throw new EncodingException("Unknown Character encoding: not UTF-8");
-			}
-			else if (XMLDoc[offset] == 0)
-			{
-				if (XMLDoc[offset + 1] == 0x3c && XMLDoc[offset + 2] == 0 && XMLDoc[offset + 3] == 0x3f)
-				{
-					encoding = FORMAT_UTF_16BE;
-					increment = 2;
-					r = new UTF16BEReader(this);
-				}
-				else
-					throw new EncodingException("Unknown Character encoding: not UTF-16BE");
-			}
-			else if (XMLDoc[offset] == 0x3c)
-			{
-				if (XMLDoc[offset + 1] == 0 && XMLDoc[offset + 2] == 0x3f && XMLDoc[offset + 3] == 0)
-				{
-					increment = 2;
-					encoding = FORMAT_UTF_16LE;
-					r = new UTF16LEReader(this);
-				}
-			}
-			// check for max file size exception
-			if (encoding < FORMAT_UTF_16BE)
-			{
-				if (ns)
-				{
-					if ((offset + (long) docLen) >= 1L << 30)
-						throw new ParseException("Other error: file size too big >=1GB ");
-				}
-				else
-				{
-					if ((offset + (long) docLen) >= 1L << 31)
-						throw new ParseException("Other error: file size too big >=2GB ");
-				}
-			}
-			else
-			{
-				if ((offset + (long) docLen) >= 1L << 31)
-					throw new ParseException("Other error: file size too large >= 2GB");
-			}
-		}
+            if (XMLDoc[offset] == 0xfe)
+            {
+                increment = 2;
+                if (XMLDoc[offset + 1] == 0xff)
+                {
+                    offset += 2;
+                    encoding = FORMAT_UTF_16BE;
+                    BOM_detected = true;
+                    r = new UTF16BEReader(this);
+                }
+                else
+                    throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
+            }
+            else if (XMLDoc[offset] == 0xff)
+            {
+                increment = 2;
+                if (XMLDoc[offset + 1] == 0xfe)
+                {
+                    offset += 2;
+                    encoding = FORMAT_UTF_16LE;
+                    BOM_detected = true;
+                    r = new UTF16LEReader(this);
+                }
+                else
+                    throw new EncodingException("Unknown Character encoding: not UTF-16LE");
+            }
+            else if (XMLDoc[offset] == unchecked((byte)-17))
+            {
+                if (XMLDoc[offset + 1] == unchecked((byte)-69) && XMLDoc[offset + 2] == unchecked((byte)-65))
+                {
+                    offset += 3;
+                    must_utf_8 = true;
+                }
+                else
+                    throw new EncodingException("Unknown Character encoding: not UTF-8");
+            }
+            else if (XMLDoc[offset] == 0)
+            {
+                if (XMLDoc[offset + 1] == 0x3c && XMLDoc[offset + 2] == 0 && XMLDoc[offset + 3] == 0x3f)
+                {
+                    encoding = FORMAT_UTF_16BE;
+                    increment = 2;
+                    r = new UTF16BEReader(this);
+                }
+                else
+                    throw new EncodingException("Unknown Character encoding: not UTF-16BE");
+            }
+            else if (XMLDoc[offset] == 0x3c)
+            {
+                if (XMLDoc[offset + 1] == 0 && XMLDoc[offset + 2] == 0x3f && XMLDoc[offset + 3] == 0)
+                {
+                    increment = 2;
+                    encoding = FORMAT_UTF_16LE;
+                    r = new UTF16LEReader(this);
+                }
+            }
+            // check for max file size exception
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                if (ns)
+                {
+                    if ((offset + (long)docLen) >= 1L << 30)
+                        throw new ParseException("Other error: file size too big >=1GB ");
+                }
+                else
+                {
+                    if ((offset + (long)docLen) >= 1L << 31)
+                        throw new ParseException("Other error: file size too big >=2GB ");
+                }
+            }
+            else
+            {
+                if ((offset + (long)docLen) >= 1L << 31)
+                    throw new ParseException("Other error: file size too large >= 2GB");
+            }
+        }
         /// <summary>
         /// parse a file directly
         /// </summary>
@@ -1990,13 +2162,13 @@ namespace com.ximpleware
         }
 
 
-		/// <summary> Generating VTD tokens and Location cache info.</summary>
-		/// <param name="NS">boolean Enable namespace or not
-		/// </param>
-		/// <throws>  ParseException Super class for any exceptions during parsing.      </throws>
-		/// <throws>  EOFException End of file exception.     </throws>
-		/// <throws>  EntityException Entity resolution exception. </throws>
-		/// <throws>  EncodingException UTF/native encoding exception. </throws>
+        /// <summary> Generating VTD tokens and Location cache info.</summary>
+        /// <param name="NS">boolean Enable namespace or not
+        /// </param>
+        /// <throws>  ParseException Super class for any exceptions during parsing.      </throws>
+        /// <throws>  EOFException End of file exception.     </throws>
+        /// <throws>  EntityException Entity resolution exception. </throws>
+        /// <throws>  EncodingException UTF/native encoding exception. </throws>
         public void parse(bool NS)
         {
 
@@ -2141,7 +2313,7 @@ namespace com.ximpleware
                                             if (helper == true)
                                             {
                                                 length1 = offset - temp_offset - (increment << 1);
-                                                
+
                                                 if (encoding < FORMAT_UTF_16BE)
                                                     writeVTD((temp_offset), length1, TOKEN_CHARACTER_DATA, depth);
                                                 else
@@ -2817,66 +2989,99 @@ namespace com.ximpleware
                             r = new ISO8859_1Reader(this);
                             writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         }
-                        else if (r.skipChar('0') && r.skipChar(ch_temp))
+                        else if (r.skipChar('0'))
                         {
                             encoding = FORMAT_ISO_8859_10;
                             r = new ISO8859_10Reader(this);
-                            writeVTD(temp_offset, 11, TOKEN_DEC_ATTR_VAL, depth);
+                            writeVTD(temp_offset, 11,
+                                       TOKEN_DEC_ATTR_VAL,
+                                       depth);
+                        }
+                        else if (r.skipChar('1'))
+                        {
+                            encoding = FORMAT_ISO_8859_11;
+                            r = new ISO8859_11Reader(this);
+                            writeVTD(temp_offset, 11,
+                                       TOKEN_DEC_ATTR_VAL,
+                                       depth);
+                        }
+                        else if (r.skipChar('3'))
+                        {
+                            encoding = FORMAT_ISO_8859_13;
+                            r = new ISO8859_13Reader(this);
+                            writeVTD(temp_offset, 11,
+                                       TOKEN_DEC_ATTR_VAL,
+                                       depth);
+                        }
+                        else if (r.skipChar('4'))
+                        {
+                            encoding = FORMAT_ISO_8859_14;
+                            r = new ISO8859_14Reader(this);
+                            writeVTD(temp_offset, 11,
+                                       TOKEN_DEC_ATTR_VAL,
+                                       depth);
+                        }
+                        else if (r.skipChar('5'))
+                        {
+                            encoding = FORMAT_ISO_8859_15;
+                            r = new ISO8859_15Reader(this);
+                            writeVTD(temp_offset, 15,
+                                       TOKEN_DEC_ATTR_VAL,
+                                       depth);
                         }
                         else
-                            throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
-                        return;
+                            throw new ParseException("XML decl error: Can't switch encoding to ISO-8859" + formatLineNumber());
                     }
-                    else if (r.skipChar('2') && r.skipChar(ch_temp))
+                    else if (r.skipChar('2'))
                     {
                         encoding = FORMAT_ISO_8859_2;
                         r = new ISO8859_2Reader(this);
                         writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
-                    else if (r.skipChar('3') && r.skipChar(ch_temp))
+                    else if (r.skipChar('3'))
                     {
                         r = new ISO8859_3Reader(this);
                         encoding = FORMAT_ISO_8859_3;
                         writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         // break;
                     }
-                    else if (r.skipChar('4') && r.skipChar(ch_temp))
+                    else if (r.skipChar('4'))
                     {
                         r = new ISO8859_4Reader(this);
                         encoding = FORMAT_ISO_8859_4;
                         writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
-                    else if (r.skipChar('5') && r.skipChar(ch_temp))
+                    else if (r.skipChar('5'))
                     {
                         encoding = FORMAT_ISO_8859_5;
                         r = new ISO8859_5Reader(this);
                         writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
-                    else if (r.skipChar('6') && r.skipChar(ch_temp))
+                    else if (r.skipChar('6'))
                     {
                         encoding = FORMAT_ISO_8859_6;
                         r = new ISO8859_6Reader(this);
                         writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
-                    else if (r.skipChar('7') && r.skipChar(ch_temp))
+                    else if (r.skipChar('7'))
                     {
                         encoding = FORMAT_ISO_8859_7;
                         r = new ISO8859_7Reader(this);
                         writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
-                    else if (r.skipChar('8') && r.skipChar(ch_temp))
+                    else if (r.skipChar('8'))
                     {
                         encoding = FORMAT_ISO_8859_8;
                         r = new ISO8859_8Reader(this);
                         writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
-                    else if (r.skipChar('9') && r.skipChar(ch_temp))
+                    else if (r.skipChar('9'))
                     {
                         encoding = FORMAT_ISO_8859_9;
                         r = new ISO8859_9Reader(this);
@@ -2886,15 +3091,17 @@ namespace com.ximpleware
                 }
                 else
                     throw new ParseException("XML decl error: Can't switch encoding to ISO-8859" + formatLineNumber());
+                if (r.skipChar(ch_temp))
+                    return;		
             }
             throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
         }
-		/// <summary> This private method processes declaration attributes</summary>
-		/// <returns> the parser state after which the parser loop jumps to
-		/// </returns>
-		/// <throws>  ParseException </throws>
-		/// <throws>  EncodingException </throws>
-		/// <throws>  EOFException </throws>
+        /// <summary> This private method processes declaration attributes</summary>
+        /// <returns> the parser state after which the parser loop jumps to
+        /// </returns>
+        /// <throws>  ParseException </throws>
+        /// <throws>  EncodingException </throws>
+        /// <throws>  EOFException </throws>
         private int process_dec_attr()
         {
             int parser_state;
@@ -3094,244 +3301,244 @@ namespace com.ximpleware
                 throw new ParseException("XML decl Error: Invalid termination sequence" + formatLineNumber());
             return parser_state;
         }
-		/// <summary> This private method processes PI tag</summary>
-		/// <returns> the parser state after which the parser loop jumps to
-		/// </returns>
-		/// <throws>  ParseException </throws>
-		/// <throws>  EncodingException </throws>
-		/// <throws>  EOFException </throws>
-		private int process_pi_tag()
-		{
-			int length1;
-			int parser_state;
-			while (true)
-			{
-				ch = r.Char;
-				if (!XMLChar.isNameChar(ch))
-					break;
-			}
-			
-			length1 = offset - temp_offset - increment;
-			/*System.out.println(
-			((char) XMLDoc[temp_offset])
-			+ " "
-			+ (temp_offset)
-			+ " "
-			+ length1
-			+ " PI Target "
-			+ depth); */
-			if (encoding < FORMAT_UTF_16BE)
-			{
-				if (length1 > MAX_TOKEN_LENGTH)
-					throw new ParseException("Token Length Error:" + " PI name too long (>0xfffff)" + formatLineNumber());
-				writeVTD((temp_offset), length1, TOKEN_PI_NAME, depth);
-			}
-			else
-			{
-				if (length1 > (MAX_TOKEN_LENGTH << 1))
-					throw new ParseException("Token Length Error:" + " PI name too long (>0xfffff)" + formatLineNumber());
-				writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_PI_NAME, depth);
-			}
-			//length1 = 0;
-			temp_offset = offset;
-			if (XMLChar.isSpaceChar(ch))
-			{
-				ch = r.Char;
-			}
-			if (ch == '?')
-			{
-				if (r.skipChar('>'))
-				{
-					temp_offset = offset;
-					ch = CharAfterSe;
-					if (ch == '<')
-					{
-						parser_state = STATE_LT_SEEN;
-					}
-					else if (XMLChar.isContentChar(ch))
-					{
-						parser_state = STATE_TEXT;
-					}
-					else if (ch == '&')
-					{
-						//has_amp = true;
-						entityIdentifier();
-						parser_state = STATE_TEXT;
-					}
-					else if (ch == ']')
-					{
-						if (r.skipChar(']'))
-						{
-							while (r.skipChar(']'))
-							{
-							}
-							if (r.skipChar('>'))
-								throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-						}
-						parser_state = STATE_TEXT;
-					}
-					else
-						throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
-					return parser_state;
-				}
-				else
-					throw new ParseException("Error in PI: invalid termination sequence" + formatLineNumber());
-			}
-			parser_state = STATE_PI_VAL;
-			return parser_state;
-		}
-		/// <summary> This private method processes PI val </summary>
-		/// <returns> the parser state after which the parser loop jumps to
-		/// </returns>
-		/// <throws>  ParseException </throws>
-		/// <throws>  EncodingException </throws>
-		/// <throws>  EOFException </throws>
-		private int process_pi_val()
-		{
-			int parser_state;
-			int length1;
-			while (true)
-			{
-				if (XMLChar.isValidChar(ch))
-				{
-					//System.out.println(""+(char)ch);
-					if (ch == '?')
-						if (r.skipChar('>'))
-						{
-							break;
-						}
-						else
-							throw new ParseException("Error in PI: invalid termination sequence for PI" + formatLineNumber());
-				}
-				else
-					throw new ParseException("Errors in PI: Invalid char in PI val" + formatLineNumber());
-				ch = r.Char;
-			}
-			length1 = offset - temp_offset - (increment << 1);
-			/*System.out.println(
-			((char) XMLDoc[temp_offset])
-			+ " "
-			+ (temp_offset)
-			+ " "
-			+ length1
-			+ " PI val "
-			+ depth);*/
-			if (encoding < FORMAT_UTF_16BE)
-			{
-				if (length1 > MAX_TOKEN_LENGTH)
-					throw new ParseException("Token Length Error:" + "PI VAL too long (>0xfffff)" + formatLineNumber());
-				writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
-			}
-			else
-			{
-				if (length1 > (MAX_TOKEN_LENGTH << 1))
-					throw new ParseException("Token Length Error:" + "PI VAL too long (>0xfffff)" + formatLineNumber());
-				writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
-			}
-			//length1 = 0;
-			temp_offset = offset;
-			ch = CharAfterSe;
-			
-			if (ch == '<')
-			{
-				parser_state = STATE_LT_SEEN;
-			}
-			else if (XMLChar.isContentChar(ch))
-			{
-				//temp_offset = offset;
-				parser_state = STATE_TEXT;
-			}
-			else if (ch == '&')
-			{
-				//has_amp = true;
-				//temp_offset = offset;
-				entityIdentifier();
-				parser_state = STATE_TEXT;
-			}
-			else if (ch == ']')
-			{
-				if (r.skipChar(']'))
-				{
-					while (r.skipChar(']'))
-					{
-					}
-					if (r.skipChar('>'))
-						throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-				}
-				parser_state = STATE_TEXT;
-			}
-			else
-				throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
-			return parser_state;
-		}
-		/// <summary> This private method process comment</summary>
-		/// <returns> the parser state after which the parser loop jumps to
-		/// </returns>
-		/// <throws>  ParseException </throws>
-		/// <throws>  EncodingException </throws>
-		/// <throws>  EOFException </throws>
-		private int process_comment()
-		{
-			int parser_state, length1;
-			while (true)
-			{
-				ch = r.Char;
-				if (XMLChar.isValidChar(ch))
-				{
-					if (ch == '-' && r.skipChar('-'))
-					{
-						length1 = offset - temp_offset - (increment << 1);
-						break;
-					}
-				}
-				else
-					throw new ParseException("Error in comment: Invalid Char" + formatLineNumber());
-			}
-			if (r.Char == '>')
-			{
-				//System.out.println(" " + (temp_offset) + " " + length1 + " comment " + depth);
-				if (encoding < FORMAT_UTF_16BE)
-					writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
-				else
-					writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
-				//length1 = 0;
-				temp_offset = offset;
-				ch = CharAfterSe;
-				if (ch == '<')
-				{
-					parser_state = STATE_LT_SEEN;
-				}
-				else if (XMLChar.isContentChar(ch))
-				{
-					//temp_offset = offset;
-					parser_state = STATE_TEXT;
-				}
-				else if (ch == '&')
-				{
-					//has_amp = true;
-					//temp_offset = offset;
-					entityIdentifier();
-					parser_state = STATE_TEXT;
-				}
-				else if (ch == ']')
-				{
-					if (r.skipChar(']'))
-					{
-						while (r.skipChar(']'))
-						{
-						}
-						if (r.skipChar('>'))
-							throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-					}
-					parser_state = STATE_TEXT;
-				}
-				else
-					throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
-				return parser_state;
-			}
-			else
-				throw new ParseException("Error in comment: Invalid terminating sequence" + formatLineNumber());
-		}
+        /// <summary> This private method processes PI tag</summary>
+        /// <returns> the parser state after which the parser loop jumps to
+        /// </returns>
+        /// <throws>  ParseException </throws>
+        /// <throws>  EncodingException </throws>
+        /// <throws>  EOFException </throws>
+        private int process_pi_tag()
+        {
+            int length1;
+            int parser_state;
+            while (true)
+            {
+                ch = r.Char;
+                if (!XMLChar.isNameChar(ch))
+                    break;
+            }
+
+            length1 = offset - temp_offset - increment;
+            /*System.out.println(
+            ((char) XMLDoc[temp_offset])
+            + " "
+            + (temp_offset)
+            + " "
+            + length1
+            + " PI Target "
+            + depth); */
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                if (length1 > MAX_TOKEN_LENGTH)
+                    throw new ParseException("Token Length Error:" + " PI name too long (>0xfffff)" + formatLineNumber());
+                writeVTD((temp_offset), length1, TOKEN_PI_NAME, depth);
+            }
+            else
+            {
+                if (length1 > (MAX_TOKEN_LENGTH << 1))
+                    throw new ParseException("Token Length Error:" + " PI name too long (>0xfffff)" + formatLineNumber());
+                writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_PI_NAME, depth);
+            }
+            //length1 = 0;
+            temp_offset = offset;
+            if (XMLChar.isSpaceChar(ch))
+            {
+                ch = r.Char;
+            }
+            if (ch == '?')
+            {
+                if (r.skipChar('>'))
+                {
+                    temp_offset = offset;
+                    ch = CharAfterSe;
+                    if (ch == '<')
+                    {
+                        parser_state = STATE_LT_SEEN;
+                    }
+                    else if (XMLChar.isContentChar(ch))
+                    {
+                        parser_state = STATE_TEXT;
+                    }
+                    else if (ch == '&')
+                    {
+                        //has_amp = true;
+                        entityIdentifier();
+                        parser_state = STATE_TEXT;
+                    }
+                    else if (ch == ']')
+                    {
+                        if (r.skipChar(']'))
+                        {
+                            while (r.skipChar(']'))
+                            {
+                            }
+                            if (r.skipChar('>'))
+                                throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                        }
+                        parser_state = STATE_TEXT;
+                    }
+                    else
+                        throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
+                    return parser_state;
+                }
+                else
+                    throw new ParseException("Error in PI: invalid termination sequence" + formatLineNumber());
+            }
+            parser_state = STATE_PI_VAL;
+            return parser_state;
+        }
+        /// <summary> This private method processes PI val </summary>
+        /// <returns> the parser state after which the parser loop jumps to
+        /// </returns>
+        /// <throws>  ParseException </throws>
+        /// <throws>  EncodingException </throws>
+        /// <throws>  EOFException </throws>
+        private int process_pi_val()
+        {
+            int parser_state;
+            int length1;
+            while (true)
+            {
+                if (XMLChar.isValidChar(ch))
+                {
+                    //System.out.println(""+(char)ch);
+                    if (ch == '?')
+                        if (r.skipChar('>'))
+                        {
+                            break;
+                        }
+                        else
+                            throw new ParseException("Error in PI: invalid termination sequence for PI" + formatLineNumber());
+                }
+                else
+                    throw new ParseException("Errors in PI: Invalid char in PI val" + formatLineNumber());
+                ch = r.Char;
+            }
+            length1 = offset - temp_offset - (increment << 1);
+            /*System.out.println(
+            ((char) XMLDoc[temp_offset])
+            + " "
+            + (temp_offset)
+            + " "
+            + length1
+            + " PI val "
+            + depth);*/
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                if (length1 > MAX_TOKEN_LENGTH)
+                    throw new ParseException("Token Length Error:" + "PI VAL too long (>0xfffff)" + formatLineNumber());
+                writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
+            }
+            else
+            {
+                if (length1 > (MAX_TOKEN_LENGTH << 1))
+                    throw new ParseException("Token Length Error:" + "PI VAL too long (>0xfffff)" + formatLineNumber());
+                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
+            }
+            //length1 = 0;
+            temp_offset = offset;
+            ch = CharAfterSe;
+
+            if (ch == '<')
+            {
+                parser_state = STATE_LT_SEEN;
+            }
+            else if (XMLChar.isContentChar(ch))
+            {
+                //temp_offset = offset;
+                parser_state = STATE_TEXT;
+            }
+            else if (ch == '&')
+            {
+                //has_amp = true;
+                //temp_offset = offset;
+                entityIdentifier();
+                parser_state = STATE_TEXT;
+            }
+            else if (ch == ']')
+            {
+                if (r.skipChar(']'))
+                {
+                    while (r.skipChar(']'))
+                    {
+                    }
+                    if (r.skipChar('>'))
+                        throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                }
+                parser_state = STATE_TEXT;
+            }
+            else
+                throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
+            return parser_state;
+        }
+        /// <summary> This private method process comment</summary>
+        /// <returns> the parser state after which the parser loop jumps to
+        /// </returns>
+        /// <throws>  ParseException </throws>
+        /// <throws>  EncodingException </throws>
+        /// <throws>  EOFException </throws>
+        private int process_comment()
+        {
+            int parser_state, length1;
+            while (true)
+            {
+                ch = r.Char;
+                if (XMLChar.isValidChar(ch))
+                {
+                    if (ch == '-' && r.skipChar('-'))
+                    {
+                        length1 = offset - temp_offset - (increment << 1);
+                        break;
+                    }
+                }
+                else
+                    throw new ParseException("Error in comment: Invalid Char" + formatLineNumber());
+            }
+            if (r.Char == '>')
+            {
+                //System.out.println(" " + (temp_offset) + " " + length1 + " comment " + depth);
+                if (encoding < FORMAT_UTF_16BE)
+                    writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
+                else
+                    writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
+                //length1 = 0;
+                temp_offset = offset;
+                ch = CharAfterSe;
+                if (ch == '<')
+                {
+                    parser_state = STATE_LT_SEEN;
+                }
+                else if (XMLChar.isContentChar(ch))
+                {
+                    //temp_offset = offset;
+                    parser_state = STATE_TEXT;
+                }
+                else if (ch == '&')
+                {
+                    //has_amp = true;
+                    //temp_offset = offset;
+                    entityIdentifier();
+                    parser_state = STATE_TEXT;
+                }
+                else if (ch == ']')
+                {
+                    if (r.skipChar(']'))
+                    {
+                        while (r.skipChar(']'))
+                        {
+                        }
+                        if (r.skipChar('>'))
+                            throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                    }
+                    parser_state = STATE_TEXT;
+                }
+                else
+                    throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
+                return parser_state;
+            }
+            else
+                throw new ParseException("Error in comment: Invalid terminating sequence" + formatLineNumber());
+        }
 
 
         private int process_start_doc()
@@ -3354,7 +3561,7 @@ namespace com.ximpleware
                 offset = temp_offset;
                 return STATE_LT_SEEN;
             }
-            throw new ParseException("Other Error: XML not starting properly" + formatLineNumber());	
+            throw new ParseException("Other Error: XML not starting properly" + formatLineNumber());
         }
 
         private int process_end_doc()
@@ -3377,7 +3584,7 @@ namespace com.ximpleware
                 }
             }
             throw new ParseException("Other Error: XML not terminated properly" + formatLineNumber());
-						
+
         }
 
         private int process_qm_seen()
@@ -3420,17 +3627,17 @@ namespace com.ximpleware
                     }
                     else
                         throw new ParseException
-                            ("Error in comment: Invalid char sequence to start a comment" 
+                            ("Error in comment: Invalid char sequence to start a comment"
                             + formatLineNumber());
                 //goto case '[';
 
                 case '[':
-                    if (r.skipChar('C') 
-                        && r.skipChar('D') 
-                        && r.skipChar('A') 
-                        && r.skipChar('T') 
-                        && r.skipChar('A') 
-                        && r.skipChar('[') 
+                    if (r.skipChar('C')
+                        && r.skipChar('D')
+                        && r.skipChar('A')
+                        && r.skipChar('T')
+                        && r.skipChar('A')
+                        && r.skipChar('[')
                         && (depth != -1))
                     {
                         temp_offset = offset;
@@ -3441,23 +3648,23 @@ namespace com.ximpleware
                     {
                         if (depth == -1)
                             throw new ParseException
-                                ("Error in CDATA: Wrong place for CDATA" 
+                                ("Error in CDATA: Wrong place for CDATA"
                                 + formatLineNumber());
                         throw new ParseException
-                            ("Error in CDATA: Invalid char sequence for CDATA" 
+                            ("Error in CDATA: Invalid char sequence for CDATA"
                             + formatLineNumber());
                     }
                 //goto case 'D';
 
 
                 case 'D':
-                    if (r.skipChar('O') 
-                        && r.skipChar('C') 
-                        && r.skipChar('T') 
-                        && r.skipChar('Y') 
-                        && r.skipChar('P') 
-                        && r.skipChar('E') 
-                        && (depth == -1) 
+                    if (r.skipChar('O')
+                        && r.skipChar('C')
+                        && r.skipChar('T')
+                        && r.skipChar('Y')
+                        && r.skipChar('P')
+                        && r.skipChar('E')
+                        && (depth == -1)
                         && !hasDTD)
                     {
                         hasDTD = true;
@@ -3469,14 +3676,14 @@ namespace com.ximpleware
                     {
                         if (hasDTD == true)
                             throw new ParseException
-                                ("Error for DOCTYPE: Only DOCTYPE allowed" 
+                                ("Error for DOCTYPE: Only DOCTYPE allowed"
                                 + formatLineNumber());
                         if (depth != -1)
                             throw new ParseException
-                                ("Error for DOCTYPE: DTD at wrong place" 
+                                ("Error for DOCTYPE: DTD at wrong place"
                                 + formatLineNumber());
                         throw new ParseException
-                            ("Error for DOCTYPE: Invalid char sequence for DOCTYPE" 
+                            ("Error for DOCTYPE: Invalid char sequence for DOCTYPE"
                             + formatLineNumber());
                     }
                 //goto default;
@@ -3487,558 +3694,558 @@ namespace com.ximpleware
             }
             return parser_state;
         }
-		/// <summary> This private method processes CDATA section</summary>
-		/// <returns> the parser state after which the parser loop jumps to
-		/// </returns>
-		/// <throws>  ParseException </throws>
-		/// <throws>  EncodingException </throws>
-		/// <throws>  EOFException </throws>
-		private int process_cdata()
-		{
-			int parser_state, length1;
-			while (true)
-			{
-				ch = r.Char;
-				if (XMLChar.isValidChar(ch))
-				{
-					if (ch == ']' && r.skipChar(']'))
-					{
-						while (r.skipChar(']'))
-							;
-						if (r.skipChar('>'))
-						{
-							break;
-						}
-						/*else
-							throw new ParseException("Error in CDATA: Invalid termination sequence" + formatLineNumber());*/
-					}
-				}
-				else
-					throw new ParseException("Error in CDATA: Invalid Char" + formatLineNumber());
-			}
-			length1 = offset - temp_offset - (increment << 1) - increment;
-			if (encoding < FORMAT_UTF_16BE)
-			{
-				
-				writeVTD(temp_offset, length1, TOKEN_CDATA_VAL, depth);
-			}
-			else
-			{
-				
-				writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CDATA_VAL, depth);
-			}
-			//System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
-			ch = CharAfterSe;
-			if (ch == '<')
-			{
-				parser_state = STATE_LT_SEEN;
-			}
-			else if (XMLChar.isContentChar(ch))
-			{
-				temp_offset = offset;
-				parser_state = STATE_TEXT;
-			}
-			else if (ch == '&')
-			{
-				//has_amp = true;
-				temp_offset = offset;
-				entityIdentifier();
-				parser_state = STATE_TEXT;
-				//temp_offset = offset;
-			}
-			else if (ch == ']')
-			{
-				if (r.skipChar(']'))
-				{
-					while (r.skipChar(']'))
-					{
-					}
-					if (r.skipChar('>'))
-						throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-				}
-				parser_state = STATE_TEXT;
-			}
-			else
-				throw new ParseException("Other Error: Invalid char in xml" + formatLineNumber());
-			return parser_state;
-		}
-		
-		/// <summary> This private method process DTD</summary>
-		/// <returns> the parser state after which the parser loop jumps to
-		/// </returns>
-		/// <throws>  ParseException </throws>
-		/// <throws>  EncodingException </throws>
-		/// <throws>  EOFException </throws>
-		private int process_doc_type()
-		{
-			int z = 1, length1, parser_state;
-			while (true)
-			{
-				ch = r.Char;
-				if (XMLChar.isValidChar(ch))
-				{
-					if (ch == '>')
-						z--;
-					else if (ch == '<')
-						z++;
-					if (z == 0)
-						break;
-				}
-				else
-					throw new ParseException("Error in DOCTYPE: Invalid char" + formatLineNumber());
-			}
-			length1 = offset - temp_offset - increment;
-			/*System.out.println(
-			" " + (temp_offset) + " " + length1 + " DOCTYPE val " + depth);*/
-			if (encoding < FORMAT_UTF_16BE)
-			{
-				if (length1 > MAX_TOKEN_LENGTH)
-					throw new ParseException("Token Length Error:" + " DTD val too long (>0xfffff)" + formatLineNumber());
-				writeVTD(temp_offset, length1, TOKEN_DTD_VAL, depth);
-			}
-			else
-			{
-				if (length1 > (MAX_TOKEN_LENGTH << 1))
-					throw new ParseException("Token Length Error:" + " DTD val too long (>0xfffff)" + formatLineNumber());
-				writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_DTD_VAL, depth);
-			}
-			ch = CharAfterS;
-			if (ch == '<')
-			{
-				parser_state = STATE_LT_SEEN;
-			}
-			else
-				throw new ParseException("Other Error: Invalid char in xml" + formatLineNumber());
-			return parser_state;
-		}
-		
-		/// <summary> This private method processes PI after root document </summary>
-		/// <returns> the parser state after which the parser loop jumps to
-		/// </returns>
-		/// <throws>  ParseException </throws>
-		/// <throws>  EncodingException </throws>
-		/// <throws>  EOFException </throws>
-		private int process_end_pi()
-		{
-			int length1, parser_state;
-			ch = r.Char;
-			if (XMLChar.isNameStartChar(ch))
-			{
-				if ((ch == 'x' || ch == 'X') && (r.skipChar('m') || r.skipChar('M')) && (r.skipChar('l') && r.skipChar('L')))
-				{
-					//temp_offset = offset;
-					ch = r.Char;
-					if (XMLChar.isSpaceChar(ch) || ch == '?')
-						throw new ParseException("Error in PI: [xX][mM][lL] not a valid PI target" + formatLineNumber());
-					//offset = temp_offset;
-				}
-				
-				while (true)
-				{
-					//ch = getChar();
-					if (!XMLChar.isNameChar(ch))
-					{
-						break;
-					}
-					ch = r.Char;
-				}
-				
-				length1 = offset - temp_offset - increment;
-				/*System.out.println(
-				""
-				+ (char) XMLDoc[temp_offset]
-				+ " "
-				+ (temp_offset)
-				+ " "
-				+ length1
-				+ " PI Target "
-				+ depth);*/
-				if (encoding < FORMAT_UTF_16BE)
-				{
-					if (length1 > MAX_TOKEN_LENGTH)
-						throw new ParseException("Token Length Error:" + "PI name too long (>0xfffff)" + formatLineNumber());
-					writeVTD(temp_offset, length1, TOKEN_PI_NAME, depth);
-				}
-				else
-				{
-					if (length1 > (MAX_TOKEN_LENGTH << 1))
-						throw new ParseException("Token Length Error:" + "PI name too long (>0xfffff)" + formatLineNumber());
-					writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_NAME, depth);
-				}
-				//length1 = 0;
-				temp_offset = offset;
-				if (XMLChar.isSpaceChar(ch))
-				{
-					ch = CharAfterS;
-					
-					while (true)
-					{
-						if (XMLChar.isValidChar(ch))
-						{
-							if (ch == '?')
-								if (r.skipChar('>'))
-								{
-									parser_state = STATE_DOC_END;
-									break;
-								}
-								else
-									throw new ParseException("Error in PI: invalid termination sequence" + formatLineNumber());
-						}
-						else
-							throw new ParseException("Error in PI: Invalid char in PI val" + formatLineNumber());
-						ch = r.Char;
-					}
-					length1 = offset - temp_offset - (increment << 1);
-					if (encoding < FORMAT_UTF_16BE)
-					{
-						if (length1 > MAX_TOKEN_LENGTH)
-							throw new ParseException("Token Length Error:" + "PI val too long (>0xfffff)" + formatLineNumber());
-						writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
-					}
-					else
-					{
-						if (length1 > (MAX_TOKEN_LENGTH << 1))
-							throw new ParseException("Token Length Error:" + "PI val too long (>0xfffff)" + formatLineNumber());
-						writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
-					}
-					//System.out.println(" " + temp_offset + " " + length1 + " PI val " + depth);
-				}
-				else
-				{
-					if ((ch == '?') && r.skipChar('>'))
-					{
-						parser_state = STATE_DOC_END;
-					}
-					else
-						throw new ParseException("Error in PI: invalid termination sequence" + formatLineNumber());
-				}
-				//parser_state = STATE_DOC_END;
-			}
-			else
-				throw new ParseException("Error in PI: invalid char in PI target" + formatLineNumber());
-			return parser_state;
-		}
-		/// <summary> This private method process the comment after the root document</summary>
-		/// <returns> the parser state after which the parser loop jumps to
-		/// </returns>
-		/// <throws>  ParseException </throws>
-		private int process_end_comment()
-		{
-			int parser_state;
-			int length1;
-			while (true)
-			{
-				ch = r.Char;
-				if (XMLChar.isValidChar(ch))
-				{
-					if (ch == '-' && r.skipChar('-'))
-					{
-						length1 = offset - temp_offset - (increment << 1);
-						break;
-					}
-				}
-				else
-					throw new ParseException("Error in comment: Invalid Char" + formatLineNumber());
-			}
-			if (r.Char == '>')
-			{
-				//System.out.println(" " + temp_offset + " " + length1 + " comment " + depth);
-				if (encoding < FORMAT_UTF_16BE)
-					writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
-				else
-					writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
-				//length1 = 0;
-				parser_state = STATE_DOC_END;
-				return parser_state;
-			}
-			throw new ParseException("Error in comment: '-->' expected" + formatLineNumber());
-		}
-		/// <summary> The buffer-reuse version of setDoc
-		/// The concept is to reuse LC and VTD buffer for 
-		/// XML parsing, instead of allocating every time
-		/// </summary>
-		/// <param name="ba">*
-		/// </param>
-		public void  setDoc_BR(byte[] ba)
-		{
+        /// <summary> This private method processes CDATA section</summary>
+        /// <returns> the parser state after which the parser loop jumps to
+        /// </returns>
+        /// <throws>  ParseException </throws>
+        /// <throws>  EncodingException </throws>
+        /// <throws>  EOFException </throws>
+        private int process_cdata()
+        {
+            int parser_state, length1;
+            while (true)
+            {
+                ch = r.Char;
+                if (XMLChar.isValidChar(ch))
+                {
+                    if (ch == ']' && r.skipChar(']'))
+                    {
+                        while (r.skipChar(']'))
+                            ;
+                        if (r.skipChar('>'))
+                        {
+                            break;
+                        }
+                        /*else
+                            throw new ParseException("Error in CDATA: Invalid termination sequence" + formatLineNumber());*/
+                    }
+                }
+                else
+                    throw new ParseException("Error in CDATA: Invalid Char" + formatLineNumber());
+            }
+            length1 = offset - temp_offset - (increment << 1) - increment;
+            if (encoding < FORMAT_UTF_16BE)
+            {
+
+                writeVTD(temp_offset, length1, TOKEN_CDATA_VAL, depth);
+            }
+            else
+            {
+
+                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CDATA_VAL, depth);
+            }
+            //System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
+            ch = CharAfterSe;
+            if (ch == '<')
+            {
+                parser_state = STATE_LT_SEEN;
+            }
+            else if (XMLChar.isContentChar(ch))
+            {
+                temp_offset = offset;
+                parser_state = STATE_TEXT;
+            }
+            else if (ch == '&')
+            {
+                //has_amp = true;
+                temp_offset = offset;
+                entityIdentifier();
+                parser_state = STATE_TEXT;
+                //temp_offset = offset;
+            }
+            else if (ch == ']')
+            {
+                if (r.skipChar(']'))
+                {
+                    while (r.skipChar(']'))
+                    {
+                    }
+                    if (r.skipChar('>'))
+                        throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
+                }
+                parser_state = STATE_TEXT;
+            }
+            else
+                throw new ParseException("Other Error: Invalid char in xml" + formatLineNumber());
+            return parser_state;
+        }
+
+        /// <summary> This private method process DTD</summary>
+        /// <returns> the parser state after which the parser loop jumps to
+        /// </returns>
+        /// <throws>  ParseException </throws>
+        /// <throws>  EncodingException </throws>
+        /// <throws>  EOFException </throws>
+        private int process_doc_type()
+        {
+            int z = 1, length1, parser_state;
+            while (true)
+            {
+                ch = r.Char;
+                if (XMLChar.isValidChar(ch))
+                {
+                    if (ch == '>')
+                        z--;
+                    else if (ch == '<')
+                        z++;
+                    if (z == 0)
+                        break;
+                }
+                else
+                    throw new ParseException("Error in DOCTYPE: Invalid char" + formatLineNumber());
+            }
+            length1 = offset - temp_offset - increment;
+            /*System.out.println(
+            " " + (temp_offset) + " " + length1 + " DOCTYPE val " + depth);*/
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                if (length1 > MAX_TOKEN_LENGTH)
+                    throw new ParseException("Token Length Error:" + " DTD val too long (>0xfffff)" + formatLineNumber());
+                writeVTD(temp_offset, length1, TOKEN_DTD_VAL, depth);
+            }
+            else
+            {
+                if (length1 > (MAX_TOKEN_LENGTH << 1))
+                    throw new ParseException("Token Length Error:" + " DTD val too long (>0xfffff)" + formatLineNumber());
+                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_DTD_VAL, depth);
+            }
+            ch = CharAfterS;
+            if (ch == '<')
+            {
+                parser_state = STATE_LT_SEEN;
+            }
+            else
+                throw new ParseException("Other Error: Invalid char in xml" + formatLineNumber());
+            return parser_state;
+        }
+
+        /// <summary> This private method processes PI after root document </summary>
+        /// <returns> the parser state after which the parser loop jumps to
+        /// </returns>
+        /// <throws>  ParseException </throws>
+        /// <throws>  EncodingException </throws>
+        /// <throws>  EOFException </throws>
+        private int process_end_pi()
+        {
+            int length1, parser_state;
+            ch = r.Char;
+            if (XMLChar.isNameStartChar(ch))
+            {
+                if ((ch == 'x' || ch == 'X') && (r.skipChar('m') || r.skipChar('M')) && (r.skipChar('l') && r.skipChar('L')))
+                {
+                    //temp_offset = offset;
+                    ch = r.Char;
+                    if (XMLChar.isSpaceChar(ch) || ch == '?')
+                        throw new ParseException("Error in PI: [xX][mM][lL] not a valid PI target" + formatLineNumber());
+                    //offset = temp_offset;
+                }
+
+                while (true)
+                {
+                    //ch = getChar();
+                    if (!XMLChar.isNameChar(ch))
+                    {
+                        break;
+                    }
+                    ch = r.Char;
+                }
+
+                length1 = offset - temp_offset - increment;
+                /*System.out.println(
+                ""
+                + (char) XMLDoc[temp_offset]
+                + " "
+                + (temp_offset)
+                + " "
+                + length1
+                + " PI Target "
+                + depth);*/
+                if (encoding < FORMAT_UTF_16BE)
+                {
+                    if (length1 > MAX_TOKEN_LENGTH)
+                        throw new ParseException("Token Length Error:" + "PI name too long (>0xfffff)" + formatLineNumber());
+                    writeVTD(temp_offset, length1, TOKEN_PI_NAME, depth);
+                }
+                else
+                {
+                    if (length1 > (MAX_TOKEN_LENGTH << 1))
+                        throw new ParseException("Token Length Error:" + "PI name too long (>0xfffff)" + formatLineNumber());
+                    writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_NAME, depth);
+                }
+                //length1 = 0;
+                temp_offset = offset;
+                if (XMLChar.isSpaceChar(ch))
+                {
+                    ch = CharAfterS;
+
+                    while (true)
+                    {
+                        if (XMLChar.isValidChar(ch))
+                        {
+                            if (ch == '?')
+                                if (r.skipChar('>'))
+                                {
+                                    parser_state = STATE_DOC_END;
+                                    break;
+                                }
+                                else
+                                    throw new ParseException("Error in PI: invalid termination sequence" + formatLineNumber());
+                        }
+                        else
+                            throw new ParseException("Error in PI: Invalid char in PI val" + formatLineNumber());
+                        ch = r.Char;
+                    }
+                    length1 = offset - temp_offset - (increment << 1);
+                    if (encoding < FORMAT_UTF_16BE)
+                    {
+                        if (length1 > MAX_TOKEN_LENGTH)
+                            throw new ParseException("Token Length Error:" + "PI val too long (>0xfffff)" + formatLineNumber());
+                        writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
+                    }
+                    else
+                    {
+                        if (length1 > (MAX_TOKEN_LENGTH << 1))
+                            throw new ParseException("Token Length Error:" + "PI val too long (>0xfffff)" + formatLineNumber());
+                        writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
+                    }
+                    //System.out.println(" " + temp_offset + " " + length1 + " PI val " + depth);
+                }
+                else
+                {
+                    if ((ch == '?') && r.skipChar('>'))
+                    {
+                        parser_state = STATE_DOC_END;
+                    }
+                    else
+                        throw new ParseException("Error in PI: invalid termination sequence" + formatLineNumber());
+                }
+                //parser_state = STATE_DOC_END;
+            }
+            else
+                throw new ParseException("Error in PI: invalid char in PI target" + formatLineNumber());
+            return parser_state;
+        }
+        /// <summary> This private method process the comment after the root document</summary>
+        /// <returns> the parser state after which the parser loop jumps to
+        /// </returns>
+        /// <throws>  ParseException </throws>
+        private int process_end_comment()
+        {
+            int parser_state;
+            int length1;
+            while (true)
+            {
+                ch = r.Char;
+                if (XMLChar.isValidChar(ch))
+                {
+                    if (ch == '-' && r.skipChar('-'))
+                    {
+                        length1 = offset - temp_offset - (increment << 1);
+                        break;
+                    }
+                }
+                else
+                    throw new ParseException("Error in comment: Invalid Char" + formatLineNumber());
+            }
+            if (r.Char == '>')
+            {
+                //System.out.println(" " + temp_offset + " " + length1 + " comment " + depth);
+                if (encoding < FORMAT_UTF_16BE)
+                    writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
+                else
+                    writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
+                //length1 = 0;
+                parser_state = STATE_DOC_END;
+                return parser_state;
+            }
+            throw new ParseException("Error in comment: '-->' expected" + formatLineNumber());
+        }
+        /// <summary> The buffer-reuse version of setDoc
+        /// The concept is to reuse LC and VTD buffer for 
+        /// XML parsing, instead of allocating every time
+        /// </summary>
+        /// <param name="ba">*
+        /// </param>
+        public void setDoc_BR(byte[] ba)
+        {
             setDoc_BR(ba, 0, ba.Length);
-		}
-		
-		/// <summary> The buffer-reuse version of setDoc
-		/// The concept is to reuse LC and VTD buffer for 
-		/// XML parsing, instead of allocating every time
-		/// </summary>
-		/// <param name="ba">byte[]
-		/// </param>
-		/// <param name="os">int (in byte)
-		/// </param>
-		/// <param name="len">int (in byte)
-		/// 
-		/// </param>
-		public void  setDoc_BR(byte[] ba, int os, int len)
-		{
-			int a;
-			br = true;
-			depth = - 1;
-			increment = 1;
-			BOM_detected = false;
-			must_utf_8 = false;
-			ch = ch_temp = 0;
-			temp_offset = 0;
-			XMLDoc = ba;
-			docOffset = offset = os;
-			docLen = len;
-			endOffset = os + len;
-			last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
-			if (docLen <= 1024)
-			{
-				//a = 1024; //set the floor
-				a = 8;
-			}
-			else if (docLen <= 4096)
-			{
-				a = 10;
-			}
-			else if (docLen <= 1024 * 16 * 4)
-			{
-				//a = 2048;
-				a = 11;
-			}
-			else if (docLen <= 1024 * 256)
-			{
-				//a = 1024 * 4;
-				a = 12;
-			}
-			else
-			{
-				//a = 1 << 15;
-				a = 15;
-			}
-			if (VTDBuffer == null)
-			{
-				VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
-				l1Buffer = new FastLongBuffer(7);
-				l2Buffer = new FastLongBuffer(9);
-				l3Buffer = new FastIntBuffer(11);
-			}
-			else
-			{
-				VTDBuffer.clear();
-				l1Buffer.clear();
-				l2Buffer.clear();
-				l3Buffer.clear();
-			}
-		}
-		
-		/// <summary> Set the XMLDoc container.</summary>
-		/// <param name="ba">byte[]
-		/// </param>
-		public void  setDoc(byte[] ba)
-		{
+        }
+
+        /// <summary> The buffer-reuse version of setDoc
+        /// The concept is to reuse LC and VTD buffer for 
+        /// XML parsing, instead of allocating every time
+        /// </summary>
+        /// <param name="ba">byte[]
+        /// </param>
+        /// <param name="os">int (in byte)
+        /// </param>
+        /// <param name="len">int (in byte)
+        /// 
+        /// </param>
+        public void setDoc_BR(byte[] ba, int os, int len)
+        {
+            int a;
+            br = true;
+            depth = -1;
+            increment = 1;
+            BOM_detected = false;
+            must_utf_8 = false;
+            ch = ch_temp = 0;
+            temp_offset = 0;
+            XMLDoc = ba;
+            docOffset = offset = os;
+            docLen = len;
+            endOffset = os + len;
+            last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
+            if (docLen <= 1024)
+            {
+                //a = 1024; //set the floor
+                a = 8;
+            }
+            else if (docLen <= 4096)
+            {
+                a = 10;
+            }
+            else if (docLen <= 1024 * 16 * 4)
+            {
+                //a = 2048;
+                a = 11;
+            }
+            else if (docLen <= 1024 * 256)
+            {
+                //a = 1024 * 4;
+                a = 12;
+            }
+            else
+            {
+                //a = 1 << 15;
+                a = 15;
+            }
+            if (VTDBuffer == null)
+            {
+                VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+                l1Buffer = new FastLongBuffer(7);
+                l2Buffer = new FastLongBuffer(9);
+                l3Buffer = new FastIntBuffer(11);
+            }
+            else
+            {
+                VTDBuffer.clear();
+                l1Buffer.clear();
+                l2Buffer.clear();
+                l3Buffer.clear();
+            }
+        }
+
+        /// <summary> Set the XMLDoc container.</summary>
+        /// <param name="ba">byte[]
+        /// </param>
+        public void setDoc(byte[] ba)
+        {
             setDoc(ba, 0, ba.Length);
-		}
-		/// <summary> Set the XMLDoc container. Also set the offset and len of the document 
-		/// with respect to the container.
-		/// </summary>
-		/// <param name="ba">byte[]
-		/// </param>
-		/// <param name="os">int (in byte)
-		/// </param>
-		/// <param name="len">int (in byte)
-		/// </param>
-		public void  setDoc(byte[] ba, int os, int len)
-		{
-			
-			int a;
-			br = false;
-			depth = - 1;
-			increment = 1;
-			BOM_detected = false;
-			must_utf_8 = false;
-			ch = ch_temp = 0;
-			temp_offset = 0;
-			XMLDoc = ba;
-			docOffset = offset = os;
-			docLen = len;
-			endOffset = os + len;
-			last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
-			if (docLen <= 1024)
-			{
-				//a = 1024; //set the floor
-				a = 8;
-			}
-			else if (docLen <= 4096)
-			{
-				a = 10;
-			}
-			else if (docLen <= 1024 * 16 * 4)
-			{
-				//a = 2048;
-				a = 11;
-			}
-			else if (docLen <= 1024 * 256)
-			{
-				//a = 1024 * 4;
-				a = 12;
-			}
-			else
-			{
-				//a = 1 << 15;
-				a = 15;
-			}
-			
-			VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
-			l1Buffer = new FastLongBuffer(7);
-			l2Buffer = new FastLongBuffer(9);
-			l3Buffer = new FastIntBuffer(11);
-			;
-		}
-		/// <summary> Write the VTD and LC into their storage container.</summary>
-		/// <param name="offset">int
-		/// </param>
-		/// <param name="length">int
-		/// </param>
-		/// <param name="token_type">int
-		/// </param>
-		/// <param name="depth">int
-		/// </param>
-		private void  writeVTD(int offset, int length, int token_type, int depth)
-		{
+        }
+        /// <summary> Set the XMLDoc container. Also set the offset and len of the document 
+        /// with respect to the container.
+        /// </summary>
+        /// <param name="ba">byte[]
+        /// </param>
+        /// <param name="os">int (in byte)
+        /// </param>
+        /// <param name="len">int (in byte)
+        /// </param>
+        public void setDoc(byte[] ba, int os, int len)
+        {
+
+            int a;
+            br = false;
+            depth = -1;
+            increment = 1;
+            BOM_detected = false;
+            must_utf_8 = false;
+            ch = ch_temp = 0;
+            temp_offset = 0;
+            XMLDoc = ba;
+            docOffset = offset = os;
+            docLen = len;
+            endOffset = os + len;
+            last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
+            if (docLen <= 1024)
+            {
+                //a = 1024; //set the floor
+                a = 8;
+            }
+            else if (docLen <= 4096)
+            {
+                a = 10;
+            }
+            else if (docLen <= 1024 * 16 * 4)
+            {
+                //a = 2048;
+                a = 11;
+            }
+            else if (docLen <= 1024 * 256)
+            {
+                //a = 1024 * 4;
+                a = 12;
+            }
+            else
+            {
+                //a = 1 << 15;
+                a = 15;
+            }
+
+            VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+            l1Buffer = new FastLongBuffer(7);
+            l2Buffer = new FastLongBuffer(9);
+            l3Buffer = new FastIntBuffer(11);
+            ;
+        }
+        /// <summary> Write the VTD and LC into their storage container.</summary>
+        /// <param name="offset">int
+        /// </param>
+        /// <param name="length">int
+        /// </param>
+        /// <param name="token_type">int
+        /// </param>
+        /// <param name="depth">int
+        /// </param>
+        private void writeVTD(int offset, int length, int token_type, int depth)
+        {
             //long ll;
             //Console.WriteLine(" "+ (VTDBuffer.size())+ "===> " + offset);
-			switch (token_type)
-			{
-				
-				case TOKEN_CHARACTER_DATA: 
-				case TOKEN_CDATA_VAL: 
-				case TOKEN_COMMENT: 
-					
-					if (length > MAX_TOKEN_LENGTH)
-					{
-						int k;
-						int r_offset = offset;
-						for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH)
-						{
+            switch (token_type)
+            {
+
+                case TOKEN_CHARACTER_DATA:
+                case TOKEN_CDATA_VAL:
+                case TOKEN_COMMENT:
+
+                    if (length > MAX_TOKEN_LENGTH)
+                    {
+                        int k;
+                        int r_offset = offset;
+                        for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH)
+                        {
                             //long l = ((long)(token_type << 4)
                             //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                             //    | 0xffff0f00);
 
-							VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32) | r_offset);
+                            VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32) | r_offset);
                             //VTDBuffer.append(l & 0x00000000ffffffff | (((long)VTDNav.swap_bytes(r_offset)) << 32));
                             r_offset += MAX_TOKEN_LENGTH;
-						}
-						VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | k) << 32) | r_offset);
+                        }
+                        VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | k) << 32) | r_offset);
                         //VTDBuffer.append((((long)((token_type << 4)
                         //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                         //    | VTDNav.swap_bytes(k))) & 0x00000000ffffffff
                         //    | (((long)VTDNav.swap_bytes(r_offset)) << 32)));
 
-					}
-					else
-					{
-						VTDBuffer.append(((long) ((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
+                    }
+                    else
+                    {
+                        VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
                         //ll = (((long)((token_type << 4) | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)| VTDNav.swap_bytes(length))) & 0x00000000ffffffff
                         //    | (((long)VTDNav.swap_bytes(offset)) << 32));
                         //VTDBuffer.append((((long)((token_type << 4)
-                       //     | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
+                        //     | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                         //    | VTDNav.swap_bytes(length))) & 0x00000000ffffffff
-                         //   | (((long)VTDNav.swap_bytes(offset)) << 32)));
-					}
-					break;
-					
-					//case TOKEN_ENDING_TAG: break;
-				
-				default:
+                        //   | (((long)VTDNav.swap_bytes(offset)) << 32)));
+                    }
+                    break;
+
+                //case TOKEN_ENDING_TAG: break;
+
+                default:
                     VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
                     //ll = ((long)((token_type << 4)
                     //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                     //        | VTDNav.swap_bytes(length))
                     //        | (((long)VTDNav.swap_bytes(offset)) << 32));
                     //Console.WriteLine(" VTDToken ==> "+ ll.ToString("x"));
-                   
+
                     //VTDBuffer.append((((long)((token_type << 4)
                     //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                     //        | VTDNav.swap_bytes(length))) & 0x00000000ffffffff
                     //        | (((long)VTDNav.swap_bytes(offset)) << 32)));
 
-					break;
-				
-			}
-			// remember VTD depth start from zero
-			if (token_type == TOKEN_STARTING_TAG)
-			{
-				switch (depth)
-				{
-					
-					case 0: 
-						rootIndex = VTDBuffer.size() - 1;
-						break;
-					
-					case 1: 
-						if (last_depth == 1)
-						{
-							l1Buffer.append(((long) last_l1_index << 32) | 0x00000000ffffffff);
-						}
-						else if (last_depth == 2)
+                    break;
+
+            }
+            // remember VTD depth start from zero
+            if (token_type == TOKEN_STARTING_TAG)
+            {
+                switch (depth)
+                {
+
+                    case 0:
+                        rootIndex = VTDBuffer.size() - 1;
+                        break;
+
+                    case 1:
+                        if (last_depth == 1)
+                        {
+                            l1Buffer.append(((long)last_l1_index << 32) | 0x00000000ffffffff);
+                        }
+                        else if (last_depth == 2)
                         {
                             l2Buffer.append(((long)last_l2_index << 32) | 0x00000000ffffffff);
-						}
-						last_l1_index = VTDBuffer.size() - 1;
-						last_depth = 1;
-						break;
-					
-					case 2: 
-						if (last_depth == 1)
-						{
-							l1Buffer.append(((long) last_l1_index << 32) + l2Buffer.size());
-						}
-						else if (last_depth == 2)
-						{
+                        }
+                        last_l1_index = VTDBuffer.size() - 1;
+                        last_depth = 1;
+                        break;
+
+                    case 2:
+                        if (last_depth == 1)
+                        {
+                            l1Buffer.append(((long)last_l1_index << 32) + l2Buffer.size());
+                        }
+                        else if (last_depth == 2)
+                        {
                             l2Buffer.append(((long)last_l2_index << 32) | 0x00000000ffffffff);
-						}
-						last_l2_index = VTDBuffer.size() - 1;
-						last_depth = 2;
-						break;
-					
-					
-					case 3: 
-						l3Buffer.append(VTDBuffer.size() - 1);
-						if (last_depth == 2)
-						{
-							l2Buffer.append(((long) last_l2_index << 32) + l3Buffer.size() - 1);
-						}
-						last_depth = 3;
-						break;
-					
-					default: 
-						//rootIndex = VTDBuffer.size() - 1;
-						break;
-					
-				}
-			} /*else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
+                        }
+                        last_l2_index = VTDBuffer.size() - 1;
+                        last_depth = 2;
+                        break;
+
+
+                    case 3:
+                        l3Buffer.append(VTDBuffer.size() - 1);
+                        if (last_depth == 2)
+                        {
+                            l2Buffer.append(((long)last_l2_index << 32) + l3Buffer.size() - 1);
+                        }
+                        last_depth = 3;
+                        break;
+
+                    default:
+                        //rootIndex = VTDBuffer.size() - 1;
+                        break;
+
+                }
+            } /*else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
 			if (last_depth == 1) {
 			l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
 			} else if (last_depth == 2) {
 			l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
 			}
 			}*/
-		}
+        }
 
-       
-  
-       /// <summary>
-       /// This method loads the VTD+XML from an input stream
-       /// </summary>
-       /// <param name="is_Renamed"></param>
-       /// <returns>The VTDNav object</returns>
-        
+
+
+        /// <summary>
+        /// This method loads the VTD+XML from an input stream
+        /// </summary>
+        /// <param name="is_Renamed"></param>
+        /// <returns>The VTDNav object</returns>
+
         public VTDNav loadIndex(System.IO.Stream is_Renamed)
         {
             IndexHandler.readIndex(is_Renamed, this);
             return getNav();
         }
 
-       
+
         /// <summary>
         /// This method loads the VTD+XML from a file 
         /// </summary>
@@ -4050,15 +4257,15 @@ namespace com.ximpleware
             System.IO.FileStream fis = null;
             try
             {
-               fis = new System.IO.FileStream(fileName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+                fis = new System.IO.FileStream(fileName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
                 return loadIndex(fis);
             }
             finally
             {
-                if (fis!=null)
+                if (fis != null)
                     fis.Close();
             }
-            
+
         }
 
         /// <summary>
@@ -4081,23 +4288,23 @@ namespace com.ximpleware
         /// </summary>
         public bool writeIndex(System.IO.Stream os)
         {
-           return IndexHandler.writeIndex(1, 
-                this.encoding, 
-                this.ns, 
-                true, 
-                this.VTDDepth, 
-                3, 
-                this.rootIndex, 
-                this.XMLDoc, 
-                this.docOffset, 
-                this.docLen, 
-                this.VTDBuffer, 
-                this.l1Buffer, 
-                this.l2Buffer, 
-                this.l3Buffer, 
-                os);
+            return IndexHandler.writeIndex(1,
+                 this.encoding,
+                 this.ns,
+                 true,
+                 this.VTDDepth,
+                 3,
+                 this.rootIndex,
+                 this.XMLDoc,
+                 this.docOffset,
+                 this.docLen,
+                 this.VTDBuffer,
+                 this.l1Buffer,
+                 this.l2Buffer,
+                 this.l3Buffer,
+                 os);
         }
-
+       
         /// <summary> This method writes the VTD+XML file into a file of the given name</summary>
         /// <param name="fileName">
         /// </param>
@@ -4140,5 +4347,5 @@ namespace com.ximpleware
             }
             return size + 64;
         }
-	}
+    }
 }
