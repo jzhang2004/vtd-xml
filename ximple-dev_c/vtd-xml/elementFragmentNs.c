@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,8 +51,13 @@ int getFragmentSize(ElementFragmentNs *ef){
 	if (ef->stLen != 0)
 		for (i = 0; i < ef->fib->size; i++) {
 			int k = intAt(ef->fib,i);
-			len += (getTokenLength(ef->vn,k) & 0xffff)
-				+ getTokenLength(ef->vn, k + 1) + 4;
+			if (ef->vn->encoding < FORMAT_UTF_16BE){
+				len += (getTokenLength(ef->vn,k) & 0xffff)
+					+ getTokenLength(ef->vn, k + 1) + 4;
+			} else {
+				len += ((getTokenLength(ef->vn,k) & 0xffff)
+					+ getTokenLength(ef->vn, k + 1) + 4)<<1;
+			}
 		}
 		return len;
 }
