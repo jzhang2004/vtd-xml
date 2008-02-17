@@ -70,9 +70,9 @@ public class UTF16BE_Coder {
         
         if (ch<0x10000){ 
             //output[offset] =  (byte)((ch & 0xff00) >> 8);
-            os.write((byte)((ch & 0xff00) >> 8));
+            os.write((ch & 0xff00) >> 8);
             //output[offset+1] = (byte)(ch & 0xff);
-            os.write((byte)(ch & 0xff));
+            os.write(ch);
             //return 2 + offset;
         } else {
             int tmp = ch-0x10000;
