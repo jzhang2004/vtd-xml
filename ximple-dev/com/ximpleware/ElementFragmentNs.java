@@ -63,7 +63,7 @@ public class ElementFragmentNs {
     }   
     
     /**
-     * Convert the ElementFragmentNS object to a byte array according to the
+     * Transcode the ElementFragmentNS object to a byte array according to the
      * destination encoding format
      * @param encoding
      * @return
@@ -98,7 +98,7 @@ public class ElementFragmentNs {
         }
         // transcode starting length
         outPosition = Transcoder.transcodeAndFill2(outPosition, 
-                xml, ba, 0, temp, vn.encoding, dest_encoding);
+                xml, ba, os, temp, vn.encoding, dest_encoding);
         
         //System.arraycopy(xml, os, ba, 0, temp);
         
@@ -353,14 +353,14 @@ public class ElementFragmentNs {
                             dest_encoding)
                             + Transcoder.getOutLength(ba, vn.getTokenOffset(k+1),
                                     vn.getTokenLength(k + 1), vn.encoding,
-                                    dest_encoding) + 4;
+                                    dest_encoding) + ((dest_encoding<VTDNav.FORMAT_UTF_16BE)?4:8);
                 }else {
                     len += Transcoder.getOutLength(ba, vn.getTokenOffset(k)<<1,
                             (vn.getTokenLength(k) & 0xffff)<<1, vn.encoding,
                             dest_encoding)
                             + Transcoder.getOutLength(ba, vn.getTokenOffset(k+1)<<1,
                                     vn.getTokenLength(k + 1)<<1, vn.encoding,
-                                    dest_encoding) + 8;                
+                                    dest_encoding) + ((dest_encoding<VTDNav.FORMAT_UTF_16BE)?4:8);                
                 }
             }
         return len;    
@@ -477,7 +477,8 @@ public class ElementFragmentNs {
     }
     
     /**
-     * 
+     * Write the transcode byte representation of an ns-compensated 
+     * element fragment to the output stream
      * @param ost
      * @param dest_encoding
      * @throws IOException
@@ -496,7 +497,7 @@ public class ElementFragmentNs {
         byte[] xml = vn.getXML().getBytes();
         if (stLen==0){
             //System.arraycopy(xml,os,ba,0,len);
-            ost.write(xml,os,len);
+            //ost.write(xml,os,len);
             Transcoder.transcodeAndWrite(xml,ost, os,len, vn.encoding, dest_encoding );
             return;
             //return ba;
@@ -572,7 +573,8 @@ public class ElementFragmentNs {
             default:
                 // write a ws
                 //System.arraycopy(ws, 1, ba, os1, 1);
-            	ost.write(ws,1,1);
+            	//ost.write(ws,1,1);
+                Transcoder.transcodeAndWrite(ws,ost,1,1,enc, dest_encoding);
                 //os1 ++;
                 tos = vn.getTokenOffset(fib.intAt(i));
                 tlen = (vn.getTokenLength(fib.intAt(i)) & 0xffff);
