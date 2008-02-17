@@ -20,6 +20,9 @@ package com.ximpleware.transcode;
 import com.ximpleware.TranscodeException;
 import com.ximpleware.VTDNav;
 
+import java.io.IOException;
+
+import java.io.OutputStream;
 public class Transcoder {
     /**
      * 
@@ -41,7 +44,7 @@ public class Transcoder {
         // allocate the byte array
         byte[] output = new byte[i];
         // fill the byte array with output encoding
-        fillOutput(input, output, offset, length, input_encoding,
+        transcodeAndFill(input, output, offset, length, input_encoding,
                 output_encoding);
         return output;
     }
@@ -82,7 +85,7 @@ public class Transcoder {
      * @param output_encoding
      *  
      */
-    public static final void fillOutput(byte[] input, byte[] output,
+    public static final void transcodeAndFill(byte[] input, byte[] output,
             int offset, int length, int input_encoding, int output_encoding)
             throws TranscodeException {
         int len = 0;
@@ -93,6 +96,39 @@ public class Transcoder {
             k = (int) (l >> 32);
             c = (int) l;
             i = encode(output, i, c, output_encoding);
+        }
+    }
+    
+    public static final int transcodeAndFill2(int initOutPosition, 
+            byte[] input, 
+            byte[] output,
+            int offset, int length, int input_encoding, int output_encoding)
+            throws TranscodeException {
+        int len = 0;
+        int k = offset;
+        int c, i = initOutPosition;
+        while (k < offset + length) {
+            long l = decode(input, k, input_encoding);
+            k = (int) (l >> 32);
+            c = (int) l;
+            i = encode(output, i, c, output_encoding);
+        }
+        return i;
+    }
+    
+    public static final void transcodeAndWrite(byte[] input, 
+            java.io.OutputStream os,
+            int offset, int length, int input_encoding, int output_encoding)
+            throws TranscodeException,
+            IOException {
+        int len = 0;
+        int k = offset;
+        int c;
+        while (k < offset + length) {
+            long l = decode(input, k, input_encoding);
+            k = (int) (l >> 32);
+            c = (int) l;
+            encodeAndWrite(os, c, output_encoding);
         }
     }
 
@@ -176,4 +212,24 @@ public class Transcoder {
             throw new com.ximpleware.TranscodeException("Unsupported encoding");
         }
     }
+    
+    public static final int encodeAndWrite(OutputStream os, int ch,
+            int output_encoding) throws TranscodeException, IOException {
+        switch (output_encoding) {
+        case VTDNav.FORMAT_ASCII:
+             ASCII_Coder.encodeAndWrite(os, ch);
+        case VTDNav.FORMAT_UTF8:
+             UTF8_Coder.encodeAndWrite(os,  ch);
+        case VTDNav.FORMAT_ISO_8859_1:
+             ISO8859_1Coder.encodeAndWrite(os, ch);
+        case VTDNav.FORMAT_UTF_16LE:
+             UTF16LE_Coder.encodeAndWrite(os, ch);
+        case VTDNav.FORMAT_UTF_16BE:
+             UTF16BE_Coder.encodeAndWrite(os, ch);
+        default:
+            throw new com.ximpleware.TranscodeException("Unsupported encoding");
+        }
+    }
+    
+  
 }
