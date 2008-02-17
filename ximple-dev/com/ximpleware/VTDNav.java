@@ -843,7 +843,7 @@ public class VTDNav {
 	 */
 	public ElementFragmentNs getElementFragmentNs() throws NavException{
 	     if (this.ns == false)
-	        throw new NavException("getElementFragmentNS can only be called ");
+	        throw new NavException("getElementFragmentNS can only be called when parsing is ns enabled");
 	     
 	     FastIntBuffer fib = new FastIntBuffer(3); // init size 8
 	     
@@ -898,8 +898,7 @@ public class VTDNav {
                                 if (matchTokens(fib.intAt(z),this,k)){
                                    unique = false;
                                    break;
-                                } 
-                                    
+                                }                                    
                             }            
                             if (unique)
                               fib.append(k);
