@@ -213,19 +213,24 @@ public class Transcoder {
         }
     }
     
-    public static final int encodeAndWrite(OutputStream os, int ch,
+    public static final void encodeAndWrite(OutputStream os, int ch,
             int output_encoding) throws TranscodeException, IOException {
         switch (output_encoding) {
         case VTDNav.FORMAT_ASCII:
              ASCII_Coder.encodeAndWrite(os, ch);
+        	 return;
         case VTDNav.FORMAT_UTF8:
              UTF8_Coder.encodeAndWrite(os,  ch);
+        	 return;
         case VTDNav.FORMAT_ISO_8859_1:
              ISO8859_1Coder.encodeAndWrite(os, ch);
+        	 return;
         case VTDNav.FORMAT_UTF_16LE:
              UTF16LE_Coder.encodeAndWrite(os, ch);
+        	 return;
         case VTDNav.FORMAT_UTF_16BE:
              UTF16BE_Coder.encodeAndWrite(os, ch);
+        	 return;
         default:
             throw new com.ximpleware.TranscodeException("Unsupported encoding");
         }

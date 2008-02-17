@@ -59,16 +59,19 @@ public class UTF8_Coder {
     public static final void encodeAndWrite(OutputStream os, int ch)
     throws IOException, TranscodeException {
         if (ch < 128){
-            os.write(ch);           
+            os.write(ch);
+            return;
         }
         if (ch < 0x800){
             os.write(((ch & 0x7c0) >> 6) | 0xc0);
             os.write((ch & 0x3f) | 0x80);
+            return;
         }
         if (ch < 0xe000){
             os.write(((ch & 0xf000) >> 12) | 0xe0);
             os.write(((ch & 0xfc) >> 6) | 0x80);
             os.write((ch & 0x3f) | 0x80);
+            return;
         }
         os.write(((ch & 0x1c0000) >> 18) | 0xf0);
         os.write(((ch & 0x3f0) >> 12) | 0x80);
