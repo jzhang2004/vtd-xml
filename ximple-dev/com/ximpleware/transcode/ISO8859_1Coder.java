@@ -17,6 +17,9 @@
  */
 package com.ximpleware.transcode;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import com.ximpleware.TranscodeException;
 
 public class ISO8859_1Coder {
@@ -31,8 +34,32 @@ public class ISO8859_1Coder {
         return (((long)(offset+1))<<32) | l ;
     }
     
+    /**
+     * 
+     * @param output
+     * @param offset
+     * @param ch
+     * @return
+     *
+     */
     public static int encode(byte[] output, int offset, int ch ){
         output[offset] = (byte) ch;
         return offset+1;
+    }
+    
+    /**
+     * Write the iso-8859-1 representation of ch into outputstrem
+     * @param os
+     * @param offset
+     * @param ch
+     * @throws IOException
+     * @throws TranscodeException
+     *
+     */
+    public static final void encodeAndWrite(OutputStream os, int ch)
+    throws IOException, TranscodeException {
+        if (ch>255)
+            throw new TranscodeException("Invalid UCS char for ISO-8859-1 format");
+        os.write(ch);
     }
 }

@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.transcode;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import com.ximpleware.*;
 public class UTF8_Coder {
     
@@ -53,6 +56,25 @@ public class UTF8_Coder {
         return offset+4;        
     }
     
+    public static final void encodeAndWrite(OutputStream os, int ch)
+    throws IOException, TranscodeException {
+        if (ch < 128){
+            os.write(ch);           
+        }
+        if (ch < 0x800){
+            os.write(((ch & 0x7c0) >> 6) | 0xc0);
+            os.write((ch & 0x3f) | 0x80);
+        }
+        if (ch < 0xe000){
+            os.write(((ch & 0xf000) >> 12) | 0xe0);
+            os.write(((ch & 0xfc) >> 6) | 0x80);
+            os.write((ch & 0x3f) | 0x80);
+        }
+        os.write(((ch & 0x1c0000) >> 18) | 0xf0);
+        os.write(((ch & 0x3f0) >> 12) | 0x80);
+        os.write(((ch & 0xfc) >> 6) | 0x80);
+        os.write((ch & 0x3f) | 0x80);
+    }
     /**
      * Decode a UTF-8 char in the input buffer
      * @param input the byte array containing UTF-8 chars

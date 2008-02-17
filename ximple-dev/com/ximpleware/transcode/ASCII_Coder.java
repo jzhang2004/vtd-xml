@@ -19,6 +19,7 @@ package com.ximpleware.transcode;
 
 import com.ximpleware.TranscodeException;
 
+import java.io.*;
 public class ASCII_Coder {
     /**
      * 
@@ -58,5 +59,19 @@ public class ASCII_Coder {
     public static final int encode(byte[] output, int offset, int ch ){
         output[offset] = (byte) ch;
         return offset+1;
+    }
+    
+    /**
+     * 
+     * @param os
+     * @param offset
+     * @param ch
+     *
+     */
+    public static final void encodeAndWrite(OutputStream os, int ch)
+    throws IOException, TranscodeException {
+        if (ch>=128)
+            throw new TranscodeException("Invalid UCS char for ASCII format");
+        os.write(ch);
     }
 }

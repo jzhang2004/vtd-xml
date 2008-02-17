@@ -17,6 +17,11 @@
  */
 package com.ximpleware.transcode;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
+import com.ximpleware.TranscodeException;
+
 
 public class UTF16LE_Coder {
     public static int encode(byte[] output, int offset,int ch){
@@ -33,6 +38,21 @@ public class UTF16LE_Coder {
             output[offset+2] =(byte)(w2 & 0xff);
             output[offset+3] = (byte)((w2 & 0xff00) >> 8);
             return 4 + offset;
+        }
+    }
+    public static final void encodeAndWrite(OutputStream os, int ch)
+    throws IOException, TranscodeException {
+        if (ch<0x10000){ 
+            os.write((ch & 0xff));
+            os.write((ch & 0xff00) >> 8);
+        } else {
+            int tmp = ch - 0x10000;
+            int w1 = 0xd800 | (tmp & 0xffc00);
+            int w2 = 0xdc00 | (tmp & 0x3ff);
+            os.write(w1 & 0xff);
+            os.write((w1 & 0xff00) >> 8);
+            os.write(w2 & 0xff);
+            os.write((w2 & 0xff00) >> 8);
         }
     }
     
