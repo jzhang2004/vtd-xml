@@ -686,7 +686,7 @@ public class XMLModifier {
      * @return updated document size
      *
      */
-    public int getUpdatedDocumentSize(){
+    public int getUpdatedDocumentSize() throws TranscodeException{
         int size = flb.size();
         int docSize = md.getXML().getBytes().length;
         long l;
@@ -700,7 +700,7 @@ public class XMLModifier {
                 // MASK_INSERT_SEGMENT_BYTE
                 docSize += ((ByteSegment)fob.objectAt(i)).len;
             } else{
-                docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize();
+                docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(md.encoding);
             }
         }
         return docSize;
@@ -1180,7 +1180,8 @@ public class XMLModifier {
      * @param os
      *
      */
-    public void output(OutputStream os) throws IOException, ModifyException{
+    public void output(OutputStream os) throws IOException, 
+    ModifyException,TranscodeException{
         if (os == null)
             throw new IllegalArgumentException("OutputStream can't be null");
         sort();
@@ -1225,7 +1226,7 @@ public class XMLModifier {
                         //ElementFragmentNs
                         os.write(ba,offset, flb.lower32At(i)-offset);
                         ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
-                        ef.writeToOutputStream(os);
+                        ef.writeToOutputStream(os,md.encoding);
                         offset=flb.lower32At(i);
                     }
                 } else { // share the same offset value one insert, one delete
@@ -1262,7 +1263,7 @@ public class XMLModifier {
                         //ElementFragmentNs
                         //os.write(ba,offset, flb.lower32At(i2)-offset);
                         ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
-                        ef.writeToOutputStream(os);
+                        ef.writeToOutputStream(os,md.encoding);
                         offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                     }
                 }
@@ -1279,7 +1280,7 @@ public class XMLModifier {
      * @throws ModifyException
      *
      */
-    public void output(String fileName) throws IOException, ModifyException{
+    public void output(String fileName) throws IOException, ModifyException,TranscodeException{
         FileOutputStream fos = new FileOutputStream(fileName);
         output(fos);
         fos.close();
