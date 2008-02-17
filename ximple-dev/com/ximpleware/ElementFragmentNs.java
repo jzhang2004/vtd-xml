@@ -486,6 +486,10 @@ public class ElementFragmentNs {
      */
     public final void writeToOutputStream(OutputStream ost,int dest_encoding) 
     throws IOException, TranscodeException{
+        if (vn.encoding == dest_encoding){
+            writeToOutputStream(ost);
+            return;
+        }
         int os = (int)l;
         int len = (int)(l>>32);
         int os1 = 0;
