@@ -16,6 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 using System;
+using com.ximpleware.transcode;
 namespace com.ximpleware
 {
 
@@ -332,6 +333,138 @@ namespace com.ximpleware
             fob.append(bs);
         }
 
+
+        private void insertBytesAt(int offset, byte[] content, long l)
+        {
+            if (insertHash.isUnique(offset) == false)
+            {
+                throw new ModifyException("There can be only one insert per offset");
+            }
+            int contentOffset = (int)l;
+            int contentLen = (int)(l >> 32);
+            if (contentOffset < 0
+                    || contentLen < 0
+                    || contentOffset + contentLen >= content.Length)
+            {
+                throw new ModifyException("Invalid contentOffset and/or contentLen");
+            }
+            flb.append((long)offset | MASK_INSERT_SEGMENT_BYTE);
+            ByteSegment bs = new ByteSegment();
+            bs.ba = content;
+            bs.len = contentLen;
+            bs.offset = contentOffset;
+            fob.append(bs);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="newContentBytes"></param>
+        /// <param name="contentOffset"></param>
+        /// <param name="contentLen"></param>
+        /// <param name="src_encoding"></param>
+        public void updateToken(int index, byte[] newContentBytes,
+        int contentOffset, int contentLen, int src_encoding)
+        {
+
+            if (src_encoding == encoding)
+            {
+                updateToken(index, newContentBytes, contentOffset, contentLen);
+                return;
+            }
+            if (newContentBytes == null)
+                throw new System.ArgumentException("newContentBytes can't be null");
+
+            int offset = md.getTokenOffset(index);
+            //int len = md.getTokenLength(index);
+            int type = md.getTokenType(index);
+            int len = (type == VTDNav.TOKEN_STARTING_TAG
+                    || type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS) ? md
+                    .getTokenLength(index) & 0xffff
+                    : md.getTokenLength(index);
+
+            // one insert
+            byte[] bo = Transcoder.transcode(newContentBytes, contentOffset,
+                    contentLen, src_encoding, encoding);
+
+            switch (type)
+            {
+                case VTDNav.TOKEN_CDATA_VAL:
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset - 9, bo);
+                    else
+                        insertBytesAt((offset - 9) << 1, bo);
+                    break;
+                case VTDNav.TOKEN_COMMENT:
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset - 4, bo);
+                    else
+                        insertBytesAt((offset - 4) << 1, bo);
+                    break;
+
+                default:
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset, bo);
+                    else
+                        insertBytesAt(offset << 1, bo);
+                    break;
+            }
+            // one delete
+            removeToken(index);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="newContentBytes"></param>
+        /// <param name="src_encoding"></param>
+        public void updateToken(int index, byte[] newContentBytes, int src_encoding)
+        {
+            if (src_encoding == encoding)
+            {
+                updateToken(index, newContentBytes);
+                return;
+            }
+            if (newContentBytes == null)
+                throw new System.ArgumentException
+                ("newContentBytes can't be null");
+            int offset = md.getTokenOffset(index);
+
+            int type = md.getTokenType(index);
+            int len =
+               (type == VTDNav.TOKEN_STARTING_TAG
+                   || type == VTDNav.TOKEN_ATTR_NAME
+                   || type == VTDNav.TOKEN_ATTR_NS)
+                   ? md.getTokenLength(index) & 0xffff
+                   : md.getTokenLength(index);
+            // one insert
+            byte[] bo = Transcoder.transcode(newContentBytes, 0,
+                    newContentBytes.Length, src_encoding, encoding);
+            switch (type)
+            {
+                case VTDNav.TOKEN_CDATA_VAL:
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset - 9, bo);
+                    else
+                        insertBytesAt((offset - 9) >> 1, bo);
+                    break;
+                case VTDNav.TOKEN_COMMENT:
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset - 4, bo);
+                    else
+                        insertBytesAt((offset - 4) >> 1, bo);
+                    break;
+
+                default:
+                    if (encoding < VTDNav.FORMAT_UTF_16BE)
+                        insertBytesAt(offset, bo);
+                    else
+                        insertBytesAt(offset << 1, bo);
+                    break;
+            }
+            // one delete
+            removeToken(index);
+        }
         /// <summary> Update the token with the byte array content,
         /// according to the encoding of the master document
         /// </summary>
@@ -534,8 +667,101 @@ namespace com.ximpleware
             //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
             insertBytesAt(offset + len, b);
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        public void insertAfterElement(int src_encoding, byte[] b)
+        {
+            if (src_encoding == encoding)
+            {
+                insertAfterElement(b);
+            }
+            else
+            {
+                int startTagIndex = md.getCurrentIndex();
+                int type = md.getTokenType(startTagIndex);
+                if (type != VTDNav.TOKEN_STARTING_TAG)
+                    throw new ModifyException("Token type is not a starting tag");
+                long l = md.getElementFragment();
+                int offset = (int)l;
+                int len = (int)(l >> 32);
+                // transcoding logic
+                byte[] bo = Transcoder.transcode(b, 0, b.Length, src_encoding, encoding);
+                insertBytesAt(offset + len, bo);
+            }
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        /// <param name="contentOffset"></param>
+        /// <param name="contentLen"></param>
+        public void insertAfterElement(int src_encoding, byte[] b, int contentOffset, int contentLen)
+        {
+            if (src_encoding == encoding)
+            {
+                insertAfterElement(b, contentOffset, contentLen);
+            }
+            else
+            {
+                int startTagIndex = md.getCurrentIndex();
+                int type = md.getTokenType(startTagIndex);
+                if (type != VTDNav.TOKEN_STARTING_TAG)
+                    throw new ModifyException("Token type is not a starting tag");
+                long l = md.getElementFragment();
+                int offset = (int)l;
+                int len = (int)(l >> 32);
+                // transcode in here
+                byte[] bo = Transcoder.transcode(b, contentOffset, contentLen, src_encoding, encoding);
+                insertBytesAt(offset + len, bo);
+            }
+        }
+        /// <summary>
+        /// Insert  segment of bytes after the element
+        /// </summary>
+        /// <param name="b"></param>
+        /// <param name="l1"></param>
+        public void insertAfterElement(byte[] b, long l1)
+        {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+            long l = md.getElementFragment();
+            int offset = (int)l;
+            int len = (int)(l >> 32);
+            insertBytesAt(offset + len, b, l1);
+        }
 
+        /// <summary>
+        /// Insert a segment of bytes after the element
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        /// <param name="l1"></param>
+        public void insertAfterElement(int src_encoding, byte[] b, long l1)
+        {
+            if (src_encoding == encoding)
+            {
+                insertAfterElement(b, l1);
+            }
+            else
+            {
+                int startTagIndex = md.getCurrentIndex();
+                int type = md.getTokenType(startTagIndex);
+                if (type != VTDNav.TOKEN_STARTING_TAG)
+                    throw new ModifyException("Token type is not a starting tag");
+                long l = md.getElementFragment();
+                int offset = (int)l;
+                int len = (int)(l >> 32);
+                byte[] bo = Transcoder.transcode(b, (int)l, (int)l >> 32, src_encoding, encoding);
+                insertBytesAt(offset + len, bo, l1);
+            }
+        }
         /// <summary> This method will first call getCurrentIndex() to get the cursor index value
         /// then insert a segment of the byte array content after the element
         /// </summary>
@@ -618,6 +844,79 @@ namespace com.ximpleware
             }
         }
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        public void insertBeforeElement(int src_encoding, byte[] b)
+        {
+            if (encoding == md.encoding)
+            {
+                insertBeforeElement(b);
+            }
+            else
+            {
+                int startTagIndex = md.getCurrentIndex();
+                int type = md.getTokenType(startTagIndex);
+                if (type != VTDNav.TOKEN_STARTING_TAG)
+                    throw new ModifyException("Token type is not a starting tag");
+
+                int offset = md.getTokenOffset(startTagIndex) - 1;
+                byte[] bo = Transcoder.transcode(b, 0, b.Length, src_encoding, encoding);
+                if (encoding < VTDNav.FORMAT_UTF_16BE)
+                    insertBytesAt(offset, bo);
+                else
+                    insertBytesAt((offset) << 1, bo);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="b"></param>
+        /// <param name="l1"></param>
+        public void insertBeforeElement(byte[] b, long l1)
+        {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+
+            int offset = md.getTokenOffset(startTagIndex) - 1;
+
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt(offset, b, l1);
+            else
+                insertBytesAt((offset) << 1, b, l1);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        /// <param name="l1"></param>
+        public void insertBeforeElement(int src_encoding, byte[] b, long l1)
+        {
+            if (src_encoding == md.encoding)
+            {
+                insertBeforeElement(b, l1);
+            }
+            else
+            {
+                int startTagIndex = md.getCurrentIndex();
+                int type = md.getTokenType(startTagIndex);
+                if (type != VTDNav.TOKEN_STARTING_TAG)
+                    throw new ModifyException("Token type is not a starting tag");
+
+                int offset = md.getTokenOffset(startTagIndex) - 1;
+                byte[] bo = Transcoder.transcode(b, (int)l1, (int)(l1 >> 32), src_encoding, encoding);
+                if (encoding < VTDNav.FORMAT_UTF_16BE)
+                    insertBytesAt(offset, bo);
+                else
+                    insertBytesAt((offset) << 1, bo);
+            }
+        }
+        /// <summary>
         /// insertBeforeElement inserts a segment of a byte array right before an XML element
         /// </summary>
         /// <param name="b"></param>
@@ -639,6 +938,35 @@ namespace com.ximpleware
             {
                 //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
                 insertBytesAt((offset) << 1, b, contentOffset, contentLen);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        /// <param name="contentOffset"></param>
+        /// <param name="contentLen"></param>
+        public void insertBeforeElement(int src_encoding, byte[] b, int contentOffset, int contentLen)
+        {
+            if (src_encoding == encoding)
+            {
+                insertBeforeElement(b, contentOffset, contentLen);
+            }
+            else
+            {
+                int startTagIndex = md.getCurrentIndex();
+                int type = md.getTokenType(startTagIndex);
+                if (type != VTDNav.TOKEN_STARTING_TAG)
+                    throw new ModifyException("Token type is not a starting tag");
+
+                int offset = md.getTokenOffset(startTagIndex) - 1;
+                // do transcoding here
+                byte[] bo = Transcoder.transcode(b, contentOffset, contentLen, src_encoding, encoding);
+                if (encoding < VTDNav.FORMAT_UTF_16BE)
+                    insertBytesAt(offset, bo);
+                else
+                    insertBytesAt((offset) << 1, bo);
             }
         }
         /// <summary> This method will first call getCurrentIndex() to get the cursor index value
@@ -800,7 +1128,8 @@ namespace com.ximpleware
                         {
                             os.Write(ba, offset, flb.lower32At(i) - offset);
                             ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
-                            ef.writeToOutputStream(os);
+                            //ef.writeToOutputStream(os);
+                            ef.writeToOutputStream(os, md.encoding);
                             offset = flb.lower32At(i);
                         }
                     }
@@ -841,7 +1170,8 @@ namespace com.ximpleware
                             //ElementFragmentNs
                             //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
                             ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
-                            ef.writeToOutputStream(os);
+                            //ef.writeToOutputStream(os);
+                            ef.writeToOutputStream(os, md.encoding);
                             offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                         }
                     }
