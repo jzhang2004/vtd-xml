@@ -966,7 +966,7 @@ namespace com.ximpleware
 
         protected internal int LN; // record txt and attrbute for XPath eval purposes
         // the document encoding	     
-        private int encoding;
+        protected internal int encoding;
         // for string to token comparison
         //protected internal int currentOffset;
         //protected internal int currentOffset2;
