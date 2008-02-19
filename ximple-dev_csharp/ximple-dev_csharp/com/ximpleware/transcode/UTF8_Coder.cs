@@ -90,7 +90,7 @@ namespace com.ximpleware.transcode
        long l = 0;
        int c=0;
        byte val = input[offset];
-       if (val > 0){
+       if (val <128){
            l = offset + 1;
            return (l<<32) | val; 
        }

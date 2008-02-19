@@ -43,22 +43,24 @@ namespace com.ximpleware.transcode
                 return 4 + offset;
             }
         }
+
         public static void encodeAndWrite(System.IO.Stream os, int ch)
         {
             if (ch < 0x10000)
             {
-                os.WriteByte((byte)(ch & 0xff));
                 os.WriteByte((byte)((ch & 0xff00) >> 8));
+                os.WriteByte((byte)(ch & 0xff));                
             }
             else
             {
                 int tmp = ch - 0x10000;
                 int w1 = 0xd800 | (tmp & 0xffc00);
                 int w2 = 0xdc00 | (tmp & 0x3ff);
-                os.WriteByte((byte)(w1 & 0xff));
                 os.WriteByte((byte)((w1 & 0xff00) >> 8));
-                os.WriteByte((byte)(w2 & 0xff));
+                os.WriteByte((byte)(w1 & 0xff));
                 os.WriteByte((byte)((w2 & 0xff00) >> 8));
+                os.WriteByte((byte)(w2 & 0xff));
+                
             }
         }
 

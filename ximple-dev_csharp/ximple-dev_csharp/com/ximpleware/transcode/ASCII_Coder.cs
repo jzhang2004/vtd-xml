@@ -23,51 +23,54 @@ namespace com.ximpleware.transcode
 {
     class ASCII_Coder
     {
-  /// <summary>
-  /// 
-  /// </summary>
-  /// <param name="ch"></param>
-  /// <returns></returns>
-    public static int getLen(int ch) {
-        if (ch>=128)
-            throw new TranscodeException("Invalid UCS char for ASCII format");
-        else
-            return 1;
-    }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="input"></param>
-    /// <param name="offset"></param>
-    /// <returns></returns>
-    public static long decode(byte[] input, int offset ){
-        long l = input[offset];
-        return (((long)(offset+1))<<32) | l ;
-    }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="output"></param>
-    /// <param name="offset"></param>
-    /// <param name="ch"></param>
-    /// <returns></returns>
-    public static int encode(byte[] output, int offset, int ch ){
-        output[offset] = (byte) ch;
-        return offset+1;
-    }
-    
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="os"></param>
-   /// <param name="ch"></param>
-    public static void encodeAndWrite(System.IO.Stream os, int ch)
-    {
-        if (ch>=128)
-            throw new TranscodeException("Invalid UCS char for ASCII format");
-        os.WriteByte((byte)ch);
-    }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ch"></param>
+        /// <returns></returns>
+        public static int getLen(int ch)
+        {
+            if (ch >= 128)
+                throw new TranscodeException("Invalid UCS char for ASCII format");
+            else
+                return 1;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        public static long decode(byte[] input, int offset)
+        {
+            long l = input[offset];
+            return (((long)(offset + 1)) << 32) | l;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="output"></param>
+        /// <param name="offset"></param>
+        /// <param name="ch"></param>
+        /// <returns></returns>
+        public static int encode(byte[] output, int offset, int ch)
+        {
+            output[offset] = (byte)ch;
+            return offset + 1;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="os"></param>
+        /// <param name="ch"></param>
+        public static void encodeAndWrite(System.IO.Stream os, int ch)
+        {
+            if (ch >= 128)
+                throw new TranscodeException("Invalid UCS char for ASCII format");
+            os.WriteByte((byte)ch);
+        }
     }
 }

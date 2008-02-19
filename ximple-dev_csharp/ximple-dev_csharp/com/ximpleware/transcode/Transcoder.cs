@@ -144,6 +144,7 @@ namespace com.ximpleware.transcode
                 long l = decode(input, k, input_encoding);
                 k = (int)(l >> 32);
                 c = (int)l;
+                //Console.WriteLine("c ==>" + (char) c+ "  "+c);
                 encodeAndWrite(os, c, output_encoding);
             }
         }
@@ -156,6 +157,10 @@ namespace com.ximpleware.transcode
        /// <returns></returns>
         public static int getLen(int ch, int output_encoding)
         {
+            if (ch == 0xbe)
+            {
+                Console.WriteLine("0xbe");
+            }
             switch (output_encoding)
             {
                 case VTDNav.FORMAT_ASCII:

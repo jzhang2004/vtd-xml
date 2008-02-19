@@ -34,30 +34,32 @@ namespace com.ximpleware.transcode
                 throw new TranscodeException("Invalid UCS char for ASCII format");
             return 1;
         }
-    
-    public static long decode(byte[] input, int offset ){
-        long l = input[offset] & 0xff;
-        return (((long)(offset+1))<<32) | l ;
-    }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="output"></param>
-    /// <param name="offset"></param>
-    /// <param name="ch"></param>
-    /// <returns></returns>
-    public static int encode(byte[] output, int offset, int ch ){
-        output[offset] = (byte) ch;
-        return offset+1;
-    }
-    
-   
-    public static void encodeAndWrite(System.IO.Stream os, int ch)
-    {
-        if (ch>255)
-            throw new TranscodeException("Invalid UCS char for ISO-8859-1 format");
-        os.WriteByte((byte)ch);
-    }
+
+        public static long decode(byte[] input, int offset)
+        {
+            long l = input[offset];
+            return (((long)(offset + 1)) << 32) | l;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="output"></param>
+        /// <param name="offset"></param>
+        /// <param name="ch"></param>
+        /// <returns></returns>
+        public static int encode(byte[] output, int offset, int ch)
+        {
+            output[offset] = (byte)ch;
+            return offset + 1;
+        }
+
+
+        public static void encodeAndWrite(System.IO.Stream os, int ch)
+        {
+            if (ch > 255)
+                throw new TranscodeException("Invalid UCS char for ISO-8859-1 format");
+            os.WriteByte((byte)ch);
+        }
     }
 }
