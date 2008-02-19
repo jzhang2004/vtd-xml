@@ -20,6 +20,7 @@
 #include "vtdGen.h"
 #include "elementFragmentNs.h"
 #include "xpath1.h"
+#include "transcoder.h"
 
 #define MASK_DELETE 0x00000000000000000LL
 #define MASK_INSERT_SEGMENT_BYTE  0x2000000000000000LL
@@ -31,7 +32,7 @@
 
 typedef Long (*getBytes)(UCSChar *s);
 typedef struct xMLModifier{
-	int encoding;
+	encoding_t encoding;
 	IntHash *deleteHash;
 	IntHash *insertHash;
 	FastLongBuffer *flb; /* lower 32 bit offset, upper 29 bits 
@@ -73,7 +74,8 @@ void removeAttribute(XMLModifier *xm,int attrNameIndex);
 void removeContent(XMLModifier *xm, int offset, int len);
 
 void updateToken(XMLModifier *xm, int index, UCSChar *newContent);
-void updateToken2(XMLModifier *xm, int index, UByte *byteContent, int contentoffset, int contentLen);
+void updateToken2(XMLModifier *xm, int index, UByte *byteContent, int contentOffset, int contentLen);
+void updateToken3(XMLModifier *xm, int index, UByte *byteContent, int contentOffset, int contentLen, encoding_t src_encoding);
 
 void insertAfterElement(XMLModifier *xm, UCSChar *s);
 void insertBeforeElement(XMLModifier *xm, UCSChar *s);
@@ -87,6 +89,12 @@ void insertBeforeElement3(XMLModifier *xm, UByte* ba, int contentOffset, int con
 
 void insertBeforeElement4(XMLModifier *xm, ElementFragmentNs *ef);
 void insertAfterElement4(XMLModifier *xm, ElementFragmentNs *ef);
+
+void insertAfterElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int arrayLen);
+void insertBeforeElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int arrayLen);
+
+void insertAfterElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen);
+void insertBeforeElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen);
 
 /*
 void updateToken2(XMLModifier *xm, int index, UByte *newContentBytes, int len);

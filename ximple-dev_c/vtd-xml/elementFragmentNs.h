@@ -31,8 +31,12 @@ static UByte ws[5]= {0,' ',0,'=',0};
 ElementFragmentNs* createElementFragmentNs();
 void freeElementFragmentNs(ElementFragmentNs *ef);
 int getFragmentSize(ElementFragmentNs *ef);
+int getFragmentSize2(ElementFragmentNs *ef, encoding_t encoding);
+
 Long getOffsetLeng(ElementFragmentNs *ef);
 UByte* toFragmentBytes(ElementFragmentNs *ef);
+UByte* toFragmentBytes2(ElementFragmentNs *ef, encoding_t dest_encoding);
 void writeFragmentToFile(ElementFragmentNs *ef, FILE *f);
+void writeFragmentToFile2(ElementFragmentNs *ef, FILE *f, encoding_t dest_encoding);
 
 #endif
