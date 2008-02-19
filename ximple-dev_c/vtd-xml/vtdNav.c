@@ -164,7 +164,7 @@ static Long handle_utf16be(VTDNav *vn, int offset){
 	}
 }
 
-VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
+VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len, Boolean br){
 						 VTDNav* vn = NULL;
@@ -2906,7 +2906,7 @@ int getCurrentIndex2(VTDNav *vn){
 * <pre>   3  UTF-16BE    </pre>
 * <pre>   4  UTF-16LE    </pre>
 */
-encoding getEncoding(VTDNav *vn){
+encoding_t getEncoding(VTDNav *vn){
 	return vn->encoding;
 }
 

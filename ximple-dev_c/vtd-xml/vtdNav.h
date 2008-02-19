@@ -80,7 +80,7 @@ typedef struct vTDNav{
 	
 	int LN;// record txt and attrbute for XPath eval purposes
 
-	int encoding;
+	encoding_t encoding;
 
 	//int currentOffset;
 	//int currentOffset2;
@@ -99,7 +99,7 @@ typedef struct vTDNav{
 //functions
 //Create VTDNav object
 
-VTDNav *createVTDNav(int r, encoding enc, Boolean ns, int depth,
+VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len,Boolean br);
 
@@ -140,7 +140,7 @@ struct elementFragmentNs *getElementFragmentNs(VTDNav *vn);
  * <pre>   3  UTF-16BE    </pre>
  * <pre>   4  UTF-16LE    </pre>
  */
-extern inline encoding getEncoding(VTDNav *vn);
+extern inline encoding_t getEncoding(VTDNav *vn);
 
 // Get the maximum nesting depth of the XML document (>0).
 // max depth is nestingLevel -1

@@ -44,7 +44,7 @@
 typedef struct vTDGen {
 	int ns;
 	int VTDDepth;
-	int encoding;
+	encoding_t encoding;
 	int last_depth;
 	int last_l1_index;
 	int last_l2_index;
