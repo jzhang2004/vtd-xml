@@ -68,6 +68,13 @@ void bind4XMLModifier(XMLModifier *xm, VTDNav *md);
      * delimiting text surrounding the content, is removed
      *
      */
+
+Long getBytes_UTF8(UCSChar *s);
+Long getBytes_UTF16LE(UCSChar *s);
+Long getBytes_UTF16BE(UCSChar *s);
+Long getBytes_ISO_8859_1(UCSChar *s);
+Long getBytes_ASCII(UCSChar *s);
+
 void remove4XMLModifier(XMLModifier *xm);
 void removeToken(XMLModifier *xm, int i);
 void removeAttribute(XMLModifier *xm,int attrNameIndex);
