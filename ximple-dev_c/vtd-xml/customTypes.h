@@ -81,7 +81,7 @@ typedef enum XMLencoding {FORMAT_ASCII,
 						  FORMAT_WIN_1258,
 						  FORMAT_UTF_16BE = 63,
 						  FORMAT_UTF_16LE =64} 
-					encoding;
+					encoding_t;
 
 
 typedef enum VTDtokentype {TOKEN_STARTING_TAG,
@@ -115,6 +115,7 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 										 index_write_exception,
 										 index_read_exception,
 										 io_exception,
+										 transcode_exception,
 										 other_exception};
 
 
