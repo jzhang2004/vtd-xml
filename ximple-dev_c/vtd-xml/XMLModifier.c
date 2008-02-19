@@ -24,11 +24,7 @@ static void insertBytesAt(XMLModifier *xm, int offset, Long l);
 static void insertBytesAt2(XMLModifier *xm, int offset, Long lenPlusPointer);
 static void insertBytesAt3(XMLModifier *xm, int offset, ElementFragmentNs* ef);
 //static void removeContent(XMLModifier *xm, int offset, int len);
-static Long getBytes_UTF8(UCSChar *s);
-static Long getBytes_UTF16LE(UCSChar *s);
-static Long getBytes_UTF16BE(UCSChar *s);
-static Long getBytes_ISO_8859_1(UCSChar *s);
-static Long getBytes_ASCII(UCSChar *s);
+
 // Fwrite will make sure the entire segment of bytes gets written into the stream, 
 // otherwise it will return false
 
