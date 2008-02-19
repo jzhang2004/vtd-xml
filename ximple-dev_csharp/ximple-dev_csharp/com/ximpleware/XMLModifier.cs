@@ -850,7 +850,7 @@ namespace com.ximpleware
         /// <param name="b"></param>
         public void insertBeforeElement(int src_encoding, byte[] b)
         {
-            if (encoding == md.encoding)
+            if (src_encoding == md.encoding)
             {
                 insertBeforeElement(b);
             }
