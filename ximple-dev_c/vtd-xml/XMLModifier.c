@@ -1082,10 +1082,10 @@ void insertBeforeElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, i
 		offset = getTokenOffset(xm->md,startTagIndex) - 1;
 		// do transcoding here
 		bo = Transcoder_transcode(ba,contentOffset,contentLen,src_encoding, xm->encoding);
-		//if (xm->encoding < FORMAT_UTF_16BE)
-		insertBytesAt(xm,offset, bo);
-		//else
-		//	insertBytesAt(xm,(offset) << 1, bo);
+		if (xm->encoding < FORMAT_UTF_16BE)
+		  insertBytesAt(xm,offset, bo);
+		else
+			insertBytesAt(xm,(offset) << 1, bo);
 	}
 }
 
