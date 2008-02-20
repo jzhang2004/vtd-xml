@@ -257,7 +257,7 @@ int ISO8859_1_Coder_encode(UByte* output,int offset,int ch){
 }
 Long ISO8859_1_Coder_decode(UByte *input,int offset){
 	Long l = input[offset] & 0xff;
-	return (((long)(offset+1))<<32) | l ;
+	return (((Long)(offset+1))<<32) | l ;
 }
 int ISO8859_1_Coder_getLen(int ch){
 	if (ch>255)
@@ -349,7 +349,7 @@ int  Transcoder_getOutLength(UByte* input, int offset,int length,int input_encod
 	int k = offset;
 	int c;
 	while (k < offset + length) {
-		long l = Transcoder_decode(input, k, input_encoding);
+		Long l = Transcoder_decode(input, k, input_encoding);
 		k = (int) (l >>32);
 		c = (int) l;
 		len = len + Transcoder_getLen(c, output_encoding);
@@ -357,7 +357,7 @@ int  Transcoder_getOutLength(UByte* input, int offset,int length,int input_encod
 	return len;
 }
 
-Long Transcoder_transcode(UByte input, int offset, int length, int input_encoding, encoding_t output_encoding){
+Long Transcoder_transcode(UByte* input, int offset, int length, int input_encoding, encoding_t output_encoding){
 	//check input and output encoding
 
 	// calculate the length of the output byte array

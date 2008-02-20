@@ -49,7 +49,7 @@ int  Transcoder_encode(UByte* output, int offset, int ch, encoding_t output_enco
 void Transcoder_encodeAndWrite(FILE* f, int ch, encoding_t output_encoding);
 int  Transcoder_getLen(int ch, int output_encoding);
 int  Transcoder_getOutLength(UByte* input, int offset,int length,encoding_t input_encoding, encoding_t output_encoding);
-Long Transcoder_transcode(UByte input, int offset, int length, encoding_t input_encoding, encoding_t output_encoding);
+Long Transcoder_transcode(UByte* input, int offset, int length, encoding_t input_encoding, encoding_t output_encoding);
 void Transcoder_transcodeAndFill(UByte* input, UByte* output,int offset, int length, encoding_t input_encoding, encoding_t output_encoding);
 void Transcoder_transcodeAndFill2(int initOutPosition, UByte* input, UByte* output, int offset, int length, encoding_t input_encoding, encoding_t output_encodin);
 void Transcoder_transcodeAndWrite(UByte* input, FILE* f,int offset, int length, encoding_t input_encoding, encoding_t output_encoding);
