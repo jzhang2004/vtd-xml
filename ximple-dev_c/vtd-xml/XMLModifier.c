@@ -37,7 +37,7 @@ static UByte *doubleCapacity(UByte *b, size_t cap){
 	return b;
 }
 /*convert UCSChar into bytes corresponding to UTF-8 encoding */
-static Long getBytes_UTF8(UCSChar *s){
+Long getBytes_UTF8(UCSChar *s){
 	/* < 0x7f  1 byte*/
 	/* < 0x7ff  2 bytes */
 	/* < 0xffff  3 bytes */
@@ -88,7 +88,7 @@ static Long getBytes_UTF8(UCSChar *s){
 }
 
 /*convert UCSChar into bytes corresponding to UTF-16LE encoding */
-static Long getBytes_UTF16LE(UCSChar *s){
+Long getBytes_UTF16LE(UCSChar *s){
 	size_t len = wcslen(s),i=0,k=0,capacity = max(len,8)<<1;/*minimum size is 16 */
 	int tmp,w1,w2;
 	UByte *ba = malloc(sizeof(UByte)*(capacity<<1)); 
@@ -120,7 +120,7 @@ static Long getBytes_UTF16LE(UCSChar *s){
 }
 
 /*convert UCSChar into bytes corresponding to UTF-16BE encoding */
-static Long getBytes_UTF16BE(UCSChar *s){
+Long getBytes_UTF16BE(UCSChar *s){
 	size_t len = wcslen(s),i=0,k=0,capacity = max(len,8)<<1;/*minimum size is 16 */
 	int tmp,w1,w2;
 	UByte *ba = malloc(sizeof(UByte)*(capacity<<1)); 
@@ -151,7 +151,7 @@ static Long getBytes_UTF16BE(UCSChar *s){
 }
 
 /*convert UCSChar into bytes corresponding to iso-8859-1 encoding */
-static Long getBytes_ISO_8859_1(UCSChar *s){
+Long getBytes_ISO_8859_1(UCSChar *s){
 	size_t len = wcslen(s),i=0;
 	UByte *ba = malloc(sizeof(UByte)*(len));
 	if (ba == NULL)
@@ -165,7 +165,7 @@ static Long getBytes_ISO_8859_1(UCSChar *s){
 }
 
 /*convert UCSChar into bytes corresponding to ascii encoding */
-static Long getBytes_ASCII(UCSChar *s){
+Long getBytes_ASCII(UCSChar *s){
 	size_t len = wcslen(s),i=0;
 	UByte *ba = malloc(sizeof(UByte)*(len));
 	if (ba == NULL)
@@ -592,9 +592,7 @@ void insertBeforeElement3(XMLModifier *xm, UByte* ba, int contentOffset, int con
 		throwException2(modify_exception,
 			"Token type is not a starting tag");
 	}
-	l = getElementFragment(xm->md);
-	offset = (int)l;
-	len = (int)(l>>32);
+	offset = getTokenOffset(xm->md,startTagIndex) - 1;
 	if (xm->encoding < FORMAT_UTF_16BE)
 		insertBytesAt2(xm, offset, (((Long)contentLen)<<32)|((int)ba+contentOffset));
 	else 
@@ -613,9 +611,7 @@ void insertBeforeElement4(XMLModifier *xm, ElementFragmentNs *ef){
 		throwException2(modify_exception,
 			"Token type is not a starting tag");
 	}
-	l = getElementFragment(xm->md);
-	offset = (int)l;
-	len = (int)(l>>32);
+	offset = getTokenOffset(xm->md,startTagIndex) - 1;
 	if (xm->encoding < FORMAT_UTF_16BE)
 		insertBytesAt3(xm,offset,ef);
 	else 
@@ -788,6 +784,9 @@ void output(XMLModifier *xm, FILE *f){
 					if (k!=t-offset)
 						throwException2(io_exception,"fwrite didn't complete");
 					writeFragmentToFile2((ElementFragmentNs*)lower32At(xm->fob,i),f,xm->encoding);
+
+					//writeFragmentToFile((ElementFragmentNs*)lower32At(xm->fob,i),f);
+
 					offset=lower32At(xm->flb,i);
 				}
 			} else {
@@ -935,6 +934,9 @@ void resetXMLModifier(XMLModifier *xm){
 	}
 }
 
+/*
+	
+*/
 void updateElementName(XMLModifier *xm, UCSChar* newElementName){
 	exception e;
 	int i = getCurrentIndex(xm->md);
@@ -997,7 +999,7 @@ void updateElementName(XMLModifier *xm, UCSChar* newElementName){
 }
 
 /*
-	
+	Insert the transcoded representation of a byte array after the cursor element
 */
 void insertAfterElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int arrayLen){
 	if(src_encoding == xm->encoding){
@@ -1021,7 +1023,7 @@ void insertAfterElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, in
 }
 
 /*
-
+	Insert the transcoded representation of a byte array before the cursor element
 */
 void insertBeforeElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int arrayLen){
 	    if (src_encoding == xm->encoding) {
@@ -1036,14 +1038,14 @@ void insertBeforeElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, i
             offset = getTokenOffset(xm->md,startTagIndex) - 1;
             bo = Transcoder_transcode(ba,0,arrayLen,src_encoding, xm->encoding); 
             if (xm->encoding < FORMAT_UTF_16BE)
-                insertBytesAt(xm,offset,bo);
+              insertBytesAt(xm,offset,bo);
             else
-                insertBytesAt(xm,(offset) << 1, bo);
+              insertBytesAt(xm,(offset) << 1, bo);
         }
 }
 
 /*
-
+	Insert the transcoded representation of a byte array segment after the cursor element
 */
 void insertAfterElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen){
 	if (src_encoding == xm->encoding) {
@@ -1065,7 +1067,7 @@ void insertAfterElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, in
 }
 
 /*
-
+	Insert the transcoded representation of a byte array segment before the cursor element
 */
 void insertBeforeElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen){
 	if (src_encoding == xm->encoding) {
@@ -1080,10 +1082,10 @@ void insertBeforeElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, i
 		offset = getTokenOffset(xm->md,startTagIndex) - 1;
 		// do transcoding here
 		bo = Transcoder_transcode(ba,contentOffset,contentLen,src_encoding, xm->encoding);
-		if (xm->encoding < FORMAT_UTF_16BE)
-			insertBytesAt(xm,offset, bo);
-		else
-			insertBytesAt(xm,(offset) << 1, bo);
+		//if (xm->encoding < FORMAT_UTF_16BE)
+		insertBytesAt(xm,offset, bo);
+		//else
+		//	insertBytesAt(xm,(offset) << 1, bo);
 	}
 }
 
