@@ -166,7 +166,7 @@ Long UTF8_Coder_decode(UByte *input,int offset){
 	Long l = 0;
 	int c=0;
 	UByte val = input[offset];
-	if (val > 0){
+	if (val <128){
 		l = offset + 1;
 		return (l<<32) | val; 
 	}
@@ -380,7 +380,7 @@ void Transcoder_transcodeAndFill(UByte* input, UByte* output,int offset, int len
 	int k = offset;
 	int c, i = 0;
 	while (k < offset + length) {
-		long l = Transcoder_decode(input, k, input_encoding);
+		Long l = Transcoder_decode(input, k, input_encoding);
 		k = (int) (l >> 32);
 		c = (int) l;
 		i = Transcoder_encode(output, i, c, output_encoding);
@@ -393,7 +393,7 @@ void Transcoder_transcodeAndFill2(int initOutPosition, UByte* input, UByte* outp
 	int k = offset;
 	int c, i = initOutPosition;
 	while (k < offset + length) {
-		long l = Transcoder_decode(input, k, input_encoding);
+		Long l = Transcoder_decode(input, k, input_encoding);
 		k = (int) (l >> 32);
 		c = (int) l;
 		i = Transcoder_encode(output, i, c, output_encoding);
@@ -406,7 +406,7 @@ void Transcoder_transcodeAndWrite(UByte* input, FILE* f,int offset, int length, 
 	int k = offset;
 	int c;
 	while (k < offset + length) {
-		long l = Transcoder_decode(input, k, input_encoding);
+		Long l = Transcoder_decode(input, k, input_encoding);
 		k = (int) (l >> 32);
 		c = (int) l;
 		Transcoder_encodeAndWrite(f, c, output_encoding);
