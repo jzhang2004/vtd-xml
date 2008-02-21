@@ -34,6 +34,14 @@
  * the created BookMark instance.
  */
 package com.ximpleware;
+
+/**
+ * Bookmark is a single instance of a node position.
+ * You can save the cursor's position into a bookMark instance
+ * You can also point the cursor to the node position of  previously 
+ * saved bookMark instance. 
+ * 
+ */
 public class BookMark {
     VTDNav vn1; // the reference to the corresponding VTDNav object
     int ba[];
