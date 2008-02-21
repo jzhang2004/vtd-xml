@@ -23,7 +23,10 @@ import java.io.*;
  * 
  */
 import com.ximpleware.transcode.Transcoder;
-
+/**
+ *	ElementFragmentNs represents a name-space compensated element fragment 
+ *
+ */
 public class ElementFragmentNs {
     VTDNav vn;
     long l;
