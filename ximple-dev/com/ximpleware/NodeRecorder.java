@@ -18,8 +18,9 @@
 package com.ximpleware;
 
 /**
- * 
- * Node record allows one to record the node position of VTDNav. However, the
+ * Node record allows one to record the node position of VTDNav. You 
+ * can store/load multiple node position using NodeRecorder, which is 
+ * also more spatially efficient than . However, the
  * internal representation of node is variable in length and recording a large
  * number of nodes could consume much memory. It is a <em>bad</em> idea to
  * record every node of an document. So be careful when using it.
