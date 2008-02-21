@@ -25,6 +25,7 @@ import com.ximpleware.transcode.*;
  * The XML modifier assumes there is a master document on which
  * the modification is applied: users can remove an element, update
  * a token, replace an element name, or insert new content anywhere in the document
+ * transcoding methods are built-in
  * 
  * The process:
  * * The modification operations are recorded first
@@ -927,7 +928,7 @@ public class XMLModifier {
      */
     public void insertBeforeElement(int src_encoding, byte[] b)
     	throws ModifyException,TranscodeException{
-        if (encoding == md.encoding) {
+        if (src_encoding == md.encoding) {
             insertBeforeElement(b);
         } else {
             int startTagIndex = md.getCurrentIndex();
