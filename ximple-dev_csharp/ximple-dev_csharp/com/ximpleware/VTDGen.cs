@@ -1749,6 +1749,7 @@ namespace com.ximpleware
             BOM_detected = false;
             must_utf_8 = false;
             ch = ch_temp = 0;
+            r = new UTF8Reader(this);
         }
         /// <summary> This method will detect whether the entity is valid or not and increment offset.</summary>
         /// <returns> int
@@ -2063,7 +2064,7 @@ namespace com.ximpleware
                     numBytesToRead -= n;
                 }
                 this.setDoc(b);
-                this.parse(true);
+                this.parse(ns);
                 return true;
             }
             catch
