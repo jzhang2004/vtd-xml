@@ -954,7 +954,7 @@ public class VTDGen {
 		BOM_detected = false;
 		must_utf_8 = false;
 		ch = ch_temp = 0;
-
+		
 	}
 
 	/**
@@ -1260,6 +1260,7 @@ public class VTDGen {
 				docOffset,
 				docLen);
 		clear();
+		r = new UTF8Reader();
 		return vn;
 	}
 	/**
