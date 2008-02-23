@@ -165,6 +165,7 @@ void clear(VTDGen *vg){
 	vg->BOM_detected = FALSE;
 	vg->must_utf_8 = FALSE;
 	vg->ch = vg->ch_temp = 0;
+	vg->encoding = FORMAT_UTF8;
 
 }
 
