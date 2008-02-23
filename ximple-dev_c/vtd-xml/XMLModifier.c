@@ -869,7 +869,7 @@ static void check(XMLModifier *xm){
 		}
 	}
 }
-static quickSort(XMLModifier* xm, int lo, int hi){
+static void quickSort(XMLModifier* xm, int lo, int hi){
 	int i=lo, j=hi; 
 	Long h;
 	Long o;
@@ -1003,7 +1003,7 @@ void updateElementName(XMLModifier *xm, UCSChar* newElementName){
 */
 void insertAfterElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int arrayLen){
 	if(src_encoding == xm->encoding){
-		insertAfterElement(xm, ba, arrayLen);
+		insertAfterElement2(xm, ba, arrayLen);
 	}
 	else {    
 		int startTagIndex =getCurrentIndex(xm->md);
@@ -1027,7 +1027,7 @@ void insertAfterElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, in
 */
 void insertBeforeElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int arrayLen){
 	    if (src_encoding == xm->encoding) {
-            insertBeforeElement(xm,ba, arrayLen);
+            insertBeforeElement2(xm,ba, arrayLen);
         } else {
             int startTagIndex = getCurrentIndex(xm->md);
             int offset, type = getTokenType(xm->md,startTagIndex);
@@ -1049,12 +1049,12 @@ void insertBeforeElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, i
 */
 void insertAfterElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen){
 	if (src_encoding == xm->encoding) {
-		insertAfterElement(xm,ba,contentOffset,contentLen);
+		insertAfterElement3(xm,ba,contentOffset,contentLen);
 	} else {
 		int startTagIndex = getCurrentIndex(xm->md);
 		int offset, len, type = getTokenType(xm->md,startTagIndex);
 		Long l;
-		UByte *bo;
+		Long bo;
 		if (type != TOKEN_STARTING_TAG)
 			throwException2(modify_exception,"Token type is not a starting tag");
 		l = getElementFragment(xm->md);
@@ -1071,7 +1071,7 @@ void insertAfterElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, in
 */
 void insertBeforeElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen){
 	if (src_encoding == xm->encoding) {
-		insertBeforeElement(xm,ba,contentOffset, contentLen);
+		insertBeforeElement3(xm,ba,contentOffset, contentLen);
 	} else {
 		int startTagIndex = getCurrentIndex(xm->md);
 		int offset, type = getTokenType(xm->md, startTagIndex);
@@ -1083,7 +1083,7 @@ void insertBeforeElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, i
 		// do transcoding here
 		bo = Transcoder_transcode(ba,contentOffset,contentLen,src_encoding, xm->encoding);
 		if (xm->encoding < FORMAT_UTF_16BE)
-		  insertBytesAt(xm,offset, bo);
+			insertBytesAt(xm,offset, bo);
 		else
 			insertBytesAt(xm,(offset) << 1, bo);
 	}
