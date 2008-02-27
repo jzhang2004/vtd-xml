@@ -2107,7 +2107,7 @@ void setDoc_BR(VTDGen *vg, UByte *ba, int len){
 
 //Set the XMLDoc container.Also set the offset and len of the document 
 void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
-	int a;
+	int a,i1=7,i2=9,i3=11;
 	vg->br = TRUE;
 	vg->depth = -1;
 	vg->increment = 1;
@@ -2123,9 +2123,9 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
 	if (vg->VTDBuffer == NULL){
 		if (vg->docLen <= 1024) {
-			a = 7;
+			a = 6; i1=5; i2=5;i3=5;
 		} else if (vg->docLen <= 4096 * 2){
-			a = 9;
+			a = 7; i1=6; i2=6; i3=6;
 		}
 		else if (vg->docLen <= 1024 * 16 * 4) {
 			a = 10;
@@ -2135,9 +2135,9 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 			a = 15;
 		}
 		vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
-		vg->l1Buffer = createFastLongBuffer2(7); 
-		vg->l2Buffer = createFastLongBuffer2(9);
-		vg->l3Buffer = createFastIntBuffer2(11); 
+		vg->l1Buffer = createFastLongBuffer2(i1); 
+		vg->l2Buffer = createFastLongBuffer2(i2);
+		vg->l3Buffer = createFastIntBuffer2(i3); 
 	}
 	else {
 		clearFastLongBuffer(vg->VTDBuffer);
@@ -2157,7 +2157,7 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
    len is the size of the byte buffer
    docLen is the length of the XML content in byte */
 void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
-	int a;
+	int a,i1=7,i2=9,i3=11;
 	vg->br = FALSE;
 	vg->depth = -1;
 	vg->increment = 1;
@@ -2172,9 +2172,9 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->endOffset = os + docLen;
 	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
 	if (vg->docLen <= 1024) {		
-		a = 7;
+		a = 6; i1=5; i2=5;i3=5;
 	} else if (vg->docLen <= 4096 * 2){
-		a = 9;
+		a = 7; i1=6; i2=6; i3=6;
 	}
 	else if (vg->docLen <= 1024 * 16 * 4) {
 		a = 10;
@@ -2191,9 +2191,9 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 		freeFastIntBuffer(vg->l3Buffer);		
 	}
 	vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
-	vg->l1Buffer = createFastLongBuffer2(7);
-	vg->l2Buffer = createFastLongBuffer2(9); 
-	vg->l3Buffer = createFastIntBuffer2(11);
+	vg->l1Buffer = createFastLongBuffer2(i1);
+	vg->l2Buffer = createFastLongBuffer2(i2); 
+	vg->l3Buffer = createFastIntBuffer2(i3);
 
 	vg->stateTransfered = FALSE;
 }
