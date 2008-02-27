@@ -64,7 +64,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 			int a;
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			a= XMLDoc[offset++];
 			if (a<0)
 				throw new ParseException(
@@ -92,7 +92,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_10.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -112,7 +112,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return XMLDoc[offset++] & 0xff;
 		}
 		public boolean skipChar(int ch)
@@ -133,7 +133,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_2.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -153,7 +153,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_3.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -174,7 +174,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_4.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -195,7 +195,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_5.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -216,7 +216,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_6.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -236,7 +236,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_7.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -257,7 +257,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_8.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -278,7 +278,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_9.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -299,7 +299,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_11.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -319,7 +319,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_13.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -339,7 +339,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_14.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -359,7 +359,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return ISO8859_15.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -379,7 +379,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 			int val = 0;
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			int temp = (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
 			if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
 				offset += 2;
@@ -436,7 +436,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 			int val = 0;
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			int temp = (XMLDoc[offset + 1] &0xff) << 8 | (XMLDoc[offset]& 0xff);
 			if (temp < 0xd800 || temp > 0xdfff) { // check for low surrogate
 				offset += 2;
@@ -494,7 +494,7 @@ public class VTDGen {
 		public int getChar()
 			throws EOFException, ParseException, EncodingException {
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			int temp = XMLDoc[offset];
 			//int a = 0, c = 0, d = 0, val = 0;
 			if (temp >= 0) {
@@ -624,7 +624,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1250.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -644,7 +644,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1251.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -668,7 +668,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1252.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -689,7 +689,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1253.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -710,7 +710,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1254.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -731,7 +731,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1255.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -752,7 +752,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1256.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -773,7 +773,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1257.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -794,7 +794,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw e;
 			return WIN1258.decode(XMLDoc[offset++]);
 		}
 		public boolean skipChar(int ch)
@@ -923,6 +923,7 @@ public class VTDGen {
 	protected FastLongBuffer VTDBuffer;
 	protected int VTDDepth; // Maximum Depth of VTDs
 	protected byte[] XMLDoc;
+	protected EOFException e;
 	
 	/**
 	 * VTDGen constructor method.
@@ -934,6 +935,7 @@ public class VTDGen {
 		VTDDepth = 0;
 		r = new UTF8Reader();
 		br = false;
+		e =  new EOFException("permature EOF reached, XML document incomplete");
 	}
 	/**
 	 * Clear internal states so VTDGEn can process the next file.
