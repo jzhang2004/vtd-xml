@@ -290,6 +290,8 @@ namespace com.ximpleware
         // max Token length
         public const int MAX_TOKEN_LENGTH = (1 << 20) - 1;
 
+        public EOFException e = null;
+
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_2Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
         internal class ISO8859_2Reader : IReader
         {
@@ -304,7 +306,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_2.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -348,7 +350,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_3.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -393,7 +395,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_4.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -438,7 +440,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_5.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -483,7 +485,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_6.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -527,7 +529,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_7.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -572,7 +574,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_8.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -617,7 +619,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_9.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -662,7 +664,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_10.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -705,7 +707,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_11.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -748,7 +750,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_13.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -791,7 +793,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_14.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -834,7 +836,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return ISO8859_15.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -878,7 +880,7 @@ namespace com.ximpleware
                 get
                 {
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     int temp = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
                     //int a = 0, c = 0, d = 0, val = 0;
                     if (temp < 128)
@@ -1050,7 +1052,7 @@ namespace com.ximpleware
                 {
                     int val = 0;
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]);
                     if ((temp < 0xd800) || (temp > 0xdfff))
                     {
@@ -1140,7 +1142,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1250.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1184,7 +1186,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1251.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1232,7 +1234,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1252.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1277,7 +1279,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1253.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1322,7 +1324,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1254.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1367,7 +1369,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1255.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1412,7 +1414,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1256.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1457,7 +1459,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1257.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1502,7 +1504,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return WIN1258.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++]);
                 }
 
@@ -1546,7 +1548,7 @@ namespace com.ximpleware
                 {
                     int val = 0;
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     int temp = (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset + 1]) << 8 | (Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]);
                     if (temp < 0xd800 || temp > 0xdfff)
                     {
@@ -1639,7 +1641,7 @@ namespace com.ximpleware
                 {
                     int a;
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     a = Enclosing_Instance.XMLDoc[Enclosing_Instance.offset];
                     if (a > 127)
                         throw new EncodingException("ASCII encoding error: invalid ASCII char");
@@ -1688,7 +1690,7 @@ namespace com.ximpleware
                 {
 
                     if (Enclosing_Instance.offset >= Enclosing_Instance.endOffset)
-                        throw new EOFException("permature EOF reached, XML document incomplete");
+                        throw enclosingInstance.e;
                     return Enclosing_Instance.XMLDoc[Enclosing_Instance.offset++];
                 }
 
@@ -1729,6 +1731,7 @@ namespace com.ximpleware
             VTDDepth = 0;
             r = new UTF8Reader(this);
             br = false;
+            e = new EOFException("permature EOF reached, XML document incomplete");
         }
         /// <summary> Clear internal states so VTDGEn can process the next file.</summary>
         public void clear()
@@ -2989,6 +2992,7 @@ namespace com.ximpleware
                             encoding = FORMAT_ISO_8859_1;
                             r = new ISO8859_1Reader(this);
                             writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                            return;
                         }
                         else if (r.skipChar('0'))
                         {
@@ -3998,14 +4002,15 @@ namespace com.ximpleware
             docLen = len;
             endOffset = os + len;
             last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
+            int i1 = 7, i2 = 9, i3 = 11;
             if (docLen <= 1024)
             {
                 //a = 1024; //set the floor
-                a = 8;
+                a = 6; i1 = 5; i2 = 5; i3 = 5;
             }
             else if (docLen <= 4096)
             {
-                a = 10;
+                a = 7; i1 = 6; i2 = 6; i3 = 6;
             }
             else if (docLen <= 1024 * 16 * 4)
             {
@@ -4025,9 +4030,9 @@ namespace com.ximpleware
             if (VTDBuffer == null)
             {
                 VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
-                l1Buffer = new FastLongBuffer(7);
-                l2Buffer = new FastLongBuffer(9);
-                l3Buffer = new FastIntBuffer(11);
+                l1Buffer = new FastLongBuffer(i1);
+                l2Buffer = new FastLongBuffer(i2);
+                l3Buffer = new FastIntBuffer(i3);
             }
             else
             {
@@ -4056,7 +4061,6 @@ namespace com.ximpleware
         /// </param>
         public void setDoc(byte[] ba, int os, int len)
         {
-
             int a;
             br = false;
             depth = -1;
@@ -4070,14 +4074,15 @@ namespace com.ximpleware
             docLen = len;
             endOffset = os + len;
             last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
+            int i1 = 7, i2 = 9, i3 = 11;
             if (docLen <= 1024)
             {
                 //a = 1024; //set the floor
-                a = 8;
+                a = 6; i1 = 5; i2 = 5; i3 = 5;
             }
             else if (docLen <= 4096)
             {
-                a = 10;
+                a = 7; i1 = 6; i2 = 6; i3 = 6;
             }
             else if (docLen <= 1024 * 16 * 4)
             {
@@ -4096,9 +4101,9 @@ namespace com.ximpleware
             }
 
             VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
-            l1Buffer = new FastLongBuffer(7);
-            l2Buffer = new FastLongBuffer(9);
-            l3Buffer = new FastIntBuffer(11);
+            l1Buffer = new FastLongBuffer(i1);
+            l2Buffer = new FastLongBuffer(i2);
+            l3Buffer = new FastIntBuffer(i3);
             ;
         }
         /// <summary> Write the VTD and LC into their storage container.</summary>
