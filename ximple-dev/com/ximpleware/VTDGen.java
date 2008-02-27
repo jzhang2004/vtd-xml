@@ -3420,11 +3420,12 @@ public class VTDGen {
 		docLen = len;
 		endOffset = os + len;
 		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
+		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
-			a = 8;
+			a = 6; i1=5; i2=5;i3=5;
 		} else if (docLen <=4096){
-		    a = 10;
+		    a = 7; i1=6; i2=6; i3=6;
 		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
 			a = 11;
@@ -3437,9 +3438,9 @@ public class VTDGen {
 		}
 		
 		VTDBuffer = new FastLongBuffer(a, len>> (a+1));
-		l1Buffer = new FastLongBuffer(7);
-		l2Buffer = new FastLongBuffer(9);
-		l3Buffer = new FastIntBuffer(11);
+		l1Buffer = new FastLongBuffer(i1);
+		l2Buffer = new FastLongBuffer(i2);
+		l3Buffer = new FastIntBuffer(i3);
 	}
 	/**
 	 * The buffer-reuse version of setDoc
@@ -3482,11 +3483,12 @@ public class VTDGen {
 		docLen = len;
 		endOffset = os + len;
 		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
+		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
-			a = 8;
+		    a = 6; i1=5; i2=5;i3=5;
 		} else if (docLen <=4096){
-		    a = 10;
+		    a = 7; i1=6; i2=6; i3=6;
 		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
 			a = 11;
@@ -3499,9 +3501,9 @@ public class VTDGen {
 		}
 		if (VTDBuffer == null){
 		    VTDBuffer = new FastLongBuffer(a, len>> (a+1));
-		    l1Buffer = new FastLongBuffer(7);
-		    l2Buffer = new FastLongBuffer(9);
-		    l3Buffer = new FastIntBuffer(11);
+		    l1Buffer = new FastLongBuffer(i1);
+		    l2Buffer = new FastLongBuffer(i2);
+		    l3Buffer = new FastIntBuffer(i3);
 		} else {
 		    VTDBuffer.clear();
 		    l1Buffer.clear();
