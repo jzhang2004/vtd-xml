@@ -2127,6 +2127,9 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 		} else if (vg->docLen <= 4096 * 2){
 			a = 7; i1=6; i2=6; i3=6;
 		}
+		else if (vg->docLen <=1024*16){
+		    a =8; i1 = 7;i2=7;i3=7;
+		}
 		else if (vg->docLen <= 1024 * 16 * 4) {
 			a = 10;
 		} else if (vg->docLen <= 1024 * 256) {
@@ -2175,6 +2178,8 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 		a = 6; i1=5; i2=5;i3=5;
 	} else if (vg->docLen <= 4096 * 2){
 		a = 7; i1=6; i2=6; i3=6;
+	}else if (vg->docLen <=1024*16){
+		    a =8; i1 = 7;i2=7;i3=7;
 	}
 	else if (vg->docLen <= 1024 * 16 * 4) {
 		a = 10;
