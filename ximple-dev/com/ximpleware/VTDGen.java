@@ -3426,6 +3426,8 @@ public class VTDGen {
 			a = 6; i1=5; i2=5;i3=5;
 		} else if (docLen <=4096){
 		    a = 7; i1=6; i2=6; i3=6;
+		}else if (docLen <=1024*16){
+		    a =8; i1 = 7;i2=7;i3=7;
 		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
 			a = 11;
@@ -3489,9 +3491,11 @@ public class VTDGen {
 		    a = 6; i1=5; i2=5;i3=5;
 		} else if (docLen <=4096){
 		    a = 7; i1=6; i2=6; i3=6;
+		}else if (docLen <=1024*16){
+		    a =8; i1 = 7;i2=7;i3=7;
 		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
-			a = 11;
+			a = 11; i2 = 8; i3 =8;
 		} else if (docLen <= 1024 * 256) {
 			//a = 1024 * 4;
 			a = 12;
