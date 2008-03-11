@@ -957,7 +957,7 @@ namespace com.ximpleware
         protected internal ILongBuffer l1Buffer;
         protected internal ILongBuffer l2Buffer;
         protected internal IIntBuffer l3Buffer;
-        private IByteBuffer XMLDoc;
+        protected internal IByteBuffer XMLDoc;
 
         //private int recentNS; // most recently visited NS node, experiment for now
         // Hierarchical representation is an array of integers addressing elements tokens 
