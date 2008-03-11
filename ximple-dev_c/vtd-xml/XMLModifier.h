@@ -83,6 +83,7 @@ void removeContent(XMLModifier *xm, int offset, int len);
 void updateToken(XMLModifier *xm, int index, UCSChar *newContent);
 void updateToken2(XMLModifier *xm, int index, UByte *byteContent, int contentOffset, int contentLen);
 void updateToken3(XMLModifier *xm, int index, UByte *byteContent, int contentOffset, int contentLen, encoding_t src_encoding);
+void updateToken4(XMLModifier *xm, int index, VTDNav *vn, int contentOffset, int contentLen);
 
 void insertAfterElement(XMLModifier *xm, UCSChar *s);
 void insertBeforeElement(XMLModifier *xm, UCSChar *s);
@@ -103,6 +104,8 @@ void insertBeforeElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, i
 void insertAfterElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen);
 void insertBeforeElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen);
 
+void insertAfterElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen);
+void insertBeforeElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen);
 /*
 void updateToken2(XMLModifier *xm, int index, UByte *newContentBytes, int len);
 void insertAfterElement2(XMLModifier *xm, UByte *b, int len);
