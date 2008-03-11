@@ -4124,11 +4124,8 @@ namespace com.ximpleware
             int type = getTokenType(index);
             if (type != TOKEN_CHARACTER_DATA && type != TOKEN_ATTR_VAL)
                 return toRawString(index);
-            int len;
-            if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)
-                len = getTokenLength(index) & 0xffff;
-            else
-                len = getTokenLength(index);
+            
+            int len = getTokenLength(index);
             int offset = getTokenOffset(index);
 
             return toString(offset, len);
@@ -4465,11 +4462,7 @@ namespace com.ximpleware
             if (type != TOKEN_CHARACTER_DATA && type != TOKEN_ATTR_VAL)
                 return getRawStringLength(index);
             int len = 0, len1 = 0;
-            if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME
-                    || type == TOKEN_ATTR_NS)
-                len = getTokenLength(index) & 0xffff;
-            else
-                len = getTokenLength(index);
+            len = getTokenLength(index);
             int offset = getTokenOffset(index);
             int endOffset = offset + len;
             long l;
