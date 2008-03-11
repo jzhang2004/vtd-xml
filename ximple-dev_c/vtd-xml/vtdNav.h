@@ -353,9 +353,16 @@ Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName);
 Long getIndexSize2(VTDNav *vn);
 
 /* dump XML text into a given file name */
-void dumpXML(char *fileName);
+void dumpXML(VTDNav *vn, char *fileName);
 
 /* dump XML text into a given file descriptor */
-void dumpXML2(FILE *f);
+void dumpXML2(VTDNav *vn, FILE *f);
+
+/*Get the string length as if the token is converted into a normalized UCS string */
+int getNormalizedStringLength(VTDNav *vn, int index);
+/*Get the string length as if the token is converted into a UCS string (entity resolved) */
+int getStringLength(VTDNav *vn, int index);
+/*Get the string length as if the token is converted into a UCS string (entity not resolved) */
+int getRawStringLength(VTDNav *vn, int index);
 
 #endif
