@@ -503,14 +503,12 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 			    				            
 											if (type == TOKEN_ATTR_NAME 
 			    				                || type == TOKEN_ATTR_NS){
-													tmpString = toString(vn,vn->LN+1);
+													len = getStringLength(vn,vn->LN+1);
 			    				                //return vn.toString(vn.LN+1).length();
 			    				            } else {
-												tmpString = toString(vn,vn->LN+1);
+												    len = getStringLength(vn,vn->LN);
 			    				                //return vn.toString(vn.LN).length();
-			    				            }
-											len = wcslen(tmpString);
-											free(tmpString);
+			    				            }											
 											return len;
 											
 			    				        }else {
@@ -518,10 +516,7 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 			    				            if (i==-1)
 			    				                return 0;
 											else {
-												tmpString = toString(vn,vn->LN+1);
-												len = wcslen(tmpString);
-												free(tmpString);
-			    				                return len;
+												return getStringLength(vn,i);
 											}
 			    				        }
 			    				    }Catch ( e){
