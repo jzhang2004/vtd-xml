@@ -3690,12 +3690,7 @@ public class VTDNav {
 			return toRawString(index); 
 		long l;
 		int len;
-		if (type == TOKEN_STARTING_TAG
-			|| type == TOKEN_ATTR_NAME
-			|| type == TOKEN_ATTR_NS)
-			len = getTokenLength(index) & 0xffff;
-		else
-			len = getTokenLength(index);
+		len = getTokenLength(index);
 		if (len == 0)
 			return "";
 		int offset = getTokenOffset(index);
@@ -3755,12 +3750,7 @@ public class VTDNav {
 			return getRawStringLength(index); 
 		long l;
 		int len,len1=0;
-		if (type == TOKEN_STARTING_TAG
-			|| type == TOKEN_ATTR_NAME
-			|| type == TOKEN_ATTR_NS)
-			len = getTokenLength(index) & 0xffff;
-		else
-			len = getTokenLength(index);
+		len = getTokenLength(index);
 		if (len == 0)
 			return 0;
 		int offset = getTokenOffset(index);
