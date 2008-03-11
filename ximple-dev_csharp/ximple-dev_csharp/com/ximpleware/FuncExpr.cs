@@ -533,11 +533,11 @@ namespace com.ximpleware
 								int type = vn.getTokenType(vn.LN);
 								if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
 								{
-									return vn.toString(vn.LN + 1).Length;
+									return vn.getStringLength(vn.LN + 1);
 								}
 								else
 								{
-									return vn.toString(vn.LN).Length;
+									return vn.getStringLength(vn.LN);
 								}
 							}
 							else
@@ -546,7 +546,7 @@ namespace com.ximpleware
 								if (i == - 1)
 									return 0;
 								else
-									return vn.toString(i).Length;
+									return vn.getStringLength(i);
 							}
 						}
 						catch (NavException e)
