@@ -239,8 +239,10 @@ Long ASCII_Coder_decode(UByte *input,int offset){
 }
 
 int ASCII_Coder_getLen(int ch){
-	if (ch>127)
+	if (ch>127){
 		throwException2(transcode_exception,"Invalid UCS char for ASCII format");
+		return -1;
+	}
 	else
 		return 1;
 }
@@ -344,7 +346,7 @@ int  Transcoder_getLen(int ch, encoding_t output_encoding){
 	}
 }
 
-int  Transcoder_getOutLength(UByte* input, int offset,int length,int input_encoding, encoding_t output_encoding){
+int  Transcoder_getOutLength(UByte* input, int offset,int length,encoding_t input_encoding, encoding_t output_encoding){
 	int len = 0;
 	int k = offset;
 	int c;
@@ -357,7 +359,7 @@ int  Transcoder_getOutLength(UByte* input, int offset,int length,int input_encod
 	return len;
 }
 
-Long Transcoder_transcode(UByte* input, int offset, int length, int input_encoding, encoding_t output_encoding){
+Long Transcoder_transcode(UByte* input, int offset, int length, encoding_t input_encoding, encoding_t output_encoding){
 	//check input and output encoding
 
 	// calculate the length of the output byte array
@@ -398,7 +400,6 @@ void Transcoder_transcodeAndFill2(int initOutPosition, UByte* input, UByte* outp
 		c = (int) l;
 		i = Transcoder_encode(output, i, c, output_encoding);
 	}
-	return i;
 }
 
 void Transcoder_transcodeAndWrite(UByte* input, FILE* f,int offset, int length, encoding_t input_encoding, encoding_t output_encoding){
