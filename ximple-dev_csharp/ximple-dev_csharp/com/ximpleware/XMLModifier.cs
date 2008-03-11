@@ -1383,5 +1383,59 @@ namespace com.ximpleware
                 removeContent(temp + 2, len << 1);
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <param name="contentOffset"></param>
+        /// <param name="contentLen"></param>
+        public void insertBeforeElement(VTDNav vn, int contentOffset, int contentLen)
+        {
+            insertBeforeElement(vn.encoding, vn.XMLDoc.getBytes(), contentOffset, contentLen);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <param name="l"></param>
+        public void insertBeforeElement(VTDNav vn, long l)
+        {
+            insertBeforeElement(vn.encoding, vn.XMLDoc.getBytes(), l);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <param name="contentOffset"></param>
+        /// <param name="contentLen"></param>
+        public void insertAfterElement(VTDNav vn, int contentOffset, int contentLen)
+        {
+            insertAfterElement(vn.encoding, vn.XMLDoc.getBytes(), contentOffset, contentLen);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <param name="l1"></param>
+        public void insertAfterElement(VTDNav vn, long l1)
+        {
+            insertAfterElement(vn.encoding, vn.XMLDoc.getBytes(), l1);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="vn"></param>
+        /// <param name="contentOffset"></param>
+        /// <param name="contentLen"></param>
+        public void updateToken(int index, VTDNav vn,
+            int contentOffset, int contentLen)
+        {
+            updateToken(index, vn.XMLDoc.getBytes(), contentOffset, contentLen, vn.encoding);
+        }
     }
 }
