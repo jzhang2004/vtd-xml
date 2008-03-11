@@ -2708,69 +2708,70 @@ Multiple whitespaces char will be collapsed into one.*/
 
 UCSChar *toNormalizedString(VTDNav *vn, int index){
 	tokenType type = getTokenType(vn,index);
-	int len, endOffset;
-	int ch,k,offset;
-	Long l;
-	Boolean d;
-	UCSChar *s = NULL;
+
+	if (type!=TOKEN_CHARACTER_DATA &&
+		type!= TOKEN_ATTR_VAL)
+		return toRawString(vn, index);
+	else {
+		int len, endOffset;
+		int ch,k,offset;
+		Long l;
+		Boolean d;
+		UCSChar *s = NULL;
 
 
-	if (type == TOKEN_STARTING_TAG
-		|| type == TOKEN_ATTR_NAME
-		|| type == TOKEN_ATTR_NS)
-		len = getTokenLength(vn,index) & 0xffff;
-	else 
 		len = getTokenLength(vn,index);
 
-	s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
-	if (s == NULL)
-	{
-		throwException2(out_of_mem,
-			" string allocation failed in toString ");
-	}
-
-	offset = getTokenOffset(vn ,index);
-	endOffset = len + offset - 1; // point to the last character
-
-
-	// trim off the leading whitespaces
-
-	while (TRUE) {
-		int temp = offset;
-		l = getChar(vn,offset);
-		ch = (int)l;
-		offset += (UCSChar)(l>>32);
-
-		if (!isWS(ch)) {
-			offset = temp;
-			break;
+		s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
+		if (s == NULL)
+		{
+			throwException2(out_of_mem,
+				" string allocation failed in toString ");
 		}
-	}
 
-	d = FALSE;
-	k = 0;
-	while (offset <= endOffset) {
-		l= getCharResolved(vn,offset);
-		ch = (int)l;
-		offset += (int)(l>>32);
+		offset = getTokenOffset(vn ,index);
+		endOffset = len + offset - 1; // point to the last character
 
-		if (isWS(ch)&& getCharUnit(vn,offset - 1) != ';') {
-			d = TRUE;
-		} else {
-			if (d == FALSE)
-				//sb.append((char) ch); // java only supports 16 bit unicode
-				s[k++] = ch;
-			else {
-				//sb.append(' ');
-				s[k++] = (UCSChar) ' ';
-				//sb.append((char) ch);
-				s[k++] = (UCSChar) ch;
-				d = FALSE;
+
+		// trim off the leading whitespaces
+
+		while (TRUE) {
+			int temp = offset;
+			l = getChar(vn,offset);
+			ch = (int)l;
+			offset += (UCSChar)(l>>32);
+
+			if (!isWS(ch)) {
+				offset = temp;
+				break;
 			}
 		}
+
+		d = FALSE;
+		k = 0;
+		while (offset <= endOffset) {
+			l= getCharResolved(vn,offset);
+			ch = (int)l;
+			offset += (int)(l>>32);
+
+			if (isWS(ch)&& getCharUnit(vn,offset - 1) != ';') {
+				d = TRUE;
+			} else {
+				if (d == FALSE)
+					//sb.append((char) ch); // java only supports 16 bit unicode
+					s[k++] = ch;
+				else {
+					//sb.append(' ');
+					s[k++] = (UCSChar) ' ';
+					//sb.append((char) ch);
+					s[k++] = (UCSChar) ch;
+					d = FALSE;
+				}
+			}
+		}
+		s[k] = 0;
+		return s;
 	}
-	s[k] = 0;
-	return s;
 }
 
 /*Convert a token at the given index to a String, 
@@ -2826,12 +2827,7 @@ UCSChar *toString(VTDNav *vn, int index){
 		type!= TOKEN_ATTR_VAL)
 		return toRawString(vn,index);
 
-	if (type == TOKEN_STARTING_TAG
-		|| type == TOKEN_ATTR_NAME
-		|| type == TOKEN_ATTR_NS)
-		len = getTokenLength(vn,index) & 0xffff;
-	else 
-		len = getTokenLength(vn,index);
+	len = getTokenLength(vn,index);
 
 	offset = getTokenOffset(vn,index);
 	return toString2(vn,offset,len);
@@ -3551,9 +3547,115 @@ ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
 }
 
 /* dump XML text into a given file name */
-void dumpXML(char *fileName){
+void dumpXML(VTDNav *vn, char *fileName){
+	FILE *f=fopen(fileName,"bw");
+	if (f!=NULL){
+		dumpXML2(vn,f);
+		fclose(f);
+	} else {
+		throwException2(io_exception,"can't open file");
+	}	
 }
 
 /* dump XML text into a given file descriptor */
-void dumpXML2(FILE *f){
+void dumpXML2(VTDNav *vn, FILE *f){	
+	size_t i = fwrite(vn->XMLDoc+vn->docOffset,1,vn->docLen,f);
+	if (i<vn->docLen)
+		throwException2(io_exception, "can't complete the write");	
+}
+
+/* Get the string length of a token as if it is converted into a normalized UCS string*/
+int getNormalizedStringLength(VTDNav *vn, int index){	
+	tokenType type = getTokenType(vn,index);
+	if (type!=TOKEN_CHARACTER_DATA &&
+		type!= TOKEN_ATTR_VAL)
+		return getRawStringLength(vn,index); 
+	else{
+		int len, endOffset, len1=0;
+		int ch,k,offset;
+		Long l;
+		Boolean d;
+
+		len = getTokenLength(vn,index);
+		offset = getTokenOffset(vn ,index);
+		endOffset = len + offset - 1; // point to the last character
+
+		// trim off the leading whitespaces
+		while (TRUE) {
+			int temp = offset;
+			l = getChar(vn,offset);
+			ch = (int)l;
+			offset += (UCSChar)(l>>32);
+
+			if (!isWS(ch)) {
+				offset = temp;
+				break;
+			}
+		}
+
+		d = FALSE;
+		k = 0;
+		while (offset <= endOffset) {
+			l= getCharResolved(vn,offset);
+			ch = (int)l;
+			offset += (int)(l>>32);
+
+			if (isWS(ch)&& getCharUnit(vn,offset - 1) != ';') {
+				d = TRUE;
+			} else {
+				if (d == FALSE)
+					//sb.append((char) ch); // java only supports 16 bit unicode
+					len1++;
+				else {
+					//sb.append(' ');
+					len1 = len1+2;
+					d = FALSE;
+				}
+			}
+		}
+		return len1;
+	}
+}
+
+/* getStringLength return the string length of a token as if the token is converted into 
+   a string (entity resolved)*/
+int getStringLength(VTDNav *vn, int index){
+	    tokenType type = getTokenType(vn,index);
+        if (type != TOKEN_CHARACTER_DATA && type != TOKEN_ATTR_VAL)
+            return getRawStringLength(vn, index);
+		else {
+			int len = 0, len1 = 0, offset, endOffset;
+			Long l;
+			len = getTokenLength(vn, index);
+			offset = getTokenOffset(vn, index);
+			endOffset = offset + len;			
+
+			while (offset < endOffset) {
+				l = getCharResolved(vn,offset);
+				offset += (int) (l >> 32);
+				len1++;
+			}
+			return len1;
+		}
+}
+
+/*Get the string length as if the token is converted into a UCS string (entity not resolved) */
+int getRawStringLength(VTDNav *vn, int index){
+	    tokenType type = getTokenType(vn,index);
+        int len = 0, len1 = 0, offset, endOffset;
+		Long l;
+        if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME
+                || type == TOKEN_ATTR_NS)
+            len = getTokenLength(vn, index) & 0xffff;
+        else
+            len = getTokenLength(vn, index);
+        offset = getTokenOffset(vn,index);
+        endOffset = offset + len;
+        
+        while (offset < endOffset) {
+            l = getChar(vn, offset);
+            offset += (int) (l >> 32);
+            len1++;
+        }
+        return len1;
 }
