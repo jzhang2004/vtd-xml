@@ -491,16 +491,16 @@ public class FuncExpr extends Expr{
 			    					            int type = vn.getTokenType(vn.LN);
 			    					            if (type == VTDNav.TOKEN_ATTR_NAME 
 			    					                || type == VTDNav.TOKEN_ATTR_NS){
-			    					                return vn.toString(vn.LN+1).length();
+			    					                return vn.getStringLength(vn.LN+1);
 			    					            } else {
-			    					                return vn.toString(vn.LN).length();
+			    					                return vn.getStringLength(vn.LN);
 			    					            }
 			    					        }else {
 			    					            int i = vn.getText();
 			    					            if (i==-1)
 			    					                return 0;
 			    					            else 
-			    					                return vn.toString(i).length();
+			    					                return vn.getStringLength(i);
 			    					        }
 			    					    }catch (NavException e){
 			    					        return 0;
