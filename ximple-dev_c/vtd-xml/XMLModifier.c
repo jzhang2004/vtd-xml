@@ -1140,7 +1140,17 @@ void updateToken3(XMLModifier *xm, int index, UByte *byteContent, int contentOff
 	}
 }
 
+void updateToken4(XMLModifier *xm, int index, VTDNav *vn1, int contentOffset, int contentLen){
+	updateToken3(xm,index, vn1->XMLDoc,contentOffset, contentLen, vn1->encoding);
+}
 
+void insertAfterElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
+	insertAfterElement6(xm,vn1->encoding,vn1->XMLDoc,contentOffset,contentLen);
+}
+
+void insertBeforeElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
+	insertBeforeElement6(xm, vn1->encoding,vn1->XMLDoc,contentOffset, contentLen);
+}
 
 /* 
 ByteSegment* createByteSegment(){
