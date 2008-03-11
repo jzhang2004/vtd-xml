@@ -4000,12 +4000,7 @@ namespace com.ximpleware
             int type = getTokenType(index);
             if (type != TOKEN_CHARACTER_DATA && type != TOKEN_ATTR_VAL)
                 return toRawString(index);
-
-            int len;
-            if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)
-                len = getTokenLength(index) & 0xffff;
-            else
-                len = getTokenLength(index);
+            int len = getTokenLength(index);
             if (len == 0)
                 return "";
             int offset = getTokenOffset(index);
@@ -4427,6 +4422,129 @@ namespace com.ximpleware
                 size += (l3Buffer.size() + 1) << 2; //odd
             }
             return size + 64;
+        }
+
+
+
+        /// <summary>
+        /// Get the string length as if the token is converted into a UCS string 
+        /// (entity not resolved)
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public int getRawStringLength(int index)
+        {
+            int type = getTokenType(index);
+            int len = 0, len1 = 0;
+            if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME
+                    || type == TOKEN_ATTR_NS)
+                len = getTokenLength(index) & 0xffff;
+            else
+                len = getTokenLength(index);
+            int offset = getTokenOffset(index);
+            int endOffset = offset + len;
+            long l;
+            while (offset < endOffset)
+            {
+                l = getChar(offset);
+                offset += (int)(l >> 32);
+                len1++;
+            }
+            return len1;
+        }
+
+        /// <summary>
+        /// getStringLength return the string length of a token as if the token is converted into 
+	    /// a string (entity resolved)
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public int getStringLength(int index)
+        {
+            int type = getTokenType(index);
+            if (type != TOKEN_CHARACTER_DATA && type != TOKEN_ATTR_VAL)
+                return getRawStringLength(index);
+            int len = 0, len1 = 0;
+            if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME
+                    || type == TOKEN_ATTR_NS)
+                len = getTokenLength(index) & 0xffff;
+            else
+                len = getTokenLength(index);
+            int offset = getTokenOffset(index);
+            int endOffset = offset + len;
+            long l;
+
+            while (offset < endOffset)
+            {
+                l = getCharResolved(offset);
+                offset += (int)(l >> 32);
+                len1++;
+            }
+            return len1;
+        }
+
+        /// <summary>
+        /// Get the string length of a token as if it is converted into a normalized 
+        /// UCS string
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public int getNormalizedStringLength(int index)
+        {
+            int type = getTokenType(index);
+            if (type != TOKEN_CHARACTER_DATA &&
+                    type != TOKEN_ATTR_VAL)
+                return getRawStringLength(index);
+            long l;
+            int len, len1 = 0;
+            len = getTokenLength(index);
+            if (len == 0)
+                return 0;
+            int offset = getTokenOffset(index);
+            int endOffset = len + offset - 1; // point to the last character
+            //StringBuffer sb = new StringBuffer(len);
+
+            int ch;
+            // trim off the leading whitespaces
+
+            while (true)
+            {
+                int temp = offset;
+                l = getChar(offset);
+
+                ch = (int)l;
+                offset += (int)(l >> 32);
+
+                if (!isWS(ch))
+                {
+                    offset = temp;
+                    break;
+                }
+            }
+
+            bool d = false;
+            while (offset <= endOffset)
+            {
+                l = getCharResolved(offset);
+                ch = (int)l;
+                offset += (int)(l >> 32);
+                if (isWS(ch) && getCharUnit(offset - 1) != ';')
+                {
+                    d = true;
+                }
+                else
+                {
+                    if (d == false)
+                        len1++; // java only supports 16 bit unicode
+                    else
+                    {
+                        len1 = len1 + 2;
+                        d = false;
+                    }
+                }
+            }
+
+            return len1;
         }
     }
 }
