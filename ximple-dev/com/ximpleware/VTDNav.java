@@ -18,7 +18,7 @@
 
 /*
  *
- * this class is created to update VTDNav's implementation with 
+ * This class is created to update VTDNav's implementation with 
  * a more thread safe version
  */
 package com.ximpleware;
@@ -50,8 +50,11 @@ import com.ximpleware.parser.WIN1256;
 import com.ximpleware.parser.WIN1257;
 import com.ximpleware.parser.WIN1258;
 /**
- * The VTD Navigator allows one to navigate XML document represented in VTD records
- * and Location caches * 
+ * The VTD Navigator allows one to navigate XML document represented in VTD
+ * records and Location caches. There is one and only one cursor that you can
+ * navigate to any part of the tree. If a method operating on a node doesn't
+ * accept the node as input, by default it refers to the cursor element. The
+ * hierarchy consists entirely of elements.
  */
 public class VTDNav {
 	// Navigation directions
@@ -120,7 +123,13 @@ public class VTDNav {
 	
 	public final static int FORMAT_UTF_16LE = 64;
 	public final static int FORMAT_UTF_16BE = 63;
-	// masks for obtaining various fields from a VTD token 
+	
+	// String style
+	public final static int STRING_RAW =0;
+	public final static int STRING_REGULAR = 1;
+	public final static int STRING_NORMALIZED = 2;
+	
+	// masks for obtaining various fields from a VTD token
 	private final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
 	private final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
 	private final static long MASK_TOKEN_QN_LEN = 0x000007ff00000000L;
@@ -154,42 +163,56 @@ public class VTDNav {
 	protected IIntBuffer l3Buffer;
 	protected IByteBuffer XMLDoc;
 
-	//private int recentNS; // most recently visited NS node, experiment for now
-	// Hierarchical representation is an array of integers addressing elements tokens 
+	//private int recentNS; // most recently visited NS node, experiment for
+    // now
+	// Hierarchical representation is an array of integers addressing elements
+    // tokens
 	private ContextBuffer contextStack;
 	protected ContextBuffer contextStack2;// this is reserved for XPath
 
 	protected int LN; // record txt and attrbute for XPath eval purposes
-	// the document encoding	     
+	// the document encoding
 	protected int encoding;
 	//protected boolean writeOffsetAdjustment;
 	// for string to token comparison
 	//protected int currentOffset;
 	//protected int currentOffset2;
 
-	// whether the navigation is namespace enabled or not. 
+	// whether the navigation is namespace enabled or not.
 	protected boolean ns;
 
-	// intermediate buffer for push and pop purposes  
+	// intermediate buffer for push and pop purposes
 	protected int[] stackTemp;
 	protected int docOffset;
 	// length of the document
 	protected int docLen;
 	protected int vtdSize; //vtd record count
 	/**
-	 * Initialize the VTD navigation object.
-	 * @param RootIndex int
-	 * @param maxDepth int
-	 * @param encoding int
-	 * @param NS  boolean
-	 * @param x byte[]
-	 * @param vtd com.ximpleware.ILongBuffer
-	 * @param l1 com.ximpleware.ILongBuffer
-	 * @param l2 com.ximpleware.ILongBuffer
-	 * @param l3 com.ximpleware.IIntBuffer
-	 * @param so int  starting offset of the document(in byte)
-	 * @param length int length of the document (in byte)
-	 */
+     * Initialize the VTD navigation object.
+     * 
+     * @param RootIndex
+     *            int
+     * @param maxDepth
+     *            int
+     * @param encoding
+     *            int
+     * @param NS
+     *            boolean
+     * @param x
+     *            byte[]
+     * @param vtd
+     *            com.ximpleware.ILongBuffer
+     * @param l1
+     *            com.ximpleware.ILongBuffer
+     * @param l2
+     *            com.ximpleware.ILongBuffer
+     * @param l3
+     *            com.ximpleware.IIntBuffer
+     * @param so
+     *            int starting offset of the document(in byte)
+     * @param length
+     *            int length of the document (in byte)
+     */
 	protected VTDNav(
 		int RootIndex,
 		int enc,
@@ -200,8 +223,8 @@ public class VTDNav {
 		ILongBuffer l1,
 		ILongBuffer l2,
 		IIntBuffer l3,
-		int so, // start offset of the starting offset(in byte) 
-	int length) // lengnth of the XML document (in byte)) 
+		int so, // start offset of the starting offset(in byte)
+	int length) // lengnth of the XML document (in byte))
 	{
 		// initialize all buffers
 		if (l1 == null
@@ -229,16 +252,19 @@ public class VTDNav {
 		nestingLevel = depth + 1;
 		ns = NS; // namespace aware or not
 		if (ns == false)
-		    MASK_TOKEN_OFFSET = 0x000000007fffffffL; // this allows xml size to be 2GB 
+		    MASK_TOKEN_OFFSET = 0x000000007fffffffL; // this allows xml size to
+                                                     // be 2GB
 		else // if there is no namespace
 		    MASK_TOKEN_OFFSET = 0x000000003fffffffL;
 		
 		
-		atTerminal = false; //this variable will only change value during XPath eval
+		atTerminal = false; //this variable will only change value during XPath
+                            // eval
 
 		// initialize the context object
 		this.context = new int[nestingLevel];
-		//depth value is the first entry in the context because root is singular.
+		//depth value is the first entry in the context because root is
+        // singular.
 		context[0] = 0;
 		//set the value to zero
 		for (int i = 1; i < nestingLevel; i++) {
@@ -256,18 +282,19 @@ public class VTDNav {
 		l2upper = l3upper = -1;
 		docOffset = so;
 		docLen = length;
-		//System.out.println("offset " + offset + "  length " + length);
+		//System.out.println("offset " + offset + " length " + length);
 		//printL2Buffer();
 		vtdSize = vtd.size();
 		//writeOffsetAdjustment = false;
 		//recentNS = -1;
 	}
 	/**
-	 * Return the attribute count of the element at the cursor position.
-	 * when ns is false, attr_ns tokens are considered attributes;
-	 * otherwise, ns tokens are not considered attributes
-	 * @return int
-	 */
+     * Return the attribute count of the element at the cursor position. when ns
+     * is false, attr_ns tokens are considered attributes; otherwise, ns tokens
+     * are not considered attributes
+     * 
+     * @return int
+     */
 	public int getAttrCount() {
 	    if (context[0]==-1)return 0;
 		int count = 0;
@@ -288,15 +315,20 @@ public class VTDNav {
 		return count;
 	}
 	/**
-	 * Get the token index of the attribute value given an attribute name.     
-	 * @return int  (-1 if no such attribute name exists)
-	 * @param an java.lang.String
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD etc can be generated by another
-	 * machine from a load-balancer.
-	 * @exception IllegalArguementException if an is null
-	 */
+     * Get the token index of the attribute value given an attribute name.
+     * 
+     * @return int (-1 if no such attribute name exists)
+     * @param an
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD etc can be generated
+     *                by another machine from a load-balancer.
+     * @exception IllegalArguementException
+     *                if an is null
+     */
 	public int getAttrVal(String an) throws NavException {
 		//int size = vtdBuffer.size();
 		if (context[0]==-1)
@@ -338,16 +370,22 @@ public class VTDNav {
 	/**
      * Get the token index of the attribute value of given URL and local name.
      * If ns is not enabled, the lookup will return -1, indicating a no-found.
-     * Also namespace nodes are invisible using this method.
-     * One can't use * to indicate any name space because * is ambiguous!!
+     * Also namespace nodes are invisible using this method. One can't use * to
+     * indicate any name space because * is ambiguous!!
+     * 
      * @return int (-1 if no matching attribute found)
-     * @param URL java.lang.String  (Name space URL)
-     * @param ln java.lang.String   (local name)
-     * @exception com.ximpleware.NavException The exception if the underlying byte 
-     * content contains various errors. Notice that we are being conservative in making little assumption on
-     * the correctness of underlying byte content. This is because the VTD etc can be generated by another
-     * machine from a load-balancer.
-     * @exception IllegalArguementException if s is null
+     * @param URL
+     *            java.lang.String (Name space URL)
+     * @param ln
+     *            java.lang.String (local name)
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD etc can be generated
+     *                by another machine from a load-balancer.
+     * @exception IllegalArguementException
+     *                if s is null
      */
     public int getAttrValNS(String URL, String ln) throws NavException {
     	if (ns == false)
@@ -369,7 +407,8 @@ public class VTDNav {
     		int preLen = (i >> 16) & 0xffff;
     		int fullLen = i & 0xffff;
     		if (preLen != 0
-    			// attribute name without a prefix is not bound to any namespaces
+    			// attribute name without a prefix is not bound to any
+                // namespaces
     			&& matchRawTokenString(
     				offset + preLen + 1,
     				fullLen - preLen - 1,
@@ -517,16 +556,20 @@ public class VTDNav {
 	    throw new NavException("Unknown Encoding");
 	}
 	/**
-	 * This method decodes the underlying byte array into corresponding UCS2 char representation .
-	 * It doesn't resolves built-in entity and character references.
-	 * Length will never be zero
-	 * Creation date: (11/21/03 6:26:17 PM)
-	 * @return int
-	 * @exception com.ximpleware.NavException The exception is thrown if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD can be generated by another
-	 * machine, e.g. from a load-balancer.
-	 */
+     * This method decodes the underlying byte array into corresponding UCS2
+     * char representation . It doesn't resolves built-in entity and character
+     * references. Length will never be zero Creation date: (11/21/03 6:26:17
+     * PM)
+     * 
+     * @return int
+     * @exception com.ximpleware.NavException
+     *                The exception is thrown if the underlying byte content
+     *                contains various errors. Notice that we are being
+     *                conservative in making little assumption on the
+     *                correctness of underlying byte content. This is because
+     *                the VTD can be generated by another machine, e.g. from a
+     *                load-balancer.
+     */
 	private long getChar(int offset) throws NavException {
 		long temp = 0;
 		//int a, c, d;
@@ -536,7 +579,8 @@ public class VTDNav {
 		//a = c = d = val = 0;
 
 		switch (encoding) {
-			case FORMAT_ASCII : // ascii is compatible with UTF-8, the offset value is bytes
+			case FORMAT_ASCII : // ascii is compatible with UTF-8, the offset
+                                // value is bytes
 				temp = XMLDoc.byteAt(offset);
 				if (temp == '\r') {
 					if (XMLDoc.byteAt(offset + 1) == '\n') {
@@ -586,20 +630,26 @@ public class VTDNav {
 				//throw new NavException("Unknown Encoding");
 		}
 	}
-	/* the exact same copy of getChar except it operates on currentOffset2
-	 * this is needed to compare VTD tokens directly
-	 */
+	/*
+     * the exact same copy of getChar except it operates on currentOffset2 this
+     * is needed to compare VTD tokens directly
+     */
 	
 
 	/**
-	 * This method decodes the underlying byte array into corresponding UCS2 char representation .
-	 * Also it resolves built-in entity and character references.
-	 * @return int
-	 * @exception com.ximpleware.NavException The exception is thrown if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD can be generated by another
-	 * machine from a load-balancer.
-	 */
+     * This method decodes the underlying byte array into corresponding UCS2
+     * char representation . Also it resolves built-in entity and character
+     * references.
+     * 
+     * @return int
+     * @exception com.ximpleware.NavException
+     *                The exception is thrown if the underlying byte content
+     *                contains various errors. Notice that we are being
+     *                conservative in making little assumption on the
+     *                correctness of underlying byte content. This is because
+     *                the VTD can be generated by another machine from a
+     *                load-balancer.
+     */
 	private long getCharResolved(int offset) throws NavException {
 		int ch = 0;
 		int val = 0;
@@ -768,21 +818,23 @@ public class VTDNav {
 	}
 	
 	/**
-	 * Dump the in memory XML text into output stream
-	 * @param os
-	 * @throws java.io.IOException
-	 *
-	 */
+     * Dump the in memory XML text into output stream
+     * 
+     * @param os
+     * @throws java.io.IOException
+     *  
+     */
 	public void dumpXML(OutputStream os) throws java.io.IOException{
 	    os.write(this.XMLDoc.getBytes(),this.docOffset,this.docLen);
 	}
 	
 	/**
-	 * Dump the in-memory copy of XML text into a file
-	 * @param fileName
-	 * @throws java.io.IOException
-	 *
-	 */
+     * Dump the in-memory copy of XML text into a file
+     * 
+     * @param fileName
+     * @throws java.io.IOException
+     *  
+     */
 	public void dumpXML(String fileName) throws java.io.IOException{
 	    FileOutputStream fos = new FileOutputStream(fileName);
 	    try{
@@ -793,9 +845,10 @@ public class VTDNav {
 	    }
 	}
 	/**
-	 * Get the next char unit which gets decoded automatically
-	 * @return int
-	 */
+     * Get the next char unit which gets decoded automatically
+     * 
+     * @return int
+     */
 	private int getCharUnit(int offset) {
 		return (encoding <= 2)
 			? XMLDoc.byteAt(offset) & 0xff
@@ -807,18 +860,20 @@ public class VTDNav {
 				<< 8 | XMLDoc.byteAt(offset << 1));
 	}
 	/**
-	 * Get the depth (>=0) of the current element.
-	 * Creation date: (11/16/03 6:58:22 PM)
-	 * @return int
-	 */
+     * Get the depth (>=0) of the current element. Creation date: (11/16/03
+     * 6:58:22 PM)
+     * 
+     * @return int
+     */
 	final public int getCurrentDepth() {
 		return context[0];
 	}
 	/**
-	 * Get the index value of the current element.
-	 * Creation date: (11/16/03 6:40:25 PM)
-	 * @return int
-	 */
+     * Get the index value of the current element. Creation date: (11/16/03
+     * 6:40:25 PM)
+     * 
+     * @return int
+     */
 	final public int getCurrentIndex() {
 	    if (atTerminal)
 	        return LN;
@@ -835,20 +890,21 @@ public class VTDNav {
 	}
 	}
 	/**
-	 * getElementFragmentNS returns a ns aware version of the element
-	 * fragment encapsulated in an ElementFragment object
-	 * @return an ElementFragment object
-	 * @throws NavException
-	 *
-	 */
+     * getElementFragmentNS returns a ns aware version of the element fragment
+     * encapsulated in an ElementFragment object
+     * 
+     * @return an ElementFragment object
+     * @throws NavException
+     *  
+     */
 	public ElementFragmentNs getElementFragmentNs() throws NavException{
 	     if (this.ns == false)
 	        throw new NavException("getElementFragmentNS can only be called when parsing is ns enabled");
 	     
 	     FastIntBuffer fib = new FastIntBuffer(3); // init size 8
 	     
-	     //fill the fib with integer 
-	     // first get the list of name space nodes 
+	     //fill the fib with integer
+	     // first get the list of name space nodes
 	     int[] ia = context;
 	     int d =ia[0]; // -1 for document node, 0 for root element;
 	     int c = getCurrentIndex2();
@@ -858,7 +914,7 @@ public class VTDNav {
 	         (getTokenLength(c) & 0xffff); // get the length of qualified node
 	     
 	     // put the neighboring ATTR_NS nodes into the array
-	     // and record the total # of them	     
+	     // and record the total # of them
 	     int i = 0;	    
 	     int count=0;
 	     if (d > 0){ // depth > 0 every node except document and root element
@@ -893,7 +949,8 @@ public class VTDNav {
                         boolean unique = true;
                         if (type == VTDNav.TOKEN_ATTR_NS){
                             for (int z=0;z<fib.size();z++){
-                                //System.out.println("fib size ==> "+fib.size());
+                                //System.out.println("fib size ==>
+                                // "+fib.size());
                                 //if (fib.size()==4);
                                 if (matchTokens(fib.intAt(z),this,k)){
                                    unique = false;
@@ -925,11 +982,10 @@ public class VTDNav {
 	
 	
 	/**
-	 * Get the starting offset and length of an element
-	 * encoded in a long, upper 32 bits is length; lower 32 bits is offset
-	 * Unit is in byte.
-	 * Creation date: (3/15/04 1:47:55 PM)
-	 */
+     * Get the starting offset and length of an element encoded in a long, upper
+     * 32 bits is length; lower 32 bits is offset Unit is in byte. Creation
+     * date: (3/15/04 1:47:55 PM)
+     */
 	public long getElementFragment() throws NavException {
 		// a little scanning is needed
 		// has next sibling case
@@ -952,7 +1008,7 @@ public class VTDNav {
 		if (toElement(NEXT_SIBLING)) {
 
 			int temp = getCurrentIndex();
-			// rewind 
+			// rewind
 			while (getTokenDepth(temp) < depth) {
 				temp--;
 			}
@@ -1023,20 +1079,12 @@ public class VTDNav {
 					return ((long) length) << 33 | (so << 1);
 			}
 			/*
-			int so2 = getTokenOffset(temp - 1) - 1;
-			int d = depth - getTokenDepth(temp - 1);
-			int i = 0;
-			while (i < d) {
-			    if (getCharUnit(so2) == '>') {
-			        i++;
-			    }
-			    so2--;
-			}
-			length = so2 - so + 2;
-			if (encoding < 3)
-			    return ((long) length) << 32 | so;
-			else
-			    return ((long) length) << 33 | (so << 1);*/
+             * int so2 = getTokenOffset(temp - 1) - 1; int d = depth -
+             * getTokenDepth(temp - 1); int i = 0; while (i < d) { if
+             * (getCharUnit(so2) == '>') { i++; } so2--; } length = so2 - so +
+             * 2; if (encoding < 3) return ((long) length) < < 32 | so; else
+             * return ((long) length) < < 33 | (so < < 1);
+             */
 		}
 		// temp is the last entry
 		// scan forward search for /> or </cc>
@@ -1061,33 +1109,38 @@ public class VTDNav {
 			return ((long) length) << 33 | (so << 1);
 	}
 	/**
-	 * Get the encoding of the XML document.
-	 * @return int
-	 */
+     * Get the encoding of the XML document.
+     * 
+     * @return int
+     */
 	final public int getEncoding() {
 		return encoding;
 	}
 	/**
-	 * Get the maximum nesting depth of the XML document (>0).
-	 * max depth is nestingLevel -1
-	 * @return int
-	 */
+     * Get the maximum nesting depth of the XML document (>0). max depth is
+     * nestingLevel -1
+     * 
+     * @return int
+     */
 	final public int getNestingLevel() {
 		return nestingLevel;
 	}
 	/**
-	 * Get root index value , which is the index val of root element
-	 * @return int
-	 */
+     * Get root index value , which is the index val of root element
+     * 
+     * @return int
+     */
 	final public int getRootIndex() {
 		return rootIndex;
 	}
 	/**
-	 * This method returns of the token index of the type character data or CDATA.
-	 * Notice that it is intended to support data orient XML (not mixed-content XML).
-	 * return the index of the text token, or -1 if none exists.
-	 * @return int
-	 */
+     * This method returns of the token index of the type character data or
+     * CDATA. Notice that it is intended to support data orient XML (not
+     * mixed-content XML). return the index of the text token, or -1 if none
+     * exists.
+     * 
+     * @return int
+     */
 	public int getText() {
 		if (context[0]==-1) return -1;
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
@@ -1123,17 +1176,20 @@ public class VTDNav {
 		return -1;
 	}
 	/**
-	 * Get total number of VTD tokens for the current XML document.
-	 * @return int
-	 */
+     * Get total number of VTD tokens for the current XML document.
+     * 
+     * @return int
+     */
 	final public int getTokenCount() {
 		return vtdSize;
 	}
 	/**
-	 * Get the depth value of a token (>=0).
-	 * @return int
-	 * @param index int
-	 */
+     * Get the depth value of a token (>=0).
+     * 
+     * @return int
+     * @param index
+     *            int
+     */
 	final public int getTokenDepth(int index) {
 		int i = (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_DEPTH) >> 52);
 		if (i != 255)
@@ -1141,15 +1197,17 @@ public class VTDNav {
 		return -1;
 	}
 	/**
-	 * Get the token length at the given index value
-	 * please refer to VTD spec for more details
-	 * Length is in terms of the UTF char unit
-	 * For prefixed tokens, it is the qualified name length.
-	 * When ns is not enabled, return the full name length for attribute name and element name
-	 * When ns is enabled, return an int with upper 16 bit for prefix length, lower 16 bit for qname length 
-	 * @return int
-	 * @param index int
-	 */
+     * Get the token length at the given index value please refer to VTD spec
+     * for more details Length is in terms of the UTF char unit For prefixed
+     * tokens, it is the qualified name length. When ns is not enabled, return
+     * the full name length for attribute name and element name When ns is
+     * enabled, return an int with upper 16 bit for prefix length, lower 16 bit
+     * for qname length
+     * 
+     * @return int
+     * @param index
+     *            int
+     */
 	public int getTokenLength(int index) {
 		int type = getTokenType(index);
 		int depth;
@@ -1188,10 +1246,13 @@ public class VTDNav {
 
 	}
 	/**
-	 * Get the starting offset (unit in native char) of the token at the given index.
-	 * @return int
-	 * @param index int
-	 */
+     * Get the starting offset (unit in native char) of the token at the given
+     * index.
+     * 
+     * @return int
+     * @param index
+     *            int
+     */
 	final public int getTokenOffset(int index) {
 		//return (context[0] != 0)
 		//    ? (int) (vtdBuffer.longAt(context[context[0]]) & MASK_TOKEN_OFFSET)
@@ -1199,91 +1260,115 @@ public class VTDNav {
 		return (int) (vtdBuffer.longAt(index) & MASK_TOKEN_OFFSET);
 	}
 
-	/** Get the XML document 
-	 * @return IByteBuffer
-	 */
+	/**
+     * Get the XML document
+     * 
+     * @return IByteBuffer
+     */
 	final public IByteBuffer getXML() {
 		return XMLDoc;
 	}
 	/**
-	 * Get the token type of the token at the given index value.
-	 * Creation date: (11/16/03 6:41:51 PM)
-	 * @return int
-	 * @param index int
-	 */
+     * Get the token type of the token at the given index value. Creation date:
+     * (11/16/03 6:41:51 PM)
+     * 
+     * @return int
+     * @param index
+     *            int
+     */
 	final public int getTokenType(int index) {
 		return (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
 	}
 	/**
-	 * Test whether current element has an attribute with the matching name.
-	 * "*" will match any attribute name, therefore is a test whether there is any attribute at all
-	 * if namespace is disabled, this function will not distinguish between ns declaration and attribute 
-	 * otherwise, ns tokens are invisible
-	 * Creation date: (11/16/03 5:50:26 PM)
-	 * @return boolean (true if such an attribute exists)
-	 * @param an java.lang.String
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD etc can be generated by another
-	 * machine from a load-balancer.
-	 * @exception IllegalArguementException if an is null
-	 */
+     * Test whether current element has an attribute with the matching name. "*"
+     * will match any attribute name, therefore is a test whether there is any
+     * attribute at all if namespace is disabled, this function will not
+     * distinguish between ns declaration and attribute otherwise, ns tokens are
+     * invisible Creation date: (11/16/03 5:50:26 PM)
+     * 
+     * @return boolean (true if such an attribute exists)
+     * @param an
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD etc can be generated
+     *                by another machine from a load-balancer.
+     * @exception IllegalArguementException
+     *                if an is null
+     */
 	final public boolean hasAttr(String an) throws NavException {
 	    return getAttrVal(an)!=-1;
 	}
 	/**
-	 * Test whether the current element has an attribute with 
-	 * matching namespace URL and localname.
-	 * If ns is false, return false immediately
-	 * @return boolean
-	 * @param URL java.lang.String (namespace URL)
-	 * @param ln java.lang.String  (localname )
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 * @exception IllegalArguementException if ln is null
-	 */
+     * Test whether the current element has an attribute with matching namespace
+     * URL and localname. If ns is false, return false immediately
+     * 
+     * @return boolean
+     * @param URL
+     *            java.lang.String (namespace URL)
+     * @param ln
+     *            java.lang.String (localname )
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     * @exception IllegalArguementException
+     *                if ln is null
+     */
 	final public boolean hasAttrNS(String URL, String ln) throws NavException {
 		return (getAttrValNS(URL, ln) != -1);
 	}
 	/**
-	 * Test the token type, to see if it is a starting tag.
-	 * @return boolean
-	 * @param index int
-	 */
+     * Test the token type, to see if it is a starting tag.
+     * 
+     * @return boolean
+     * @param index
+     *            int
+     */
 	private final boolean isElement(int index) {
 		return (((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
 			== TOKEN_STARTING_TAG;
 	}
 	
 	/**
-	 * Test the token type, to see if it is a starting tag 
-	 * or document token (introduced in 1.0).
-	 * @return boolean
-	 * @param index int
-	 */
+     * Test the token type, to see if it is a starting tag or document token
+     * (introduced in 1.0).
+     * 
+     * @return boolean
+     * @param index
+     *            int
+     */
 	private final boolean isElementOrDocument(int index){
 		long i =(((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
 		return (i==TOKEN_STARTING_TAG||i==TOKEN_DOCUMENT);
 	}
 	/**
-	 * Test whether ch is a white space character or not.
-	 * @return boolean
-	 * @param ch int
-	 */
+     * Test whether ch is a white space character or not.
+     * 
+     * @return boolean
+     * @param ch
+     *            int
+     */
 	final private boolean isWS(int ch) {
 		return (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
 	}
 	
 	/**
-	 * This function is called by selectElement_P in autoPilot
-	 * @param en element Name
-	 * @param a context of current position
-	 * @param special whether the test type is node()
-	 * @return boolean
-	 * @throws NavException
-	 */
+     * This function is called by selectElement_P in autoPilot
+     * 
+     * @param en
+     *            element Name
+     * @param a
+     *            context of current position
+     * @param special
+     *            whether the test type is node()
+     * @return boolean
+     * @throws NavException
+     */
 	protected boolean iterate_preceding(String en, int[] a, boolean special)
 	throws NavException {
 		int index = getCurrentIndex() - 1;
@@ -1323,12 +1408,13 @@ public class VTDNav {
 		return false;	
 	}
 	/**
-	 * This function is called by selectElementNS_P in autoPilot
-	 * @param URL
-	 * @param ln
-	 * @return boolean
-	 * @throws NavException
-	 */
+     * This function is called by selectElementNS_P in autoPilot
+     * 
+     * @param URL
+     * @param ln
+     * @return boolean
+     * @throws NavException
+     */
 	protected boolean iterate_precedingNS(String URL, String ln, int[] a )
 	throws NavException {
 		int index = getCurrentIndex() - 1;
@@ -1368,13 +1454,15 @@ public class VTDNav {
 		return false;	
 	}
 	/**
-	 * This function is called by selectElement_F in autoPilot
-	 * 
-	 * @param en ElementName
-	 * @param special whether it is a node()
-	 * @return boolean
-	 * @throws NavException
-	 */
+     * This function is called by selectElement_F in autoPilot
+     * 
+     * @param en
+     *            ElementName
+     * @param special
+     *            whether it is a node()
+     * @return boolean
+     * @throws NavException
+     */
 
 	protected boolean iterate_following(String en, boolean special) 
 	throws NavException{
@@ -1397,12 +1485,13 @@ public class VTDNav {
 	}
 	
 	/**
-	 * This function is called by selectElementNS_F in autoPilot
-	 * @param URL
-	 * @param ln
-	 * @return boolean
-	 * @throws NavException
-	 */
+     * This function is called by selectElementNS_F in autoPilot
+     * 
+     * @param URL
+     * @param ln
+     * @return boolean
+     * @throws NavException
+     */
 	protected boolean iterate_followingNS(String URL, String ln) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
@@ -1423,20 +1512,25 @@ public class VTDNav {
 		return false;
 	}
 	/**
-	 * This method is similar to getElementByName in DOM except it doesn't
-	 * return the nodeset, instead it iterates over those nodes. Notice that this method
-	 * is called by the "iterate" method in the Autopilot class.
-	 * "*" will match any element
-	 * Creation date: (12/2/03 2:31:20 PM)
-	 * @return boolean
-	 * @param dp int    (The depth of the starting position before iterating)
-	 * @param en java.lang.String
-	 * @exception com.ximpleware.NavException The exception is signaled if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because VTD records can be generated by another
-	 * machine from a load-balancer.
-	 * null element name allowed represent node()in XPath;
-	 */
+     * This method is similar to getElementByName in DOM except it doesn't
+     * return the nodeset, instead it iterates over those nodes. Notice that
+     * this method is called by the "iterate" method in the Autopilot class. "*"
+     * will match any element Creation date: (12/2/03 2:31:20 PM)
+     * 
+     * @return boolean
+     * @param dp
+     *            int (The depth of the starting position before iterating)
+     * @param en
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                The exception is signaled if the underlying byte content
+     *                contains various errors. Notice that we are being
+     *                conservative in making little assumption on the
+     *                correctness of underlying byte content. This is because
+     *                VTD records can be generated by another machine from a
+     *                load-balancer. null element name allowed represent
+     *                node()in XPath;
+     */
 	protected boolean iterate(int dp, String en, boolean special)
 		throws NavException { // the navigation doesn't rely on LC
 		// get the current depth
@@ -1471,28 +1565,30 @@ public class VTDNav {
 		return false;
 	}
 	/**
-	 * This method is similar to getElementByName in DOM except it doesn't
-	 * return the nodeset, instead it iterates over those nodes .
-	 * When URL is "*" it will match any namespace
-	 * if ns is false, return false immediately
-	 * @return boolean
-	 * @param dp int    (The depth of the starting position before iterating)
-	 * @param URL  java.lang.String
-	 * @param ln  java.lang.String
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because VTD records can be generated by another
-	 * machine from a load-balancer..
-	 * @exception IllegalArguementException if ln is null
-	 * example
-	 * 
-	 *  int depth = nv.getCurrentDepth()
-	 *  while(iterateNS(depth, "www.url.com","node_name")){
-	 *		push(); // store the current position
-	 *		//move position safely
-	 *		pop();  // load the position
-	 * }
-	 */
+     * This method is similar to getElementByName in DOM except it doesn't
+     * return the nodeset, instead it iterates over those nodes . When URL is
+     * "*" it will match any namespace if ns is false, return false immediately
+     * 
+     * @return boolean
+     * @param dp
+     *            int (The depth of the starting position before iterating)
+     * @param URL
+     *            java.lang.String
+     * @param ln
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because VTD records can be generated
+     *                by another machine from a load-balancer..
+     * @exception IllegalArguementException
+     *                if ln is null example
+     * 
+     * int depth = nv.getCurrentDepth() while(iterateNS(depth,
+     * "www.url.com","node_name")){ push(); // store the current position //move
+     * position safely pop(); // load the position }
+     */
 	final protected boolean iterateNS(int dp, String URL, String ln)
 		throws NavException {
 		if (ns == false)
@@ -1527,12 +1623,15 @@ public class VTDNav {
 	}
 
 	/**
-	 * Test if the current element matches the given name.
-	 * Creation date: (11/26/03 2:09:43 PM)
-	 * @return boolean
-	 * @param en java.lang.String
-	 * @exception com.ximpleware.NavException If the underlying raw char representation has errors.
-	 */
+     * Test if the current element matches the given name. Creation date:
+     * (11/26/03 2:09:43 PM)
+     * 
+     * @return boolean
+     * @param en
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                If the underlying raw char representation has errors.
+     */
 	final public boolean matchElement(String en) throws NavException {
 		
 		if (en.equals("*") && context[0]!=-1)
@@ -1544,14 +1643,21 @@ public class VTDNav {
 			en);
 	}
 	/**
-     * Test whether the current element matches the given namespace URL and localname.
-     * URL, when set to "*", matches any namespace (including null), when set to null, defines a "always-no-match"
-     * ln is the localname that, when set to *, matches any localname
+     * Test whether the current element matches the given namespace URL and
+     * localname. URL, when set to "*", matches any namespace (including null),
+     * when set to null, defines a "always-no-match" ln is the localname that,
+     * when set to *, matches any localname
+     * 
      * @return boolean
-     * @param URL java.lang.String
-     * @param ln java.lang.String
-     * @exception com.ximpleware.NavException When there is any encoding conversion error or unknown entity.
-     * @exception java.lang.IllegalArgumentException  if ln == null
+     * @param URL
+     *            java.lang.String
+     * @param ln
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                When there is any encoding conversion error or unknown
+     *                entity.
+     * @exception java.lang.IllegalArgumentException
+     *                if ln == null
      */
     public boolean matchElementNS(String URL, String ln) throws NavException {
     	if (context[0]==-1)
@@ -1611,18 +1717,18 @@ public class VTDNav {
         return 0;
     }
 	/**
-	 *<em>New in 2.0</em>
-	 * This method compares two VTD tokens of VTDNav objects
-	 * The behavior of this method is like compare the strings corresponds
-	 * to i1 and i2, meaning for text or attribute val, entities will be converted into
-	 * the corresponding char 
-	 * @param i1
-	 * @param vn2
-	 * @param i2
-	 * @return -1,0, or 1
-	 * @throws NavException
-	 *
-	 */
+     * <em>New in 2.0</em> This method compares two VTD tokens of VTDNav
+     * objects The behavior of this method is like compare the strings
+     * corresponds to i1 and i2, meaning for text or attribute val, entities
+     * will be converted into the corresponding char
+     * 
+     * @param i1
+     * @param vn2
+     * @param i2
+     * @return -1,0, or 1
+     * @throws NavException
+     *  
+     */
 	public int compareTokens(int i1, VTDNav vn2, int i2) 
 	throws NavException{
 	    int t1, t2;
@@ -1690,18 +1796,24 @@ public class VTDNav {
 			return 0;
 	}
 	/**
-	 * Lexicographically compare a string against a token with given 
-	 * offset and len, entities doesn't get resolved. 
-	 * @return int (0 if they are equal, 1 if  greater, else -1)
-	 * 
-	 * @param offset int
-	 * @param len int
-	 * @param s java.lang.String
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 */
+     * Lexicographically compare a string against a token with given offset and
+     * len, entities doesn't get resolved.
+     * 
+     * @return int (0 if they are equal, 1 if greater, else -1)
+     * 
+     * @param offset
+     *            int
+     * @param len
+     *            int
+     * @param s
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	protected int compareRawTokenString(int offset, int len, String s)
 		throws NavException {
 		int i, l;
@@ -1730,18 +1842,19 @@ public class VTDNav {
 		return 0;		
 	}
 	/**
-	 * <em>New in 2.0</em>
-	 * Compare the string against the token at the given index value. When a token
-	 * is an attribute name or starting tag, qualified name is what gets compared against
-	 * This method has to take care of the underlying encoding conversion
-	 * but it <em> doesn't </em> resolve entity reference in the underlying document
-	 * The behavior is the same as calling toRawString on index, then compare to s
-	 * @param index
-	 * @param s
-	 * @return the result of lexical comparison
-	 * @exception NavException
-	 *
-	 */
+     * <em>New in 2.0</em> Compare the string against the token at the given
+     * index value. When a token is an attribute name or starting tag, qualified
+     * name is what gets compared against This method has to take care of the
+     * underlying encoding conversion but it <em> doesn't </em> resolve entity
+     * reference in the underlying document The behavior is the same as calling
+     * toRawString on index, then compare to s
+     * 
+     * @param index
+     * @param s
+     * @return the result of lexical comparison
+     * @exception NavException
+     *  
+     */
 	final public int compareRawTokenString(int index, String s)
 	throws NavException {
 		int type = getTokenType(index);
@@ -1755,22 +1868,29 @@ public class VTDNav {
 
 		//currentOffset = getTokenOffset(index);
 		// point currentOffset to the beginning of the token
-		// for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
+		// for UTF 8 and ISO, the performance is a little better by avoid
+        // calling getChar() everytime
 		return compareRawTokenString(getTokenOffset(index), len, s);
 	}
 	/**
-	 * Match the string against the token at the given index value. When a token
-	 * is an attribute name or starting tag, qualified name is what gets matched against
-	 * This method has to take care of the underlying encoding conversion
-	 * but it <em> doesn't </em> resolve entity reference in the underlying document
-	 * @return boolean
-	 * @param index int   (index into the VTD token buffer)
-	 * @param s java.lang.String
-	 * @exception com.ximpleware.NavException When if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	**/
+     * Match the string against the token at the given index value. When a token
+     * is an attribute name or starting tag, qualified name is what gets matched
+     * against This method has to take care of the underlying encoding
+     * conversion but it <em> doesn't </em> resolve entity reference in the
+     * underlying document
+     * 
+     * @return boolean
+     * @param index
+     *            int (index into the VTD token buffer)
+     * @param s
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                When if the underlying byte content contains various
+     *                errors. Notice that we are being conservative in making
+     *                little assumption on the correctness of underlying byte
+     *                content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	final public boolean matchRawTokenString(int index, String s)
 		throws NavException {
 		int type = getTokenType(index);
@@ -1784,20 +1904,27 @@ public class VTDNav {
 
 		//currentOffset = getTokenOffset(index);
 		// point currentOffset to the beginning of the token
-		// for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
+		// for UTF 8 and ISO, the performance is a little better by avoid
+        // calling getChar() everytime
 		return compareRawTokenString(getTokenOffset(index), len, s)==0;
 	}
 	/**
-	 * Match a string with a token represented by a long (upper 32 len, lower 32 offset).
-	 * @return boolean
-	 * @param l long
-	 * @param s java.lang.String
-	 * @exception com.ximpleware.NavException When if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 * 
-	 */
+     * Match a string with a token represented by a long (upper 32 len, lower 32
+     * offset).
+     * 
+     * @return boolean
+     * @param l
+     *            long
+     * @param s
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                When if the underlying byte content contains various
+     *                errors. Notice that we are being conservative in making
+     *                little assumption on the correctness of underlying byte
+     *                content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     *  
+     */
 	final private boolean matchRawTokenString(long l, String s) throws NavException {
 		int len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 32);
 		// a little hardcode is always bad
@@ -1805,35 +1932,42 @@ public class VTDNav {
 		return compareRawTokenString((int)l, len, s)==0;
 	}
 	/**
-	 * Match a string against a token with given offset and len, entities get resolved properly.
-	 * Creation date: (11/24/03 1:37:42 PM)
-	 * @return boolean
-	 * @param offset int
-	 * @param len int
-	 * @param s java.lang.String
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 * @exception IllegalArguementException if s is null
-	 */
+     * Match a string against a token with given offset and len, entities get
+     * resolved properly. Creation date: (11/24/03 1:37:42 PM)
+     * 
+     * @return boolean
+     * @param offset
+     *            int
+     * @param len
+     *            int
+     * @param s
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     * @exception IllegalArguementException
+     *                if s is null
+     */
 	final private boolean matchTokenString(int offset, int len, String s)
 		throws NavException {
 	    return compareTokenString(offset,len,s)==0;
 	}
 	
 	/**
-	 * <em>New in 2.0</em>
-	 * Compare the string against the token at the given index value. When a token
-	 * is an attribute name or starting tag, qualified name is what gets matched against
-	 * This method has to take care of the underlying encoding conversion
-	 * as well as entity reference comparison
-	 * @param index
-	 * @param s
-	 * @return int
-	 * @throws NavException
-	 *
-	 */
+     * <em>New in 2.0</em> Compare the string against the token at the given
+     * index value. When a token is an attribute name or starting tag, qualified
+     * name is what gets matched against This method has to take care of the
+     * underlying encoding conversion as well as entity reference comparison
+     * 
+     * @param index
+     * @param s
+     * @return int
+     * @throws NavException
+     *  
+     */
 	public int compareTokenString(int index, String s)
 	throws NavException{
 		int type = getTokenType(index);
@@ -1847,22 +1981,28 @@ public class VTDNav {
 
 		//currentOffset = getTokenOffset(index);
 		// point currentOffset to the beginning of the token
-		// for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
+		// for UTF 8 and ISO, the performance is a little better by avoid
+        // calling getChar() everytime
 		return compareTokenString(getTokenOffset(index), len, s);
 	}
 	/**
-	 * Match the string against the token at the given index value. When a token
-	 * is an attribute name or starting tag, qualified name is what gets matched against
-	 * This method has to take care of the underlying encoding conversion
-	 * as well as entity reference comparison
-	 * @return boolean
-	 * @param index int
-	 * @param s java.lang.String
-	 * @exception com.ximpleware.NavException When if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 **/
+     * Match the string against the token at the given index value. When a token
+     * is an attribute name or starting tag, qualified name is what gets matched
+     * against This method has to take care of the underlying encoding
+     * conversion as well as entity reference comparison
+     * 
+     * @return boolean
+     * @param index
+     *            int
+     * @param s
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                When if the underlying byte content contains various
+     *                errors. Notice that we are being conservative in making
+     *                little assumption on the correctness of underlying byte
+     *                content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	final public boolean matchTokenString(int index, String s) throws NavException {
 		int type = getTokenType(index);
 		int len =
@@ -1875,20 +2015,27 @@ public class VTDNav {
 
 		//currentOffset = getTokenOffset(index);
 		// point currentOffset to the beginning of the token
-		// for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
+		// for UTF 8 and ISO, the performance is a little better by avoid
+        // calling getChar() everytime
 		return compareTokenString(getTokenOffset(index), len, s)==0;
 	}
 	/**
-	 * Match a string against a "non-extractive" token represented by a long (upper 32 len, lower 32 offset).
-	 * @return boolean
-	 * @param l long
-	 * @param s java.lang.String
-	 * @exception com.ximpleware.NavException When the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 * 
-	 */
+     * Match a string against a "non-extractive" token represented by a long
+     * (upper 32 len, lower 32 offset).
+     * 
+     * @return boolean
+     * @param l
+     *            long
+     * @param s
+     *            java.lang.String
+     * @exception com.ximpleware.NavException
+     *                When the underlying byte content contains various errors.
+     *                Notice that we are being conservative in making little
+     *                assumption on the correctness of underlying byte content.
+     *                This is because the VTD can be generated by another
+     *                machine such as a load-balancer.
+     *  
+     */
 
 	final private boolean matchTokenString(long l, String s) throws NavException {
 		int len = (int) (l >> 32) & 0xffff;
@@ -1898,67 +2045,64 @@ public class VTDNav {
 
 
 	/**
-	 * Evaluate the namespace indicator in bit 31 and bit 30.
-	 * Creation date: (11/27/03 5:38:51 PM)
-	 * @return int
-	 * @param i int
-	 */
+     * Evaluate the namespace indicator in bit 31 and bit 30. Creation date:
+     * (11/27/03 5:38:51 PM)
+     * 
+     * @return int
+     * @param i
+     *            int
+     */
 	final private int NSval(int i) {
 
 		return (int) (vtdBuffer.longAt(i) & MASK_TOKEN_NS_MARK);
 	}
 	
 	/**
-	 * overWrite is introduced in version 2.0 that allows you to 
-	 * directly overwrite the XML content if the token is long enough
-	 * If the operation is successful, the new content along with
-	 * whitespaces will fill the available token space, and there 
-	 * will be no need to regenerate the VTD and LCs !!!
-	 * <em> The current version (2.0) only allows overwrites on attribute value,
+     * overWrite is introduced in version 2.0 that allows you to directly
+     * overwrite the XML content if the token is long enough If the operation is
+     * successful, the new content along with whitespaces will fill the
+     * available token space, and there will be no need to regenerate the VTD
+     * and LCs !!!
+     * <em> The current version (2.0) only allows overwrites on attribute value,
 	 * character data, and CDATA</em>
-	 * 
-	 * Consider the XML below:
-	 *  <a>  good </a> 
-	 * After overwriting the token "good" with "bad," the new XML looks
-	 * like:
-	 *  <a>  bad  </a>
-	 * as you can see, "goo" is replaced with "bad" character-by-character, 
-	 * and the remaining "d" is replace with a white space  
-	 *  
-	 * @param index
-	 * @param ba the byte array contains the new content to be overwritten 
-	 * @return boolean as the status of the overwrite operation
-	 *
-	 */
+     * 
+     * Consider the XML below: <a>good </a> After overwriting the token "good"
+     * with "bad," the new XML looks like: <a>bad </a> as you can see, "goo" is
+     * replaced with "bad" character-by-character, and the remaining "d" is
+     * replace with a white space
+     * 
+     * @param index
+     * @param ba
+     *            the byte array contains the new content to be overwritten
+     * @return boolean as the status of the overwrite operation
+     *  
+     */
 	final public boolean overWrite(int index, byte[] ba){
 	    return overWrite(index,ba,0,ba.length);
 	}
 	
 	
 	/**
-	 * overWrite is introduced in version 2.0 that allows you to 
-	 * directly overwrite the XML content if the token is long enough
-	 * If the operation is successful, white spaces will be used to fill
-	 * the available token space, and there will be no need to regenerate
-	 * the VTD and LCs
-	 * <em> The current version (2.0) only allows overwrites on attribute value,
+     * overWrite is introduced in version 2.0 that allows you to directly
+     * overwrite the XML content if the token is long enough If the operation is
+     * successful, white spaces will be used to fill the available token space,
+     * and there will be no need to regenerate the VTD and LCs
+     * <em> The current version (2.0) only allows overwrites on attribute value,
 	 * character data, and CDATA</em>
-	 *  
-	 * Consider the XML below:
-	 *  <a>  good </a> 
-	 * After overwriting the token "good" with "bad," the new XML looks
-	 * like:
-	 *  <a>  bad  </a>
-	 * as you can see, "goo" is replaced with "bad", and the remaining
-	 * "d" is replace with a white space  
-	 *  
-	 * @param index the VTD record to which the change will be applied
-	 * @param ba the byte array contains the new content to be overwritten 
-	 * @param offset
-	 * @param len
-	 * @return boolean as the status of the overwrite operation
-	 *
-	 */
+     * 
+     * Consider the XML below: <a>good </a> After overwriting the token "good"
+     * with "bad," the new XML looks like: <a>bad </a> as you can see, "goo" is
+     * replaced with "bad", and the remaining "d" is replace with a white space
+     * 
+     * @param index
+     *            the VTD record to which the change will be applied
+     * @param ba
+     *            the byte array contains the new content to be overwritten
+     * @param offset
+     * @param len
+     * @return boolean as the status of the overwrite operation
+     *  
+     */
 	public boolean overWrite(int index, byte[] ba, int offset, int len){
 	    if ( ba == null 
 	            || index >= this.vtdSize
@@ -2007,14 +2151,16 @@ public class VTDNav {
 	    return false;
 	}
 	/**
-	 * Convert a vtd token into a double.
-	 * Creation date: (12/8/03 2:28:31 PM)
-	 * @return double
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 */
+     * Convert a vtd token into a double. Creation date: (12/8/03 2:28:31 PM)
+     * 
+     * @return double
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	public double parseDouble(int index) throws NavException {
 		//if (matchTokenString()
 		int offset = getTokenOffset(index);
@@ -2149,15 +2295,17 @@ public class VTDNav {
 	}
 
 	/**
-	 * Convert a vtd token into a float.
-	 * we assume token type to be attr val or character data
-	 * Creation date: (12/8/03 2:28:18 PM)
-	 * @return float
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 */
+     * Convert a vtd token into a float. we assume token type to be attr val or
+     * character data Creation date: (12/8/03 2:28:18 PM)
+     * 
+     * @return float
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	public float parseFloat(int index) throws NavException {
 
 		int offset = getTokenOffset(index);
@@ -2298,35 +2446,42 @@ public class VTDNav {
 		return f;
 	}
 	/**
-	 * Convert a vtd token into an int.
-	 * This method will automatically strip off the leading and trailing
-	 * we assume token type to be attr val or character data
-	 * zero, unlike Integer.parseInt(int index)
-	 * 
-	 * Creation date: (12/8/03 2:32:22 PM)
-	 * @return int
-	 * @param index int
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 */
+     * Convert a vtd token into an int. This method will automatically strip off
+     * the leading and trailing we assume token type to be attr val or character
+     * data zero, unlike Integer.parseInt(int index)
+     * 
+     * Creation date: (12/8/03 2:32:22 PM)
+     * 
+     * @return int
+     * @param index
+     *            int
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	public int parseInt(int index) throws NavException {
 		return parseInt(index, 10);
 	}
 	/**
-	 * Convert a vtd token into an int, with the given radix.
-	 * we assume token type to be attr val or character data
-	 * the first char can be either '+' or '-'
-	 * Creation date: (12/16/03 1:21:20 PM)
-	 * @return int
-	 * @param index int
-	 * @param radix int
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 */
+     * Convert a vtd token into an int, with the given radix. we assume token
+     * type to be attr val or character data the first char can be either '+' or
+     * '-' Creation date: (12/16/03 1:21:20 PM)
+     * 
+     * @return int
+     * @param index
+     *            int
+     * @param radix
+     *            int
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	protected int parseInt(int index, int radix) throws NavException {
 		if (radix < 2 || radix > 36)
 			throw new NumberFormatException(
@@ -2364,7 +2519,8 @@ public class VTDNav {
 			if (digit < 0)
 				break;
 
-			//Note: for binary we can simply shift to left to improve performance
+			//Note: for binary we can simply shift to left to improve
+            // performance
 			result = result * radix + digit;
 			//pos *= radix;
 
@@ -2388,32 +2544,40 @@ public class VTDNav {
 			throw new NumberFormatException(toString(index));
 	}
 	/**
-	 * Convert a vtd token into a long.
-	 * we assume token type to be attr val or character data
-	 * Creation date: (12/8/03 2:32:59 PM)
-	 * @return long
-	 * @param index int
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 */
+     * Convert a vtd token into a long. we assume token type to be attr val or
+     * character data Creation date: (12/8/03 2:32:59 PM)
+     * 
+     * @return long
+     * @param index
+     *            int
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	public long parseLong(int index) throws NavException {
 		return parseLong(index, 10);
 	}
 	/**
-	 * Convert a vtd token into a long, with the given radix.
-	 * the first char can be either '+' or '-', leading and trailing will be stripped
-	 * we assume token type to be attr val or character data
-	 * Creation date: (12/17/03 1:51:06 PM)
-	 * @return long
-	 * @param index int
-	 * @param radix int
-	 * @exception com.ximpleware.NavException The exception if the underlying byte 
-	 * content contains various errors. Notice that we are being conservative in making little assumption on
-	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
-	 * machine such as a load-balancer.
-	 */
+     * Convert a vtd token into a long, with the given radix. the first char can
+     * be either '+' or '-', leading and trailing will be stripped we assume
+     * token type to be attr val or character data Creation date: (12/17/03
+     * 1:51:06 PM)
+     * 
+     * @return long
+     * @param index
+     *            int
+     * @param radix
+     *            int
+     * @exception com.ximpleware.NavException
+     *                The exception if the underlying byte content contains
+     *                various errors. Notice that we are being conservative in
+     *                making little assumption on the correctness of underlying
+     *                byte content. This is because the VTD can be generated by
+     *                another machine such as a load-balancer.
+     */
 	protected long parseLong(int index, int radix) throws NavException {
 		if (radix < 2 || radix > 36)
 			throw new NumberFormatException(
@@ -2454,7 +2618,8 @@ public class VTDNav {
 			if (digit < 0)
 				break;
 
-			//Note: for binary we can simply shift to left to improve performance
+			//Note: for binary we can simply shift to left to improve
+            // performance
 			result = result * radix + digit;
 			//pos *= radix;
 
@@ -2479,11 +2644,12 @@ public class VTDNav {
 	}
 	
 	/**
-	 * Load the context info from ContextBuffer.
-	 * Info saved including LC and current state of the context 
-	 * @return boolean
-	 *
-	 */
+     * Load the context info from ContextBuffer. Info saved including LC and
+     * current state of the context
+     * 
+     * @return boolean
+     *  
+     */
 	final public boolean pop() {
 		boolean b = contextStack.load(stackTemp);
 		if (b == false)
@@ -2504,10 +2670,11 @@ public class VTDNav {
 		return true;
 	}
 	/**
-	 * Load the context info from contextStack2.
-	 * This method is dedicated for XPath evaluation.
-	 * @return status of pop2
-	 */
+     * Load the context info from contextStack2. This method is dedicated for
+     * XPath evaluation.
+     * 
+     * @return status of pop2
+     */
 	
 	
 	final protected boolean pop2(){
@@ -2530,10 +2697,9 @@ public class VTDNav {
 		return true;
 	}
 	/**
-	 * Store the context info into the ContextBuffer.
-	 * Info saved including LC and current state of the context 
-	 * Creation date: (11/16/03 7:00:27 PM)
-	 */
+     * Store the context info into the ContextBuffer. Info saved including LC
+     * and current state of the context Creation date: (11/16/03 7:00:27 PM)
+     */
 	final public void push() {
 		
 		for (int i = 0; i < nestingLevel; i++) {
@@ -2554,10 +2720,10 @@ public class VTDNav {
 		contextStack.store(stackTemp);
 	}
 	/**
-	 * Store the context info into the contextStack2.
-	 * This method is reserved for XPath Evaluation
-	 *
-	 */
+     * Store the context info into the contextStack2. This method is reserved
+     * for XPath Evaluation
+     *  
+     */
 	
 	final protected void push2() {
 		
@@ -2580,24 +2746,24 @@ public class VTDNav {
 	}
 	
 	/**
-	 *  clear the contextStack2 after XPath evaluation
-	 * 
-	 *
-	 */
+     * clear the contextStack2 after XPath evaluation
+     * 
+     *  
+     */
 	final protected void clearStack2(){
 		contextStack2.clear();
 	}
 	
 	
 	/**
-	 * Sync up the current context with location cache.
-	 * This operation includes finding out l1index, l2index, 
-	 * l3index and restores upper and lower bound info
-	 * To improve efficieny this method employs some heuristic search algorithm.
-	 * The result is that it is quite close to direct access.
-	 * Creation date: (11/16/03 7:44:53 PM)
-	 * @return int  The index of the NS URL
-	 */
+     * Sync up the current context with location cache. This operation includes
+     * finding out l1index, l2index, l3index and restores upper and lower bound
+     * info To improve efficieny this method employs some heuristic search
+     * algorithm. The result is that it is quite close to direct access.
+     * Creation date: (11/16/03 7:44:53 PM)
+     * 
+     * @return int The index of the NS URL
+     */
 	private void resolveLC() {
 		int temp;
 		if (context[0]<=0)
@@ -2742,9 +2908,8 @@ public class VTDNav {
 
 	}
 	/**
-     * Test whether the URL is defined in the scope. Null is allowed to
-     * indicate the name space is undefined. Creation date: (11/16/03 7:54:01
-     * PM)
+     * Test whether the URL is defined in the scope. Null is allowed to indicate
+     * the name space is undefined. Creation date: (11/16/03 7:54:01 PM)
      * 
      * @param URL
      *            java.lang.String
@@ -2767,11 +2932,12 @@ public class VTDNav {
     }
     
     /**
-     * This function returns the VTD record index of the namespace 
-     * that matches the prefix of cursor element
+     * This function returns the VTD record index of the namespace that matches
+     * the prefix of cursor element
+     * 
      * @param URL
      * @return int
-     *
+     *  
      */
     protected int lookupNS(int offset, int len){
     	long l;
@@ -2798,7 +2964,8 @@ public class VTDNav {
     						if (temp == 5 && len == 0) {
     							return s+1;
     						} else if ((fullLen - preLen - 1) == len) {
-    							// prefix length identical to local part of ns declaration
+    							// prefix length identical to local part of ns
+                                // declaration
     							boolean a = true;
     							for (int j = 0; j < len; j++) {
     								if (getCharUnit(os + preLen + 1 + j)
@@ -2846,7 +3013,8 @@ public class VTDNav {
     							return k+1;
     							
     						} else if ((fullLen - preLen - 1) == len) {
-    							// prefix length identical to local part of ns declaration
+    							// prefix length identical to local part of ns
+                                // declaration
     							boolean a = true;
     							for (int j = 0; j < len; j++) {
     								if (getCharUnit(os + preLen + 1 + j)
@@ -2905,29 +3073,44 @@ public class VTDNav {
         }
     }
 	/**
-	 * A generic navigation method.
-	 * Move the cursor to the element according to the direction constants
-	 * If no such element, no position change and return false.
-	 * Creation date: (12/2/03 1:43:50 PM)
-	 * Legal direction constants are
-	 *<pre>   			ROOT               0 </pre>	
-	 *<pre> 		    PARENT  		   1 </pre>
-	 *<pre>       	    FIRST_CHILD		   2 </pre>  
-	 *<pre> 		    LAST_CHILD 		   3 </pre>
-	 *<pre>    	  	    NEXT_SIBLING       4 </pre>
-	 *<pre>      	    PREV_SIBLING       5 </pre>
-	 * @return boolean
-	 * @param direction int
-	 * @exception com.ximpleware.NavException  When direction value is illegal.
-	 */
+     * A generic navigation method. Move the cursor to the element according to
+     * the direction constants If no such element, no position change and return
+     * false. Creation date: (12/2/03 1:43:50 PM) Legal direction constants are
+     * 
+     * <pre>
+     *    			ROOT               0 
+     * </pre>	
+	 *<pre>
+     *  		    PARENT  		   1 
+     * </pre>
+	 *<pre>
+     *        	    FIRST_CHILD		   2 
+     * </pre>  
+	 *<pre>
+     *  		    LAST_CHILD 		   3 
+     * </pre>
+	 *<pre>
+     *     	  	    NEXT_SIBLING       4 
+     * </pre>
+	 *<pre>
+     *       	    PREV_SIBLING       5 
+     * </pre>
+     * 
+     * @return boolean
+     * @param direction
+     *            int
+     * @exception com.ximpleware.NavException
+     *                When direction value is illegal.
+     */
 	public boolean toElement(int direction) throws NavException {
 		int size;
 		switch (direction) {
 			case ROOT : // to document element!
 				if (context[0] != 0) {
-					/*for (int i = 1; i <= context[0]; i++) {
-						context[i] = 0xffffffff;
-					}*/
+					/*
+                     * for (int i = 1; i <= context[0]; i++) { context[i] =
+                     * 0xffffffff; }
+                     */
 					context[0] = 0;
 				}
 				atTerminal = false;
@@ -2939,7 +3122,8 @@ public class VTDNav {
 					return true;
 				}
 				if (context[0] > 0) {
-					//context[context[0]] = context[context[0] + 1] = 0xffffffff;
+					//context[context[0]] = context[context[0] + 1] =
+                    // 0xffffffff;
 					context[context[0]] = -1;
 					context[0]--;
 					return true;
@@ -2984,7 +3168,8 @@ public class VTDNav {
 								break;
 							}
 						}
-						//System.out.println(" l2 upper: " + l2upper + " l2 lower : " + l2lower);
+						//System.out.println(" l2 upper: " + l2upper + " l2
+                        // lower : " + l2lower);
 						l2index =
 							(direction == FIRST_CHILD) ? l2lower : l2upper;
 						context[2] = l2Buffer.upper32At(l2index);
@@ -3006,7 +3191,8 @@ public class VTDNav {
 								break;
 							}
 						}
-						//System.out.println(" l3 upper : " + l3upper + " l3 lower : " + l3lower);
+						//System.out.println(" l3 upper : " + l3upper + " l3
+                        // lower : " + l3lower);
 						l3index =
 							(direction == FIRST_CHILD) ? l3lower : l3upper;
 						context[3] = l3Buffer.intAt(l3index);
@@ -3036,7 +3222,7 @@ public class VTDNav {
 								}
 
 								index++;
-							} // what condition  
+							} // what condition
 							return false;
 						} else {
 							int index = context[context[0]] + 1;
@@ -3157,16 +3343,17 @@ public class VTDNav {
 								if (token_type == TOKEN_STARTING_TAG) {
 									int depth =
 										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-									/*if (depth < context[0]) {
-									    return false;
-									} else */
+									/*
+                                     * if (depth < context[0]) { return false; }
+                                     * else
+                                     */
 									if (depth == (context[0])) {
 										context[context[0]] = index;
 										return true;
 									}
 								}
 								index--;
-							} // what condition          	    
+							} // what condition
 							return false;
 						}
 				}
@@ -3177,27 +3364,44 @@ public class VTDNav {
 
 	}
 	/**
-	 * A generic navigation method.
-	 * Move the cursor to the element according to the direction constants and the element name
-	 * If no such element, no position change and return false.
-	 * "*" matches any element
-	 * Creation date: (12/2/03 1:43:50 PM)
-	 * Legal direction constants are 	<br>
-	 * <pre>		ROOT            0  </pre>
-	 * <pre>		PARENT          1  </pre>
-	 * <pre>		FIRST_CHILD     2  </pre>
-	 * <pre>		LAST_CHILD      3  </pre>
-	 * <pre>		NEXT_SIBLING    4  </pre>
-	 * <pre>		PREV_SIBLING    5  </pre>
-	 * <br>
-	 * for ROOT and PARENT, element name will be ignored.
-	 * @return boolean
-	 * @param direction int
-	 * @param en String     
-	 * @exception com.ximpleware.NavException  When direction value is illegal. Or there are errors 
-	 * in underlying byte representation of the document
-	 * @exception IllegalArguementException if en is null
-	 */
+     * A generic navigation method. Move the cursor to the element according to
+     * the direction constants and the element name If no such element, no
+     * position change and return false. "*" matches any element Creation date:
+     * (12/2/03 1:43:50 PM) Legal direction constants are <br>
+     * 
+     * <pre>
+     * 		ROOT            0  
+     * </pre>
+	 * <pre>
+     * 		PARENT          1  
+     * </pre>
+	 * <pre>
+     * 		FIRST_CHILD     2  
+     * </pre>
+	 * <pre>
+     * 		LAST_CHILD      3  
+     * </pre>
+	 * <pre>
+     * 		NEXT_SIBLING    4  
+     * </pre>
+	 * <pre>
+     * 		PREV_SIBLING    5  
+     * </pre>
+     * 
+     * <br>
+     * for ROOT and PARENT, element name will be ignored.
+     * 
+     * @return boolean
+     * @param direction
+     *            int
+     * @param en
+     *            String
+     * @exception com.ximpleware.NavException
+     *                When direction value is illegal. Or there are errors in
+     *                underlying byte representation of the document
+     * @exception IllegalArguementException
+     *                if en is null
+     */
 	public boolean toElement(int direction, String en) throws NavException {
 		int size;
 		int temp;
@@ -3311,30 +3515,48 @@ public class VTDNav {
 		}
 	}
 	/**
-	 * A generic navigation method with namespace support.
-	 * Move the cursor to the element according to the direction constants and the prefix and local names
-	 * If no such element, no position change and return false.
-	 * URL * matches any namespace, including undefined namespaces
-	 * a null URL means hte namespace prefix is undefined for the element
-	 * ln *  matches any localname
-	 * Creation date: (12/2/03 1:43:50 PM)
-	 * Legal direction constants are<br>
-	 * <pre>		ROOT            0  </pre>
-	 * <pre>		PARENT          1  </pre>
-	 * <pre>		FIRST_CHILD     2  </pre>
-	 * <pre>		LAST_CHILD      3  </pre>
-	 * <pre>		NEXT_SIBLING    4  </pre>
-	 * <pre>		PREV_SIBLING    5  </pre>
-	 * <br>
-	 * for ROOT and PARENT, element name will be ignored.
-	 * If not ns enabled, return false immediately with no position change.
-	 * @return boolean
-	 * @param direction int
-	 * @param URL String
-	 * @param ln String     
-	 * @exception com.ximpleware.NavException  When direction value is illegal. Or there are errors 
-	 * in underlying byte representation of the document
-	 */
+     * A generic navigation method with namespace support. Move the cursor to
+     * the element according to the direction constants and the prefix and local
+     * names If no such element, no position change and return false. URL *
+     * matches any namespace, including undefined namespaces a null URL means
+     * hte namespace prefix is undefined for the element ln * matches any
+     * localname Creation date: (12/2/03 1:43:50 PM) Legal direction constants
+     * are <br>
+     * 
+     * <pre>
+     * 		ROOT            0  
+     * </pre>
+	 * <pre>
+     * 		PARENT          1  
+     * </pre>
+	 * <pre>
+     * 		FIRST_CHILD     2  
+     * </pre>
+	 * <pre>
+     * 		LAST_CHILD      3  
+     * </pre>
+	 * <pre>
+     * 		NEXT_SIBLING    4  
+     * </pre>
+	 * <pre>
+     * 		PREV_SIBLING    5  
+     * </pre>
+     * 
+     * <br>
+     * for ROOT and PARENT, element name will be ignored. If not ns enabled,
+     * return false immediately with no position change.
+     * 
+     * @return boolean
+     * @param direction
+     *            int
+     * @param URL
+     *            String
+     * @param ln
+     *            String
+     * @exception com.ximpleware.NavException
+     *                When direction value is illegal. Or there are errors in
+     *                underlying byte representation of the document
+     */
 	public boolean toElementNS(int direction, String URL, String ln)
 		throws NavException {
 		int size;
@@ -3449,16 +3671,18 @@ public class VTDNav {
 
 	}
 	/**
-	 * This method normalizes a token into a string in a way that resembles DOM.
-	 * The leading and trailing white space characters will be stripped.
-	 * The entity and character references will be resolved
-	 * Multiple whitespaces char will be collapsed into one.
-	 * Whitespaces via entities will nonetheless be preserved.
-	 * Creation date: (12/8/03 1:57:10 PM)
-	 * @return java.lang.String
-	 * @param index int
-	 * @exception NavException When the encoding has errors
-	 */
+     * This method normalizes a token into a string in a way that resembles DOM.
+     * The leading and trailing white space characters will be stripped. The
+     * entity and character references will be resolved Multiple whitespaces
+     * char will be collapsed into one. Whitespaces via entities will
+     * nonetheless be preserved. Creation date: (12/8/03 1:57:10 PM)
+     * 
+     * @return java.lang.String
+     * @param index
+     *            int
+     * @exception NavException
+     *                When the encoding has errors
+     */
 	public String toNormalizedString(int index) throws NavException {
 		int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
@@ -3515,15 +3739,79 @@ public class VTDNav {
 
 		return sb.toString();
 	}
+	
+	
+	/**
+	 * Get the string length of a token as if it is converted into a normalized UCS string
+	 * @param index
+	 * @return the string length
+	 * @throws NavException
+	 *
+	 */
+	final public int getNormalizedStringLength(int index) throws NavException {
+		int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			return getRawStringLength(index); 
+		long l;
+		int len,len1=0;
+		if (type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_ATTR_NS)
+			len = getTokenLength(index) & 0xffff;
+		else
+			len = getTokenLength(index);
+		if (len == 0)
+			return 0;
+		int offset = getTokenOffset(index);
+		int endOffset = len + offset - 1; // point to the last character
+		//StringBuffer sb = new StringBuffer(len);
+		
+		int ch;
+		// trim off the leading whitespaces
+
+		while (true) {
+			int temp = offset;
+			l = getChar(offset);
+			
+			ch = (int)l;
+			offset += (int)(l>>32);
+
+			if (!isWS(ch)) {
+				offset = temp;
+				break;
+			}
+		}
+
+		boolean d = false;
+		while (offset <= endOffset) {
+			l = getCharResolved(offset);
+			ch = (int)l;
+			offset += (int)(l>>32);
+			if (isWS(ch) && getCharUnit(offset - 1) != ';') {
+				d = true;
+			} else {
+				if (d == false)
+					len1++; // java only supports 16 bit unicode
+				else {
+					len1= len1+2;
+					d = false;
+				}
+			}
+		}
+
+		return len1;
+	}
 
 	/**
-	 * Convert a token at the given index to a String, (built-in entity and char references not resolved)
-	 * (entities and char references not expanded).
-	 * Creation date: (11/16/03 7:28:49 PM)
-	 * @return java.lang.String
-	 * @param index int
-	 * @exception NavException When the encoding has errors
-	 */
+     * Convert a token at the given index to a String, (built-in entity and char
+     * references not resolved) (entities and char references not expanded).
+     * Creation date: (11/16/03 7:28:49 PM)
+     * 
+     * @return java.lang.String
+     * @param index   int
+     * @exception NavException When the encoding has errors
+     */
 	final public String toRawString(int index) throws NavException {
 		int type = getTokenType(index);
 		int len;
@@ -3535,9 +3823,16 @@ public class VTDNav {
 			len = getTokenLength(index);
 		int offset = getTokenOffset(index);
 		return toRawString(offset, len);
-
 	}
 	
+	/**
+	 * 
+	 * @param os
+	 * @param len
+	 * @return
+	 * @throws NavException
+	 *
+	 */
 	final public String toRawString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
@@ -3550,14 +3845,73 @@ public class VTDNav {
 	    }
 	    return sb.toString();
 	}
+	
 	/**
-	 * Convert a token at the given index to a String, (entities and char references resolved).
-	 * An attribute name or an element name will get the UCS2 string of qualified name 
-	 * Creation date: (11/16/03 7:27:19 PM)
-	 * @return java.lang.String
+	 * getStringLength return the string length of a token as if the token is converted into 
+	 * a string (entity resolved)
 	 * @param index
-	 * @exception NavException
+	 * @return the string length as if the token is converted to a UCS string (entity resolved)
+	 * @throws NavException
+	 *
 	 */
+	final public int getStringLength(int index) throws NavException {
+        int type = getTokenType(index);
+        if (type != TOKEN_CHARACTER_DATA && type != TOKEN_ATTR_VAL)
+            return getRawStringLength(index);
+        int len = 0, len1 = 0;
+        if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME
+                || type == TOKEN_ATTR_NS)
+            len = getTokenLength(index) & 0xffff;
+        else
+            len = getTokenLength(index);
+        int offset = getTokenOffset(index);
+        int endOffset = offset + len;
+        long l;
+
+        while (offset < endOffset) {
+            l = getCharResolved(offset);
+            offset += (int) (l >> 32);
+            len1++;
+        }
+        return len1;
+    }
+
+
+	/**
+	 * Get the string length as if the token is converted into a UCS string (entity not resolved)
+	 * @param index
+	 * @return
+	 * @throws NavException
+	 *
+	 */
+	final public int getRawStringLength(int index) throws NavException {
+        int type = getTokenType(index);
+        int len = 0, len1 = 0;
+        if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME
+                || type == TOKEN_ATTR_NS)
+            len = getTokenLength(index) & 0xffff;
+        else
+            len = getTokenLength(index);
+        int offset = getTokenOffset(index);
+        int endOffset = offset + len;
+        long l;
+        while (offset < endOffset) {
+            l = getChar(offset);
+            offset += (int) (l >> 32);
+            len1++;
+        }
+        return len1;
+    }
+	
+	/**
+     * Convert a token at the given index to a String, (entities and char
+     * references resolved). An attribute name or an element name will get the
+     * UCS2 string of qualified name Creation date: (11/16/03 7:27:19 PM)
+     * 
+     * @return java.lang.String
+     * @param index
+     * @exception NavException
+     */
 	public String toString(int index) throws NavException {
 		int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
@@ -3577,13 +3931,17 @@ public class VTDNav {
 	}
 	
 	/**
-	 * Convert the byte content segment (in terms of offset and length) to String
-	 * @param os  the offset of the segment
-	 * @param len the length of the segment
-	 * @return the corresponding string value
-	 * @throws NavException
-	 *
-	 */
+     * Convert the byte content segment (in terms of offset and length) to
+     * String
+     * 
+     * @param os
+     *            the offset of the segment
+     * @param len
+     *            the length of the segment
+     * @return the corresponding string value
+     * @throws NavException
+     *  
+     */
 	final public String toString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
@@ -3599,11 +3957,15 @@ public class VTDNav {
 	
 /**
  * This method matches two VTD tokens of VTDNav objects
- * @param i1 index of the first token
- * @param vn2 the second VTDNav instance
- * @param i2  index of the second token
+ * 
+ * @param i1
+ *            index of the first token
+ * @param vn2
+ *            the second VTDNav instance
+ * @param i2
+ *            index of the second token
  * @return boolean true if two tokens are lexically identical
- *
+ *  
  */
 	final public boolean matchTokens(int i1, VTDNav vn2, int i2) 
 	throws NavException{
@@ -3614,27 +3976,27 @@ public class VTDNav {
 
 	
 	/**
-	 * Set the value of atTerminal
-	 * This function only gets called in XPath eval
-	 * when a step calls for @* or child::text()
-	 * @param b
-	 */
+     * Set the value of atTerminal This function only gets called in XPath eval
+     * when a step calls for @* or child::text()
+     * @param b
+     */
 	final protected void setAtTerminal(boolean b){
 		atTerminal = b;
 	}
 	
 	/**
-	 * Get the value of atTerminal
-	 * This function only gets called in XPath eval
-	 * @return boolean
-	 */
+     * Get the value of atTerminal This function only gets called in XPath eval
+     * 
+     * @return boolean
+     */
 	final protected boolean getAtTerminal(){
 		return atTerminal;
 	}
 	/**
-	 * This is for debugging purpose
-	 * @param fib
-	 */
+     * This is for debugging purpose
+     * 
+     * @param fib
+     */
 	
 	public void sampleState(FastIntBuffer fib){
 //		for(int i=0;i<context.)
@@ -3658,12 +4020,13 @@ public class VTDNav {
 	}
 	
 	/**
-	 * Write VTDNav's internal structure into an OutputStream
-	 * @param os
-	 * @throws IndexWriteException
-	 * @throws IOException
-	 *
-	 */
+     * Write VTDNav's internal structure into an OutputStream
+     * 
+     * @param os
+     * @throws IndexWriteException
+     * @throws IOException
+     *  
+     */
 	public void writeIndex(OutputStream os) throws IndexWriteException, IOException{
 	    IndexHandler.writeIndex((byte)1,
 	            this.encoding,
@@ -3682,12 +4045,13 @@ public class VTDNav {
 	            os);
 	}
 	/**
-	 * Write VTDNav's internal structure into a VTD+XML format
-	 * @param fileName
-	 * @throws IOException
-	 * @throws IndexWriteException
-	 *
-	 */
+     * Write VTDNav's internal structure into a VTD+XML format
+     * 
+     * @param fileName
+     * @throws IOException
+     * @throws IndexWriteException
+     *  
+     */
 	public void writeIndex(String fileName) throws IOException,IndexWriteException{
 	    FileOutputStream fos = new FileOutputStream(fileName);
 	    writeIndex(fos);
@@ -3695,10 +4059,11 @@ public class VTDNav {
 	}
 	
 	/**
-	 * Precompute the size of VTD+XML index
-	 * @return size of the index
-	 *
-	 */
+     * Precompute the size of VTD+XML index
+     * 
+     * @return size of the index
+     *  
+     */
 	 
 	public long getIndexSize(){
 	    int size;
