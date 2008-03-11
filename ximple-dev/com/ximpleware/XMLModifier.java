@@ -549,7 +549,7 @@ public class XMLModifier {
      *
      */
     public void updateToken(int index, byte[] newContentBytes, 
-            int contentOffset, int contentLen,int src_encoding) 
+            int contentOffset, int contentLen, int src_encoding) 
 	throws ModifyException,UnsupportedEncodingException, TranscodeException{
         
         if (src_encoding == encoding) {
@@ -593,7 +593,29 @@ public class XMLModifier {
         }
         // one delete
         removeToken(index);        	
-}
+    }
+    
+    /**
+     * Update token with the transcoded representation of 
+     * a segment of byte array contained in vn (in terms of offset and length)
+     * @param index
+     * @param vn
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws TranscodeException
+     *
+     */
+    
+    public void updateToken(int index, VTDNav vn, 
+            int contentOffset, int contentLen) 
+	throws ModifyException,UnsupportedEncodingException, TranscodeException{
+        updateToken(index, vn.XMLDoc.getBytes(), contentOffset, contentLen, vn.encoding);
+    }
+    
+    
+    
     
     /**
     * Update the token with the given string value,
@@ -767,6 +789,9 @@ public class XMLModifier {
         insertBytesAt(offset + len, b, contentOffset, contentLen);
     }
     
+    
+ 
+    
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert the transcoded array of bytes of a segment of the byte array b after the element
@@ -795,7 +820,26 @@ public class XMLModifier {
             byte[] bo = Transcoder.transcode(b, contentOffset, contentLen, src_encoding, encoding);
             insertBytesAt(offset + len, bo);
         }
-}
+    }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert the transcoded array of bytes of a segment of the byte array b after the element
+     * the VTDNav object is the container of the XML document in byte array
+     * 
+     * @param vn
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterElement(VTDNav vn, int contentOffset, int contentLen)
+    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+        insertAfterElement(vn.encoding,vn.XMLDoc.getBytes(),contentOffset, contentLen);       
+    }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert a segment of the byte array b after the element,
@@ -847,6 +891,24 @@ public class XMLModifier {
             byte[] bo = Transcoder.transcode(b, (int)l, (int)l>>32, src_encoding, encoding);
             insertBytesAt(offset + len, bo, l1);
         }
+    }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert a segment of the byte array b (contained in vn, and 
+     * transcode into a byte array) after the element, 
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param vn
+     * @param l1
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterElement(VTDNav vn, long l1) throws ModifyException,
+    UnsupportedEncodingException, NavException, TranscodeException {
+        insertAfterElement(vn.encoding, vn.XMLDoc.getBytes(), l1);
     }
     
     /**
@@ -1025,6 +1087,25 @@ public class XMLModifier {
                 insertBytesAt((offset) << 1, bo);
         }
     }
+    
+
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert the transcoded representation of a segment of the byte array contained
+     * in vn before the element
+     * @param vn
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws TranscodeException
+     *
+     */
+    public void insertBeforeElement(VTDNav vn,int contentOffset, int contentLen) throws ModifyException,
+    UnsupportedEncodingException, TranscodeException {
+        insertBeforeElement(vn.encoding, vn.XMLDoc.getBytes(),contentOffset, contentLen);
+    }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert a segment of the byte array b before the element
@@ -1078,6 +1159,24 @@ public class XMLModifier {
             else
                 insertBytesAt((offset) << 1, bo);
         }
+    }
+    
+    /**
+     * This method will first call getCurrentIndex() to get the cursor index value
+     * then insert the transcoded representation of a segment of the byte array contained in
+     * vn before the element
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param vn
+     * @param l
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws TranscodeException
+     *
+     */
+    
+    public void insertBeforeElement(VTDNav vn, long l) throws ModifyException,
+    UnsupportedEncodingException, TranscodeException {
+        insertBeforeElement(vn.encoding, vn.XMLDoc.getBytes(),l);
     }
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
