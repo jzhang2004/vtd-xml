@@ -32,6 +32,7 @@ static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn);
 static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn);
 static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn);
 static Boolean isWS(UCSChar c);
+static Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s);
 static inline UCSChar* normalize(UCSChar *s);
 static double round(double v);
 static double round(double v) 
@@ -672,6 +673,12 @@ Boolean evalBoolean_fne (funcExpr *fne,VTDNav *vn){
 						"not()'s <funcExpr> argument count is invalid");
 				}
 				return !fne->al->e->evalBoolean(fne->al->e,vn);
+			case FN_LANG:
+				if (argCount(fne)!=1){
+					throwException2(invalid_argument,
+						"boolean()'s <funcExpr> argument count is invalid");
+				}
+				return lang(fne, vn, fne->al->e->evalString(fne->al->e,vn));	
 
 			default: 
 				if (isNumerical_fne(fne)){
@@ -998,4 +1005,25 @@ int adjust_fne(funcExpr *fne, int n){
 		default:
 			return 0;
 	}
+}
+
+
+Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s){
+	exception ee;
+	Boolean b = FALSE;
+	push2(vn);
+	Try {
+		while (getCurrentDepth(vn) >= 0) {
+			int i = getAttrVal(vn,L"xml:lang");
+			if (i!=-1){
+				b = matchTokenString(vn,i,s);
+				break;                    
+			}
+			toElement(vn,PARENT);
+		}
+	} Catch (ee) {
+
+	}
+	pop2(vn);
+	return b;
 }
