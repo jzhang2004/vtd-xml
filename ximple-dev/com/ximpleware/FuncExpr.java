@@ -595,7 +595,7 @@ public class FuncExpr extends Expr{
 								return !argumentList.e.evalBoolean(vn);
 		    case FuncName.LANG:
 		        				if (argCount()!=1){
-		        				    	throw new IllegalArgumentException("not() doesn't take any argument");
+		        				    	throw new IllegalArgumentException("lang()'s argument count is invalid");
 		        				}
 								return lang(vn,argumentList.e.evalString(vn));
 			default: if (isNumerical()){
