@@ -630,7 +630,13 @@ namespace com.ximpleware
 					{
 						throw new System.ArgumentException("not() doesn't take any argument");
 					}
-					return !argumentList.e.evalBoolean(vn);				
+					return !argumentList.e.evalBoolean(vn);
+                case FuncName.LANG:
+                    if (argCount() != 1)
+                    {
+                        throw new System.ArgumentException("lang()'s argument count is invalid");
+                    }
+                    return lang(vn, argumentList.e.evalString(vn));
 				default:  if (Numerical)
 					{
 						double d = evalNumber(vn);
@@ -978,6 +984,38 @@ namespace com.ximpleware
 				return System.Double.NaN;
 			}
 		}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        private bool lang(VTDNav vn, String s)
+        {
+            // check the length of s 
+            bool b = false;
+            vn.push2();
+            try
+            {
+                while (vn.getCurrentDepth() >= 0)
+                {
+                    int i = vn.getAttrVal("xml:lang");
+                    if (i != -1)
+                    {
+                        b = vn.matchTokenString(i, s);
+                        break;
+                    }
+                    vn.toElement(VTDNav.P);
+                }
+            }
+            catch (NavException e)
+            {
+
+            }
+            vn.pop2();
+            return b;
+        }
 		// to support computer context size 
 		// needs to add 
 		
