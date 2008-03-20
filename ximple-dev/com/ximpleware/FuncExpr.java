@@ -249,8 +249,43 @@ public class FuncExpr extends Expr{
 			("name()'s argument count is invalid");
 	        
 	}
-	private boolean lang(VTDNav vn){
-	    return false;
+	// ISO 639 
+	// http://www.loc.gov/standards/iso639-2/php/English_list.php
+	// below are defined two-letter words
+	// 
+	// ab , aa , af, ak, sq, am, ar, an, hy, as, av, ae, ay, az, bm
+	// ba , eu , be, bn, bh, bi, nb, bs, br, bg, my, es, ca, km, ch
+	// ce , ny , zh, za, cu, cv, kw, co, cr, hr, cs, da, dv, dv, nl
+	// dz , en , eo, et, ee, fo, fj, fi, nl, fr, ff, gd, gl, lg, ka
+	// de , ki , el, kl, gn, gu, ht, ha, he, hz, hi, ho, hu, is, io
+	// ig , id , ia, ie, iu, ik, ga, it, ja, jv, kl, kn, kr, ks, kk
+	// ki , rw , ky, kv, kg, ko, kj, ku, kj, ky, lo, la, lv, lb, li
+	// ln , lt , lu, lb, mk, mg, ms, ml, dv, mt, gv, mi, mr, mh, mo
+	// mn , na , nv, nv, nd, nr, ng, ne, nd, se, no, nb, nn, ii, nn,
+	// ie , oc , oj, cu, or, om, os, pi, pa, ps, fa, pl, pt, oc, pa,
+	// ps , qu , ro, rm, rn, ru, sm, sa, sc, gd, sr, sn, ii, si, sk,
+	// sl , so , st, nr, es, su, sw, ss, sv, tl, ty, tg, ta, tt, te, 
+	// th , bo , ti, to, ts, tn, tr, tk, tw, ug, uk, ur, ug, uz, ca,
+	// ve , vi , vo, wa, cy, fy, wo, xh, yi, yo, za, zu
+	
+	private boolean lang(VTDNav vn, String s){
+	    // check the length of s 
+	    boolean b = false;
+	    vn.push2();
+        try {
+            while (vn.getCurrentDepth() >= 0) {
+                int i = vn.getAttrVal("xml:lang");
+                if (i!=-1){
+                    b = vn.matchTokenString(i,s);
+                    break;                    
+                }
+                vn.toElement(VTDNav.P);
+            }
+        } catch (NavException e) {
+
+        }
+	    vn.pop2();
+	    return b;
 	}
 	private boolean startsWith(VTDNav vn){
 	    String s1 = argumentList.e.evalString(vn);
@@ -558,6 +593,11 @@ public class FuncExpr extends Expr{
 										throw new IllegalArgumentException("not() doesn't take any argument");
 			   					}
 								return !argumentList.e.evalBoolean(vn);
+		    case FuncName.LANG:
+		        				if (argCount()!=1){
+		        				    	throw new IllegalArgumentException("not() doesn't take any argument");
+		        				}
+								return lang(vn,argumentList.e.evalString(vn));
 			default: if (isNumerical()){
 			    		double d = evalNumber(vn);
 			    		if (d==0 || d!=d)
