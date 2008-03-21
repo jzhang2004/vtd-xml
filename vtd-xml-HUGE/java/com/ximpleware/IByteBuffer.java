@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ public interface IByteBuffer {
 	 * Get the byte at the given index of the underlying byte storage.
 	 * @return byte
 	 */
-	byte byteAt(int index);
+	byte byteAt(long index);
 	/**
 	 * Return a byte array filled with content from underlying byte storage.
 	 * @return byte[]
@@ -35,9 +35,9 @@ public interface IByteBuffer {
 	byte[] getBytes(int offset, int len);
 	/**
 	 * Total size in terms of # of bytes.
-	 * @return int
+	 * @return long
 	 */
-	int length();
+	long length();
 	// get the whole XML 
 	byte[] getBytes();
 }
