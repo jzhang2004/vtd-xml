@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -122,16 +122,16 @@ public class VTDNav {
 	
 	public final static int FORMAT_UTF_16LE = 64;
 	public final static int FORMAT_UTF_16BE = 63;
-	// masks for obtaining various fields from a VTD token 
-	private final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
-	private final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
-	private final static long MASK_TOKEN_QN_LEN = 0x000007ff00000000L;
-	long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
+	// masks for obtaining various fields from a VTD token 16-bit long
+	private final static long MASK_TOKEN_FULL_LEN = 0x003fffe000000000L;
+	private final static long MASK_TOKEN_PRE_LEN = 0x003f800000000000L;
+	private final static long MASK_TOKEN_QN_LEN = 0x00007fe000000000L;
+	private final static long MASK_TOKEN_OFFSET = 0x0000001fffffffffL;
 	private final static long MASK_TOKEN_TYPE = 0xf000000000000000L;
-	private final static long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
+	private final static long MASK_TOKEN_DEPTH = 0x0fc0000000000000L;
 
 	// tri-state variable for namespace lookup
-	private final static long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
+	//private final static long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
 
 	protected int rootIndex; // where the root element is at
 	protected int nestingLevel;
@@ -174,9 +174,9 @@ public class VTDNav {
 
 	// intermediate buffer for push and pop purposes  
 	protected int[] stackTemp;
-	protected int docOffset;
+	protected long docOffset;
 	// length of the document
-	protected int docLen;
+	protected long docLen;
 	protected int vtdSize; //vtd record count
 	/**
 	 * Initialize the VTD navigation object.
@@ -202,8 +202,8 @@ public class VTDNav {
 		ILongBuffer l1,
 		ILongBuffer l2,
 		IIntBuffer l3,
-		int so, // start offset of the starting offset(in byte) 
-	int length) // lengnth of the XML document (in byte)) 
+		long so, // start offset of the starting offset(in byte) 
+	long length) // lengnth of the XML document (in byte)) 
 	{
 		// initialize all buffers
 		if (l1 == null
@@ -230,10 +230,10 @@ public class VTDNav {
 		rootIndex = RootIndex;
 		nestingLevel = depth + 1;
 		ns = NS; // namespace aware or not
-		if (ns == false)
-		    MASK_TOKEN_OFFSET = 0x000000007fffffffL; // this allows xml size to be 2GB 
-		else // if there is no namespace
-		    MASK_TOKEN_OFFSET = 0x000000003fffffffL;
+		//if (ns == false)
+		//    MASK_TOKEN_OFFSET = 0x000000007fffffffL; // this allows xml size to be 2GB 
+		//else // if there is no namespace
+		//    MASK_TOKEN_OFFSET = 0x000000003fffffffL;
 		
 		
 		atTerminal = false; //this variable will only change value during XPath eval
@@ -367,7 +367,7 @@ public class VTDNav {
     	while (index < size
     		&& (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
     		int i = getTokenLength(index);
-    		int offset = getTokenOffset(index);
+    		long offset = getTokenOffset(index);
     		int preLen = (i >> 16) & 0xffff;
     		int fullLen = i & 0xffff;
     		if (preLen != 0
@@ -386,7 +386,7 @@ public class VTDNav {
     	}
     	return -1;
     }
-	private long handle_utf8(long temp, int offset) throws NavException {
+	private long handle_utf8(long temp, long offset) throws NavException {
         int c, d, a; 
         
         long val;
@@ -431,11 +431,11 @@ public class VTDNav {
             i--;
         }
         //currentOffset += a + 1;
-        return val | (((long)(a+1))<<32);
+        return val | (((long)(a+1))<<37);
     }
 
 
-	private long handle_utf16le(int offset) throws NavException {
+	private long handle_utf16le(long offset) throws NavException {
 		// implement UTF-16LE to UCS4 conversion
 		int val, temp =
 			(XMLDoc.byteAt((offset << 1) + 1 ) & 0xff)
@@ -444,12 +444,12 @@ public class VTDNav {
 			if (temp == '\r') {
 				if (XMLDoc.byteAt((offset << 1) + 2) == '\n'
 					&& XMLDoc.byteAt((offset << 1) + 3) == 0) {
-					return '\n' | (2L<<32) ;
+					return '\n' | (2L<<37) ;
 				} else {
-					return '\n' | (1L<<32);
+					return '\n' | (1L<<37);
 				}
 			}
-			return temp | (1L<<32);
+			return temp | (1L<<37);
 		} else {
 			if (temp<0xd800 || temp>0xdbff)				
 				throw new NavException("UTF 16 LE encoding error: should never happen");
@@ -463,12 +463,12 @@ public class VTDNav {
 			}
 			val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
 			
-			return val | (2L<<32);
+			return val | (2L<<37);
 		}
 		//System.out.println("UTF 16 LE unimplemented for now");
 	}
 
-	private long handle_utf16be(int offset) throws NavException{
+	private long handle_utf16be(long offset) throws NavException{
 		long val; 
 		
 		int temp =
@@ -480,13 +480,13 @@ public class VTDNav {
 				if (XMLDoc.byteAt((offset << 1) + 3) == '\n'
 					&& XMLDoc.byteAt((offset << 1) + 2) == 0) {
 					
-					return '\n'|(2L<<32);
+					return '\n'|(2L<<37);
 				} else {
-					return '\n'|(1L<<32);
+					return '\n'|(1L<<37);
 				}
 			}
 			//currentOffset++;
-			return temp| (1L<<32);
+			return temp| (1L<<37);
 		} else {
 			if (temp<0xd800 || temp>0xdbff)				
 				throw new NavException("UTF 16 BE encoding error: should never happen");
@@ -500,21 +500,21 @@ public class VTDNav {
 			}
 			val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
 			//currentOffset += 2;
-			return val | (2L<<32);
+			return val | (2L<<37);
 		}
 	}
 
-	private long getChar4OtherEncoding(int offset) throws NavException{
+	private long getChar4OtherEncoding(long offset) throws NavException{
 	    if (encoding <= FORMAT_WIN_1258){
 	        int	temp = decode(offset);
 	        if (temp == '\r') {
 	            if (XMLDoc.byteAt(offset + 1) == '\n') {
-	                return '\n'|(2L<<32);
+	                return '\n'|(2L<<37);
 	            } else {
-				return '\n'|(1L<<32);
+				return '\n'|(1L<<37);
 	            }
 	        }
-	        return temp|(1L<<32);
+	        return temp|(1L<<37);
 	    }
 	    throw new NavException("Unknown Encoding");
 	}
@@ -529,7 +529,7 @@ public class VTDNav {
 	 * the correctness of underlying byte content. This is because the VTD can be generated by another
 	 * machine, e.g. from a load-balancer.
 	 */
-	private long getChar(int offset) throws NavException {
+	private long getChar(long offset) throws NavException {
 		long temp = 0;
 		//int a, c, d;
 		//int val;
@@ -542,38 +542,38 @@ public class VTDNav {
 				temp = XMLDoc.byteAt(offset);
 				if (temp == '\r') {
 					if (XMLDoc.byteAt(offset + 1) == '\n') {
-						return '\n'|(2L<<32);
+						return '\n'|(2L<<37);
 					} else {
-						return '\n'|(1L<<32);
+						return '\n'|(1L<<37);
 					}
 				}
 				
-				return temp|(1L<<32);
+				return temp|(1L<<37);
 				
 			case FORMAT_ISO_8859_1 :
 				temp = XMLDoc.byteAt(offset);
 				if (temp == '\r') {
 					if (XMLDoc.byteAt(offset + 1) == '\n') {
-						return '\n'|(2L<<32);
+						return '\n'|(2L<<37);
 					} else {
-						return '\n'|(1L<<32);
+						return '\n'|(1L<<37);
 					}
 				}
 				
-				return (temp & 0xff)|(1L<<32);
+				return (temp & 0xff)|(1L<<37);
 				
 			case FORMAT_UTF8 :
 				temp = XMLDoc.byteAt(offset);
 				if (temp>=0){
 					if (temp == '\r') {
 						if (XMLDoc.byteAt(offset + 1) == '\n') {
-							return '\n'|(2L<<32);
+							return '\n'|(2L<<37);
 						} else {
-							return '\n'|(1L<<32);
+							return '\n'|(1L<<37);
 						}
 					}
 					//currentOffset++;
-					return temp|(1L<<32);
+					return temp|(1L<<37);
 				}				
 				return handle_utf8(temp,offset);
 
@@ -602,7 +602,7 @@ public class VTDNav {
 	 * the correctness of underlying byte content. This is because the VTD can be generated by another
 	 * machine from a load-balancer.
 	 */
-	private long getCharResolved(int offset) throws NavException {
+	private long getCharResolved(long offset) throws NavException {
 		int ch = 0;
 		int val = 0;
 		long inc =2;
@@ -714,7 +714,7 @@ public class VTDNav {
 		}
 
 		//currentOffset++;
-		return val | (inc << 32);
+		return val | (inc << 37);
 	}
 	
 	/* the exact same copy of getCharResolved except it operates on currentOffset2
@@ -828,7 +828,7 @@ public class VTDNav {
 		return val;
 	}*/
 	
-	private int decode(int offset){
+	private int decode(long offset){
 	    byte ch = XMLDoc.byteAt(offset);
 	    switch(encoding){
         case FORMAT_ISO_8859_2:
@@ -873,7 +873,7 @@ public class VTDNav {
 	 * Get the next char unit which gets decoded automatically
 	 * @return int
 	 */
-	private int getCharUnit(int offset) {
+	private int getCharUnit(long offset) {
 		return (encoding <= 2)
 			? XMLDoc.byteAt(offset) & 0xff
 			: (encoding <= FORMAT_WIN_1258)
@@ -914,142 +914,6 @@ public class VTDNav {
 		case 0: return rootIndex;
 		default: return context[context[0]];
 	}
-	}
-	/**
-	 * Get the starting offset and length of an element
-	 * encoded in a long, upper 32 bit is length; lower 32 bit is offset
-	 * Unit is in byte.
-	 * Creation date: (3/15/04 1:47:55 PM)
-	 */
-	public long getElementFragment() throws NavException {
-		// a little scanning is needed
-		// has next sibling case
-		// if not
-		
-		int depth = getCurrentDepth();
-//		 document length and offset returned if depth == -1
-		if (depth == -1){
-		    int i=vtdBuffer.lower32At(0);
-		    if (i==0)
-		        return ((long)docLen)<<32| docOffset;
-		    else
-		        return ((long)(docLen-32))| 32;
-		}
-		int so = getTokenOffset(getCurrentIndex2()) - 1;
-		int length = 0;
-		
-
-		// for an element with next sibling
-		if (toElement(NEXT_SIBLING)) {
-
-			int temp = getCurrentIndex();
-			// rewind 
-			while (getTokenDepth(temp) < depth) {
-				temp--;
-			}
-			//temp++;
-			int so2 = getTokenOffset(temp) - 1;
-			// look for the first '>'
-			while (getCharUnit(so2) != '>') {
-				so2--;
-			}
-			length = so2 - so + 1;
-			toElement(PREV_SIBLING);
-			if (encoding <= FORMAT_WIN_1258)
-				return ((long) length) << 32 | so;
-			else
-				return ((long) length) << 33 | (so << 1);
-		}
-
-		// for root element
-		if (depth == 0) {
-			int temp = vtdBuffer.size() - 1;
-			boolean b = false;
-			int so2 = 0;
-			while (getTokenDepth(temp) == -1) {
-				temp--; // backward scan
-				b = true;
-			}
-			if (b == false)
-				so2 =
-					(encoding <= FORMAT_WIN_1258 )
-						? (docOffset + docLen - 1)
-						: ((docOffset + docLen) << 1) - 1;
-			else
-				so2 = getTokenOffset(temp + 1);
-			while (getCharUnit(so2) != '>') {
-				so2--;
-			}
-			length = so2 - so + 1;
-			if (encoding <= FORMAT_WIN_1258)
-				return ((long) length) << 32 | so;
-			else
-				return ((long) length) << 33 | (so << 1);
-		}
-		// for a non-root element with no next sibling
-		int temp = getCurrentIndex() + 1;
-		int size = vtdBuffer.size();
-		// temp is not the last entry in VTD buffer
-		if (temp < size - 1) {
-			while (temp < size && getTokenDepth(temp) >= depth) {
-				temp++;
-			}
-			if (temp != size) {
-				int d =
-					depth
-						- getTokenDepth(temp)
-						+ ((getTokenType(temp) == TOKEN_STARTING_TAG) ? 1 : 0);
-				int so2 = getTokenOffset(temp) - 1;
-				int i = 0;
-				// scan backward
-				while (i < d) {
-					if (getCharUnit(so2) == '>')
-						i++;
-					so2--;
-				}
-				length = so2 - so + 2;
-				if (encoding <= FORMAT_WIN_1258)
-					return ((long) length) << 32 | so;
-				else
-					return ((long) length) << 33 | (so << 1);
-			}
-			/*
-			int so2 = getTokenOffset(temp - 1) - 1;
-			int d = depth - getTokenDepth(temp - 1);
-			int i = 0;
-			while (i < d) {
-			    if (getCharUnit(so2) == '>') {
-			        i++;
-			    }
-			    so2--;
-			}
-			length = so2 - so + 2;
-			if (encoding < 3)
-			    return ((long) length) << 32 | so;
-			else
-			    return ((long) length) << 33 | (so << 1);*/
-		}
-		// temp is the last entry
-		// scan forward search for /> or </cc>
-		int so2 =
-			(encoding <= FORMAT_WIN_1258)
-				? (docOffset + docLen - 1)
-				: ((docOffset + docLen) << 1) - 1;
-		int d = depth + 1;
-		int i = 0;
-		while (i < d) {
-			if (getCharUnit(so2) == '>') {
-				i++;
-			}
-			so2--;
-		}
-
-		length = so2 - so + 2;
-
-		if (encoding <= FORMAT_WIN_1258)
-			return ((long) length) << 32 | so;
-		else
-			return ((long) length) << 33 | (so << 1);
 	}
 	/**
 	 * Get the encoding of the XML document.
@@ -1126,8 +990,8 @@ public class VTDNav {
 	 * @param index int
 	 */
 	final public int getTokenDepth(int index) {
-		int i = (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_DEPTH) >> 52);
-		if (i != 255)
+		int i = (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_DEPTH) >> 54);
+		if (i != 63)
 			return i;
 		return -1;
 	}
@@ -1153,19 +1017,18 @@ public class VTDNav {
 			case TOKEN_STARTING_TAG :
 				l = vtdBuffer.longAt(index);
 				return (ns == false)
-					? (int) ((l & MASK_TOKEN_QN_LEN) >> 32)
+					? (int) ((l & MASK_TOKEN_QN_LEN) >> 37)
 					: ((int) ((l & MASK_TOKEN_QN_LEN)
-						>> 32)
+						>> 37)
 						| ((int) ((l & MASK_TOKEN_PRE_LEN)
-							>> 32)
-							<< 5));
+							>> 31)));
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
 			case TOKEN_COMMENT: // make sure this is total length
 				depth = getTokenDepth(index);
 				do{
 					len = len +  (int)
-					((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 32);
+					((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 37);
 					index++;		
 					}
 				while(index < vtdSize && depth == getTokenDepth(index) 
@@ -1174,16 +1037,15 @@ public class VTDNav {
 				return len;
 			default :
 				return (int)
-					((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
+					((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 37);
 		}
-
 	}
 	/**
 	 * Get the starting offset of the token at the given index.
 	 * @return int
 	 * @param index int
 	 */
-	final public int getTokenOffset(int index) {
+	final public long getTokenOffset(int index) {
 		//return (context[0] != 0)
 		//    ? (int) (vtdBuffer.longAt(context[context[0]]) & MASK_TOKEN_OFFSET)
 		//    : (int) (vtdBuffer.longAt(rootIndex) & MASK_TOKEN_OFFSET);
@@ -1549,7 +1411,7 @@ public class VTDNav {
     		return false;
     	int i =
     		getTokenLength((context[0] != 0) ? context[context[0]] : rootIndex);
-    	int offset =
+    	long offset =
     		getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
     	int preLen = (i >> 16) & 0xffff;
     	int fullLen = i & 0xffff;
@@ -1570,17 +1432,17 @@ public class VTDNav {
     	}
     	return false;
     }
-    final private boolean matchRawTokenString(int offset, int len, String s)
+    final private boolean matchRawTokenString(long offset, int len, String s)
     throws NavException{
         return compareRawTokenString(offset, len, s)==0;
     }
     
-	protected int compareTokenString(int offset, int len, String s)
+	protected int compareTokenString(long offset, int len, String s)
             throws NavException {
         int i, l;
         long l1;
         //this.currentOffset = offset;
-        int endOffset = offset + len;
+        long endOffset = offset + len;
 
         //       System.out.print("currentOffset :" + currentOffset);
         l = s.length();
@@ -1592,7 +1454,7 @@ public class VTDNav {
                 return 1;
             if (i1 > (int) l1)
                 return -1;
-            offset += (int) (l1 >> 32);
+            offset += (int) (l1 >> 37);
         }
 
         if (i == l && offset < endOffset)
@@ -1617,7 +1479,7 @@ public class VTDNav {
 	throws NavException{
 	    int t1, t2;
 	    int ch1, ch2;
-	    int endOffset1, endOffset2;
+	    long endOffset1, endOffset2;
 	    long l;
 
 		if ( i1 ==i2 && this == vn2)
@@ -1626,8 +1488,8 @@ public class VTDNav {
 		t1 = this.getTokenType(i1);
 		t2 = vn2.getTokenType(i2);
 		
-		int offset1 = this.getTokenOffset(i1);
-		int offset2 = vn2.getTokenOffset(i2);
+		long offset1 = this.getTokenOffset(i1);
+		long offset2 = vn2.getTokenOffset(i2);
 		
 		endOffset1 = this.getTokenLength(i1)+offset1;
 		endOffset2 = vn2.getTokenLength(i2) + offset2;
@@ -1640,7 +1502,7 @@ public class VTDNav {
 		        l = this.getChar(offset1);
 		    }
 	        ch1 = (int)l;
-	        offset1 += (int)(l>>32);
+	        offset1 += (int)(l>>37);
 		    
 		    if(t2 == VTDNav.TOKEN_CHARACTER_DATA
 		            || t2== VTDNav.TOKEN_ATTR_VAL){
@@ -1649,7 +1511,7 @@ public class VTDNav {
 		        l = vn2.getChar(offset2);
 		    }
 	        ch2 = (int)l;
-	        offset2 += (int)(l>>32);
+	        offset2 += (int)(l>>37);
 	        
 		    if (ch1 > ch2)
 		        return 1;
@@ -1679,12 +1541,12 @@ public class VTDNav {
 	 * the correctness of underlying byte content. This is because the VTD  can be generated by another
 	 * machine such as a load-balancer.
 	 */
-	protected int compareRawTokenString(int offset, int len, String s)
+	protected int compareRawTokenString(long offset, int len, String s)
 		throws NavException {
 		int i, l;
 		long l1;
 		//this.currentOffset = offset;
-		int endOffset = offset + len;
+		long endOffset = offset + len;
 
 			
 		//       System.out.print("currentOffset :" + currentOffset);
@@ -1697,7 +1559,7 @@ public class VTDNav {
                 return 1;
             if (i1 > (int) l1)
                 return -1;
-            offset += (int) (l1 >> 32);
+            offset += (int) (l1 >> 37);
         }
 		
 		if (i == l && offset < endOffset)
@@ -1776,7 +1638,7 @@ public class VTDNav {
 	 * 
 	 */
 	final private boolean matchRawTokenString(long l, String s) throws NavException {
-		int len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 32);
+		int len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 37);
 		// a little hardcode is always bad
 		//currentOffset = (int) l;
 		return compareRawTokenString((int)l, len, s)==0;
@@ -1794,7 +1656,7 @@ public class VTDNav {
 	 * machine such as a load-balancer.
 	 * @exception IllegalArguementException if s is null
 	 */
-	final private boolean matchTokenString(int offset, int len, String s)
+	final private boolean matchTokenString(long offset, int len, String s)
 		throws NavException {
 	    return compareTokenString(offset,len,s)==0;
 	}
@@ -1868,121 +1730,12 @@ public class VTDNav {
 	 */
 
 	final private boolean matchTokenString(long l, String s) throws NavException {
-		int len = (int) (l >> 32) & 0xffff;
+		int len = (int) (l >> 37) & 0xffff;
 		//currentOffset = (int) l;
 		return compareTokenString((int) l, len, s)==0;
 	}
 
 
-	/**
-	 * Evaluate the namespace indicator in bit 31 and bit 30.
-	 * Creation date: (11/27/03 5:38:51 PM)
-	 * @return int
-	 * @param i int
-	 */
-	final private int NSval(int i) {
-
-		return (int) (vtdBuffer.longAt(i) & MASK_TOKEN_NS_MARK);
-	}
-	
-	/**
-	 * overWrite is introduced in version 2.0 that allows you to 
-	 * directly overwrite the XML content if the token is long enough
-	 * If the operation is successful, white spaces will be used to fill
-	 * the available token space, and there will be no need to regenerate
-	 * the VTD and LCs
-	 * <em> The current version (2.0) only allows overwrites on attribute value,
-	 * character data, and CDATA</em>
-	 * 
-	 * Consider the XML below:
-	 *  <a>  good </a> 
-	 * After overwriting the token "good" with "bad," the new XML looks
-	 * like:
-	 *  <a>  bad  </a>
-	 * as you can see, "goo" is replaced with "bad" character-by-character, 
-	 * and the remaining "d" is replace with a white space  
-	 *  
-	 * @param index
-	 * @param ba the byte array contains the new content to be overwritten 
-	 * @return boolean as the status of the overwrite operation
-	 *
-	 */
-	final public boolean overWrite(int index, byte[] ba){
-	    return overWrite(index,ba,0,ba.length);
-	}
-	
-	
-	/**
-	 * overWrite is introduced in version 2.0 that allows you to 
-	 * directly overwrite the XML content if the token is long enough
-	 * If the operation is successful, white spaces will be used to fill
-	 * the available token space, and there will be no need to regenerate
-	 * the VTD and LCs
-	 * <em> The current version (2.0) only allows overwrites on attribute value,
-	 * character data, and CDATA</em>
-	 *  
-	 * Consider the XML below:
-	 *  <a>  good </a> 
-	 * After overwriting the token "good" with "bad," the new XML looks
-	 * like:
-	 *  <a>  bad  </a>
-	 * as you can see, "goo" is replaced with "bad", and the remaining
-	 * "d" is replace with a white space  
-	 *  
-	 * @param index the VTD record to which the change will be applied
-	 * @param ba the byte array contains the new content to be overwritten 
-	 * @param offset
-	 * @param len
-	 * @return boolean as the status of the overwrite operation
-	 *
-	 */
-	public boolean overWrite(int index, byte[] ba, int offset, int len){
-	    if ( ba == null 
-	            || index >= this.vtdSize
-	            || offset<0 
-	            || offset + len > ba.length)
-	        throw new IllegalArgumentException("Illegal argument for overwrite");
-	    if (encoding >=VTDNav.FORMAT_UTF_16BE 
-	            && (((len & 1)==1 )
-	            || ((offset&1)==1))){
-	        // for UTF 16, len and offset must be integer multiple
-	        // of 2
-	        return false;
-	    }
-	    int t = getTokenType(index);
-	    if ( t== VTDNav.TOKEN_CHARACTER_DATA
-	            || t==VTDNav.TOKEN_ATTR_VAL 
-	            || t==VTDNav.TOKEN_CDATA_VAL){
-	        int length = getTokenLength(index);
-	        if ( length < len)
-	            return false;
-	        int os = getTokenOffset(index);
-	        int temp = length - len;
-	        //System.out.println("temp ==>"+temp);
-	        // get XML doc
-	        System.arraycopy(ba, offset, XMLDoc.getBytes(),os, len);
-	        for (int k=0;k<temp;){
-	            //System.out.println("encoding ==>"+encoding);
-	            if (encoding < VTDNav.FORMAT_UTF_16BE){
-	             // write white spaces
-	               // System.out.println("replacing...");
-	                (XMLDoc.getBytes())[os+len+k] = ' ';
-	                k++;
-	            }else{
-	                if (encoding == VTDNav.FORMAT_UTF_16BE){
-	                    XMLDoc.getBytes()[os+len+k] = 0;
-	                    XMLDoc.getBytes()[os+len+k+1] = ' ';
-	                }else{	                    
-	                    XMLDoc.getBytes()[os+len+k] = ' ';
-	                    XMLDoc.getBytes()[os+len+k+1] = 0;
-	                }
-	                k += 2;
-	            }
-	        }    
-	        return true;
-	    }	    
-	    return false;
-	}
 	/**
 	 * Convert a vtd token into a double.
 	 * Creation date: (12/8/03 2:28:31 PM)
@@ -1994,9 +1747,9 @@ public class VTDNav {
 	 */
 	public double parseDouble(int index) throws NavException {
 		//if (matchTokenString()
-		int offset = getTokenOffset(index);
+		long offset = getTokenOffset(index);
 		long l=0;
-		int end = offset + getTokenLength(index);
+		long end = offset + getTokenLength(index);
 		int t = getTokenType(index);
 		boolean b = (t==VTDNav.TOKEN_CHARACTER_DATA )|| (t==VTDNav.TOKEN_ATTR_VAL);
 		boolean expneg = false;
@@ -2006,7 +1759,7 @@ public class VTDNav {
 		{
 		l = b? getCharResolved(offset):getChar(offset);
 		ch = (int)l;
-	    offset += (int)(l>>32);
+	    offset += (int)(l>>37);
 		}		
 
 		while (offset < end) { // trim leading whitespaces
@@ -2014,7 +1767,7 @@ public class VTDNav {
 				break;
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 
 		if (offset > end) // all whitespace
@@ -2025,7 +1778,7 @@ public class VTDNav {
 		if (ch == '-' || ch == '+'){
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32); //get another one if it is sign.
+		    offset += (int)(l>>37); //get another one if it is sign.
 		}
 		//left part of decimal
 		double left = 0;
@@ -2040,7 +1793,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);;
+		    offset += (int)(l>>37);;
 		}
 
 		//right part of decimal
@@ -2049,7 +1802,7 @@ public class VTDNav {
 		if (ch == '.') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 
 			while (offset <= end) {
 				//must be <= since we get the next one at last.
@@ -2064,7 +1817,7 @@ public class VTDNav {
 
 				l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>32);
+			    offset += (int)(l>>37);
 			}
 		}
 
@@ -2073,14 +1826,14 @@ public class VTDNav {
 		if (ch == 'E' || ch == 'e') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 			expneg = (ch == '-'); //sign for exp
 			if (ch == '+' || ch == '-'){
 			    l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>32); //skip the +/- sign
+			    offset += (int)(l>>37); //skip the +/- sign
 			}
-			int cur = offset;
+			long cur = offset;
 			//remember the indx, used to find a invalid number like 1.23E
 
 			while (offset <= end) {
@@ -2095,7 +1848,7 @@ public class VTDNav {
 
 				l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>32);
+			    offset += (int)(l>>37);
 			}
 			if (cur == offset)
 			    return Double.NaN;
@@ -2112,7 +1865,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 
 		double v = (double) left;
@@ -2137,8 +1890,8 @@ public class VTDNav {
 	 */
 	public float parseFloat(int index) throws NavException {
 
-		int offset = getTokenOffset(index);
-		int end = offset + getTokenLength(index);
+		long offset = getTokenOffset(index);
+		long end = offset + getTokenLength(index);
 		long l;
 		//past the last one by one
 		int t = getTokenType(index);
@@ -2146,14 +1899,14 @@ public class VTDNav {
 		int ch ;
 		l = b? getCharResolved(offset):getChar(offset);
 		ch = (int)l;
-	    offset += (int)(l>>32);
+	    offset += (int)(l>>37);
 
 		while (offset <= end) { // trim leading whitespaces
 			if (!isWS(ch))
 				break;
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 
 		if (offset > end) // all whitespace
@@ -2164,7 +1917,7 @@ public class VTDNav {
 		if (ch == '-' || ch == '+'){
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32); //get another one if it is sign.
+		    offset += (int)(l>>37); //get another one if it is sign.
 		}
 		//left part of decimal
 		long left = 0;
@@ -2179,7 +1932,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 
 		//right part of decimal
@@ -2188,7 +1941,7 @@ public class VTDNav {
 		if (ch == '.') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 
 			while (offset <= end) {
 				//must be <= since we get the next one at last.
@@ -2203,7 +1956,7 @@ public class VTDNav {
 
 				l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>32);
+			    offset += (int)(l>>37);
 			}
 		}
 
@@ -2212,14 +1965,14 @@ public class VTDNav {
 		if (ch == 'E' || ch == 'e') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 			boolean expneg = (ch == '-'); //sign for exp
 			if (ch == '+' || ch == '-'){
 			    l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>32); //skip the +/- sign
+			    offset += (int)(l>>37); //skip the +/- sign
 			}
-			int cur = offset;
+			long cur = offset;
 			//remember the indx, used to find a invalid number like 1.23E
 
 			while (offset <= end) {
@@ -2234,7 +1987,7 @@ public class VTDNav {
 
 				l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>32);
+			    offset += (int)(l>>37);
 			}
 
 			if (cur == offset)
@@ -2252,7 +2005,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 
 		double v = (double) left;
@@ -2310,20 +2063,20 @@ public class VTDNav {
 				"radix " + radix + " out of valid range");
 		int t = getTokenType(index);
 		boolean b = (t==VTDNav.TOKEN_CHARACTER_DATA )|| (t==VTDNav.TOKEN_ATTR_VAL);
-		int offset = getTokenOffset(index);
-		int endOffset = offset + getTokenLength(index);
+		long offset = getTokenOffset(index);
+		long endOffset = offset + getTokenLength(index);
 
 		int c;
 		long l = b? getCharResolved(offset):getChar(offset);
 		c = (int)l;
-	    offset += (int)(l>>32);
+	    offset += (int)(l>>37);
 
 		// trim leading whitespaces
 		while ((c == ' ' || c == '\n' || c == '\t' || c == '\r')
 			&& (offset <= endOffset)){
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 		if (offset > endOffset) // all whitespace
 			throw new NumberFormatException(" empty string");
@@ -2332,7 +2085,7 @@ public class VTDNav {
 		if (neg || c == '+') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>32); //skip sign
+		    offset += (int)(l>>37); //skip sign
 		}
 		long result = 0;
 		long pos = 1;
@@ -2347,7 +2100,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 
 		if (result > Integer.MAX_VALUE)
@@ -2357,7 +2110,7 @@ public class VTDNav {
 		while (offset <= endOffset && isWS(c)) {
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 		if (offset == (endOffset + 1))
 			return (int) ((neg) ? (-result) : result);
@@ -2399,21 +2152,21 @@ public class VTDNav {
 		int t = getTokenType(index);
 		boolean b = (t==VTDNav.TOKEN_CHARACTER_DATA )|| (t==VTDNav.TOKEN_ATTR_VAL);
 		
-		int offset = getTokenOffset(index);
-		int endOffset = offset + getTokenLength(index);
+		long offset = getTokenOffset(index);
+		long endOffset = offset + getTokenLength(index);
 
 		int c;
 		long l;
 		l = b? getCharResolved(offset):getChar(offset);
 		c = (int)l;
-	    offset += (int)(l>>32);
+	    offset += (int)(l>>37);
 
 		// trim leading whitespaces
 		while ((c == ' ' || c == '\n' || c == '\t' || c == '\r')
 			&& (offset <= endOffset)){
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 		if (offset > endOffset) // all whitespace
 			throw new NumberFormatException(" empty string");
@@ -2422,7 +2175,7 @@ public class VTDNav {
 		if (neg || c == '+'){
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>32);//skip sign
+		    offset += (int)(l>>37);//skip sign
 		}
 		long result = 0;
 		long pos = 1;
@@ -2437,7 +2190,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>32);;
+		    offset += (int)(l>>37);;
 		}
 
 		if (result > Long.MAX_VALUE)
@@ -2447,7 +2200,7 @@ public class VTDNav {
 		while (offset <= endOffset && isWS(c)) {
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>32);
+		    offset += (int)(l>>37);
 		}
 		if (offset == (endOffset + 1))
 			return (long) ((neg) ? (-result) : result);
@@ -2734,7 +2487,7 @@ public class VTDNav {
     	    throw new NavException("Can't lookup NS for document node");
     	int i =
     		getTokenLength((context[0] != 0) ? context[context[0]] : rootIndex);
-    	int offset =
+    	long offset =
     		getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
     	int preLen = (i >> 16) & 0xffff;
     
@@ -2750,55 +2503,15 @@ public class VTDNav {
      * @return int
      *
      */
-    protected int lookupNS(int offset, int len){
+    protected int lookupNS(long offset, int len){
     	long l;
     	boolean hasNS = false;
     	int size = vtdBuffer.size();
+    	int type;
     	// look for a match in the current hiearchy and return true
     	for (int i = context[0]; i >= 0; i--) {
     		int s = (i != 0) ? context[i] : rootIndex;
-    		switch (NSval(s)) { // checked the ns marking
-    			case 0xc0000000 :
-    				s = s + 1;
-    				if (s>=size)
-    					break;
-    				int type = getTokenType(s);
-    
-    				while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
-    					if (type == TOKEN_ATTR_NS) {
-    						// Get the token length
-    						int temp = getTokenLength(s);
-    						int preLen = ((temp >> 16) & 0xffff);
-    						int fullLen = temp & 0xffff;
-    						int os = getTokenOffset(s);
-    						// xmlns found
-    						if (temp == 5 && len == 0) {
-    							return s+1;
-    						} else if ((fullLen - preLen - 1) == len) {
-    							// prefix length identical to local part of ns declaration
-    							boolean a = true;
-    							for (int j = 0; j < len; j++) {
-    								if (getCharUnit(os + preLen + 1 + j)
-    									!= getCharUnit(offset + j)) {
-    									a = false;
-    									break;
-    								}
-    							}
-    							if (a == true) {
-    								return s+1;
-    							}
-    						}
-    					}
-    					//return (URL != null) ? true : false;
-    					s += 2;
-    					if (s>=size)
-    						break;
-    					type = getTokenType(s);
-    				}
-    				break;
-    			case 0x80000000 :
-    				break;
-    			default : // check the ns existence, mark bit 31:30 to 11 or 10
+    		{
     				int k = s + 1;
     			    if (k>=size)
     			    	break;
@@ -2811,14 +2524,14 @@ public class VTDNav {
     						int temp = getTokenLength(k);
     						int preLen = ((temp >> 16) & 0xffff);
     						int fullLen = temp & 0xffff;
-    						int os = getTokenOffset(k);
+    						long os = getTokenOffset(k);
     						// xmlns found
     						if (temp == 5 && len == 0) {
     							l = vtdBuffer.longAt(s);
     							hasNS = false;
-    							vtdBuffer.modifyEntry(
+    							/*vtdBuffer.modifyEntry(
     								s,
-    								l | 0x00000000c0000000L);
+    								l | 0x00000000c0000000L);*/
     							
     							return k+1;
     							
@@ -2833,11 +2546,11 @@ public class VTDNav {
     								}
     							}
     							if (a == true) {
-    								l = vtdBuffer.longAt(s);
+    								//l = vtdBuffer.longAt(s);
     								//hasNS = false;
-    								vtdBuffer.modifyEntry(
-    									s,
-    									l | 0x00000000c0000000L);
+    								//vtdBuffer.modifyEntry(
+    								//	s,
+    								//	l | 0x00000000c0000000L);
     								return k+1;
     							}
     						}
@@ -2848,20 +2561,20 @@ public class VTDNav {
     						break;
     					type = getTokenType(k);
     				}
-    				l = vtdBuffer.longAt(s);
+    				/*l = vtdBuffer.longAt(s);
     				if (hasNS) {
     					hasNS = false;
-    					vtdBuffer.modifyEntry(s, l | 0x00000000c0000000L);
+    					//vtdBuffer.modifyEntry(s, l | 0x00000000c0000000L);
     				} else {
-    					vtdBuffer.modifyEntry(s, l | 0x0000000080000000L);
-    				}
-    				break;
+    					//vtdBuffer.modifyEntry(s, l | 0x0000000080000000L);
+    				}*/
+    				//break;
     		}
     	}
     	return 0;
         //return -1;
     }
-    private boolean resolveNS(String URL, int offset, int len)
+    private boolean resolveNS(String URL, long offset, int len)
 	throws NavException {
     
         int result = lookupNS(offset, len);
@@ -3451,8 +3164,8 @@ public class VTDNav {
 			len = getTokenLength(index);
 		if (len == 0)
 			return "";
-		int offset = getTokenOffset(index);
-		int endOffset = len + offset - 1; // point to the last character
+		long offset = getTokenOffset(index);
+		long endOffset = len + offset - 1; // point to the last character
 		StringBuffer sb = new StringBuffer(len);
 		
 		int ch;
@@ -3460,11 +3173,11 @@ public class VTDNav {
 		// trim off the leading whitespaces
 
 		while (true) {
-			int temp = offset;
+			long temp = offset;
 			l = getChar(offset);
 			
 			ch = (int)l;
-			offset += (int)(l>>32);
+			offset += (int)(l>>37);
 
 			if (!isWS(ch)) {
 				offset = temp;
@@ -3476,7 +3189,7 @@ public class VTDNav {
 		while (offset <= endOffset) {
 			l = getCharResolved(offset);
 			ch = (int)l;
-			offset += (int)(l>>32);
+			offset += (int)(l>>37);
 			if (isWS(ch) && getCharUnit(offset - 1) != ';') {
 				d = true;
 			} else {
@@ -3510,19 +3223,19 @@ public class VTDNav {
 			len = getTokenLength(index) & 0xffff;
 		else
 			len = getTokenLength(index);
-		int offset = getTokenOffset(index);
+		long offset = getTokenOffset(index);
 		return toRawString(offset, len);
 
 	}
 	
-	protected String toRawString(int os, int len) throws NavException{
+	protected String toRawString(long os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
-	    int offset = os;
-	    int endOffset = os + len;
+	    long offset = os;
+	    long endOffset = os + len;
 	    long l;
 	    while (offset < endOffset) {
 	        l = getChar(offset);
-	        offset += (int)(l>>32);
+	        offset += (int)(l>>37);
 	        sb.append((char)l);	                
 	    }
 	    return sb.toString();
@@ -3549,18 +3262,18 @@ public class VTDNav {
 		else
 			len = getTokenLength(index);
 
-		int offset = getTokenOffset(index);
+		long offset = getTokenOffset(index);
 		return toString(offset, len);
 	}
 	
-	protected String toString(int os, int len) throws NavException{
+	protected String toString(long os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
-	    int offset = os;
-	    int endOffset = os + len;
+	    long offset = os;
+	    long endOffset = os + len;
 	    long l;
 	    while (offset < endOffset) {
 	        l = getCharResolved(offset);
-	        offset += (int)(l>>32);
+	        offset += (int)(l>>37);
 	        sb.append((char)l);	                
 	    }
 	    return sb.toString();
@@ -3625,4 +3338,42 @@ public class VTDNav {
 		   fib.append(l3upper);
 		}
 	}
+	
+	final public int getStringLength(int index) throws NavException {
+        int type = getTokenType(index);
+        if (type != TOKEN_CHARACTER_DATA && type != TOKEN_ATTR_VAL)
+            return getRawStringLength(index);
+        int len = 0, len1 = 0;
+        
+        len = getTokenLength(index);
+        long offset = getTokenOffset(index);
+        long endOffset = offset + len;
+        long l;
+
+        while (offset < endOffset) {
+            l = getCharResolved(offset);
+            offset += (int) (l >> 32);
+            len1++;
+        }
+        return len1;
+    }
+	
+	final public int getRawStringLength(int index) throws NavException {
+        int type = getTokenType(index);
+        int len = 0, len1 = 0;
+        if (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME
+                || type == TOKEN_ATTR_NS)
+            len = getTokenLength(index) & 0xffff;
+        else
+            len = getTokenLength(index);
+        long offset = getTokenOffset(index);
+        long endOffset = offset + len;
+        long l;
+        while (offset < endOffset) {
+            l = getChar(offset);
+            offset += (int) (l >> 32);
+            len1++;
+        }
+        return len1;
+    }
 }

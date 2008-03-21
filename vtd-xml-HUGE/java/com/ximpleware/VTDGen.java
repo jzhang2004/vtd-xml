@@ -110,14 +110,14 @@ public class VTDGen {
 	private boolean must_utf_8;
 	private int ch;
 	private int ch_temp;
-	protected int offset;	// this is byte offset, not char offset as encoded in VTD
-	private int temp_offset;
+	protected long offset;	// this is byte offset, not char offset as encoded in VTD
+	private long temp_offset;
 	protected int depth;
 
 
-	protected int prev_offset;
+	protected long prev_offset;
 	protected int rootIndex;
-	protected byte[] XMLDoc;
+	protected XMLBuffer xb;
 	protected FastLongBuffer VTDBuffer;
 	protected FastLongBuffer l1Buffer;
 	protected FastLongBuffer l2Buffer;
@@ -125,24 +125,24 @@ public class VTDGen {
 	protected boolean br; //buffer reuse
 
 
-	protected int docLen;
+	protected long docLen;
 	// again, in terms of byte, not char as encoded in VTD
-	protected int endOffset;
+	protected long endOffset;
 	protected long[] tag_stack;
 	public long[] attr_name_array;
-	public final static int MAX_DEPTH = 254; // maximum depth value
-	protected int docOffset;
+	public final static int MAX_DEPTH = 62; // maximum depth value
+	protected long docOffset;
 
 	// attr_name_array size
 	private final static int ATTR_NAME_ARRAY_SIZE = 16;
 	// tag_stack size
 	private final static int TAG_STACK_SIZE = 256;
 	// max prefix length
-	public final static int MAX_PREFIX_LENGTH = (1<<9) -1;
+	public final static int MAX_PREFIX_LENGTH = (1<<7) -1;
 	// max Qname length
-	public final static int MAX_QNAME_LENGTH = (1<<11) -1;
+	public final static int MAX_QNAME_LENGTH = (1<<10) -1;
 	// max Token length
-	public final static int MAX_TOKEN_LENGTH = (1<<20) -1;
+	public final static int MAX_TOKEN_LENGTH = (1<<17) -1;
 
 
 	
@@ -153,7 +153,7 @@ public class VTDGen {
 			throws EOFException, ParseException, EncodingException {
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			int temp = XMLDoc[offset];
+			int temp = xb.byteAt(offset);
 			//int a = 0, c = 0, d = 0, val = 0;
 			if (temp >= 0) {
 				offset++;
@@ -199,7 +199,7 @@ public class VTDGen {
 			val = (temp & c) << d;
 			i = a - 1;
 			while (i >= 0) {
-				temp = XMLDoc[offset + a - i];
+				temp = xb.byteAt(offset + a - i);
 				if ((temp & 0xc0) != 0x80)
 					throw new ParseException(
 							"UTF 8 encoding error: should never happen");
@@ -212,7 +212,7 @@ public class VTDGen {
 		public boolean skipChar(int ch)
 			throws EOFException, EncodingException, ParseException {
 			//int a = 0, c = 0, d = 0, val = 0;
-			int temp = XMLDoc[offset];
+			int temp = xb.byteAt(offset);
 			if (temp >= 0)
 				if (ch == temp) {
 					offset++;
@@ -259,7 +259,7 @@ public class VTDGen {
 			val = (temp & c) << d;
 			i = a - 1;
 			while (i >= 0) {
-				temp = XMLDoc[offset + a - i];
+				temp = xb.byteAt(offset + a - i);
 				if ((temp & 0xc0) != 0x80)
 					throw new ParseException(
 							"UTF 8 encoding error: should never happen");
@@ -283,7 +283,7 @@ public class VTDGen {
 			int val = 0;
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			int temp = (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+			int temp = (xb.byteAt(offset)&0xff) << 8 | (xb.byteAt(offset+1)&0xff);
 			if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
 				offset += 2;
 				return temp;
@@ -291,7 +291,7 @@ public class VTDGen {
 				if (temp<0xd800 || temp>0xdbff)				
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				val = temp;
-				temp = (XMLDoc[offset + 2]&0xff) << 8 | (XMLDoc[offset + 3]&0xff);
+				temp = (xb.byteAt(offset+2)&0xff) << 8 | (xb.byteAt(offset+3)&0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be a low surrogate here
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
@@ -305,7 +305,7 @@ public class VTDGen {
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
 			// implement UTF-16BE to UCS4 conversion
-			int temp = (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+			int temp = (xb.byteAt(offset)&0xff) << 8 | (xb.byteAt(offset+1)&0xff);
 			if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
 				//offset += 2;
 				if (temp == ch) {
@@ -317,7 +317,7 @@ public class VTDGen {
 				if (temp<0xd800 || temp>0xdbff)				
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
 				int val = temp;
-				temp = (XMLDoc[offset + 2]&0xff) << 8 | (XMLDoc[offset + 3]&0xff);
+				temp = (xb.byteAt(offset+2)&0xff) << 8 | (xb.byteAt(offset+3)&0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be a low surrogate here
 					throw new EncodingException("UTF 16 BE encoding error: should never happen");
@@ -340,7 +340,7 @@ public class VTDGen {
 			int val = 0;
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			int temp = (XMLDoc[offset + 1] &0xff) << 8 | (XMLDoc[offset]& 0xff);
+			int temp = (xb.byteAt(offset+1) &0xff) << 8 | (xb.byteAt(offset)& 0xff);
 			if (temp < 0xd800 || temp > 0xdfff) { // check for low surrogate
 				offset += 2;
 				return temp;
@@ -348,7 +348,7 @@ public class VTDGen {
 				if (temp<0xd800 || temp>0xdbff)				
 					throw new EncodingException("UTF 16 LE encoding error: should never happen");
 				val = temp;
-				temp = (XMLDoc[offset + 3] &0xff) << 8 | (XMLDoc[offset + 2]&0xff);
+				temp = (xb.byteAt(offset+3) &0xff) << 8 | (xb.byteAt(offset+2)&0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be high surrogate
 					throw new EncodingException("UTF 16 LE encoding error: should never happen");
@@ -361,7 +361,7 @@ public class VTDGen {
 		public boolean skipChar(int ch)
 			throws EOFException, EncodingException, ParseException {
 
-			int temp = (XMLDoc[offset + 1]&0xff) << 8 | (XMLDoc[offset]&0xff);
+			int temp = (xb.byteAt(offset+1)&0xff) << 8 | (xb.byteAt(offset)&0xff);
 			if (temp < 0xd800 ||temp > 0xdfff) { // check for low surrogate
 				if (temp == ch) {
 					offset += 2;
@@ -373,7 +373,7 @@ public class VTDGen {
 				if (temp<0xd800 || temp>0xdbff)				
 					throw new EncodingException("UTF 16 LE encoding error: should never happen");
 				int val = temp;
-				temp = (XMLDoc[offset + 3] &0xff)<< 8 | (XMLDoc[offset + 2]&0xff);
+				temp = (xb.byteAt(offset+3)&0xff)<< 8 | (xb.byteAt(offset+2)&0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be high surrogate
 					throw new EncodingException("UTF 16 LE encoding error: should never happen");
@@ -397,7 +397,7 @@ public class VTDGen {
 			int a;
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			a= XMLDoc[offset++];
+			a= xb.byteAt(offset++);
 			if (a<0)
 				throw new ParseException(
 				"ASCII encoding error: invalid ASCII Char");
@@ -406,7 +406,7 @@ public class VTDGen {
 		public boolean skipChar(int ch)
 			throws ParseException, EOFException, EncodingException {
 
-			if (ch == XMLDoc[offset]) {
+			if (ch == xb.byteAt(offset)) {
 				offset++;
 				return true;
 			} else {
@@ -423,11 +423,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return XMLDoc[offset++] & 0xff;
+			return xb.byteAt(offset++) & 0xff;
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == XMLDoc[offset]) {
+			if (ch == xb.byteAt(offset)) {
 				offset++;
 				return true;
 			} else {
@@ -444,11 +444,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_2.decode(XMLDoc[offset++]);
+			return ISO8859_2.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_2.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_2.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -464,11 +464,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_3.decode(XMLDoc[offset++]);
+			return ISO8859_3.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_3.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_3.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -485,11 +485,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_4.decode(XMLDoc[offset++]);
+			return ISO8859_4.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_4.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_4.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -506,11 +506,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_5.decode(XMLDoc[offset++]);
+			return ISO8859_5.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_5.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_5.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -527,11 +527,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_6.decode(XMLDoc[offset++]);
+			return ISO8859_6.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_6.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_6.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -547,11 +547,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_7.decode(XMLDoc[offset++]);
+			return ISO8859_7.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_7.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_7.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -568,11 +568,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_8.decode(XMLDoc[offset++]);
+			return ISO8859_8.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_8.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_8.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -589,11 +589,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_9.decode(XMLDoc[offset++]);
+			return ISO8859_9.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_9.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_9.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -611,11 +611,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return ISO8859_10.decode(XMLDoc[offset++]);
+			return ISO8859_10.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == ISO8859_10.decode(XMLDoc[offset])) {
+			if (ch == ISO8859_10.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -631,11 +631,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1250.decode(XMLDoc[offset++]);
+			return WIN1250.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1250.decode(XMLDoc[offset])) {
+			if (ch == WIN1250.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -651,11 +651,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1251.decode(XMLDoc[offset++]);
+			return WIN1251.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1251.decode(XMLDoc[offset])) {
+			if (ch == WIN1251.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -675,11 +675,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1252.decode(XMLDoc[offset++]);
+			return WIN1252.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1252.decode(XMLDoc[offset])) {
+			if (ch == WIN1252.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -696,11 +696,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1253.decode(XMLDoc[offset++]);
+			return WIN1253.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1253.decode(XMLDoc[offset])) {
+			if (ch == WIN1253.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -717,11 +717,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1254.decode(XMLDoc[offset++]);
+			return WIN1254.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1254.decode(XMLDoc[offset])) {
+			if (ch == WIN1254.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -738,11 +738,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1255.decode(XMLDoc[offset++]);
+			return WIN1255.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1255.decode(XMLDoc[offset])) {
+			if (ch == WIN1255.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -759,11 +759,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1256.decode(XMLDoc[offset++]);
+			return WIN1256.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1256.decode(XMLDoc[offset])) {
+			if (ch == WIN1256.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -780,11 +780,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1257.decode(XMLDoc[offset++]);
+			return WIN1257.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1257.decode(XMLDoc[offset])) {
+			if (ch == WIN1257.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -801,11 +801,11 @@ public class VTDGen {
 
 			if (offset >= endOffset)
 				throw new EOFException("permature EOF reached, XML document incomplete");
-			return WIN1258.decode(XMLDoc[offset++]);
+			return WIN1258.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
 			throws EOFException, ParseException, EncodingException {
-			if (ch == WIN1258.decode(XMLDoc[offset])) {
+			if (ch == WIN1258.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
 			} else {
@@ -836,7 +836,7 @@ public class VTDGen {
 	        l2Buffer = null;
 	        l3Buffer = null;
 	    }
-		XMLDoc = null;
+		xb = null;
 		offset = temp_offset =0;
 		last_depth = last_l1_index = last_l2_index = 0;
 		rootIndex = 0;
@@ -941,14 +941,14 @@ public class VTDGen {
 	 * @return java.lang.String indicating the line number and offset of the exception
 	 */
 	private String formatLineNumber() {
-		int so = docOffset;
+		long so = docOffset;
 		int lineNumber = 0;
-		int lineOffset = 0;
-		int end = offset;
+		long lineOffset = 0;
+		long end = offset;
 
 		if (encoding < FORMAT_UTF_16BE) {
 			while (so <= offset-1) {
-				if (XMLDoc[so] == '\n') {
+				if (xb.byteAt(so) == '\n') {
 					lineNumber++;
 					lineOffset = so;
 				}
@@ -958,7 +958,7 @@ public class VTDGen {
 			lineOffset = offset - lineOffset;
 		} else if (encoding == FORMAT_UTF_16BE) {
 			while (so <= offset-2) {
-				if (XMLDoc[so + 1] == '\n' && XMLDoc[so] == 0) {
+				if (xb.byteAt(so + 1) == '\n' && xb.byteAt(so) == 0) {
 					lineNumber++;
 					lineOffset = so;
 				}
@@ -967,7 +967,7 @@ public class VTDGen {
 			lineOffset = (offset - lineOffset) >> 1;
 		} else {
 			while (so <= offset-2) {
-				if (XMLDoc[so] == '\n' && XMLDoc[so + 1] == 0) {
+				if (xb.byteAt(so) == '\n' && xb.byteAt(so + 1) == 0) {
 					lineNumber++;
 					lineOffset = so;
 				}
@@ -1018,7 +1018,7 @@ public class VTDGen {
 	private int getCharAfterSe()
 		throws ParseException, EncodingException, EOFException {
 		int n = 0;
-		int temp; //offset saver
+		long temp; //offset saver
 		while (true) {
 			n = r.getChar();
 			if (!XMLChar.isSpaceChar(n)) {
@@ -1047,7 +1047,7 @@ public class VTDGen {
 				encoding,
 				ns,
 				VTDDepth,
-				new UniByteBuffer(XMLDoc),
+				xb,
 				VTDBuffer,
 				l1Buffer,
 				l2Buffer,
@@ -1062,14 +1062,14 @@ public class VTDGen {
 	 * @return int
 	 * @throws ParseException Super class for exceptions during parsing.
 	 */
-	private int getPrevOffset() throws ParseException {
-		int prevOffset = offset;
+	private long getPrevOffset() throws ParseException {
+		long prevOffset = offset;
 		int temp;
 		switch (encoding) {
 			case FORMAT_UTF8 :
 				do {
 					prevOffset--;
-				} while (XMLDoc[prevOffset] <0);
+				} while (xb.byteAt(prevOffset) <0);
 				return prevOffset;
 			case FORMAT_ASCII :
 			case FORMAT_ISO_8859_1:
@@ -1093,13 +1093,13 @@ public class VTDGen {
 			case FORMAT_WIN_1258:
 				return offset - 1;
 			case FORMAT_UTF_16LE :
-			    temp= (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+			    temp= (xb.byteAt(offset)&0xff) << 8 | (xb.byteAt(offset + 1)&0xff);
 				if (temp < 0xd800 || temp > 0xdfff) {
 					return offset - 2;
 				} else
 					return offset - 4;
 			case FORMAT_UTF_16BE :
-			    temp =(XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+			    temp =(xb.byteAt(offset)&0xff) << 8 | (xb.byteAt(offset + 1)&0xff);
 				if (temp < 0xd800 || temp > 0xdfff) {
 					return offset - 2;
 				} else
@@ -1115,38 +1115,38 @@ public class VTDGen {
 	 * @throws ParseException
 	 */
 	private void decide_encoding() throws EncodingException,ParseException {
-	    if (XMLDoc.length==0)
+	    if (xb.length==0)
 	        throw new EncodingException("Document is zero sized ");
-		if (XMLDoc[offset] == -2) {
+		if (xb.byteAt(offset) == -2) {
 			increment = 2;
-			if (XMLDoc[offset + 1] == -1) {
+			if (xb.byteAt(offset+1) == -1) {
 				offset += 2;
 				encoding = FORMAT_UTF_16BE;
 				BOM_detected = true;
 				r = new UTF16BEReader();
 			} else
 				throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
-		} else if (XMLDoc[offset] == -1) {
+		} else if (xb.byteAt(offset) == -1) {
 			increment = 2;
-			if (XMLDoc[offset + 1] == -2) {
+			if (xb.byteAt(offset+1) == -2) {
 				offset += 2;
 				encoding = FORMAT_UTF_16LE;
 				BOM_detected = true;
 				r = new UTF16LEReader();
 			} else
 				throw new EncodingException("Unknown Character encoding: not UTF-16LE");
-		} else if (XMLDoc[offset] == -17){
-		    if (XMLDoc[offset+1] == -69 && XMLDoc[offset+2]==-65){
+		} else if (xb.byteAt(offset) == -17){
+		    if (xb.byteAt(offset+1) == -69 && xb.byteAt(offset+2)==-65){
 		      offset +=3;
 		      must_utf_8= true;
 		    }
 		    else 
 		    	throw new EncodingException("Unknown Character encoding: not UTF-8");
 		}
-		else if (XMLDoc[offset]==0){
-			if (XMLDoc[offset+1] == 0x3c 
-					&& XMLDoc[offset+2] == 0 
-					&& XMLDoc[offset+3] == 0x3f){
+		else if (xb.byteAt(offset)==0){
+			if (xb.byteAt(offset+1) == 0x3c 
+					&& xb.byteAt(offset+2)== 0 
+					&& xb.byteAt(offset+3)== 0x3f){
 				encoding = FORMAT_UTF_16BE;
 				increment = 2;
 				r = new UTF16BEReader();
@@ -1154,10 +1154,10 @@ public class VTDGen {
 			else
 				throw new EncodingException("Unknown Character encoding: not UTF-16BE");
 		}
-		else if (XMLDoc[offset]==0x3c){
-			if (XMLDoc[offset+1] == 0 
-					&& XMLDoc[offset+2] == 0x3f 
-					&& XMLDoc[offset+3] == 0){
+		else if (xb.byteAt(offset)==0x3c){
+			if (xb.byteAt(offset+1) == 0 
+					&& xb.byteAt(offset+2) == 0x3f 
+					&& xb.byteAt(offset+3) == 0){
 				increment = 2;
 				encoding = FORMAT_UTF_16LE;				
 				r = new UTF16LEReader();
@@ -1190,11 +1190,9 @@ public class VTDGen {
 	    FileInputStream fis = null;
 	    File f = null;
 	    try{
-	        f = new File(fileName);
-	    	fis =  new FileInputStream(f);
-	        byte[] b = new byte[(int) f.length()];
-	    	fis.read(b);	    	
-	    	this.setDoc(b);
+	        XMLBuffer xb = new XMLBuffer();
+	        xb.readFile(fileName);
+	    	this.setDoc(xb);
 	    	this.parse(ns);  // set namespace awareness to true
 	    	return true;
 	    }catch(java.io.IOException e){    
@@ -1224,7 +1222,7 @@ public class VTDGen {
 
 		// define internal variables	
 		ns = NS;
-		int length1 = 0, length2 = 0;
+		long length1 = 0, length2 = 0;
 		int attr_count = 0 /*, ch = 0, ch_temp = 0*/;
 		int parser_state = STATE_DOC_START;
 		//boolean has_amp = false; 
@@ -1299,7 +1297,7 @@ public class VTDGen {
 										+ formatLineNumber());
 							writeVTD(
 								(temp_offset),
-								(length2 << 11) | length1,
+								(length2 << 10) | length1,
 								TOKEN_STARTING_TAG,
 								depth);
 							}
@@ -1311,7 +1309,7 @@ public class VTDGen {
 										+formatLineNumber());
 							writeVTD(
 								(temp_offset) >> 1,
-								(length2 << 10) | (length1 >> 1),
+								(length2 << 9) | (length1 >> 1),
 								TOKEN_STARTING_TAG,
 								depth);
 						}
@@ -1399,7 +1397,7 @@ public class VTDGen {
 						if (offset>= endOffset)
 							throw new EOFException("permature EOF reached, XML document incomplete");
 						for (int i = 0; i < sl; i++) {
-							if (XMLDoc[sos + i] != XMLDoc[temp_offset + i])
+							if (xb.byteAt(sos + i) != xb.byteAt(temp_offset + i))
 								throw new ParseException(
 									"Ending tag error: Start/ending tag mismatch"
 									+ formatLineNumber());
@@ -1477,8 +1475,8 @@ public class VTDGen {
 								int prevOffset =
 									(int) (attr_name_array[i] >> 32);
 								for (int j = 0; j < prevLen; j++) {
-									if (XMLDoc[prevOffset + j]
-										!= XMLDoc[temp_offset + j]) {
+									if (xb.byteAt(prevOffset + j)
+										!= xb.byteAt(temp_offset + j)) {
 										unequal = true;
 										break;
 									}
@@ -1524,7 +1522,7 @@ public class VTDGen {
 											+formatLineNumber());
 								writeVTD(
 									temp_offset,
-									(length2 << 11) | length1,
+									(length2 << 10) | length1,
 									TOKEN_ATTR_NS,
 									depth);
 							}
@@ -1536,7 +1534,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
-									(length2 << 10) | (length1 >> 1),
+									(length2 << 9) | (length1 >> 1),
 									TOKEN_ATTR_NS,
 									depth);
 							}
@@ -1550,7 +1548,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset,
-									(length2 << 11) | length1,
+									(length2 << 10) | length1,
 									TOKEN_ATTR_NAME,
 									depth);
 							}
@@ -1562,7 +1560,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
-									(length2 << 10) | (length1 >> 1),
+									(length2 << 9) | (length1 >> 1),
 									TOKEN_ATTR_NAME,
 									depth);
 							}
@@ -2444,7 +2442,7 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_pi_tag() throws ParseException, EncodingException, EOFException{
-		int length1;
+		long length1;
 		int parser_state;
 		while (true) {
 			ch = r.getChar();
@@ -2532,7 +2530,7 @@ public class VTDGen {
 	 */
 	private int process_pi_val() throws ParseException, EncodingException, EOFException{
 		int parser_state;
-		int length1;
+		long length1;
 		while (true) {
 			if (XMLChar.isValidChar(ch)) {
 				//System.out.println(""+(char)ch);
@@ -2619,7 +2617,8 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_comment() throws ParseException, EncodingException, EOFException{
-		int parser_state,length1;
+		int parser_state;
+		long length1;
 		while (true) {
 			ch = r.getChar();
 			if (XMLChar.isValidChar(ch)) {
@@ -2834,7 +2833,8 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_cdata() throws ParseException, EncodingException, EOFException{
-		int parser_state, length1;
+		int parser_state;
+		long length1;
 		while (true) {
 			ch = r.getChar();
 			if (XMLChar.isValidChar(ch)) {
@@ -2907,7 +2907,8 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_doc_type() throws ParseException,EncodingException, EOFException{
-		int z = 1, length1, parser_state;
+		int z = 1, parser_state;
+		long length1;
 		while (true) {
 			ch = r.getChar();
 			if (XMLChar.isValidChar(ch)) {
@@ -2965,7 +2966,7 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_end_pi() throws ParseException,EncodingException, EOFException{
-		int length1, parser_state;
+		long length1;int parser_state;
 		ch = r.getChar();
 		if (XMLChar.isNameStartChar(ch)) {
 			if ((ch == 'x' || ch == 'X')
@@ -3086,7 +3087,7 @@ public class VTDGen {
 	 */
 	private int process_end_comment()throws ParseException {
 		int parser_state;
-		int length1;
+		long length1;
 		while (true) {
 			ch = r.getChar();
 			if (XMLChar.isValidChar(ch)) {
@@ -3124,96 +3125,12 @@ public class VTDGen {
 	
 	}
 	/**
-	 * The buffer-reuse version of setDoc
-	 * The concept is to reuse LC and VTD buffer for 
-	 * XML parsing, instead of allocating every time
-	 * @param ba
-	 *
-	 */
-	public void setDoc_BR(byte[] ba){
-	    setDoc_BR(ba,0,ba.length);
-	}
-	
-	/**
-	 * The buffer-reuse version of setDoc
-	 * The concept is to reuse LC and VTD buffer for 
-	 * XML parsing, instead of allocating every time
-	 * @param ba byte[]
-	 * @param os int (in byte)
-	 * @param len int (in byte)
-	 *
-	 */
-	public void setDoc_BR(byte[] ba, int os, int len){
-	    if (ba == null ||
-	            os <0 || 
-	            len ==0 || 
-	            ba.length< os+len)
-	    {
-	        throw new IllegalArgumentException("Illegal argument for setDoc_BR");
-	    }
-		int a;
-		br = true;
-		depth = -1;
-		increment =1;
-		BOM_detected = false;
-		must_utf_8 = false;
-		ch = ch_temp = 0;
-		temp_offset = 0;
-		XMLDoc = ba;
-		docOffset = offset = os;
-		docLen = len;
-		endOffset = os + len;
-		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
-		if (docLen <= 1024) {
-			//a = 1024; //set the floor
-			a = 8;
-		} else if (docLen <=4096){
-		    a = 10;
-		}else if (docLen <= 1024 * 16 * 4) {
-			//a = 2048;
-			a = 11;
-		} else if (docLen <= 1024 * 256) {
-			//a = 1024 * 4;
-			a = 12;
-		} else {
-			//a = 1 << 15;
-			a = 15;
-		}
-		if (VTDBuffer == null){
-		    VTDBuffer = new FastLongBuffer(a, len>> (a+1));
-		    l1Buffer = new FastLongBuffer(7);
-		    l2Buffer = new FastLongBuffer(9);
-		    l3Buffer = new FastIntBuffer(11);
-		} else {
-		    VTDBuffer.clear();
-		    l1Buffer.clear();
-		    l2Buffer.clear();
-		    l3Buffer.clear();
-		}
-	}
-	
-	/**
 	 * Set the XMLDoc container.
-	 * @param ba byte[]
+	 * @param XMLBuffer xb1
 	 */
-	public void setDoc(byte[] ba) {
-	    setDoc(ba,0,ba.length);
-	}
-	/**
-	 * Set the XMLDoc container. Also set the offset and len of the document 
-	 * with respect to the container.
-	 * @param ba byte[]
-	 * @param os int (in byte)
-	 * @param len int (in byte)
-	 */
-	public void setDoc(byte[] ba, int os, int len) {
-	    if (ba == null ||
-	            os <0 || 
-	            len ==0 || 
-	            ba.length< os+len)
-	    {
-	        throw new IllegalArgumentException("Illegal argument for setDoc");
-	    }
+	public void setDoc(XMLBuffer xb1) {
+	    xb = xb1;
+	    
 		int a;
 		br = false;
 		depth = -1;
@@ -3222,31 +3139,42 @@ public class VTDGen {
 		must_utf_8 = false;
 		ch = ch_temp = 0;
 		temp_offset = 0;
-		XMLDoc = ba;
-		docOffset = offset = os;
-		docLen = len;
-		endOffset = os + len;
+		
+		docOffset = offset = 0;
+		docLen = xb.length;
+		endOffset = xb.length;
 		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
+		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
-			a = 8;
+			a = 6; i1=5; i2=5;i3=5;
 		} else if (docLen <=4096){
-		    a = 10;
+		    a = 7; i1=6; i2=6; i3=6;
+		}else if (docLen <=1024*16){
+		    a =8; i1 = 7;i2=7;i3=7;
 		}else if (docLen <= 1024 * 16 * 4) {
 			//a = 2048;
 			a = 11;
 		} else if (docLen <= 1024 * 256) {
 			//a = 1024 * 4;
 			a = 12;
-		} else {
+		} else if (docLen <= (1<<26)){
 			//a = 1 << 15;
+		    i1 = i2 = i3 = 12;
 			a = 15;
+		} else if (docLen <= (1<<30 )){
+			//a = 1 << 15;
+		    i1 = i2 = i3 = 13;
+			a = 19;
+		} else {
+		    i1 = i2 = i3 = 16;
+		    a = 23;
 		}
 		
-		VTDBuffer = new FastLongBuffer(a, len>> (a+1));
-		l1Buffer = new FastLongBuffer(7);
-		l2Buffer = new FastLongBuffer(9);
-		l3Buffer = new FastIntBuffer(11);
+		VTDBuffer = new FastLongBuffer(a, (int) (xb.length>> (a+1)));
+		l1Buffer = new FastLongBuffer(i1);
+		l2Buffer = new FastLongBuffer(i2);
+		l3Buffer = new FastIntBuffer(i3);
 	}
 	/**
 	 * Write the VTD and LC into their storage container.
@@ -3255,37 +3183,54 @@ public class VTDGen {
 	 * @param token_type int
 	 * @param depth int
 	 */
-	private void writeVTD(int offset, int length, int token_type, int depth) {
-
+	private void writeVTD(long offset, long length, int token_type, int depth) {
+	    System.out.print(" type "+token_type);
+	    System.out.print(" length "+length);
+	    System.out.print(" prefix length " + (length>>10));
+	    System.out.print(" qn length " + (length & 0x3ff));
+	    System.out.print(" offset "+offset);
+	    System.out.println(" depth "+depth);
 			switch (token_type) {
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
 			case TOKEN_COMMENT:
 
 			if (length > MAX_TOKEN_LENGTH) {
-				int k;
-				int r_offset = offset;
+				long k;
+				long r_offset = offset;
 				for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
-					VTDBuffer.append(((long) ((token_type << 28)
-							| ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32)
+					VTDBuffer.append(((long) ((token_type << 23)
+							| ((depth & 0x3f) << 17) | MAX_TOKEN_LENGTH) << 37)
 							| r_offset);
+					/*VTDBuffer.append(((long) ((token_type << 28)
+							| ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32)
+							| r_offset);*/
 					r_offset += MAX_TOKEN_LENGTH;
 				}
-				VTDBuffer.append(((long) ((token_type << 28)
-						| ((depth & 0xff) << 20) | k) << 32)
+				VTDBuffer.append(((long) ((token_type << 23)
+						| ((depth & 0x3f) << 17) | k) << 37)
 						| r_offset);
+				/*VTDBuffer.append(((long) ((token_type << 28)
+						| ((depth & 0xff) << 20) | k) << 32)
+						| r_offset);*/
 			} else {
-				VTDBuffer.append(((long) ((token_type << 28)
-						| ((depth & 0xff) << 20) | length) << 32)
+				VTDBuffer.append(((long) ((token_type << 23)
+						| ((depth & 0x3f) << 17) | length) << 37)
 						| offset);
+				/*VTDBuffer.append(((long) ((token_type << 28)
+						| ((depth & 0xff) << 20) | length) << 32)
+						| offset);*/
 			}
 			break;
 			
 			//case TOKEN_ENDING_TAG: break;
 		default:
-			VTDBuffer.append(((long) ((token_type << 28)
-					| ((depth & 0xff) << 20) | length) << 32)
+			VTDBuffer.append(((long) ((token_type << 23)
+					| ((depth & 0x3f) << 17) | length) << 37)
 					| offset);
+			/*VTDBuffer.append(((long) ((token_type << 28)
+			        | ((depth & 0xff) << 20) | length) << 32)
+			        | offset);*/
 		}
 		// remember VTD depth start from zero
 		if (token_type == TOKEN_STARTING_TAG) {
@@ -3332,84 +3277,5 @@ public class VTDGen {
 				l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
 			}
 		}*/
-	}
-	/**
-	 * This method loads the VTD+XML from an input stream
-	 * @return VTDNav
-	 * @param is
-	 * @throws IOException
-	 * @throws IndexReadException
-	 *
-	 */
-	public VTDNav loadIndex(InputStream is) throws IOException,IndexReadException{
-	    IndexHandler.readIndex(is, this);
-	    return getNav();
-	}
-	/**
-	 * This method loads the VTD+XML from a byte array
-	 * @return VTDNav
-	 * @param ba
-	 * @throws IOException
-	 * @throws IndexReadException
-	 *
-	 */
-	public VTDNav loadIndex(byte[] ba)throws IOException,IndexReadException{
-	    IndexHandler.readIndex(ba,this);
-	    return getNav();
-	}
-	/**
-	 * This method loads the VTD+XML from a file
-	 * @return VTDNav
-	 * @param fileName
-	 * @throws IOException
-	 * @throws IndexReadException
-	 *
-	 */
-	public VTDNav loadIndex(String fileName)throws IOException,IndexReadException{
-	    FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(fileName);
-            return loadIndex(fis);
-        } finally {
-            if (fis != null)
-                fis.close();
-        }
-	}
-	/**
-	 * This method writes the VTD+XML into an output streams
-	 * @param os
-	 * @throws IOException
-	 * @throws IndexWriteException
-	 *
-	 */
-	public void writeIndex(OutputStream os) throws IOException,IndexWriteException{
-	    IndexHandler.writeIndex((byte)1,
-	            this.encoding,
-	            this.ns,
-	            true,
-	            this.VTDDepth,
-	            3,
-	            this.rootIndex,
-	            this.XMLDoc,
-	            this.docOffset,
-	            this.docLen,
-	            this.VTDBuffer,
-	            this.l1Buffer,
-	            this.l2Buffer,
-	            this.l3Buffer,
-	            os);
-	}
-	
-	/**
-	 * This method writes the VTD+XML file into a file of the given name
-	 * @param fileName
-	 * @throws IOException
-	 * @throws IndexWriteException
-	 *
-	 */
-	public void writeIndex(String fileName) throws IOException,IndexWriteException{
-	    FileOutputStream fos = new FileOutputStream(fileName);
-	    writeIndex(fos);
-	    fos.close();
 	}
 }
