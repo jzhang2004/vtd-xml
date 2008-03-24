@@ -1165,18 +1165,14 @@ public class VTDGen {
 		}
 		// check for max file size exception
 		if (encoding < FORMAT_UTF_16BE) {
-		    if (ns){
-		        if ((offset + (long)docLen) >= 1L << 30)
-		            throw new ParseException("Other error: file size too big >=1GB ");
-		    }
-			else {
-			    if ((offset + (long)docLen) >= 1L <<31)
-			    	throw new ParseException("Other error: file size too big >=2GB ");
-			}
-		} else {
-			if ((offset+ (long)docLen) >= 1L << 31)
-				throw new ParseException("Other error: file size too large >= 2GB");
-		}
+            if ((offset + (long) docLen) >= 1L << 37)
+                throw new ParseException(
+                        "Other error: file size too big >=128GB ");
+        } else {
+            if ((offset + (long) docLen) >= 1L << 37)
+                throw new ParseException(
+                        "Other error: file size too large >= 128GB");
+        }
 	}
 	/**
 	 * This method parses the XML file and returns a boolean indicating 
@@ -1282,7 +1278,7 @@ public class VTDGen {
 									+ formatLineNumber());
 						}
 						//writeVTD(offset, TOKEN_STARTING_TAG, length2:length1, depth)
-						long x = ((long) length1 << 32) + temp_offset;
+						long x = ((long) length1 << 37) |temp_offset;
 						tag_stack[depth] = x;
 						
 						// System.out.println(
@@ -1389,8 +1385,8 @@ public class VTDGen {
 
 					case STATE_END_TAG :
 						temp_offset = offset;
-						int sos = (int) tag_stack[depth];
-						int sl = (int) (tag_stack[depth] >> 32);
+						long sos =  tag_stack[depth] & 0x1fffffffffL;
+						int sl = (int) (tag_stack[depth] >> 37);
 						
 						offset = temp_offset+sl;
 						
@@ -1470,10 +1466,10 @@ public class VTDGen {
 						boolean unequal;
 						for (int i = 0; i < attr_count; i++) {
 							unequal = false;
-							int prevLen = (int) attr_name_array[i];
+							int prevLen = (int) attr_name_array[i] & 0x0001ffff;
 							if (length1 == prevLen) {
-								int prevOffset =
-									(int) (attr_name_array[i] >> 32);
+								long prevOffset =
+									 (attr_name_array[i] >> 17);
 								for (int j = 0; j < prevLen; j++) {
 									if (xb.byteAt(prevOffset + j)
 										!= xb.byteAt(temp_offset + j)) {
@@ -1492,7 +1488,7 @@ public class VTDGen {
 						unique = true;
 						if (attr_count < attr_name_array.length) {
 							attr_name_array[attr_count] =
-								((long) (temp_offset) << 32) + length1;
+								( (temp_offset) << 17) | length1;
 							attr_count++;
 						} else // grow the attr_name_array by 16
 							{
@@ -1508,7 +1504,7 @@ public class VTDGen {
 								attr_name_array[i] = temp_array[i];
 							}
 							attr_name_array[attr_count] =
-								((long) (temp_offset) << 32) + length1;
+								((temp_offset) << 17) | length1;
 							attr_count++;
 						}
 
@@ -3184,12 +3180,12 @@ public class VTDGen {
 	 * @param depth int
 	 */
 	private void writeVTD(long offset, long length, int token_type, int depth) {
-	    System.out.print(" type "+token_type);
+	    /*System.out.print(" type "+token_type);
 	    System.out.print(" length "+length);
 	    System.out.print(" prefix length " + (length>>10));
 	    System.out.print(" qn length " + (length & 0x3ff));
 	    System.out.print(" offset "+offset);
-	    System.out.println(" depth "+depth);
+	    System.out.println(" depth "+depth);*/
 			switch (token_type) {
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
