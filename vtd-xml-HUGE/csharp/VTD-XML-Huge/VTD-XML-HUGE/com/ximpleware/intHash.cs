@@ -120,7 +120,27 @@ namespace com.ximpleware
                 return 10;
             if (i < (1 << 16))
                 return 11;
-            return 12;
+            if (i < (1 << 17))
+                return 12;
+            if (i < (1 << 18))
+                return 13;
+            if (i < (1 << 19))
+                return 14;
+            if (i < (1 << 20))
+                return 15;
+            if (i < (1 << 21))
+                return 16;
+            if (i < (1 << 22))
+                return 17;
+            if (i < (1 << 23))
+                return 18;
+            if (i < (1 << 25))
+                return 19;
+            if (i < (1 << 27))
+                return 20;
+            if (i < (1 << 29))
+                return 21;
+            return 22;
         }
 
 
