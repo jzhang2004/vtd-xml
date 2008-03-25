@@ -2043,7 +2043,7 @@ namespace com.ximpleware
                 //UPGRADE_TODO: Constructor 'java.io.FileInputStream.FileInputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileInputStreamFileInputStream_javaioFile'"
                 fis = new System.IO.FileStream(f.FullName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
 
-                byte[] b = new byte[(int)f.Length];
+                byte[] b = new byte[f.Length];
                 fis.Read(b, 0, (int)f.Length);
                 int numBytesToRead = (int)f.Length;
                 //int numBytesToRead = (int)s.Length;
@@ -4098,10 +4098,22 @@ namespace com.ximpleware
                 //a = 1024 * 4;
                 a = 12;
             }
-            else
+            else if (docLen <= (1 << 26))
             {
                 //a = 1 << 15;
+                i1 = i2 = i3 = 12;
                 a = 15;
+            }
+            else if (docLen <= (1 << 30))
+            {
+                //a = 1 << 15;
+                i1 = i2 = i3 = 13;
+                a = 19;
+            }
+            else
+            {
+                i1 = i2 = i3 = 16;
+                a = 23;
             }
 
             VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
@@ -4123,6 +4135,12 @@ namespace com.ximpleware
         {
             //long ll;
             //Console.WriteLine(" "+ (VTDBuffer.size())+ "===> " + offset);
+            Console.Write("type ===>"+token_type );
+            Console.Write(" length ===> "+length);
+            Console.Write(" prefix length " + (length>>10));
+	        Console.Write(" qn length " + (length & 0x3ff));
+            Console.WriteLine(" offset ===>"+offset);
+            Console.WriteLine(" depth ===>"+depth);
             switch (token_type)
             {
 
@@ -4132,7 +4150,7 @@ namespace com.ximpleware
 
                     if (length > MAX_TOKEN_LENGTH)
                     {
-                        int k;
+                        long k;
                         long r_offset = offset;
                         for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH)
                         {
@@ -4140,12 +4158,15 @@ namespace com.ximpleware
                             //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                             //    | 0xffff0f00);
 
-                            VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32) | r_offset);
+                            VTDBuffer.append(((long)((token_type << 23)
+                             | ((depth & 0x3f) << 17) | MAX_TOKEN_LENGTH) << 37)
+                             | r_offset);
                             //VTDBuffer.append(l & 0x00000000ffffffff | (((long)VTDNav.swap_bytes(r_offset)) << 32));
                             r_offset += MAX_TOKEN_LENGTH;
                         }
-                        VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | k) << 32) | r_offset);
-                        //VTDBuffer.append((((long)((token_type << 4)
+                        VTDBuffer.append(((long)((token_type << 23)
+                        | ((depth & 0x3f) << 17) | k) << 37)
+                        | r_offset);
                         //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                         //    | VTDNav.swap_bytes(k))) & 0x00000000ffffffff
                         //    | (((long)VTDNav.swap_bytes(r_offset)) << 32)));
@@ -4153,7 +4174,9 @@ namespace com.ximpleware
                     }
                     else
                     {
-                        VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
+                        VTDBuffer.append(((long)((token_type << 23)
+                         | ((depth & 0x3f) << 17) | length) << 37)
+                         | offset);
                         //ll = (((long)((token_type << 4) | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)| VTDNav.swap_bytes(length))) & 0x00000000ffffffff
                         //    | (((long)VTDNav.swap_bytes(offset)) << 32));
                         //VTDBuffer.append((((long)((token_type << 4)
@@ -4166,7 +4189,7 @@ namespace com.ximpleware
                 //case TOKEN_ENDING_TAG: break;
 
                 default:
-                    VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
+                    VTDBuffer.append(((long)((token_type << 23) | ((depth & 0x3f) << 17) | length) << 37) | offset);
                     //ll = ((long)((token_type << 4)
                     //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
                     //        | VTDNav.swap_bytes(length))
