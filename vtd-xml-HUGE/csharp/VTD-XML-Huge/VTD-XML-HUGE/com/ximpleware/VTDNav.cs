@@ -73,14 +73,14 @@ namespace com.ximpleware
                 {
                     if (XMLDoc.byteAt(offset + 1) == '\n')
                     {
-                        return '\n' | (2L << 37);
+                        return '\n' | (2L << 32);
                     }
                     else
                     {
-                        return '\n' | (1L << 37);
+                        return '\n' | (1L << 32);
                     }
                 }
-                return temp | (1L << 37);
+                return temp | (1L << 32);
             }
             throw new NavException("Unknown Encoding");
         }
@@ -110,14 +110,14 @@ namespace com.ximpleware
                     {
                         if (XMLDoc.byteAt(offset + 1) == '\n')
                         {
-                            return '\n' | (2L << 37);
+                            return '\n' | (2L << 32);
                         }
                         else
                         {
-                            return '\n' | (1L << 37);
+                            return '\n' | (1L << 32);
                         }
                     }
-                    return temp | (1L << 37);
+                    return temp | (1L << 32);
 
                 case FORMAT_ISO_8859_1:
                     temp = XMLDoc.byteAt(offset);
@@ -125,14 +125,14 @@ namespace com.ximpleware
                     {
                         if (XMLDoc.byteAt(offset + 1) == '\n')
                         {
-                            return '\n' | (2L << 37);
+                            return '\n' | (2L << 32);
                         }
                         else
                         {
-                            return '\n' | (1L << 37);
+                            return '\n' | (1L << 32);
                         }
                     }
-                    return temp | (1L << 37);
+                    return temp | (1L << 32);
 
                 case FORMAT_UTF8:
                     temp = XMLDoc.byteAt(offset);
@@ -142,15 +142,15 @@ namespace com.ximpleware
                         {
                             if (XMLDoc.byteAt(offset + 1) == '\n')
                             {
-                                return '\n' | (2L << 37);
+                                return '\n' | (2L << 32);
                             }
                             else
                             {
-                                return '\n' | (1L << 37);
+                                return '\n' | (1L << 32);
                             }
                         }
                         //currentOffset++;
-                        return temp | (1L << 37);
+                        return temp | (1L << 32);
                     }
                     return handle_utf8(temp, offset);
 
@@ -330,7 +330,7 @@ namespace com.ximpleware
             }
 
             //currentOffset++;
-            return val | (inc << 37);
+            return val | (inc << 32);
         }
 
 
@@ -518,7 +518,7 @@ namespace com.ximpleware
                 i--;
             }
             //currentOffset += a + 1;
-            return val | (((long)(a + 1)) << 37);
+            return val | (((long)(a + 1)) << 32);
         }
 
         private long handle_utf16be(long offset)
@@ -531,14 +531,14 @@ namespace com.ximpleware
                 {
                     if (XMLDoc.byteAt((offset << 1) + 3) == '\n' && XMLDoc.byteAt((offset << 1) + 2) == 0)
                     {
-                        return '\n' | (2L << 37);
+                        return '\n' | (2L << 32);
                     }
                     else
                     {
-                        return '\n' | (1L << 37);
+                        return '\n' | (1L << 32);
                     }
                 }
-                return temp | (1L << 37);
+                return temp | (1L << 32);
             }
             else
             {
@@ -552,7 +552,7 @@ namespace com.ximpleware
                     throw new NavException("UTF 16 BE encoding error: should never happen");
                 }
                 val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
-                return val | (2L << 37);
+                return val | (2L << 32);
             }
             //goto case FORMAT_UTF_16LE;
         }
@@ -567,14 +567,14 @@ namespace com.ximpleware
                 {
                     if (XMLDoc.byteAt((offset << 1) + 2) == '\n' && XMLDoc.byteAt((offset << 1) + 3) == 0)
                     {
-                        return '\n' | (2L << 37);
+                        return '\n' | (2L << 32);
                     }
                     else
                     {
-                        return '\n' | (1L << 37);
+                        return '\n' | (1L << 32);
                     }
                 }
-                return temp | (1L << 37);
+                return temp | (1L << 32);
             }
             else
             {
@@ -588,7 +588,7 @@ namespace com.ximpleware
                     throw new NavException("UTF 16 LE encoding error: should never happen");
                 }
                 val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
-                return val | (2L << 37);
+                return val | (2L << 32);
             }
         }
         //UPGRADE_NOTE: Respective javadoc comments were merged.  It should be changed in order to comply with .NET documentation conventions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1199'"
@@ -1023,9 +1023,9 @@ namespace com.ximpleware
         {
             //int i = (int) vtdBuffer.longAt(index);           
             //i = ((i & 0x0f) << 4) | ((i & 0xf000) >> 12); 
-            int i = (int)((vtdBuffer.longAt(index) & MASK_TOKEN_DEPTH) >> 52);
+            int i = (int)((vtdBuffer.longAt(index) & MASK_TOKEN_DEPTH) >> 54);
 
-            if (i != 255)
+            if (i != 63)
                 return i;
             return -1;
         }
@@ -1878,7 +1878,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
             }
 
@@ -1892,7 +1892,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }//get another one if it is sign.
 
             //left part of decimal
@@ -1911,7 +1911,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
             }
 
@@ -1923,7 +1923,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
 
                 while (offset <= end)
@@ -1942,7 +1942,7 @@ namespace com.ximpleware
                     {
                         l = b ? getCharResolved(offset) : getChar(offset);
                         ch = (int)l;
-                        offset += (int)(l >> 37);
+                        offset += (int)(l >> 32);
                     }
                 }
             }
@@ -1954,14 +1954,14 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
                 expneg = (ch == '-'); //sign for exp
                 if (ch == '+' || ch == '-')
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 } //skip the +/- sign
 
                 long cur = offset;
@@ -1982,7 +1982,7 @@ namespace com.ximpleware
                     {
                         l = b ? getCharResolved(offset) : getChar(offset);
                         ch = (int)l;
-                        offset += (int)(l >> 37);
+                        offset += (int)(l >> 32);
                     }
                 }
                 if (cur == offset)
@@ -2002,7 +2002,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
             }
 
@@ -2040,7 +2040,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }
 
             while (offset <= end)
@@ -2051,7 +2051,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
             }
 
@@ -2065,7 +2065,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             } //get another one if it is sign.
 
             //left part of decimal
@@ -2084,7 +2084,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
             }
 
@@ -2096,7 +2096,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
 
                 while (offset <= end)
@@ -2115,7 +2115,7 @@ namespace com.ximpleware
                     {
                         l = b ? getCharResolved(offset) : getChar(offset);
                         ch = (int)l;
-                        offset += (int)(l >> 37);
+                        offset += (int)(l >> 32);
                     }
                 }
             }
@@ -2127,14 +2127,14 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
                 bool expneg = (ch == '-'); //sign for exp
                 if (ch == '+' || ch == '-')
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 } //skip the +/- sign
 
                 long cur = offset;
@@ -2155,7 +2155,7 @@ namespace com.ximpleware
                     {
                         l = b ? getCharResolved(offset) : getChar(offset);
                         ch = (int)l;
-                        offset += (int)(l >> 37);
+                        offset += (int)(l >> 32);
                     }
                 }
 
@@ -2176,7 +2176,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
             }
 
@@ -2262,7 +2262,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }
 
             // trim leading whitespaces
@@ -2270,7 +2270,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }
 
             if (offset > endOffset)
@@ -2282,7 +2282,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }//skip sign
 
             long result = 0;
@@ -2301,7 +2301,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
             }
 
@@ -2314,7 +2314,7 @@ namespace com.ximpleware
 
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
 
             }
             if (offset == (endOffset + 1))
@@ -2371,7 +2371,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }
 
             // trim leading whitespaces
@@ -2379,7 +2379,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }
 
             if (offset > endOffset)
@@ -2391,7 +2391,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }//skip sign
 
             long result = 0;
@@ -2410,7 +2410,7 @@ namespace com.ximpleware
                 {
                     l = b ? getCharResolved(offset) : getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
             }
 
@@ -2422,7 +2422,7 @@ namespace com.ximpleware
             {
                 l = b ? getCharResolved(offset) : getChar(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
             }
             if (offset == (endOffset + 1))
                 return (long)((neg) ? (-result) : result);
@@ -2869,7 +2869,7 @@ namespace com.ximpleware
                                     }
                                     if (a == true)
                                     {
-                                        l = vtdBuffer.longAt(s);
+                                        //l = vtdBuffer.longAt(s);
                                         //hasNS = false;
                                         //vtdBuffer.modifyEntry(s, l | unchecked((int)0x000000c000000000L));
                                         return k + 1;
@@ -2883,7 +2883,7 @@ namespace com.ximpleware
                             type = getTokenType(k);
                         }
                        
-                        break;
+                        //break;
 
                 }
             }
@@ -3697,7 +3697,7 @@ namespace com.ximpleware
                 {
                     l = getChar(offset);
                     ch = (int)l;
-                    offset += (int)(l >> 37);
+                    offset += (int)(l >> 32);
                 }
 
                 if (!isWS(ch))
@@ -3712,7 +3712,7 @@ namespace com.ximpleware
             {
                 l = getCharResolved(offset);
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
                 if (isWS(ch) && getCharUnit(offset - 1) != ';')
                 {
                     d = true;
@@ -3744,7 +3744,7 @@ namespace com.ximpleware
             while (offset < endOffset)
             {
                 l = getChar(offset);
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
                 sb.Append((char)l); // java only support 16 bit unit code
             }
             return sb.ToString();
@@ -3782,7 +3782,7 @@ namespace com.ximpleware
             while (offset < endOffset)
             {
                 l = getCharResolved(offset);
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
                 sb.Append((char)l); // java only support 16 bit unit code
             }
 
@@ -3877,7 +3877,7 @@ namespace com.ximpleware
                     l = this.getChar(offset1);
                 }
                 ch1 = (int)l;
-                offset1 += (int)(l >> 37);
+                offset1 += (int)(l >> 32);
 
                 if (t2 == VTDNav.TOKEN_CHARACTER_DATA
                         || t2 == VTDNav.TOKEN_ATTR_VAL)
@@ -3889,7 +3889,7 @@ namespace com.ximpleware
                     l = vn2.getChar(offset2);
                 }
                 ch2 = (int)l;
-                offset2 += (int)(l >> 37);
+                offset2 += (int)(l >> 32);
 
                 if (ch1 > ch2)
                     return 1;
@@ -3931,7 +3931,7 @@ namespace com.ximpleware
                     return 1;
                 if (i1 > (int)l1)
                     return -1;
-                offset += (int)(l1 >> 37);
+                offset += (int)(l1 >> 32);
             }
 
             if (i == l && offset < endOffset)
@@ -3991,11 +3991,11 @@ namespace com.ximpleware
             {
                 l1 = getChar(offset);
                 int i1 = s[i];
-                if (i1 < (int)l1)
+                if (i1 < ((int)l1))
                     return 1;
-                if (i1 > (int)l1)
+                if (i1 > ((int)l1))
                     return -1;
-                offset += (int)(l1 >> 37);
+                offset += (int)(l1 >> 32);
             }
 
             if (i == l && offset < endOffset)
@@ -4073,7 +4073,7 @@ namespace com.ximpleware
             while (offset < endOffset)
             {
                 l = getChar(offset);
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
                 len1++;
             }
             return len1;
@@ -4099,7 +4099,7 @@ namespace com.ximpleware
             while (offset < endOffset)
             {
                 l = getCharResolved(offset);
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
                 len1++;
             }
             return len1;
@@ -4135,7 +4135,7 @@ namespace com.ximpleware
                 l = getChar(offset);
 
                 ch = (int)l;
-                offset += (int)(l >> 37);
+                offset += (int)(l >> 32);
 
                 if (!isWS(ch))
                 {
