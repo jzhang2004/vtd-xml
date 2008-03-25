@@ -431,7 +431,7 @@ public class VTDNav {
             i--;
         }
         //currentOffset += a + 1;
-        return val | (((long)(a+1))<<37);
+        return val | (((long)(a+1))<<32);
     }
 
 
@@ -444,12 +444,12 @@ public class VTDNav {
 			if (temp == '\r') {
 				if (XMLDoc.byteAt((offset << 1) + 2) == '\n'
 					&& XMLDoc.byteAt((offset << 1) + 3) == 0) {
-					return '\n' | (2L<<37) ;
+					return '\n' | (2L<<32) ;
 				} else {
-					return '\n' | (1L<<37);
+					return '\n' | (1L<<32);
 				}
 			}
-			return temp | (1L<<37);
+			return temp | (1L<<32);
 		} else {
 			if (temp<0xd800 || temp>0xdbff)				
 				throw new NavException("UTF 16 LE encoding error: should never happen");
@@ -463,7 +463,7 @@ public class VTDNav {
 			}
 			val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
 			
-			return val | (2L<<37);
+			return val | (2L<<32);
 		}
 		//System.out.println("UTF 16 LE unimplemented for now");
 	}
@@ -480,13 +480,13 @@ public class VTDNav {
 				if (XMLDoc.byteAt((offset << 1) + 3) == '\n'
 					&& XMLDoc.byteAt((offset << 1) + 2) == 0) {
 					
-					return '\n'|(2L<<37);
+					return '\n'|(2L<<32);
 				} else {
-					return '\n'|(1L<<37);
+					return '\n'|(1L<<32);
 				}
 			}
 			//currentOffset++;
-			return temp| (1L<<37);
+			return temp| (1L<<32);
 		} else {
 			if (temp<0xd800 || temp>0xdbff)				
 				throw new NavException("UTF 16 BE encoding error: should never happen");
@@ -500,7 +500,7 @@ public class VTDNav {
 			}
 			val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
 			//currentOffset += 2;
-			return val | (2L<<37);
+			return val | (2L<<32);
 		}
 	}
 
@@ -509,12 +509,12 @@ public class VTDNav {
 	        int	temp = decode(offset);
 	        if (temp == '\r') {
 	            if (XMLDoc.byteAt(offset + 1) == '\n') {
-	                return '\n'|(2L<<37);
+	                return '\n'|(2L<<32);
 	            } else {
-				return '\n'|(1L<<37);
+				return '\n'|(1L<<32);
 	            }
 	        }
-	        return temp|(1L<<37);
+	        return temp|(1L<<32);
 	    }
 	    throw new NavException("Unknown Encoding");
 	}
@@ -542,38 +542,38 @@ public class VTDNav {
 				temp = XMLDoc.byteAt(offset);
 				if (temp == '\r') {
 					if (XMLDoc.byteAt(offset + 1) == '\n') {
-						return '\n'|(2L<<37);
+						return '\n'|(2L<<32);
 					} else {
-						return '\n'|(1L<<37);
+						return '\n'|(1L<<32);
 					}
 				}
 				
-				return temp|(1L<<37);
+				return temp|(1L<<32);
 				
 			case FORMAT_ISO_8859_1 :
 				temp = XMLDoc.byteAt(offset);
 				if (temp == '\r') {
 					if (XMLDoc.byteAt(offset + 1) == '\n') {
-						return '\n'|(2L<<37);
+						return '\n'|(2L<<32);
 					} else {
-						return '\n'|(1L<<37);
+						return '\n'|(1L<<32);
 					}
 				}
 				
-				return (temp & 0xff)|(1L<<37);
+				return (temp & 0xff)|(1L<<32);
 				
 			case FORMAT_UTF8 :
 				temp = XMLDoc.byteAt(offset);
 				if (temp>=0){
 					if (temp == '\r') {
 						if (XMLDoc.byteAt(offset + 1) == '\n') {
-							return '\n'|(2L<<37);
+							return '\n'|(2L<<32);
 						} else {
-							return '\n'|(1L<<37);
+							return '\n'|(1L<<32);
 						}
 					}
 					//currentOffset++;
-					return temp|(1L<<37);
+					return temp|(1L<<32);
 				}				
 				return handle_utf8(temp,offset);
 
@@ -714,7 +714,7 @@ public class VTDNav {
 		}
 
 		//currentOffset++;
-		return val | (inc << 37);
+		return val | (inc << 32);
 	}
 	
 	/* the exact same copy of getCharResolved except it operates on currentOffset2
@@ -1454,7 +1454,7 @@ public class VTDNav {
                 return 1;
             if (i1 > (int) l1)
                 return -1;
-            offset += (int) (l1 >> 37);
+            offset += (int) (l1 >> 32);
         }
 
         if (i == l && offset < endOffset)
@@ -1502,7 +1502,7 @@ public class VTDNav {
 		        l = this.getChar(offset1);
 		    }
 	        ch1 = (int)l;
-	        offset1 += (int)(l>>37);
+	        offset1 += (int)(l>>32);
 		    
 		    if(t2 == VTDNav.TOKEN_CHARACTER_DATA
 		            || t2== VTDNav.TOKEN_ATTR_VAL){
@@ -1510,8 +1510,8 @@ public class VTDNav {
 		    } else {
 		        l = vn2.getChar(offset2);
 		    }
-	        ch2 = (int)l;
-	        offset2 += (int)(l>>37);
+	        ch2 = (int)l ;
+	        offset2 += (int)(l>>32);
 	        
 		    if (ch1 > ch2)
 		        return 1;
@@ -1555,11 +1555,11 @@ public class VTDNav {
         for (i = 0; i < l && offset < endOffset; i++) {
             l1 = getChar(offset);
             int i1 = s.charAt(i); 
-            if (i1 < (int) l1)                 
+            if (i1 < (int) l1 )                 
                 return 1;
             if (i1 > (int) l1)
                 return -1;
-            offset += (int) (l1 >> 37);
+            offset += (int) (l1 >> 32);
         }
 		
 		if (i == l && offset < endOffset)
@@ -1759,7 +1759,7 @@ public class VTDNav {
 		{
 		l = b? getCharResolved(offset):getChar(offset);
 		ch = (int)l;
-	    offset += (int)(l>>37);
+	    offset += (int)(l>>32);
 		}		
 
 		while (offset < end) { // trim leading whitespaces
@@ -1767,7 +1767,7 @@ public class VTDNav {
 				break;
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 
 		if (offset > end) // all whitespace
@@ -1778,7 +1778,7 @@ public class VTDNav {
 		if (ch == '-' || ch == '+'){
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37); //get another one if it is sign.
+		    offset += (int)(l>>32); //get another one if it is sign.
 		}
 		//left part of decimal
 		double left = 0;
@@ -1793,7 +1793,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);;
+		    offset += (int)(l>>32);;
 		}
 
 		//right part of decimal
@@ -1802,7 +1802,7 @@ public class VTDNav {
 		if (ch == '.') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 
 			while (offset <= end) {
 				//must be <= since we get the next one at last.
@@ -1817,7 +1817,7 @@ public class VTDNav {
 
 				l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>37);
+			    offset += (int)(l>>32);
 			}
 		}
 
@@ -1826,12 +1826,12 @@ public class VTDNav {
 		if (ch == 'E' || ch == 'e') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 			expneg = (ch == '-'); //sign for exp
 			if (ch == '+' || ch == '-'){
 			    l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>37); //skip the +/- sign
+			    offset += (int)(l>>32); //skip the +/- sign
 			}
 			long cur = offset;
 			//remember the indx, used to find a invalid number like 1.23E
@@ -1848,7 +1848,7 @@ public class VTDNav {
 
 				l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>37);
+			    offset += (int)(l>>32);
 			}
 			if (cur == offset)
 			    return Double.NaN;
@@ -1865,7 +1865,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 
 		double v = (double) left;
@@ -1899,14 +1899,14 @@ public class VTDNav {
 		int ch ;
 		l = b? getCharResolved(offset):getChar(offset);
 		ch = (int)l;
-	    offset += (int)(l>>37);
+	    offset += (int)(l>>32);
 
 		while (offset <= end) { // trim leading whitespaces
 			if (!isWS(ch))
 				break;
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 
 		if (offset > end) // all whitespace
@@ -1917,7 +1917,7 @@ public class VTDNav {
 		if (ch == '-' || ch == '+'){
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37); //get another one if it is sign.
+		    offset += (int)(l>>32); //get another one if it is sign.
 		}
 		//left part of decimal
 		long left = 0;
@@ -1932,7 +1932,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 
 		//right part of decimal
@@ -1941,7 +1941,7 @@ public class VTDNav {
 		if (ch == '.') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 
 			while (offset <= end) {
 				//must be <= since we get the next one at last.
@@ -1956,7 +1956,7 @@ public class VTDNav {
 
 				l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>37);
+			    offset += (int)(l>>32);
 			}
 		}
 
@@ -1965,12 +1965,12 @@ public class VTDNav {
 		if (ch == 'E' || ch == 'e') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 			boolean expneg = (ch == '-'); //sign for exp
 			if (ch == '+' || ch == '-'){
 			    l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>37); //skip the +/- sign
+			    offset += (int)(l>>32); //skip the +/- sign
 			}
 			long cur = offset;
 			//remember the indx, used to find a invalid number like 1.23E
@@ -1987,7 +1987,7 @@ public class VTDNav {
 
 				l = b? getCharResolved(offset):getChar(offset);
 				ch = (int)l;
-			    offset += (int)(l>>37);
+			    offset += (int)(l>>32);
 			}
 
 			if (cur == offset)
@@ -2005,7 +2005,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			ch = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 
 		double v = (double) left;
@@ -2069,14 +2069,14 @@ public class VTDNav {
 		int c;
 		long l = b? getCharResolved(offset):getChar(offset);
 		c = (int)l;
-	    offset += (int)(l>>37);
+	    offset += (int)(l>>32);
 
 		// trim leading whitespaces
 		while ((c == ' ' || c == '\n' || c == '\t' || c == '\r')
 			&& (offset <= endOffset)){
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 		if (offset > endOffset) // all whitespace
 			throw new NumberFormatException(" empty string");
@@ -2085,7 +2085,7 @@ public class VTDNav {
 		if (neg || c == '+') {
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>37); //skip sign
+		    offset += (int)(l>>32); //skip sign
 		}
 		long result = 0;
 		long pos = 1;
@@ -2100,7 +2100,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 
 		if (result > Integer.MAX_VALUE)
@@ -2110,7 +2110,7 @@ public class VTDNav {
 		while (offset <= endOffset && isWS(c)) {
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 		if (offset == (endOffset + 1))
 			return (int) ((neg) ? (-result) : result);
@@ -2159,14 +2159,14 @@ public class VTDNav {
 		long l;
 		l = b? getCharResolved(offset):getChar(offset);
 		c = (int)l;
-	    offset += (int)(l>>37);
+	    offset += (int)(l>>32);
 
 		// trim leading whitespaces
 		while ((c == ' ' || c == '\n' || c == '\t' || c == '\r')
 			&& (offset <= endOffset)){
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 		if (offset > endOffset) // all whitespace
 			throw new NumberFormatException(" empty string");
@@ -2175,7 +2175,7 @@ public class VTDNav {
 		if (neg || c == '+'){
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>37);//skip sign
+		    offset += (int)(l>>32);//skip sign
 		}
 		long result = 0;
 		long pos = 1;
@@ -2190,7 +2190,7 @@ public class VTDNav {
 
 			l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>37);;
+		    offset += (int)(l>>32);;
 		}
 
 		if (result > Long.MAX_VALUE)
@@ -2200,7 +2200,7 @@ public class VTDNav {
 		while (offset <= endOffset && isWS(c)) {
 		    l = b? getCharResolved(offset):getChar(offset);
 			c = (int)l;
-		    offset += (int)(l>>37);
+		    offset += (int)(l>>32);
 		}
 		if (offset == (endOffset + 1))
 			return (long) ((neg) ? (-result) : result);
@@ -3177,7 +3177,7 @@ public class VTDNav {
 			l = getChar(offset);
 			
 			ch = (int)l;
-			offset += (int)(l>>37);
+			offset += (int)(l>>32);
 
 			if (!isWS(ch)) {
 				offset = temp;
@@ -3189,7 +3189,7 @@ public class VTDNav {
 		while (offset <= endOffset) {
 			l = getCharResolved(offset);
 			ch = (int)l;
-			offset += (int)(l>>37);
+			offset += (int)(l>>32);
 			if (isWS(ch) && getCharUnit(offset - 1) != ';') {
 				d = true;
 			} else {
@@ -3235,7 +3235,7 @@ public class VTDNav {
 	    long l;
 	    while (offset < endOffset) {
 	        l = getChar(offset);
-	        offset += (int)(l>>37);
+	        offset += (int)(l>>32);
 	        sb.append((char)l);	                
 	    }
 	    return sb.toString();
@@ -3273,7 +3273,7 @@ public class VTDNav {
 	    long l;
 	    while (offset < endOffset) {
 	        l = getCharResolved(offset);
-	        offset += (int)(l>>37);
+	        offset += (int)(l>>32);
 	        sb.append((char)l);	                
 	    }
 	    return sb.toString();
