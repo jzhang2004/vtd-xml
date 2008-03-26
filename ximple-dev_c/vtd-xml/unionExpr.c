@@ -252,6 +252,15 @@ Boolean isNodeSet_une (unionExpr *e){
 	return e->fe->isNodeSet(e->fe);
 }
 Boolean requireContextSize_une(unionExpr *e){
+	// boolean b = false;
+	unionExpr* tmp = e;
+
+	while (tmp != NULL) {
+		if (tmp->fe->requireContextSize(tmp->fe)== TRUE){
+			return TRUE;
+		}            
+		tmp = tmp->next;
+	}        
 	return FALSE;
 }
 void reset_une(unionExpr *e, VTDNav *vn){
