@@ -391,7 +391,7 @@ namespace com.ximpleware
 		*/
 		public override bool requireContextSize()
 		{
-            bool b = false;
+            //bool b = false;
             UnionExpr tmp = this;
             while (tmp != null)
             {
