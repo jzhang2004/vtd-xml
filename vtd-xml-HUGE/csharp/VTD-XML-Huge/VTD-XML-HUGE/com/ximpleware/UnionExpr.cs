@@ -391,8 +391,18 @@ namespace com.ximpleware
 		*/
 		public override bool requireContextSize()
 		{
-			
-			return false;
+
+            // boolean b = false;
+            UnionExpr tmp = this;
+            while (tmp != null)
+            {
+                if (tmp.e.requireContextSize() == true)
+                {
+                    return true;
+                }
+                tmp = tmp.next;
+            }
+            return false;
 		}
 		
 		/*
