@@ -2281,6 +2281,7 @@ forward_brk: ;
 							i++;
 						}
 					}
+                    currentStep.resetP(vn, p);
 					return i;
 				
 				

@@ -204,6 +204,7 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 					i++;
 				}
 			}
+			resetP2_s(lpe->currentStep,vn,p);
 			freeAutoPilot(ap);
 			return i;
 
