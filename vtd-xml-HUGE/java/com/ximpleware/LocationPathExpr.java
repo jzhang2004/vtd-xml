@@ -226,36 +226,62 @@ public class LocationPathExpr extends Expr{
 						if (vn.getAtTerminal()==true){
 							state = END;
 						}else {
-							result = vn.getText();
+						    // compute context size;
+						    t = currentStep.p;
+			    	        while(t!=null){
+			    	            if (t.requireContextSize()){
+			    	                int i = computeContextSize(t,vn);
+			    	                if (i==0){
+			    	                    b1 = true;
+			    	                    break;
+			    	                }else
+			    	                    t.setContextSize(i);
+			    	            }
+			    	            t = t.nextP;
+			    	        }
+			    	        // b1 false indicate context size is zero. no need to go any further...
+			    	        if (b1){
+			    	            state = END;
+			    	            break;
+			    	        }
+			    	        // get textIter
+						    TextIter ti = null;
+						    if (currentStep.o != null){
+						        ti = (TextIter) currentStep.o;
+						    } else {
+						        ti = new TextIter();
+						        currentStep.o = ti;
+						    }
+						    ti.touch(vn);
+						    state = END;
+						    while((result = ti.getNext())!=-1){
+						        if (currentStep.evalPredicates(vn)){
+									break;
+								}
+						    }
+						    // old code
+							//result = vn.getText();
 							if (result != -1){
 								vn.setAtTerminal(true);
-								vn.LN = result;
-								t = currentStep.p;
-				    	        while(t!=null){
-				    	            if (t.requireContextSize()){
-				    	               t.setContextSize(1); // assuming only one text node per
-				    	            }
-				    	            t = t.nextP;
-				    	        }
-				    	        state = END;
-				    	        if (currentStep.evalPredicates(vn)) {
-                                   if (currentStep.getNextStep() != null) {
-                                       	vn.LN = result;
-                                       	state = FORWARD;
-                                       	currentStep = currentStep.getNextStep();
-                                   } else {
-                                       	state = TERMINAL;
-                                       	//result = vn.getText();
-                                       	if (isUnique(result)) {
-                                       	   //vn.setAtTerminal(true);
-                                       	    vn.LN = result;
-                                       	    return result;
-                                       	}
-                                   }
-				    	        }
-                    
-							} else {
-							    state = END;
+								//currentStep.resetP(vn);
+								vn.LN = result;    
+								if (currentStep.getNextStep() != null){
+								    vn.LN = result;
+				   				    state =  FORWARD;
+									currentStep = currentStep.getNextStep();
+								}
+								else {
+									//vn.pop();
+									 state =  TERMINAL;
+									if ( isUnique(result)){
+									    vn.LN = result;
+										return result;
+									}
+								}								
+							} else{
+								//currentStep.set_ft(true);
+								currentStep.resetP(vn);
+								vn.setAtTerminal(false);
 							}
 						}		    	        
 		    	    }
@@ -314,36 +340,64 @@ public class LocationPathExpr extends Expr{
 							state = BACKWARD;
 							currentStep = currentStep.getPrevStep();
 						}else {
-							result = vn.getText();
-							if (result != -1){
-								vn.setAtTerminal(true);
-								vn.LN= result;
-								t = currentStep.p;
-				    	        while(t!=null){
-				    	            if (t.requireContextSize()){
-				    	               t.setContextSize(1); // assuming only one text node per
-				    	            }
-				    	            t = t.nextP;
-				    	        }
-				    	        state = END;
-				    	        if (currentStep.evalPredicates(vn)){
-				    	            if (currentStep.getNextStep() != null){
-				    	                vn.LN = result;
-				    	                state =  FORWARD;
-				    	                currentStep = currentStep.getNextStep();
-				    	            } else {
-				    	                state =  TERMINAL;
-				    	                //result = vn.getText();
-				    	                if (isUnique(result)){
-				    	                    vn.LN = result;
-				    	                    return result;
-				    	                }
-				    	            }					
-				    	        }
-							}else {
-									state = BACKWARD;
-									currentStep = currentStep.getPrevStep();
-							}
+						    // compute context size;
+						    t = currentStep.p;
+			    	        while(t!=null){
+			    	            if (t.requireContextSize()){
+			    	                int i = computeContextSize(t,vn);
+			    	                if (i==0){
+			    	                    b1 = true;
+			    	                    break;
+			    	                }else
+			    	                    t.setContextSize(i);
+			    	            }
+			    	            t = t.nextP;
+			    	        }
+			    	        // b1 false indicate context size is zero. no need to go any further...
+			    	        if (b1){
+			    	            state = BACKWARD;
+			    	            break;
+			    	        }
+			    	        // get textIter
+						    TextIter ti = null;
+						    if (currentStep.o != null){
+						        ti = (TextIter) currentStep.o;
+						    } else {
+						        ti = new TextIter();
+						        currentStep.o = ti;
+						    }
+						    ti.touch(vn);
+						    //result = ti.getNext();
+						    
+						    while((result = ti.getNext())!=-1){
+						        if (currentStep.evalPredicates(vn)){
+									break;
+								}
+						    }						   
+						   
+			                if (result == -1) {
+			                    //currentStep.set_ft(true);
+			                    //currentStep.resetP(vn);
+			                    vn.setAtTerminal(false);
+			                    if (state == FORWARD) {
+			                        state = BACKWARD;
+			                        currentStep = currentStep.getPrevStep();
+			                    }
+			                } else {
+			                    vn.setAtTerminal(true);
+			                    if (currentStep.getNextStep() != null) {
+			                        vn.LN = result;
+			                        state = FORWARD;
+			                        currentStep = currentStep.getNextStep();
+			                    } else {
+			                        //vn.pop();
+			                        state = TERMINAL;
+			                        if (isUnique(result)) {
+			                            vn.LN = result;
+			                            return result;
+			                        }
+			                    }
+			                }
 						}				    	        
 			    	}
 
@@ -407,11 +461,17 @@ public class LocationPathExpr extends Expr{
 							currentStep = currentStep.getPrevStep();
 						}
 					}else {
+					    TextIter ti = (TextIter) currentStep.o;
+					    int i = -1;
+					    while ((i=ti.getNext())!=-1) {
+					        if (currentStep.evalPredicates(vn)) {
+					            return i;
+					        }
+					    }					    
 						currentStep.resetP(vn);
 						vn.setAtTerminal(false);
 						if (currentStep.getPrevStep() == null)
 							 state =  END;
-
 						else {
 							 state =  BACKWARD;
 							currentStep = currentStep.getPrevStep();
@@ -1411,55 +1471,54 @@ public class LocationPathExpr extends Expr{
 					currentStep  = currentStep.getPrevStep();
 				}
 			} else {
-			if (currentStep.get_ft() == true) {
-				if (currentStep.o  == null)
-				    currentStep.o= ap = new AutoPilot(vn);
-				else{
-				    ap = (AutoPilot) currentStep.o;
-				    ap.bind(vn);
-				    //ap.set_ft(true);	
-				}
-				if (currentStep.nt.localName!=null)
-				    ap.selectAttrNS(currentStep.nt.URL,
-				            currentStep.nt.localName);
-				else 
-				    ap.selectAttr(currentStep.nt.nodeName);
-				currentStep.set_ft(false);
-			}
-			if ( state ==  START)
-				 state =  END;
-			vn.setAtTerminal(true);
-			while( (temp = ap.iterateAttr()) != -1){				
-				if (currentStep.evalPredicates(vn)){
-					break;
-				}							
-			}
-			if (temp == -1){
-				currentStep.set_ft(true);
-				currentStep.resetP(vn);
-				vn.setAtTerminal(false);
-				if ( state ==  FORWARD){
-					state =  BACKWARD;
-					currentStep = currentStep.getPrevStep();							
-				}	
-			}else {
-				
-				if (currentStep.getNextStep() != null){
-				    vn.LN = temp;
-   				    state =  FORWARD;
-					currentStep = currentStep.getNextStep();
-				}
-				else {
-					//vn.pop();
-					 state =  TERMINAL;
-					if ( isUnique(temp)){
-					    vn.LN = temp;
-						return temp;
-					}
-				}
-			
-			}
-			}
+                if (currentStep.get_ft() == true) {
+                    if (currentStep.o == null)
+                        currentStep.o = ap = new AutoPilot(vn);
+                    else {
+                        ap = (AutoPilot) currentStep.o;
+                        ap.bind(vn);
+                        //ap.set_ft(true);
+                    }
+                    if (currentStep.nt.localName != null)
+                        ap.selectAttrNS(currentStep.nt.URL,
+                                currentStep.nt.localName);
+                    else
+                        ap.selectAttr(currentStep.nt.nodeName);
+                    currentStep.set_ft(false);
+                }
+                if (state == START)
+                    state = END;
+                vn.setAtTerminal(true);
+                while ((temp = ap.iterateAttr()) != -1) {
+                    if (currentStep.evalPredicates(vn)) {
+                        break;
+                    }
+                }
+                if (temp == -1) {
+                    currentStep.set_ft(true);
+                    currentStep.resetP(vn);
+                    vn.setAtTerminal(false);
+                    if (state == FORWARD) {
+                        state = BACKWARD;
+                        currentStep = currentStep.getPrevStep();
+                    }
+                } else {
+
+                    if (currentStep.getNextStep() != null) {
+                        vn.LN = temp;
+                        state = FORWARD;
+                        currentStep = currentStep.getNextStep();
+                    } else {
+                        //vn.pop();
+                        state = TERMINAL;
+                        if (isUnique(temp)) {
+                            vn.LN = temp;
+                            return temp;
+                        }
+                    }
+
+                }
+            }
 			break;
 			
 		case  END:
@@ -1625,6 +1684,7 @@ public class LocationPathExpr extends Expr{
 	    AutoPilot ap;
 	    switch(currentStep.axis_type){
 	    	case AxisType.CHILD:
+	    	    if (currentStep.nt.testType != NodeTest.TEXT){
 	    	    b = vn.toElement(VTDNav.FIRST_CHILD);
 	    		if (b) {
 	    		    do {
@@ -1637,6 +1697,17 @@ public class LocationPathExpr extends Expr{
 	    		    return i;
 	    		} else
 	    		    return 0;
+	    	    }else {	    
+	    	        TextIter ti = new TextIter();
+	    	        ti.touch(vn);
+	    	        while((ti.getNext())!=-1){
+	    	            if (currentStep.evalPredicates(vn,p)){
+	    	                i++;
+	    	            }
+	    	        }
+	    	        currentStep.resetP(vn,p);
+	    	        return i;
+	    	    }
 	    		   
 			case AxisType.DESCENDANT_OR_SELF:
 			case AxisType.DESCENDANT:
@@ -1735,7 +1806,7 @@ public class LocationPathExpr extends Expr{
 			case AxisType.FOLLOWING_SIBLING:
 			    vn.push2();
 				while(vn.toElement(VTDNav.NEXT_SIBLING)){
-				    if (currentStep.evalPredicates(vn,p)){
+				    if (currentStep.eval(vn,p)){
 				        i++;
 				    }
 				}			    
@@ -1763,11 +1834,11 @@ public class LocationPathExpr extends Expr{
 				    ap.selectAttr(currentStep.nt.nodeName);
 				i = 0;
 				while(ap.iterateAttr()!=-1){
-				    if (currentStep.eval(vn,p)){
+				    if (currentStep.evalPredicates(vn,p)){
 				        i++;
 				    }
 				}
-				currentStep.resetP(vn,p);
+          		currentStep.resetP(vn,p);
 				return i;
 			    
 	    	default:
