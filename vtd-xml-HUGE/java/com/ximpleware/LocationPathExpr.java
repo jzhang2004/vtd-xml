@@ -1767,6 +1767,7 @@ public class LocationPathExpr extends Expr{
 				        i++;
 				    }
 				}
+				currentStep.resetP(vn,p);
 				return i;
 			    
 	    	default:
