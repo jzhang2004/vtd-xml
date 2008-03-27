@@ -226,6 +226,16 @@ public class LocationPathExpr extends Expr{
 						if (vn.getAtTerminal()==true){
 							state = END;
 						}else {
+						    TextIter ti = null;
+						    if (currentStep.o != null){
+						        ti = (TextIter) currentStep.o;
+						    } else {
+						        ti = new TextIter();
+						        currentStep.o = ti;
+						    }
+						    ti.touch(vn);
+						    
+						    // old code
 							result = vn.getText();
 							if (result != -1){
 								vn.setAtTerminal(true);
@@ -1767,6 +1777,7 @@ public class LocationPathExpr extends Expr{
 				        i++;
 				    }
 				}
+          		currentStep.resetP(vn,p);
 				return i;
 			    
 	    	default:
