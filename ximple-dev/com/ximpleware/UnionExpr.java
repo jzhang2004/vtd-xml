@@ -299,7 +299,7 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#requireContextSize()
      */
     public boolean requireContextSize() {
-        boolean b = false;
+       // boolean b = false;
         UnionExpr tmp = this;
         while (tmp != null) {
             if (tmp.e.requireContextSize()== true){
