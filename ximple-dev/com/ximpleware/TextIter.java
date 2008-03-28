@@ -53,6 +53,7 @@ public int getNext() {
         throw new IllegalArgumentException(" VTDNav instance can't be null");
     int vtdSize = vn.vtdBuffer.size();
     switch (depth) {
+        case -1: return -1;
         case 0 :
             // scan forward, if none found, jump to level 1 elements and scan backward until one is found
             // if there isn't a level-one element, jump to the end of vtd buffer and scan backward
@@ -324,7 +325,10 @@ final private boolean isText(int index) {
             throw new IllegalArgumentException(" VTDNav instance can't be null");
 
         depth = v.context[0];
-        index = (depth != 0) ? v.context[depth] : v.rootIndex;
+        if (depth == -1)
+            index = 0;
+        else
+            index = (depth != 0) ? v.context[depth] : v.rootIndex;
 
         vn = v;
         prevLocation = -1;
@@ -340,7 +344,9 @@ final private boolean isText(int index) {
       int i=sp+1;
       while(i<vtdSize && 
       		depth == vn.getTokenDepth(i) && 
-			type == vn.getTokenType(i)){
+			type == vn.getTokenType(i) &&
+			(vn.getTokenOffset(i)+ (int)((vn.vtdBuffer.longAt(i) & VTDNav.MASK_TOKEN_FULL_LEN)>>32) 
+			        == vn.getTokenOffset(i+1))){
       	i++;
       }      	
       return i;
