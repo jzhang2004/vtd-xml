@@ -344,11 +344,12 @@ final private boolean isText(int index) {
       int i=sp+1;
       while(i<vtdSize && 
       		depth == vn.getTokenDepth(i) && 
-			type == vn.getTokenType(i) &&
-			(vn.getTokenOffset(i)+ (int)((vn.vtdBuffer.longAt(i) & VTDNav.MASK_TOKEN_FULL_LEN)>>32) 
-			        == vn.getTokenOffset(i+1))){
-      	i++;
-      }      	
+			type == vn.getTokenType(i)&&
+			(vn.getTokenOffset(i-1)+ (int)((vn.vtdBuffer.longAt(i-1) & VTDNav.MASK_TOKEN_FULL_LEN)>>32) 
+			        == vn.getTokenOffset(i))
+			        ){          
+             i++;
+      }
       return i;
     }
 }
