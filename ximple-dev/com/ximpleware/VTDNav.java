@@ -130,7 +130,7 @@ public class VTDNav {
 	public final static int STRING_NORMALIZED = 2;
 	
 	// masks for obtaining various fields from a VTD token
-	private final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
+	protected final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
 	private final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
 	private final static long MASK_TOKEN_QN_LEN = 0x000007ff00000000L;
 	long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
