@@ -88,7 +88,7 @@ public int getNext() {
                     } else {
                         if (sp == temp2) { // get to the end of the document and do a rewind
                             sp = vn.vtdBuffer.size() - 1;
-                            while (vn.getTokenDepth(sp) == 0) {
+                            while (vn.getTokenDepth(sp) <= 0) {
                                 sp--;
                             }
                             sp++;
