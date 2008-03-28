@@ -1214,6 +1214,7 @@ public class VTDNav {
 		int val;
 		int len = 0;
 		long l;
+		int temp=0;
 		switch (type) {
 			case TOKEN_ATTR_NAME :
 			case TOKEN_ATTR_NS :
@@ -1233,10 +1234,12 @@ public class VTDNav {
 				do{
 					len = len +  (int)
 					((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 32);
+					temp =  getTokenOffset(index)+(int)
+					((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 32);
 					index++;		
 					}
 				while(index < vtdSize && depth == getTokenDepth(index) 
-						&& type == getTokenType(index));
+						&& type == getTokenType(index) && temp == getTokenOffset(index));
 				//if (int k=0)
 				return len;
 			default :
