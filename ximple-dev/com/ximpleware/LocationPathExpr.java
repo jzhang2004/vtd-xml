@@ -462,10 +462,10 @@ public class LocationPathExpr extends Expr{
 						}
 					}else {
 					    TextIter ti = (TextIter) currentStep.o;
-					    int i = -1;
-					    while ((i=ti.getNext())!=-1) {
+					    while ((result=ti.getNext())!=-1) {
 					        if (currentStep.evalPredicates(vn)) {
-					            return i;
+					            if ( isUnique(result))
+									return result;
 					        }
 					    }					    
 						currentStep.resetP(vn);
