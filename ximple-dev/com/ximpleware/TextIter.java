@@ -55,7 +55,7 @@ public int getNext() {
     switch (depth) {
         case -1: return -1;
         case 0 :
-            // scan forward, if none found, jump to level 1 elements and scan backward until one is found
+            // scan forward, if none found, jump to level 1 element and scan backward until one is found
             // if there isn't a level-one element, jump to the end of vtd buffer and scan backward
             int sp = (prevLocation != -1) ? increment(prevLocation): index + 1;
             if (vn.l1Buffer.size() != 0) {
@@ -74,13 +74,13 @@ public int getNext() {
                             }
                             sp++; // point to the first possible node  
                         }
-                        if (isText(sp) == true) {
+                        if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
                             prevLocation = sp;
                             return sp;
                         }
                         sp++;
                     } else if (sp < temp1) {
-                        if (isText(sp) == true) {
+                        if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
                             prevLocation = sp;
                             return sp;
                         }
@@ -94,7 +94,7 @@ public int getNext() {
                             sp++;
                             //continue;
                         }
-                        if (isText(sp) == true ) {
+                        if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
                             prevLocation = sp;
                             return sp;
                         }
@@ -110,7 +110,7 @@ public int getNext() {
             } else {
                 // no child element for root, just scan right forward
                 while (sp < vtdSize) {
-                    if (isText(sp) == true) {
+                    if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
                         prevLocation = sp;
                         return sp;
                     }
@@ -154,7 +154,7 @@ public int getNext() {
                             sp++;
                             //continue;
                         }
-                        if (isText(sp) == true) {
+                        if (isText(sp) == true && vn.getTokenDepth(sp)==1 ) {
                             prevLocation = sp;
                             return sp;
                         }
@@ -236,13 +236,13 @@ public int getNext() {
                             sp++;
                             //continue;
                         }
-                        if (isText(sp) == true) {
+                        if (isText(sp) == true && vn.getTokenDepth(sp)==2) {
                             prevLocation = sp;
                             return sp;
                         }
                         sp++;
                     } else if (sp < temp1) {
-                        if (isText(sp) == true) {
+                        if (isText(sp) == true && vn.getTokenDepth(sp)==2) {
                             prevLocation = sp;
                             return sp;
                         }
@@ -268,7 +268,7 @@ public int getNext() {
                     && d >= 2
                     && !(d == 2 && type == VTDNav.TOKEN_STARTING_TAG)) {
                     // the last condition indicates the start of the next sibling element
-                    if (isText(sp) == true) {
+                    if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
                         prevLocation = sp;
                         return sp;
                     }
