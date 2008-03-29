@@ -2761,10 +2761,10 @@ static int process_cdata(VTDGen *vg){
 	if (vg->ch == '<') {
 		parser_state = STATE_LT_SEEN;
 	} else if (XMLChar_isContentChar(vg->ch)) {
-		vg->temp_offset = vg->offset;
+		vg->temp_offset = vg->offset-1;
 		parser_state = STATE_TEXT;
 	} else if (vg->ch == '&') {
-		vg->temp_offset = vg->offset;
+		vg->temp_offset = vg->offset-1;
 		entityIdentifier(vg);
 		parser_state = STATE_TEXT;
 	} else if (vg->ch == ']') {

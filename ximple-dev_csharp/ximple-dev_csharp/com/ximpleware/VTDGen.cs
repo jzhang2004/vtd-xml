@@ -3747,13 +3747,13 @@ namespace com.ximpleware
             }
             else if (XMLChar.isContentChar(ch))
             {
-                temp_offset = offset;
+                temp_offset = offset -1;
                 parser_state = STATE_TEXT;
             }
             else if (ch == '&')
             {
                 //has_amp = true;
-                temp_offset = offset;
+                temp_offset = offset-1;
                 entityIdentifier();
                 parser_state = STATE_TEXT;
                 //temp_offset = offset;
