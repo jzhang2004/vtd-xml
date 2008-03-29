@@ -127,7 +127,7 @@ public int getNext() {
                 if (lcLower != -1) {
                     lcUpper = vn.l2Buffer.size() - 1;
                     int size = vn.l1Buffer.size();
-                    for (int i = lcLower + 1; i < size ; i++) {
+                    for (int i = vn.l1index + 1; i < size ; i++) {
                         int temp = vn.l1Buffer.lower32At(i);
                         if (temp != 0xffffffff) {
                             lcUpper = temp - 1;
@@ -208,7 +208,7 @@ public int getNext() {
                 if (lcLower != -1) {
                     lcUpper = vn.l3Buffer.size() - 1;
                     int size = vn.l2Buffer.size();
-                    for (int i = lcLower + 1; i < size ; i++) {
+                    for (int i = vn.l2index + 1; i < size ; i++) {
                         int temp = vn.l2Buffer.lower32At(i);
                         if (temp != 0xffffffff) {
                             lcUpper = temp - 1;
@@ -268,7 +268,7 @@ public int getNext() {
                     && d >= 2
                     && !(d == 2 && type == VTDNav.TOKEN_STARTING_TAG)) {
                     // the last condition indicates the start of the next sibling element
-                    if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
+                    if (isText(sp) == true && vn.getTokenDepth(sp)==2) {
                         prevLocation = sp;
                         return sp;
                     }
