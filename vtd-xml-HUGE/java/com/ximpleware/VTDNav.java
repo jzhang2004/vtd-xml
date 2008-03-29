@@ -123,7 +123,7 @@ public class VTDNav {
 	public final static int FORMAT_UTF_16LE = 64;
 	public final static int FORMAT_UTF_16BE = 63;
 	// masks for obtaining various fields from a VTD token 16-bit long
-	private final static long MASK_TOKEN_FULL_LEN = 0x003fffe000000000L;
+	protected final static long MASK_TOKEN_FULL_LEN = 0x003fffe000000000L;
 	private final static long MASK_TOKEN_PRE_LEN = 0x003f800000000000L;
 	private final static long MASK_TOKEN_QN_LEN = 0x00007fe000000000L;
 	private final static long MASK_TOKEN_OFFSET = 0x0000001fffffffffL;
@@ -1011,6 +1011,7 @@ public class VTDNav {
 		int val;
 		int len = 0;
 		long l;
+		long temp=0;
 		switch (type) {
 			case TOKEN_ATTR_NAME :
 			case TOKEN_ATTR_NS :
@@ -1029,10 +1030,13 @@ public class VTDNav {
 				do{
 					len = len +  (int)
 					((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 37);
+					 temp =  getTokenOffset(index)+(int)
+					 ((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 37);
 					index++;		
 					}
 				while(index < vtdSize && depth == getTokenDepth(index) 
-						&& type == getTokenType(index));
+						&& type == getTokenType(index) 
+						&& temp == getTokenOffset(index));
 				//if (int k=0)
 				return len;
 			default :
