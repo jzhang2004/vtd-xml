@@ -2768,6 +2768,7 @@ static int process_cdata(VTDGen *vg){
 		entityIdentifier(vg);
 		parser_state = STATE_TEXT;
 	} else if (vg->ch == ']') {
+		vg->temp_offset = vg->offset-1;
 		if (skipChar(vg,']')) {
 			while (skipChar(vg,']')) {
 			}

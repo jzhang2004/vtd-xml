@@ -3760,6 +3760,7 @@ namespace com.ximpleware
             }
             else if (ch == ']')
             {
+                temp_offset = offset - 1;
                 if (r.skipChar(']'))
                 {
                     while (r.skipChar(']'))
