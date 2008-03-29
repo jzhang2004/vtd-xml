@@ -18,20 +18,20 @@
 using System;
 namespace com.ximpleware
 {
-	/// <summary> This class iterates through all text nodes of an element.
-	/// VTDNav has getText() which is inadequate for mixed content style of XML.
-	/// text nodes include character_data and CDATA.
-	/// Creation date: (12/5/03 5:53:41 PM)
-	/// </summary>
-	public class TextIter
-	{
-		/// <summary> Get the index vals for the text nodes in document order.
-		/// Creation date: (12/5/03 6:11:50 PM)
-		/// </summary>
-		/// <returns> int  (-1 if no more left)
-		/// </returns>
-		/// <param name="action">int
-		/// </param>
+    /// <summary> This class iterates through all text nodes of an element.
+    /// VTDNav has getText() which is inadequate for mixed content style of XML.
+    /// text nodes include character_data and CDATA.
+    /// Creation date: (12/5/03 5:53:41 PM)
+    /// </summary>
+    public class TextIter
+    {
+        /// <summary> Get the index vals for the text nodes in document order.
+        /// Creation date: (12/5/03 6:11:50 PM)
+        /// </summary>
+        /// <returns> int  (-1 if no more left)
+        /// </returns>
+        /// <param name="action">int
+        /// </param>
         /**
  * Get the index vals for the text nodes in document order.
  * Creation date: (12/5/03 6:11:50 PM)
@@ -145,7 +145,7 @@ namespace com.ximpleware
                             for (int i = vn.l1index + 1; i < size; i++)
                             {
                                 int temp = vn.l1Buffer.lower32At(i);
-                                if (temp != 0xffffffff)
+                                if (temp != -1)
                                 {
                                     lcUpper = temp - 1;
                                     break;
@@ -250,7 +250,7 @@ namespace com.ximpleware
                             for (int i = vn.l2index + 1; i < size; i++)
                             {
                                 int temp = vn.l2Buffer.lower32At(i);
-                                if (temp != 0xffffffff)
+                                if (temp != -1)
                                 {
                                     lcUpper = temp - 1;
                                     break;
@@ -339,7 +339,7 @@ namespace com.ximpleware
                         //prevLocation = vtdSize-1;
                         return -1;
                     }
-                    
+
                 default:
                     //int curDepth = vn.context[0];
                     sp = (prevLocation != -1) ? increment(prevLocation) : index + 1;
@@ -364,71 +364,76 @@ namespace com.ximpleware
             //prevLocation = vtdSize-1;
             //return -1;
         }
-		
-		private int prevLocation; //previous location of text node
-		protected internal int depth;
-		protected internal int index; // this is index for the element
-		
-		protected internal VTDNav vn;
-		
-		private int lcIndex;
-		private int lcLower;
-		private int lcUpper;
-		/// <summary> TextIter constructor comment.</summary>
-		public TextIter():base()
-		{
-			vn = null;
-			/*sel_char_data = true;
-			sel_comment = true;
-			sel_cdata = true;*/
-		}
-		/// <summary> Test whether a give token type is a TEXT.
-		/// Creation date: (12/11/03 3:46:10 PM)
-		/// </summary>
-		/// <returns> boolean
-		/// </returns>
-		/// <param name="type">int
-		/// </param>
-		private bool isText(int index)
-		{
-			int type = vn.getTokenType(index);
-			return (type == VTDNav.TOKEN_CHARACTER_DATA || type == VTDNav.TOKEN_CDATA_VAL);
-		}
-		/// <summary> Obtain the current navigation position and element info from VTDNav.
-		/// So one can instantiate it once and use it for many different elements
-		/// Creation date: (12/5/03 6:20:44 PM)
-		/// </summary>
-		/// <param name="vn">com.ximpleware.VTDNav
-		/// </param>
-		public void  touch(VTDNav v)
-		{
-			if (v == null)
-				throw new System.ArgumentException(" VTDNav instance can't be null");
-			
-			depth = v.context[0];
-			index = (depth != 0)?v.context[depth]:v.rootIndex;
-			
-			vn = v;
-			prevLocation = - 1;
-			lcIndex = - 1;
-			lcUpper = - 1;
-			lcLower = - 1;
-		}
-		
-		private int increment(int sp)
-		{
-			
-			int type = vn.getTokenType(sp);
-			int vtdSize = vn.vtdBuffer.size();
-			int i = sp + 1;
-            while (i < vtdSize && depth == vn.getTokenDepth(i) 
-                && type == vn.getTokenType(i) 
-                &&(vn.getTokenOffset(i - 1) + (int)((vn.vtdBuffer.longAt(i - 1) & VTDNav.MASK_TOKEN_FULL_LEN) >> 32)
+
+        private int prevLocation; //previous location of text node
+        protected internal int depth;
+        protected internal int index; // this is index for the element
+
+        protected internal VTDNav vn;
+
+        private int lcIndex;
+        private int lcLower;
+        private int lcUpper;
+        /// <summary> TextIter constructor comment.</summary>
+        public TextIter()
+            : base()
+        {
+            vn = null;
+            /*sel_char_data = true;
+            sel_comment = true;
+            sel_cdata = true;*/
+        }
+        /// <summary> Test whether a give token type is a TEXT.
+        /// Creation date: (12/11/03 3:46:10 PM)
+        /// </summary>
+        /// <returns> boolean
+        /// </returns>
+        /// <param name="type">int
+        /// </param>
+        private bool isText(int index)
+        {
+            int type = vn.getTokenType(index);
+            return (type == VTDNav.TOKEN_CHARACTER_DATA || type == VTDNav.TOKEN_CDATA_VAL);
+        }
+        /// <summary> Obtain the current navigation position and element info from VTDNav.
+        /// So one can instantiate it once and use it for many different elements
+        /// Creation date: (12/5/03 6:20:44 PM)
+        /// </summary>
+        /// <param name="vn">com.ximpleware.VTDNav
+        /// </param>
+        public void touch(VTDNav v)
+        {
+            if (v == null)
+                throw new System.ArgumentException(" VTDNav instance can't be null");
+
+            depth = v.context[0];
+            if (depth == -1)
+                index = 0;
+            else
+                index = (depth != 0) ? v.context[depth] : v.rootIndex;
+
+
+            vn = v;
+            prevLocation = -1;
+            lcIndex = -1;
+            lcUpper = -1;
+            lcLower = -1;
+        }
+
+        private int increment(int sp)
+        {
+
+            int type = vn.getTokenType(sp);
+            int vtdSize = vn.vtdBuffer.size();
+            int i = sp + 1;
+            while (i < vtdSize && depth == vn.getTokenDepth(i)
+                && type == vn.getTokenType(i)
+                && (vn.getTokenOffset(i - 1) + (int)((vn.vtdBuffer.longAt(i - 1) & VTDNav.MASK_TOKEN_FULL_LEN) >> 32)
                     == vn.getTokenOffset(i)))
-			{
-				i++;
-			}
-			return i;
-		}
-	}
+            {
+                i++;
+            }
+            return i;
+        }
+    }
 }
