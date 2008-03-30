@@ -16,6 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 #include "xpath1.h"
+#include "textIter.h"
 static UCSChar *axisName(axisType i);
 static Boolean isUnique_lpe(locationPathExpr *lpe, int i);
 static int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn);
@@ -172,7 +173,7 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 		case AXIS_FOLLOWING_SIBLING:
 			push2(vn);
 			while(toElement(vn,NEXT_SIBLING)){
-				if (evalPredicates2(lpe->currentStep,vn,p)){
+				if (eval_s2(lpe->currentStep,vn,p)){
 					i++;
 				}
 			}			    
@@ -200,7 +201,7 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 				selectAttr(ap,lpe->currentStep->nt->nodeName);
 			i = 0;
 			while(iterateAttr(ap)!=-1){
-				if (eval_s2(lpe->currentStep, vn, p)){
+				if ( evalPredicates2(lpe->currentStep, vn, p)){
 					i++;
 				}
 			}
@@ -795,40 +796,67 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 							 toElement(vn,PARENT);
 					 }
 					}else {
+						TextIter *ti = NULL;
 						if (getAtTerminal(vn)==TRUE){
 							lpe->state = XPATH_EVAL_END;
 						}else {
-							result = getText(vn);
+						    // compute context size;
+						    t = lpe->currentStep->p;
+			    	        while(t!=NULL){
+			    	            if (requireContextSize_p(t)){
+			    	                int i = computeContextSize(lpe,t,vn);
+			    	                if (i==0){
+			    	                    b1 = TRUE;
+			    	                    break;
+			    	                }else
+			    	                    setContextSize_p(t,i);
+			    	            }
+			    	            t = t->nextP;
+			    	        }
+			    	        // b1 false indicate context size is zero. no need to go any further...
+			    	        if (b1){
+			    	            lpe->state = XPATH_EVAL_END;
+			    	            break;
+			    	        }
+			    	        // get textIter
+						    if (lpe->currentStep->o != NULL){
+						        ti = (TextIter*) lpe->currentStep->o;
+						    } else {
+						        ti = createTextIter();
+						        lpe->currentStep->o = ti;
+						    }
+						    touch(ti,vn);
+						    lpe->state = XPATH_EVAL_END;
+						    while((result = getNext(ti))!=-1){
+								if (evalPredicates(lpe->currentStep,vn)){
+									break;
+								}
+						    }
+						    // old code
+							//result = vn.getText();
 							if (result != -1){
 								setAtTerminal(vn,TRUE);
-								vn->LN = result;
-								t = lpe->currentStep->p;
-				    	        while(t!=NULL){
-				    	            if (requireContextSize_p(t)){
-				    	                setContextSize_p(t,1); // assuming only one text node per
-				    	            }
-									t = t->nextP;
-				    	        }
-				    	        lpe->state = XPATH_EVAL_END;
-								if (evalPredicates(lpe->currentStep,vn)) {
-									if (lpe->currentStep->nextS != NULL){
-										vn->LN = result;
-										lpe->state =  XPATH_EVAL_FORWARD;
-										lpe->currentStep = lpe->currentStep->nextS;
-									} else {
-										lpe->state =  XPATH_EVAL_TERMINAL;
-										//result = getText(vn);
-										if ( isUnique_lpe(lpe,result)){
-											//vn.setAtTerminal(TRUE);
-											vn->LN = result;
-											return result;
-										}
-									}	
+								//currentStep.resetP(vn);
+								vn->LN = result;    
+								if (getNextStep(lpe->currentStep) != NULL){
+								    vn->LN = result;
+				   				    lpe->state =  XPATH_EVAL_FORWARD;
+									lpe->currentStep = getNextStep(lpe->currentStep);
 								}
-							}else {							
-								lpe->state = XPATH_EVAL_END;							
+								else {
+									//vn.pop();
+									lpe->state =  XPATH_EVAL_TERMINAL;
+									if (isUnique_lpe(lpe, result)){
+									    vn->LN = result;
+										return result;
+									}
+								}								
+							} else{
+								//currentStep.set_ft(true);
+								reset_p(lpe->currentStep,vn);
+								setAtTerminal(vn, FALSE);
 							}
-						}		    	        
+						}						        
 					}
 					break;
 				case XPATH_EVAL_END:
@@ -881,42 +909,72 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 						}
 forward:;
 					}else {
-						// predicate at an attribute is not evaled
+						TextIter *ti = NULL;
+
+ // predicate at an attribute is not evaled
 						if (getAtTerminal(vn) == TRUE){
-							lpe->state = XPATH_EVAL_BACKWARD;
-							lpe->currentStep = lpe->currentStep->prevS;
+							lpe->state =  XPATH_EVAL_BACKWARD;
+							lpe->currentStep = getPrevStep(lpe->currentStep);
 						}else {
-							result = getText(vn);
-							if (result != -1){
-								setAtTerminal(vn,TRUE);
-								vn->LN = result;
-								t = lpe->currentStep->p;
-				    	        while(t!=NULL){
-				    	            if (requireContextSize_p(t)){
-				    	                setContextSize_p(t,1); // assuming only one text node per
-				    	            }
-									t = t->nextP;
-				    	        }
-				    	        lpe->state = XPATH_EVAL_END;
-								if (evalPredicates(lpe->currentStep,vn)) {
-									if (lpe->currentStep->nextS != NULL){
-										vn->LN = result;
-										lpe->state =  XPATH_EVAL_FORWARD;
-										lpe->currentStep = lpe->currentStep->nextS;
-									} else {
-										lpe->state =  XPATH_EVAL_TERMINAL;
-										//result = getText(vn);
-										if (isUnique_lpe(lpe,result)){
-											vn->LN = result;
-											return result;
-										}
-									}	
+						    // compute context size;
+						    t = lpe->currentStep->p;
+			    	        while(t!=NULL){
+			    	            if (requireContextSize_p(t)){
+			    	                int i = computeContextSize(lpe,t,vn);
+			    	                if (i==0){
+			    	                    b1 = TRUE;
+			    	                    break;
+			    	                }else
+			    	                    setContextSize_p(t,i);
+			    	            }
+			    	            t = t->nextP;
+			    	        }
+			    	        // b1 false indicate context size is zero. no need to go any further...
+			    	        if (b1){
+			    	            lpe->state =  XPATH_EVAL_BACKWARD;
+			    	            break;
+			    	        }
+			    	        // get textIter
+						    if (lpe->currentStep->o != NULL){
+						        ti = (TextIter*) lpe->currentStep->o;
+						    } else {
+						        ti = createTextIter();
+						        lpe->currentStep->o = ti;
+						    }
+						    touch(ti,vn);
+						    //result = ti.getNext();
+						    
+						    while((result = getNext(ti))!=-1){
+								if (evalPredicates(lpe->currentStep,vn)){
+									break;
 								}
-							}else {
-								lpe->state = XPATH_EVAL_BACKWARD;
-								lpe->currentStep = lpe->currentStep->prevS;
-							}
-						}				    	        
+						    }						   
+						   
+			                if (result == -1) {
+			                    //currentStep.set_ft(true);
+			                    //currentStep.resetP(vn);
+			                    setAtTerminal(vn, FALSE);
+			                    if (lpe->state ==  XPATH_EVAL_FORWARD) {
+			                        lpe->state =  XPATH_EVAL_BACKWARD;
+									lpe->currentStep = getPrevStep(lpe->currentStep);
+			                    }
+			                } else {
+								setAtTerminal(lpe->currentStep, TRUE);
+			                    if (getNextStep(lpe->currentStep) != NULL) {
+			                        vn->LN = result;
+			                        lpe->state =  XPATH_EVAL_FORWARD;
+			                        lpe->currentStep = getNextStep(lpe->currentStep);
+			                    } else {
+			                        //vn.pop();
+			                        lpe->state =  XPATH_EVAL_TERMINAL;
+			                        if (isUnique_lpe(lpe,result)) {
+			                            vn->LN = result;
+			                            return result;
+			                        }
+			                    }
+			                }
+						}				
+    	        
 					}
 
 					break;
@@ -976,15 +1034,22 @@ forward:;
 							lpe->currentStep = lpe->currentStep->prevS;
 						}
 					}else {
-						resetP_s(lpe->currentStep,vn);
-						setAtTerminal(vn,FALSE);
-						if (lpe->currentStep->prevS == NULL)
-							lpe->state=  XPATH_EVAL_END;
-
+						TextIter* ti = (TextIter*) lpe->currentStep->o;
+					    while ((result= getNext(ti))!=-1) {
+							if (evalPredicates(lpe->currentStep,vn)) {
+					            if ( isUnique_lpe(lpe,result))
+									return result;
+					        }
+					    }					    
+						resetP_s(lpe->currentStep, vn);
+						setAtTerminal(vn, FALSE);
+						if (getPrevStep(lpe->currentStep) == NULL)
+							 lpe->state=  XPATH_EVAL_END;
 						else {
-							lpe->state=  XPATH_EVAL_BACKWARD;
-							lpe->currentStep = lpe->currentStep->prevS;
+							 lpe->state=  XPATH_EVAL_BACKWARD;
+							 lpe->currentStep = getPrevStep(lpe->currentStep);
 						}
+						///////////////////////////////
 					}
 					break;
 
@@ -1741,7 +1806,10 @@ void freeStep(Step *s){
 		}
 		freePredicate(tmp);
 	}
-	freeAutoPilot(s->o);
+	if (s->nt->testType == NT_TEXT){
+		freeTextIter(s->o);
+	}else 
+		freeAutoPilot(s->o);
 	freeNodeTest(s->nt);
 	free(s);	
 }
