@@ -46,7 +46,9 @@ int increment(TextIter *ti, int sp){
     int i=sp+1;
     while(i<vtdSize && 
     	ti->depth == getTokenDepth(ti->vn,i) && 
-		type == getTokenType(ti->vn,i)){
+		type == getTokenType(ti->vn,i)&&
+			(getTokenOffset(ti->vn,i-1)+ (int)((longAt(ti->vn->vtdBuffer, i-1) & MASK_TOKEN_FULL_LEN)>>32) 
+			        == getTokenOffset(ti->vn,i))){
 		i++;
     }      	
     return i;
@@ -89,6 +91,7 @@ int getNext(TextIter *ti){
 
     int vtdSize = ti->vn->vtdBuffer->size;
     switch (ti->depth) {
+		case -1: return -1;
         case 0 :
             // scan forward, if none found, jump to level 1 elements and scan backward until one is found
             // if there isn't a level-one element, jump to the end of vtd buffer and scan backward
@@ -110,13 +113,13 @@ int getNext(TextIter *ti){
                             }
                             sp++; // point to the first possible node  
                         }
-                        if (isText(ti,sp) == TRUE) {
+                        if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==0) {
                             ti->prevLocation = sp;
                             return sp;
                         }
                         sp++;
                     } else if (sp < temp1) {
-                        if (isText(ti,sp) == TRUE) {
+                        if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==0) {
                             ti->prevLocation = sp;
                             return sp;
                         }
@@ -124,17 +127,17 @@ int getNext(TextIter *ti){
                     } else {
                         if (sp == temp2) { // get to the end of the document and do a rewind
                             sp = ti->vn->vtdBuffer->size - 1;
-                            while (getTokenDepth(ti->vn,sp) == 0) {
+                            while (getTokenDepth(ti->vn,sp) <= 0 ) {
                                 sp--;
                             }
                             sp++;
                             //continue;
                         }
-                        if (isText(ti,sp) == TRUE ) {
+                        if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==0) {
                             ti->prevLocation = sp;
                             return sp;
                         }
-                        else if (getTokenDepth(ti->vn,sp)>1) {
+                        else if (getTokenDepth(ti->vn,sp)>1 ) {
                             break;
                         }
                         sp++;
@@ -146,7 +149,7 @@ int getNext(TextIter *ti){
             } else {
                 // no child element for root, just scan right forward
                 while (sp < vtdSize) {
-                    if (isText(ti,sp) == TRUE) {
+                    if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==0) {
                         ti->prevLocation = sp;
                         return sp;
                     }
@@ -163,7 +166,7 @@ int getNext(TextIter *ti){
                 if (ti->lcLower != -1) {
                     ti->lcUpper = l2Buffer->size - 1;
                     size = l1Buffer->size;
-                    for (i = ti->lcLower + 1; i < size ; i++) {
+                    for (i = ti->vn->l1index + 1; i < size ; i++) {
                         int temp = lower32At(l1Buffer, i);
                         if (temp != 0xffffffff) {
                             ti->lcUpper = temp - 1;
@@ -190,13 +193,13 @@ int getNext(TextIter *ti){
                             sp++;
                             //continue;
                         }
-                        if (isText(ti,sp) == TRUE) {
+                        if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==1) {
                             ti->prevLocation = sp;
                             return sp;
                         }
                         sp++;
                     } else if (sp < temp1) {
-                        if (isText(ti,sp) == TRUE) {
+                        if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==1) {
                             ti->prevLocation = sp;
                             return sp;
                         }
@@ -208,7 +211,8 @@ int getNext(TextIter *ti){
                         	//System.out.println("depth ->"+nr->vn->getTokenDepth(sp));
                             ti->prevLocation = sp;
                             return sp;
-                        } else if (getTokenDepth(ti->vn,sp) <2) {
+                        } else if ((getTokenType(ti->vn,sp)== TOKEN_STARTING_TAG
+                                && getTokenDepth(ti->vn,sp) < 2 ) || getTokenDepth(ti->vn,sp)<1) {
                             break;
                         }
                         sp++;
@@ -243,7 +247,7 @@ int getNext(TextIter *ti){
                 if (ti->lcLower != -1) {
                     ti->lcUpper = l3Buffer->size - 1;
                     size = l2Buffer->size;
-                    for (i = ti->lcLower + 1; i < size ; i++) {
+                    for (i = ti->vn->l2index + 1; i < size ; i++) {
                         int temp = lower32At(l2Buffer,i);
                         if (temp != 0xffffffff) {
                             ti->lcUpper = temp - 1;
@@ -271,13 +275,13 @@ int getNext(TextIter *ti){
                             sp++;
                             //continue;
                         }
-                        if (isText(ti,sp) == TRUE) {
+                        if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==2) {
                             ti->prevLocation = sp;
                             return sp;
                         }
                         sp++;
                     } else if (sp < temp1) {
-                        if (isText(ti,sp) == TRUE) {
+                        if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==2) {
                             ti->prevLocation = sp;
                             return sp;
                         }
@@ -288,7 +292,8 @@ int getNext(TextIter *ti){
                         if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 2) {
                             ti->prevLocation = sp;
                             return sp;
-                        } else if (getTokenDepth(ti->vn,sp) < 3) {
+                        } else if ((getTokenType(ti->vn,sp)== TOKEN_STARTING_TAG
+                                && getTokenDepth(ti->vn,sp) < 3 ) || getTokenDepth(ti->vn,sp)<2) {
                             break;
                         }
                         sp++;
