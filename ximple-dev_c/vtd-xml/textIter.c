@@ -72,7 +72,10 @@ void touch(TextIter *ti, VTDNav *v){
 	}*/     
 
 	 ti->depth = v->context[0];
-     ti->index = (ti->depth != 0) ? v->context[0] : v->rootIndex;
+	 if (ti->depth == -1)
+		 ti->index = 0;
+	 else 
+         ti->index = (ti->depth != 0) ? v->context[ti->depth] : v->rootIndex;
 
      ti->vn = v;
      ti->prevLocation = -1;
