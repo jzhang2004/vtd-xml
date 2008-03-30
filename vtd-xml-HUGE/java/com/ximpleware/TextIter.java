@@ -152,7 +152,7 @@ public int getNext() {
                                 sp--;
                             }
                             sp++;
-                            //continue;
+                            //continue; 
                         }
                         if (isText(sp) == true && vn.getTokenDepth(sp)==1 ) {
                             prevLocation = sp;
@@ -172,7 +172,8 @@ public int getNext() {
                         	//System.out.println("depth ->"+vn.getTokenDepth(sp));
                             prevLocation = sp;
                             return sp;
-                        } else if (vn.getTokenDepth(sp) <2) {
+                        } else if ((vn.getTokenType(sp)==VTDNav.TOKEN_STARTING_TAG
+                                && vn.getTokenDepth(sp) < 2 ) || vn.getTokenDepth(sp)<1) {
                             break;
                         }
                         sp++;
@@ -253,7 +254,8 @@ public int getNext() {
                         if (isText(sp) == true && vn.getTokenDepth(sp) == 2) {
                             prevLocation = sp;
                             return sp;
-                        } else if (vn.getTokenDepth(sp) < 3) {
+                        } else if ((vn.getTokenType(sp)==VTDNav.TOKEN_STARTING_TAG
+                                && vn.getTokenDepth(sp) < 3 ) || vn.getTokenDepth(sp)<2) {
                             break;
                         }
                         sp++;
