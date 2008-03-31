@@ -212,9 +212,8 @@ int getNext(TextIter *ti){
                     } else {
                         //if (sp == temp2) { // last child element
                         //} else
-						if (sp>=vtdSize)
-							return -1;
-                        else if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 1){
+						
+                        if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 1){
                         	//System.out.println("depth ->"+nr->vn->getTokenDepth(sp));
                             ti->prevLocation = sp;
                             return sp;
@@ -298,9 +297,7 @@ int getNext(TextIter *ti){
                     } else {
                         //if (sp == temp2) { // last child element
                         //} else 
-						if (sp>=vtdSize)
-							return -1;
-                        else if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 2) {
+						if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 2) {
                             ti->prevLocation = sp;
                             return sp;
                         } else if ((getTokenType(ti->vn,sp)== TOKEN_STARTING_TAG
