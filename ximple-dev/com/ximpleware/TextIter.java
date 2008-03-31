@@ -94,7 +94,9 @@ public int getNext() {
                             sp++;
                             //continue;
                         }
-                        if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
+                        if (sp>=vtdSize)
+                            return -1;
+                        else if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
                             prevLocation = sp;
                             return sp;
                         }
@@ -167,8 +169,10 @@ public int getNext() {
                         sp++;
                     } else {
                         //if (sp == temp2) { // last child element
-                        //} else 
-                        if (isText(sp) == true && vn.getTokenDepth(sp) == 1){
+                        //} else
+                        if ( sp < vtdSize)
+                            return -1;
+                        else if (isText(sp) == true && vn.getTokenDepth(sp) == 1){
                         	//System.out.println("depth ->"+vn.getTokenDepth(sp));
                             prevLocation = sp;
                             return sp;
@@ -182,6 +186,7 @@ public int getNext() {
                 //prevLocation = vtdSize-1;
                 return -1;
             } else { // no child element
+                if (sp>=vtdSize) return -1;
                 int d = vn.getTokenDepth(sp);
                 int type = vn.getTokenType(sp);
                 while (sp < vtdSize
@@ -250,8 +255,10 @@ public int getNext() {
                         sp++;
                     } else {
                         //if (sp == temp2) { // last child element
-                        //} else 
-                        if (isText(sp) == true && vn.getTokenDepth(sp) == 2) {
+                        //} else
+                        if (sp >= vtdSize)
+                            return -1;
+                        else if ( isText(sp) == true && vn.getTokenDepth(sp) == 2) {
                             prevLocation = sp;
                             return sp;
                         } else if ((vn.getTokenType(sp)==VTDNav.TOKEN_STARTING_TAG
@@ -264,6 +271,7 @@ public int getNext() {
                 //prevLocation = vtdSize-1;
                 return -1;
             } else { // no child elements
+                if (sp>=vtdSize) return -1;
                 int d = vn.getTokenDepth(sp);
                 int type = vn.getTokenType(sp);
                 while (sp < vtdSize
@@ -286,6 +294,7 @@ public int getNext() {
         default :
             //int curDepth = vn.context[0];
             sp = (prevLocation != -1) ? increment(prevLocation): index + 1;
+            if (sp>=vtdSize) return -1;
             int d = vn.getTokenDepth(sp);
             int type = vn.getTokenType(sp);
             while (sp < vtdSize
