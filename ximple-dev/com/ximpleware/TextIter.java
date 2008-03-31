@@ -170,9 +170,8 @@ public int getNext() {
                     } else {
                         //if (sp == temp2) { // last child element
                         //} else
-                        if ( sp >= vtdSize)
-                            return -1;
-                        else if (isText(sp) == true && vn.getTokenDepth(sp) == 1){
+                        
+                        if (isText(sp) == true && vn.getTokenDepth(sp) == 1){
                         	//System.out.println("depth ->"+vn.getTokenDepth(sp));
                             prevLocation = sp;
                             return sp;
@@ -255,10 +254,8 @@ public int getNext() {
                         sp++;
                     } else {
                         //if (sp == temp2) { // last child element
-                        //} else
-                        if (sp >= vtdSize)
-                            return -1;
-                        else if ( isText(sp) == true && vn.getTokenDepth(sp) == 2) {
+                        //} else                 
+                        if ( isText(sp) == true && vn.getTokenDepth(sp) == 2) {
                             prevLocation = sp;
                             return sp;
                         } else if ((vn.getTokenType(sp)==VTDNav.TOKEN_STARTING_TAG
@@ -306,8 +303,7 @@ public int getNext() {
                 }
                 sp++;
                 d = vn.getTokenDepth(sp);
-                type = vn.getTokenType(sp);
-                
+                type = vn.getTokenType(sp);                
             }
     }
     //prevLocation = vtdSize-1;
