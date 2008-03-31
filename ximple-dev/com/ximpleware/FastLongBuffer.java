@@ -183,7 +183,7 @@ public void append(long[] long_array) {
  * Append an integer to the end of this array buffer
  * @param i long
  */
-public void append(long i) {
+public final void append(long i) {
    long[] lastBuffer;
    int lastBufferIndex;
     if (bufferArrayList.size() == 0) {
@@ -312,7 +312,7 @@ public final long longAt(int index) {
  * @return int
  * @param index int
  */
- public int lower32At(int index) {
+ public final int lower32At(int index) {
     if (index < 0 || index > size()) {
         throw new IndexOutOfBoundsException();
     }
@@ -326,7 +326,7 @@ public final long longAt(int index) {
  * @param index int
  * @param newValue long
  */
-public void modifyEntry(int index, long newValue) {
+public final void modifyEntry(int index, long newValue) {
 
     if (index < 0 || index > size + 1) {
         throw new IndexOutOfBoundsException();
@@ -339,7 +339,7 @@ public void modifyEntry(int index, long newValue) {
  * Get the total number of longs in the buffer.
  * @return int
  */
-public int size() {
+public final int size() {
 	return size;
 }
 /**
@@ -391,7 +391,7 @@ public int upper32At(int index) {
   * any unnecessary and additional allocation
   *
   */
- public void clear(){
+ public final void clear(){
  	size = 0;
  }
 }

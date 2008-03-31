@@ -77,7 +77,7 @@ public class FastIntBuffer implements IIntBuffer {
  * Append an int array to the end of this buffer instance
  * @param int_array int[]
  */
-public void append(int[] int_array) {
+public final void append(int[] int_array) {
     if (int_array == null) {
         throw new NullPointerException();
     }
@@ -175,7 +175,7 @@ public void append(int[] int_array) {
  * Append a single int to the end of this buffer Instance
  * @param i int
  */
-public void append(int i) {
+public final void append(int i) {
 
     int[] lastBuffer;
     int lastBufferIndex;
@@ -210,7 +210,7 @@ public void append(int i) {
  * Returns the total allocated capacity of this buffer instance.
  * @return int
  */
-public int getCapacity() {
+public final int getCapacity() {
     return capacity;
 }
 /**
@@ -287,7 +287,7 @@ public int[] getIntArray(int startingOffset, int len) {
  * Creation date: (7/17/03 6:38:02 PM)
  * @return int
  */
-public int getPageSize() {
+public final int getPageSize() {
 	return pageSize;
 }
 /**
@@ -295,7 +295,7 @@ public int getPageSize() {
  * @return int
  * @param index int
  */
-public int intAt(int index) {
+public final int intAt(int index) {
     if (index < 0 || index > size()-1) {
         throw new IndexOutOfBoundsException();
     }
@@ -311,7 +311,7 @@ public int intAt(int index) {
  * @param index int
  * @param newValue int
  */
-public void modifyEntry(int index, int newValue) {
+public final void modifyEntry(int index, int newValue) {
 	
         if (index < 0 || index > size - 1) {
             throw new IndexOutOfBoundsException();
@@ -326,7 +326,7 @@ public void modifyEntry(int index, int newValue) {
  * Returns the total number of int values in the buffer instance
  * @return int
  */
-public int size() {
+public final int size() {
 	return size;
 }
 /**
