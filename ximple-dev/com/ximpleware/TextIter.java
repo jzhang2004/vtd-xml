@@ -170,7 +170,7 @@ public int getNext() {
                     } else {
                         //if (sp == temp2) { // last child element
                         //} else
-                        if ( sp < vtdSize)
+                        if ( sp >= vtdSize)
                             return -1;
                         else if (isText(sp) == true && vn.getTokenDepth(sp) == 1){
                         	//System.out.println("depth ->"+vn.getTokenDepth(sp));
