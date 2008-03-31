@@ -298,8 +298,8 @@ public int getPageSize() {
  * @return long
  * @param index int
  */
-public long longAt(int index) {
-    /*if (index < 0 || index > size()) {
+public final long longAt(int index) {
+    /*if (index < 0 || index >= size()) {
         throw new IndexOutOfBoundsException();
     }*/
     int pageNum = (index >> exp);
