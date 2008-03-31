@@ -294,9 +294,9 @@ namespace com.ximpleware
 		/// </param>
 		public long longAt(int index)
 		{
-			/*if (index < 0 || index > size()) {
-			throw new IndexOutOfBoundsException();
-			}*/
+			if (index < 0 || index > size()) {
+			throw new ArgumentException("index out of bound");
+			}
 			int pageNum = (index >> exp);
 			// int offset = index % r;
 			int offset = index & r;
