@@ -324,53 +324,86 @@ namespace com.ximpleware
 					}
 					else
 					{
-						if (vn.AtTerminal == true)
-						{
-							state = END;
-						}
-						else
-						{
-							result = vn.getText();
-							if (result != - 1)
-							{
-								vn.AtTerminal = true;
-                                vn.LN = result;
-                                t = currentStep.p;
-                                while (t != null)
+                        if (vn.AtTerminal == true)
+                        {
+                            state = END;
+                        }
+                        else
+                        {
+                            // compute context size;
+                            t = currentStep.p;
+                            while (t != null)
+                            {
+                                if (t.requireContextSize())
                                 {
-                                    if (t.requireContextSize())
+                                    int i = computeContextSize(t, vn);
+                                    if (i == 0)
                                     {
-                                        t.ContextSize= 1; // assuming only one text node per
-                                    }
-                                    t = t.nextP;
-                                }
-                                state = END;
-                                if (currentStep.evalPredicates(vn))
-                                {
-                                    if (currentStep.NextStep != null)
-                                    {
-                                        vn.LN = result;
-                                        state = FORWARD;
-                                        currentStep = currentStep.NextStep;
+                                        b1 = true;
+                                        break;
                                     }
                                     else
+                                        t.ContextSize=i;
+                                }
+                                t = t.nextP;
+                            }
+                            // b1 false indicate context size is zero. no need to go any further...
+                            if (b1)
+                            {
+                                state = END;
+                                break;
+                            }
+                            // get textIter
+                            TextIter ti = null;
+                            if (currentStep.o != null)
+                            {
+                                ti = (TextIter)currentStep.o;
+                            }
+                            else
+                            {
+                                ti = new TextIter();
+                                currentStep.o = ti;
+                            }
+                            ti.touch(vn);
+                            state = END;
+                            while ((result = ti.getNext()) != -1)
+                            {
+                                if (currentStep.evalPredicates(vn))
+                                {
+                                    break;
+                                }
+                            }
+                            // old code
+                            //result = vn.getText();
+                            if (result != -1)
+                            {
+                                vn.AtTerminal=true;
+                                //currentStep.resetP(vn);
+                                vn.LN = result;
+                                if (currentStep.NextStep != null)
+                                {
+                                    vn.LN = result;
+                                    state = FORWARD;
+                                    currentStep = currentStep.NextStep;
+                                }
+                                else
+                                {
+                                    //vn.pop();
+                                    state = TERMINAL;
+                                    if (isUnique(result))
                                     {
-                                        state = TERMINAL;
-                                        //result = vn.getText();
-                                        if (isUnique(result))
-                                        {
-                                            //vn.setAtTerminal(true);
-                                            vn.LN = result;
-                                            return result;
-                                        }
+                                        vn.LN = result;
+                                        return result;
                                     }
                                 }
-							}
-							else
-							{
-								state = END;
-							}
-						}
+                            }
+                            else
+                            {
+                                //currentStep.set_ft(true);
+                                currentStep.resetP(vn);
+                                vn.AtTerminal=false;
+                            }
+                        }		    
 					}
 					break;
 				
@@ -446,53 +479,91 @@ forward_brk: ;
 					}
 					else
 					{
-						// predicate at an attribute is not evaled
-						if (vn.AtTerminal == true)
-						{
-							state = BACKWARD;
-							currentStep = currentStep.PrevStep;
-						}
-						else
-						{
-							result = vn.getText();
-							if (result != - 1)
-							{
-								vn.AtTerminal = true;
-                                vn.LN = result;
-								t = currentStep.p;
-				    	        while(t!=null){
-				    	            if (t.requireContextSize()){
-				    	               t.ContextSize = 1; // assuming only one text node per
-				    	            }
-				    	            t = t.nextP;
-				    	        }
-				    	        state = END;
-                                if (currentStep.evalPredicates(vn))
+                        // predicate at an attribute is not evaled
+                        if (vn.AtTerminal == true)
+                        {
+                            state = BACKWARD;
+                            currentStep = currentStep.PrevStep;
+                        }
+                        else
+                        {
+                            // compute context size;
+                            t = currentStep.p;
+                            while (t != null)
+                            {
+                                if (t.requireContextSize())
                                 {
-                                    if (currentStep.NextStep != null)
+                                    int i = computeContextSize(t, vn);
+                                    if (i == 0)
                                     {
-                                        vn.LN = result;
-                                        state = FORWARD;
-                                        currentStep = currentStep.NextStep;
+                                        b1 = true;
+                                        break;
                                     }
                                     else
+                                        t.ContextSize=i;
+                                }
+                                t = t.nextP;
+                            }
+                            // b1 false indicate context size is zero. no need to go any further...
+                            if (b1)
+                            {
+                                state = BACKWARD;
+                                break;
+                            }
+                            // get textIter
+                            TextIter ti = null;
+                            if (currentStep.o != null)
+                            {
+                                ti = (TextIter)currentStep.o;
+                            }
+                            else
+                            {
+                                ti = new TextIter();
+                                currentStep.o = ti;
+                            }
+                            ti.touch(vn);
+                            //result = ti.getNext();
+
+                            while ((result = ti.getNext()) != -1)
+                            {
+                                if (currentStep.evalPredicates(vn))
+                                {
+                                    break;
+                                }
+                            }
+
+                            if (result == -1)
+                            {
+                                //currentStep.set_ft(true);
+                                //currentStep.resetP(vn);
+                                vn.AtTerminal=false;
+                                if (state == FORWARD)
+                                {
+                                    state = BACKWARD;
+                                    currentStep = currentStep.PrevStep;
+                                }
+                            }
+                            else
+                            {
+                                vn.AtTerminal=true;
+                                if (currentStep.NextStep != null)
+                                {
+                                    vn.LN = result;
+                                    state = FORWARD;
+                                    currentStep = currentStep.NextStep;
+                                }
+                                else
+                                {
+                                    //vn.pop();
+                                    state = TERMINAL;
+                                    if (isUnique(result))
                                     {
-                                        state = TERMINAL;
-                                        //result = vn.getText();
-                                        if (isUnique(result))
-                                        {
-                                            vn.LN = result;
-                                            return result;
-                                        }
+                                        vn.LN = result;
+                                        return result;
                                     }
                                 }
-							}
-							else
-							{
-								state = BACKWARD;
-								currentStep = currentStep.PrevStep;
-							}
-						}
+                            }
+                        }				
 					}
 					
 					break;
@@ -574,15 +645,24 @@ forward_brk: ;
 					}
 					else
 					{
-						currentStep.resetP(vn);
-						vn.AtTerminal = false;
-						if (currentStep.PrevStep == null)
-							state = END;
-						else
-						{
-							state = BACKWARD;
-							currentStep = currentStep.PrevStep;
-						}
+                        TextIter ti = (TextIter)currentStep.o;
+                        while ((result = ti.getNext()) != -1)
+                        {
+                            if (currentStep.evalPredicates(vn))
+                            {
+                                if (isUnique(result))
+                                    return result;
+                            }
+                        }
+                        currentStep.resetP(vn);
+                        vn.AtTerminal=false;
+                        if (currentStep.PrevStep == null)
+                            state = END;
+                        else
+                        {
+                            state = BACKWARD;
+                            currentStep = currentStep.PrevStep;
+                        }
 					}
 					break;
 				
@@ -2096,201 +2176,176 @@ forward_brk: ;
 			return false;
 		}
 		
-		public int computeContextSize(Predicate p, VTDNav vn)
-		{
-			
-			bool b = false;
-			//Predicate tp = null;
-			int i = 0;
-			AutoPilot ap;
-			switch (currentStep.axis_type)
-			{
-				
-				case AxisType.CHILD: 
-					b = vn.toElement(VTDNav.FIRST_CHILD);
-					if (b)
-					{
-						do 
-						{
-							if (currentStep.eval(vn, p))
-							{
-								i++;
-							}
-						}
-						while (vn.toElement(VTDNav.NS));
-						vn.toElement(VTDNav.PARENT);
-						currentStep.resetP(vn, p);
-						return i;
-					}
-					else
-						return 0;
-					//goto case AxisType.DESCENDANT_OR_SELF;
-				
-				
-				case AxisType.DESCENDANT_OR_SELF: 
-				case AxisType.DESCENDANT: 
-				case AxisType.PRECEDING: 
-				case AxisType.FOLLOWING: 
-					
-					System.String helper = null;
+		public int computeContextSize(Predicate p, VTDNav vn){
+	    
+	    bool b = false;
+	    Predicate tp = null;
+	    int i = 0;
+	    AutoPilot ap;
+	    switch(currentStep.axis_type){
+	    	case AxisType.CHILD:
+	    	    if (currentStep.nt.testType != NodeTest.TEXT){
+	    	    b = vn.toElement(VTDNav.FIRST_CHILD);
+	    		if (b) {
+	    		    do {
+	    		        if (currentStep.eval(vn, p)) {
+                        	i++;
+	    		        }
+	    		    } while (vn.toElement(VTDNav.NS));	    		    
+	    		    vn.toElement(VTDNav.PARENT);
+	    		    currentStep.resetP(vn,p);
+	    		    return i;
+	    		} else
+	    		    return 0;
+	    	    }else {	    
+	    	        TextIter ti = new TextIter();
+	    	        ti.touch(vn);
+	    	        while((ti.getNext())!=-1){
+	    	            if (currentStep.evalPredicates(vn,p)){
+	    	                i++;
+	    	            }
+	    	        }
+	    	        currentStep.resetP(vn,p);
+	    	        return i;
+	    	    }
+	    		   
+			case AxisType.DESCENDANT_OR_SELF:
+			case AxisType.DESCENDANT:
+			case AxisType.PRECEDING:								
+			case AxisType.FOLLOWING:
+			    
+			    String helper = null;
+				if (currentStep.nt.testType == NodeTest.NODE){
+				    helper = "*";
+				}else {
+				    helper = currentStep.nt.nodeName;
+				}
+				ap = new AutoPilot(vn);
+				if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF )
 					if (currentStep.nt.testType == NodeTest.NODE)
-					{
-						helper = "*";
-					}
+                        ap.Special = true;
 					else
-					{
-						helper = currentStep.nt.nodeName;
-					}
-					ap = new AutoPilot(vn);
-					if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF)
-						if (currentStep.nt.testType == NodeTest.NODE)
-							ap.Special = true;
-						else
-							ap.Special = false;
-					//currentStep.o = ap = new AutoPilot(vn);
-					if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF)
-						if (currentStep.nt.localName != null)
-							ap.selectElementNS(currentStep.nt.URL, currentStep.nt.localName);
-						else
-							ap.selectElement(helper);
-					else if (currentStep.axis_type == AxisType.DESCENDANT)
-						if (currentStep.nt.localName != null)
-							ap.selectElementNS_D(currentStep.nt.URL, currentStep.nt.localName);
-						else
-							ap.selectElement_D(helper);
-					else if (currentStep.axis_type == AxisType.PRECEDING)
-						if (currentStep.nt.localName != null)
-							ap.selectElementNS_P(currentStep.nt.URL, currentStep.nt.localName);
-						else
-							ap.selectElement_P(helper);
-					else if (currentStep.nt.localName != null)
-						ap.selectElementNS_F(currentStep.nt.URL, currentStep.nt.localName);
-					else
-						ap.selectElement_F(helper);
-					vn.push2();
-					while (ap.iterate())
-					{
-						if (currentStep.evalPredicates(vn, p))
-						{
-							i++;
-						}
-					}
-					vn.pop2();
-					currentStep.resetP(vn, p);
-					return i;
+						ap.Special = false;
+				//currentStep.o = ap = new AutoPilot(vn);
+			    if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF)
+			        if (currentStep.nt.localName!=null)
+			            ap.selectElementNS(currentStep.nt.URL,currentStep.nt.localName);
+			        else 
+			            ap.selectElement(helper);
+				else if (currentStep.axis_type == AxisType.DESCENDANT)
+				    if (currentStep.nt.localName!=null)
+				        ap.selectElementNS_D(currentStep.nt.URL,currentStep.nt.localName);
+				    else 
+				        ap.selectElement_D(helper);
+				else if (currentStep.axis_type == AxisType.PRECEDING)
+				    if (currentStep.nt.localName!=null)
+				        ap.selectElementNS_P(currentStep.nt.URL,currentStep.nt.localName);
+				    else 
+				        ap.selectElement_P(helper);
+				else 
+				    if (currentStep.nt.localName!=null)
+				        ap.selectElementNS_F(currentStep.nt.URL,currentStep.nt.localName);
+				    else 
+				        ap.selectElement_F(helper);
+			    vn.push2();
+    			while(ap.iterate()){
+    				if (currentStep.evalPredicates(vn,p)){
+    					i++;
+    				}
+    			}
+    			vn.pop2();
+    			currentStep.resetP(vn,p);
+    			return i;
+			  
+			case AxisType.PARENT:
+			    vn.push2();
+				i = 0;
+				if (vn.toElement(VTDNav.PARENT)){
+				    if (currentStep.eval(vn,p)){
+				        i++;
+				    }
+				}			    
+				vn.pop2();
+				currentStep.resetP(vn,p);
+				return i;
 				
+			case AxisType.ANCESTOR:
+			    vn.push2();
+				i = 0;
+				while (vn.toElement(VTDNav.PARENT)) {
+				    if (currentStep.eval(vn, p)) {
+                    	i++;
+    		        }
+				}				
+				vn.pop2();
+				currentStep.resetP(vn,p);
+				return i;
 				
-				case AxisType.PARENT: 
-					vn.push2();
-					i = 0;
-					if (vn.toElement(VTDNav.PARENT))
-					{
-						if (currentStep.eval(vn, p))
-						{
-							i++;
-						}
-					}
-					vn.pop2();
-					currentStep.resetP(vn, p);
-					return i;
+			case AxisType.ANCESTOR_OR_SELF:
+			    vn.push2();
+				i = 0;
+				do {
+				    if (currentStep.eval(vn, p)) {
+                    	i++;
+    		        }
+				}while(vn.toElement(VTDNav.PARENT));
+				vn.pop2();
+				currentStep.resetP(vn,p);
+				return i;
 				
+			case AxisType.SELF:
+			    i = 0;
+				if (vn.toElement(VTDNav.PARENT)){
+				    if (currentStep.eval(vn,p)){
+				        i++;
+				    }
+				}			    
+				currentStep.resetP(vn,p);
+				return i;
+			    
+			case AxisType.FOLLOWING_SIBLING:
+			    vn.push2();
+				while(vn.toElement(VTDNav.NEXT_SIBLING)){
+				    if (currentStep.eval(vn,p)){
+				        i++;
+				    }
+				}			    
+			    vn.pop2();
+				currentStep.resetP(vn,p);
+				return i;
+			    
+			case AxisType.PRECEDING_SIBLING:
+			    vn.push2();
+				while(vn.toElement(VTDNav.PREV_SIBLING)){
+				    if (currentStep.eval(vn,p)){
+				        i++;
+				    }
+				}			    
+				vn.pop2();
+				currentStep.resetP(vn,p);
+				return i;
 				
-				case AxisType.ANCESTOR: 
-					vn.push2();
-					i = 0;
-					while (vn.toElement(VTDNav.PARENT))
-					{
-						if (currentStep.eval(vn, p))
-						{
-							i++;
-						}
-					}
-					vn.pop2();
-					currentStep.resetP(vn, p);
-					return i;
-				
-				
-				case AxisType.ANCESTOR_OR_SELF: 
-					vn.push2();
-					i = 0;
-					do 
-					{
-						if (currentStep.eval(vn, p))
-						{
-							i++;
-						}
-					}
-					while (vn.toElement(VTDNav.PARENT));
-					vn.pop2();
-					currentStep.resetP(vn, p);
-					return i;
-				
-				
-				case AxisType.SELF: 
-					i = 0;
-					if (vn.toElement(VTDNav.PARENT))
-					{
-						if (currentStep.eval(vn, p))
-						{
-							i++;
-						}
-					}
-					currentStep.resetP(vn, p);
-					return i;
-				
-				
-				case AxisType.FOLLOWING_SIBLING: 
-					vn.push2();
-					while (vn.toElement(VTDNav.NEXT_SIBLING))
-					{
-						if (currentStep.evalPredicates(vn, p))
-						{
-							i++;
-						}
-					}
-					vn.pop2();
-					currentStep.resetP(vn, p);
-					return i;
-				
-				
-				case AxisType.PRECEDING_SIBLING: 
-					vn.push2();
-					while (vn.toElement(VTDNav.PREV_SIBLING))
-					{
-						if (currentStep.eval(vn, p))
-						{
-							i++;
-						}
-					}
-					vn.pop2();
-					currentStep.resetP(vn, p);
-					return i;
-				
-				
-				case AxisType.ATTRIBUTE: 
-					ap = new AutoPilot(vn);
-					if (currentStep.nt.localName != null)
-						ap.selectAttrNS(currentStep.nt.URL, currentStep.nt.localName);
-					else
-						ap.selectAttr(currentStep.nt.nodeName);
-					i = 0;
-					while (ap.iterateAttr() != - 1)
-					{
-						if (currentStep.eval(vn, p))
-						{
-							i++;
-						}
-					}
-                    currentStep.resetP(vn, p);
-					return i;
-				
-				
-				default: 
-					throw new XPathEvalException("axis not supported");
-				
-			}
-			//return 8;
-		}
+			case AxisType.ATTRIBUTE:
+			    ap = new AutoPilot(vn);
+				if (currentStep.nt.localName!=null)
+				    ap.selectAttrNS(currentStep.nt.URL,
+			            currentStep.nt.localName);
+				else 
+				    ap.selectAttr(currentStep.nt.nodeName);
+				i = 0;
+				while(ap.iterateAttr()!=-1){
+				    if (currentStep.evalPredicates(vn,p)){
+				        i++;
+				    }
+				}
+          		currentStep.resetP(vn,p);
+				return i;
+			    
+	    	default:
+	    	    throw new XPathEvalException("axis not supported");
+	    }
+	    //return 8;
+	}
         public override int adjust(int n)
         {
             int i;
