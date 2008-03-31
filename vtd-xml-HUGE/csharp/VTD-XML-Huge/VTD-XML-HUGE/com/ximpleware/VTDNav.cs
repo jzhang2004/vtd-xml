@@ -1045,7 +1045,7 @@ namespace com.ximpleware
             int type = getTokenType(index);
             int depth;
             //int val;
-            int len = 0, j;
+            int len = 0, j,temp;
             long l;
 
             switch (type)
@@ -1075,9 +1075,11 @@ namespace com.ximpleware
                     {
                         len = len + (int)((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 37);
                         //len = len + (swap_bytes((int)vtdBuffer.longAt(index)) & 0xfffff);
+                        temp = getTokenOffset(index) + (int)((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
                         index++;
                     }
-                    while (index < vtdSize && depth == getTokenDepth(index) && type == getTokenType(index));
+                    while (index < vtdSize && depth == getTokenDepth(index) && type == getTokenType(index) 
+                        && temp == getTokenOffset(index));
                     //if (int k=0)
                     return len;
 
