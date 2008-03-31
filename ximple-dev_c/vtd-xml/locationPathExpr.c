@@ -853,7 +853,7 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 								}								
 							} else{
 								//currentStep.set_ft(true);
-								reset_p(lpe->currentStep,vn);
+								resetP_s(lpe->currentStep,vn);
 								setAtTerminal(vn, FALSE);
 							}
 						}						        
