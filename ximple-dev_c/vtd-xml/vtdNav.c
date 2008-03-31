@@ -786,7 +786,7 @@ int getTokenLength(VTDNav *vn, int index){
 	int j=0;
 	int depth;
 	int len = 0;
-	int type = getTokenType(vn,index);
+	int type = getTokenType(vn,index), temp=0;
 	//int val;
 	switch (type) {
 			case TOKEN_ATTR_NAME :
@@ -812,11 +812,12 @@ int getTokenLength(VTDNav *vn, int index){
 					len = len +  (int)
 						((longAt(vn->vtdBuffer, index) 
 						& MASK_TOKEN_FULL_LEN) >> 32);
-
+					temp =  getTokenOffset(vn, index)+(int)
+						((longAt(vn->vtdBuffer,index)& MASK_TOKEN_FULL_LEN) >> 32);
 					index++;						
 				}
 				while(index < vn->vtdSize && depth == getTokenDepth(vn,index) 
-					&& type == getTokenType(vn,index));
+					&& type == getTokenType(vn,index) && temp == getTokenOffset(vn,index));
 				//if (int k=0)
 				return len;
 			default :
