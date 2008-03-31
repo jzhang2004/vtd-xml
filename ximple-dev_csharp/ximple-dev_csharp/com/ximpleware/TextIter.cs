@@ -99,7 +99,9 @@ namespace com.ximpleware
                                     sp++;
                                     //continue;
                                 }
-                                if (isText(sp) == true && vn.getTokenDepth(sp) == 0)
+                                if (sp >= vtdSize)
+                                    return -1;
+                                else if (isText(sp) == true && vn.getTokenDepth(sp) == 0)
                                 {
                                     prevLocation = sp;
                                     return sp;
@@ -196,13 +198,15 @@ namespace com.ximpleware
                             {
                                 //if (sp == temp2) { // last child element
                                 //} else 
+                                
                                 if (isText(sp) == true && vn.getTokenDepth(sp) == 1)
                                 {
                                     //System.out.println("depth ->"+vn.getTokenDepth(sp));
                                     prevLocation = sp;
                                     return sp;
                                 }
-                                else if (vn.getTokenDepth(sp) < 2)
+                                else if ((vn.getTokenType(sp) == VTDNav.TOKEN_STARTING_TAG
+                                && vn.getTokenDepth(sp) < 2) || vn.getTokenDepth(sp) < 1)
                                 {
                                     break;
                                 }
@@ -214,6 +218,7 @@ namespace com.ximpleware
                     }
                     else
                     { // no child element
+                        if (sp >= vtdSize) return -1;
                         d = vn.getTokenDepth(sp);
                         type = vn.getTokenType(sp);
                         while (sp < vtdSize
@@ -307,7 +312,8 @@ namespace com.ximpleware
                                     prevLocation = sp;
                                     return sp;
                                 }
-                                else if (vn.getTokenDepth(sp) < 3)
+                                else if ((vn.getTokenType(sp) == VTDNav.TOKEN_STARTING_TAG
+                                && vn.getTokenDepth(sp) < 3) || vn.getTokenDepth(sp) < 2)
                                 {
                                     break;
                                 }
@@ -319,6 +325,7 @@ namespace com.ximpleware
                     }
                     else
                     { // no child elements
+                        if (sp >= vtdSize) return -1;
                         d = vn.getTokenDepth(sp);
                         type = vn.getTokenType(sp);
                         while (sp < vtdSize
@@ -342,7 +349,9 @@ namespace com.ximpleware
 
                 default:
                     //int curDepth = vn.context[0];
+                    
                     sp = (prevLocation != -1) ? increment(prevLocation) : index + 1;
+                    if (sp >= vtdSize) return -1;
                     d = vn.getTokenDepth(sp);
                     type = vn.getTokenType(sp);
                     while (sp < vtdSize
