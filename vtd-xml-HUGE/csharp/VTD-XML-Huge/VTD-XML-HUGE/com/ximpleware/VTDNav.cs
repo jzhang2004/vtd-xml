@@ -687,7 +687,7 @@ namespace com.ximpleware
 
 
         // masks for obtaining various fields from a VTD token 
-        private const long MASK_TOKEN_FULL_LEN = 0x003fffe000000000L;
+        protected internal const long MASK_TOKEN_FULL_LEN = 0x003fffe000000000L;
         private const long MASK_TOKEN_PRE_LEN = 0x003f800000000000L;
         private const long MASK_TOKEN_QN_LEN = 0x00007fe000000000L;
         internal long MASK_TOKEN_OFFSET = 0x0000001fffffffffL;
@@ -1045,8 +1045,8 @@ namespace com.ximpleware
             int type = getTokenType(index);
             int depth;
             //int val;
-            int len = 0, j,temp;
-            long l;
+            int len = 0, j;
+            long l,temp;
 
             switch (type)
             {
