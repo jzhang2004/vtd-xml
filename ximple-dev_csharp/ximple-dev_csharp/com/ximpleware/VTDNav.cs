@@ -1290,6 +1290,48 @@ namespace com.ximpleware
                 return i;
             return -1;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public int getOffsetAfterHead()
+        {
+
+            int i = getCurrentIndex();
+            if (getTokenType(i) != VTDNav.TOKEN_STARTING_TAG)
+            {
+                return -1;
+            }
+            int j = i + 1;
+            while (j < vtdSize && (getTokenType(j) == VTDNav.TOKEN_ATTR_NAME
+                    || getTokenType(j) == VTDNav.TOKEN_ATTR_NS))
+            {
+                j += 2;
+            }
+
+            int enc = encoding;
+            int offset; // this is character offset
+            if (i + 1 == j)
+            {
+                offset = getTokenOffset(i) + getTokenLength(i);
+            }
+            else
+            {
+                offset = getTokenOffset(j + 1) + getTokenLength(j + 1) + 1;
+            }
+
+            while (getCharUnit(offset) != '>')
+            {
+                offset++;
+            }
+
+            if (getCharUnit(offset - 1) == '/')
+                return -1;
+            else
+                return (encoding <= FORMAT_WIN_1258) ? offset + 1 : ((offset + 1) << 1);
+        }
+
         /// <summary> Get the token length at the given index value
         /// please refer to VTD spec for more details
         /// Length is in terms of the UTF char unit
@@ -1306,7 +1348,7 @@ namespace com.ximpleware
             int type = getTokenType(index);
             int depth;
             //int val;
-            int len = 0, j,temp;
+            int len = 0, j, temp;
             long l;
 
             switch (type)
@@ -4126,7 +4168,7 @@ namespace com.ximpleware
             int type = getTokenType(index);
             if (type != TOKEN_CHARACTER_DATA && type != TOKEN_ATTR_VAL)
                 return toRawString(index);
-            
+
             int len = getTokenLength(index);
             int offset = getTokenOffset(index);
 
@@ -4454,7 +4496,7 @@ namespace com.ximpleware
 
         /// <summary>
         /// getStringLength return the string length of a token as if the token is converted into 
-	    /// a string (entity resolved)
+        /// a string (entity resolved)
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
