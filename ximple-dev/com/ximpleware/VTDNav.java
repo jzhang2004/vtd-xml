@@ -1125,6 +1125,43 @@ public class VTDNav {
 	final public int getNestingLevel() {
 		return nestingLevel;
 	}
+	
+	/**
+	 * Return the offset after head (the ending bracket of the starting tag, 
+	 * not including an empty element)
+	 * @return
+	 *
+	 */
+	final public int getOffsetAfterHead(){
+	    
+	    int i = getCurrentIndex();
+	    if (getTokenType(i)!=VTDNav.TOKEN_STARTING_TAG){
+	        return -1;
+	    }
+	    int j=i+1;
+	    while (j<vtdSize && (getTokenType(j)==VTDNav.TOKEN_ATTR_NAME 
+	            || getTokenType(j)==VTDNav.TOKEN_ATTR_NS)){
+	        j += 2;
+	    }
+	    
+	    int enc = encoding;
+	    int offset; // this is character offset
+	    if (i+1==j)
+	    {
+	        offset = getTokenOffset(i)+getTokenLength(i);	                   
+	    }else {
+	        offset = getTokenOffset(j+1)+getTokenLength(j+1)+1;	                    
+	    }
+	    
+	    while(getCharUnit(offset)!='>'){
+	        offset++;	        
+	    }
+	    
+	    if (getCharUnit(offset-1)=='/')
+	        return -1;
+	    else
+	        return (encoding<= FORMAT_WIN_1258)? offset+1:((offset+1)<<1);
+	}
 	/**
      * Get root index value , which is the index val of root element
      * 
