@@ -1437,5 +1437,166 @@ namespace com.ximpleware
         {
             updateToken(index, vn.XMLDoc.getBytes(), contentOffset, contentLen, vn.encoding);
         }
+
+
+        /// <summary>
+        /// This method will insert byte array b after the head of cursor element
+        /// </summary>
+        /// <param name="b"></param>
+        public void insertAfterHead(byte[] b)
+        {
+            int i = md.getOffsetAfterHead();
+            if (i == -1)
+                throw new ModifyException("Insertion failed");
+            insertBytesAt(i, b);
+        }
+
+        /// <summary>
+        /// This method will insert a segment of the byte array b after 
+        /// the head of cursor element,
+        /// </summary>
+        /// <param name="b"></param>
+        /// <param name="offset"></param>
+        /// <param name="len"></param>
+        public void insertAfterHead(byte[] b, int offset, int len)
+        {
+            int i = md.getOffsetAfterHead();
+            if (i == -1)
+                throw new ModifyException("Insertion failed");
+            insertBytesAt(i, b, offset, len);
+        }
+
+        /// <summary>
+        /// This method will insert a segment of the byte array b after 
+        /// the head of cursor element
+        /// </summary>
+        /// <param name="b"></param>
+        /// <param name="l"></param>
+        public void insertAfterHead(byte[] b, long l)
+        {
+            int i = md.getOffsetAfterHead();
+            if (i == -1)
+                throw new ModifyException("Insertion failed");
+            insertBytesAt(i, b, l);
+        }
+
+        /// <summary>
+        /// This method will insert an ElementFragmentNs instance 
+        /// after the head of cursor element, 
+        /// </summary>
+        /// <param name="ef"></param>
+        public void insertAfterHead(ElementFragmentNs ef)
+        {
+            int i = md.getOffsetAfterHead();
+            if (i == -1)
+                throw new ModifyException("Insertion failed");
+            insertElementFragmentNsAt(i, ef);
+        }
+
+
+        /// <summary>
+        /// This method will insert the transcoded representation of 
+        /// byte array b after the head of cursor element, 
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        public void insertAfterHead(int src_encoding, byte[] b)
+        {
+            if (src_encoding == encoding)
+            {
+                insertAfterHead(b);
+            }
+            else
+            {
+                int i = md.getOffsetAfterHead();
+                if (i == -1)
+                    throw new ModifyException("Insertion failed");
+                byte[] bo = Transcoder.transcode(b, 0, b.Length, src_encoding, encoding);
+                insertBytesAt(i, bo);
+            }
+        }
+        /// <summary>
+        /// This method will insert the transcoded representation of 
+        /// a segment of the byte array b after the head of cursor element, 
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        /// <param name="offset"></param>
+        /// <param name="length"></param>
+        public void insertAfterHead(int src_encoding, byte[] b, int offset, int length)
+        {
+            if (src_encoding == encoding)
+            {
+                insertAfterHead(b, offset, length);
+            }
+            else
+            {
+                int i = md.getOffsetAfterHead();
+                if (i == -1)
+                    throw new ModifyException("Insertion failed");
+                byte[] bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
+                insertBytesAt(i, bo, offset, length);
+            }
+        }
+
+        /// <summary>
+        /// This method will insert the transcoded representation of 
+        /// a segment of the byte array b  after the head of cursor element, 
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        /// <param name="l"></param>
+        public void insertAfterHead(int src_encoding, byte[] b, long l)
+        {
+            if (src_encoding == encoding)
+            {
+                insertAfterHead(b, l);
+            }
+            else
+            {
+                int i = md.getOffsetAfterHead();
+                if (i == -1)
+                    throw new ModifyException("Insertion failed");
+                byte[] bo = Transcoder.transcode(b, (int)l, (int)l >> 32, src_encoding, encoding);
+                insertBytesAt(i, bo, l);
+            }
+        }
+
+        /// <summary>
+        /// This method will insert s' byte array 
+        /// representation of the string after the head of cursor element, 
+        /// </summary>
+        /// <param name="s"></param>
+        public void insertAfterHead(String s)
+        {
+            int i = md.getOffsetAfterHead();
+            if (i == -1)
+                throw new ModifyException("Insertion failed");
+            insertBytesAt(i, eg.GetBytes(s));
+        }
+
+
+        /// <summary>
+        /// This method will insert s' byte array representation after 
+        /// the head of cursor element, 
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <param name="contentOffset"></param>
+        /// <param name="contentLen"></param>
+        public void insertAfterHead(VTDNav vn, int contentOffset, int contentLen)
+        {
+            insertAfterHead(vn.encoding, vn.XMLDoc.getBytes(), contentOffset, contentLen);
+        }
+        /// <summary>
+        /// This method will insert a segment of the byte array b (contained in vn, and 
+        /// transcode into a byte array) after the head of cursor element, 
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <param name="l1"></param>
+        public void insertAfterHead(VTDNav vn, long l1)
+        {
+            insertAfterHead(vn.encoding, vn.XMLDoc.getBytes(), l1);
+        }
+
     }
 }
