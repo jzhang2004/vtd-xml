@@ -731,11 +731,13 @@ public class XMLModifier {
     /**
      * This method will first call getCurrentIndex() to get the cursor index value
      * then insert the byte array b after the element
-     * @param b  the byte array to be inserted into the master document
+     * @param b
+     * @throws ModifyException
+     * @throws NavException
      *
      */
     public void insertAfterElement(byte[] b)
-		throws ModifyException,UnsupportedEncodingException,NavException{
+		throws ModifyException,NavException{
         int startTagIndex =md.getCurrentIndex();
         int type = md.getTokenType(startTagIndex);
         if (type!=VTDNav.TOKEN_STARTING_TAG)
@@ -751,13 +753,12 @@ public class XMLModifier {
      * @param b
      * @return
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      *
      */
      
     public void insertAfterHead(byte[] b)
-        throws ModifyException,UnsupportedEncodingException,NavException{
+        throws ModifyException,NavException{
         int i = md.getOffsetAfterHead();
         if (i==-1)
             throw new ModifyException("Insertion failed");
@@ -777,7 +778,7 @@ public class XMLModifier {
      *
      */
     public void insertAfterHead(int src_encoding, byte[] b)
-    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+    throws ModifyException, NavException,TranscodeException {
         if(src_encoding == encoding){
             insertAfterHead(b);
         }else{
@@ -797,13 +798,12 @@ public class XMLModifier {
      * @param length
      * @return
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      * @throws TranscodeException
      *
      */
     public void insertAfterHead(int src_encoding, byte[] b, int offset, int length)
-    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+    throws ModifyException, NavException,TranscodeException {
         if(src_encoding == encoding){
             insertAfterHead(b,offset,length);
         }else{
@@ -822,13 +822,12 @@ public class XMLModifier {
      * @param l
      * @return
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      * @throws TranscodeException
      *
      */
     public void insertAfterHead(int src_encoding, byte[] b, long l) 
-    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+    throws ModifyException, NavException,TranscodeException {
         if(src_encoding == encoding){
             insertAfterHead(b,l);
         }else{
@@ -846,7 +845,6 @@ public class XMLModifier {
      * @param s
      * @return
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      * @throws TranscodeException
      *
@@ -867,7 +865,6 @@ public class XMLModifier {
      * @param contentOffset
      * @param contentLen
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      * @throws TranscodeException
      *
@@ -883,12 +880,11 @@ public class XMLModifier {
     * @param offset
     * @param len
     * @throws ModifyException
-    * @throws UnsupportedEncodingException
     * @throws NavException
     *
     */
     public void insertAfterHead(byte[] b, int offset, int len)
-    throws ModifyException,UnsupportedEncodingException,NavException{
+    throws ModifyException,NavException{
         int i = md.getOffsetAfterHead();
         if (i==-1)
             throw new ModifyException("Insertion failed");
@@ -900,12 +896,11 @@ public class XMLModifier {
     * @param b
     * @param l
     * @throws ModifyException
-    * @throws UnsupportedEncodingException
     * @throws NavException
     *
     */
     public void insertAfterHead(byte[] b, long l)
-    throws ModifyException,UnsupportedEncodingException,NavException{
+    throws ModifyException,NavException{
         int i = md.getOffsetAfterHead();
         if (i==-1)
             throw new ModifyException("Insertion failed");
@@ -957,12 +952,11 @@ public class XMLModifier {
      * @param contentOffset
      * @param contentLen
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      *
      */
     public void insertAfterElement(byte[] b, int contentOffset, int contentLen)
-            throws ModifyException, UnsupportedEncodingException, NavException {
+            throws ModifyException, NavException {
         
         int startTagIndex = md.getCurrentIndex();
         int type = md.getTokenType(startTagIndex);
@@ -985,13 +979,12 @@ public class XMLModifier {
      * @param contentOffset
      * @param contentLen
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      * @throws TranscodeException
      *
      */
     public void insertAfterElement(int src_encoding, byte[] b, int contentOffset, int contentLen)
-            throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+            throws ModifyException, NavException,TranscodeException {
         if (src_encoding == encoding) {
             insertAfterElement(b,contentOffset,contentLen);
         } else {
@@ -1034,12 +1027,11 @@ public class XMLModifier {
      * @param contentOffset
      * @param contentLen
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      *
      */
-    public void insertAfterElement(byte[] b, long l1) throws ModifyException,
-            UnsupportedEncodingException, NavException {
+    public void insertAfterElement(byte[] b, long l1)
+    throws ModifyException,NavException {
         int startTagIndex = md.getCurrentIndex();
         int type = md.getTokenType(startTagIndex);
         if (type != VTDNav.TOKEN_STARTING_TAG)
@@ -1104,13 +1096,12 @@ public class XMLModifier {
      * @param l1
      * @return
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      * @throws TranscodeException
      *
      */
     public void insertAfterHead(VTDNav vn, long l1) throws ModifyException,
-    UnsupportedEncodingException, NavException, TranscodeException {
+    NavException, TranscodeException {
         insertAfterHead(vn.encoding, vn.XMLDoc.getBytes(), l1);
     }
     
@@ -1120,13 +1111,12 @@ public class XMLModifier {
      * @param encoding The encoding format of the byte array 
      * @param b
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      * @throws TranscodeException
      *
      */
     public void insertAfterElement(int src_encoding, byte[] b)
-            throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+            throws ModifyException, NavException,TranscodeException {
         if(src_encoding == encoding){
             insertAfterElement(b);
         }
