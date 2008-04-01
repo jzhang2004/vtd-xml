@@ -745,6 +745,190 @@ public class XMLModifier {
         int len = (int)(l>>32);
         insertBytesAt(offset+len,b);
     }
+    
+    /**
+     * This method will insert byte array b after the head of cursor element, 
+     * @param b
+     * @return
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     *
+     */
+     
+    public void insertAfterHead(byte[] b)
+        throws ModifyException,UnsupportedEncodingException,NavException{
+        int i = md.getOffsetAfterHead();
+        if (i==-1)
+            throw new ModifyException("Insertion failed");
+        insertBytesAt(i,b);
+    }
+    
+    /**
+     * This method will insert the transcoded representation of 
+     * byte array b after the head of cursor element, 
+     * @param src_encoding
+     * @param b
+     * @return
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterHead(int src_encoding, byte[] b)
+    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+        if(src_encoding == encoding){
+            insertAfterHead(b);
+        }else{
+            int i = md.getOffsetAfterHead();
+            if (i==-1)
+                throw new ModifyException("Insertion failed");
+            byte[] bo = Transcoder.transcode(b, 0, b.length, src_encoding, encoding);
+            insertBytesAt(i,bo);            
+        }
+    }
+    /**
+     * This method will insert the transcoded representation of 
+     * a segment of the byte array b after the head of cursor element, 
+     * @param src_encoding
+     * @param b
+     * @param offset
+     * @param length
+     * @return
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterHead(int src_encoding, byte[] b, int offset, int length)
+    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+        if(src_encoding == encoding){
+            insertAfterHead(b,offset,length);
+        }else{
+            int i = md.getOffsetAfterHead();
+            if (i==-1)
+                throw new ModifyException("Insertion failed");
+            byte[] bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
+            insertBytesAt(i,bo,offset, length);            
+        }
+    }
+    /**
+     * This method will insert the transcoded representation of 
+     * a segment of the byte array b  after the head of cursor element, 
+     * @param src_encoding
+     * @param b
+     * @param l
+     * @return
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterHead(int src_encoding, byte[] b, long l) 
+    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+        if(src_encoding == encoding){
+            insertAfterHead(b,l);
+        }else{
+            int i = md.getOffsetAfterHead();
+            if (i==-1)
+                throw new ModifyException("Insertion failed");
+            byte[] bo = Transcoder.transcode(b, (int)l, (int)l>>32, src_encoding, encoding);
+            insertBytesAt(i,bo,l);            
+        }
+    }
+    
+    
+    /**
+     * This method will insert s' byte array representation after the head of cursor element, 
+     * @param s
+     * @return
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterHead(String s)
+    throws ModifyException, UnsupportedEncodingException, NavException{
+        int i = md.getOffsetAfterHead();
+        if (i==-1)
+            throw new ModifyException("Insertion failed");
+        insertBytesAt(i,s.getBytes(charSet));
+    }
+    
+   
+    /**
+     * This method will insert a segment of the byte array b (contained in vn, and 
+     * transcode into a byte array) after the head of cursor element, 
+     * @param vn
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterHead(VTDNav vn, int contentOffset, int contentLen)
+    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+        insertAfterHead(vn.encoding,vn.XMLDoc.getBytes(),contentOffset, contentLen);       
+    }
+    
+   /**
+    * This method will insert a segment of the byte array b after the head of cursor element, 
+    * @param b
+    * @param offset
+    * @param len
+    * @throws ModifyException
+    * @throws UnsupportedEncodingException
+    * @throws NavException
+    *
+    */
+    public void insertAfterHead(byte[] b, int offset, int len)
+    throws ModifyException,UnsupportedEncodingException,NavException{
+        int i = md.getOffsetAfterHead();
+        if (i==-1)
+            throw new ModifyException("Insertion failed");
+        insertBytesAt(i,b,offset, len);
+    }
+    
+   /**
+    * This method will insert a segment of the byte array b after the head of cursor element
+    * @param b
+    * @param l
+    * @throws ModifyException
+    * @throws UnsupportedEncodingException
+    * @throws NavException
+    *
+    */
+    public void insertAfterHead(byte[] b, long l)
+    throws ModifyException,UnsupportedEncodingException,NavException{
+        int i = md.getOffsetAfterHead();
+        if (i==-1)
+            throw new ModifyException("Insertion failed");
+        insertBytesAt(i,b,l);
+    }
+    
+    /**
+     * This method will insert an ElementFragmentNs instance after the head of cursor element, 
+     * @param efn
+     * @throws ModifyException
+     * @throws NavException
+     *
+     */
+    public void insertAfterHead(ElementFragmentNs ef) 
+    throws ModifyException, NavException{
+        int i = md.getOffsetAfterHead();
+        if (i==-1)
+            throw new ModifyException("Insertion failed");
+        insertElementFragmentNsAt(i, ef);
+    }
+    
+
+    
     /**
      * Insert a namespace compensated element after cursor element
      * @param ef (an ElementFragmentNs object)
@@ -779,8 +963,10 @@ public class XMLModifier {
      */
     public void insertAfterElement(byte[] b, int contentOffset, int contentLen)
             throws ModifyException, UnsupportedEncodingException, NavException {
+        
         int startTagIndex = md.getCurrentIndex();
         int type = md.getTokenType(startTagIndex);
+        
         if (type != VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
         long l = md.getElementFragment();
@@ -909,6 +1095,23 @@ public class XMLModifier {
     public void insertAfterElement(VTDNav vn, long l1) throws ModifyException,
     UnsupportedEncodingException, NavException, TranscodeException {
         insertAfterElement(vn.encoding, vn.XMLDoc.getBytes(), l1);
+    }
+    
+    /**
+     * This method will insert a segment of the byte array b (contained in vn, and 
+     * transcode into a byte array) after the head of cursor element, 
+     * @param vn
+     * @param l1
+     * @return
+     * @throws ModifyException
+     * @throws UnsupportedEncodingException
+     * @throws NavException
+     * @throws TranscodeException
+     *
+     */
+    public void insertAfterHead(VTDNav vn, long l1) throws ModifyException,
+    UnsupportedEncodingException, NavException, TranscodeException {
+        insertAfterHead(vn.encoding, vn.XMLDoc.getBytes(), l1);
     }
     
     /**
