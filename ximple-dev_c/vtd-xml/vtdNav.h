@@ -364,5 +364,7 @@ int getNormalizedStringLength(VTDNav *vn, int index);
 int getStringLength(VTDNav *vn, int index);
 /*Get the string length as if the token is converted into a UCS string (entity not resolved) */
 int getRawStringLength(VTDNav *vn, int index);
+/* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
+int getOffsetAfterHead(VTDNav *vn);
 
 #endif

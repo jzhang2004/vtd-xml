@@ -3660,3 +3660,34 @@ int getRawStringLength(VTDNav *vn, int index){
         }
         return len1;
 }
+
+/* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
+int getOffsetAfterHead(VTDNav *vn){
+	    int i = getCurrentIndex(vn),j,offset;
+		encoding_t enc;
+ 	    if (getTokenType(vn,i)!= TOKEN_STARTING_TAG){
+	        return -1;
+ 	    }
+	    j=i+1;
+ 	    while (j<vn->vtdSize && (getTokenType(vn,j)==TOKEN_ATTR_NAME
+	            || getTokenType(vn,j)== TOKEN_ATTR_NS)){
+	        j += 2;
+ 	    }
+
+		if (i+1==j)
+	    {
+ 	        offset = getTokenOffset(vn,i)+getTokenLength(vn,i);
+ 	    }else {
+	        offset = getTokenOffset(vn,j-1)+getTokenLength(vn,j-1)+1;
+	    }
+
+ 	    while(getCharUnit(vn,offset)!='>'){
+	        offset++;
+	    }
+ 
+	    if (getCharUnit(vn,offset-1)=='/')
+ 	        return -1;
+	    else
+ 	        return (vn->encoding<= FORMAT_WIN_1258)? offset+1:((offset+1)<<1);
+
+}
