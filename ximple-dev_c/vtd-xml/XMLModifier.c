@@ -508,6 +508,26 @@ void insertBeforeElement(XMLModifier *xm, UCSChar *s){
 		insertBytesAt(xm,(offset)<<1,xm->gbytes(s));
 }
 
+/*
+*/
+void insertAfterHead(XMLModifier *xm, UCSChar *s){
+
+	int i =getOffsetAfterHead(xm->md);
+    if (i==-1)
+        throwException2(modify_exception,"Insertion failed");
+	insertBytesAt(xm, i, xm->gbytes(s));
+}
+
+
+
+
+
+
+
+
+
+
+
 /* Insert Attribute into the cursor element 
 */
 void insertAttribute(XMLModifier *xm, UCSChar *attr){
@@ -564,6 +584,14 @@ void insertBeforeElement2(XMLModifier *xm, UByte* ba, int arrayLen){
 		insertBytesAt2(xm,offset<<1, (((Long)arrayLen)<<32)|(int)ba);
 }
 
+
+void insertAfterHead2(XMLModifier *xm, UByte* ba, int arrayLen){
+	int i =getOffsetAfterHead(xm->md);
+    if (i==-1)
+        throwException2(modify_exception,"Insertion failed");
+	insertBytesAt2(xm, i, (((Long)arrayLen)<<32)|(int)ba);
+}
+
 /* insert a segment of an byte array after the cursor element*/
 
 void insertAfterElement3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen){
@@ -599,6 +627,13 @@ void insertBeforeElement3(XMLModifier *xm, UByte* ba, int contentOffset, int con
 		insertBytesAt2(xm, offset<<1, (((Long)contentLen)<<32)|((int)ba+contentOffset));
 }
 
+
+void insertAfterHead3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen){
+	int i =getOffsetAfterHead(xm->md);
+    if (i==-1)
+        throwException2(modify_exception,"Insertion failed");
+	insertBytesAt2(xm,i,(((Long)contentLen)<<32)|((int)ba+contentOffset));
+}
 /*
 Insert an ns-compensated element fragment before the cursor element
 */
@@ -637,6 +672,13 @@ void insertAfterElement4(XMLModifier *xm, ElementFragmentNs *ef){
 	insertBytesAt3(xm,offset+len, ef);	
 }
 
+
+void insertAfterHead4(XMLModifier *xm, ElementFragmentNs *ef){
+	int i =getOffsetAfterHead(xm->md);
+    if (i==-1)
+        throwException2(modify_exception,"Insertion failed");
+	insertBytesAt3(xm,i,ef);
+}
 
 /* the present implementation automatically garbage collect 
    the byte array newContentBytes when calling freeXMLModifier*/
@@ -1044,6 +1086,16 @@ void insertBeforeElement5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, i
         }
 }
 
+void insertAfterHead5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int arrayLen){
+	Long bo;
+	int i =getOffsetAfterHead(xm->md);
+    if (i==-1)
+        throwException2(modify_exception,"Insertion failed");
+	bo = Transcoder_transcode(ba, 0, arrayLen, src_encoding, xm->encoding);
+	//insertBytesAt(xm,offset+len,bo);
+	insertBytesAt(xm, i, bo);
+}
+
 /*
 	Insert the transcoded representation of a byte array segment after the cursor element
 */
@@ -1066,6 +1118,7 @@ void insertAfterElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, in
 	}
 }
 
+
 /*
 	Insert the transcoded representation of a byte array segment before the cursor element
 */
@@ -1087,6 +1140,16 @@ void insertBeforeElement6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, i
 		else
 			insertBytesAt(xm,(offset) << 1, bo);
 	}
+}
+
+
+void insertAfterHead6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen){
+	Long bo;
+	int i =getOffsetAfterHead(xm->md);
+    if (i==-1)
+        throwException2(modify_exception,"Insertion failed");
+	bo = Transcoder_transcode(ba, contentOffset, contentLen, src_encoding, xm->encoding);
+		insertBytesAt(xm,i, bo);
 }
 
 /*
@@ -1150,6 +1213,10 @@ void insertAfterElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int co
 
 void insertBeforeElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
 	insertBeforeElement6(xm, vn1->encoding,vn1->XMLDoc,contentOffset, contentLen);
+}
+
+void insertAfterHead7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
+	insertAfterHead6(xm,vn1->encoding,vn1->XMLDoc,contentOffset,contentLen);
 }
 
 /* 
