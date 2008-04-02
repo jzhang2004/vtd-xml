@@ -1150,7 +1150,7 @@ public class VTDNav {
 	    {
 	        offset = getTokenOffset(i)+getTokenLength(i);	                   
 	    }else {
-	        offset = getTokenOffset(j+1)+getTokenLength(j+1)+1;	                    
+	        offset = getTokenOffset(j-1)+getTokenLength(j-1)+1;	                    
 	    }
 	    
 	    while(getCharUnit(offset)!='>'){
