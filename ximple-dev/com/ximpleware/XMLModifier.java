@@ -772,7 +772,6 @@ public class XMLModifier {
      * @param b
      * @return
      * @throws ModifyException
-     * @throws UnsupportedEncodingException
      * @throws NavException
      * @throws TranscodeException
      *
@@ -841,7 +840,8 @@ public class XMLModifier {
     
     
     /**
-     * This method will insert s' byte array representation after the head of cursor element, 
+     * This method will insert s' byte array representation 
+     * of the string after the head of cursor element, 
      * @param s
      * @return
      * @throws ModifyException
@@ -870,7 +870,7 @@ public class XMLModifier {
      *
      */
     public void insertAfterHead(VTDNav vn, int contentOffset, int contentLen)
-    throws ModifyException, UnsupportedEncodingException, NavException,TranscodeException {
+    throws ModifyException, NavException,TranscodeException {
         insertAfterHead(vn.encoding,vn.XMLDoc.getBytes(),contentOffset, contentLen);       
     }
     
@@ -908,7 +908,8 @@ public class XMLModifier {
     }
     
     /**
-     * This method will insert an ElementFragmentNs instance after the head of cursor element, 
+     * This method will insert an ElementFragmentNs instance 
+     * after the head of cursor element, 
      * @param efn
      * @throws ModifyException
      * @throws NavException
