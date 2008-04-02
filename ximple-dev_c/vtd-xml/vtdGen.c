@@ -1902,8 +1902,10 @@ void parse(VTDGen *vg, Boolean ns){
 							}
 						}
 
+						helper = TRUE;
 						if (vg->ch == '/') {
 							vg->depth--;
+							helper = FALSE;
 							vg->ch = getChar(vg);
 						}
 
@@ -1914,6 +1916,31 @@ void parse(VTDGen *vg, Boolean ns){
 								vg->ch = getCharAfterSe(vg);
 								if (vg->ch == '<') {
 									parser_state = STATE_LT_SEEN;
+									if (skipChar(vg,'/')) {
+										if (helper == TRUE){
+											length1 =
+												vg->offset
+												- vg->temp_offset
+												- (vg->increment<<1);
+
+											if (vg->encoding < FORMAT_UTF_16BE)
+												writeVTD(vg,
+												(vg->temp_offset),
+												length1,
+												TOKEN_CHARACTER_DATA,
+												vg->depth);
+											else
+												writeVTD(vg,
+												(vg->temp_offset) >> 1,
+												(length1 >> 1),
+												TOKEN_CHARACTER_DATA,
+												vg->depth);
+
+										}
+										//offset += length1;
+										parser_state = STATE_END_TAG;
+										break;
+									}
 								} else if (XMLChar_isContentChar(vg->ch)) {
 									parser_state = STATE_TEXT;
 								} else if (vg->ch == '&') {
