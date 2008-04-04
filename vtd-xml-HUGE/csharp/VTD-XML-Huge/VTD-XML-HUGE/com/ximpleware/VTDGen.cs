@@ -2578,9 +2578,11 @@ namespace com.ximpleware
                                 }
                             }
 
+                            helper = true;
                             if (ch == '/')
                             {
                                 depth--;
+                                helper = false;
                                 ch = r.Char;
                             }
 
@@ -2594,6 +2596,20 @@ namespace com.ximpleware
                                     if (ch == '<')
                                     {
                                         parser_state = STATE_LT_SEEN;
+                                        if (r.skipChar('/'))
+                                        {
+                                            if (helper == true)
+                                            {
+                                                length1 = offset - temp_offset - (increment << 1);
+
+                                                if (encoding < FORMAT_UTF_16BE)
+                                                    writeVTD((temp_offset), (int)length1, TOKEN_CHARACTER_DATA, depth);
+                                                else
+                                                    writeVTD((temp_offset) >> 1, (int)(length1 >> 1), TOKEN_CHARACTER_DATA, depth);
+                                            }
+                                            parser_state = STATE_END_TAG;
+                                            break;
+                                        }
                                     }
                                     else if (XMLChar.isContentChar(ch))
                                     {
