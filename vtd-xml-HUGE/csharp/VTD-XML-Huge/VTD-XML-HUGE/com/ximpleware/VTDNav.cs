@@ -136,7 +136,7 @@ namespace com.ximpleware
 
                 case FORMAT_UTF8:
                     temp = XMLDoc.byteAt(offset);
-                    if (temp >= 0)
+                    if (temp < 128)
                     {
                         if (temp == '\r')
                         {
