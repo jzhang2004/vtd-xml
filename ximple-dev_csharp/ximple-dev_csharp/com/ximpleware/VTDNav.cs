@@ -495,7 +495,7 @@ namespace com.ximpleware
             // temp is the last entry
             // scan forward search for /> or </cc>
             so2 = (encoding <= FORMAT_WIN_1258) ? (docOffset + docLen - 1) : ((docOffset + docLen) >> 1) - 1;
-            d = depth + 1;
+            d = depth + 1+((getTokenDepth(temp)==-1)?1:0);
             i = 0;
             while (i < d)
             {
