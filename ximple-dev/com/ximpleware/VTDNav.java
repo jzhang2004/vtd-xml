@@ -1088,11 +1088,12 @@ public class VTDNav {
 		}
 		// temp is the last entry
 		// scan forward search for /> or </cc>
+		
 		int so2 =
 			(encoding <= FORMAT_WIN_1258)
 				? (docOffset + docLen - 1)
 				: ((docOffset + docLen) >> 1) - 1;
-		int d = depth + 1;
+		int d = depth + 1+((getTokenDepth(temp)==-1)?1:0 );
 		int i = 0;
 		while (i < d) {
 			if (getCharUnit(so2) == '>') {
