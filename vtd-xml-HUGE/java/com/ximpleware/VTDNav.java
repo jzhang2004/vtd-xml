@@ -1467,71 +1467,7 @@ public class VTDNav {
             return -1;
         return 0;
     }
-	/**
-	 *<em>New in 2.0</em>
-	 * This method compares two VTD tokens of VTDNav objects
-	 * The behavior of this method is like compare the strings corresponds
-	 * to i1 and i2
-	 * @param i1
-	 * @param vn2
-	 * @param i2
-	 * @return -1,0, or 1
-	 * @throws NavException
-	 *
-	 */
-	public int compareTokens(int i1, VTDNav vn2, int i2) 
-	throws NavException{
-	    int t1, t2;
-	    int ch1, ch2;
-	    long endOffset1, endOffset2;
-	    long l;
 
-		if ( i1 ==i2 && this == vn2)
-			return 0;
-		
-		t1 = this.getTokenType(i1);
-		t2 = vn2.getTokenType(i2);
-		
-		long offset1 = this.getTokenOffset(i1);
-		long offset2 = vn2.getTokenOffset(i2);
-		
-		endOffset1 = this.getTokenLength(i1)+offset1;
-		endOffset2 = vn2.getTokenLength(i2) + offset2;
-
-		for(;offset1<endOffset1&& offset2< endOffset2;){
-		    if(t1 == VTDNav.TOKEN_CHARACTER_DATA
-		            || t1== VTDNav.TOKEN_ATTR_VAL){
-		        l = this.getCharResolved(offset1);
-		    } else {
-		        l = this.getChar(offset1);
-		    }
-	        ch1 = (int)l;
-	        offset1 += (int)(l>>32);
-		    
-		    if(t2 == VTDNav.TOKEN_CHARACTER_DATA
-		            || t2== VTDNav.TOKEN_ATTR_VAL){
-		        l = vn2.getCharResolved(offset2);
-		    } else {
-		        l = vn2.getChar(offset2);
-		    }
-	        ch2 = (int)l ;
-	        offset2 += (int)(l>>32);
-	        
-		    if (ch1 > ch2)
-		        return 1;
-		    if (ch1 < ch2)
-		        return -1;
-		}
-		
-		if (offset1 == endOffset1 
-		        && offset2 < endOffset2)
-			return -1;
-		else if (offset1 < endOffset1 
-		        && offset2 == endOffset2)
-		    return 1;
-		else
-			return 0;
-	}
 	/**
 	 * Lexicographically compare a string against a token with given 
 	 * offset and len, entities doesn't get resolved. 
@@ -3380,4 +3316,84 @@ public class VTDNav {
         }
         return len1;
     }
+	
+	/**
+     * <em>New in 2.0</em> This method compares two VTD tokens of VTDNav
+     * objects The behavior of this method is like compare the strings
+     * corresponds to i1 and i2, meaning for text or attribute val, entities
+     * will be converted into the corresponding char
+     * 
+     * @param i1
+     * @param vn2
+     * @param i2
+     * @return -1,0, or 1
+     * @throws NavException
+     *  
+     */
+	public int compareTokens(int i1, VTDNav vn2, int i2) 
+	throws NavException{
+	    int t1, t2;
+	    int ch1, ch2;
+	    long endOffset1, endOffset2;
+	    long l;
+
+		if ( i1 ==i2 && this == vn2)
+			return 0;
+		
+		t1 = this.getTokenType(i1);
+		t2 = vn2.getTokenType(i2);
+		
+		long offset1 = this.getTokenOffset(i1);
+		long offset2 = vn2.getTokenOffset(i2);
+		
+		int len1 =
+			(t1 == TOKEN_STARTING_TAG
+				|| t1 == TOKEN_ATTR_NAME
+				|| t1 == TOKEN_ATTR_NS)
+				? getTokenLength(i1) & 0xffff
+				: getTokenLength(i1);
+		int len2 = 
+		    (t2 == TOKEN_STARTING_TAG
+				|| t2 == TOKEN_ATTR_NAME
+				|| t2 == TOKEN_ATTR_NS)
+				? vn2.getTokenLength(i2) & 0xffff
+				: vn2.getTokenLength(i2);
+		
+		endOffset1 = len1+offset1;
+		endOffset2 = len2+ offset2;
+
+		for(;offset1<endOffset1&& offset2< endOffset2;){
+		    if(t1 == VTDNav.TOKEN_CHARACTER_DATA
+		            || t1== VTDNav.TOKEN_ATTR_VAL){
+		        l = this.getCharResolved(offset1);
+		    } else {
+		        l = this.getChar(offset1);
+		    }
+	        ch1 = (int)l;
+	        offset1 += (int)(l>>32);
+		    
+		    if(t2 == VTDNav.TOKEN_CHARACTER_DATA
+		            || t2== VTDNav.TOKEN_ATTR_VAL){
+		        l = vn2.getCharResolved(offset2);
+		    } else {
+		        l = vn2.getChar(offset2);
+		    }
+	        ch2 = (int)l;
+	        offset2 += (int)(l>>32);
+	        
+		    if (ch1 > ch2)
+		        return 1;
+		    if (ch1 < ch2)
+		        return -1;
+		}
+		
+		if (offset1 == endOffset1 
+		        && offset2 < endOffset2)
+			return -1;
+		else if (offset1 < endOffset1 
+		        && offset2 == endOffset2)
+		    return 1;
+		else
+			return 0;
+	}
 }
