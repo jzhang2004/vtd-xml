@@ -4225,8 +4225,8 @@ namespace com.ximpleware
                 (t2 == TOKEN_STARTING_TAG
                     || t2 == TOKEN_ATTR_NAME
                     || t2 == TOKEN_ATTR_NS)
-                    ? getTokenLength(i2) & 0xffff
-                    : getTokenLength(i2);
+                    ? vn2.getTokenLength(i2) & 0xffff
+                    : vn2.getTokenLength(i2);
             endOffset1 = len1 + offset1;
             endOffset2 = len2 + offset2;
 
