@@ -831,7 +831,7 @@ namespace com.ximpleware
                 throw new ModifyException("Token type is not a starting tag");
 
             int offset = md.getTokenOffset(startTagIndex) - 1;
-            int encoding = md.getTokenType(startTagIndex);
+            //int encoding = md.getTokenType(startTagIndex);
             if (encoding < VTDNav.FORMAT_UTF_16BE)
             {
                 //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
