@@ -355,9 +355,26 @@ public class FuncExpr extends Expr{
 		("substring()'s argument count is invalid");
 	}
 	private String translate(VTDNav vn){
-	    return "";
+	    if (argCount()==3){
+	        String s1 = argumentList.e.evalString(vn);
+	        String s2 = argumentList.next.e.evalString(vn);
+	        String s3 = argumentList.next.next.e.evalString(vn);
+	        int len2 = s2.length();
+	        String done = "";
+	        for (int i=0;i<len2;i++)
+	        	if (done.indexOf(s2.charAt(i))==-1) {
+	    	        try {
+		        		s1 = s1.replace(s2.charAt(i), s3.charAt(i));
+	    	        } catch (IndexOutOfBoundsException e) {
+	    	        	s1 = s1.replaceAll(String.valueOf(s2.charAt(i)), "");
+	    	        }
+		        	done += s2.charAt(i);
+	        	}
+	        return s1;
+	    }
+	    throw new IllegalArgumentException
+		("translate()'s argument count is invalid");
 	}
-	
 	private String normalizeSpace(VTDNav vn){
 	    if (argCount()== 0){
 	        String s =null;
@@ -480,7 +497,7 @@ public class FuncExpr extends Expr{
 			case FuncName.SUBSTRING_BEFORE:	return subStringBefore(vn);	
 			case FuncName.SUBSTRING_AFTER: 	return subStringAfter(vn);
 			case FuncName.SUBSTRING: 	return subString(vn);	
-			case FuncName.TRANSLATE: 	throw new UnsupportedException("Some functions are not supported");
+			case FuncName.TRANSLATE: 	return translate(vn);
 			case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
 			default: if (isBoolean()){
 			    		if (evalBoolean(vn)== true)
