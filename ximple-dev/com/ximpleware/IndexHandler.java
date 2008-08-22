@@ -207,7 +207,7 @@ class IndexHandler {
             t = (((size>>3)+1)<<3) - size;            
         }
         
-        vg.setDoc_BR(ba,0,size+32);
+        vg.setDoc_BR(ba,32,size);
         
         bb = ByteBuffer.wrap(ba,32+size+t,ba.length-32-size-t);
         
