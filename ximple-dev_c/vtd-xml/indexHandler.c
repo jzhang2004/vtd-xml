@@ -584,7 +584,7 @@ Boolean _readIndex2(UByte *ba, int len, VTDGen *vg){
 		throwException2(index_read_exception,"Invalid Index error");
 		return FALSE;
 	}
-	setDoc2(vg,ba,len,0,size+32);
+	setDoc2(vg,ba,len,32,size);
 	//dis.Read(XMLDoc,0,size);
 	if ((size & 0x7) != 0)
 	{

@@ -397,7 +397,7 @@ namespace com.ximpleware
             // read XML bytes
             //byte[] XMLDoc = new byte[size];
             //dis.Read(XMLDoc, 0, size);
-            vg.setDoc(ba, 0, size + OFFSET_ADJUSTMENT);
+            vg.setDoc(ba, OFFSET_ADJUSTMENT, size);
             int t = 0;
             
             if ((size & 0x7) != 0)
