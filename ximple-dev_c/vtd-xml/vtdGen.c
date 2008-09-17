@@ -1397,7 +1397,8 @@ static int getPrevOffset(VTDGen *vg){
 			case FORMAT_UTF8 :
 				do {
 					prevOffset--;
-				} while (vg->XMLDoc[prevOffset] >= 128);
+				} while (vg->XMLDoc[prevOffset] >= 128 && 
+					(vg->XMLDoc[prevOffset]& 0xc0 == 0x80));
 				return prevOffset;
 			case FORMAT_ASCII :
 			case FORMAT_ISO_8859_1 :

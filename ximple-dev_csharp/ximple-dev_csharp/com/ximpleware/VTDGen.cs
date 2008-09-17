@@ -117,7 +117,8 @@ namespace com.ximpleware
                         {
                             prevOffset--;
                         }
-                        while ((XMLDoc[prevOffset]) > 127);
+                        while ((XMLDoc[prevOffset]) > 127 
+                            && ((XMLDoc[prevOffset] & ((byte)0xc0)) == (byte)0x80));
                         return prevOffset;
 
                     case FORMAT_ASCII:
