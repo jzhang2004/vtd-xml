@@ -1277,7 +1277,8 @@ public class VTDGen {
 			case FORMAT_UTF8 :
 				do {
 					prevOffset--;
-				} while (XMLDoc[prevOffset] <0);
+				} while (XMLDoc[prevOffset] <0 && 
+				        ((XMLDoc[prevOffset] & (byte)0xc0) == (byte)0x80));
 				return prevOffset;
 			case FORMAT_ASCII :
 			case FORMAT_ISO_8859_1:
