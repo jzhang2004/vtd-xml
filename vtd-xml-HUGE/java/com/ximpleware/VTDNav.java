@@ -123,12 +123,12 @@ public class VTDNav {
 	public final static int FORMAT_UTF_16LE = 64;
 	public final static int FORMAT_UTF_16BE = 63;
 	// masks for obtaining various fields from a VTD token 16-bit long
-	protected final static long MASK_TOKEN_FULL_LEN = 0x003fffe000000000L;
-	private final static long MASK_TOKEN_PRE_LEN = 0x003f800000000000L;
-	private final static long MASK_TOKEN_QN_LEN = 0x00007fe000000000L;
-	private final static long MASK_TOKEN_OFFSET = 0x0000001fffffffffL;
+	protected final static long MASK_TOKEN_FULL_LEN = 0x007fffc000000000L;
+	private final static long MASK_TOKEN_PRE_LEN = 0x007f000000000000L;
+	private final static long MASK_TOKEN_QN_LEN = 0x0000ffc000000000L;
+	private final static long MASK_TOKEN_OFFSET = 0x0000003fffffffffL;
 	private final static long MASK_TOKEN_TYPE = 0xf000000000000000L;
-	private final static long MASK_TOKEN_DEPTH = 0x0fc0000000000000L;
+	private final static long MASK_TOKEN_DEPTH = 0x0f80000000000000L;
 
 	// tri-state variable for namespace lookup
 	//private final static long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
@@ -991,7 +991,7 @@ public class VTDNav {
 	 */
 	final public int getTokenDepth(int index) {
 		int i = (int) ((vtdBuffer.longAt(index) & MASK_TOKEN_DEPTH) >> 54);
-		if (i != 63)
+		if (i != 31)
 			return i;
 		return -1;
 	}
@@ -1018,20 +1018,20 @@ public class VTDNav {
 			case TOKEN_STARTING_TAG :
 				l = vtdBuffer.longAt(index);
 				return (ns == false)
-					? (int) ((l & MASK_TOKEN_QN_LEN) >> 37)
+					? (int) ((l & MASK_TOKEN_QN_LEN) >> 38)
 					: ((int) ((l & MASK_TOKEN_QN_LEN)
-						>> 37)
+						>> 38)
 						| ((int) ((l & MASK_TOKEN_PRE_LEN)
-							>> 31)));
+							>> 32)));
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
 			case TOKEN_COMMENT: // make sure this is total length
 				depth = getTokenDepth(index);
 				do{
 					len = len +  (int)
-					((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 37);
+					((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 38);
 					 temp =  getTokenOffset(index)+(int)
-					 ((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 37);
+					 ((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN) >> 38);
 					index++;		
 					}
 				while(index < vtdSize && depth == getTokenDepth(index) 
@@ -1041,7 +1041,7 @@ public class VTDNav {
 				return len;
 			default :
 				return (int)
-					((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 37);
+					((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 38);
 		}
 	}
 	/**
