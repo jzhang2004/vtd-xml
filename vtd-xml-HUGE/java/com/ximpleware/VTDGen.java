@@ -130,19 +130,19 @@ public class VTDGen {
 	protected long endOffset;
 	protected long[] tag_stack;
 	public long[] attr_name_array;
-	public final static int MAX_DEPTH = 62; // maximum depth value
+	public final static int MAX_DEPTH = 30; // maximum depth value
 	protected long docOffset;
 
 	// attr_name_array size
 	private final static int ATTR_NAME_ARRAY_SIZE = 16;
 	// tag_stack size
-	private final static int TAG_STACK_SIZE = 256;
+	private final static int TAG_STACK_SIZE = 32;
 	// max prefix length
-	public final static int MAX_PREFIX_LENGTH = (1<<7) -1;
+	public final static int MAX_PREFIX_LENGTH = (1<<8) -1;
 	// max Qname length
-	public final static int MAX_QNAME_LENGTH = (1<<10) -1;
+	public final static int MAX_QNAME_LENGTH = (1<<11) -1;
 	// max Token length
-	public final static int MAX_TOKEN_LENGTH = (1<<17) -1;
+	public final static int MAX_TOKEN_LENGTH = (1<<18) -1;
 
 
 	
@@ -1069,7 +1069,9 @@ public class VTDGen {
 			case FORMAT_UTF8 :
 				do {
 					prevOffset--;
-				} while (xb.byteAt(prevOffset) <0);
+				} while (xb.byteAt(prevOffset) <0 && 
+				        (xb.byteAt(prevOffset) & (byte)0xc0) == (byte)0x80);
+				
 				return prevOffset;
 			case FORMAT_ASCII :
 			case FORMAT_ISO_8859_1:
@@ -1278,7 +1280,7 @@ public class VTDGen {
 									+ formatLineNumber());
 						}
 						//writeVTD(offset, TOKEN_STARTING_TAG, length2:length1, depth)
-						long x = ((long) length1 << 37) |temp_offset;
+						long x = ((long) length1 << 38) |temp_offset;
 						tag_stack[depth] = x;
 						
 						// System.out.println(
@@ -1293,7 +1295,7 @@ public class VTDGen {
 										+ formatLineNumber());
 							writeVTD(
 								(temp_offset),
-								(length2 << 10) | length1,
+								(length2 << 7) | length1,
 								TOKEN_STARTING_TAG,
 								depth);
 							}
@@ -1305,7 +1307,7 @@ public class VTDGen {
 										+formatLineNumber());
 							writeVTD(
 								(temp_offset) >> 1,
-								(length2 << 9) | (length1 >> 1),
+								(length2 << 6) | (length1 >> 1),
 								TOKEN_STARTING_TAG,
 								depth);
 						}
@@ -1386,7 +1388,7 @@ public class VTDGen {
 					case STATE_END_TAG :
 						temp_offset = offset;
 						long sos =  tag_stack[depth] & 0x1fffffffffL;
-						int sl = (int) (tag_stack[depth] >> 37);
+						int sl = (int) (tag_stack[depth] >> 38);
 						
 						offset = temp_offset+sl;
 						
@@ -1518,7 +1520,7 @@ public class VTDGen {
 											+formatLineNumber());
 								writeVTD(
 									temp_offset,
-									(length2 << 10) | length1,
+									(length2 << 7) | length1,
 									TOKEN_ATTR_NS,
 									depth);
 							}
@@ -1530,7 +1532,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
-									(length2 << 9) | (length1 >> 1),
+									(length2 << 6) | (length1 >> 1),
 									TOKEN_ATTR_NS,
 									depth);
 							}
@@ -1544,7 +1546,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset,
-									(length2 << 10) | length1,
+									(length2 << 7) | length1,
 									TOKEN_ATTR_NAME,
 									depth);
 							}
@@ -1556,7 +1558,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
-									(length2 << 9) | (length1 >> 1),
+									(length2 << 6) | (length1 >> 1),
 									TOKEN_ATTR_NAME,
 									depth);
 							}
@@ -3217,23 +3219,23 @@ public class VTDGen {
 				long k;
 				long r_offset = offset;
 				for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
-					VTDBuffer.append(((long) ((token_type << 23)
-							| ((depth & 0x3f) << 17) | MAX_TOKEN_LENGTH) << 37)
+					VTDBuffer.append(((long) ((token_type << 22)
+							| ((depth & 0x1f) << 17) | MAX_TOKEN_LENGTH) << 38)
 							| r_offset);
 					/*VTDBuffer.append(((long) ((token_type << 28)
 							| ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32)
 							| r_offset);*/
 					r_offset += MAX_TOKEN_LENGTH;
 				}
-				VTDBuffer.append(((long) ((token_type << 23)
-						| ((depth & 0x3f) << 17) | k) << 37)
+				VTDBuffer.append(((long) ((token_type << 22)
+						| ((depth & 0x1f) << 17) | k) << 38)
 						| r_offset);
 				/*VTDBuffer.append(((long) ((token_type << 28)
 						| ((depth & 0xff) << 20) | k) << 32)
 						| r_offset);*/
 			} else {
-				VTDBuffer.append(((long) ((token_type << 23)
-						| ((depth & 0x3f) << 17) | length) << 37)
+				VTDBuffer.append(((long) ((token_type << 22)
+						| ((depth & 0x1f) << 17) | length) << 38)
 						| offset);
 				/*VTDBuffer.append(((long) ((token_type << 28)
 						| ((depth & 0xff) << 20) | length) << 32)
@@ -3243,8 +3245,8 @@ public class VTDGen {
 			
 			//case TOKEN_ENDING_TAG: break;
 		default:
-			VTDBuffer.append(((long) ((token_type << 23)
-					| ((depth & 0x3f) << 17) | length) << 37)
+			VTDBuffer.append(((long) ((token_type << 22)
+					| ((depth & 0x1f) << 17) | length) << 38)
 					| offset);
 			/*VTDBuffer.append(((long) ((token_type << 28)
 			        | ((depth & 0xff) << 20) | length) << 32)
