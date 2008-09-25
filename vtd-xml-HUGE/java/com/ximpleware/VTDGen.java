@@ -1295,7 +1295,7 @@ public class VTDGen {
 										+ formatLineNumber());
 							writeVTD(
 								(temp_offset),
-								(length2 << 7) | length1,
+								(length2 << 10) | length1,
 								TOKEN_STARTING_TAG,
 								depth);
 							}
@@ -1307,7 +1307,7 @@ public class VTDGen {
 										+formatLineNumber());
 							writeVTD(
 								(temp_offset) >> 1,
-								(length2 << 6) | (length1 >> 1),
+								(length2 << 9) | (length1 >> 1),
 								TOKEN_STARTING_TAG,
 								depth);
 						}
@@ -1520,7 +1520,7 @@ public class VTDGen {
 											+formatLineNumber());
 								writeVTD(
 									temp_offset,
-									(length2 << 7) | length1,
+									(length2 << 10) | length1,
 									TOKEN_ATTR_NS,
 									depth);
 							}
@@ -1532,7 +1532,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
-									(length2 << 6) | (length1 >> 1),
+									(length2 << 9) | (length1 >> 1),
 									TOKEN_ATTR_NS,
 									depth);
 							}
@@ -1546,7 +1546,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset,
-									(length2 << 7) | length1,
+									(length2 << 10) | length1,
 									TOKEN_ATTR_NAME,
 									depth);
 							}
@@ -1558,7 +1558,7 @@ public class VTDGen {
 											+ formatLineNumber());
 								writeVTD(
 									temp_offset >> 1,
-									(length2 << 6) | (length1 >> 1),
+									(length2 << 9) | (length1 >> 1),
 									TOKEN_ATTR_NAME,
 									depth);
 							}
@@ -3205,7 +3205,7 @@ public class VTDGen {
 	 */
 	private void writeVTD(long offset, long length, int token_type, int depth) {
 	    /*System.out.print(" type "+token_type);
-	    System.out.print(" length "+length);
+	    System.out.print(" length "+ Long.toHexString(length));
 	    System.out.print(" prefix length " + (length>>10));
 	    System.out.print(" qn length " + (length & 0x3ff));
 	    System.out.print(" offset "+offset);
