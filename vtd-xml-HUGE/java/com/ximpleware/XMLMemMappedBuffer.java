@@ -28,7 +28,7 @@ public class XMLMemMappedBuffer implements IByteBuffer {
     }
     
     public long length(){
-        return 1;
+        return length;
     }
     
     public byte byteAt(long index){
@@ -61,7 +61,9 @@ public class XMLMemMappedBuffer implements IByteBuffer {
             //input[i] = new RandomAccessFile(fileName, "r").getChannel()
             //.map(FileChannel.MapMode.READ_ONLY, 0,(1<<32)-1);
         }
+        if (fc!=null)
         fc.close();
+        if (raf!=null)
         raf.close();
     }
     
