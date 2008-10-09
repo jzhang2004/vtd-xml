@@ -1201,7 +1201,7 @@ public class VTDGen {
 	        } else if (mode == MEM_MAPPED) {
 	            XMLMemMappedBuffer xmb = new XMLMemMappedBuffer();
 	            xmb.readFile(fileName);
-	            this.setDoc(xb);
+	            this.setDoc(xmb);
 	            this.parse(ns);  // set namespace awareness to true
 	            return true;
 	        } 
@@ -3182,6 +3182,7 @@ public class VTDGen {
 		temp_offset = 0;
 		
 		docOffset = offset = 0;
+		//System.out.println("doc length is "+xb.length());
 		docLen = xb.length();
 		endOffset = xb.length();
 		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
