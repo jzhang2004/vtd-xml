@@ -49,6 +49,9 @@ public class VTDGen {
 	private final static int STATE_END_PI = 15;
 	//private final static int STATE_END_PI_VAL = 17;
 
+	public final static int IN_MEMORY = 0;
+	public final static int MEM_MAPPED = 1;
+	
 	// token type
 	public final static int TOKEN_STARTING_TAG = 0;
 	public final static int TOKEN_ENDING_TAG = 1;
@@ -117,7 +120,7 @@ public class VTDGen {
 
 	protected long prev_offset;
 	protected int rootIndex;
-	protected XMLBuffer xb;
+	protected IByteBuffer xb;
 	protected FastLongBuffer VTDBuffer;
 	protected FastLongBuffer l1Buffer;
 	protected FastLongBuffer l2Buffer;
@@ -1117,7 +1120,7 @@ public class VTDGen {
 	 * @throws ParseException
 	 */
 	private void decide_encoding() throws EncodingException,ParseException {
-	    if (xb.length==0)
+	    if (xb.length()==0)
 	        throw new EncodingException("Document is zero sized ");
 		if (xb.byteAt(offset) == -2) {
 			increment = 2;
@@ -1181,31 +1184,49 @@ public class VTDGen {
 	 * if it is successful or not.
 	 * @param fileName
 	 * @param ns  namespace aware or not
+	 * @param mode indicates whether the file is loaded in memory of memory mapped
 	 * @return boolean indicating whether the parseFile is a success
 	 *
 	 */
-	public boolean parseFile(String fileName, boolean ns){
-	    FileInputStream fis = null;
-	    File f = null;
+	public boolean parseFile(String fileName, boolean ns, int mode){
+	    //FileInputStream fis = null;
+	    //File f = null;
 	    try{
-	        XMLBuffer xb = new XMLBuffer();
-	        xb.readFile(fileName);
-	    	this.setDoc(xb);
-	    	this.parse(ns);  // set namespace awareness to true
-	    	return true;
+	        if (mode == IN_MEMORY){
+	            XMLBuffer xb = new XMLBuffer();
+	            xb.readFile(fileName);
+	            this.setDoc(xb);
+	            this.parse(ns);  // set namespace awareness to true
+	            return true;
+	        } else if (mode == MEM_MAPPED) {
+	            XMLMemMappedBuffer xmb = new XMLMemMappedBuffer();
+	            xmb.readFile(fileName);
+	            this.setDoc(xb);
+	            this.parse(ns);  // set namespace awareness to true
+	            return true;
+	        } 
+	        return false;
 	    }catch(java.io.IOException e){    
 	    }catch (ParseException e){
 	    }
 	    finally{
-	        if (fis!=null){
-	            try{
-	                fis.close();
-	            }catch (Exception e){
-	            }
-	        }
 	    }
 	    return false;	    
 	}
+	
+	
+	/**
+	 * parseFile with default mode set to IN_MEMORY
+	 * @param fileName
+	 * @param ns
+	 * @return boolean indicating whether the parseFile is a success
+	 *
+	 */
+	public boolean parseFile(String fileName, boolean ns){
+	    return parseFile(fileName, ns, IN_MEMORY);
+	}
+	
+	
 	
 	/**
 	 * Generating VTD tokens and Location cache info.
@@ -3148,7 +3169,7 @@ public class VTDGen {
 	 * Set the XMLDoc container.
 	 * @param XMLBuffer xb1
 	 */
-	public void setDoc(XMLBuffer xb1) {
+	public void setDoc(IByteBuffer xb1) {
 	    xb = xb1;
 	    
 		int a;
@@ -3161,8 +3182,8 @@ public class VTDGen {
 		temp_offset = 0;
 		
 		docOffset = offset = 0;
-		docLen = xb.length;
-		endOffset = xb.length;
+		docLen = xb.length();
+		endOffset = xb.length();
 		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
 		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
@@ -3191,7 +3212,7 @@ public class VTDGen {
 		    a = 23;
 		}
 		
-		VTDBuffer = new FastLongBuffer(a, (int) (xb.length>> (a+1)));
+		VTDBuffer = new FastLongBuffer(a, (int) (xb.length()>> (a+1)));
 		l1Buffer = new FastLongBuffer(i1);
 		l2Buffer = new FastLongBuffer(i2);
 		l3Buffer = new FastIntBuffer(i3);
