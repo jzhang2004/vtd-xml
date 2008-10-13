@@ -23,7 +23,7 @@ import com.ximpleware.parser.*;
 
 //import java.io.*;
 /**
- * VTD Generator implementation.
+ * VTDGenHuge implementation supporting extended VTD (256GB file size).
  * Current support built-in entities only
  * It parses DTD, but doesn't resolve declared entities
  */
@@ -819,7 +819,7 @@ public class VTDGenHuge {
 	protected IReader r;
 	
 	/**
-	 * VTDGen constructor method.
+	 * VTDGenHuge constructor method.
 	 */
 	public VTDGenHuge() {
 		attr_name_array = new long[ATTR_NAME_ARRAY_SIZE];

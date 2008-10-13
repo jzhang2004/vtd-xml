@@ -18,7 +18,7 @@
 
 /*
  *
- * this class is created to update VTDNav's implementation with 
+ * this class is created to update VTDNavHuge's implementation with 
  * a more thread safe version
  */
 package com.ximpleware.extended;
@@ -49,7 +49,7 @@ import com.ximpleware.parser.WIN1258;
 
 /**
  * 
- * VTDNav is a cursor-based VTD record navigator.
+ * VTDNavHuge is a cursor-based VTD record navigator supporting extended VTD (256 GB max file size).
  * The core navigation routines are toElement() and toElementNS()
  * push() and pop() allows one to save and restore the location of the cursor
  * String comparsions and primitive data type conversions are done directly from VTD records
