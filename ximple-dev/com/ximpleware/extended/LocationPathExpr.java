@@ -245,11 +245,11 @@ public class LocationPathExpr extends Expr{
 			    	            break;
 			    	        }
 			    	        // get textIter
-						    TextIter ti = null;
+						    TextIterHuge ti = null;
 						    if (currentStep.o != null){
-						        ti = (TextIter) currentStep.o;
+						        ti = (TextIterHuge) currentStep.o;
 						    } else {
-						        ti = new TextIter();
+						        ti = new TextIterHuge();
 						        currentStep.o = ti;
 						    }
 						    ti.touch(vn);
@@ -359,11 +359,11 @@ public class LocationPathExpr extends Expr{
 			    	            break;
 			    	        }
 			    	        // get textIter
-						    TextIter ti = null;
+						    TextIterHuge ti = null;
 						    if (currentStep.o != null){
-						        ti = (TextIter) currentStep.o;
+						        ti = (TextIterHuge) currentStep.o;
 						    } else {
-						        ti = new TextIter();
+						        ti = new TextIterHuge();
 						        currentStep.o = ti;
 						    }
 						    ti.touch(vn);
@@ -461,7 +461,7 @@ public class LocationPathExpr extends Expr{
 							currentStep = currentStep.getPrevStep();
 						}
 					}else {
-					    TextIter ti = (TextIter) currentStep.o;
+					    TextIterHuge ti = (TextIterHuge) currentStep.o;
 					    int i = -1;
 					    while ((i=ti.getNext())!=-1) {
 					        if (currentStep.evalPredicates(vn)) {
@@ -1698,7 +1698,7 @@ public class LocationPathExpr extends Expr{
 	    		} else
 	    		    return 0;
 	    	    }else {	    
-	    	        TextIter ti = new TextIter();
+	    	        TextIterHuge ti = new TextIterHuge();
 	    	        ti.touch(vn);
 	    	        while((ti.getNext())!=-1){
 	    	            if (currentStep.evalPredicates(vn,p)){
