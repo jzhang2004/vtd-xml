@@ -53,9 +53,9 @@ public class LiteralExpr extends Expr {
 		}	
 	}
 		
-	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalException{
+	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge{
 		
-		throw new XPathEvalException("LiteralExpr can't eval to a node set!");
+		throw new XPathEvalExceptionHuge("LiteralExpr can't eval to a node set!");
 	}
 	
         public String evalString(VTDNavHuge vn){

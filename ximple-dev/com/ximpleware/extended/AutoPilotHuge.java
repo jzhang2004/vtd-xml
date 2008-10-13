@@ -22,8 +22,10 @@ import com.ximpleware.extended.xpath.*;
 import java.util.*;
 import java.io.*;
 /**
- * XimpleWare's AutoPilot implementation encapsulating node iterator
+ * XimpleWare's AutoPilotHuge implementation encapsulating node iterator
  * and XPath.
+ * AutoPilotHuge is an extended VTD edition of AutoPilot supporting 256 GigByte
+ * XML file
  * 
  */
 public class AutoPilotHuge {
@@ -67,7 +69,7 @@ public class AutoPilotHuge {
    	return name;
  }
 /**
- * AutoPilot constructor comment.
+ * AutoPilotHuge constructor comment.
  * @exception IllegalArgumentException If the VTDNav object is null 
  */
 public AutoPilotHuge(VTDNavHuge v) {
@@ -85,7 +87,7 @@ public AutoPilotHuge(VTDNavHuge v) {
 }
 
 /**
- * Use this constructor for delayed binding to VTDNav
+ * Use this constructor for delayed binding to VTDNavHuge
  * which allows the reuse of XPath expression 
  *
  */
@@ -113,9 +115,8 @@ public void declareXPathNameSpace(String prefix, String URL){
 }
 
 /**
- * Bind is to replace rebind() and setVTDNav()
- * It resets the internal state of AutoPilot
- * so one can attach a VTDNav object to the autopilot
+ * Bind resets the internal state of AutoPilotHuge
+ * so one can attach a VTDNavHuge object to the autopilot
  * @param vnv
  *
  */
@@ -136,7 +137,7 @@ public void bind (VTDNavHuge vnv){
  * Null element name allowed, corresponding to node() in xpath
  * Creation date: (12/4/03 5:25:42 PM)
  * @return boolean
- * @exception com.ximpleware.NavException See description in method toElement() in VTDNav class.
+ * @exception com.ximpleware.extended.NavException See description in method toElement() in VTDNavHuge class.
  */
 public boolean iterate() throws PilotException, NavException {
     switch (iter_type) {
@@ -240,7 +241,7 @@ public boolean iterate() throws PilotException, NavException {
 /**
  * This method implements the attribute axis for XPath
  * @return the integer of the selected VTD index for attribute name
- * @throws PilotException
+ * @throws com.ximpleware.extended.PilotException
  */
    protected int iterateAttr() throws PilotException,NavException{
       
@@ -480,16 +481,16 @@ protected void selectAttrNS(String ns_URL, String ln){
  * @throws XPathParseException
  */
 
-public void selectXPath(String s) throws XPathParseException {
+public void selectXPath(String s) throws XPathParseExceptionHuge {
     try{
        parser p = new parser(new StringReader(s));
        p.ht = ht;
        xpe = (com.ximpleware.extended.xpath.Expr) p.parse().value;
        ft = true;
-    }catch(XPathParseException e){
+    }catch(XPathParseExceptionHuge e){
         throw e;
     }catch(Exception e){
-        throw new XPathParseException("Error occurred");
+        throw new XPathParseExceptionHuge("Error occurred");
     }
 }
 
@@ -536,7 +537,7 @@ public boolean evalXPathToBoolean(){
  * Afer finishing evaluating, don't forget to <em> reset the xpath </em>
  * @return int corresponding to the VTD index
  */
-public int evalXPath() throws XPathEvalException, NavException{
+public int evalXPath() throws XPathEvalExceptionHuge, NavException{
 	if (xpe!=null){
 	    if (ft == true){
 	        if (vn != null){

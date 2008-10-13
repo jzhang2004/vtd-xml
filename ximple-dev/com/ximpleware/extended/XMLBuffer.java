@@ -37,13 +37,13 @@ public class XMLBuffer implements IByteBuffer {
      * @throws ParseException
      *
      */
-    public void readFile(String fileName) throws java.io.IOException, ParseException {
+    public void readFile(String fileName) throws java.io.IOException, ParseExceptionHuge {
         // get file size
         File f = new File(fileName);
         long l = f.length();
         length = l;
         if (l>= (1L<< 38)){
-            throw new ParseException("document too big > 256 Gbyte");
+            throw new ParseExceptionHuge("document too big > 256 Gbyte");
         }
         // calculate # of buffers needed and each buffer size
         int pageNumber = (int)(l>>30)+(((l & 0x3fffffffL)==0)?0:1);

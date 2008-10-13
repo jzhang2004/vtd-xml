@@ -95,7 +95,7 @@ public class FilterExpr extends Expr {
 	}
 
 	public int evalNodeSet(VTDNavHuge vn) 
-	throws XPathEvalException, NavException {
+	throws XPathEvalExceptionHuge, NavException {
 	    // if tne predicate require context size
 	    // needs to precompute the context size
 	    // vn.push2();

@@ -135,8 +135,8 @@ public class BinaryExpr extends Expr {
 		}
 	}
 		
-	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalException {
-		throw new XPathEvalException("BinaryExpr can't eval to a node set!");
+	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge {
+		throw new XPathEvalExceptionHuge("BinaryExpr can't eval to a node set!");
 	}
 	
     public String evalString(VTDNavHuge vn){

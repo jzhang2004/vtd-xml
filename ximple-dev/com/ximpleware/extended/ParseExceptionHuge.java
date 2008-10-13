@@ -16,23 +16,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.extended;
+
 /**
- * Signals exception conditions for any invalid entity reference during parsing.
- * Creation date: (2/16/04 4:10:05 PM)
- * @author: 
+ * This class is for any exception condition in the parsing phase.
+ * Creation date: (11/19/03 11:43:03 AM)
  */
-public class EntityException extends ParseException {
+public class ParseExceptionHuge extends Exception {
 /**
- * EntityException constructor comment.
+ * ParseException constructor comment.
  */
-public EntityException() {
+public ParseExceptionHuge() {
 	super();
 }
 /**
- * EntityException constructor comment.
+ * ParseException constructor comment.
  * @param s java.lang.String
  */
-public EntityException(String s) {
+public ParseExceptionHuge(String s) {
 	super(s);
 }
 }

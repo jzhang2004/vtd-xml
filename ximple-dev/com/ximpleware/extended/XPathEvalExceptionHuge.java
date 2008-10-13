@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +17,13 @@
  */
 package com.ximpleware.extended;
 /**
- * Signals character encoding exception during parsing.
- * Creation date: (2/2/04 1:08:09 PM)
+ * This exception is thrown when there is something
+ * during XPath evaluation
+ *
  */
-public class EncodingException extends ParseException {
-/**
- * EncodingException constructor comment.
- */
-public EncodingException() {
-	super();
+public class XPathEvalExceptionHuge extends Exception{
+	public XPathEvalExceptionHuge(String s){
+		super(s);
+	}
 }
-/**
- * EncodingException constructor comment.
- * @param s java.lang.String
- */
-public EncodingException(String s) {
-	super(s);
-}
-}
+

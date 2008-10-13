@@ -90,7 +90,7 @@ public class PathExpr extends Expr {
 		return Double.NaN;
 	}
 
-	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalException, NavException {
+	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge, NavException {
 		int a,b;
 		while (true) {
 			switch (evalState) {
@@ -138,7 +138,7 @@ public class PathExpr extends Expr {
 			case 4:
 				return -1;
 			default:
-				throw new XPathEvalException(
+				throw new XPathEvalExceptionHuge(
 						"Invalid state evaluating PathExpr");
 			}
 		}

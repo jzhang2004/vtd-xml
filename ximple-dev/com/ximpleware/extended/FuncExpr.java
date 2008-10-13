@@ -561,8 +561,8 @@ public class FuncExpr extends Expr{
 	  }
 	}
 
-	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalException{
-	  throw new XPathEvalException(" Function Expr can't eval to node set ");
+	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge{
+	  throw new XPathEvalExceptionHuge(" Function Expr can't eval to node set ");
 	}
 	
 	public boolean evalBoolean(VTDNavHuge vn){

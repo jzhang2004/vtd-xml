@@ -35,12 +35,12 @@ public class XMLMemMappedBuffer implements IByteBuffer {
         return input[(int)(index>>30)].get((int)(index & 0x3fffffff));
     }
     
-    public void readFile(String fileName) throws java.io.IOException, ParseException {
+    public void readFile(String fileName) throws java.io.IOException, ParseExceptionHuge {
         File f = new File(fileName);
         long l = f.length();
         length = l;
         if (l>= (1L<< 38)){
-            throw new ParseException("document too big > 256 Gbyte");
+            throw new ParseExceptionHuge("document too big > 256 Gbyte");
         }
         RandomAccessFile raf = new RandomAccessFile(fileName, "r");
         FileChannel fc  = raf.getChannel();

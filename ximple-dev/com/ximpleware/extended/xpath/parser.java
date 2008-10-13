@@ -473,20 +473,20 @@ public class parser extends java_cup.runtime.lr_parser {
 	//throw new XPathParseException("Syntax error during parsing");
   }*/
 
-  public void report_fatal_error(String message, Object info) throws XPathParseException{
-	throw new XPathParseException("Syntax error during parsing: "+ message);
+  public void report_fatal_error(String message, Object info) throws XPathParseExceptionHuge{
+	throw new XPathParseExceptionHuge("Syntax error during parsing: "+ message);
   }
 
   public void syntax_error(Symbol cur_token) {
     
   }
   
-  public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseException{
+  public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseExceptionHuge{
       
       if ((cur_token.sym==sym.EOF) && (prev_token.sym == sym.DSLASH
               || prev_token.sym == sym.SLASH))
-          throw new XPathParseException("'/' and '//' can't terminate a location path");
-      throw new XPathParseException("XPath Syntax error: "+cur_token);
+          throw new XPathParseExceptionHuge("'/' and '//' can't terminate a location path");
+      throw new XPathParseExceptionHuge("XPath Syntax error: "+cur_token);
   }
  
 }
@@ -720,7 +720,7 @@ class CUP$parser$actions {
 		   if (n.localname!=null){
 		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
 		   	 if (parser.ht==null || parser.ht.get(n.prefix) ==null)
-		   	    throw new XPathParseException("No URL found for prefix:"+n.prefix);
+		   	    throw new XPathParseExceptionHuge("No URL found for prefix:"+n.prefix);
 		   	 RESULT.URL = (String) parser.ht.get(n.prefix);
 		   }
 		

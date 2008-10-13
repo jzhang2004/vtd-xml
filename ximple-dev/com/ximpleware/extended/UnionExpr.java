@@ -116,7 +116,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#evalNodeSet(com.ximpleware.VTDNav)
      */
-    public int evalNodeSet(VTDNavHuge vn) throws XPathEvalException, NavException {
+    public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge, NavException {
         int a;
         if (this.next == null) {
             return e.evalNodeSet(vn);
@@ -172,7 +172,7 @@ public class UnionExpr extends Expr {
                     return -1;
 
                 default:
-                    throw new XPathEvalException(
+                    throw new XPathEvalExceptionHuge(
                             "Invalid state evaluating UnionExpr");
                 }
             }

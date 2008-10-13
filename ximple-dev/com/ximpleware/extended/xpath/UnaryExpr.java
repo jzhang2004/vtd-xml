@@ -42,9 +42,9 @@ public class UnaryExpr extends Expr {
 
 	public double evalNumber(VTDNavHuge vn){ return -1*operand.evalNumber(vn);}
 		
-	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalException{
+	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge{
 		
-		throw new XPathEvalException("UnaryExpr can't eval to a node set!");
+		throw new XPathEvalExceptionHuge("UnaryExpr can't eval to a node set!");
 	}
 	
         public String evalString(VTDNavHuge vn){

@@ -34,7 +34,7 @@
  * the created BookMark instance.
  */
 package com.ximpleware.extended;
-public class BookMark {
+public class BookMarkHuge {
     VTDNavHuge vn1; // the reference to the corresponding VTDNav object
     int ba[];
     /**
@@ -42,7 +42,7 @@ public class BookMark {
      * Take no argument
      * 
      */
-    public BookMark(){
+    public BookMarkHuge(){
         ba = null;
         vn1 = null;
     }
@@ -85,7 +85,7 @@ public class BookMark {
      * as input
      * @param vn
      */
-    public BookMark(VTDNavHuge vn){
+    public BookMarkHuge(VTDNavHuge vn){
        bind(vn);
        recordCursorPosition(vn);
     }
@@ -175,7 +175,7 @@ public class BookMark {
     public boolean recordCursorPosition(){
         return recordCursorPosition(vn1);
     }
-    public final boolean deepEquals(BookMark bm2) {
+    public final boolean deepEquals(BookMarkHuge bm2) {
         if (bm2.vn1 == this.vn1){
             if (bm2.ba[bm2.ba[0]]==this.ba[this.ba[0]])
                 return true;
@@ -183,7 +183,7 @@ public class BookMark {
         return false;
     }
 
-    public final boolean equals(BookMark bm2) {
+    public final boolean equals(BookMarkHuge bm2) {
         if (this == bm2)
             return true;
         return deepEquals(bm2);
@@ -192,9 +192,9 @@ public class BookMark {
     public final boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (!(obj instanceof BookMark))
+        if (!(obj instanceof BookMarkHuge))
             return false;
-        return deepEquals((BookMark) obj);
+        return deepEquals((BookMarkHuge) obj);
     }
     
     public final int hashCode(){

@@ -153,9 +153,9 @@ public class VTDGenHuge {
 		public UTF8Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			int temp = xb.byteAt(offset);
 			//int a = 0, c = 0, d = 0, val = 0;
 			if (temp >= 0) {
@@ -165,7 +165,7 @@ public class VTDGenHuge {
 			return handleUTF8(temp);
 
 		}
-		private int handleUTF8(int temp) throws EncodingException, ParseException{
+		private int handleUTF8(int temp) throws EncodingExceptionHuge, ParseExceptionHuge{
 		    int val,c,d,a,i;
 			temp = temp & 0xff;
 			switch (UTF8Char.byteCount(temp)) { // handle multi-byte code
@@ -196,7 +196,7 @@ public class VTDGenHuge {
 				a = 5;
 				break;
 			default:
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 						"UTF 8 encoding error: should never happen");
 			}
 			val = (temp & c) << d;
@@ -204,7 +204,7 @@ public class VTDGenHuge {
 			while (i >= 0) {
 				temp = xb.byteAt(offset + a - i);
 				if ((temp & 0xc0) != 0x80)
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 							"UTF 8 encoding error: should never happen");
 				val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
 				i--;
@@ -213,7 +213,7 @@ public class VTDGenHuge {
 			return val;
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, EncodingException, ParseException {
+			throws EOFExceptionHuge, EncodingExceptionHuge, ParseExceptionHuge {
 			//int a = 0, c = 0, d = 0, val = 0;
 			int temp = xb.byteAt(offset);
 			if (temp >= 0)
@@ -225,7 +225,7 @@ public class VTDGenHuge {
 				}
 			return skipUTF8(temp, ch);			
 		}
-		private boolean skipUTF8(int temp, int ch) throws EncodingException, ParseException{
+		private boolean skipUTF8(int temp, int ch) throws EncodingExceptionHuge, ParseExceptionHuge{
 		    int val, c, d, a, i;
 		    temp = temp & 0xff;
 			switch (UTF8Char.byteCount(temp)) { // handle multi-byte code
@@ -256,7 +256,7 @@ public class VTDGenHuge {
 				a = 5;
 				break;
 			default:
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 						"UTF 8 encoding error: should never happen");
 			}
 			val = (temp & c) << d;
@@ -264,7 +264,7 @@ public class VTDGenHuge {
 			while (i >= 0) {
 				temp = xb.byteAt(offset + a - i);
 				if ((temp & 0xc0) != 0x80)
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 							"UTF 8 encoding error: should never happen");
 				val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
 				i--;
@@ -282,22 +282,22 @@ public class VTDGenHuge {
 		public UTF16BEReader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			int val = 0;
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			int temp = (xb.byteAt(offset)&0xff) << 8 | (xb.byteAt(offset+1)&0xff);
 			if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
 				offset += 2;
 				return temp;
 			} else {
 				if (temp<0xd800 || temp>0xdbff)				
-					throw new EncodingException("UTF 16 BE encoding error: should never happen");
+					throw new EncodingExceptionHuge("UTF 16 BE encoding error: should never happen");
 				val = temp;
 				temp = (xb.byteAt(offset+2)&0xff) << 8 | (xb.byteAt(offset+3)&0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be a low surrogate here
-					throw new EncodingException("UTF 16 BE encoding error: should never happen");
+					throw new EncodingExceptionHuge("UTF 16 BE encoding error: should never happen");
 				}
 				val = ((val - 0xd800)<<10) + (temp - 0xdc00) + 0x10000;
 				offset += 4;
@@ -306,7 +306,7 @@ public class VTDGenHuge {
 			}
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			// implement UTF-16BE to UCS4 conversion
 			int temp = (xb.byteAt(offset)&0xff) << 8 | (xb.byteAt(offset+1)&0xff);
 			if ((temp < 0xd800) || (temp > 0xdfff)) { // not a high surrogate
@@ -318,12 +318,12 @@ public class VTDGenHuge {
 					return false;
 			} else {
 				if (temp<0xd800 || temp>0xdbff)				
-					throw new EncodingException("UTF 16 BE encoding error: should never happen");
+					throw new EncodingExceptionHuge("UTF 16 BE encoding error: should never happen");
 				int val = temp;
 				temp = (xb.byteAt(offset+2)&0xff) << 8 | (xb.byteAt(offset+3)&0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be a low surrogate here
-					throw new EncodingException("UTF 16 BE encoding error: should never happen");
+					throw new EncodingExceptionHuge("UTF 16 BE encoding error: should never happen");
 				}
 				val = ((val - 0xd800) << 10) + (temp - 0xdc00) + 0x10000;
 				if (val == ch) {
@@ -339,22 +339,22 @@ public class VTDGenHuge {
 		public UTF16LEReader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			int val = 0;
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			int temp = (xb.byteAt(offset+1) &0xff) << 8 | (xb.byteAt(offset)& 0xff);
 			if (temp < 0xd800 || temp > 0xdfff) { // check for low surrogate
 				offset += 2;
 				return temp;
 			} else {
 				if (temp<0xd800 || temp>0xdbff)				
-					throw new EncodingException("UTF 16 LE encoding error: should never happen");
+					throw new EncodingExceptionHuge("UTF 16 LE encoding error: should never happen");
 				val = temp;
 				temp = (xb.byteAt(offset+3) &0xff) << 8 | (xb.byteAt(offset+2)&0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be high surrogate
-					throw new EncodingException("UTF 16 LE encoding error: should never happen");
+					throw new EncodingExceptionHuge("UTF 16 LE encoding error: should never happen");
 				}
 				val = ((val - 0xd800) <<10) + (temp - 0xdc00) + 0x10000;
 				offset += 4;
@@ -362,7 +362,7 @@ public class VTDGenHuge {
 			}
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, EncodingException, ParseException {
+			throws EOFExceptionHuge, EncodingExceptionHuge, ParseExceptionHuge {
 
 			int temp = (xb.byteAt(offset+1)&0xff) << 8 | (xb.byteAt(offset)&0xff);
 			if (temp < 0xd800 ||temp > 0xdfff) { // check for low surrogate
@@ -374,12 +374,12 @@ public class VTDGenHuge {
 				}
 			} else {
 				if (temp<0xd800 || temp>0xdbff)				
-					throw new EncodingException("UTF 16 LE encoding error: should never happen");
+					throw new EncodingExceptionHuge("UTF 16 LE encoding error: should never happen");
 				int val = temp;
 				temp = (xb.byteAt(offset+3)&0xff)<< 8 | (xb.byteAt(offset+2)&0xff);
 				if (temp < 0xdc00 || temp > 0xdfff) {
 					// has to be high surrogate
-					throw new EncodingException("UTF 16 LE encoding error: should never happen");
+					throw new EncodingExceptionHuge("UTF 16 LE encoding error: should never happen");
 				}
 				val = ((val - 0xd800)<<10) + (temp - 0xdc00) + 0x10000;
 				if (val == ch) {
@@ -396,18 +396,18 @@ public class VTDGenHuge {
 		public ASCIIReader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			int a;
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			a= xb.byteAt(offset++);
 			if (a<0)
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 				"ASCII encoding error: invalid ASCII Char");
 			return a&0x7f;
 		}
 		public boolean skipChar(int ch)
-			throws ParseException, EOFException, EncodingException {
+			throws ParseExceptionHuge, EOFExceptionHuge, EncodingExceptionHuge {
 
 			if (ch == xb.byteAt(offset)) {
 				offset++;
@@ -422,14 +422,14 @@ public class VTDGenHuge {
 		public ISO8859_1Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return xb.byteAt(offset++) & 0xff;
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == xb.byteAt(offset)) {
 				offset++;
 				return true;
@@ -443,14 +443,14 @@ public class VTDGenHuge {
 		public ISO8859_2Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_2.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_2.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -463,14 +463,14 @@ public class VTDGenHuge {
 		public ISO8859_3Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_3.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_3.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -484,14 +484,14 @@ public class VTDGenHuge {
 		public ISO8859_4Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_4.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_4.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -505,14 +505,14 @@ public class VTDGenHuge {
 		public ISO8859_5Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_5.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_5.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -526,14 +526,14 @@ public class VTDGenHuge {
 		public ISO8859_6Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_6.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_6.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -546,14 +546,14 @@ public class VTDGenHuge {
 		public ISO8859_7Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_7.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_7.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -567,14 +567,14 @@ public class VTDGenHuge {
 		public ISO8859_8Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_8.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_8.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -588,14 +588,14 @@ public class VTDGenHuge {
 		public ISO8859_9Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_9.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_9.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -610,14 +610,14 @@ public class VTDGenHuge {
 		public ISO8859_10Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return ISO8859_10.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == ISO8859_10.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -630,14 +630,14 @@ public class VTDGenHuge {
 		public WIN1250Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1250.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1250.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -650,14 +650,14 @@ public class VTDGenHuge {
 		public WIN1251Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1251.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1251.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -674,14 +674,14 @@ public class VTDGenHuge {
 		public WIN1252Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1252.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1252.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -695,14 +695,14 @@ public class VTDGenHuge {
 		public WIN1253Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1253.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1253.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -716,14 +716,14 @@ public class VTDGenHuge {
 		public WIN1254Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1254.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1254.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -737,14 +737,14 @@ public class VTDGenHuge {
 		public WIN1255Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1255.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1255.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -758,14 +758,14 @@ public class VTDGenHuge {
 		public WIN1256Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1256.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1256.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -779,14 +779,14 @@ public class VTDGenHuge {
 		public WIN1257Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1257.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1257.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -800,14 +800,14 @@ public class VTDGenHuge {
 		public WIN1258Reader() {
 		}
 		public int getChar()
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 
 			if (offset >= endOffset)
-				throw new EOFException("permature EOF reached, XML document incomplete");
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 			return WIN1258.decode(xb.byteAt(offset++));
 		}
 		public boolean skipChar(int ch)
-			throws EOFException, ParseException, EncodingException {
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
 			if (ch == WIN1258.decode(xb.byteAt(offset))) {
 				offset++;
 				return true;
@@ -853,11 +853,11 @@ public class VTDGenHuge {
 	/**
 	 * This method will detect whether the entity is valid or not and increment offset.
 	 * @return int
-	 * @throws com.ximpleware.ParseException Super class for any exception during parsing.
-	 * @throws com.ximpleware.EncodingException UTF/native encoding exception.
-	 * @throws com.ximpleware.EOFException End of file exception.
+	 * @throws com.ximpleware.extended.ParseExceptionHuge Super class for any exception during parsing.
+	 * @throws com.ximpleware.extended.EncodingExceptionHuge UTF/native encoding exception.
+	 * @throws com.ximpleware.extended.EOFExceptionHuge End of file exception.
 	 */
-	private int entityIdentifier() throws EntityException, EncodingException,EOFException, ParseException {
+	private int entityIdentifier() throws EntityExceptionHuge, EncodingExceptionHuge,EOFExceptionHuge, ParseExceptionHuge {
 		int ch = r.getChar();
 		int val = 0;
 
@@ -876,7 +876,7 @@ public class VTDGenHuge {
 					} else if (ch == ';') {
 						return val;
 					} else
-						throw new EntityException("Errors in char reference: Illegal char following &#x.");
+						throw new EntityExceptionHuge("Errors in char reference: Illegal char following &#x.");
 				}
 			} else {
 				while (true) {
@@ -885,12 +885,12 @@ public class VTDGenHuge {
 					} else if (ch == ';') {
 						break;
 					} else
-						throw new EntityException("Errors in char reference: Illegal char following &#.");
+						throw new EntityExceptionHuge("Errors in char reference: Illegal char following &#.");
 						ch = r.getChar();
 				}
 			}
 			if (!XMLChar.isValidChar(val)) {
-				throw new EntityException("Errors in entity reference: Invalid XML char.");
+				throw new EntityExceptionHuge("Errors in entity reference: Invalid XML char.");
 			}
 			return val;
 			//break;
@@ -902,7 +902,7 @@ public class VTDGenHuge {
 						//System.out.println(" entity for &");
 						return '&';
 					} else
-						throw new EntityException("Errors in Entity: Illegal builtin reference");
+						throw new EntityExceptionHuge("Errors in Entity: Illegal builtin reference");
 				} else if (ch == 'p') {
 					if (r.getChar() == 'o'
 						&& r.getChar() == 's'
@@ -910,9 +910,9 @@ public class VTDGenHuge {
 						//System.out.println(" entity for ' ");
 						return '\'';
 					} else
-						throw new EntityException("Errors in Entity: Illegal builtin reference");
+						throw new EntityExceptionHuge("Errors in Entity: Illegal builtin reference");
 				} else
-					throw new EntityException("Errors in Entity: Illegal builtin reference");
+					throw new EntityExceptionHuge("Errors in Entity: Illegal builtin reference");
 
 			case 'q' :
 				if (r.getChar() == 'u'
@@ -921,20 +921,20 @@ public class VTDGenHuge {
 					&& r.getChar() == ';') {
 					return '"';
 				} else
-					throw new EntityException("Errors in Entity: Illegal builtin reference");
+					throw new EntityExceptionHuge("Errors in Entity: Illegal builtin reference");
 			case 'l' :
 				if (r.getChar() == 't' && r.getChar() == ';') {
 					return '<';
 				} else
-					throw new EntityException("Errors in Entity: Illegal builtin reference");
+					throw new EntityExceptionHuge("Errors in Entity: Illegal builtin reference");
 				//break;
 			case 'g' :
 				if (r.getChar() == 't' && r.getChar() == ';') {
 					return '>';
 				} else
-					throw new EntityException("Errors in Entity: Illegal builtin reference");
+					throw new EntityExceptionHuge("Errors in Entity: Illegal builtin reference");
 			default :
-				throw new EntityException("Errors in Entity: Illegal entity char");
+				throw new EntityExceptionHuge("Errors in Entity: Illegal entity char");
 		}
 		//return val;
 	}
@@ -996,12 +996,12 @@ public class VTDGenHuge {
 	/**
 	 * The entity ignorant version of getCharAfterS.
 	 * @return int
-	 * @throws ParseException 
-	 * @throws EncodingException 
-	 * @throws com.ximpleware.EOFException 
+	 * @throws ParseExceptionHuge 
+	 * @throws EncodingExceptionHuge 
+	 * @throws com.ximpleware.EOFExceptionHuge 
 	 */
 	private int getCharAfterS()
-		throws ParseException, EncodingException, EOFException {
+		throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
 		int n;
 		while (true) {
 			n = r.getChar();
@@ -1009,17 +1009,17 @@ public class VTDGenHuge {
 			} else
 				return n;
 		}
-		//throw new EOFException("should never come here");
+		//throw new EOFExceptionHuge("should never come here");
 	}
 	/**
 	 * The entity aware version of getCharAfterS
 	 * @return int
-	 * @throws ParseException Super class for any exception during parsing.
-	 * @throws EncodingException UTF/native encoding exception.
-	 * @throws com.ximpleware.EOFException End of file exception.
+	 * @throws ParseExceptionHuge Super class for any exception during parsing.
+	 * @throws EncodingExceptionHuge UTF/native encoding exception.
+	 * @throws com.ximpleware.EOFExceptionHuge End of file exception.
 	 */
 	private int getCharAfterSe()
-		throws ParseException, EncodingException, EOFException {
+		throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
 		int n = 0;
 		long temp; //offset saver
 		while (true) {
@@ -1063,9 +1063,9 @@ public class VTDGenHuge {
 	/**
 	 * Get the offset value of previous character.
 	 * @return int
-	 * @throws ParseException Super class for exceptions during parsing.
+	 * @throws ParseExceptionHuge Super class for exceptions during parsing.
 	 */
-	private long getPrevOffset() throws ParseException {
+	private long getPrevOffset() throws ParseExceptionHuge {
 		long prevOffset = offset;
 		int temp;
 		switch (encoding) {
@@ -1110,18 +1110,18 @@ public class VTDGenHuge {
 				} else
 					return offset - 4;
 			default :
-				throw new ParseException("Other Error: Should never happen");
+				throw new ParseExceptionHuge("Other Error: Should never happen");
 		}
 	}
 
 	/**
 	 * A private method that detects the BOM and decides document encoding
-	 * @throws EncodingException
-	 * @throws ParseException
+	 * @throws EncodingExceptionHuge
+	 * @throws ParseExceptionHuge
 	 */
-	private void decide_encoding() throws EncodingException,ParseException {
+	private void decide_encoding() throws EncodingExceptionHuge,ParseExceptionHuge {
 	    if (xb.length()==0)
-	        throw new EncodingException("Document is zero sized ");
+	        throw new EncodingExceptionHuge("Document is zero sized ");
 		if (xb.byteAt(offset) == -2) {
 			increment = 2;
 			if (xb.byteAt(offset+1) == -1) {
@@ -1130,7 +1130,7 @@ public class VTDGenHuge {
 				BOM_detected = true;
 				r = new UTF16BEReader();
 			} else
-				throw new EncodingException("Unknown Character encoding: should be 0xff 0xfe");
+				throw new EncodingExceptionHuge("Unknown Character encoding: should be 0xff 0xfe");
 		} else if (xb.byteAt(offset) == -1) {
 			increment = 2;
 			if (xb.byteAt(offset+1) == -2) {
@@ -1139,14 +1139,14 @@ public class VTDGenHuge {
 				BOM_detected = true;
 				r = new UTF16LEReader();
 			} else
-				throw new EncodingException("Unknown Character encoding: not UTF-16LE");
+				throw new EncodingExceptionHuge("Unknown Character encoding: not UTF-16LE");
 		} else if (xb.byteAt(offset) == -17){
 		    if (xb.byteAt(offset+1) == -69 && xb.byteAt(offset+2)==-65){
 		      offset +=3;
 		      must_utf_8= true;
 		    }
 		    else 
-		    	throw new EncodingException("Unknown Character encoding: not UTF-8");
+		    	throw new EncodingExceptionHuge("Unknown Character encoding: not UTF-8");
 		}
 		else if (xb.byteAt(offset)==0){
 			if (xb.byteAt(offset+1) == 0x3c 
@@ -1157,7 +1157,7 @@ public class VTDGenHuge {
 				r = new UTF16BEReader();
 				}
 			else
-				throw new EncodingException("Unknown Character encoding: not UTF-16BE");
+				throw new EncodingExceptionHuge("Unknown Character encoding: not UTF-16BE");
 		}
 		else if (xb.byteAt(offset)==0x3c){
 			if (xb.byteAt(offset+1) == 0 
@@ -1171,11 +1171,11 @@ public class VTDGenHuge {
 		// check for max file size exception
 		if (encoding < FORMAT_UTF_16BE) {
             if ((offset + (long) docLen) >= 1L << 37)
-                throw new ParseException(
+                throw new ParseExceptionHuge(
                         "Other error: file size too big >=128GB ");
         } else {
             if ((offset + (long) docLen) >= 1L << 37)
-                throw new ParseException(
+                throw new ParseExceptionHuge(
                         "Other error: file size too large >= 128GB");
         }
 	}
@@ -1207,7 +1207,7 @@ public class VTDGenHuge {
 	        } 
 	        return false;
 	    }catch(java.io.IOException e){    
-	    }catch (ParseException e){
+	    }catch (ParseExceptionHuge e){
 	    }
 	    finally{
 	    }
@@ -1231,13 +1231,13 @@ public class VTDGenHuge {
 	/**
 	 * Generating VTD tokens and Location cache info.
 	 * @param NS boolean Enable namespace or not
-	 * @throws ParseException Super class for any exceptions during parsing.     
-	 * @throws EOFException End of file exception.    
-	 * @throws EntityException Entity resolution exception.
-	 * @throws EncodingException UTF/native encoding exception.
+	 * @throws ParseExceptionHuge Super class for any exceptions during parsing.     
+	 * @throws EOFExceptionHuge End of file exception.    
+	 * @throws EntityExceptionHuge Entity resolution exception.
+	 * @throws EncodingExceptionHuge UTF/native encoding exception.
 	 */
 	public void parse(boolean NS)
-		throws EncodingException, EOFException, EntityException, ParseException {
+		throws EncodingExceptionHuge, EOFExceptionHuge, EntityExceptionHuge, ParseExceptionHuge {
 
 		// define internal variables	
 		ns = NS;
@@ -1259,7 +1259,7 @@ public class VTDGenHuge {
 			while (true) {
 				switch (parser_state) {
 					case STATE_LT_SEEN : //if (depth < -1)
-						//    throw new ParseException("Other Errors: Invalid depth");
+						//    throw new ParseExceptionHuge("Other Errors: Invalid depth");
 						temp_offset = offset;
 						ch = r.getChar();
 						if (XMLChar.isNameStartChar(ch)) {
@@ -1277,7 +1277,7 @@ public class VTDGenHuge {
 									parser_state = process_ex_seen();
 									break;
 								default :
-									throw new ParseException(
+									throw new ParseExceptionHuge(
 										"Other Error: Invalid char after <"
 											+ formatLineNumber());
 							}
@@ -1296,7 +1296,7 @@ public class VTDGenHuge {
 						}
 						length1 = offset - temp_offset - increment;
 						if (depth > MAX_DEPTH) {
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"Other Error: Depth exceeds MAX_DEPTH"
 									+ formatLineNumber());
 						}
@@ -1311,7 +1311,7 @@ public class VTDGenHuge {
 						if (encoding < FORMAT_UTF_16BE){
 							if (length2>MAX_PREFIX_LENGTH
 									|| length1 > MAX_QNAME_LENGTH)
-								throw new ParseException(
+								throw new ParseExceptionHuge(
 										"Token Length Error: Starting tag prefix or qname length too long"					
 										+ formatLineNumber());
 							writeVTD(
@@ -1323,7 +1323,7 @@ public class VTDGenHuge {
 						else{
 							if (length2>(MAX_PREFIX_LENGTH <<1)
 									|| length1 > (MAX_QNAME_LENGTH<<1))
-								throw new ParseException(
+								throw new ParseExceptionHuge(
 										"Token Length Error: Starting tag prefix or qname length too long"
 										+formatLineNumber());
 							writeVTD(
@@ -1388,13 +1388,13 @@ public class VTDGenHuge {
 									while (r.skipChar(']')) {
 									}
 									if (r.skipChar('>'))
-										throw new ParseException(
+										throw new ParseExceptionHuge(
 												"Error in text content: ]]> in text content"
 														+ formatLineNumber());
 								}
 								parser_state = STATE_TEXT;
 							} else
-								throw new ParseException(
+								throw new ParseExceptionHuge(
 										"Error in text content: Invalid char"
 												+ formatLineNumber());
 						} else {
@@ -1402,7 +1402,7 @@ public class VTDGenHuge {
 						}
 						break;
 					}
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 							"Starting tag Error: Invalid char in starting tag"
 									+ formatLineNumber());
 
@@ -1414,17 +1414,17 @@ public class VTDGenHuge {
 						offset = temp_offset+sl;
 						
 						if (offset>= endOffset)
-							throw new EOFException("permature EOF reached, XML document incomplete");
+							throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
 						for (int i = 0; i < sl; i++) {
 							if (xb.byteAt(sos + i) != xb.byteAt(temp_offset + i))
-								throw new ParseException(
+								throw new ParseExceptionHuge(
 									"Ending tag error: Start/ending tag mismatch"
 									+ formatLineNumber());
 						}
 						depth--;
 						ch = getCharAfterS();
 						if(ch != '>')
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"Ending tag error: Invalid char in ending tag "
 								+ formatLineNumber()); 
 						
@@ -1446,13 +1446,13 @@ public class VTDGenHuge {
 									while (r.skipChar(']')) {
 									}
 									if (r.skipChar('>'))
-										throw new ParseException(
+										throw new ParseExceptionHuge(
 										"Error in text content: ]]> in text content"
 										+ formatLineNumber());
 								}
 									parser_state = STATE_TEXT;
 							}else
-								throw new ParseException(
+								throw new ParseExceptionHuge(
 									"Other Error: Invalid char in xml"
 									+ formatLineNumber());
 						} else
@@ -1505,7 +1505,7 @@ public class VTDGenHuge {
 							unique = unique && unequal;
 						}
 						if (!unique && attr_count != 0)
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"Error in attr: Attr name not unique"
 									+ formatLineNumber());
 						unique = true;
@@ -1536,7 +1536,7 @@ public class VTDGenHuge {
 							if (encoding < FORMAT_UTF_16BE){
 								if (length2>MAX_PREFIX_LENGTH
 										|| length1 > MAX_QNAME_LENGTH)
-									throw new ParseException(
+									throw new ParseExceptionHuge(
 											"Token length overflow error: Attr NS tag prefix or qname length too long"
 											+formatLineNumber());
 								writeVTD(
@@ -1548,7 +1548,7 @@ public class VTDGenHuge {
 							else{
 								if (length2>(MAX_PREFIX_LENGTH << 1)
 										|| length1 > (MAX_QNAME_LENGTH <<1))
-									throw new ParseException(
+									throw new ParseExceptionHuge(
 											"Token length overflow error: Attr NS prefix or qname length too long"
 											+ formatLineNumber());
 								writeVTD(
@@ -1562,7 +1562,7 @@ public class VTDGenHuge {
 							if (encoding < FORMAT_UTF_16BE){
 								if (length2>MAX_PREFIX_LENGTH
 										|| length1 > MAX_QNAME_LENGTH)
-									throw new ParseException(
+									throw new ParseExceptionHuge(
 											"Token Length Error: Attr name prefix or qname length too long"
 											+ formatLineNumber());
 								writeVTD(
@@ -1574,7 +1574,7 @@ public class VTDGenHuge {
 							else{
 								if (length2>(MAX_PREFIX_LENGTH<<1)
 										|| length1 > (MAX_QNAME_LENGTH<<1))
-									throw new ParseException(
+									throw new ParseExceptionHuge(
 											"Token Length overflow error: Attr name prefix or qname length too long" 
 											+ formatLineNumber());
 								writeVTD(
@@ -1591,12 +1591,12 @@ public class VTDGenHuge {
 							ch = getCharAfterS();
 						}
 						if (ch != '=')
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"Error in attr: invalid char"
 									+ formatLineNumber());
 						ch_temp = getCharAfterS();
 						if (ch_temp != '"' && ch_temp != '\'')
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"Error in attr: invalid char (should be ' or \" )"
 									+ formatLineNumber());
 						temp_offset = offset;
@@ -1613,14 +1613,14 @@ public class VTDGenHuge {
 									// as in vtd spec, we mark attr val with entities
 									if (!XMLChar
 										.isValidChar(entityIdentifier())) {
-										throw new ParseException(
+										throw new ParseExceptionHuge(
 											"Error in attr: Invalid XML char"
 												+ formatLineNumber());
 									}
 								}
 
 							} else
-								throw new ParseException(
+								throw new ParseExceptionHuge(
 									"Error in attr: Invalid XML char"
 										+ formatLineNumber());
 						}
@@ -1628,7 +1628,7 @@ public class VTDGenHuge {
 						length1 = offset - temp_offset - increment;
 						if (encoding < FORMAT_UTF_16BE){
 							if (length1 > MAX_TOKEN_LENGTH)
-								  throw new ParseException("Token Length Error:"
+								  throw new ParseExceptionHuge("Token Length Error:"
 											  +" Attr val too long (>0xfffff)"
 											  + formatLineNumber());
 							writeVTD(
@@ -1639,7 +1639,7 @@ public class VTDGenHuge {
 						}
 						else{
 							if (length1 > (MAX_TOKEN_LENGTH <<1))
-								  throw new ParseException("Token Length Error:"
+								  throw new ParseExceptionHuge("Token Length Error:"
 											  +" Attr val too long (>0xfffff)"
 											  + formatLineNumber());
 							writeVTD(
@@ -1704,13 +1704,13 @@ public class VTDGenHuge {
 										while (r.skipChar(']')) {
 										}
 										if (r.skipChar('>'))
-											throw new ParseException(
+											throw new ParseExceptionHuge(
 												"Error in text content: ]]> in text content"
 													+ formatLineNumber());
 									}
 									parser_state = STATE_TEXT;
 								}else
-									throw new ParseException(
+									throw new ParseExceptionHuge(
 										"Error in text content: Invalid char"
 											+ formatLineNumber());
 							} else {
@@ -1719,13 +1719,13 @@ public class VTDGenHuge {
 							break;
 						}
 
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Starting tag Error: Invalid char in starting tag"
 								+ formatLineNumber());
 						
 					case STATE_TEXT :
 						if (depth == -1)
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"Error in text content: Char data at the wrong place"
 									+ formatLineNumber());
 						while (true) {
@@ -1734,7 +1734,7 @@ public class VTDGenHuge {
 							} else if (ch == '&') {
 								//has_amp = true;
 								if (!XMLChar.isValidChar(entityIdentifier()))
-									throw new ParseException(
+									throw new ParseExceptionHuge(
 										"Error in text content: Invalid char in text content "
 											+ formatLineNumber());
 								//parser_state = STATE_TEXT;
@@ -1745,12 +1745,12 @@ public class VTDGenHuge {
 									while (r.skipChar(']')) {
 									}
 									if (r.skipChar('>'))
-										throw new ParseException(
+										throw new ParseExceptionHuge(
 											"Error in text content: ]]> in text content"
 												+ formatLineNumber());
 								}
 							} else
-								throw new ParseException(
+								throw new ParseExceptionHuge(
 									"Error in text content: Invalid char in text content "
 										+ formatLineNumber());
 						}
@@ -1782,7 +1782,7 @@ public class VTDGenHuge {
 					case STATE_PI_TAG :
 						parser_state = process_pi_tag();
 						break;
-						//throw new ParseException("Error in PI: Invalid char");
+						//throw new ParseExceptionHuge("Error in PI: Invalid char");
 					case STATE_PI_VAL :
 						parser_state = process_pi_val();
 						break;
@@ -1812,23 +1812,23 @@ public class VTDGenHuge {
 						break;
 						
 					default :
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Other error: invalid parser state"
 								+formatLineNumber());
 				}
 			}
-		} catch (EOFException e) {
+		} catch (EOFExceptionHuge e) {
 			if (parser_state != STATE_DOC_END)
 				throw e;
 			finishUp();
 		}
 	}
-	private void matchCPEncoding()throws ParseException{
+	private void matchCPEncoding()throws ParseExceptionHuge{
 	    if ((r.skipChar('p') || r.skipChar('P')) && r.skipChar('1')
                 && r.skipChar('2') && r.skipChar('5')) {
             if (encoding <= FORMAT_UTF_16LE) {
                 if (must_utf_8)
-                    throw new EncodingException(
+                    throw new EncodingExceptionHuge(
                             "Can't switch from UTF-8"
                                     + formatLineNumber());
                 if (r.skipChar('0')){
@@ -1886,23 +1886,23 @@ public class VTDGenHuge {
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else   
-				    throw new ParseException(
+				    throw new ParseExceptionHuge(
 						"XML decl error: Invalid Encoding"
 						+ formatLineNumber());
                 if (r.skipChar(ch_temp))
                     return;				
             } else
-                throw new ParseException(
+                throw new ParseExceptionHuge(
                         "XML decl error: Can't switch encoding to ISO-8859"
                                 + formatLineNumber());
 				
 				}
-	    throw new ParseException(
+	    throw new ParseExceptionHuge(
 				"XML decl error: Invalid Encoding"
 						+ formatLineNumber());	    
 	}
 	
-	private void matchWindowsEncoding()throws ParseException{
+	private void matchWindowsEncoding()throws ParseExceptionHuge{
 	    if ((r.skipChar('i') || r.skipChar('I')) 
 	            &&(r.skipChar('n') || r.skipChar('N'))
 	            &&(r.skipChar('d') || r.skipChar('D'))
@@ -1915,7 +1915,7 @@ public class VTDGenHuge {
                 && r.skipChar('5')) {
             if (encoding <= FORMAT_UTF_16LE) {
                 if (must_utf_8)
-                    throw new EncodingException(
+                    throw new EncodingExceptionHuge(
                             "Can't switch from UTF-8"
                                     + formatLineNumber());
                 if (r.skipChar('0')){
@@ -1973,22 +1973,22 @@ public class VTDGenHuge {
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else 
-				    throw new ParseException(
+				    throw new ParseExceptionHuge(
 							"XML decl error: Invalid Encoding"
 									+ formatLineNumber());
                 if (r.skipChar(ch_temp))
                     return;
 				
             } else
-                throw new ParseException(
+                throw new ParseExceptionHuge(
                         "XML decl error: Can't switch encoding to ISO-8859"
                                 + formatLineNumber());				
 				}
-	    throw new ParseException(
+	    throw new ParseExceptionHuge(
 				"XML decl error: Invalid Encoding"
 						+ formatLineNumber());
 	}
-	private void matchUTFEncoding() throws ParseException{
+	private void matchUTFEncoding() throws ParseExceptionHuge{
 		if ((r.skipChar('s') || r.skipChar('S')))
 			if (r.skipChar('-')
 					&& (r.skipChar('a') || r.skipChar('A'))
@@ -2000,7 +2000,7 @@ public class VTDGenHuge {
 				if (encoding != FORMAT_UTF_16LE
 						&& encoding != FORMAT_UTF_16BE) {
 					if (must_utf_8)
-						throw new EncodingException(
+						throw new EncodingExceptionHuge(
 								"Can't switch from UTF-8"
 										+ formatLineNumber());
 					encoding = FORMAT_ASCII;
@@ -2011,11 +2011,11 @@ public class VTDGenHuge {
 					
 						return;
 				} else
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 							"XML decl error: Can't switch encoding to US-ASCII"
 									+ formatLineNumber());
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 						"XML decl error: Invalid Encoding"
 								+ formatLineNumber());
 
@@ -2031,7 +2031,7 @@ public class VTDGenHuge {
 								depth);					
 						return;
 				} else
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 							"XML decl error: Can't switch encoding to UTF-8"
 									+ formatLineNumber());
 			}
@@ -2040,7 +2040,7 @@ public class VTDGenHuge {
 					if (encoding == FORMAT_UTF_16LE
 							|| encoding == FORMAT_UTF_16BE) {
 						if (!BOM_detected)
-							throw new EncodingException(
+							throw new EncodingExceptionHuge(
 									"BOM not detected for UTF-16"
 											+ formatLineNumber());
 							writeVTD(
@@ -2050,7 +2050,7 @@ public class VTDGenHuge {
 									depth);
 						return;
 					}
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 							"XML decl error: Can't switch encoding to UTF-16"
 									+ formatLineNumber());
 				} else if ((r.skipChar('l') || r.skipChar('L'))
@@ -2065,7 +2065,7 @@ public class VTDGenHuge {
 									depth);
 						return;
 					}
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 							"XML del error: Can't switch encoding to UTF-16LE"
 									+ formatLineNumber());
 				} else if ((r.skipChar('b') || r.skipChar('B'))
@@ -2079,19 +2079,19 @@ public class VTDGenHuge {
 									depth);
 						return;
 					}
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 							"XML del error: Can't swtich encoding to UTF-16BE"
 									+ formatLineNumber());
 				}
 
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 						"XML decl error: Invalid encoding"
 								+ formatLineNumber());
 			}
 		}
 	}
 	
-	private void matchISOEncoding()throws ParseException{
+	private void matchISOEncoding()throws ParseExceptionHuge{
 		if ((r.skipChar('s') || r.skipChar('S'))
 				&& (r.skipChar('o') || r.skipChar('O'))
 				&& r.skipChar('-') && r.skipChar('8')
@@ -2100,7 +2100,7 @@ public class VTDGenHuge {
 				{
 		    if (encoding <= FORMAT_UTF_16LE) {
 				if (must_utf_8)
-					throw new EncodingException(
+					throw new EncodingExceptionHuge(
 							"Can't switch from UTF-8"
 									+ formatLineNumber());
 				if (r.skipChar('1')){
@@ -2167,28 +2167,28 @@ public class VTDGenHuge {
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				} else 		
-				    throw new ParseException(
+				    throw new ParseExceptionHuge(
 							"XML decl error: Invalid Encoding"
 									+ formatLineNumber());
 				if (r.skipChar(ch_temp))
 				    return;				
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 						"XML decl error: Can't switch encoding to ISO-8859"
 								+ formatLineNumber());
 		}
-		throw new ParseException(
+		throw new ParseExceptionHuge(
 				"XML decl error: Invalid Encoding"
 						+ formatLineNumber());
 	}
 	/**
 	 * This private method processes declaration attributes
 	 * @return the parser state after which the parser loop jumps to
-	 * @throws ParseException
-	 * @throws EncodingException
-	 * @throws EOFException
+	 * @throws ParseExceptionHuge
+	 * @throws EncodingExceptionHuge
+	 * @throws EOFExceptionHuge
 	 */
-	private int process_dec_attr() throws ParseException, EncodingException, EOFException{
+	private int process_dec_attr() throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge{
 		int length1;
 		int parser_state;
 		if (ch == 'v'
@@ -2215,16 +2215,16 @@ public class VTDGenHuge {
 						TOKEN_DEC_ATTR_NAME,
 						depth);
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"XML decl error: Invalid char"
 						+ formatLineNumber());
 		} else
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"XML decl error: should be version"
 					+ formatLineNumber());
 		ch_temp = getCharAfterS();
 		if (ch_temp != '\'' && ch_temp != '"')
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"XML decl error: Invalid char to start attr name"
 					+ formatLineNumber());
 		temp_offset = offset;
@@ -2247,11 +2247,11 @@ public class VTDGenHuge {
 					TOKEN_DEC_ATTR_VAL,
 					depth);
 		} else
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"XML decl error: Invalid version(other than 1.0 or 1.1) detected"
 					+ formatLineNumber());
 		if (!r.skipChar(ch_temp))
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"XML decl error: version not terminated properly"
 					+ formatLineNumber());
 		ch = r.getChar();
@@ -2286,12 +2286,12 @@ public class VTDGenHuge {
 								TOKEN_DEC_ATTR_NAME,
 								depth);
 					} else
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"XML decl error: Invalid char"
 								+ formatLineNumber());
 					ch_temp = getCharAfterS();
 					if (ch_temp != '"' && ch_temp != '\'')
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"XML decl error: Invalid char to start attr name"
 								+ formatLineNumber());
 					temp_offset = offset;
@@ -2312,7 +2312,7 @@ public class VTDGenHuge {
 									&& encoding
 										!= FORMAT_UTF_16BE) {
 									if (must_utf_8)
-										throw new EncodingException("Can't switch from UTF-8"
+										throw new EncodingExceptionHuge("Can't switch from UTF-8"
 												+ formatLineNumber());
 									encoding = FORMAT_ASCII;
 									r = new ASCIIReader();
@@ -2327,11 +2327,11 @@ public class VTDGenHuge {
 									
 									break;
 								} else
-									throw new ParseException(
+									throw new ParseExceptionHuge(
 										"XML decl error: Can't switch encoding to ASCII"
 											+ formatLineNumber());
 							}
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"XML decl error: Invalid Encoding"
 									+ formatLineNumber());
 						case 'c':
@@ -2352,7 +2352,7 @@ public class VTDGenHuge {
 						    matchWindowsEncoding();
 						    break;
 						default :
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"XML decl Error: invalid encoding"
 									+ formatLineNumber());
 					}
@@ -2361,7 +2361,7 @@ public class VTDGenHuge {
 						ch = getCharAfterS();
 					temp_offset = offset - increment;
 				} else
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"XML decl Error: Invalid char"
 							+ formatLineNumber());
 			}
@@ -2379,7 +2379,7 @@ public class VTDGenHuge {
 
 					ch = getCharAfterS();
 					if (ch != '=')
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"XML decl error: Invalid char"
 								+ formatLineNumber());
 					/*System.out.println(
@@ -2399,7 +2399,7 @@ public class VTDGenHuge {
 					ch_temp = getCharAfterS();
 					temp_offset = offset;
 					if (ch_temp != '"' && ch_temp != '\'')
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"XML decl error: Invalid char to start attr name"
 								+ formatLineNumber());
 					ch = r.getChar();
@@ -2422,7 +2422,7 @@ public class VTDGenHuge {
 									TOKEN_DEC_ATTR_VAL,
 									depth);
 						} else
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"XML decl error: invalid val for standalone"
 									+ formatLineNumber());
 					} else if (ch == 'n') {
@@ -2443,15 +2443,15 @@ public class VTDGenHuge {
 									TOKEN_DEC_ATTR_VAL,
 									depth);
 						} else
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"XML decl error: invalid val for standalone"
 									+ formatLineNumber());
 					} else
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"XML decl error: invalid val for standalone"
 								+ formatLineNumber());
 				} else
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"XML decl error" + formatLineNumber());
 				ch = r.getChar();
 				if (XMLChar.isSpaceChar(ch))
@@ -2465,11 +2465,11 @@ public class VTDGenHuge {
 			if (ch == '<') {
 				parser_state = STATE_LT_SEEN;
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Other Error: Invalid Char in XML"
 						+ formatLineNumber());
 		} else
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"XML decl Error: Invalid termination sequence"
 					+ formatLineNumber());
 		return parser_state;
@@ -2477,11 +2477,11 @@ public class VTDGenHuge {
 	/**
 	 * This private method processes PI tag
 	 * @return the parser state after which the parser loop jumps to
-	 * @throws ParseException
-	 * @throws EncodingException
-	 * @throws EOFException
+	 * @throws ParseExceptionHuge
+	 * @throws EncodingExceptionHuge
+	 * @throws EOFExceptionHuge
 	 */
-	private int process_pi_tag() throws ParseException, EncodingException, EOFException{
+	private int process_pi_tag() throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge{
 		long length1;
 		int parser_state;
 		while (true) {
@@ -2501,7 +2501,7 @@ public class VTDGenHuge {
 		        + depth); */
 		if (encoding < FORMAT_UTF_16BE){
 			if (length1 > MAX_TOKEN_LENGTH)
-				  throw new ParseException("Token Length Error:"
+				  throw new ParseExceptionHuge("Token Length Error:"
 							  +" PI name too long (>0xfffff)"
 							  + formatLineNumber());
 			writeVTD(
@@ -2512,7 +2512,7 @@ public class VTDGenHuge {
 		}
 		else{
 			if(length1 > (MAX_TOKEN_LENGTH<<1))
-				throw new ParseException("Token Length Error:"
+				throw new ParseExceptionHuge("Token Length Error:"
 							+" PI name too long (>0xfffff)"
 							+ formatLineNumber());
 			writeVTD(
@@ -2543,18 +2543,18 @@ public class VTDGenHuge {
 						while (r.skipChar(']')) {
 						}
 						if (r.skipChar('>'))
-							throw new ParseException(
+							throw new ParseExceptionHuge(
 								"Error in text content: ]]> in text content"
 									+ formatLineNumber());
 					}
 					parser_state = STATE_TEXT;
 				}else
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in text content: Invalid char"
 							+ formatLineNumber());
 				return parser_state;
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Error in PI: invalid termination sequence"
 						+ formatLineNumber());
 		}
@@ -2564,11 +2564,11 @@ public class VTDGenHuge {
 	/**
 	 * This private method processes PI val 
 	 * @return the parser state after which the parser loop jumps to
-	 * @throws ParseException
-	 * @throws EncodingException
-	 * @throws EOFException
+	 * @throws ParseExceptionHuge
+	 * @throws EncodingExceptionHuge
+	 * @throws EOFExceptionHuge
 	 */
-	private int process_pi_val() throws ParseException, EncodingException, EOFException{
+	private int process_pi_val() throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge{
 		int parser_state;
 		long length1;
 		while (true) {
@@ -2578,11 +2578,11 @@ public class VTDGenHuge {
 					if (r.skipChar('>')) {
 						break;
 					} else
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Error in PI: invalid termination sequence for PI"
 								+ formatLineNumber());
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Errors in PI: Invalid char in PI val"
 						+ formatLineNumber());
 			ch = r.getChar();
@@ -2598,7 +2598,7 @@ public class VTDGenHuge {
 		        + depth);*/
 		if (encoding < FORMAT_UTF_16BE){
 			if (length1 > MAX_TOKEN_LENGTH)
-				  throw new ParseException("Token Length Error:"
+				  throw new ParseExceptionHuge("Token Length Error:"
 							  +"PI VAL too long (>0xfffff)"
 							  + formatLineNumber());
 			writeVTD(temp_offset,
@@ -2608,7 +2608,7 @@ public class VTDGenHuge {
 		}
 		else{
 			if (length1 > (MAX_TOKEN_LENGTH<<1))
-				  throw new ParseException("Token Length Error:"
+				  throw new ParseExceptionHuge("Token Length Error:"
 							  +"PI VAL too long (>0xfffff)"
 							  + formatLineNumber());
 			writeVTD(
@@ -2636,14 +2636,14 @@ public class VTDGenHuge {
 				while (r.skipChar(']')) {
 				}
 				if (r.skipChar('>'))
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in text content: ]]> in text content"
 							+ formatLineNumber());
 				
 			}
 			parser_state = STATE_TEXT;
 		}else
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"Error in text content: Invalid char"
 					+ formatLineNumber());
 		return parser_state;
@@ -2652,11 +2652,11 @@ public class VTDGenHuge {
 	/**
 	 * This private method process comment
 	 * @return the parser state after which the parser loop jumps to
-	 * @throws ParseException
-	 * @throws EncodingException
-	 * @throws EOFException
+	 * @throws ParseExceptionHuge
+	 * @throws EncodingExceptionHuge
+	 * @throws EOFExceptionHuge
 	 */
-	private int process_comment() throws ParseException, EncodingException, EOFException{
+	private int process_comment() throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge{
 		int parser_state;
 		long length1;
 		while (true) {
@@ -2668,7 +2668,7 @@ public class VTDGenHuge {
 					break;
 				}
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Error in comment: Invalid Char"
 						+ formatLineNumber());
 		}
@@ -2704,22 +2704,22 @@ public class VTDGenHuge {
 					while (r.skipChar(']')) {
 					}
 					if (r.skipChar('>'))
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Error in text content: ]]> in text content"
 								+ formatLineNumber());
 				}
 				parser_state = STATE_TEXT;
 			}else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Error in text content: Invalid char"
 						+ formatLineNumber());
 			return parser_state;
 		} else
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"Error in comment: Invalid terminating sequence"
 					+ formatLineNumber());
 	}
-	private int process_end_doc() throws ParseException, EncodingException, EOFException {
+	private int process_end_doc() throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
 	    int parser_state;
 		ch = getCharAfterS();
 		/* eof exception should be thrown here for premature ending*/
@@ -2740,11 +2740,11 @@ public class VTDGenHuge {
 				return parser_state;
 			}
 		}
-		throw new ParseException(
+		throw new ParseExceptionHuge(
 			"Other Error: XML not terminated properly"
 				+ formatLineNumber());
 	}
-	private int process_qm_seen()throws ParseException, EncodingException, EOFException {
+	private int process_qm_seen()throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
 	    temp_offset = offset;
 		ch = r.getChar();
 		if (XMLChar.isNameStartChar(ch)) {
@@ -2755,19 +2755,19 @@ public class VTDGenHuge {
 				ch = r.getChar();
 				if (ch == '?'
 					|| XMLChar.isSpaceChar(ch))
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in PI: [xX][mM][lL] not a valid PI targetname"
 							+ formatLineNumber());
 				offset = getPrevOffset();
 			}
 			return STATE_PI_TAG;
 		}
-		throw new ParseException(
+		throw new ParseExceptionHuge(
 			"Other Error: First char after <? invalid"
 				+ formatLineNumber());
 	}
 	
-	private int process_ex_seen()throws ParseException, EncodingException, EOFException {
+	private int process_ex_seen()throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
 	    int parser_state;
 	    boolean hasDTD = false;
 	    ch = r.getChar();
@@ -2778,7 +2778,7 @@ public class VTDGenHuge {
 					parser_state = STATE_COMMENT;
 					break;
 				} else
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in comment: Invalid char sequence to start a comment"
 							+ formatLineNumber());
 			case '[' :
@@ -2794,10 +2794,10 @@ public class VTDGenHuge {
 					break;
 				} else {
 					if (depth == -1)
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Error in CDATA: Wrong place for CDATA"
 								+ formatLineNumber());
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in CDATA: Invalid char sequence for CDATA"
 							+ formatLineNumber());
 				}
@@ -2817,25 +2817,25 @@ public class VTDGenHuge {
 					break;
 				} else {
 					if (hasDTD == true)
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Error for DOCTYPE: Only DOCTYPE allowed"
 								+ formatLineNumber());
 					if (depth != -1)
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Error for DOCTYPE: DTD at wrong place"
 								+ formatLineNumber());
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error for DOCTYPE: Invalid char sequence for DOCTYPE"
 							+ formatLineNumber());
 				}
 			default :
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Other Error: Unrecognized char after <!"
 						+ formatLineNumber());
 		}
 		return parser_state;
 	}
-	private int process_start_doc()throws ParseException, EncodingException, EOFException {
+	private int process_start_doc()throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
 	    int parser_state;
 		if (r.getChar() == '<') {
 			temp_offset = offset;
@@ -2853,7 +2853,7 @@ public class VTDGenHuge {
 					parser_state = STATE_DEC_ATTR_NAME;
 					return parser_state;
 				} else if (r.skipChar('?'))
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in XML decl: Premature ending"
 							+ formatLineNumber());
 			}
@@ -2861,18 +2861,18 @@ public class VTDGenHuge {
 			parser_state = STATE_LT_SEEN;
 			return parser_state;
 		}
-		throw new ParseException(
+		throw new ParseExceptionHuge(
 			"Other Error: XML not starting properly"
 				+ formatLineNumber());
 	}
 	/**
 	 * This private method processes CDATA section
 	 * @return the parser state after which the parser loop jumps to
-	 * @throws ParseException
-	 * @throws EncodingException
-	 * @throws EOFException
+	 * @throws ParseExceptionHuge
+	 * @throws EncodingExceptionHuge
+	 * @throws EOFExceptionHuge
 	 */
-	private int process_cdata() throws ParseException, EncodingException, EOFException{
+	private int process_cdata() throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge{
 		int parser_state;
 		long length1;
 		while (true) {
@@ -2883,12 +2883,12 @@ public class VTDGenHuge {
 					if (r.skipChar('>')) {
 						break;
 					} /*else
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Error in CDATA: Invalid termination sequence"
 								+ formatLineNumber());*/
 				}
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Error in CDATA: Invalid Char"
 						+ formatLineNumber());
 		}
@@ -2928,13 +2928,13 @@ public class VTDGenHuge {
 				while (r.skipChar(']')) {
 				}
 				if (r.skipChar('>'))
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in text content: ]]> in text content"
 							+ formatLineNumber());
 			}
 			parser_state = STATE_TEXT;
 		}else
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"Other Error: Invalid char in xml"
 					+ formatLineNumber());
 		return parser_state;
@@ -2943,11 +2943,11 @@ public class VTDGenHuge {
 	/**
 	 * This private method process DTD
 	 * @return the parser state after which the parser loop jumps to
-	 * @throws ParseException
-	 * @throws EncodingException
-	 * @throws EOFException
+	 * @throws ParseExceptionHuge
+	 * @throws EncodingExceptionHuge
+	 * @throws EOFExceptionHuge
 	 */
-	private int process_doc_type() throws ParseException,EncodingException, EOFException{
+	private int process_doc_type() throws ParseExceptionHuge,EncodingExceptionHuge, EOFExceptionHuge{
 		int z = 1, parser_state;
 		long length1;
 		while (true) {
@@ -2960,7 +2960,7 @@ public class VTDGenHuge {
 				if (z == 0)
 					break;
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Error in DOCTYPE: Invalid char"
 						+ formatLineNumber());
 		}
@@ -2969,7 +2969,7 @@ public class VTDGenHuge {
 		    " " + (temp_offset) + " " + length1 + " DOCTYPE val " + depth);*/
 		if (encoding < FORMAT_UTF_16BE){
 			if (length1 > MAX_TOKEN_LENGTH)
-				  throw new ParseException("Token Length Error:"
+				  throw new ParseExceptionHuge("Token Length Error:"
 							  +" DTD val too long (>0xfffff)"
 							  + formatLineNumber());
 			writeVTD(
@@ -2980,7 +2980,7 @@ public class VTDGenHuge {
 		}
 		else{
 			if (length1 > (MAX_TOKEN_LENGTH<<1))
-				  throw new ParseException("Token Length Error:"
+				  throw new ParseExceptionHuge("Token Length Error:"
 							  +" DTD val too long (>0xfffff)"
 							  + formatLineNumber());
 			writeVTD(
@@ -2993,7 +2993,7 @@ public class VTDGenHuge {
 		if (ch == '<') {
 			parser_state = STATE_LT_SEEN;
 		} else
-			throw new ParseException(
+			throw new ParseExceptionHuge(
 				"Other Error: Invalid char in xml"
 					+ formatLineNumber());
 		return parser_state;
@@ -3002,11 +3002,11 @@ public class VTDGenHuge {
 	/**
 	 * This private method processes PI after root document 
 	 * @return the parser state after which the parser loop jumps to
-	 * @throws ParseException
-	 * @throws EncodingException
-	 * @throws EOFException
+	 * @throws ParseExceptionHuge
+	 * @throws EncodingExceptionHuge
+	 * @throws EOFExceptionHuge
 	 */
-	private int process_end_pi() throws ParseException,EncodingException, EOFException{
+	private int process_end_pi() throws ParseExceptionHuge,EncodingExceptionHuge, EOFExceptionHuge{
 		long length1;int parser_state;
 		ch = r.getChar();
 		if (XMLChar.isNameStartChar(ch)) {
@@ -3016,7 +3016,7 @@ public class VTDGenHuge {
 				//temp_offset = offset;
 				ch = r.getChar();
 				if (XMLChar.isSpaceChar(ch) || ch == '?')
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in PI: [xX][mM][lL] not a valid PI target"
 							+ formatLineNumber());
 				//offset = temp_offset;
@@ -3042,7 +3042,7 @@ public class VTDGenHuge {
 			        + depth);*/
 			if (encoding < FORMAT_UTF_16BE){
 				if (length1 > MAX_TOKEN_LENGTH)
-					  throw new ParseException("Token Length Error:"
+					  throw new ParseExceptionHuge("Token Length Error:"
 								  +"PI name too long (>0xfffff)"
 								  + formatLineNumber());
 				writeVTD(
@@ -3053,7 +3053,7 @@ public class VTDGenHuge {
 			}
 			else{
 				if (length1 > (MAX_TOKEN_LENGTH<<1))
-				  throw new ParseException("Token Length Error:"
+				  throw new ParseExceptionHuge("Token Length Error:"
 						  +"PI name too long (>0xfffff)"
 						  + formatLineNumber());
 				writeVTD(
@@ -3074,11 +3074,11 @@ public class VTDGenHuge {
 								parser_state = STATE_DOC_END;
 								break;
 							} else
-								throw new ParseException(
+								throw new ParseExceptionHuge(
 									"Error in PI: invalid termination sequence"
 										+ formatLineNumber());
 					} else
-						throw new ParseException(
+						throw new ParseExceptionHuge(
 							"Error in PI: Invalid char in PI val"
 								+ formatLineNumber());
 					ch = r.getChar();
@@ -3086,7 +3086,7 @@ public class VTDGenHuge {
 				length1 = offset - temp_offset - (increment<<1);
 				if (encoding < FORMAT_UTF_16BE){
 					if (length1 > MAX_TOKEN_LENGTH)
-						  throw new ParseException("Token Length Error:"
+						  throw new ParseExceptionHuge("Token Length Error:"
 									  +"PI val too long (>0xfffff)"
 									  + formatLineNumber());
 					writeVTD(
@@ -3097,7 +3097,7 @@ public class VTDGenHuge {
 				}
 				else{
 					if (length1 > (MAX_TOKEN_LENGTH<<1))
-						  throw new ParseException("Token Length Error:"
+						  throw new ParseExceptionHuge("Token Length Error:"
 									  +"PI val too long (>0xfffff)"
 									  + formatLineNumber());
 					writeVTD(
@@ -3111,22 +3111,22 @@ public class VTDGenHuge {
 				if ((ch == '?') && r.skipChar('>')) {
 					parser_state = STATE_DOC_END;
 				} else
-					throw new ParseException(
+					throw new ParseExceptionHuge(
 						"Error in PI: invalid termination sequence"
 							+ formatLineNumber());
 			}
 			//parser_state = STATE_DOC_END;
 		} else
-			throw new ParseException("Error in PI: invalid char in PI target"
+			throw new ParseExceptionHuge("Error in PI: invalid char in PI target"
 					+formatLineNumber());
 		return parser_state;
 	}
 	/**
 	 * This private method process the comment after the root document
 	 * @return the parser state after which the parser loop jumps to
-	 * @throws ParseException
+	 * @throws ParseExceptionHuge
 	 */
-	private int process_end_comment()throws ParseException {
+	private int process_end_comment()throws ParseExceptionHuge {
 		int parser_state;
 		long length1;
 		while (true) {
@@ -3138,7 +3138,7 @@ public class VTDGenHuge {
 					break;
 				}
 			} else
-				throw new ParseException(
+				throw new ParseExceptionHuge(
 					"Error in comment: Invalid Char"
 						+ formatLineNumber());
 		}
@@ -3160,7 +3160,7 @@ public class VTDGenHuge {
 			parser_state = STATE_DOC_END;
 			return parser_state;
 		}
-		throw new ParseException(
+		throw new ParseExceptionHuge(
 			"Error in comment: '-->' expected"
 				+ formatLineNumber());
 	

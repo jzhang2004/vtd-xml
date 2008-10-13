@@ -43,9 +43,9 @@ public class Predicate implements LocationPathNode{
 		return b;
 	}
 	
-	public void setIndex(double index) throws XPathEvalException{
+	public void setIndex(double index) throws XPathEvalExceptionHuge{
 		if (index<=0)
-			throw new XPathEvalException("Invalid index number");
+			throw new XPathEvalExceptionHuge("Invalid index number");
 		d = (double) index;
 	}
 	

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,13 +17,21 @@
  */
 package com.ximpleware.extended;
 /**
- * This exception is thrown when an error occured during
- * the construction of XPathExpr 
- *
+ * Signals the End of File exception during parsing (not the one in java.io).
+ * Creation date: (2/15/04 1:41:08 PM)
  */
-public class XPathParseException extends Exception{
-	public XPathParseException(String s){
-		super(s);
-	}
+public class EOFExceptionHuge extends ParseExceptionHuge {
+/**
+ * EOFException constructor comment.
+ */
+public EOFExceptionHuge() {
+	super();
 }
-
+/**
+ * EOFException constructor comment.
+ * @param s java.lang.String
+ */
+public EOFExceptionHuge(String s) {
+	super(s);
+}
+}

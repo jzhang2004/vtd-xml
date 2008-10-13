@@ -52,9 +52,9 @@ public class NumExpr extends Expr{
 
 	public double evalNumber(VTDNavHuge vn){ return dval;}
 		
-	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalException{
+	public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge{
 		
-		throw new XPathEvalException("NumExpr can't eval to a node set!");
+		throw new XPathEvalExceptionHuge("NumExpr can't eval to a node set!");
 	}
 	
         public String evalString(VTDNavHuge vn){

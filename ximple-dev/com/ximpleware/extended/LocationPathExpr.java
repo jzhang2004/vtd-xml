@@ -166,7 +166,7 @@ public class LocationPathExpr extends Expr{
 		}
 		
 		
-		private final int process_child(VTDNavHuge vn)throws XPathEvalException,NavException{
+		private final int process_child(VTDNavHuge vn)throws XPathEvalExceptionHuge,NavException{
 		    int result;
 		    boolean b = false, b1 = false;
 		    int contextSize;
@@ -480,13 +480,13 @@ public class LocationPathExpr extends Expr{
 					break;
 
 				default:
-					throw new XPathEvalException("unknown state");
+					throw new XPathEvalExceptionHuge("unknown state");
 		    }
 		    return -2;
 		}
 		
 		private int process_DDFP(VTDNavHuge vn) 
-		throws XPathEvalException, NavException {
+		throws XPathEvalExceptionHuge, NavException {
 		AutoPilotHuge ap;
 		boolean b = false, b1 = false;
 	    int contextSize;
@@ -669,13 +669,13 @@ public class LocationPathExpr extends Expr{
             break;
 
 			default:
-			    throw new XPathEvalException("unknown state");
+			    throw new XPathEvalExceptionHuge("unknown state");
         }
 	    return -2;
 	}
 	
 	private final int process_parent(VTDNavHuge vn)
-	throws XPathEvalException, NavException{
+	throws XPathEvalExceptionHuge, NavException{
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -758,14 +758,14 @@ public class LocationPathExpr extends Expr{
     			}
     			
     		default:
-    			throw new  XPathEvalException("unknown state");
+    			throw new  XPathEvalExceptionHuge("unknown state");
 		
 		}
 	    return -2;
 	}
 	
 	private final int process_ancestor( VTDNavHuge vn)
-	throws XPathEvalException, NavException{
+	throws XPathEvalExceptionHuge, NavException{
 	    int result;
 	    boolean b = false, b1 = false;
 	    //int contextSize;
@@ -919,13 +919,13 @@ public class LocationPathExpr extends Expr{
 			break;
 		
 		default:
-			throw new  XPathEvalException("unknown state");
+			throw new  XPathEvalExceptionHuge("unknown state");
 	    }
 	    return -2;
 	}
 	
 	private final int process_ancestor_or_self(VTDNavHuge vn)
-	throws XPathEvalException,NavException{
+	throws XPathEvalExceptionHuge,NavException{
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -1119,12 +1119,12 @@ public class LocationPathExpr extends Expr{
 				
 			
 			default:
-				throw new  XPathEvalException("unknown state");
+				throw new  XPathEvalExceptionHuge("unknown state");
 		}
 	    return -2;
 	}
 	private int process_self(VTDNavHuge vn)
-		throws XPathEvalException,NavException{
+		throws XPathEvalExceptionHuge,NavException{
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -1191,13 +1191,13 @@ public class LocationPathExpr extends Expr{
 		  	break;
 		  
 		  default:
-			throw new  XPathEvalException("unknown state");
+			throw new  XPathEvalExceptionHuge("unknown state");
 		}
 	    return -2;
 	}
 	
 	private int process_following_sibling(VTDNavHuge vn)
-	throws XPathEvalException,NavException{
+	throws XPathEvalExceptionHuge,NavException{
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -1309,13 +1309,13 @@ public class LocationPathExpr extends Expr{
 		  	break;
 
 		  default:
-			throw new  XPathEvalException("unknown state");
+			throw new  XPathEvalExceptionHuge("unknown state");
 		}
 	    return -2;
 	}
 	
 	private int process_preceding_sibling(VTDNavHuge vn)
-	throws XPathEvalException,NavException {
+	throws XPathEvalExceptionHuge,NavException {
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -1425,13 +1425,13 @@ public class LocationPathExpr extends Expr{
 		  	break;
 		  
 		  default:
-			throw new  XPathEvalException("unknown state");
+			throw new  XPathEvalExceptionHuge("unknown state");
 		}
 	    return -2;
 	}
 	
 	private int process_attribute(VTDNavHuge vn)
-	throws XPathEvalException,NavException {
+	throws XPathEvalExceptionHuge,NavException {
 	    AutoPilotHuge ap = null;
 	    boolean b = false, b1 = false;
 	    int contextSize;
@@ -1583,13 +1583,13 @@ public class LocationPathExpr extends Expr{
 			break;					
 		
 		default:
-			throw new  XPathEvalException("unknown state");
+			throw new  XPathEvalExceptionHuge("unknown state");
 	}
 	    return -2;
 	}
 	
 	public int evalNodeSet(VTDNavHuge vn) 
-    	throws NavException,XPathEvalException{
+    	throws NavException,XPathEvalExceptionHuge{
         int result;
 		if (currentStep == null) {
 			if ( pathType ==  ABSOLUTE_PATH){
@@ -1651,7 +1651,7 @@ public class LocationPathExpr extends Expr{
 			        return result;
 			    break;
 			default:
-			    throw new XPathEvalException("axis not supported");
+			    throw new XPathEvalExceptionHuge("axis not supported");
 			}
 		}
         
@@ -1676,7 +1676,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	public int computeContextSize(Predicate p, VTDNavHuge vn)
-		throws NavException,XPathEvalException{
+		throws NavException,XPathEvalExceptionHuge{
 	    
 	    boolean b = false;
 	    Predicate tp = null;
@@ -1842,7 +1842,7 @@ public class LocationPathExpr extends Expr{
 				return i;
 			    
 	    	default:
-	    	    throw new XPathEvalException("axis not supported");
+	    	    throw new XPathEvalExceptionHuge("axis not supported");
 	    }
 	    //return 8;
 	}

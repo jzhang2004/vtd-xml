@@ -29,7 +29,7 @@ interface IReader {
      * @exception com.ximpleware.EncodingException Raw char to UCS conversion exception.
      * @exception com.ximpleware.EOFException The end of file exception.
      */
-    int getChar() throws EOFException, ParseException, EncodingException;
+    int getChar() throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge;
     /**
      * Skip the next char if it is a match.
      * Creation date: (3/5/04 7:39:44 PM)
@@ -39,5 +39,5 @@ interface IReader {
      * @exception com.ximpleware.EOFException The end of file exception.
      */
     boolean skipChar(int ch)
-        throws ParseException, EncodingException, EOFException;
+        throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge;
 }
