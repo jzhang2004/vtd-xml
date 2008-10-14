@@ -22,7 +22,7 @@ package com.ximpleware.extended;
  * It is adapted to support extended VTD (256 max file size) 
  *
  */
-public class XPathParseExceptionHuge extends Exception{
+public class XPathParseExceptionHuge extends VTDExceptionHuge{
 	public XPathParseExceptionHuge(String s){
 		super(s);
 	}

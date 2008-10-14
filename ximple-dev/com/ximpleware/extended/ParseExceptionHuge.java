@@ -21,7 +21,7 @@ package com.ximpleware.extended;
  * This class is for any exception condition in the parsing phase.
  * Creation date: (11/19/03 11:43:03 AM)
  */
-public class ParseExceptionHuge extends Exception {
+public class ParseExceptionHuge extends VTDExceptionHuge {
 /**
  * ParseException constructor comment.
  */
