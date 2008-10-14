@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 /**
  * A fast, unsynchronized, chunk-based int buffer 
+ * identical with com.ximpleware.FastIntBuffer
  * 
  */
 

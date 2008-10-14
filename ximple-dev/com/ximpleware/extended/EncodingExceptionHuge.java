@@ -18,7 +18,7 @@
 package com.ximpleware.extended;
 /**
  * Signals character encoding exception during parsing.
- * Creation date: (2/2/04 1:08:09 PM)
+ * It is adapted to support extended VTD (256 max file size) 
  */
 public class EncodingExceptionHuge extends ParseExceptionHuge {
 /**

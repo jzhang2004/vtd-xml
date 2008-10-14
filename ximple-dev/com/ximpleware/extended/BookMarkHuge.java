@@ -16,9 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* BookMark is based on (and inspired by) the concept and 
+/* BookMarkHuge is based on (and inspired by) the concept and 
  * implementation contributed by Rodrigo Cunha. It corresponds 
- * to a single node position of VTDNav's cursor. 
+ * to a single node position of VTDNav's cursor. It is adapted to
+ * supported extended VTD (256 GB file size) 
  * 
  * setCursorPosition(VTDNav vn) sets the node position of vn. 
  * setCursorPosition() sets the node position of the BookMark object's embeddd 
@@ -30,7 +31,7 @@
  * recordCursorPosition() records the node position of the BookMark object's 
  * embedded VTDNav object
  * 
- * BookMark(VTDNav vn) implicitly sets the node position for 
+ * BookMarkHuge(VTDNavHuge vn) implicitly sets the node position for 
  * the created BookMark instance.
  */
 package com.ximpleware.extended;

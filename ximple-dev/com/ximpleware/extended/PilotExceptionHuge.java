@@ -18,7 +18,7 @@
 package com.ximpleware.extended;
 /**
  * This class is the base class of all the exceptions of AutoPilotHuge.
- * Creation date: (11/30/03 6:14:43 PM)
+ * It is adapted to support extended VTD (256 max file size) 
  */
 public class PilotExceptionHuge extends NavExceptionHuge {
 /**

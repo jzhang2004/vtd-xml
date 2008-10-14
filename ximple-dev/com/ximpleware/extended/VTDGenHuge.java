@@ -998,7 +998,7 @@ public class VTDGenHuge {
 	 * @return int
 	 * @throws ParseExceptionHuge 
 	 * @throws EncodingExceptionHuge 
-	 * @throws com.ximpleware.EOFExceptionHuge 
+	 * @throws com.ximpleware.extended.EOFExceptionHuge 
 	 */
 	private int getCharAfterS()
 		throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
@@ -1016,7 +1016,7 @@ public class VTDGenHuge {
 	 * @return int
 	 * @throws ParseExceptionHuge Super class for any exception during parsing.
 	 * @throws EncodingExceptionHuge UTF/native encoding exception.
-	 * @throws com.ximpleware.EOFExceptionHuge End of file exception.
+	 * @throws com.ximpleware.extended.EOFExceptionHuge End of file exception.
 	 */
 	private int getCharAfterSe()
 		throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
@@ -1038,9 +1038,9 @@ public class VTDGenHuge {
 		}
 	}
 	/**
-	 * This method returns the VTDNav object after parsing, it also cleans 
-	 * internal state so VTDGen can process the next file.
-	 * @return com.ximpleware.VTDNav
+	 * This method returns the VTDNavHuge object after parsing, it also cleans 
+	 * internal state so VTDGenHuge can process the next file.
+	 * @return com.ximpleware.extended.VTDNavHuge
 	 */
 	public VTDNavHuge getNav() {
 		// call VTDNav constructor

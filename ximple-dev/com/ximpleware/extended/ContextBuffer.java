@@ -23,8 +23,8 @@ import java.util.ArrayList;
 //import com.ximpleware.NavException;
 
 /**
- * This class is used as the global stack in VTDNav class.
- * The VTDNav object instantiates a context Buffer object, then everytime
+ * This class is used as the global stack in VTDNavHuge class.
+ * The VTDNavHuge object instantiates a context Buffer object, then everytime
  * load/store is called, current context information gets pushed/popped to/from the 
  * ContextBuffer.
  * Creation date: (11/16/03 4:30:45 PM)

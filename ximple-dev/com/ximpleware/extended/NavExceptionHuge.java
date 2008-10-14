@@ -18,7 +18,7 @@
 package com.ximpleware.extended;
 /**
  * This exception is for any exception conditions during navigation phase.
- * Creation date: (11/19/03 11:42:28 AM)
+ * It is adapted to support extended VTD (256 max file size) 
  */
 public class NavExceptionHuge extends Exception {
 /**

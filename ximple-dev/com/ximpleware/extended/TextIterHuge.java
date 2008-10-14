@@ -20,7 +20,7 @@ package com.ximpleware.extended;
  * This class iterates through all text nodes of an element.
  * VTDNavHuge has getText() which is inadequate for mixed content style of XML.
  * text nodes include character_data and CDATA.
- * Creation date: (12/5/03 5:53:41 PM)
+ * This version is adapted to support extended VTD (256GB max file size)
  */
 public class TextIterHuge {
 

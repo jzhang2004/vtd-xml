@@ -18,7 +18,7 @@
 package com.ximpleware.extended;
 /**
  * Signals exception conditions for any invalid entity reference during parsing.
- * Creation date: (2/16/04 4:10:05 PM)
+ * It is adapted to support extended VTD (256 max file size) 
  * @author: 
  */
 public class EntityExceptionHuge extends ParseExceptionHuge {

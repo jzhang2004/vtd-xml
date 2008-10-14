@@ -18,7 +18,7 @@
 package com.ximpleware.extended;
 /**
  * Signals the End of File exception during parsing (not the one in java.io).
- * Creation date: (2/15/04 1:41:08 PM)
+ * It is adapted to support extended VTD (256 max file size) 
  */
 public class EOFExceptionHuge extends ParseExceptionHuge {
 /**

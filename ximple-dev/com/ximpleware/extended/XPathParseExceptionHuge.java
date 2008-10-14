@@ -18,7 +18,8 @@
 package com.ximpleware.extended;
 /**
  * This exception is thrown when an error occured during
- * the construction of XPathExpr 
+ * the construction of XPathExpr.
+ * It is adapted to support extended VTD (256 max file size) 
  *
  */
 public class XPathParseExceptionHuge extends Exception{

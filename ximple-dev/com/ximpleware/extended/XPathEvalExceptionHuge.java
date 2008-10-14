@@ -19,6 +19,7 @@ package com.ximpleware.extended;
 /**
  * This exception is thrown when there is something
  * during XPath evaluation
+ * It is adapted to support extended VTD (256 max file size) 
  *
  */
 public class XPathEvalExceptionHuge extends Exception{
