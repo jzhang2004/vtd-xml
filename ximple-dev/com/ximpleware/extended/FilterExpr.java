@@ -89,13 +89,13 @@ public class FilterExpr extends Expr {
 		vn.pop2();
 		try{
 			if (a!=-1) return vn.parseDouble(a);
-		}catch (NavException e){
+		}catch (NavExceptionHuge e){
 		}
 		return Double.NaN;
 	}
 
 	public int evalNodeSet(VTDNavHuge vn) 
-	throws XPathEvalExceptionHuge, NavException {
+	throws XPathEvalExceptionHuge, NavExceptionHuge {
 	    // if tne predicate require context size
 	    // needs to precompute the context size
 	    // vn.push2();
@@ -153,7 +153,7 @@ public class FilterExpr extends Expr {
         try {
             if (a != -1)
                 return vn.toString(a);
-        } catch (NavException e) {
+        } catch (NavExceptionHuge e) {
         }
         return "";
 	}

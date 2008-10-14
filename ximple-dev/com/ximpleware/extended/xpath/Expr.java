@@ -29,7 +29,7 @@ abstract public class Expr {
 
 	abstract public double evalNumber(VTDNavHuge vn);
 		
-	abstract public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge, NavException;
+	abstract public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge, NavExceptionHuge;
 	
 	abstract public String evalString(VTDNavHuge vn);
 

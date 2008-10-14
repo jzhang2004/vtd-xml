@@ -53,7 +53,7 @@ public class NodeTest implements LocationPathNode{
 		prefix = p;
 		localName = ln;
 	}
-	public boolean eval(VTDNavHuge vn)throws NavException{
+	public boolean eval(VTDNavHuge vn)throws NavExceptionHuge{
 		if (testType == NODE)
 			return true;
 		else if(testType == NAMETEST){

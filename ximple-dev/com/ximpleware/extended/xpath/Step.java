@@ -100,7 +100,7 @@ public class Step implements LocationPathNode{
 		}
 	}
 	
-	public boolean eval(VTDNavHuge vn)throws NavException{
+	public boolean eval(VTDNavHuge vn)throws NavExceptionHuge{
 		/*boolean result = this.nt.eval(vn);
 		if (result == false)
 			return false;
@@ -108,11 +108,11 @@ public class Step implements LocationPathNode{
 		return nt.eval(vn) && evalPredicates(vn);
 	}
 	
-	public boolean eval(VTDNavHuge vn, Predicate p) throws NavException{
+	public boolean eval(VTDNavHuge vn, Predicate p) throws NavExceptionHuge{
 	    return nt.eval(vn) && evalPredicates(vn,p);
 	}
 	
-	public boolean evalPredicates(VTDNavHuge vn) throws NavException {
+	public boolean evalPredicates(VTDNavHuge vn) throws NavExceptionHuge {
 		Predicate temp = this.p;
 		while(temp!=null) {
 			if (temp.eval(vn)== false)
@@ -123,7 +123,7 @@ public class Step implements LocationPathNode{
 		return true;
 	}
 		
-	public boolean evalPredicates(VTDNavHuge vn, Predicate p) throws NavException {
+	public boolean evalPredicates(VTDNavHuge vn, Predicate p) throws NavExceptionHuge {
 		Predicate temp = this.p;
 		while(temp!=p) {
 			if (temp.eval(vn)== false)

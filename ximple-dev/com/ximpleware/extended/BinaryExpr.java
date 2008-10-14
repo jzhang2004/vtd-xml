@@ -404,7 +404,7 @@ public class BinaryExpr extends Expr {
 	}
 	
 	private boolean compareVNumber1(int k, VTDNavHuge vn, double d, int op)
-	throws NavException {
+	throws NavExceptionHuge {
 	    double d1 = vn.parseDouble(k);
 	    switch (op){
 	    	case EQ:
@@ -423,7 +423,7 @@ public class BinaryExpr extends Expr {
 	}
 	
 	private boolean compareVString1(int k, VTDNavHuge vn, String s, int op)
-	throws NavException {
+	throws NavExceptionHuge {
 	    int i = vn.compareTokenString(k, s);
         switch (i) {
         case -1:
@@ -444,7 +444,7 @@ public class BinaryExpr extends Expr {
         return false;
 	}
 	private boolean compareVString2(int k, VTDNavHuge vn, String s, int op)
-	throws NavException {
+	throws NavExceptionHuge {
 	    int i = vn.compareTokenString(k, s);
         switch(i){        	
         	case -1:
@@ -466,7 +466,7 @@ public class BinaryExpr extends Expr {
 	}
 	
 	private boolean compareVNumber2(int k, VTDNavHuge vn, double d, int op)
-	throws NavException {
+	throws NavExceptionHuge {
 	    double d1 = vn.parseDouble(k);
 	    switch (op){
 	    	case EQ:
@@ -484,7 +484,7 @@ public class BinaryExpr extends Expr {
 	    }
 	}
 	private boolean compareVV(int k,  VTDNavHuge vn, int j,int op) 
-	throws NavException {
+	throws NavExceptionHuge {
 	    int i = vn.compareTokens(k, vn, j);
         switch(i){        	    
         	case 1:

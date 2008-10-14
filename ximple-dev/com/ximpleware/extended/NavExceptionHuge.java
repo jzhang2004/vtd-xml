@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,15 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-package com.ximpleware.extended.xpath;
-import com.ximpleware.extended.*;
+package com.ximpleware.extended;
 /**
- * This interface defines the method that
- * Step, NodeTest, and Predicate all implement
- *
+ * This exception is for any exception conditions during navigation phase.
+ * Creation date: (11/19/03 11:42:28 AM)
  */
-
-public interface LocationPathNode{
-	public boolean eval(VTDNavHuge vn) throws NavExceptionHuge;
+public class NavExceptionHuge extends Exception {
+/**
+ * NavException constructor comment.
+ */
+public NavExceptionHuge() {
+	super();
 }
-
+/**
+ * NavException constructor comment.
+ * @param s java.lang.String
+ */
+public NavExceptionHuge(String s) {
+	super(s);
+}
+}

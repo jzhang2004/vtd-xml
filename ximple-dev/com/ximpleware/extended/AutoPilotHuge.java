@@ -137,9 +137,9 @@ public void bind (VTDNavHuge vnv){
  * Null element name allowed, corresponding to node() in xpath
  * Creation date: (12/4/03 5:25:42 PM)
  * @return boolean
- * @exception com.ximpleware.extended.NavException See description in method toElement() in VTDNavHuge class.
+ * @exception com.ximpleware.extended.NavExceptionHuge See description in method toElement() in VTDNavHuge class.
  */
-public boolean iterate() throws PilotException, NavException {
+public boolean iterate() throws PilotExceptionHuge, NavExceptionHuge {
     switch (iter_type) {
         case SIMPLE :
         	//System.out.println("iterating ---> "+name+ " depth ---> "+depth);
@@ -235,7 +235,7 @@ public boolean iterate() throws PilotException, NavException {
          	return vn.iterate_precedingNS(URL,localName,contextCopy);
                     	
         default :
-            throw new PilotException(" iteration action type undefined");
+            throw new PilotExceptionHuge(" iteration action type undefined");
     }
 }
 /**
@@ -243,7 +243,7 @@ public boolean iterate() throws PilotException, NavException {
  * @return the integer of the selected VTD index for attribute name
  * @throws com.ximpleware.extended.PilotException
  */
-   protected int iterateAttr() throws PilotException,NavException{
+   protected int iterateAttr() throws PilotExceptionHuge,NavExceptionHuge{
       
    	    switch(iter_type){
    	    	case ATTR:
@@ -312,7 +312,7 @@ public boolean iterate() throws PilotException, NavException {
    	    					return -1;
    	    			} 
    	        default:
-   	        	throw new PilotException("invalid iteration type");
+   	        	throw new PilotExceptionHuge("invalid iteration type");
    	    }
    	
    }
@@ -537,7 +537,7 @@ public boolean evalXPathToBoolean(){
  * Afer finishing evaluating, don't forget to <em> reset the xpath </em>
  * @return int corresponding to the VTD index
  */
-public int evalXPath() throws XPathEvalExceptionHuge, NavException{
+public int evalXPath() throws XPathEvalExceptionHuge, NavExceptionHuge{
 	if (xpe!=null){
 	    if (ft == true){
 	        if (vn != null){
@@ -549,7 +549,7 @@ public int evalXPath() throws XPathEvalExceptionHuge, NavException{
 	   
 		return xpe.evalNodeSet(vn);
 	}
-	throw new PilotException(" Null XPath expression "); 
+	throw new PilotExceptionHuge(" Null XPath expression "); 
 }
 
 /**

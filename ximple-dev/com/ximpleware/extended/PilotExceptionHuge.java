@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2007 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,15 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-package com.ximpleware.extended.xpath;
-import com.ximpleware.extended.*;
+package com.ximpleware.extended;
 /**
- * This interface defines the method that
- * Step, NodeTest, and Predicate all implement
- *
+ * This class is the base class of all the exceptions of AutoPilotHuge.
+ * Creation date: (11/30/03 6:14:43 PM)
  */
-
-public interface LocationPathNode{
-	public boolean eval(VTDNavHuge vn) throws NavExceptionHuge;
+public class PilotExceptionHuge extends NavExceptionHuge {
+/**
+ * PilotException constructor comment.
+ */
+public PilotExceptionHuge() {
+	super();
 }
-
+/**
+ * PilotException constructor comment.
+ * @param s java.lang.String
+ */
+public PilotExceptionHuge(String s) {
+	super(s);
+}
+}

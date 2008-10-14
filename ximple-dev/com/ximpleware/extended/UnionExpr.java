@@ -106,7 +106,7 @@ public class UnionExpr extends Expr {
         try {
             if (a != -1)
                 return vn.parseDouble(a);
-        } catch (NavException e) {
+        } catch (NavExceptionHuge e) {
         }
         return Double.NaN;
     }
@@ -116,7 +116,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#evalNodeSet(com.ximpleware.VTDNav)
      */
-    public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge, NavException {
+    public int evalNodeSet(VTDNavHuge vn) throws XPathEvalExceptionHuge, NavExceptionHuge {
         int a;
         if (this.next == null) {
             return e.evalNodeSet(vn);
@@ -214,7 +214,7 @@ public class UnionExpr extends Expr {
         try {
             if (a != -1)
                 return vn.toString(a);
-        } catch (NavException e) {
+        } catch (NavExceptionHuge e) {
         }
         return "";
     }

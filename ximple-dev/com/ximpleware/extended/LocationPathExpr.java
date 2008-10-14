@@ -124,7 +124,7 @@ public class LocationPathExpr extends Expr{
 			vn.pop2();
 			try{
 				if (a!=-1) return vn.parseDouble(a);
-			}catch (NavException e){
+			}catch (NavExceptionHuge e){
 			}
 			return Double.NaN;
 		}
@@ -152,7 +152,7 @@ public class LocationPathExpr extends Expr{
         try {
             if (a != -1)
                 return vn.toString(a);
-        } catch (NavException e) {
+        } catch (NavExceptionHuge e) {
         }
         return "";	
 		}
@@ -166,7 +166,7 @@ public class LocationPathExpr extends Expr{
 		}
 		
 		
-		private final int process_child(VTDNavHuge vn)throws XPathEvalExceptionHuge,NavException{
+		private final int process_child(VTDNavHuge vn)throws XPathEvalExceptionHuge,NavExceptionHuge{
 		    int result;
 		    boolean b = false, b1 = false;
 		    int contextSize;
@@ -486,7 +486,7 @@ public class LocationPathExpr extends Expr{
 		}
 		
 		private int process_DDFP(VTDNavHuge vn) 
-		throws XPathEvalExceptionHuge, NavException {
+		throws XPathEvalExceptionHuge, NavExceptionHuge {
 		AutoPilotHuge ap;
 		boolean b = false, b1 = false;
 	    int contextSize;
@@ -675,7 +675,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	private final int process_parent(VTDNavHuge vn)
-	throws XPathEvalExceptionHuge, NavException{
+	throws XPathEvalExceptionHuge, NavExceptionHuge{
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -765,7 +765,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	private final int process_ancestor( VTDNavHuge vn)
-	throws XPathEvalExceptionHuge, NavException{
+	throws XPathEvalExceptionHuge, NavExceptionHuge{
 	    int result;
 	    boolean b = false, b1 = false;
 	    //int contextSize;
@@ -925,7 +925,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	private final int process_ancestor_or_self(VTDNavHuge vn)
-	throws XPathEvalExceptionHuge,NavException{
+	throws XPathEvalExceptionHuge,NavExceptionHuge{
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -1124,7 +1124,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	private int process_self(VTDNavHuge vn)
-		throws XPathEvalExceptionHuge,NavException{
+		throws XPathEvalExceptionHuge,NavExceptionHuge{
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -1197,7 +1197,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	private int process_following_sibling(VTDNavHuge vn)
-	throws XPathEvalExceptionHuge,NavException{
+	throws XPathEvalExceptionHuge,NavExceptionHuge{
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -1315,7 +1315,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	private int process_preceding_sibling(VTDNavHuge vn)
-	throws XPathEvalExceptionHuge,NavException {
+	throws XPathEvalExceptionHuge,NavExceptionHuge {
 	    boolean b = false, b1 = false;
 	    int contextSize;
 	    Predicate t= null;
@@ -1431,7 +1431,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	private int process_attribute(VTDNavHuge vn)
-	throws XPathEvalExceptionHuge,NavException {
+	throws XPathEvalExceptionHuge,NavExceptionHuge {
 	    AutoPilotHuge ap = null;
 	    boolean b = false, b1 = false;
 	    int contextSize;
@@ -1589,7 +1589,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	public int evalNodeSet(VTDNavHuge vn) 
-    	throws NavException,XPathEvalExceptionHuge{
+    	throws NavExceptionHuge,XPathEvalExceptionHuge{
         int result;
 		if (currentStep == null) {
 			if ( pathType ==  ABSOLUTE_PATH){
@@ -1676,7 +1676,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	public int computeContextSize(Predicate p, VTDNavHuge vn)
-		throws NavException,XPathEvalExceptionHuge{
+		throws NavExceptionHuge,XPathEvalExceptionHuge{
 	    
 	    boolean b = false;
 	    Predicate tp = null;

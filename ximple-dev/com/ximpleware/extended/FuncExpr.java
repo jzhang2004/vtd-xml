@@ -113,7 +113,7 @@ public class FuncExpr extends Expr{
                     }
                 } else
                     return "";
-	        }catch(NavException e){
+	        }catch(NavExceptionHuge e){
 	            return ""; // this will almost never occur
 	        }
 	        
@@ -149,7 +149,7 @@ public class FuncExpr extends Expr{
 			            return vn.toRawString(offset, QLen);
 			        }
 			    }
-			} catch (NavException e) {
+			} catch (NavExceptionHuge e) {
 			    return ""; // this will almost never occur
 			}							        
 	    } else 
@@ -281,7 +281,7 @@ public class FuncExpr extends Expr{
                 }
                 vn.toElement(VTDNavHuge.P);
             }
-        } catch (NavException e) {
+        } catch (NavExceptionHuge e) {
 
         }
 	    vn.pop2();
@@ -376,7 +376,7 @@ public class FuncExpr extends Expr{
 	            }
 	            return normalize(s);
 	        }
-	    	catch(NavException e){
+	    	catch(NavExceptionHuge e){
 	    	    return ""; // this will almost never occur
 	    	}
 	    } else if (argCount() == 1){
@@ -448,7 +448,7 @@ public class FuncExpr extends Expr{
 	            }
 	            return vn.toString(vn.getCurrentIndex());
 	        }
-	    	catch(NavException e){
+	    	catch(NavExceptionHuge e){
 	    	    return ""; // this will almost never occur
 	    	}
 	    else if (argCount() == 1){
@@ -537,7 +537,7 @@ public class FuncExpr extends Expr{
 			    					            else 
 			    					                return vn.getStringLength(i);
 			    					        }
-			    					    }catch (NavException e){
+			    					    }catch (NavExceptionHuge e){
 			    					        return 0;
 			    					    }
 			    					} else if (ac == 1){
