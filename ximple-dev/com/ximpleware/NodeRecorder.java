@@ -185,7 +185,7 @@ public class NodeRecorder {
     }
 
     /**
-     * start() will set the pointer to the first node in NodeRecorder
+     * resetPointer() will set the pointer to the first node in NodeRecorder
      * This method is called when one wants to read the nodes in the nodeRecorder
      *  
      */
