@@ -21,5 +21,9 @@ package com.ximpleware.extended;
  * VTDExceptionHuge is the root class for all exceptions in this package (com.ximpleware.extended)
  */
 public class VTDExceptionHuge extends Exception {
-
+    public VTDExceptionHuge(String s){
+		super(s);
+	}
+    public VTDExceptionHuge(){
+	}
 }
