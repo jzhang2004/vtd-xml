@@ -2655,7 +2655,7 @@ public class VTDNavHuge {
 
 								if (token_type == TOKEN_STARTING_TAG) {
 									int depth =
-										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 55);
 									if (depth <= context[0]) {
 										return false;
 									} else if (depth == (context[0] + 1)) {
@@ -2675,7 +2675,7 @@ public class VTDNavHuge {
 							while (index < size) {
 								long temp = vtdBuffer.longAt(index);
 								int depth =
-									(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+									(int) ((MASK_TOKEN_DEPTH & temp) >> 55);
 								int token_type =
 									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
 										& 0xf;
@@ -2764,7 +2764,7 @@ public class VTDNavHuge {
 
 								if (token_type == TOKEN_STARTING_TAG) {
 									int depth =
-										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 55);
 									if (depth < context[0]) {
 										return false;
 									} else if (depth == (context[0])) {
@@ -2786,7 +2786,7 @@ public class VTDNavHuge {
 
 								if (token_type == TOKEN_STARTING_TAG) {
 									int depth =
-										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 55);
 									/*if (depth < context[0]) {
 									    return false;
 									} else */
