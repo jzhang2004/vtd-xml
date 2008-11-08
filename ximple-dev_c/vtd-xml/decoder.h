@@ -24,7 +24,6 @@
 							  
 int iso_8859_2_chars[256];
 int iso_8859_3_chars[256];
-int iso_8859_3_chars[256];
 int iso_8859_4_chars[256];
 int iso_8859_5_chars[256];
 int iso_8859_6_chars[256];
