@@ -299,9 +299,9 @@ public int getPageSize() {
  * @param index int
  */
 public final long longAt(int index) {
-    /*if (index < 0 || index >= size()) {
+    if (index < 0 || index >= size()) {
         throw new IndexOutOfBoundsException();
-    }*/
+    }
     int pageNum = (index >> exp);
     // int offset = index % r;
     int offset = index &r;
