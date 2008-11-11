@@ -337,14 +337,16 @@ int getNext(TextIter *ti){
 			if (sp>=vtdSize) return -1;
             d = getTokenDepth(ti->vn, sp);
             type = getTokenType(ti->vn, sp);
-            while (sp < vtdSize
-                && d >= ti->depth
+            while (d >= ti->depth
                 && !(d == ti->depth && type == TOKEN_STARTING_TAG)) {
                 if (isText(ti, sp) == TRUE&& d == ti->depth) {
                     ti->prevLocation = sp;
                     return sp;
                 }
                 sp++;
+				if(sp >= vtdSize)
+				return -1;
+
                 d = getTokenDepth(ti->vn, sp);
                 type = getTokenType(ti->vn, sp);
              }

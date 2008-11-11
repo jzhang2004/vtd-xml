@@ -354,8 +354,7 @@ namespace com.ximpleware
                     if (sp >= vtdSize) return -1;
                     d = vn.getTokenDepth(sp);
                     type = vn.getTokenType(sp);
-                    while (sp < vtdSize
-                        && d >= depth
+                    while (d >= depth
                         && !(d == depth && type == VTDNav.TOKEN_STARTING_TAG))
                     {
                         if (isText(sp) == true && d == depth)
@@ -364,6 +363,9 @@ namespace com.ximpleware
                             return sp;
                         }
                         sp++;
+                        if (sp >= vtdSize)
+                             return -1;
+
                         d = vn.getTokenDepth(sp);
                         type = vn.getTokenType(sp);
 
