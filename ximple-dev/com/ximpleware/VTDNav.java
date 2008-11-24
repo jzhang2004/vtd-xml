@@ -4067,8 +4067,33 @@ public class VTDNav {
 	            (FastIntBuffer)this.l3Buffer,
 	            os);
 	}
+	
 	/**
-     * Write VTDNav's internal structure into a VTD+XML format
+	 * Write VTDNav's VTD and LCs into an OutputStream (XML not written out)
+	 * @param os
+	 * @throws IndexWriteException
+	 * @throws IOException
+	 *
+	 */
+	public void writeSeparateIndex(OutputStream os) throws IndexWriteException, IOException{
+	    IndexHandler.writeIndex((byte)2,
+	            this.encoding,
+	            this.ns,
+	            true,
+	            this.nestingLevel-1,
+	            3,
+	            this.rootIndex,
+	            this.XMLDoc.getBytes(),
+	            this.docOffset,
+	            this.docLen,
+	            (FastLongBuffer)this.vtdBuffer,
+	            (FastLongBuffer)this.l1Buffer,
+	            (FastLongBuffer)this.l2Buffer,
+	            (FastIntBuffer)this.l3Buffer,
+	            os);
+	}
+	/**
+     * Write VTDNav's internal structure into a VTD+XML file
      * 
      * @param fileName
      * @throws IOException
@@ -4078,6 +4103,18 @@ public class VTDNav {
 	public void writeIndex(String fileName) throws IOException,IndexWriteException{
 	    FileOutputStream fos = new FileOutputStream(fileName);
 	    writeIndex(fos);
+	    fos.close();
+	}
+	/**
+	 * Write VTDNav's internal structure (VTD and LCs, but not XML) into a file
+	 * @param fileName
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeSeparateIndex(String fileName) throws IOException,IndexWriteException{
+	    FileOutputStream fos = new FileOutputStream(fileName);
+	    writeSeparateIndex(fos);
 	    fos.close();
 	}
 	

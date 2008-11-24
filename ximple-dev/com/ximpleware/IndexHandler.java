@@ -26,6 +26,7 @@ import java.nio.*;
  */
 class IndexHandler {
     public static final int OFFSET_ADJUSTMENT =32;
+    
     /**
      * Write VTD+XML index to OutputStream
      * @param version
@@ -139,6 +140,126 @@ class IndexHandler {
             dos.writeInt(0);
         dos.close();
     }
+    
+    /**
+     * Write VTD and Location cache into output stream (which is separate from XML)
+     *  
+     * @param version
+     * @param encodingType
+     * @param ns
+     * @param byteOrder
+     * @param nestDepth
+     * @param LCLevel
+     * @param rootIndex
+     * @param xmlDoc
+     * @param docOffset
+     * @param docLen
+     * @param vtdBuffer
+     * @param l1Buffer
+     * @param l2Buffer
+     * @param l3Buffer
+     * @param os
+     * @throws IndexWriteException
+     * @throws IOException
+     *
+     */
+    public static void writeSeparateIndex(byte version,
+            int encodingType,
+            boolean ns,
+            boolean byteOrder, // true is big endien
+            int nestDepth,
+            int LCLevel,
+            int rootIndex,
+            byte[] xmlDoc,
+            int docOffset,
+            int docLen,
+            FastLongBuffer vtdBuffer,
+            FastLongBuffer l1Buffer,
+            FastLongBuffer l2Buffer,
+            FastIntBuffer l3Buffer,
+            OutputStream os
+            ) throws IndexWriteException,
+            IOException{
+        if ( xmlDoc == null
+                || docLen <=0
+                || vtdBuffer == null 
+                 // impossible to occur
+                || l1Buffer == null // setDoc not called
+                || l2Buffer == null
+                || l3Buffer == null
+                ){
+            throw new IndexWriteException("Invalid VTD index ");
+        }
+        if (vtdBuffer.size()==0)
+            throw new IndexWriteException("VTDBuffer can't be zero length");
+        
+        int i;
+        DataOutputStream dos = new DataOutputStream(os);
+        // first 4 bytes
+        byte[] ba = new byte[4];
+        ba[0] = (byte)version;  // version # is 2 
+        ba[1] = (byte)encodingType;
+        ba[2] = (byte)(ns? 0xe0 : 0xa0); // big endien
+        ba[3] = (byte)nestDepth;
+        dos.write(ba);
+        // second 4 bytes
+        ba[0] = 0;
+        ba[1] = 4;
+        ba[2] = (byte) ((rootIndex & 0xff00)>> 8 );
+        ba[3] = (byte) (rootIndex & 0xff);
+        dos.write(ba);
+        // 2 reserved 64-bit words set to zero
+        ba[1]= ba[2] = ba[3] = 0;
+        dos.write(ba);
+        dos.write(ba);
+        dos.write(ba);
+        dos.write(ba);
+        // write XML doc in bytes
+        dos.writeLong(docLen);
+        // 16 bytes reserved bytes
+        dos.write(ba);
+        dos.write(ba);
+        dos.write(ba);
+        dos.write(ba);
+        //dos.write(xmlDoc,docOffset,docLen);
+        // zero padding to make it integer multiple of 64 bits
+        //if ((docLen & 0x07) !=0 ){
+        //    int t = (((docLen>>3)+1)<<3) - docLen;
+        //    for (;t>0;t--)
+        //        dos.write(0);
+        //}
+        // write VTD
+        dos.writeLong(vtdBuffer.size());
+        if (docOffset == 0)
+            for (i = 0; i < vtdBuffer.size(); i++) {
+                dos.writeLong(vtdBuffer.longAt(i));
+            }
+        else
+            for (i = 0; i < vtdBuffer.size(); i++) {
+                dos.writeLong(adjust(vtdBuffer.longAt(i), 
+                        -docOffset));
+            }
+          
+        // write L1 
+        dos.writeLong(l1Buffer.size());
+        for(i=0;i< l1Buffer.size();i++){
+            dos.writeLong(l1Buffer.longAt(i));
+        }
+        // write L2
+        dos.writeLong(l2Buffer.size());
+        for(i=0;i< l2Buffer.size();i++){
+            dos.writeLong(l2Buffer.longAt(i));
+        }
+        // write L3
+        dos.writeLong(l3Buffer.size());
+        for(i=0;i< l3Buffer.size();i++){
+            dos.writeInt(l3Buffer.intAt(i));
+        }
+        // pad zero if # of l3 entry is odd
+        if ( (l3Buffer.size() & 1) !=0)
+            dos.writeInt(0);
+        dos.close();
+    }
     /**
      * The assumption for this function is that when VTD+XML index
      * is loaded into memory (ba), the first 32 bytes are not XML bytes
@@ -154,6 +275,7 @@ class IndexHandler {
 
         ByteBuffer bb = ByteBuffer.wrap(ba);
         byte b= bb.get(); // first byte
+        if (b!=1) throw new IndexReadException("Invalid version number for readIndex()");
         // no check on version number for now
         // second byte
         vg.encoding = bb.get();
@@ -303,6 +425,7 @@ class IndexHandler {
             throw new IndexReadException("Invalid argument(s) for readIndex()");
         DataInputStream dis = new DataInputStream(is);
         byte b= dis.readByte(); // first byte
+        if (b!=1) throw new IndexReadException("Invalid version number for readIndex()");
         // no check on version number for now
         // second byte
         vg.encoding = dis.readByte();

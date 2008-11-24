@@ -3565,6 +3565,31 @@ public class VTDGen {
 	}
 	
 	/**
+	 * This method writes the VTDs and LCs into an outputStream
+	 * @param os
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeSeparateIndex(OutputStream os) throws IOException,IndexWriteException{
+	    IndexHandler.writeIndex((byte)2,
+	            this.encoding,
+	            this.ns,
+	            true,
+	            this.VTDDepth,
+	            3,
+	            this.rootIndex,
+	            this.XMLDoc,
+	            this.docOffset,
+	            this.docLen,
+	            this.VTDBuffer,
+	            this.l1Buffer,
+	            this.l2Buffer,
+	            this.l3Buffer,
+	            os);
+	}
+	
+	/**
 	 * This method writes the VTD+XML file into a file of the given name
 	 * @param fileName
 	 * @throws IOException
@@ -3574,6 +3599,21 @@ public class VTDGen {
 	public void writeIndex(String fileName) throws IOException,IndexWriteException{
 	    FileOutputStream fos = new FileOutputStream(fileName);
 	    writeIndex(fos);
+	    fos.close();
+	}
+	
+	/**
+	 * This method writes the VTDs and LCs into a file of the given name
+	 * XML is not part of the index 
+	 * please refer to VTD-XML web site for the spec and explanation
+	 * @param fileName
+	 * @throws IOException
+	 * @throws IndexWriteException
+	 *
+	 */
+	public void writeSeparateIndex(String fileName) throws IOException,IndexWriteException{
+	    FileOutputStream fos = new FileOutputStream(fileName);
+	    writeSeparateIndex(fos);
 	    fos.close();
 	}
 	/**
