@@ -74,7 +74,7 @@ FastLongBuffer *createFastLongBuffer2(int exp){
 /* create FastLongBuffer with page size of (1<<e) longs and initial capciaty of c longs*/
 FastLongBuffer *createFastLongBuffer3(int exp, int c){
 	FastLongBuffer *flb = NULL;
-	ArrayList *al= createArrayList(c);
+	ArrayList *al= createArrayList2(c);
 	if (al==NULL){
 		throwException2(out_of_mem,
 			"FastLongBuffer allocation failed ");
