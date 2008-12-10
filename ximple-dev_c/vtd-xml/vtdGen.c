@@ -318,7 +318,7 @@ static void printLineNumber(VTDGen *vg){
 		lineOffset = (vg->offset - lineOffset) >> 1;
 	}
 	//return "\nLine Number: " + lineNumber + " Offset: " + lineOffset;
-	printf("\nLine Number: %d  Offset: %d \n",lineNumber+1, lineOffset-1);
+	//printf("\nLine Number: %d  Offset: %d \n",lineNumber+1, lineOffset-1);
 }
 
 /* This method automatically converts the underlying byte 
@@ -2125,6 +2125,8 @@ Boolean parseFile(VTDGen *vg, Boolean ns,char *fileName){
 		//throwException2(out_of_mem,"error occurred in parseFile");
 		return FALSE;
 	}
+	
+	fclose(f);
 	return TRUE;
 }
 
