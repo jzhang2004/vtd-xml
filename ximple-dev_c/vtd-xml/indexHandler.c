@@ -216,7 +216,7 @@ Boolean _writeIndex(Byte version,
 						return FALSE;
 					};
 			}
-			fclose(f);
+			//fclose(f);
 			return TRUE;
 }
 /*readIndex loads VTD+XML into VTDGen
