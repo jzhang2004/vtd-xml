@@ -243,8 +243,14 @@ void bind4XMLModifier(XMLModifier *xm, VTDNav *vn){
 	}
 	xm->md = vn;
 	xm->encoding = xm->md->encoding;
+	if (xm->deleteHash !=NULL)
+		freeIntHash(xm->deleteHash);
+	if (xm->insertHash !=NULL);
+		freeIntHash(xm->insertHash);
+
 	xm->deleteHash = createIntHash2(determineHashWidth(vn->vtdSize));
 	xm->insertHash = createIntHash2(determineHashWidth(vn->vtdSize));
+
 	xm->flb = createFastLongBuffer();
 	xm->fob = createFastLongBuffer();
 	switch(xm->md->encoding){
