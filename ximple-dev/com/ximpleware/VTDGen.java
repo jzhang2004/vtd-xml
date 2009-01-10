@@ -1363,6 +1363,29 @@ public class VTDGen {
                 fis.close();
         }
 	}
+	
+
+	
+	/**
+	 * Load the separate VTD index and XmL file.
+	 * Refer to persistence model of separate vtd index
+	 * for more details
+	 * @param XMLFileName name of xml file
+	 * @param VTDIndexName name of the vtd index file
+	 * @return VTDNav object
+	 * @throws IOException
+	 * @throws IndexReadException
+	 *
+	 */
+	public VTDNav loadSeparateIndex(String XMLFileName, String VTDIndexName) throws IOException, IndexReadException{
+	     FileInputStream xfis = null;
+	     FileInputStream vfis = null;
+	     xfis = new FileInputStream(XMLFileName);
+	     int size = (int)(new File(XMLFileName)).length();
+	     vfis = new FileInputStream(VTDIndexName);
+	     IndexHandler.readSeparateIndex( vfis, xfis, size, this);
+	     return getNav();
+	}
 	private void matchCPEncoding()throws ParseException{
 	    if ((r.skipChar('p') || r.skipChar('P')) && r.skipChar('1')
                 && r.skipChar('2') && r.skipChar('5')) {
@@ -3572,7 +3595,7 @@ public class VTDGen {
 	 *
 	 */
 	public void writeSeparateIndex(OutputStream os) throws IOException,IndexWriteException{
-	    IndexHandler.writeIndex((byte)2,
+	    IndexHandler.writeSeparateIndex((byte)2,
 	            this.encoding,
 	            this.ns,
 	            true,

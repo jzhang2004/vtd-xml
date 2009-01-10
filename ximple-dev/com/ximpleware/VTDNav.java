@@ -4076,7 +4076,7 @@ public class VTDNav {
 	 *
 	 */
 	public void writeSeparateIndex(OutputStream os) throws IndexWriteException, IOException{
-	    IndexHandler.writeIndex((byte)2,
+	    IndexHandler.writeSeparateIndex((byte)2,
 	            this.encoding,
 	            this.ns,
 	            true,
