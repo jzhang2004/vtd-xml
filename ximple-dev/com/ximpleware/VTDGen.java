@@ -3602,7 +3602,7 @@ public class VTDGen {
 	            this.VTDDepth,
 	            3,
 	            this.rootIndex,
-	            this.XMLDoc,
+	            //this.XMLDoc,
 	            this.docOffset,
 	            this.docLen,
 	            this.VTDBuffer,

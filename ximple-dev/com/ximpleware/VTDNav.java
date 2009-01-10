@@ -4083,7 +4083,7 @@ public class VTDNav {
 	            this.nestingLevel-1,
 	            3,
 	            this.rootIndex,
-	            this.XMLDoc.getBytes(),
+	           // this.XMLDoc.getBytes(),
 	            this.docOffset,
 	            this.docLen,
 	            (FastLongBuffer)this.vtdBuffer,

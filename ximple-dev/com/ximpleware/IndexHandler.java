@@ -171,7 +171,7 @@ class IndexHandler {
             int nestDepth,
             int LCLevel,
             int rootIndex,
-            byte[] xmlDoc,
+            //byte[] xmlDoc,
             int docOffset,
             int docLen,
             FastLongBuffer vtdBuffer,
@@ -181,8 +181,9 @@ class IndexHandler {
             OutputStream os
             ) throws IndexWriteException,
             IOException{
-        if ( xmlDoc == null
-                || docLen <=0
+        if ( //xmlDoc == null
+                
+                docLen <=0
                 || vtdBuffer == null 
                  // impossible to occur
                 || l1Buffer == null // setDoc not called
