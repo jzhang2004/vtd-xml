@@ -82,7 +82,7 @@ class IndexHandler {
         DataOutputStream dos = new DataOutputStream(os);
         // first 4 bytes
         byte[] ba = new byte[4];
-        ba[0] = (byte)version;  // version # is 1 
+        ba[0] = (byte)version;  // version # is 2 
         ba[1] = (byte)encodingType;
         ba[2] = (byte)(ns? 0xe0 : 0xa0); // big endien
         ba[3] = (byte)nestDepth;
@@ -108,7 +108,7 @@ class IndexHandler {
             for (;t>0;t--)
                 dos.write(0);
         }
-        // write VTD
+        // write VTD offset adjusted if the start offset is not zero
         dos.writeLong(vtdBuffer.size());
         if (docOffset == 0)
             for (i = 0; i < vtdBuffer.size(); i++) {
@@ -143,6 +143,7 @@ class IndexHandler {
     
     /**
      * Write VTD and Location cache into output stream (which is separate from XML)
+     * Notice that VTD index assumes that XML bytes starts at the beginning
      *  
      * @param version
      * @param encodingType
@@ -480,6 +481,153 @@ class IndexHandler {
         
         vg.setDoc(XMLDoc);
         
+        if (endian ==1){
+            // read vtd records
+            int vtdSize = (int)dis.readLong();
+            while(vtdSize>0){
+                vg.VTDBuffer.append(dis.readLong());
+                vtdSize--;
+            }
+            // read L1 LC records
+            int l1Size = (int)dis.readLong();
+                     
+            while(l1Size > 0){
+                long l = dis.readLong();
+               // System.out.println(" l-==> "+Long.toHexString(l));
+                vg.l1Buffer.append(l);
+                l1Size--;
+            }
+            //System.out.println("++++++++++ ");
+            // read L2 LC records
+            int l2Size = (int)dis.readLong();
+            while(l2Size > 0){
+                vg.l2Buffer.append(dis.readLong());
+                l2Size--;
+            }
+            //System.out.println("++++++++++ ");   
+            // read L3 LC records
+            int l3Size = (int)dis.readLong();
+            if (intLongSwitch == 1){ //l3 uses ints
+                while(l3Size > 0 ){
+                    vg.l3Buffer.append(dis.readInt());
+                    l3Size --;
+                }
+            } else {
+                while(l3Size > 0 ){
+                    vg.l3Buffer.append((int)(dis.readLong()>>32));
+                    l3Size --;
+                }
+            }
+        } else {
+            // read vtd records
+            int vtdSize = (int)reverseLong(dis.readLong());
+            while(vtdSize>0){
+                vg.VTDBuffer.append(reverseLong(dis.readLong()));
+                vtdSize--;
+            }
+            // read L1 LC records
+            //System.out.println(" ++++++++++ ");
+            int l1Size = (int)reverseLong(dis.readLong());
+            while(l1Size > 0){
+                long l = reverseLong(dis.readLong());
+                vg.l1Buffer.append(l);
+                l1Size--;
+            }
+            //System.out.println(" ++++++++++ ");
+            // read L2 LC records
+            int l2Size = (int)reverseLong(dis.readLong());
+            while(l2Size > 0){
+                long l = reverseLong(dis.readLong());
+                //System.out.println(" l--=->"+Long.toHexString(l));
+                vg.l2Buffer.append(l);
+                l2Size--;
+            }
+            //System.out.println(" ++++++++++ ");
+            // read L3 LC records
+            int l3Size = (int)reverseLong(dis.readLong());
+            if (intLongSwitch == 1){ //l3 uses ints
+                while(l3Size > 0 ){
+                    vg.l3Buffer.append(reverseInt(dis.readInt()));
+                    l3Size --;
+                }
+            } else {
+                while(l3Size > 0 ){
+                    vg.l3Buffer.append(reverseInt((int)(dis.readLong()>>32)));
+                    l3Size --;
+                }
+            }
+        }
+    }
+    
+/**
+ * read in XML and index file  separately 
+ * @param index
+ * @param XMLBytes
+ * @param XMLSize
+ * @param vg
+ * @throws IndexReadException
+ * @throws IOException
+ *
+ */
+    public static void readSeparateIndex(InputStream index, InputStream XMLBytes, int XMLSize, VTDGen vg) 
+    throws IndexReadException,IOException{
+        if (index == null || vg == null || XMLBytes == null)
+            throw new IndexReadException("Invalid argument(s) for readSeparateIndex()");
+        DataInputStream dis = new DataInputStream(index);
+        byte b= dis.readByte(); // first byte
+        if (b!=2) throw new IndexReadException("Invalid version number for readIndex()");
+        // no check on version number for now
+        // second byte
+        vg.encoding = dis.readByte();
+        int intLongSwitch;
+        int ns;
+        int endian;
+        // third byte
+        b= dis.readByte();
+        if ((b&0x80)!=0)
+           intLongSwitch = 1; //use ints
+        else 
+           intLongSwitch = 0;
+        if ((b & 0x40)!=0)
+            vg.ns = true;
+        else
+            vg.ns = false;
+        if ((b & 0x20) !=0)
+            endian = 1;
+        else 
+            endian = 0;
+        if ((b & 0x1f) != 0)
+            throw new IndexReadException("Last 5 bits of the third byte should be zero");
+        // fourth byte
+        vg.VTDDepth =  dis.readByte();
+        
+        // 5th and 6th byte
+        int LCLevels = (((int)dis.readByte())<<8) | dis.readByte();
+        if (LCLevels < 3)
+            throw new IndexReadException("LC levels must be at least 3");
+        // 7th and 8th byte
+        vg.rootIndex = (((int)dis.readByte())<<8) | dis.readByte();
+        
+        // skip two longs
+        dis.readLong();
+        dis.readLong();
+        int size = 0;
+        // read XML size
+        if (endian == 1)
+           size = (int)dis.readLong();
+        else
+           size = (int)reverseLong(dis.readLong());
+        // read XML bytes
+        if (size!= XMLSize)
+           throw new IndexReadException("XML size mismatch");
+        byte[] XMLDoc = new byte[size];
+        XMLBytes.read(XMLDoc);
+        
+        
+        vg.setDoc(XMLDoc);
+        
+        long l1= dis.readLong();
+        l1= dis.readLong();
         if (endian ==1){
             // read vtd records
             int vtdSize = (int)dis.readLong();
