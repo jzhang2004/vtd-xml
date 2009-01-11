@@ -29,7 +29,7 @@ public class Step implements LocationPathNode{
 	public Step nextS; // points to next step
 	public int position; // position
 	public Step prevS; // points to the prev step
-	public Object o; //AutoPilot goes here
+	public Object o; //AutoPilot or TextIter goes here
 	boolean ft; // first time
 	public Step(){
 		nextS = prevS = (Step)null;
@@ -124,14 +124,14 @@ public class Step implements LocationPathNode{
 	}
 		
 	public boolean evalPredicates(VTDNav vn, Predicate p) throws NavException {
-		Predicate temp = this.p;
-		while(temp!=p) {
-			if (temp.eval(vn)== false)
-				return false;
-			temp = temp.nextP;
-		}	
-		return true;
-	}
+    	Predicate temp = this.p;
+    	while(temp!=p) {
+    		if (temp.eval(vn)== false)
+    			return false;
+    		temp = temp.nextP;
+    	}	
+    	return true;
+    }
 	
 	public void setAxisType(int st){
 		axis_type = st;
