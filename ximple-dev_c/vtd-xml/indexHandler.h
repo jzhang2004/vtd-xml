@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -43,9 +43,29 @@ Boolean _writeIndex(Byte version,
 				FastIntBuffer *l3Buffer, 
 				FILE *f);
 
+/*writeSeparateIndex writes VTD index into a separate file from XML
+  notice that this function assumes XML document byte starts from the begining
+  This function throws index_write_exception*/
+Boolean _writeSeparateIndex(Byte version, 
+				int encodingType, 
+				Boolean ns, 
+				Boolean byteOrder, 
+				int nestDepth, 
+				int LCLevel, 
+				int rootIndex, 
+				//UByte* xmlDoc, 
+				int docOffset, 
+				int docLen, 
+				FastLongBuffer *vtdBuffer, 
+				FastLongBuffer *l1Buffer, 
+				FastLongBuffer *l2Buffer, 
+				FastIntBuffer *l3Buffer, 
+				FILE *f);
 
 /*readIndex loads VTD+XML into VTDGen*/
 Boolean _readIndex(FILE *f, VTDGen *vg);
 
 Boolean _readIndex2(UByte *ba, int len, VTDGen *vg);
+
+Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *vtdIndex, VTDGen *vg);
 #endif
