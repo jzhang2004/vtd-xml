@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@
 #line 1 "l8.y"
 
 /* 
-* Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
