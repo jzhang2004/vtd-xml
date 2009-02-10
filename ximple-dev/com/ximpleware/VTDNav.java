@@ -4143,4 +4143,25 @@ public class VTDNav {
 	    }
 	    return size+64;
 	}
+	
+	/**
+	 * Duplicate the VTDNav instance with shared XML, VTD and LC buffers
+	 * This method may be useful for parallel XPath evaluation
+	 * @return a VTDNav instance
+	 *
+	 */
+	public VTDNav duplicateNav(){
+	    return new VTDNav(rootIndex,
+	            encoding,
+	            ns,
+	            nestingLevel-1,
+	            XMLDoc,
+	            vtdBuffer,
+	            l1Buffer,
+	            l2Buffer,
+	            l3Buffer,
+	            docOffset,
+	            docLen
+	            );
+	}
 }
