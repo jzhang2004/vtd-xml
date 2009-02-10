@@ -4583,5 +4583,25 @@ namespace com.ximpleware
 
             return len1;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public VTDNav duplicateNav()
+        {
+            return new VTDNav(rootIndex,
+                encoding,
+                ns, 
+                nestingLevel-1,
+                XMLDoc,
+                vtdBuffer,
+                l1Buffer,
+                l2Buffer,
+                l3Buffer,
+                docOffset,
+                docLen
+                );
+        }
     }
 }
