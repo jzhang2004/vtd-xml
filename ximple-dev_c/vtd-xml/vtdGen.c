@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -3439,6 +3439,8 @@ static int process_ex_seen(VTDGen *vg){
 
 /* Load VTD+XML from a FILE pointer */
 VTDNav* loadIndex(VTDGen *vg, FILE *f){
+	clear(vg);
+	free(vg->XMLDoc);
 	if (_readIndex(f,vg))
 	return getNav(vg);
 	else 
@@ -3447,6 +3449,8 @@ VTDNav* loadIndex(VTDGen *vg, FILE *f){
 
 /* load VTD+XML from a byte array */
 VTDNav* loadIndex2(VTDGen *vg, UByte* ba,int len){
+	clear(vg);
+	free(vg->XMLDoc);
 	if (_readIndex2(ba,len,vg))
 	return getNav(vg);
 	else return NULL;
@@ -3485,7 +3489,7 @@ Boolean writeIndex2(VTDGen *vg, char *fileName){
 	return b;
 }
 
-/* pre-calculate the VTD+XML index size without generating the actual index */
+/* pre-calculate the integrated VTD+XML index size without generating the actual index */
 Long getIndexSize(VTDGen *vg){
 		int size;
 	    if ( (vg->docLen & 7)==0)
@@ -3503,4 +3507,67 @@ Long getIndexSize(VTDGen *vg){
 	        size += (vg->l3Buffer->size+1)<<2; //odd
 	    }
 	    return size+64;
+}
+
+
+/* Write the VTDs and LCs into a file*/
+/* offset shift in xml should be zero*/
+void writeSeparateIndex(VTDGen *vg, char *VTDIndexFile){
+	FILE *f = NULL;
+	Boolean b = FALSE;
+	f = fopen(VTDIndexFile,"wb");
+	
+	if (f==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		return FALSE;
+	}
+
+	b = _writeSeparateIndex( (Byte)2, 
+                vg->encoding, 
+                vg->ns, 
+                TRUE, 
+                vg->VTDDepth, 
+                3, 
+                vg->rootIndex, 
+                //vg->XMLDoc, 
+                vg->docOffset, 
+                vg->docLen, 
+                vg->VTDBuffer, 
+                vg->l1Buffer, 
+                vg->l2Buffer, 
+                vg->l3Buffer, 
+                f);
+	
+	fclose(f);
+	return b;
+}
+
+/* Load the separate VTD index and XmL file.*/
+VTDNav* loadSeparateIndex(VTDGen *vg, char *XMLFile, char *VTDIndexFile){
+	FILE *vf = NULL, *xf=NULL;
+	Boolean b = FALSE;
+	struct stat s;
+	unsigned int xsize;
+
+	vf = fopen(VTDIndexFile,"rb");
+	xf = fopen(XMLFile, "rb");
+	stat(XMLFile,&s);
+	xsize = (unsigned int) s.st_size;
+
+	if (xf==NULL||vf==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		return FALSE;
+	}
+	// clear internal state of vg
+	clear(vg);
+	free(vg->XMLDoc);
+
+	//get xml file size
+	b=_readSeparateIndex(xf, xsize, vf, vg);
+	if (b==FALSE){
+		return getNav(vg);
+	}else {
+		return NULL;
+	}
+	//
 }
