@@ -237,11 +237,15 @@ Boolean _readIndex(FILE *f, VTDGen *vg){
 	}
 	
 	// first byte
-	if (fread(ba,1,1,f) != 1){
+	if (fread(ba,1,1,f) != 1 ){
 		throwException2(index_read_exception,"fread error occurred");
 		return FALSE;
 	}
-
+    
+	if (ba[0]!=1){
+		throwException2(index_read_exception,"version # error");
+		return FALSE;
+	}
 	// no check on version number for now
 	// second byte
 	if (fread(ba,1,1,f) != 1){
@@ -908,7 +912,7 @@ Boolean _writeSeparateIndex(Byte version,
 			}*/
 			//dos.Write(xmlDoc, docOffset, docLen);
 			// zero padding to make it integer multiple of 64 bits
-			if ((docLen & 0x07) != 0)
+			/*if ((docLen & 0x07) != 0)
 			{
 				int t = (((docLen >> 3) + 1) << 3) - docLen;
 				for (; t > 0; t--){
@@ -917,7 +921,7 @@ Boolean _writeSeparateIndex(Byte version,
 						return FALSE;
 					};
 				}
-			}
+			}*/
 			// write VTD
             
 			//dos.Write((long)vtdBuffer.size());
@@ -994,7 +998,7 @@ Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *f, VTDGen *vg){
 	int endian;
 	Byte ba[4];
 	int LCLevels;
-	Long l;
+	Long l,l2;
 	int size;
 	Byte *XMLDoc;
 	Boolean littleEndian = isLittleEndian();
@@ -1009,10 +1013,14 @@ Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *f, VTDGen *vg){
 		throwException2(index_read_exception,"fread error occurred");
 		return FALSE;
 	}
+	if (ba[0]!=2){
+		throwException2(index_read_exception,"version # error");
+		return FALSE;
+	}
 
 	// no check on version number for now
 	// second byte
-	if (fread(ba,1,1,f) != 2){
+	if (fread(ba,1,1,f) != 1){
 		throwException2(index_read_exception,"fread error occurred");
 		return FALSE;
 	}
@@ -1079,7 +1087,6 @@ Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *f, VTDGen *vg){
 		return FALSE;
 	}
 	//Console.WriteLine(" l ==>" + l);
-	
 	// read XML size
 	if (littleEndian && (endian == 0)
 		|| (littleEndian == FALSE) && (endian == 1))
@@ -1109,7 +1116,7 @@ Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *f, VTDGen *vg){
 		throwException2(out_of_mem,"Byte array allocation failed");
 		return FALSE;
 	}
-	if (fread(XMLDoc,1,size,f)!= size){
+	if (fread(XMLDoc,1,size,xml)!= size){
 		throwException2(index_read_exception,"fread error occurred");
 		return FALSE;
 	}
@@ -1134,6 +1141,7 @@ Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *f, VTDGen *vg){
 	{
 		int vtdSize,l1Size,l2Size,l3Size;
 		// read vtd records
+		l=0;
 		if (fread(&l,1,8,f) != 8){
 			throwException2(index_read_exception,"fread error occurred");
 			return FALSE;
