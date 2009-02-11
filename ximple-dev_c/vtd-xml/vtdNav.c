@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -3690,4 +3690,35 @@ int getOffsetAfterHead(VTDNav *vn){
 	    else
  	        return (vn->encoding<= FORMAT_WIN_1258)? offset+1:((offset+1)<<1);
 
+}
+
+
+/* Write the VTDs and LCs into an Separate index file*/
+void writeSeparateIndex_VTDNav(VTDNav *vn, char *VTDIndexFile){
+	FILE *f = NULL;
+	Boolean b = FALSE;
+	f = fopen(VTDIndexFile,"wb");
+	
+	if (f==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		return FALSE;
+	}
+
+	b = _writeSeparateIndex( (Byte)2, 
+                vn->encoding, 
+                vn->ns, 
+                TRUE, 
+				vn->nestingLevel-1, 
+                3, 
+                vn->rootIndex, 
+                vn->docOffset, 
+                vn->docLen, 
+				vn->vtdBuffer, 
+                vn->l1Buffer, 
+                vn->l2Buffer, 
+                vn->l3Buffer, 
+                f);
+	
+	fclose(f);
+	//return b;
 }
