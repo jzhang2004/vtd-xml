@@ -573,12 +573,12 @@ namespace com.ximpleware
             vg.rootIndex = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
 
             // skip a long
+            dis.ReadInt64();
+            //Console.WriteLine(" l ==>" + l);
+            dis.ReadInt64();
+            //Console.WriteLine(" l ==>" + l);
             long l = dis.ReadInt64();
-            //Console.WriteLine(" l ==>" + l);
-            l = dis.ReadInt64();
-            //Console.WriteLine(" l ==>" + l);
-            l = dis.ReadInt64();
-            //Console.WriteLine(" l ==>" + l);
+            
             int size;
             // read XML size
             if (BitConverter.IsLittleEndian && endian == 0
@@ -591,6 +591,7 @@ namespace com.ximpleware
             // read XML bytes
             byte[] XMLDoc = new byte[size];
             XMLBytes.Read(XMLDoc, 0, size);
+           
             //dis.Read(XMLDoc, 0, size);
             /*if ((size & 0x7) != 0)
             {
@@ -603,7 +604,11 @@ namespace com.ximpleware
             }*/
 
             vg.setDoc(XMLDoc);
-
+            // skip a long
+            dis.ReadInt64();
+            //Console.WriteLine(" l ==>" + l);
+            dis.ReadInt64();
+            //Console.WriteLine(" l ==>" + l);
             if (BitConverter.IsLittleEndian && endian == 0
                 || BitConverter.IsLittleEndian == false && endian == 1)
             {
