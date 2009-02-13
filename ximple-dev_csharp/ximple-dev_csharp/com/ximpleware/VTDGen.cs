@@ -4405,7 +4405,7 @@ namespace com.ximpleware
         public void writeSeparateIndex(String fileName)
         {
             System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
-            writeIndex(fos);
+            writeSeparateIndex(fos);
             fos.Close();
         }
 
