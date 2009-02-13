@@ -4403,9 +4403,9 @@ namespace com.ximpleware
         /// <throws>  IndexWriteException </throws>
         /// <summary> 
         /// </summary>
-        public bool writeIndex(System.IO.Stream os)
+        public void writeIndex(System.IO.Stream os)
         {
-            return IndexHandler.writeIndex(1,
+            IndexHandler.writeIndex(1,
                  this.encoding,
                  this.ns,
                  true,
@@ -4429,13 +4429,12 @@ namespace com.ximpleware
         /// <throws>  IndexWriteException </throws>
         /// <summary> 
         /// </summary>
-        public bool writeIndex(System.String fileName)
+        public void writeIndex(System.String fileName)
         {
             //UPGRADE_TODO: Constructor 'java.io.FileOutputStream.FileOutputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileOutputStreamFileOutputStream_javalangString'"
             System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
-            bool b = writeIndex(fos);
+            writeIndex(fos);
             fos.Close();
-            return b;
         }
 
         /// <summary>
@@ -4602,6 +4601,33 @@ namespace com.ximpleware
                 docOffset,
                 docLen
                 );
+        }
+
+        public void writeSeparateIndex(String fileName)
+        {
+            System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
+            writeIndex(fos);
+            fos.Close();
+            
+        }
+
+        public void writeSeparateIndex(System.IO.Stream os)
+        {
+            IndexHandler.writeSeparateIndex((byte)2,
+  	            this.encoding,
+  	            this.ns,
+  	            true,
+  	            this.nestingLevel-1,
+ 	            3,
+  	            this.rootIndex,
+  	            // this.XMLDoc.getBytes(),
+  	            this.docOffset,
+  	            this.docLen,
+  	            (FastLongBuffer)this.vtdBuffer,
+  	            (FastLongBuffer)this.l1Buffer,
+  	            (FastLongBuffer)this.l2Buffer,
+  	            (FastIntBuffer)this.l3Buffer,
+  	            os);
         }
     }
 }

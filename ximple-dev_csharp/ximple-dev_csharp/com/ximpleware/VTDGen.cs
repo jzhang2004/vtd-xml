@@ -4299,6 +4299,29 @@ namespace com.ximpleware
 
         }
 
+
+        public VTDNav loadSeparateIndex(String XMLFileName, String VTDFileName)
+        {
+            System.IO.FileStream fis = null;
+            System.IO.FileStream xis = null;
+            System.IO.FileInfo f = null;
+            int size;
+            try
+            {
+                f = new System.IO.FileInfo(XMLFileName);
+                size = (int)f.Length;
+                fis = new System.IO.FileStream(VTDFileName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+                xis = new System.IO.FileStream(XMLFileName, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+                IndexHandler.readSeparateIndex(fis, xis, size, this);
+                return getNav();
+            }
+            finally
+            {
+                if (fis != null)
+                    fis.Close();
+            }
+        }
+
         /// <summary>
         /// This method loads the VTD+XML from a byte array, assuming the first 32
         /// bytes are not XML bytes (but instead header of the VTD+XML index)
@@ -4317,9 +4340,9 @@ namespace com.ximpleware
         /// <throws>  IndexWriteException </throws>
         /// <summary> 
         /// </summary>
-        public bool writeIndex(System.IO.Stream os)
+        public void writeIndex(System.IO.Stream os)
         {
-            return IndexHandler.writeIndex(1,
+            IndexHandler.writeIndex(1,
                  this.encoding,
                  this.ns,
                  true,
@@ -4343,13 +4366,12 @@ namespace com.ximpleware
         /// <throws>  IndexWriteException </throws>
         /// <summary> 
         /// </summary>
-        public bool writeIndex(System.String fileName)
+        public void writeIndex(System.String fileName)
         {
             //UPGRADE_TODO: Constructor 'java.io.FileOutputStream.FileOutputStream' was converted to 'System.IO.FileStream.FileStream' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javaioFileOutputStreamFileOutputStream_javalangString'"
             System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
-            bool b = writeIndex(fos);
+            writeIndex(fos);
             fos.Close();
-            return b;
         }
         /// <summary>
         /// Precompute the size of VTD+XML index without actully generating it
@@ -4377,6 +4399,33 @@ namespace com.ximpleware
                 size += (l3Buffer.size() + 1) << 2; //odd
             }
             return size + 64;
+        }
+
+
+        public void writeSeparateIndex(String fileName)
+        {
+            System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
+            writeIndex(fos);
+            fos.Close();
+        }
+
+        public void writeSeparateIndex(System.IO.Stream os)
+        {
+            IndexHandler.writeSeparateIndex((byte)2,
+                this.encoding,
+                this.ns,
+                true,
+                this.VTDDepth,
+                3,
+                this.rootIndex,
+                // this.XMLDoc.getBytes(),
+                this.docOffset,
+                this.docLen,
+                (FastLongBuffer)this.VTDBuffer,
+                (FastLongBuffer)this.l1Buffer,
+                (FastLongBuffer)this.l2Buffer,
+                (FastIntBuffer)this.l3Buffer,
+                os);
         }
     }
 }
