@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2008 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -125,6 +125,13 @@ Boolean writeIndex(VTDGen *vg, FILE *f);
 /* Write VTD+XML into a file of given name, this file will be created on hard disk */
 Boolean writeIndex2(VTDGen *vg, char *fileName);
 
-/* pre-calculate the VTD+XML index size without generating the actual index */
+/* Pre-calculate the integrated VTD+XML index size without generating the actual index */
 Long getIndexSize(VTDGen *vg);
+
+/* Write the VTDs and LCs into an file*/
+void writeSeparateIndex(VTDGen *vg, char *vtdIndex);
+
+/* Load the separate VTD index and XmL file.*/
+VTDNav* loadSeparateIndex(VTDGen *vg, char *XMLFile, char *VTDIndexFile);
+
 #endif
