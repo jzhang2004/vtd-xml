@@ -1055,7 +1055,7 @@ public class VTDNav {
 		int temp = getCurrentIndex() + 1;
 		int size = vtdBuffer.size();
 		// temp is not the last entry in VTD buffer
-		if (temp < size - 1) {
+		if (temp < size) {
 			while (temp < size && getTokenDepth(temp) >= depth) {
 				temp++;
 			}
@@ -1093,14 +1093,18 @@ public class VTDNav {
 			(encoding <= FORMAT_WIN_1258)
 				? (docOffset + docLen - 1)
 				: ((docOffset + docLen) >> 1) - 1;
-		int d = depth + 1+((getTokenDepth(temp)==-1)?1:0 );
-		int i = 0;
-		while (i < d) {
-			if (getCharUnit(so2) == '>') {
-				i++;
-			}
-			so2--;
-		}
+		int d;
+	   
+	    d = depth + 1;
+	    
+	    int i = 0;
+        while (i < d) {
+            if (getCharUnit(so2) == '>') {
+                i++;
+            }
+            so2--;
+        }
+	  
 
 		length = so2 - so + 2;
 
