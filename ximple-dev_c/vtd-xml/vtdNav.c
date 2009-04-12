@@ -711,7 +711,7 @@ Long getElementFragment(VTDNav *vn){
 		(vn->encoding <= FORMAT_WIN_1258)
 		? (vn->docOffset + vn->docLen - 1)
 		: ((vn->docOffset + vn->docLen) >> 1) - 1;
-	d = depth + 1 + ((getTokenDepth(vn,temp))?1:0);
+	d = depth + 1;
 	i = 0;
 	while (i < d) {
 		if (getCharUnit(vn,so2) == '>') {
