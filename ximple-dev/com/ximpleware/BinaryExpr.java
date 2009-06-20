@@ -280,26 +280,43 @@ public class BinaryExpr extends Expr {
 	private boolean compNodeSetString(Expr left, Expr right, VTDNav vn,int op){
 	     int i, i1 = 0, stackSize;
 	     String s;	     
+	     
        try {
            s = right.evalString(vn);
            vn.push2();
            stackSize = vn.contextStack2.size;
            while ((i = left.evalNodeSet(vn)) != -1) {
                i1 = getStringVal(vn,i); 
+               // if (i1==-1 && s.length()==0)
+               //return true;
                if (i1 != -1 && compareVString1(i1,vn,s,op)){
                    left.reset(vn);
                    vn.contextStack2.size = stackSize;
                    vn.pop2();
                    return true;
                }
-           }    
+           }           
            vn.contextStack2.size = stackSize;
            vn.pop2();
            left.reset(vn);            
-           return false; 
+           return compareEmptyNodeSet(op, s); 
        } catch (Exception e) {
            throw new RuntimeException("Undefined behavior");
        }
+	}
+	
+	private boolean compareEmptyNodeSet(int op, String s){
+	    if (op == NE ){
+	        if (s.length()==0) {
+	            return false;
+	        } else 
+	            return false;	        
+	    }else{
+	        if (s.length()==0) {
+	            return true;
+	        } else 
+	            return true;
+	    }	        
 	}
 	private boolean compStringNodeSet(Expr left, Expr right, VTDNav vn,int op){
 	     int i, i1 = 0, stackSize;
@@ -320,7 +337,7 @@ public class BinaryExpr extends Expr {
             vn.contextStack2.size = stackSize;
             vn.pop2();
             right.reset(vn);            
-            return false; 
+            return compareEmptyNodeSet(op, s); 
         } catch (Exception e) {
             throw new RuntimeException("Undefined behavior");
         }
