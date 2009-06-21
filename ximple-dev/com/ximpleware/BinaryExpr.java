@@ -310,12 +310,12 @@ public class BinaryExpr extends Expr {
 	        if (s.length()==0) {
 	            return false;
 	        } else 
-	            return false;	        
+	            return true;	        
 	    }else{
 	        if (s.length()==0) {
 	            return true;
 	        } else 
-	            return true;
+	            return false;
 	    }	        
 	}
 	private boolean compStringNodeSet(Expr left, Expr right, VTDNav vn,int op){
