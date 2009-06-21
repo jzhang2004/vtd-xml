@@ -221,6 +221,7 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
 	exception e;
 	int i,i1,stackSize;
 	UCSChar *s=NULL;
+	Boolean b;
 	Try {
 		    s = be->left->evalString(be->left,vn);
             push2(vn);
@@ -231,13 +232,16 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
                     be->right->reset(be->right,vn);
                     vn->contextBuf2->size = stackSize;
                     pop2(vn);
+					free(s);
                     return TRUE;
                 }
             }    
             vn->contextBuf2->size = stackSize;
             pop2(vn);
-            be->right->reset(be->right,vn);            
-            return FALSE; 
+            be->right->reset(be->right,vn);  
+			b = compEmptyNodeSet(op,s);
+			free(s);
+            return b; 
 	} Catch ( e) {
 		e.et = other_exception;
 		e.msg = "undefined run time behavior in computerEQNE";
@@ -249,6 +253,7 @@ static Boolean compNodeSetString(binaryExpr *be, expr* left, expr* right, VTDNav
 	exception e;
 	int i,i1 = 0,stackSize;
 	UCSChar *s=NULL;
+	Boolean b;
 	Try {
 		    s = be->right->evalString(be->right,vn);
             push2(vn);
@@ -259,13 +264,16 @@ static Boolean compNodeSetString(binaryExpr *be, expr* left, expr* right, VTDNav
                     be->left->reset(be->left,vn);
                     vn->contextBuf2->size = stackSize;
                     pop2(vn);
+					free(s);
                     return TRUE;
                 }
             }    
             vn->contextBuf2->size = stackSize;
             pop2(vn);
             be->left->reset(be->left,vn);            
-            return FALSE; 
+            b = compEmptyNodeSet(op, s);
+			free(s);
+			return b;
 	} Catch ( e) {
 		e.et = other_exception;
 		e.msg = "undefined run time behavior in computerEQNE";
@@ -327,6 +335,20 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 		Throw e;
 	}
 	return FALSE;
+}
+
+static Boolean compEmptyNodeSet(opType op, UCSChar *s){
+	if (op == OP_NE ){
+	        if (wcslen(s)==0) {
+	            return FALSE;
+	        } else 
+	            return TRUE;	        
+	    }else{
+	        if (wcslen(s)==0) {
+	            return TRUE;
+	        } else 
+	            return FALSE;
+	    }	  
 }
 
 Boolean computeComp(binaryExpr *be, opType op,VTDNav *vn){

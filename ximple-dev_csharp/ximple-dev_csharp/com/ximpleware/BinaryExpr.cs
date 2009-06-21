@@ -633,13 +633,34 @@ namespace com.ximpleware
             vn.contextStack2.size = stackSize;
             vn.pop2();
             left.reset(vn);
-            return false;
+            return compareEmptyNodeSet(op, s);
         }
         catch (Exception e)
         {
             throw new System.SystemException("Undefined behavior");
         }
     }
+        private bool compareEmptyNodeSet(int op, String s)
+        {
+            if (op == NE)
+            {
+                if (s.Length == 0)
+                {
+                    return false;
+                }
+                else
+                    return true;
+            }
+            else
+            {
+                if (s.Length == 0)
+                {
+                    return true;
+                }
+                else
+                    return false;
+            }
+        }
     private bool compStringNodeSet(Expr left, Expr right, VTDNav vn, int op)
     {
         int i, i1 = 0, stackSize;
@@ -663,7 +684,7 @@ namespace com.ximpleware
             vn.contextStack2.size = stackSize;
             vn.pop2();
             right.reset(vn);
-            return false;
+            return compareEmptyNodeSet(op, s);
         }
         catch (Exception e)
         {
