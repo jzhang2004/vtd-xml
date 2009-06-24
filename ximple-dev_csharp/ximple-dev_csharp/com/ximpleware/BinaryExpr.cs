@@ -622,12 +622,13 @@ namespace com.ximpleware
             while ((i = left.evalNodeSet(vn)) != -1)
             {
                 i1 = getStringVal(vn, i);
-                if (i1 != -1 && compareVString1(i1, vn, s, op))
+                if (i1 != -1 )
                 {
+                    bool b = compareVString1(i1, vn, s, op);
                     left.reset(vn);
                     vn.contextStack2.size = stackSize;
                     vn.pop2();
-                    return true;
+                    return b;
                 }
             }
             vn.contextStack2.size = stackSize;
@@ -673,12 +674,13 @@ namespace com.ximpleware
             while ((i = right.evalNodeSet(vn)) != -1)
             {
                 i1 = getStringVal(vn, i);
-                if (i1 != -1 && compareVString2(i1, vn, s, op))
+                if (i1 != -1)
                 {
+                    bool b = compareVString2(i1, vn, s, op);
                     right.reset(vn);
                     vn.contextStack2.size = stackSize;
                     vn.pop2();
-                    return true;
+                    return b;
                 }
             }
             vn.contextStack2.size = stackSize;
