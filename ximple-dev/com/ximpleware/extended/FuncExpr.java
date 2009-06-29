@@ -556,7 +556,12 @@ public class FuncExpr extends Expr{
 			    		else
 			    		    return 0;
 					 }else {
-					    return Double.parseDouble(evalString(vn)); 					        
+					     try {
+								double dval = Double.parseDouble(evalString(vn));
+								return dval;
+							}catch (NumberFormatException e){
+								return Double.NaN;
+							}				        
 					 }
 	  }
 	}
