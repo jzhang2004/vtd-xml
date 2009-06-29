@@ -64,11 +64,11 @@ namespace com.ximpleware
 		*/
 		public override bool evalBoolean(VTDNav vn)
 		{
-            if (e.Boolean)
+            if (e.NodeSet==false)
             {
                 return e.evalBoolean(vn);
             }
-            if (e.NodeSet)
+            else
             {
                 bool a = false;
                 vn.push2();
@@ -87,7 +87,7 @@ namespace com.ximpleware
                 vn.pop2();
                 return a;
             }
-            if (e.Numerical)
+            /*if (e.Numerical)
             {
                 double dval = e.evalNumber(vn);
 
@@ -99,7 +99,7 @@ namespace com.ximpleware
             String s = e.evalString(vn);
             if (s == null || s.Length == 0)
                 return false;
-            return true;
+            return true;*/
 
 		}
 		
@@ -110,7 +110,7 @@ namespace com.ximpleware
 		*/
 		public override double evalNumber(VTDNav vn)
 		{
-            if (e.Numerical)
+            if (e.NodeSet==false)
                 return e.evalNumber(vn);
 			int a = - 1;
 			vn.push2();
@@ -249,7 +249,7 @@ namespace com.ximpleware
 		*/
 		public override System.String evalString(VTDNav vn)
 		{
-              if (e.String){
+              if (e.NodeSet == false){
                 return e.evalString(vn);                
               }
 

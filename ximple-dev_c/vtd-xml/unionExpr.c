@@ -144,7 +144,7 @@ double	evalNumber_une (unionExpr *e,VTDNav *vn){
 	exception ee;
 	int a = -1;
 	int size;
-	if (e->fe->isNumerical(e->fe)){
+	if (e->fe->isNodeSet(e->fe)==FALSE){
 		return e->fe->evalNumber(e->fe,vn);
 	}
 	push2(vn);
@@ -173,7 +173,7 @@ UCSChar* evalString_une  (unionExpr *e,VTDNav *vn){
 	exception ee;
 	int size;
 	int a = -1;
-	if (e->fe->isString(e->fe)){
+	if (e->fe->isNodeSet(e->fe)==FALSE){
 		return e->fe->evalString(e->fe,vn);
 	}
 	push2(vn);
@@ -208,9 +208,9 @@ Boolean evalBoolean_une (unionExpr *e,VTDNav *vn){
 	exception ee;
 	Boolean b = FALSE;
 	int size;
-	if (e->fe->isBoolean(e->fe)){
+	if (e->fe->isNodeSet(e->fe)==FALSE){
 		return e->fe->evalBoolean(e->fe,vn);
-	}else if (e->fe->isBoolean(e->fe)){
+	}else{
 			push2(vn);
 			/* record teh stack size*/
 			size = vn->contextBuf2->size;
@@ -223,7 +223,9 @@ Boolean evalBoolean_une (unionExpr *e,VTDNav *vn){
 			reset_une(e,vn);
 			pop2(vn);
 			return b;
-	}else if (e->fe->isNumerical(e->fe)){
+	}
+	
+	/*else if (e->fe->isNumerical(e->fe)){
            double dval = e->fe->evalNumber(e->fe,vn);
             if (dval == 0.0 || dval!=dval )
     			return FALSE;
@@ -236,7 +238,7 @@ Boolean evalBoolean_une (unionExpr *e,VTDNav *vn){
 		 }
 		 free(s);
          return TRUE;
-	}
+	}*/
 
 }
 Boolean isBoolean_une (unionExpr *e){
