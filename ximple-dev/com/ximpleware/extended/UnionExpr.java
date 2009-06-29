@@ -44,9 +44,9 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#evalBoolean(com.ximpleware.VTDNav)
      */
     public boolean evalBoolean(VTDNavHuge vn) {
-        if (e.isBoolean())
+        if (e.isNodeSet()==false)
             return e.evalBoolean(vn);
-        if (e.isNodeSet()) {
+        else {
             boolean a = false;
             vn.push2();
             // record teh stack size
@@ -61,19 +61,6 @@ public class UnionExpr extends Expr {
             vn.pop2();
             return a;
         }
-        else if (e.isNumerical()){
-            double dval = e.evalNumber(vn);
-            if (dval == 0.0 || Double.isNaN(dval) )
-    			return false;
-    		return true;
-            
-        }else {
-            String s = e.evalString(vn);
-            if (s==null || s.length()==0)
-                return false;
-            return true;
-            
-        }
     }
 
     /*
@@ -82,7 +69,7 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#evalNumber(com.ximpleware.VTDNav)
      */
     public double evalNumber(VTDNavHuge vn) {
-        if (e.isNumerical())
+        if (e.isNodeSet()==false)
             return e.evalNumber(vn);
         double d;
         int a = -1;
@@ -190,7 +177,7 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#evalString(com.ximpleware.VTDNav)
      */
     public String evalString(VTDNavHuge vn) {
-        if (e.isString()){
+        if (e.isNodeSet()==false){
             return e.evalString(vn);
         }
         vn.push2();
