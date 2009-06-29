@@ -580,7 +580,16 @@ namespace com.ximpleware
 					}
 					else
 					{
-						return System.Double.Parse(evalString(vn));
+                        try
+                        {
+                            double dval = System.Double.Parse(evalString(vn));
+                            return dval;
+                        }
+                        catch (System.FormatException e)
+                        {
+                            return System.Double.NaN;
+                        }
+						//return System.Double.Parse(evalString(vn));
 					}
 					//break;
 				

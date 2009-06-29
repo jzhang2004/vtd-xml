@@ -542,10 +542,15 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 						else
 							return 0;
 					 }else {
-                         	double d  = 0;
+                         	double d  = 0, result;
 							UCSChar *string = evalString_fne(fne,vn);
 							UCSChar *temp;
-							double result = wcstod(string,&temp);
+							if (wcslen(string)==0){
+								free(string);
+								return d/d;
+							}
+							
+							result = wcstod(string,&temp);
 							while(*temp!=0){
 								if ( *temp == L' ' 
 									|| *temp == L'\n'

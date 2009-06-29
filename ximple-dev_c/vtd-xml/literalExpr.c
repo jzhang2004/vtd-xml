@@ -58,9 +58,11 @@ int	evalNodeSet_le (literalExpr *le,VTDNav *vn){
 }
 
 double	evalNumber_le (literalExpr *le,VTDNav *vn){
-	double d  = 0;
+	double d  = 0, result;
 	UCSChar *temp;
-	double result = wcstod(le->s,&temp);
+	if (wcslen(le->s)==0)
+		return d/d;
+	result = wcstod(le->s,&temp);
 	while(*temp!=0){
 		if ( *temp == L' ' 
 			|| *temp == L'\n'
