@@ -253,7 +253,7 @@ public boolean iterate() throws PilotException, NavException {
    	    			} else
    	    				index +=2;
    	    			if (vn.ns == false){
-   	    				while(index<=size){
+   	    				while(index<size){
    	    					int type = vn.getTokenType(index);
    	    					if (type == VTDNav.TOKEN_ATTR_NAME
    	    						|| type == VTDNav.TOKEN_ATTR_NS){
@@ -266,7 +266,7 @@ public boolean iterate() throws PilotException, NavException {
    	    				return -1;
    	    			}else {
    	    				
-   	    				while(index<=size){
+   	    				while(index<size){
    	    				 int type = vn.getTokenType(index);
 	    					if (type == VTDNav.TOKEN_ATTR_NAME
 	    						|| type == VTDNav.TOKEN_ATTR_NS){
