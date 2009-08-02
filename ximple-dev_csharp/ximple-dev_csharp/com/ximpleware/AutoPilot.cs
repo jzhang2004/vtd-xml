@@ -320,7 +320,7 @@ namespace com.ximpleware
 							index += 2;
 						if (vn.ns == false)
 						{
-							while (index <= size)
+							while (index < size)
 							{
 								int type = vn.getTokenType(index);
 								if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
@@ -338,7 +338,7 @@ namespace com.ximpleware
 						else
 						{
 							
-							while (index <= size)
+							while (index < size)
                             {
                                 int type = vn.getTokenType(index);
 								if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)

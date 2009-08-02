@@ -425,7 +425,7 @@ int iterateAttr(AutoPilot *ap){
 					} else
 						ap->index +=2;
 					if (ap->vn->ns == FALSE){
-						while(ap->index<=ap->size){
+						while(ap->index<ap->size){
 							tokenType type = getTokenType(ap->vn,ap->index);
 							if (type == TOKEN_ATTR_NAME
 								|| type == TOKEN_ATTR_NS){
@@ -437,7 +437,7 @@ int iterateAttr(AutoPilot *ap){
 						}
 						return -1;
 					}else {						
-						while(ap->index<=ap->size){
+						while(ap->index<ap->size){
 							tokenType type = getTokenType(ap->vn,ap->index);
 							if (type == TOKEN_ATTR_NAME
 								|| type == TOKEN_ATTR_NS){
