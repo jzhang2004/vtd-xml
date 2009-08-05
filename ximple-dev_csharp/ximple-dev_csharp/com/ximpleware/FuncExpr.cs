@@ -949,7 +949,7 @@ namespace com.ximpleware
 		
 		private double sum(VTDNav vn)
 		{
-			int d = 0;
+			double d = 0;
 			if (argCount() != 1 || argumentList.e.NodeSet == false)
 				throw new System.ArgumentException("sum()'s argument count is invalid");
 			vn.push2();
