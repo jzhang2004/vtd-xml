@@ -689,7 +689,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	private double sum(VTDNavHuge vn){
-	    int d=0;
+	    double d=0;
 	    if (argCount() != 1 || argumentList.e.isNodeSet() == false)
 	        throw new IllegalArgumentException("sum()'s argument count is invalid");
     	vn.push2();
