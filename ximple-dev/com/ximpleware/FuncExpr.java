@@ -354,26 +354,56 @@ public class FuncExpr extends Expr{
 	    throw new IllegalArgumentException
 		("substring()'s argument count is invalid");
 	}
-	private String translate(VTDNav vn){
-	    if (argCount()==3){
-	        String s1 = argumentList.e.evalString(vn);
-	        String s2 = argumentList.next.e.evalString(vn);
-	        String s3 = argumentList.next.next.e.evalString(vn);
-	        int len2 = s2.length();
-	        String done = "";
-	        for (int i=0;i<len2;i++)
-	        	if (done.indexOf(s2.charAt(i))==-1) {
-	    	        try {
-		        		s1 = s1.replace(s2.charAt(i), s3.charAt(i));
-	    	        } catch (IndexOutOfBoundsException e) {
-	    	        	s1 = s1.replaceAll(String.valueOf(s2.charAt(i)), "");
-	    	        }
-		        	done += s2.charAt(i);
+	private String translate(VTDNav vn)
+	{
+		int numArg = argCount();
+		
+	    if (numArg == 3)
+	    {
+	        String resultStr = argumentList.e.evalString(vn);
+	        String indexStr = argumentList.next.e.evalString(vn);
+	        
+	        if(resultStr == null || resultStr.length() == 0 || indexStr == null || indexStr.length() == 0) return resultStr;
+	        
+	        String replace = argumentList.next.next.e.evalString(vn);
+	        
+	        
+	        StringBuilder usedCharStr = new StringBuilder();
+	        
+	        
+	        int lenRep = (replace != null)?replace.length() : 0;
+	        
+	        
+	        for(int i = 0;i< indexStr.length(); i++)
+	        {
+	        	char idxChar = indexStr.charAt(i);
+	        	
+	        	if(usedCharStr.indexOf(String.valueOf(idxChar)) < 0)
+	        	{
+	        		
+	        		if(i < lenRep)
+	        		{
+	        			resultStr.replace(idxChar, replace.charAt(i));	        		
+	        		}
+	        		else
+	        		{
+	        			resultStr.replaceAll(String.valueOf(idxChar), "");
+	        		}
+	        	
+	        		usedCharStr.append(idxChar);
+	        	
 	        	}
-	        return s1;
+
+	        
+	        }
+	        
+	        return resultStr;
+	        
 	    }
-	    throw new IllegalArgumentException
-		("translate()'s argument count is invalid");
+	    else
+	    {
+	    	throw new IllegalArgumentException("Argument count for translate() is invalid. Expected: 3; Actual: " + numArg);
+	    }
 	}
 	private String normalizeSpace(VTDNav vn){
 	    if (argCount()== 0){
@@ -706,7 +736,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	private double sum(VTDNav vn){
-	    double d=0;
+	    int d=0;
 	    if (argCount() != 1 || argumentList.e.isNodeSet() == false)
 	        throw new IllegalArgumentException("sum()'s argument count is invalid");
     	vn.push2();
