@@ -292,7 +292,7 @@ public class XPathTester {
         VTDNav vn = parseString(s);
         AutoPilot ap = new AutoPilot(vn);
         ap.selectXPath("/test2/*/@* !='4'");
- if (ap.evalXPathToBoolean())
+        	if (ap.evalXPathToBoolean())
                 println("test4 1 succeed");
             else
                 println("test4 1 failed");
@@ -456,8 +456,37 @@ public class XPathTester {
 
     }
     
+    //test XPath function: translate
     public static void test5() throws Exception{
+        String s = "<test2>"
+            + "<e1 attr='1'>A</e1>" 
+            + "<e1 attr='2'>ABC</e1>"
+            + "<f1 attr='3'>_aabb_</f1>" 
+            + "<f1 attr='4' attr1='6'></f1>" 
+            + "</test2>";
+        VTDNav vn = parseString(s);
         
+        AutoPilot ap = new AutoPilot(vn);
+        ap.selectXPath("translate('12:30','30','45')");
+        String value = ap.evalXPathToString();
+        if (value.equals("12:45"))
+            println("test5 1 succeed");
+        else
+            println("test5 1 failed: " + value);
+        
+        ap.selectXPath("translate('12:30','0123','abc')");
+        value = ap.evalXPathToString();
+        if (value.equals("bc:a"))
+            println("test5 2 succeed");
+        else
+            println("test5 2 failed: " + value);
+        
+        ap.selectXPath("translate('','','abc')");
+        value = ap.evalXPathToString();
+        if (value.equals(""))
+            println("test5 3 succeed");
+        else
+            println("test5 3 failed: " + value);
     }
     
     public static void main(String s[]) throws Exception {
@@ -465,6 +494,7 @@ public class XPathTester {
         test2();
         test3();
         test4();
+        test5();
     }
     
 }
