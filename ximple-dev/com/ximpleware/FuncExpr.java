@@ -383,11 +383,11 @@ public class FuncExpr extends Expr{
 	        		
 	        		if(i < lenRep)
 	        		{
-	        			resultStr.replace(idxChar, replace.charAt(i));	        		
+	        			resultStr = resultStr.replace(idxChar, replace.charAt(i));	        		
 	        		}
 	        		else
 	        		{
-	        			resultStr.replaceAll(String.valueOf(idxChar), "");
+	        			resultStr = resultStr.replaceAll(String.valueOf(idxChar), "");
 	        		}
 	        	
 	        		usedCharStr.append(idxChar);
