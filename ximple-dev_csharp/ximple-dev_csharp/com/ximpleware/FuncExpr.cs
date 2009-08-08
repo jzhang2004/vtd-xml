@@ -471,7 +471,7 @@ namespace com.ximpleware
                 case FuncName.SUBSTRING_BEFORE: return subStringBefore(vn);
                 case FuncName.SUBSTRING_AFTER: return subStringAfter(vn);
                 case FuncName.SUBSTRING: return subString(vn);
-                case FuncName.TRANSLATE: throw new UnsupportedException("Some functions are not supported");
+                case FuncName.TRANSLATE: return translate(vn);
                 case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
 				
 				default:  if (Boolean)
@@ -489,6 +489,55 @@ namespace com.ximpleware
 				
 			}
 		}
+
+        private string translate(VTDNav vn)
+        {
+    		int numArg = argCount();
+		
+    	    if (numArg == 3)
+    	    {
+    	        String resultStr = argumentList.e.evalString(vn);
+    	        String indexStr = argumentList.next.e.evalString(vn);
+	        
+	            if(resultStr == null || resultStr.Length == 0 || indexStr == null || indexStr.Length == 0) return resultStr;
+	            
+                StringBuilder resultSB = new StringBuilder(resultStr);
+	            String replace = argumentList.next.next.e.evalString(vn);	        
+	        
+	            StringBuilder usedCharStr = new StringBuilder();	        
+	        
+	            int lenRep = (replace != null)?replace.Length : 0;	        
+	        
+	            for(int i = 0;i < indexStr.Length; i++)
+	            {
+	        	    char idxChar = indexStr[i];
+	        	
+	        	    if(usedCharStr.ToString().IndexOf(idxChar) < 0)
+	        	    {
+	        		
+	        		    if(i < lenRep)
+	        		    {
+	        			    resultSB = resultSB.Replace(idxChar, replace[i]);	        		
+	        		    }
+	        		    else
+	        		    {
+	        			    resultSB = resultSB.Replace(idxChar.ToString(), "");
+	        		    }
+	        	
+	        		    usedCharStr.Append(idxChar);	        	
+	        	    }
+	        
+	            }
+	        
+	            return resultSB.ToString();
+	        
+	        }
+	        else
+	        {
+                throw new System.ArgumentException("Argument count for translate() is invalid. Expected: 3; Actual: " + numArg);
+	        }
+	    }
+            
 		public override double evalNumber(VTDNav vn)
 		{
 			int ac = 0;
