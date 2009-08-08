@@ -1,0 +1,196 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5C43DED4-E447-4D8C-8CCF-49E8A90DB50C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ximple_dev_csharp</RootNamespace>
+    <AssemblyName>ximple-dev_csharp</AssemblyName>
+    <StartupObject>
+    </StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="com\ximpleware\BookMark.cs" />
+    <Compile Include="com\ximpleware\ByteSegment.cs" />
+    <Compile Include="com\ximpleware\ElementFragmentNs.cs" />
+    <Compile Include="com\ximpleware\IndexReadException.cs" />
+    <Compile Include="com\ximpleware\IndexWriteException.cs" />
+    <Compile Include="com\ximpleware\AutoPilot.cs" />
+    <Compile Include="com\ximpleware\BinaryExpr.cs" />
+    <Compile Include="com\ximpleware\ContextBuffer.cs" />
+    <Compile Include="com\ximpleware\EncodingException.cs" />
+    <Compile Include="com\ximpleware\EntityException.cs" />
+    <Compile Include="com\ximpleware\EOFException.cs" />
+    <Compile Include="com\ximpleware\FastIntBuffer.cs" />
+    <Compile Include="com\ximpleware\FastLongBuffer.cs" />
+    <Compile Include="com\ximpleware\FastObjectBuffer.cs" />
+    <Compile Include="com\ximpleware\FilterExpr.cs" />
+    <Compile Include="com\ximpleware\FuncExpr.cs" />
+    <Compile Include="com\ximpleware\IByteBuffer.cs" />
+    <Compile Include="com\ximpleware\IIntBuffer.cs" />
+    <Compile Include="com\ximpleware\ILongBuffer.cs" />
+    <Compile Include="com\ximpleware\intHash.cs" />
+    <Compile Include="com\ximpleware\IObjectBuffer.cs" />
+    <Compile Include="com\ximpleware\IReader.cs" />
+    <Compile Include="com\ximpleware\LocationPathExpr.cs" />
+    <Compile Include="com\ximpleware\ModifyException.cs" />
+    <Compile Include="com\ximpleware\NavException.cs" />
+    <Compile Include="com\ximpleware\NodeRecorder.cs" />
+    <Compile Include="com\ximpleware\NodeTest.cs" />
+    <Compile Include="com\ximpleware\ParseException.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_10.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_11.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_13.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_14.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_15.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_2.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="com\ximpleware\parser\ISO8859_3.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_4.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_5.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_6.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_7.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_8.cs" />
+    <Compile Include="com\ximpleware\parser\ISO8859_9.cs" />
+    <Compile Include="com\ximpleware\parser\UTF8Char.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1250.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1251.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1252.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1253.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1254.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1255.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1256.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1257.cs" />
+    <Compile Include="com\ximpleware\parser\WIN1258.cs" />
+    <Compile Include="com\ximpleware\parser\XMLChar.cs" />
+    <Compile Include="com\ximpleware\PathExpr.cs" />
+    <Compile Include="com\ximpleware\PilotException.cs" />
+    <Compile Include="com\ximpleware\TextIter.cs" />
+    <Compile Include="com\ximpleware\TranscodeException.cs" />
+    <Compile Include="com\ximpleware\transcode\ASCII_Coder.cs" />
+    <Compile Include="com\ximpleware\transcode\ISO8859_1Coder.cs" />
+    <Compile Include="com\ximpleware\transcode\Transcoder.cs" />
+    <Compile Include="com\ximpleware\transcode\UTF16BE_Coder.cs" />
+    <Compile Include="com\ximpleware\transcode\UTF16LE_Coder.cs" />
+    <Compile Include="com\ximpleware\transcode\UTF8_Coder.cs" />
+    <Compile Include="com\ximpleware\UniByteBuffer.cs" />
+    <Compile Include="com\ximpleware\UnionExpr.cs" />
+    <Compile Include="com\ximpleware\VTDException.cs" />
+    <Compile Include="com\ximpleware\VTDGen.cs" />
+    <Compile Include="com\ximpleware\VTDNav.cs" />
+    <Compile Include="com\ximpleware\XMLModifier.cs" />
+    <Compile Include="com\ximpleware\xpath\Alist.cs" />
+    <Compile Include="com\ximpleware\xpath\AxisType.cs" />
+    <Compile Include="com\ximpleware\xpath\Expr.cs" />
+    <Compile Include="com\ximpleware\xpath\FuncName.cs" />
+    <Compile Include="com\ximpleware\IndexHandler.cs" />
+    <Compile Include="com\ximpleware\xpath\LiteralExpr.cs" />
+    <Compile Include="com\ximpleware\xpath\LocationPathNode.cs" />
+    <Compile Include="com\ximpleware\xpath\NameType.cs" />
+    <Compile Include="com\ximpleware\xpath\Ntest.cs" />
+    <Compile Include="com\ximpleware\xpath\NumExpr.cs" />
+    <Compile Include="com\ximpleware\xpath\parser.cs" />
+    <Compile Include="com\ximpleware\xpath\Predicate.cs" />
+    <Compile Include="com\ximpleware\xpath\Step.cs" />
+    <Compile Include="com\ximpleware\xpath\sym.cs" />
+    <Compile Include="com\ximpleware\xpath\UnaryExpr.cs" />
+    <Compile Include="com\ximpleware\xpath\UnsupportedException.cs" />
+    <Compile Include="com\ximpleware\XPathEvalException.cs" />
+    <Compile Include="com\ximpleware\XPathParseException.cs" />
+    <Compile Include="com\ximpleware\xpath\Yylex.cs" />
+    <Compile Include="TUVienna\CS_CUP\action_part.cs" />
+    <Compile Include="TUVienna\CS_CUP\action_production.cs" />
+    <Compile Include="TUVienna\CS_CUP\assoc.cs" />
+    <Compile Include="TUVienna\CS_CUP\emit.cs" />
+    <Compile Include="TUVienna\CS_CUP\internal_error.cs" />
+    <Compile Include="TUVienna\CS_CUP\lalr_item.cs" />
+    <Compile Include="TUVienna\CS_CUP\lalr_item_set.cs" />
+    <Compile Include="TUVienna\CS_CUP\lalr_state.cs" />
+    <Compile Include="TUVienna\CS_CUP\lalr_transition.cs" />
+    <Compile Include="TUVienna\CS_CUP\lexer.cs" />
+    <Compile Include="TUVienna\CS_CUP\lr_item_core.cs" />
+    <Compile Include="TUVienna\CS_CUP\nonassoc_action.cs" />
+    <Compile Include="TUVienna\CS_CUP\non_terminal.cs" />
+    <Compile Include="TUVienna\CS_CUP\parser.cs" />
+    <Compile Include="TUVienna\CS_CUP\parse_action.cs" />
+    <Compile Include="TUVienna\CS_CUP\parse_action_row.cs" />
+    <Compile Include="TUVienna\CS_CUP\parse_action_table.cs" />
+    <Compile Include="TUVienna\CS_CUP\parse_reduce_row.cs" />
+    <Compile Include="TUVienna\CS_CUP\parse_reduce_table.cs" />
+    <Compile Include="TUVienna\CS_CUP\production.cs" />
+    <Compile Include="TUVienna\CS_CUP\production_part.cs" />
+    <Compile Include="TUVienna\CS_CUP\reduce_action.cs" />
+    <Compile Include="TUVienna\CS_CUP\Runtime\AssemblyInfo.cs" />
+    <Compile Include="TUVienna\CS_CUP\Runtime\lr_parser.cs" />
+    <Compile Include="TUVienna\CS_CUP\Runtime\Scanner.cs" />
+    <Compile Include="TUVienna\CS_CUP\Runtime\Symbol.cs" />
+    <Compile Include="TUVienna\CS_CUP\Runtime\virtual_parse_stack.cs" />
+    <Compile Include="TUVienna\CS_CUP\shift_action.cs" />
+    <Compile Include="TUVienna\CS_CUP\sym.cs" />
+    <Compile Include="TUVienna\CS_CUP\symbol.cs" />
+    <Compile Include="TUVienna\CS_CUP\symbol_part.cs" />
+    <Compile Include="TUVienna\CS_CUP\symbol_set.cs" />
+    <Compile Include="TUVienna\CS_CUP\terminal.cs" />
+    <Compile Include="TUVienna\CS_CUP\terminal_set.cs" />
+    <Compile Include="TUVienna\CS_CUP\version.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
