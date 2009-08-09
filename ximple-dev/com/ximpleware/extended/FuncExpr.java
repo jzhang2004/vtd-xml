@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.extended;
+import com.ximpleware.VTDNav;
 import com.ximpleware.extended.xpath.Alist;
 import com.ximpleware.extended.xpath.Expr;
 import com.ximpleware.extended.xpath.FuncName;
@@ -354,8 +355,56 @@ public class FuncExpr extends Expr{
 	    throw new IllegalArgumentException
 		("substring()'s argument count is invalid");
 	}
-	private String translate(VTDNavHuge vn){
-	    return "";
+	private String translate(VTDNavHuge vn)
+	{
+		int numArg = argCount();
+		
+	    if (numArg == 3)
+	    {
+	        String resultStr = argumentList.e.evalString(vn);
+	        String indexStr = argumentList.next.e.evalString(vn);
+	        
+	        if(resultStr == null || resultStr.length() == 0 || indexStr == null || indexStr.length() == 0) return resultStr;
+	        
+	        String replace = argumentList.next.next.e.evalString(vn);
+	        
+	        
+	        StringBuilder usedCharStr = new StringBuilder();
+	        
+	        
+	        int lenRep = (replace != null)?replace.length() : 0;
+	        
+	        
+	        for(int i = 0;i< indexStr.length(); i++)
+	        {
+	        	char idxChar = indexStr.charAt(i);
+	        	
+	        	if(usedCharStr.indexOf(String.valueOf(idxChar)) < 0)
+	        	{
+	        		
+	        		if(i < lenRep)
+	        		{
+	        			resultStr = resultStr.replace(idxChar, replace.charAt(i));	        		
+	        		}
+	        		else
+	        		{
+	        			resultStr = resultStr.replaceAll(String.valueOf(idxChar), "");
+	        		}
+	        	
+	        		usedCharStr.append(idxChar);
+	        	
+	        	}
+
+	        
+	        }
+	        
+	        return resultStr;
+	        
+	    }
+	    else
+	    {
+	    	throw new IllegalArgumentException("Argument count for translate() is invalid. Expected: 3; Actual: " + numArg);
+	    }
 	}
 	
 	private String normalizeSpace(VTDNavHuge vn){
