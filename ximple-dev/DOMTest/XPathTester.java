@@ -453,6 +453,24 @@ public class XPathTester {
                 println("test4 27 succeed");
             else
                 println("test4 27 failed");
+            
+            ap.selectXPath("/test2/*/@* = 1");
+            if (ap.evalXPathToBoolean())
+                println("test4 28 succeed");
+            else
+                println("test4 28 failed");
+            
+            ap.selectXPath("/test2/*/@* = 4");
+            if (ap.evalXPathToBoolean())
+                println("test4 29 succeed");
+            else
+                println("test4 29 failed");
+            
+            ap.selectXPath("/test2/*/@* != 1");
+            if (ap.evalXPathToBoolean())
+                println("test4 30 succeed");
+            else
+                println("test4 30 failed");
 
     }
     
