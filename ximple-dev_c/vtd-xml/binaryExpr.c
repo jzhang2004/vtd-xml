@@ -27,7 +27,7 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 static Boolean compNumbers(binaryExpr *be, double d1, double d2, opType op);
 static Boolean compareVNumber1(binaryExpr *be, int i, VTDNav *vn, double d, opType op);
 static Boolean compareVNumber2(binaryExpr *be, int i, VTDNav *vn, double d, opType op);
-static Boolean getStringVal(VTDNav *vn, int i);
+static int getStringVal(VTDNav *vn, int i);
 static Boolean compareVString1(binaryExpr *be,int k, VTDNav *vn, UCSChar *s, opType op);
 static Boolean compareVString2(binaryExpr *be,int k, VTDNav *vn, UCSChar *s, opType op);
 static Boolean compareVV(binaryExpr *be,int k,  VTDNav *vn, int j,opType op);
@@ -144,7 +144,7 @@ static Boolean compNumbers(binaryExpr *be, double d1, double d2, opType op){
         }
         return FALSE;
 }
-static Boolean getStringVal(VTDNav *vn, int i){
+static int getStringVal(VTDNav *vn, int i){
 	int i1,t = getTokenType(vn,i);
 	if (t == TOKEN_STARTING_TAG){
 		i1 = getText(vn);
@@ -230,11 +230,13 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
                 i1 = getStringVal(vn,i); 
                 if (i1 != -1){
 					b = compareVString2(be,i1,vn,s,op);
-                    be->right->reset(be->right,vn);
-                    vn->contextBuf2->size = stackSize;
-                    pop2(vn);
-					free(s);
-                    return b;
+					if (b==TRUE){
+						be->right->reset(be->right,vn);
+						vn->contextBuf2->size = stackSize;
+						pop2(vn);
+						free(s);
+						return b;
+					}
                 }
             }    
             vn->contextBuf2->size = stackSize;
@@ -261,13 +263,15 @@ static Boolean compNodeSetString(binaryExpr *be, expr* left, expr* right, VTDNav
             stackSize = vn->contextBuf2->size;
             while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
                 i1 = getStringVal(vn,i); 
-                if (i1 != -1){
-					b = compareVString2(be,i1,vn,s,op);
-                    be->left->reset(be->left,vn);
-                    vn->contextBuf2->size = stackSize;
-                    pop2(vn);
-					free(s);
-                    return b;
+                if (i1 != -1){					
+						b = compareVString2(be,i1,vn,s,op);
+						if (b==TRUE){
+						be->left->reset(be->left,vn);
+						vn->contextBuf2->size = stackSize;
+						pop2(vn);
+						free(s);
+						return b;
+					}
                 }
             }    
             vn->contextBuf2->size = stackSize;
@@ -393,11 +397,11 @@ Boolean computeComp(binaryExpr *be, opType op,VTDNav *vn){
 	}
 	st1 = be->left->evalString(be->left,vn);
 	st2 = be->right->evalString(be->right,vn);
-	if (st1 == NULL || st2 == NULL){
+	/*if (st1 == NULL || st2 == NULL){
 		btemp = FALSE;
-	}else{
-		btemp = wcscmp(st1, st2);
-	}
+	}else{*/
+	btemp = wcscmp(st1, st2);
+	/*}*/
 	free(st1);
 	free(st2);
 	if (op == OP_EQ){
