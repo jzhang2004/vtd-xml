@@ -330,11 +330,11 @@ namespace com.ximpleware
 
                 st1 = left.evalString(vn);
                 st2 = right.evalString(vn);
-                if (st1 == null || st2 == null)
+                /*if (st1 == null || st2 == null)
                     if (op == EQ)
                         return false;
                     else
-                        return true;
+                        return true;*/
 
                 return (op == EQ) ? (st1.Equals(st2)) : (!st1.Equals(st2));
             }
@@ -625,10 +625,13 @@ namespace com.ximpleware
                 if (i1 != -1 )
                 {
                     bool b = compareVString1(i1, vn, s, op);
-                    left.reset(vn);
-                    vn.contextStack2.size = stackSize;
-                    vn.pop2();
-                    return b;
+                    if (b)
+                    {
+                        left.reset(vn);
+                        vn.contextStack2.size = stackSize;
+                        vn.pop2();
+                        return b;
+                    }
                 }
             }
             vn.contextStack2.size = stackSize;
@@ -677,10 +680,13 @@ namespace com.ximpleware
                 if (i1 != -1)
                 {
                     bool b = compareVString2(i1, vn, s, op);
-                    right.reset(vn);
-                    vn.contextStack2.size = stackSize;
-                    vn.pop2();
-                    return b;
+                    if (b)
+                    {
+                        right.reset(vn);
+                        vn.contextStack2.size = stackSize;
+                        vn.pop2();
+                        return b;
+                    }
                 }
             }
             vn.contextStack2.size = stackSize;
