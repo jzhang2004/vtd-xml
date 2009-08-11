@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,14 +19,14 @@
 #define XMLMODIFIER_H
 #include "vtdGen.h"
 #include "elementFragmentNs.h"
-#include "xpath1.h"
+#include "xpath.h"
 #include "transcoder.h"
 
 #define MASK_DELETE 0x00000000000000000LL
 #define MASK_INSERT_SEGMENT_BYTE  0x2000000000000000LL
 #define MASK_INSERT_BYTE 0x4000000000000000LL
-#define MASK_INSERT_SEGMENT_STRING 0x6000000000000000LL 
-#define MASK_INSERT_STRING 0x8000000000000000LL 
+#define MASK_INSERT_SEGMENT_STRING 0x6000000000000000LL
+#define MASK_INSERT_STRING 0x8000000000000000LL
 #define MASK_INSERT_FRAGMENT_NS  0xa000000000000000LL
 //#define MASK_INSERT_BYTE2 0xc000000000000000L
 
@@ -35,10 +35,10 @@ typedef struct xMLModifier{
 	encoding_t encoding;
 	IntHash *deleteHash;
 	IntHash *insertHash;
-	FastLongBuffer *flb; /* lower 32 bit offset, upper 29 bits 
+	FastLongBuffer *flb; /* lower 32 bit offset, upper 29 bits
 						 length, upper 3 bits */
-	FastLongBuffer *fob; /*lower 32 bits the object pointer, 
-						 upper 32 bits the length of the byte array*/ 
+	FastLongBuffer *fob; /*lower 32 bits the object pointer,
+						 upper 32 bits the length of the byte array*/
 	VTDNav *md; /*master document*/
 	getBytes gbytes;
 } XMLModifier;
@@ -57,14 +57,14 @@ XMLModifier *createXMLModifier2(VTDNav *vn);
 void freeXMLModifier(XMLModifier *xm);
 void bind4XMLModifier(XMLModifier *xm, VTDNav *md);
    /**
-     * Removes content from the master XML document 
-     * It first calls getCurrentIndex() if the result is 
+     * Removes content from the master XML document
+     * It first calls getCurrentIndex() if the result is
      * a starting tag, then the entire element referred to
      * by the starting tag is removed
-     * If the result is an attribute name or ns node, then 
+     * If the result is an attribute name or ns node, then
      * the corresponding attribute name/value pair is removed
      * If the token type is one of text, CDATA or commment,
-     * then the entire node, including the starting and ending 
+     * then the entire node, including the starting and ending
      * delimiting text surrounding the content, is removed
      *
      */

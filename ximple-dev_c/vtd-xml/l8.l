@@ -18,7 +18,7 @@
 */
 #include "stdlib.h"
 #include <wchar.h>
-#include "xpath1.h"
+#include "xpath.h"
 #include "XMLChar.h"
 #include "helper.h"
 #include "l8.tab.h"

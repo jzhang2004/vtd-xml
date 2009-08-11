@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
-#include "xpath1.h"
+#include "xpath.h"
 #include "helper.h"
 #include "vtdGen.h"
 #include "vtdNav.h"
@@ -36,4 +36,4 @@
 #include "nodeRecorder.h"
 #include "bookMark.h"
 #include "textIter.h"
-#endif 
+#endif

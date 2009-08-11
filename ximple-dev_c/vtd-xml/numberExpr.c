@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include "xpath1.h"
+#include "xpath.h"
 
 numberExpr *createNumberExpr (double d){
 	numberExpr *n = (numberExpr*) malloc(sizeof(numberExpr));
@@ -74,7 +74,7 @@ UCSChar* evalString_ne  (numberExpr *ne,VTDNav *vn){
 	else if (ne->dval == -1/d){
 		tmp = _wcsdup(L"-Infinity");
 		b = TRUE;
-	}	else 
+	}	else
 	tmp = malloc(sizeof(UCSChar)<<8);
 
 	if (tmp == NULL) {
@@ -92,7 +92,7 @@ UCSChar* evalString_ne  (numberExpr *ne,VTDNav *vn){
 }
 
 Boolean evalBoolean_ne (numberExpr *ne,VTDNav *vn){
-	if (ne->dval == 0 
+	if (ne->dval == 0
 		|| ne->dval!=ne->dval)
 		return FALSE;
 	return TRUE;
@@ -130,7 +130,7 @@ void	setPosition_ne(numberExpr *ne,int pos){
 void    toString_ne(numberExpr *ne, UCSChar* string){
 	if (ne->dval == (long)ne->dval){
 		wprintf(L"%d",(long)ne->dval);
-	}else 
+	}else
 		wprintf(L"%f",ne->dval);
 }
 int adjust_ne(numberExpr *ne, int n){

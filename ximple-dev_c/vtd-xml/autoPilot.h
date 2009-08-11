@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,19 +21,19 @@
 #include "customTypes.h"
 #include "vtdNav.h"
 #include "cexcept.h"
-#include "xpath1.h"
+#include "xpath.h"
 
 /* iter_type defines the type of iteration, to be used in function iterateAP*/
-typedef enum iter_type { UNDEFINED, 
-						SIMPLE, 
+typedef enum iter_type { UNDEFINED,
+						SIMPLE,
 						SIMPLE_NS,
-						DESCENDANT, 
+						DESCENDANT,
 						DESCENDANT_NS,
 						FOLLOWING,
-						FOLLOWING_NS, 
-						PRECEDING, 
-						PRECEDING_NS, 
-						ATTR, 
+						FOLLOWING_NS,
+						PRECEDING,
+						PRECEDING_NS,
+						ATTR,
 						ATTR_NS} iterType;
 
 
@@ -155,7 +155,7 @@ Boolean iterateAttrAP(AutoPilot *ap);
 Boolean selectXPath(AutoPilot *ap, UCSChar *s);
 /*
  * Evaluate XPath to a boolean
- */ 
+ */
 Boolean evalXPathToBoolean(AutoPilot *ap);
 
 /*
@@ -163,7 +163,7 @@ Boolean evalXPathToBoolean(AutoPilot *ap);
  */
 UCSChar* evalXPathToString(AutoPilot *ap);
 
-/* 
+/*
  * Evaluate XPath to a number
  */
 double evalXPathToNumber(AutoPilot *ap);

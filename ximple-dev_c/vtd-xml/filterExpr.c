@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-#include "xpath1.h"
+#include "xpath.h"
 
 filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 	filterExpr *fe = malloc(sizeof(filterExpr));
@@ -44,7 +44,7 @@ filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 	fe->p = pr;
 
 	return fe;
-	
+
 }
 void freeFilterExpr(filterExpr *fe){
 	if (fe == NULL) return;
@@ -68,13 +68,13 @@ int	evalNodeSet_fe (filterExpr *fe,VTDNav *vn){
 	while (a!=-1){
 		if (eval_p(fe->p,vn)==TRUE){
 			//p.reset();
-			return a;				
+			return a;
 		}else {
 			//p.reset();
 			a = fe->e->evalNodeSet(fe->e,vn);
-		}			
+		}
 	}
-	return -1;		
+	return -1;
 }
 double	evalNumber_fe (filterExpr *fe,VTDNav *vn){
 	double d = 0.0;
@@ -91,7 +91,7 @@ double	evalNumber_fe (filterExpr *fe,VTDNav *vn){
 			}else if (getTokenType(vn,a)== TOKEN_STARTING_TAG) {
 				a = getText(vn);
 			}
-		}			  
+		}
 	} Catch (e){
 	}
 	vn->contextBuf2->size = size;
@@ -141,7 +141,7 @@ Boolean evalBoolean_fe (filterExpr *fe,VTDNav *vn){
 	push2(vn);
 	//record stack size
 	size = vn->contextBuf2->size;
-	Try{	
+	Try{
 		a = (evalNodeSet_fe(fe,vn) != -1);
 	}Catch (e){
 	}
@@ -168,7 +168,7 @@ Boolean requireContextSize_fe(filterExpr *fe){
 }
 void reset_fe(filterExpr *fe, VTDNav *vn){
 	reset2_fe(fe,vn);
-	//vn.contextStack2.size = stackSize; 
+	//vn.contextStack2.size = stackSize;
 	//position = 1;
 	fe->first_time = TRUE;
 }

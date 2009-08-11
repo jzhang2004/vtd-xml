@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -110,7 +110,7 @@
 /* Copy the first part of user declarations.  */
 #line 1 "l8.y"
 
-/* 
+/*
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -130,7 +130,7 @@
 #include "customTypes.h"
 #include <string.h>
 #include <stdio.h>
-#include "xpath1.h"
+#include "xpath.h"
 #include "helper.h"
 
 Step *tmpStep;
@@ -406,17 +406,17 @@ static const unsigned short yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals. */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "AXISNAME", "LITERAL", "NUMBER", "NAME", 
-  "FNAME", "NTEST", "OR", "AND", "EQ", "NE", "GT", "LT", "GE", "LE", 
-  "ADD", "SUB", "MULT", "DIV", "MOD", "LP", "RP", "DOLLAR", "UNION", 
-  "SLASH", "DSLASH", "COMMA", "ERROR", "AT", "DOT", "DDOT", "LB", "RB", 
-  "UMINUS", "$accept", "Expr", "OrExpr", "AndExpr", "EqualityExpr", 
-  "RelationalExpr", "AdditiveExpr", "MultiplicativeExpr", "UnaryExpr", 
-  "UnionExpr", "PathExpr", "FilterExpr", "PrimaryExpr", "FunctionCall", 
-  "ArgumentList", "Argument", "LocationPath", "AbsoluteLocationPath", 
-  "RelativeLocationPath", "Step", "NodeTest", "PredicateList", 
-  "AxisSpecifier", "AbbreviatedAxisSpecifier", "AbbreviatedStep", 
-  "AbbreviatedAbsoluteLocationPath", "AbbreviatedRelativeLocationPath", 
+  "$end", "error", "$undefined", "AXISNAME", "LITERAL", "NUMBER", "NAME",
+  "FNAME", "NTEST", "OR", "AND", "EQ", "NE", "GT", "LT", "GE", "LE",
+  "ADD", "SUB", "MULT", "DIV", "MOD", "LP", "RP", "DOLLAR", "UNION",
+  "SLASH", "DSLASH", "COMMA", "ERROR", "AT", "DOT", "DDOT", "LB", "RB",
+  "UMINUS", "$accept", "Expr", "OrExpr", "AndExpr", "EqualityExpr",
+  "RelationalExpr", "AdditiveExpr", "MultiplicativeExpr", "UnaryExpr",
+  "UnionExpr", "PathExpr", "FilterExpr", "PrimaryExpr", "FunctionCall",
+  "ArgumentList", "Argument", "LocationPath", "AbsoluteLocationPath",
+  "RelativeLocationPath", "Step", "NodeTest", "PredicateList",
+  "AxisSpecifier", "AbbreviatedAxisSpecifier", "AbbreviatedStep",
+  "AbbreviatedAbsoluteLocationPath", "AbbreviatedRelativeLocationPath",
   "Predicate", "VariableReference", "FunctionName", 0
 };
 #endif
@@ -1184,8 +1184,8 @@ yyreduce:
 								Catch(e){
 									//freeAllObj();
 									 YYABORT;
-								} 
-		
+								}
+
 								;}
     break;
 
@@ -1215,7 +1215,7 @@ yyreduce:
 
   case 8:
 #line 123 "l8.y"
-    { 
+    {
 								Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_EQ,yyvsp[0].expression);
 	 									addObj(yyval.expression);
@@ -1265,7 +1265,7 @@ yyreduce:
     {
 			 					Try {
 	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_GT,yyvsp[0].expression);
-	 									addObj(yyval.expression);	 									
+	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
@@ -1403,7 +1403,7 @@ yyreduce:
 
   case 24:
 #line 258 "l8.y"
-    { 
+    {
 									Try {
 										yyval.une = createUnionExpr(yyvsp[0].pe);
 										addObj(yyval.une);
@@ -1411,7 +1411,7 @@ yyreduce:
 									Catch(e) {
 										YYABORT;
 									 }
-								
+
 								;}
     break;
 
@@ -1424,12 +1424,12 @@ yyreduce:
    										   yyval.une->next = yyvsp[0].une;
    										}
    										Catch(e){
-   											YYABORT;   											
+   											YYABORT;
    										}
-   										
+
    		                         /*freeAllObj();*/
    		                         //YYABORT;
-   		                         
+
    		                         ;}
     break;
 
@@ -1445,7 +1445,7 @@ yyreduce:
 
   case 28:
 #line 287 "l8.y"
-    {  														
+    {
   														Try{
   															tmpLPExpr = createLocationPathExpr();
   															addObj(tmpLPExpr);
@@ -1455,10 +1455,10 @@ yyreduce:
   															addObj(yyval.pe);
   															addObj(yyval.pe->ih);
   															tmpLPExpr = NULL;
-  														}Catch(e){  														
+  														}Catch(e){
   															//freeAllObj();
   															YYABORT;
-  														}  		
+  														}
   													;}
     break;
 
@@ -1481,11 +1481,11 @@ yyreduce:
 															setStep(tmpLPExpr, tmpStep);
 															yyval.pe = createPathExpr(yyvsp[-2].expression, tmpLPExpr);
 															addObj(yyval.pe);
-															addObj(yyval.pe->ih);															
+															addObj(yyval.pe->ih);
 														} Catch (e){
-															//freeAllObj();		
-															YYABORT;																											
-														}								
+															//freeAllObj();
+															YYABORT;
+														}
 													;}
     break;
 
@@ -1525,8 +1525,8 @@ yyreduce:
 							addObj(yyvsp[0].literal);
 						} Catch (e) {
 							//freeAllObj();
-							YYABORT;	
-						}						
+							YYABORT;
+						}
 					  ;}
     break;
 
@@ -1580,26 +1580,26 @@ yyreduce:
     {	Try {
 	     							yyval.a = createAlist();
 	     							addObj(yyval.a);
-	     							yyval.a->e = yyvsp[0].expression;  								     	
+	     							yyval.a->e = yyvsp[0].expression;
 	     						}Catch (e){
 	     							//freeAllObj();
 	     							YYABORT;
-	     						}	
+	     						}
 	     					;}
     break;
 
   case 41:
 #line 393 "l8.y"
     {
-	     											Try {	     											
+	     											Try {
 	     												yyval.a = createAlist();
 	     												addObj(yyval.a);
 	     												yyval.a->e = yyvsp[-2].expression;
-	     												yyval.a->next = yyvsp[0].a;	     												
+	     												yyval.a->next = yyvsp[0].a;
 	     											} Catch (e){
 	     												//freeAllObj();
-	     												YYABORT;	     													     												
-	     											}	     	
+	     												YYABORT;
+	     											}
 	     									  ;}
     break;
 
@@ -1664,7 +1664,7 @@ yyreduce:
 #line 442 "l8.y"
     { yyvsp[-2].s->nextS = yyvsp[0].s;
 												yyvsp[0].s->prevS = yyvsp[-2].s;
-												yyval.s = yyvsp[-2].s;		
+												yyval.s = yyvsp[-2].s;
 												;}
     break;
 
@@ -1715,7 +1715,7 @@ yyreduce:
 											}
 										}
 										yyvsp[0].name.prefix = yyvsp[0].name.localname = yyvsp[0].name.qname = NULL;
-										
+
 									  } Catch(e){
 										//freeAllObj();
 										YYABORT;
@@ -1733,7 +1733,7 @@ yyreduce:
 	 								Catch(e){
 	 									//freeAllObj();
 	 									YYABORT;
-	 								}	 								
+	 								}
 	 							;}
     break;
 
@@ -1745,7 +1745,7 @@ yyreduce:
   case 56:
 #line 504 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
-	     									yyval.p = yyvsp[-1].p;	
+	     									yyval.p = yyvsp[-1].p;
 	     								  ;}
     break;
 
@@ -1803,7 +1803,7 @@ yyreduce:
 						//freeAllObj();
 						YYABORT;
 					}
-		
+
 					;}
     break;
 
@@ -1819,10 +1819,10 @@ yyreduce:
 																	setTestType(tmpNt, NT_NODE);
 																	setNodeTest(yyval.s,tmpNt);
 																	yyval.s->nextS = yyvsp[0].s;
-																	yyvsp[0].s->prevS = yyval.s;																
+																	yyvsp[0].s->prevS = yyval.s;
 																}Catch(e){
 																	//freeAllObj();
-																	YYABORT;																	
+																	YYABORT;
 																}
 																;}
     break;
@@ -1845,7 +1845,7 @@ yyreduce:
 																		yyval.s = yyvsp[-2].s;
 																	}Catch(e){
 																		//freeAllObj();
-																		YYABORT;	
+																		YYABORT;
 																	}
 																	;}
     break;
@@ -2090,7 +2090,7 @@ extern unsigned short *xpathInputLimit;
 
 expr *xpathParse(UCSChar *input, NsList *nl){
 	int l = wcslen(input);
-	int i = 0;	
+	int i = 0;
 	xpathNSList = nl;
 	XMLChar_init();
 	xpathInputPtr = xpathInput = (unsigned short *)malloc((l+1)<<1);
@@ -2116,7 +2116,7 @@ expr *xpathParse(UCSChar *input, NsList *nl){
 		freeAllObj();
 		return NULL;
 	}
-	
+
 }
 
 

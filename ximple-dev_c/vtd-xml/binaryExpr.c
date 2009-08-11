@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-#include "xpath1.h"
+#include "xpath.h"
 #include <math.h>
 #define BUF_SZ_EXP 7
 static Boolean computeComp(binaryExpr *be, opType op,VTDNav *vn);
@@ -48,23 +48,23 @@ static Boolean compareVString1(binaryExpr *be,int k, VTDNav *vn, UCSChar *s, opT
 		case 1:
 			if (op == OP_NE || op == OP_GE || op == OP_GT) {
 				return TRUE;
-			}       
+			}
 	}
 	return FALSE;
 }
 static Boolean compareVString2(binaryExpr *be,int k, VTDNav *vn, UCSChar *s, opType op){
 	int i = compareTokenString(vn,k, s);
-	switch(i){        	
+	switch(i){
 			case -1:
 				if (op== OP_NE || op == OP_GT || op == OP_GE){
 					return TRUE;
 				}
 				break;
-			case 0: 
+			case 0:
 				if (op==OP_EQ || op == OP_LE || op == OP_GE ){
 					return TRUE;
 				}
-				break;        	    
+				break;
 			case 1:
 				if (op == OP_NE || op==OP_LE  || op == OP_LT ){
 					return TRUE;
@@ -75,14 +75,14 @@ static Boolean compareVString2(binaryExpr *be,int k, VTDNav *vn, UCSChar *s, opT
 }
 static Boolean compareVV(binaryExpr *be,int k,  VTDNav *vn, int j,opType op){
 	int i = compareTokens(vn,k, vn, j);
-	switch(i){       	
+	switch(i){
 
 			case 1:
 				if (op == OP_NE || op==OP_GE  || op == OP_GT ){
 					return TRUE;
 				}
 				break;
-			case 0: 
+			case 0:
 				if (op==OP_EQ || op == OP_LE || op == OP_GE ){
 					return TRUE;
 				}
@@ -109,7 +109,7 @@ static Boolean compareVNumber1(binaryExpr *be, int i, VTDNav *vn, double d , opT
 	    	case OP_GT:
 	    	    return d > d1;
 	    	default:
-	    	    return d < d1;	    	
+	    	    return d < d1;
 	    }
 }
 
@@ -127,7 +127,7 @@ static Boolean compareVNumber2(binaryExpr *be, int i, VTDNav *vn, double d, opTy
 	    	case OP_GT:
 	    	    return d1 > d;
 	    	default:
-	    	    return d1 < d;	    	
+	    	    return d1 < d;
 	    }
 }
 
@@ -153,31 +153,31 @@ static int getStringVal(VTDNav *vn, int i){
 	else if (t == TOKEN_ATTR_NAME
 		|| t == TOKEN_ATTR_NS)
 		return i+1;
-	else 
+	else
 		 return i;
 }
 
 static Boolean compNodeSetNumerical(binaryExpr *be, expr* left, expr* right, VTDNav *vn, opType op){
 	exception e;
 	int i,i1,stackSize;
-	double d; 
+	double d;
 	Try {
 		   d = be->right->evalNumber(be->right,vn);
             push2(vn);
 			stackSize = vn->contextBuf2->size;
             while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
-                i1 = getStringVal(vn,i); 
+                i1 = getStringVal(vn,i);
                 if (i1!=-1 && compareVNumber2(be,i1,vn,d,op)){
                     be->left->reset(be->left,vn);
                     vn->contextBuf2->size = stackSize;
                     pop2(vn);
                     return TRUE;
                 }
-            }    
+            }
             vn->contextBuf2->size = stackSize;
             pop2(vn);
-            be->left->reset(be->left,vn);            
-            return FALSE; 
+            be->left->reset(be->left,vn);
+            return FALSE;
 	} Catch (e) {
 		//fib1.clear();
 		//fib2.clear();
@@ -192,24 +192,24 @@ static Boolean compNodeSetNumerical(binaryExpr *be, expr* left, expr* right, VTD
 static Boolean compNumericalNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav *vn, opType op){
 	exception e;
 	int i,i1,stackSize;
-	double d; 
+	double d;
 	Try {
 		   d = be->left->evalNumber(be->left,vn);
             push2(vn);
 			stackSize = vn->contextBuf2->size;
             while ((i = be->right->evalNodeSet(be->right,vn)) != -1) {
-                i1 = getStringVal(vn,i); 
+                i1 = getStringVal(vn,i);
                 if (i1!=-1 && compareVNumber1(be,i1,vn,d,op)){
                     be->right->reset(be->right,vn);
                     vn->contextBuf2->size = stackSize;
                     pop2(vn);
                     return TRUE;
                 }
-            }    
+            }
             vn->contextBuf2->size = stackSize;
             pop2(vn);
-            be->right->reset(be->right,vn);            
-            return FALSE; 
+            be->right->reset(be->right,vn);
+            return FALSE;
 	} Catch (e) {
 		e.et = other_exception;
 		e.msg = "Undefined behavior in evalBoolean_be";
@@ -227,7 +227,7 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
             push2(vn);
             stackSize = vn->contextBuf2->size;
             while ((i = be->right->evalNodeSet(be->right,vn)) != -1) {
-                i1 = getStringVal(vn,i); 
+                i1 = getStringVal(vn,i);
                 if (i1 != -1){
 					b = compareVString2(be,i1,vn,s,op);
 					if (b==TRUE){
@@ -238,13 +238,13 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
 						return b;
 					}
                 }
-            }    
+            }
             vn->contextBuf2->size = stackSize;
             pop2(vn);
-            be->right->reset(be->right,vn);  
+            be->right->reset(be->right,vn);
 			b = compEmptyNodeSet(op,s);
 			free(s);
-            return b; 
+            return b;
 	} Catch ( e) {
 		e.et = other_exception;
 		e.msg = "undefined run time behavior in computerEQNE";
@@ -262,8 +262,8 @@ static Boolean compNodeSetString(binaryExpr *be, expr* left, expr* right, VTDNav
             push2(vn);
             stackSize = vn->contextBuf2->size;
             while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
-                i1 = getStringVal(vn,i); 
-                if (i1 != -1){					
+                i1 = getStringVal(vn,i);
+                if (i1 != -1){
 						b = compareVString2(be,i1,vn,s,op);
 						if (b==TRUE){
 						be->left->reset(be->left,vn);
@@ -273,10 +273,10 @@ static Boolean compNodeSetString(binaryExpr *be, expr* left, expr* right, VTDNav
 						return b;
 					}
                 }
-            }    
+            }
             vn->contextBuf2->size = stackSize;
             pop2(vn);
-            be->left->reset(be->left,vn);            
+            be->left->reset(be->left,vn);
             b = compEmptyNodeSet(op, s);
 			free(s);
 			return b;
@@ -294,7 +294,7 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 	Try {
 		if (be->fib1 == NULL)
 			be->fib1 = createFastIntBuffer2(BUF_SZ_EXP);
-	
+
 	          push2(vn);
 	          stackSize = vn->contextBuf2->size;
 	          while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
@@ -303,7 +303,7 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 	              appendInt(be->fib1,i1);
 	          }
 			  be->left->reset(be->left,vn);
-	          vn->contextBuf2->size = stackSize; 
+	          vn->contextBuf2->size = stackSize;
 	          pop2(vn);
 	          push2(vn);
 	          stackSize = vn->contextBuf2->size;
@@ -311,21 +311,21 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 	              i1 = getStringVal(vn,i);
 	              if (i1 != -1){
 	                  s1 = be->fib1->size;
-	                  for (k = 0; k < s1; k++) { 
+	                  for (k = 0; k < s1; k++) {
 		                  Boolean b = compareVV(be,intAt(be->fib1,k),vn,i1,op);
 		                  if (b){
 		                      clearFastIntBuffer(be->fib1);
-		                      vn->contextBuf2->size = stackSize; 
-		        	          pop2(vn);		        	          
+		                      vn->contextBuf2->size = stackSize;
+		        	          pop2(vn);
 		        	          be->right->reset(be->right,vn);
 		                      return TRUE;
 		                  }
 		              }
 	              }
 	          }
-	          vn->contextBuf2->size = stackSize; 
+	          vn->contextBuf2->size = stackSize;
 	          pop2(vn);
-	          be->right->reset(be->right,vn);	         
+	          be->right->reset(be->right,vn);
 	          clearFastIntBuffer(be->fib1);
 	          return FALSE;
 
@@ -347,24 +347,24 @@ static Boolean compEmptyNodeSet(opType op, UCSChar *s){
 	if (op == OP_NE ){
 	        if (wcslen(s)==0) {
 	            return FALSE;
-	        } else 
-	            return TRUE;	        
+	        } else
+	            return TRUE;
 	    }else{
 	        if (wcslen(s)==0) {
 	            return TRUE;
-	        } else 
+	        } else
 	            return FALSE;
-	    }	  
+	    }
 }
 
 Boolean computeComp(binaryExpr *be, opType op,VTDNav *vn){
-	
+
 	Boolean btemp = FALSE;
 	UCSChar *st1=NULL, *st2=NULL;
 
 	if (be->left->isNodeSet(be->left) && be->right->isNodeSet(be->right)) {
 		return compNodeSetNodeSet(be, be->left, be->right, vn, be->op);
-	} else {      
+	} else {
 		// first argument is always numerical, second a node set
 		if (be->left->isNumerical(be->left) && be->right->isNodeSet(be->right)){
 			return compNumericalNodeSet(be, be->left, be->right, vn,be->op);
@@ -491,7 +491,7 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 	double n = 0.0;
 	Boolean b = FALSE;
 	UCSChar *tmp;
-	if(isNumerical_be(be)){		    
+	if(isNumerical_be(be)){
 		double d = evalNumber_be(be,vn);
 		if (d != d){
 			tmp = _wcsdup(L"NaN");
@@ -504,7 +504,7 @@ UCSChar* evalString_be  (binaryExpr *be,VTDNav *vn){
 		else if (d == -1/n){
 			tmp = _wcsdup(L"-Infinity");
 			b  = TRUE;
-		}else 	
+		}else
 		tmp = malloc(sizeof(UCSChar)<<8);
 
 		if (tmp == NULL) {
@@ -542,16 +542,16 @@ Boolean evalBoolean_be (binaryExpr *be,VTDNav *vn){
 	Boolean b = FALSE;
 	double dval;
 	switch(be->op){
-			case OP_OR: return be->left->evalBoolean(be->left,vn) 
+			case OP_OR: return be->left->evalBoolean(be->left,vn)
 						 || be->right->evalBoolean(be->right,vn);
-			case OP_AND:return be->left->evalBoolean(be->left,vn) 
+			case OP_AND:return be->left->evalBoolean(be->left,vn)
 						 && be->right->evalBoolean(be->right,vn);
 			case OP_EQ:
-			case OP_NE:		
-			case OP_LE: 
-			case OP_GE: 
-			case OP_LT: 
-			case OP_GT:  return computeComp(be, be->op,vn);	
+			case OP_NE:
+			case OP_LE:
+			case OP_GE:
+			case OP_LT:
+			case OP_GT:  return computeComp(be, be->op,vn);
 			default: dval = evalNumber_be(be,vn);
 				if (dval ==-0.0 || dval ==+0.0 || (dval!=dval))
 					return FALSE;
@@ -623,7 +623,7 @@ UCSChar* createEmptyString(){
 		es[0] = 0;
 		return es;
 	}
-	throwException2(out_of_mem, 
+	throwException2(out_of_mem,
 		"string allocation faild in createEmptyString ");
 	return NULL;
 }

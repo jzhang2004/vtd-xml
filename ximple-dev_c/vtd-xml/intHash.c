@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
@@ -15,9 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-/* intHash implements a simple hash table that speeds up the 
+/* intHash implements a simple hash table that speeds up the
    uniqueness checking */
-#include "xpath1.h"
+#include "xpath.h"
 
 /* the constructor */
 IntHash* createIntHash(){
@@ -73,7 +73,7 @@ void freeIntHash(IntHash *ih){
 }
 
 
-/* Test whether the input i is unique; 
+/* Test whether the input i is unique;
    if not, insert into the hash table and return false
    otherwise, return true */
 Boolean isUniqueIntHash(IntHash *ih,int i){
@@ -90,7 +90,7 @@ Boolean isUniqueIntHash(IntHash *ih,int i){
 		}
 		appendInt(ih->storage[temp],i);
 		return TRUE;
-	}        
+	}
 	else{
 		size = ih->storage[temp]->size;
 		for (j=0;j<size;j++){
@@ -99,7 +99,7 @@ Boolean isUniqueIntHash(IntHash *ih,int i){
 			}
 		}
 		appendInt(ih->storage[temp],i);
-		return TRUE;            
+		return TRUE;
 	}
 }
 

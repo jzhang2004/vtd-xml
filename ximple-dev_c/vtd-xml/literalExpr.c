@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-#include "xpath1.h"
+#include "xpath.h"
 
 literalExpr *createLiteralExpr(UCSChar *st){
 	literalExpr *l = (literalExpr*) malloc(sizeof(literalExpr));
@@ -40,7 +40,7 @@ literalExpr *createLiteralExpr(UCSChar *st){
 	l->adjust= &adjust_le;
 	l->s= st;
 
-	
+
 	return l;
 
 }
@@ -64,13 +64,13 @@ double	evalNumber_le (literalExpr *le,VTDNav *vn){
 		return d/d;
 	result = wcstod(le->s,&temp);
 	while(*temp!=0){
-		if ( *temp == L' ' 
+		if ( *temp == L' '
 			|| *temp == L'\n'
 			|| *temp == L'\t'
-			|| *temp == L'\r'){ 			
+			|| *temp == L'\r'){
 				temp++;
 			}
-		else 
+		else
 			return d/d; //NaN
 	}
 	return result;

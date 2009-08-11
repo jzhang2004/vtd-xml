@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-#include "xpath1.h"
+#include "xpath.h"
 static Boolean isUnique_pe(pathExpr *pe,int i);
 
 Boolean isUnique_pe(pathExpr *pe, int i){
@@ -55,9 +55,9 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 	pe->fe = f;
 	pe->lpe= l;
 	pe->evalState = 0;
-	
+
 	return pe;
-	
+
 }
 void freePathExpr(pathExpr *pe){
 	if (pe==NULL) return;
@@ -84,7 +84,7 @@ int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 			push2(vn);
 			a = evalNodeSet_lpe(pe->lpe, vn);
 			if (a == -1) {
-				reset_lpe(pe->lpe, vn);					
+				reset_lpe(pe->lpe, vn);
 				pe->evalState = 3;
 			} else {
 				pe->evalState = 2;
@@ -137,7 +137,7 @@ double	evalNumber_pe (pathExpr *pe,VTDNav *vn){
 			}else if (getTokenType(vn,a)== TOKEN_STARTING_TAG) {
 				a = getText(vn);
 			}
-		}			  
+		}
 	} Catch (e){
 	}
 	vn->contextBuf2->size = size;
@@ -177,7 +177,7 @@ UCSChar* evalString_pe  (pathExpr *pe,VTDNav *vn){
 			Throw e;
 		}
 	}
-	return createEmptyString();	
+	return createEmptyString();
 
 }
 Boolean evalBoolean_pe (pathExpr *pe,VTDNav *vn){
@@ -187,7 +187,7 @@ Boolean evalBoolean_pe (pathExpr *pe,VTDNav *vn){
 	push2(vn);
 	/* record teh stack size*/
 	size = vn->contextBuf2->size;
-    Try{	
+    Try{
 		b = (evalNodeSet_pe(pe,vn) != -1);
 	}Catch (e){
 	}

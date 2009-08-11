@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-#include "xpath1.h"
+#include "xpath.h"
 
 static double sum(funcExpr *fne, VTDNav *vn);
 static int argCount(funcExpr *fne);
@@ -35,8 +35,8 @@ static Boolean isWS(UCSChar c);
 static Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s);
 static inline UCSChar* normalize(UCSChar *s);
 static double round(double v);
-static double round(double v) 
-{ 
+static double round(double v)
+{
  return (v>0.0) ? floor(v+0.5) : ceil(v-0.5);
 }
 
@@ -87,10 +87,10 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
 						return toRawString2(vn,offset + preLen+1, QLen
 						- preLen - 1);
 				}
-			} 
+			}
 		}
 		Catch(e){
-			
+
 		}
 	}
 	else if (argCount(fne) == 1){
@@ -98,9 +98,9 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
 		int type;
 		push2(vn);
 		Try{
-			a = fne->al->e->evalNodeSet(fne->al->e,vn);						
+			a = fne->al->e->evalNodeSet(fne->al->e,vn);
 			fne->al->e->reset(fne->al->e,vn);
-			pop2(vn);						
+			pop2(vn);
 		}Catch(e){
 			fne->al->e->reset(fne->al->e,vn);
 			pop2(vn);
@@ -111,7 +111,7 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
 
 		if (type != TOKEN_STARTING_TAG && type != TOKEN_ATTR_NAME)
 			return createEmptyString();
-		Try {			    
+		Try {
 			int offset = getTokenOffset(vn,a);
 			int length = getTokenLength(vn,a);
 			if (length < 0x10000)
@@ -120,12 +120,12 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
 				int preLen = length >> 16;
 				int QLen = length & 0xffff;
 				if (preLen != 0)
-					return toRawString2(vn, offset + preLen+1, 
+					return toRawString2(vn, offset + preLen+1,
 					QLen - preLen - 1);
 			}
 		} Catch (e) {
 			 // this will almost never occur
-		}		
+		}
 	} else {
 		throwException2(invalid_argument,
 			"local-name()'s  <funcExpr> argument count is invalid");
@@ -138,15 +138,15 @@ static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn){
 		Try{
 			int i = getCurrentIndex(vn);
 			int type = getTokenType(vn,i);
-			if (vn->ns && (type == TOKEN_STARTING_TAG 
+			if (vn->ns && (type == TOKEN_STARTING_TAG
 				|| type == TOKEN_ATTR_NAME)) {
 				int a = lookupNS(vn);
 				if (a == 0)
 					return createEmptyString();
 				else
 					return toString(vn,a);
-			}			
-		}Catch (e){			
+			}
+		}Catch (e){
 		}
 	}
 	else if (argCount(fne) == 1){
@@ -166,15 +166,15 @@ static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn){
 			}
 			else {
 				int type = getTokenType(vn,a);
-				if (type == TOKEN_STARTING_TAG 
+				if (type == TOKEN_STARTING_TAG
 					|| type == TOKEN_ATTR_NAME)
 					return toString(vn,lookupNS(vn));
 			}
-		}Catch(e){}		
+		}Catch(e){}
 	} else {
 		e.et = invalid_argument;
 		e.msg = "namespace-uri()'s  <funcExpr> argument count is invalid";
-		Throw e;			        
+		Throw e;
 	}
 	return createEmptyString();
 }
@@ -192,41 +192,41 @@ static UCSChar *getName(funcExpr *fne, VTDNav *vn){
 				return toString(vn,a);
 			}Catch(e){
 				return createEmptyString();
-			}            
+			}
 		}
-		else 
+		else
 			return createEmptyString();
 	}
 	else if (argCount(fne) == 1){
-		a = -1;		
+		a = -1;
 		push2(vn);
 		Try{
-			a = fne->al->e->evalNodeSet(fne->al->e, vn);	    
+			a = fne->al->e->evalNodeSet(fne->al->e, vn);
 			fne->al->e->reset(fne->al->e,vn);
-			pop2(vn);						
+			pop2(vn);
 		}Catch(e){
 			fne->al->e->reset(fne->al->e,vn);
 			pop2(vn);
-		}	        
+		}
 		Try{
 			if (a == -1 || vn->ns == FALSE){
 				return createEmptyString();
-			}				    
+			}
 			else{
 				int type = getTokenType(vn,a);
 				if ( type== TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME)
 					return toString(vn,a);
 				return createEmptyString();
-			}			
+			}
 		}Catch(e){
 		}
-		
+
 		//return fne->al->e->evalString(fne->al->e, vn);
 	} else {
 		e.et = invalid_argument;
 		e.msg = "name()'s  <funcExpr> argument count is invalid";
-		Throw e;			        
-	}	
+		Throw e;
+	}
 	return createEmptyString();
 }
 
@@ -261,7 +261,7 @@ void  reset_al(aList *al, VTDNav *vn){
 
 void  toString_al(aList *al, UCSChar* string){
 	aList *temp = al;
-	
+
 	while(temp!=NULL){
 		(temp->e->toString)(temp->e, string);
 		temp = temp->next;
@@ -276,13 +276,13 @@ double sum(funcExpr *fne, VTDNav *vn){
 	double d = 0;
 	double n=0;
 	int i1;
-	if (argCount(fne) != 1 
+	if (argCount(fne) != 1
 		|| fne->al->e->isNodeSet(fne->al->e) == FALSE){
 			e.et = invalid_argument;
 			e.msg = "sum() <funcExpr> 's argument has to be a node set ";
 			Throw e;
 		}
-		
+
 	push2(vn);
 	Try {
 		fne->a = 0;
@@ -315,7 +315,7 @@ double sum(funcExpr *fne, VTDNav *vn){
 	} Catch (e) {
 		fne->al->e->reset(fne->al->e,vn);
 		pop2(vn);
-	}   
+	}
 	return n/n;
 }
 
@@ -331,8 +331,8 @@ int argCount(funcExpr *fne){
 int count(funcExpr *fne, VTDNav *vn){
 	exception e;
 	int a = -1;
-	
-	if (argCount(fne)!=1 
+
+	if (argCount(fne)!=1
 		||(fne->al->e->isNodeSet)(fne->al->e)==FALSE){
 			e.et = invalid_argument;
 			e.msg = "count <funcExpr> 's argument has to be a node set ";
@@ -348,7 +348,7 @@ int count(funcExpr *fne, VTDNav *vn){
 		}
 		fne->al->e->reset(fne->al->e,vn);
 		pop2(vn);
-		
+
 	}Catch(e){
 		fne->al->e->reset(fne->al->e,vn);
 		pop2(vn);
@@ -441,7 +441,7 @@ funcExpr *createFuncExpr(funcName oc, aList *a){
 			case FN_FLOOR: 			fne->isNum = TRUE;break;
 			case FN_CEILING: 			fne->isNum = TRUE;break;
 			default:			fne->isNum = TRUE;
-	  }	  
+	  }
 	return fne;
 }
 void freeFuncExpr(funcExpr *fne){
@@ -465,12 +465,12 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 								throwException2(invalid_argument,
 										"last()'s  <funcExpr> argument count is invalid");
 							}
-						   return fne->contextSize;			
+						   return fne->contextSize;
 			case FN_POSITION:   if (argCount(fne)!=0 ){
 									throwException2(invalid_argument,
 										"position()'s  <funcExpr> argument count is invalid");
 								}
-										 
+
 								return fne->position;
 
 			case FN_COUNT: 		return count(fne, vn);
@@ -501,17 +501,17 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 			    				    Try{
 			    				        if (vn->atTerminal == TRUE){
 			    				            tokenType type = getTokenType(vn,vn->LN);
-			    				            
-											if (type == TOKEN_ATTR_NAME 
+
+											if (type == TOKEN_ATTR_NAME
 			    				                || type == TOKEN_ATTR_NS){
 													len = getStringLength(vn,vn->LN+1);
 			    				                //return vn.toString(vn.LN+1).length();
 			    				            } else {
 												    len = getStringLength(vn,vn->LN);
 			    				                //return vn.toString(vn.LN).length();
-			    				            }											
+			    				            }
 											return len;
-											
+
 			    				        }else {
 			    				            int i = getText(vn);
 			    				            if (i==-1)
@@ -549,21 +549,21 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 								free(string);
 								return d/d;
 							}
-							
+
 							result = wcstod(string,&temp);
 							while(*temp!=0){
-								if ( *temp == L' ' 
+								if ( *temp == L' '
 									|| *temp == L'\n'
 									|| *temp == L'\t'
-									|| *temp == L'\r'){ 			
+									|| *temp == L'\r'){
 										temp++;
 									}
-								else 
+								else
 									return d/d; //NaN
 								}
 							free(string);
 							return result;
-					
+
 					 }
 
 					 }
@@ -573,29 +573,29 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 	UCSChar *tmp;
 
 	switch(fne->opCode){
-			case FN_LOCAL_NAME: 	
+			case FN_LOCAL_NAME:
 				return getLocalName(fne,vn);
-			case FN_NAMESPACE_URI: 	
+			case FN_NAMESPACE_URI:
 				return getNameSpaceURI(fne, vn);
-			case FN_NAME: 		
-				return getName(fne,vn);			    
+			case FN_NAME:
+				return getName(fne,vn);
 			case FN_STRING:
 				return getString(fne,vn);
 
 			case FN_CONCAT:
 				return concat(fne,vn);
-			case FN_SUBSTRING_BEFORE: return subStringBefore(fne,vn);		
+			case FN_SUBSTRING_BEFORE: return subStringBefore(fne,vn);
 			case FN_SUBSTRING_AFTER: return subStringAfter(fne,vn);
-									
-			case FN_SUBSTRING: 	return subString(fne,vn);	
-			case FN_TRANSLATE: 	
+
+			case FN_SUBSTRING: 	return subString(fne,vn);
+			case FN_TRANSLATE:
 				throwException2(other_exception,"Some functions are not supported");
 			case FN_NORMALIZE_SPACE: return normalizeString(fne,vn);
-								
+
 			default: if (isBoolean_fne(fne)){
 			    		if (evalBoolean_fne(fne,vn)== TRUE)
 			    		    tmp = _wcsdup(L"true");
-			    		else 
+			    		else
 			    		    tmp = _wcsdup(L"false");
 						if (tmp == NULL){
 							throwException2(out_of_mem,
@@ -617,9 +617,9 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 							else if (d == -1/d1){
 								tmp = _wcsdup(L"-Infinity");
 								b = TRUE;
-							}	else 
+							}	else
 								tmp = malloc(sizeof(UCSChar)<<8);
-		
+
 							if (tmp == NULL) {
 									throwException2(out_of_mem,
 										"allocate string failed in funcExpr's evalString()");
@@ -627,12 +627,12 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 							if(b)
 								return tmp;
 
-						    if (d == (Long) d){		
+						    if (d == (Long) d){
 								swprintf(tmp,64,L"%d",(Long)d);
 							} else {
 								swprintf(tmp,64,L"%f", d);
 							}
-							return tmp;					     
+							return tmp;
 					 }
 	  }
 }
@@ -640,7 +640,7 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 /* evaluate boolean value of a functional expression*/
 Boolean evalBoolean_fne (funcExpr *fne,VTDNav *vn){
 	switch(fne->opCode){
-			case FN_STARTS_WITH:			
+			case FN_STARTS_WITH:
 				if (argCount(fne)!=2){
 					throwException2(invalid_argument,
 						"starts-with()'s <funcExpr> argument count is invalid");
@@ -654,25 +654,25 @@ Boolean evalBoolean_fne (funcExpr *fne,VTDNav *vn){
 				}
 				return contains(fne,vn);
 
-			case FN_TRUE: 
+			case FN_TRUE:
 				if (argCount(fne)!=0){
 					throwException2(invalid_argument,
 						"true()'s <funcExpr> argument count is invalid");
 				}
-				return TRUE;			
+				return TRUE;
 			case FN_FALSE:
 				if (argCount(fne)!=0){
 					throwException2(invalid_argument,
 						"false()'s <funcExpr> argument count is invalid");
-				}						  
-				return FALSE;	
+				}
+				return FALSE;
 			case FN_BOOLEAN:
 				if (argCount(fne)!=1){
 					throwException2(invalid_argument,
 						"boolean()'s <funcExpr> argument count is invalid");
 				}
-				return fne->al->e->evalBoolean(fne->al->e, vn);	
-			case FN_NOT:	
+				return fne->al->e->evalBoolean(fne->al->e, vn);
+			case FN_NOT:
 				if (argCount(fne)!=1){
 					throwException2(invalid_argument,
 						"not()'s <funcExpr> argument count is invalid");
@@ -683,9 +683,9 @@ Boolean evalBoolean_fne (funcExpr *fne,VTDNav *vn){
 					throwException2(invalid_argument,
 						"boolean()'s <funcExpr> argument count is invalid");
 				}
-				return lang(fne, vn, fne->al->e->evalString(fne->al->e,vn));	
+				return lang(fne, vn, fne->al->e->evalString(fne->al->e,vn));
 
-			default: 
+			default:
 				if (isNumerical_fne(fne)){
 					double d = evalNumber_fne(fne, vn);
 					if (d==0 || d!=d)
@@ -772,7 +772,7 @@ void   toString_fne(funcExpr *fne, UCSChar* string){
 		wprintf(L"%ls(",fname(fne,fne->opCode));
 		toString_al(fne->al,string);
 		wprintf(L")");
-	}	
+	}
 }
 static Boolean contains(funcExpr *fne, VTDNav *vn){
 	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
@@ -786,7 +786,7 @@ static Boolean contains(funcExpr *fne, VTDNav *vn){
 	free(s2);
     return b;
 }
-static UCSChar* concat(funcExpr *fne, VTDNav *vn){	
+static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 	int totalLen = 0,len = 0,capacity = 16;
 	UCSChar *result = NULL, *s = NULL, *tempBuf = NULL;
 	result = malloc(sizeof(UCSChar)<<4);
@@ -795,7 +795,7 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 			"String allocation failed in concat");
 	}
 	result[0]=0;/*end of string set*/
-	
+
 	if (argCount(fne)>=2){
 		aList* temp = fne->al;
 		while(temp!=NULL){
@@ -815,7 +815,7 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 						"String allocation failed in concat");
 				}
 			}
-			wcscat(result,s);			
+			wcscat(result,s);
 			temp = temp->next;
 		}
 		return result;
@@ -930,12 +930,12 @@ static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 				int ttype = getTokenType(vn,vn->LN);
 				if (ttype == TOKEN_CDATA_VAL)
 					s =toRawString(vn,vn->LN);
-				else if (ttype == TOKEN_ATTR_NAME 
+				else if (ttype == TOKEN_ATTR_NAME
 					|| ttype == TOKEN_ATTR_NS){
 						s = toString(vn,vn->LN+1);
-				}else 
+				}else
 					s = toString(vn,vn->LN);
-			}else 
+			}else
 				s = toString(vn,getCurrentIndex(vn));
 			return normalize(s);
 		}
@@ -1003,10 +1003,10 @@ static Boolean isWS(UCSChar c)
 
 int adjust_fne(funcExpr *fne, int n){
 	switch(fne->opCode){
-		case FN_COUNT: 
+		case FN_COUNT:
 		case FN_SUM:
 			return fne->al->e->adjust(fne->al->e,n);
-			
+
 		default:
 			return 0;
 	}
@@ -1022,7 +1022,7 @@ Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s){
 			int i = getAttrVal(vn,L"xml:lang");
 			if (i!=-1){
 				b = matchTokenString(vn,i,s);
-				break;                    
+				break;
 			}
 			toElement(vn,PARENT);
 		}
