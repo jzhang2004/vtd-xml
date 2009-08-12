@@ -217,6 +217,22 @@ static Boolean compNumericalNodeSet(binaryExpr *be, expr* left, expr* right, VTD
 	}
 	return FALSE;
 }
+
+static Boolean compEmptyNodeSet(opType op, UCSChar *s){
+	if (op == OP_NE ){
+	        if (wcslen(s)==0) {
+	            return FALSE;
+	        } else
+	            return TRUE;
+	    }else{
+	        if (wcslen(s)==0) {
+	            return TRUE;
+	        } else
+	            return FALSE;
+	    }
+}
+
+
 static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav *vn, opType op){
 	exception e;
 	int i,i1,stackSize;
@@ -343,20 +359,6 @@ static Boolean compNodeSetNodeSet(binaryExpr *be, expr* left, expr* right, VTDNa
 	return FALSE;
 }
 
-static Boolean compEmptyNodeSet(opType op, UCSChar *s){
-	if (op == OP_NE ){
-	        if (wcslen(s)==0) {
-	            return FALSE;
-	        } else
-	            return TRUE;
-	    }else{
-	        if (wcslen(s)==0) {
-	            return TRUE;
-	        } else
-	            return FALSE;
-	    }
-}
-
 Boolean computeComp(binaryExpr *be, opType op,VTDNav *vn){
 
 	Boolean btemp = FALSE;
@@ -421,8 +423,8 @@ binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
 			"binaryExpr allocation failed");
 		return NULL;
 	}
-	be->freeExpr = &freeBinaryExpr;
-	be->evalBoolean = &evalBoolean_be;
+	be->freeExpr = (free_Expr) &freeBinaryExpr;
+	be->evalBoolean = (eval_Boolean)&evalBoolean_be;
 	be->evalNodeSet = &evalNodeSet_be;
 	be->evalNumber  = &evalNumber_be;
 	be->evalString  = &evalString_be;
