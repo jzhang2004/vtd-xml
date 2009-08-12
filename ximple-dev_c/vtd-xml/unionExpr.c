@@ -15,7 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-#include "xpath1.h"
+#include "xpath.h"
 static Boolean isUnique_une(unionExpr *une,int i);
 
 Boolean isUnique_une(unionExpr *une, int i){
