@@ -31,6 +31,7 @@ static UCSChar* subString(funcExpr *fne, VTDNav *vn);
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn);
 static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn);
 static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn);
+static UCSChar* translate(funcExpr *fne, VTDNav *vn);
 static Boolean isWS(UCSChar c);
 static Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s);
 static inline UCSChar* normalize(UCSChar *s);
@@ -395,21 +396,21 @@ funcExpr *createFuncExpr(funcName oc, aList *a){
 		return NULL;
 	}
 
-	fne->freeExpr = &freeFuncExpr;
-	fne->evalBoolean = &evalBoolean_fne;
-	fne->evalNodeSet = &evalNodeSet_fne;
-	fne->evalNumber  = &evalNumber_fne;
-	fne->evalString  = &evalString_fne;
-	fne->isNumerical = &isNumerical_fne;
-	fne->isBoolean = &isBoolean_fne;
-	fne->isString =  &isString_fne;
-	fne->isNodeSet = &isNodeSet_fne;
-	fne->requireContextSize = &requireContextSize_fne;
-	fne->setContextSize = &setContextSize_fne;
-	fne->setPosition = &setPosition_fne;
-	fne->reset = &reset_fne;
-	fne->toString = &toString_fne;
-	fne->adjust = &adjust_fne;
+	fne->freeExpr = (free_Expr)&freeFuncExpr;
+	fne->evalBoolean = (eval_Boolean)&evalBoolean_fne;
+	fne->evalNodeSet = (eval_NodeSet)&evalNodeSet_fne;
+	fne->evalNumber  = (eval_Number)&evalNumber_fne;
+	fne->evalString  = (eval_String)&evalString_fne;
+	fne->isNumerical = (is_Numerical)&isNumerical_fne;
+	fne->isBoolean = (is_Boolean)&isBoolean_fne;
+	fne->isString =  (is_String)&isString_fne;
+	fne->isNodeSet = (is_NodeSet)&isNodeSet_fne;
+	fne->requireContextSize = (require_ContextSize)&requireContextSize_fne;
+	fne->setContextSize = (set_ContextSize)&setContextSize_fne;
+	fne->setPosition = (set_Position)&setPosition_fne;
+	fne->reset = (reset_)&reset_fne;
+	fne->toString = (to_String)&toString_fne;
+	fne->adjust = (adjust_)&adjust_fne;
 	fne->a = 0;
 	fne->opCode = oc;
 	fne->al = a;
@@ -588,8 +589,8 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 			case FN_SUBSTRING_AFTER: return subStringAfter(fne,vn);
 
 			case FN_SUBSTRING: 	return subString(fne,vn);
-			case FN_TRANSLATE:
-				throwException2(other_exception,"Some functions are not supported");
+			case FN_TRANSLATE:  return translate(fne,vn);
+			
 			case FN_NORMALIZE_SPACE: return normalizeString(fne,vn);
 
 			default: if (isBoolean_fne(fne)){
@@ -827,7 +828,7 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 static Boolean startsWith(funcExpr *fne, VTDNav *vn){
 	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
-	UCSChar* s3 = NULL;
+	//UCSChar* s3 = NULL;
 	Boolean b = FALSE;
 	if (wcsstr(s1,s2)==s1)
 		b = TRUE;
@@ -869,9 +870,6 @@ static UCSChar* subString(funcExpr *fne, VTDNav *vn){
 		"substring()'s <funcExpr> argument count is invalid");
 	return NULL;
 }
-
-
-
 
 static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn){
 	if (argCount(fne) == 2){
@@ -919,6 +917,70 @@ static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
 
 }
 
+static UCSChar* translate(funcExpr *fne, VTDNav *vn){
+
+	if (argCount(fne)==3)
+	{
+		UCSChar* repStr;
+		UCSChar* temp;
+		int lenRepStr, lenIdxStr;
+		int idx;
+
+		UCSChar* str = fne->al->e->evalString(fne->al->e,vn);
+		UCSChar* idxStr = fne->al->next->e->evalString(fne->al->next->e,vn);
+
+		if(str == NULL || idxStr == NULL) return str;
+
+		repStr = fne->al->next->next->e->evalString(fne->al->next->next->e,vn);		
+		lenRepStr = (repStr != NULL) ? wcslen(repStr) : 0;
+		
+		lenIdxStr = wcslen(idxStr);
+		
+		//create a temp string to hold used char
+		temp = (UCSChar*) malloc(sizeof(UCSChar) * lenIdxStr);
+		*temp = '\0';
+
+		for (idx = 0; idx < lenIdxStr; idx++)
+		{
+
+			UCSChar idxChar = idxStr[idx];
+			if(wcschr(temp,idxChar) == NULL) //this char has not been used
+			{			
+				if(idx < lenRepStr) //replace
+				{
+					UCSChar repChar = repStr[idx];
+					int i;
+
+					for(i = 0; str[i] != '\0'; i++)
+					{
+						if(str[i] == idxChar) str[i] = idxChar;
+					}
+				}
+				else //remove
+				{
+					int i,j;
+					for(i = j = 0; str[i] != '\0'; i++)
+					{
+						if(str[i] != idxChar) str[j++] = str[i];
+					}
+
+					str[j] = '\0';
+				}
+
+				wcsncat(temp,&idxChar,1);
+			}
+		}
+		
+		free(temp);
+
+		return str;
+	}
+
+	throwException2(invalid_argument,
+		"translate()'s <funcExpr> argument count is invalid");
+
+	return NULL;
+}
 
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 	if (argCount(fne) == 0){
