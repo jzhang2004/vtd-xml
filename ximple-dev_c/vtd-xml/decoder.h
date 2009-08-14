@@ -46,7 +46,7 @@ int windows_1257_chars[256];
 int windows_1258_chars[256];
 
 Boolean iso_8859_2_chars_ready;
-Boolean iso_8859_3_chars_ready;
+//Boolean iso_8859_3_chars_ready;
 Boolean iso_8859_3_chars_ready;
 Boolean iso_8859_4_chars_ready;
 Boolean iso_8859_5_chars_ready;

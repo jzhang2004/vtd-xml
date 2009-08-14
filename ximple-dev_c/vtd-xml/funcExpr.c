@@ -937,8 +937,8 @@ static UCSChar* translate(funcExpr *fne, VTDNav *vn){
 		lenIdxStr = wcslen(idxStr);
 		
 		//create a temp string to hold used char
-		temp = (UCSChar*) malloc(sizeof(UCSChar) * lenIdxStr);
-		*temp = '\0';
+		temp = (UCSChar*) malloc(sizeof(UCSChar) * (lenIdxStr + 1));
+		*temp = L'\0';
 
 		for (idx = 0; idx < lenIdxStr; idx++)
 		{
@@ -953,7 +953,7 @@ static UCSChar* translate(funcExpr *fne, VTDNav *vn){
 
 					for(i = 0; str[i] != '\0'; i++)
 					{
-						if(str[i] == idxChar) str[i] = idxChar;
+						if(str[i] == idxChar) str[i] = repChar;
 					}
 				}
 				else //remove
