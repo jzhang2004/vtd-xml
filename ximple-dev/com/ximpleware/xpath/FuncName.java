@@ -49,5 +49,24 @@ public class FuncName{
 	public static final int		FLOOR =23;
 	public static final int		CEILING = 24;
 	public static final int		ROUND = 25;
+	// added for 2.0
+	public static final int     ABS = 26;
+	public static final int     ROUND_HALF_TO_EVEN = 27;
+	public static final int 	ROUND_HALF_TO_ODD = 28;
+	public static final int     CODE_POINTS_TO_STRING = 29;
+	public static final int     COMPARE = 30;
+	
+	public static final int     UPPER_CASE = 31;
+	public static final int     LOWER_CASE = 32;
+	public static final int     ENDS_WITH = 33;
+	public static final int     QNAME = 34;
+	public static final int     LOCAL_NAME_FROM_QNAME = 35;
+	public static final int     NAMESPACE_URI_FROM_QNAME = 36;
+	public static final int     NAMESPACE_URI_FOR_PREFIX = 37;
+	public static final int     RESOLVE_QNAME = 38;
+	public static final int     IRI_TO_URI = 39;
+	public static final int     ESCAPE_HTML_URI = 40;
+	public static final int     ENCODE_FOR_URI = 41;
+	//public static final int     
 
 }
