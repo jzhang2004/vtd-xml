@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2006 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -277,6 +277,135 @@ translate{ws}*"("	{  	isName = 1;
 				fname.i = FuncName.TRANSLATE;
 				return sym(FNAME,fname);
 			}
+
+abs{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ABS;
+				fname = new FuncName();
+				fname.i = FuncName.ABS;
+				return sym(FNAME,fname);
+			}
+			
+round-half-to-even{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ROUND_HALF_TO_EVEN;
+				fname = new FuncName();
+				fname.i = FuncName.ROUND_HALF_TO_EVEN;
+				return sym(FNAME,fname);
+			}
+
+round-half-to-odd{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ROUND_HALF_TO_ODD;
+				fname = new FuncName();
+				fname.i = FuncName.ROUND_HALF_TO_ODD;
+				return sym(FNAME,fname);
+			}
+
+code-points-to-string{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.CODE_POINTS_TO_STRING;
+				fname = new FuncName();
+				fname.i = FuncName.CODE_POINTS_TO_STRING;
+				return sym(FNAME,fname);
+			}
+			
+compare{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.COMPARE;
+				fname = new FuncName();
+				fname.i = FuncName.COMPARE;
+				return sym(FNAME,fname);
+			}
+			
+upper-case{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.UPPER_CASE;
+				fname = new FuncName();
+				fname.i = FuncName.UPPER_CASE;
+				return sym(FNAME,fname);
+			}
+			
+lower-case{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.LOWER_CASE;
+				fname = new FuncName();
+				fname.i = FuncName.LOWER_CASE;
+				return sym(FNAME,fname);
+			}
+
+ends-with{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ENDS_WITH;
+				fname = new FuncName();
+				fname.i = FuncName.ENDS_WITH;
+				return sym(FNAME,fname);
+			}
+			
+QName{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.QNAME;
+				fname = new FuncName();
+				fname.i = FuncName.QNAME;
+				return sym(FNAME,fname);
+			}
+			
+local-name-from-QName{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.LOCAL_NAME_FROM_QNAME;
+				fname = new FuncName();
+				fname.i = FuncName.LOCAL_NAME_FROM_QNAME;
+				return sym(FNAME,fname);
+			}
+
+namespace-uri-from-QName{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.NAMESPACE_URI_FROM_QNAME;
+				fname = new FuncName();
+				fname.i = FuncName.NAMESPACE_URI_FROM_QNAME;
+				return sym(FNAME,fname);
+			}
+
+namespace-uri-for-prefix{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.NAMESPACE_URI_FOR_PREFIX;
+				fname = new FuncName();
+				fname.i = FuncName.NAMESPACE_URI_FOR_PREFIX;
+				return sym(FNAME,fname);
+			}			
+
+resolve-QName{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.RESOLVE_QNAME;
+				fname = new FuncName();
+				fname.i = FuncName.RESOLVE_QNAME;
+				return sym(FNAME,fname);
+			}
+
+iri-to-uri{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.IRI_TO_URI;
+				fname = new FuncName();
+				fname.i = FuncName.IRI_TO_URI;
+				return sym(FNAME,fname);
+			}
+			
+escape-html-uri{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ESCAPE_HTML_URI;
+				fname = new FuncName();
+				fname.i = FuncName.ESCAPE_HTML_URI;
+				return sym(FNAME,fname);
+			}
+			
+encode-for-uri{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ENCODE_FOR_URI;
+				fname = new FuncName();
+				fname.i = FuncName.ENCODE_FOR_URI;
+				return sym(FNAME,fname);
+			}
+
 
 boolean{ws}*"("		{  	isName = 1; 
 			 	yypushback(1);
