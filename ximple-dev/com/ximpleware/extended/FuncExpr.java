@@ -81,7 +81,29 @@ public class FuncExpr extends Expr{
 			case FuncName.SUM: 			    isNumerical = true;break;
 			case FuncName.FLOOR: 			isNumerical = true;break;
 			case FuncName.CEILING: 			isNumerical = true;break;
-			default:			isNumerical = true; break;
+			case FuncName.ROUND:			isNumerical = true;break;
+			case FuncName.ABS:				isNumerical = true;break;
+			case FuncName.ROUND_HALF_TO_EVEN :
+			    							isNumerical = true;break;
+			case FuncName.ROUND_HALF_TO_ODD:
+			    							isNumerical = true;break;
+			case FuncName.CODE_POINTS_TO_STRING:
+			    							isString = true; break;
+			case FuncName.COMPARE:			isBoolean= true;break;
+			case FuncName.UPPER_CASE:		isString = true; break;
+			case FuncName.LOWER_CASE:		isString = true; break;
+			case FuncName.ENDS_WITH:		isBoolean= true;break;
+			case FuncName.QNAME:			isString = true; break;
+			case FuncName.LOCAL_NAME_FROM_QNAME:
+			    							isString = true; break;
+			case FuncName.NAMESPACE_URI_FROM_QNAME:
+			    							isString = true; break;
+			case FuncName.NAMESPACE_URI_FOR_PREFIX:
+			    							isString = true; break;
+			case FuncName.RESOLVE_QNAME:	isString = true; break;
+			case FuncName.IRI_TO_URI:    	isString = true; break;
+			case FuncName.ESCAPE_HTML_URI:	isString = true; break;
+			default:						isString = true; break;
 	  }	  
 	}
 
@@ -529,8 +551,20 @@ public class FuncExpr extends Expr{
 			case FuncName.SUBSTRING_BEFORE:	return subStringBefore(vn);	
 			case FuncName.SUBSTRING_AFTER: 	return subStringAfter(vn);
 			case FuncName.SUBSTRING: 	return subString(vn);	
-			case FuncName.TRANSLATE: 	throw new UnsupportedException("Some functions are not supported");
+			case FuncName.TRANSLATE: 	return translate(vn);
 			case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
+			case FuncName.CODE_POINTS_TO_STRING:			
+			case FuncName.UPPER_CASE:
+			case FuncName.LOWER_CASE:
+			case FuncName.QNAME:		
+			case FuncName.LOCAL_NAME_FROM_QNAME:				
+			case FuncName.NAMESPACE_URI_FROM_QNAME:				
+			case FuncName.NAMESPACE_URI_FOR_PREFIX:				
+			case FuncName.RESOLVE_QNAME:	
+			case FuncName.IRI_TO_URI:    	
+			case FuncName.ESCAPE_HTML_URI:	
+			case FuncName.ENCODE_FOR_URI:
+			    throw new com.ximpleware.extended.xpath.UnsupportedException("not yet implemented");
 			default: if (isBoolean()){
 			    		if (evalBoolean(vn)== true)
 			    		    return "true";
@@ -598,6 +632,12 @@ public class FuncExpr extends Expr{
 			case FuncName.ROUND: 	if (argCount()!=1 )
 			    						throw new IllegalArgumentException("round()'s argument count is invalid");
 			    					return Math.floor(argumentList.e.evalNumber(vn))+0.5d;
+			    					
+			case FuncName.ABS:				
+			case FuncName.ROUND_HALF_TO_EVEN :			    							
+			case FuncName.ROUND_HALF_TO_ODD:
+			    throw new com.ximpleware.extended.xpath.UnsupportedException("not yet implemented");
+			    							
 			
 			default: if (isBoolean){
 			    		if (evalBoolean(vn))
@@ -652,6 +692,9 @@ public class FuncExpr extends Expr{
 		        				    	throw new IllegalArgumentException("lang()'s argument count is invalid");
 		        				}
 								return lang(vn,argumentList.e.evalString(vn));
+		    case FuncName.COMPARE:
+		    case FuncName.ENDS_WITH:
+		        				throw new com.ximpleware.extended.xpath.UnsupportedException("not yet implemented");
 			default: if (isNumerical()){
 			    		double d = evalNumber(vn);
 			    		if (d==0 || d!=d)
@@ -697,7 +740,29 @@ public class FuncExpr extends Expr{
 			case FuncName.SUM: 			return "sum";
 			case FuncName.FLOOR: 			return "floor";
 			case FuncName.CEILING: 			return "ceiling";
-			default:			return "round";
+			case FuncName.ROUND:			return "round";
+			case FuncName.ABS:				return "abs";
+			case FuncName.ROUND_HALF_TO_EVEN :											
+											return "round-half-to-even";
+			case FuncName.ROUND_HALF_TO_ODD:
+			    							return "round-half-to-odd";
+			case FuncName.CODE_POINTS_TO_STRING:
+			    							return "code-points-to-string";
+			case FuncName.COMPARE:			return "compare";
+			case FuncName.UPPER_CASE:		return "upper-case";
+			case FuncName.LOWER_CASE:		return "lower-case";
+			case FuncName.ENDS_WITH:		return "ends-with";
+			case FuncName.QNAME:			return "qname";
+			case FuncName.LOCAL_NAME_FROM_QNAME:
+											return "local-name-from-QName";
+			case FuncName.NAMESPACE_URI_FROM_QNAME:
+											return "namespace-uri-from-QName";
+			case FuncName.NAMESPACE_URI_FOR_PREFIX:
+			    							return "namespace-uri-for-prefix";
+			case FuncName.RESOLVE_QNAME:	return "resolve-QName";
+			case FuncName.IRI_TO_URI:    	return "iri-to-uri";
+			case FuncName.ESCAPE_HTML_URI:	return "escape-html-uri";
+			default:						return "encode-for-uri";
 		}
 	}
 	public boolean  isNodeSet(){
