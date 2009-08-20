@@ -7,7 +7,7 @@
 
 #include "xpathTest.h"
 
-
+#include <assert.h>
 
     void translateTest() 
     { 
@@ -17,7 +17,7 @@
 		if(selectXPath(ap,L"translate('12:30','30','45')"))
 		{
 			UCSChar* s = evalXPathToString(ap);
-			//(s, L"12:45");    
+			assert(wcscmp(s, L"12:45") == 0);    
 
 			free(s);
 		}
@@ -25,7 +25,7 @@
 		if(selectXPath(ap,L"translate('12:30','0123','abc')"))
 		{
 			UCSChar* s = evalXPathToString(ap);
-			//(s, L"bc:a");    
+			assert(wcscmp(s, L"bc:a") == 0);    
 
 			free(s);
 		}
@@ -33,7 +33,7 @@
 		if(selectXPath(ap,L"translate('','','abc')"))
 		{
 			UCSChar* s = evalXPathToString(ap);
-			//(s, L"");    
+			assert(wcscmp(s, L"") == 0);    
 
 			free(s);
 		}
