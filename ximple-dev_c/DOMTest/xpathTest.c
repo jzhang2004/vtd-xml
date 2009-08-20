@@ -41,7 +41,7 @@
 		if(selectXPath(ap,L"translate('12:30','33','3bc')"))
 		{
 			UCSChar* s = evalXPathToString(ap);
-			//(s, L"12:30");    
+			assert(wcscmp(s, L"12:30") == 0);    
 
 			free(s);
 		}
