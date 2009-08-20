@@ -2,6 +2,5 @@
 #ifndef XPATHTEST_H
 #define XPATHTEST_H
 
-void translateTest();
-
+   void translateTest()
 #endif

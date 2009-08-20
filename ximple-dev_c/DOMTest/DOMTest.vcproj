@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\vtd-xml\&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\vtd-xml\&quot;;&quot;C:\vtd-xml\ximple-dev_c\DOMTest\cunit-0.7.5\src\libcunit&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -175,11 +175,91 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\DOMTest.cpp"
+				RelativePath=".\cunit-0.7.5\src\libcunit\add.c"
 				>
 			</File>
 			<File
-				RelativePath=".\xpathTest.cpp"
+				RelativePath=".\cunit-0.7.5\src\libcunit\compile.c"
+				>
+			</File>
+			<File
+				RelativePath=".\DOMTest.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\filter.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\filter_win32.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\info.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\load.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\load_win32.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\parseargs.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\parseargs_win32.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\recursedir.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\recursedir_win32.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\run.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\show.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\show_colour.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\show_mono.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\show_xml.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\cunit\unittester.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\world.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\world_timers.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\world_timers_win32.c"
+				>
+			</File>
+			<File
+				RelativePath=".\xpathTest.c"
 				>
 			</File>
 		</Filter>
@@ -188,6 +268,62 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\compile.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\cunit\config.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\config.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\info.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\load.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\parseargs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\recursedir.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\run.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\show.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\show_colour.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\show_mono.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\show_xml.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\unittester.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cunit-0.7.5\src\libcunit\world.h"
+				>
+			</File>
 			<File
 				RelativePath=".\xpathTest.h"
 				>
@@ -199,6 +335,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\cunit-0.7.5\src\libcunit\Makefile"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
