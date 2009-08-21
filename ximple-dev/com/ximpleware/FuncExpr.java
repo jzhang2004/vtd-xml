@@ -318,6 +318,12 @@ public class FuncExpr extends Expr{
 	    return s1.startsWith(s2); 
 	}
 	
+	private boolean endsWith(VTDNav vn){
+	    String s1 = argumentList.e.evalString(vn);
+	    String s2 = argumentList.next.e.evalString(vn);
+	    return s1.endsWith(s2); 
+	}
+	
 	private boolean contains(VTDNav vn){
 	    String s1 = argumentList.e.evalString(vn);
 	    String s2 = argumentList.next.e.evalString(vn);
@@ -634,7 +640,9 @@ public class FuncExpr extends Expr{
 			    						throw new IllegalArgumentException("round()'s argument count is invalid");
 			    					return Math.floor(argumentList.e.evalNumber(vn))+0.5d;
 			    					
-			case FuncName.ABS:				
+			case FuncName.ABS:		if (argCount()!=1 )
+				throw new IllegalArgumentException("abs()'s argument count is invalid");
+			return Math.abs(argumentList.e.evalNumber(vn));		
 			case FuncName.ROUND_HALF_TO_EVEN :			    							
 			case FuncName.ROUND_HALF_TO_ODD:
 			    throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
@@ -693,9 +701,13 @@ public class FuncExpr extends Expr{
 		        				}
 								return lang(vn,argumentList.e.evalString(vn));
 								
-		    case FuncName.COMPARE:
+		    case FuncName.COMPARE:throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
 		    case FuncName.ENDS_WITH:
-		        				throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
+		        if (argCount()!=2){
+		        throw new IllegalArgumentException("ends-with()'s argument count is invalid");
+		    }
+		    return endsWith(vn);
+		        				
 			default: if (isNumerical()){
 			    		double d = evalNumber(vn);
 			    		if (d==0 || d!=d)
