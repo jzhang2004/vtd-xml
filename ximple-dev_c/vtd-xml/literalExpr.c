@@ -23,21 +23,21 @@ literalExpr *createLiteralExpr(UCSChar *st){
 		throwException2(out_of_mem,"literalExpr allocation failed ");
 		return NULL;
 	}
-	l->freeExpr = &freeLiteralExpr;
-	l->evalBoolean = &evalBoolean_le;
-	l->evalNodeSet = &evalNodeSet_le;
-	l->evalNumber  = &evalNumber_le;
-	l->evalString  = &evalString_le;
-	l->isNumerical = &isNumerical_le;
-	l->isBoolean = &isBoolean_le;
-	l->isString =  &isString_le;
-	l->isNodeSet = &isNodeSet_le;
-	l->requireContextSize = &requireContextSize_le;
-	l->setContextSize = &setContextSize_le;
-	l->setPosition = &setPosition_le;
-	l->reset = &reset_le;
-	l->toString = &toString_le;
-	l->adjust= &adjust_le;
+	l->freeExpr = (free_Expr)&freeLiteralExpr;
+	l->evalBoolean = (eval_Boolean)&evalBoolean_le;
+	l->evalNodeSet = (eval_NodeSet)&evalNodeSet_le;
+	l->evalNumber  = (eval_Number)&evalNumber_le;
+	l->evalString  = (eval_String)&evalString_le;
+	l->isNumerical = (is_Numerical)&isNumerical_le;
+	l->isBoolean = (is_Boolean)&isBoolean_le;
+	l->isString =  (is_String)&isString_le;
+	l->isNodeSet = (is_NodeSet)&isNodeSet_le;
+	l->requireContextSize = (require_ContextSize)&requireContextSize_le;
+	l->setContextSize = (set_ContextSize)&setContextSize_le;
+	l->setPosition = (set_Position)&setPosition_le;
+	l->reset = (reset_)&reset_le;
+	l->toString = (to_String)&toString_le;
+	l->adjust= (adjust_)&adjust_le;
 	l->s= st;
 
 

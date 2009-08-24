@@ -24,21 +24,21 @@ filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 			"filterExpr allocation failed");
 		return NULL;
 	}
-	fe->freeExpr = &freeFilterExpr;
-	fe->evalBoolean = &evalBoolean_fe;
-	fe->evalNodeSet = &evalNodeSet_fe;
-	fe->evalNumber  = &evalNumber_fe;
-	fe->evalString  = &evalString_fe;
-	fe->isNumerical = &isNumerical_fe;
-	fe->isBoolean = &isBoolean_fe;
-	fe->isString =  &isString_fe;
-	fe->isNodeSet = &isNodeSet_fe;
-	fe->requireContextSize = &requireContextSize_fe;
-	fe->setContextSize = &setContextSize_fe;
-	fe->setPosition = &setPosition_fe;
-	fe->reset = &reset_fe;
-	fe->toString = &toString_fe;
-	fe->adjust = &adjust_fe;
+	fe->freeExpr = (free_Expr)&freeFilterExpr;
+	fe->evalBoolean = (eval_Boolean)&evalBoolean_fe;
+	fe->evalNodeSet = (eval_NodeSet)&evalNodeSet_fe;
+	fe->evalNumber  = (eval_Number)&evalNumber_fe;
+	fe->evalString  = (eval_String)&evalString_fe;
+	fe->isNumerical = (is_Numerical)&isNumerical_fe;
+	fe->isBoolean = (is_Boolean)&isBoolean_fe;
+	fe->isString =  (is_String)&isString_fe;
+	fe->isNodeSet = (is_NodeSet)&isNodeSet_fe;
+	fe->requireContextSize = (require_ContextSize)&requireContextSize_fe;
+	fe->setContextSize = (set_ContextSize)&setContextSize_fe;
+	fe->setPosition = (set_Position)&setPosition_fe;
+	fe->reset = (reset_)&reset_fe;
+	fe->toString = (to_String)&toString_fe;
+	fe->adjust = (adjust_)&adjust_fe;
 
 	fe->e = e1;
 	fe->p = pr;

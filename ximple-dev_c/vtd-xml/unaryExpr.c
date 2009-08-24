@@ -25,21 +25,21 @@ unaryExpr *createUnaryExpr(opType op, expr *e1){
 			"unaryExpr allocation failed ");
 		return NULL;
 	}
-	ue->freeExpr = &freeUnaryExpr;
-	ue->evalBoolean = &evalBoolean_ue;
-	ue->evalNodeSet = &evalNodeSet_ue;
-	ue->evalNumber  = &evalNumber_ue;
-	ue->evalString  = &evalString_ue;
-	ue->isNumerical = &isNumerical_ue;
-	ue->isBoolean = &isBoolean_ue;
-	ue->isString =  &isString_ue;
-	ue->isNodeSet = &isNodeSet_ue;
-	ue->requireContextSize = &requireContextSize_ue;
-	ue->setContextSize = &setContextSize_ue;
-	ue->setPosition = &setPosition_ue;
-	ue->reset = &reset_ue;
-	ue->toString = &toString_ue;
-	ue->adjust = &adjust_ue;
+	ue->freeExpr = (free_Expr)&freeUnaryExpr;
+	ue->evalBoolean = (eval_Boolean)&evalBoolean_ue;
+	ue->evalNodeSet = (eval_NodeSet)&evalNodeSet_ue;
+	ue->evalNumber  = (eval_Number)&evalNumber_ue;
+	ue->evalString  = (eval_String)&evalString_ue;
+	ue->isNumerical = (is_Numerical)&isNumerical_ue;
+	ue->isBoolean = (is_Boolean)&isBoolean_ue;
+	ue->isString =  (is_String)&isString_ue;
+	ue->isNodeSet = (is_NodeSet)&isNodeSet_ue;
+	ue->requireContextSize = (require_ContextSize)&requireContextSize_ue;
+	ue->setContextSize = (set_ContextSize)&setContextSize_ue;
+	ue->setPosition = (set_Position)&setPosition_ue;
+	ue->reset = (reset_)&reset_ue;
+	ue->toString = (to_String)&toString_ue;
+	ue->adjust = (adjust_)&adjust_ue;
 	ue->e = e1;
 	ue->op = op;
 

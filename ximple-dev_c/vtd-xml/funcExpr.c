@@ -788,7 +788,8 @@ static Boolean contains(funcExpr *fne, VTDNav *vn){
     return b;
 }
 static UCSChar* concat(funcExpr *fne, VTDNav *vn){
-	int totalLen = 0,len = 0,capacity = 16;
+	int totalLen = 0,capacity = 16;
+	size_t len = 0;
 	UCSChar *result = NULL, *s = NULL, *tempBuf = NULL;
 	result = malloc(sizeof(UCSChar)<<4);
 	if (result==NULL){
@@ -838,7 +839,7 @@ static Boolean startsWith(funcExpr *fne, VTDNav *vn){
 }
 static UCSChar* subString(funcExpr *fne, VTDNav *vn){
 	UCSChar *str;
-	int len;
+	size_t len;
 	if (argCount(fne)==2){
 		double d1;
 		int temp;
@@ -1016,7 +1017,7 @@ static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 }
 
 static UCSChar* normalize(UCSChar *s){
-	 int os=0,i,len;
+	 int os=0,i; size_t len;
 	 len = wcslen(s);
 	 // strip off leading ws
 	 for (i = 0; i < len; i++)

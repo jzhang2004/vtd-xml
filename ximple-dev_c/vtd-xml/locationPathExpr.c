@@ -1920,21 +1920,21 @@ locationPathExpr *createLocationPathExpr(){
 		free(lpe);
 		Throw e;
 	}
-	lpe->freeExpr = &freeLocationPathExpr;
-	lpe->evalBoolean = &evalBoolean_lpe;
-	lpe->evalNodeSet = &evalNodeSet_lpe;
-	lpe->evalNumber  = &evalNumber_lpe;
-	lpe->evalString  = &evalString_lpe;
-	lpe->isNumerical = &isNumerical_lpe;
-	lpe->isBoolean = &isBoolean_lpe;
-	lpe->isString =  &isString_lpe;
-	lpe->isNodeSet = &isNodeSet_lpe;
-	lpe->requireContextSize = &requireContextSize_lpe;
-	lpe->setContextSize = &setContextSize_lpe;
-	lpe->setPosition = &setPosition_lpe;
-	lpe->reset = &reset_lpe;
-	lpe->toString = &toString_lpe;
-	lpe->adjust = &adjust_lpe;
+	lpe->freeExpr = (free_Expr) &freeLocationPathExpr;
+	lpe->evalBoolean = (eval_Boolean)&evalBoolean_lpe;
+	lpe->evalNodeSet = (eval_NodeSet)&evalNodeSet_lpe;
+	lpe->evalNumber  = (eval_Number)&evalNumber_lpe;
+	lpe->evalString  = (eval_String)&evalString_lpe;
+	lpe->isNumerical = (is_Numerical)&isNumerical_lpe;
+	lpe->isBoolean = (is_Boolean)&isBoolean_lpe;
+	lpe->isString =  (is_String)&isString_lpe;
+	lpe->isNodeSet = (is_NodeSet)&isNodeSet_lpe;
+	lpe->requireContextSize = (require_ContextSize)&requireContextSize_lpe;
+	lpe->setContextSize = (set_ContextSize)&setContextSize_lpe;
+	lpe->setPosition = (set_Position)&setPosition_lpe;
+	lpe->reset = (reset_)&reset_lpe;
+	lpe->toString = (to_String)&toString_lpe;
+	lpe->adjust = (adjust_)&adjust_lpe;
 
 	lpe->state = XPATH_EVAL_START;
 	lpe->s = NULL;

@@ -37,21 +37,21 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 		Throw e;
 	}
 
-	pe->freeExpr = &freePathExpr;
-	pe->evalBoolean = &evalBoolean_pe;
-	pe->evalNodeSet = &evalNodeSet_pe;
-	pe->evalNumber  = &evalNumber_pe;
-	pe->evalString  = &evalString_pe;
-	pe->isNumerical = &isNumerical_pe;
-	pe->isBoolean = &isBoolean_pe;
-	pe->isString =  &isString_pe;
-	pe->isNodeSet = &isNodeSet_pe;
-	pe->requireContextSize = &requireContextSize_pe;
-	pe->setContextSize = &setContextSize_pe;
-	pe->setPosition = &setPosition_pe;
-	pe->reset = &reset_pe;
-	pe->toString = &toString_pe;
-	pe->adjust = &adjust_pe;
+	pe->freeExpr = (free_Expr) &freePathExpr;
+	pe->evalBoolean = (eval_Boolean)&evalBoolean_pe;
+	pe->evalNodeSet = (eval_NodeSet)&evalNodeSet_pe;
+	pe->evalNumber  = (eval_Number)&evalNumber_pe;
+	pe->evalString  = (eval_String)&evalString_pe;
+	pe->isNumerical =  (is_Numerical)&isNumerical_pe;
+	pe->isBoolean = (is_Boolean)&isBoolean_pe;
+	pe->isString =  (is_String)&isString_pe;
+	pe->isNodeSet = (is_NodeSet)&isNodeSet_pe;
+	pe->requireContextSize = (require_ContextSize)&requireContextSize_pe;
+	pe->setContextSize = (set_ContextSize)&setContextSize_pe;
+	pe->setPosition = (set_Position)&setPosition_pe;
+	pe->reset = (reset_)&reset_pe;
+	pe->toString = (to_String)&toString_pe;
+	pe->adjust = (adjust_)&adjust_pe;
 	pe->fe = f;
 	pe->lpe= l;
 	pe->evalState = 0;

@@ -25,21 +25,21 @@ numberExpr *createNumberExpr (double d){
 			"numberExpr allocation failed ");
 		return NULL;
 	}
-	n->freeExpr = &freeNumberExpr;
-	n->evalBoolean = &evalBoolean_ne;
-	n->evalNodeSet = &evalNodeSet_ne;
-	n->evalNumber  = &evalNumber_ne;
-	n->evalString  = &evalString_ne;
-	n->isNumerical = &isNumerical_ne;
-	n->isBoolean = &isBoolean_ne;
-	n->isString =  &isString_ne;
-	n->isNodeSet = &isNodeSet_ne;
-	n->requireContextSize = &requireContextSize_ne;
-	n->setContextSize = &setContextSize_ne;
-	n->setPosition = &setPosition_ne;
-	n->reset = &reset_ne;
-	n->toString = &toString_ne;
-	n->adjust = &adjust_ne;
+	n->freeExpr = (free_Expr)&freeNumberExpr;
+	n->evalBoolean = (eval_Boolean)&evalBoolean_ne;
+	n->evalNodeSet = (eval_NodeSet)&evalNodeSet_ne;
+	n->evalNumber  = (eval_Number)&evalNumber_ne;
+	n->evalString  = (eval_String)&evalString_ne;
+	n->isNumerical = (is_Numerical)&isNumerical_ne;
+	n->isBoolean = (is_Boolean)&isBoolean_ne;
+	n->isString =  (is_String)&isString_ne;
+	n->isNodeSet = (is_NodeSet)&isNodeSet_ne;
+	n->requireContextSize = (require_ContextSize)&requireContextSize_ne;
+	n->setContextSize = (set_ContextSize)&setContextSize_ne;
+	n->setPosition = (set_Position)&setPosition_ne;
+	n->reset = (reset_)&reset_ne;
+	n->toString = (to_String)&toString_ne;
+	n->adjust =  (adjust_)&adjust_ne;
 	n->dval= d;
 
 	return n;
