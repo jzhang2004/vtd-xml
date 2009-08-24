@@ -138,9 +138,9 @@ extern void throwException2(enum exception_type et1, char *msg);
 #define isNaN(x) ((x) != (x))
 #endif
 
-//#ifndef min
-//#define min(a,b)  (((a) > (b)) ? (b) : (a)) 
+#ifndef min
+#define min(a,b)  (((a) > (b)) ? (b) : (a)) 
 #define max(a,b) (((a) > (b)) ? (a) : (b))
-//#endif
+#endif
 
 #endif
