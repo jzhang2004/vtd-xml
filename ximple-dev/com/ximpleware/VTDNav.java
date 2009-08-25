@@ -920,15 +920,16 @@ public class VTDNav {
 	     if (d > 0){ // depth > 0 every node except document and root element
 	         int k=getCurrentIndex2()+1;
 	         if (k<this.vtdSize){
-	             int type = this.getTokenType(k);
-	             while(k<this.vtdSize && 
-	                     (type==VTDNav.TOKEN_ATTR_NAME || type==VTDNav.TOKEN_ATTR_NS)){
+	             
+	             while(k<this.vtdSize){
+	                 int type = this.getTokenType(k);
+	                 if (type==VTDNav.TOKEN_ATTR_NAME || type==VTDNav.TOKEN_ATTR_NS)
 	                 if (type == VTDNav.TOKEN_ATTR_NS){    
 	                     fib.append(k);
 	                     //System.out.println(" ns name ==>" + toString(k));
 	                 }
 	                 k+=2;
-	                 type = this.getTokenType(k);
+	                 //type = this.getTokenType(k);
 	             }
 	         }
 	         count = fib.size();
@@ -943,25 +944,28 @@ public class VTDNav {
                     k = this.rootIndex+1;
                 }
                 if (k<this.vtdSize){
-                    int type = this.getTokenType(k);
-                    while(k<this.vtdSize && 
-   	                     (type==VTDNav.TOKEN_ATTR_NAME || type==VTDNav.TOKEN_ATTR_NS)){
-                        boolean unique = true;
-                        if (type == VTDNav.TOKEN_ATTR_NS){
-                            for (int z=0;z<fib.size();z++){
-                                //System.out.println("fib size ==>
-                                // "+fib.size());
-                                //if (fib.size()==4);
-                                if (matchTokens(fib.intAt(z),this,k)){
-                                   unique = false;
-                                   break;
-                                }                                    
-                            }            
-                            if (unique)
-                              fib.append(k);
+                   
+                    while (k < this.vtdSize) {
+                        int type = this.getTokenType(k);
+                        if (type == VTDNav.TOKEN_ATTR_NAME
+                                || type == VTDNav.TOKEN_ATTR_NS) {
+                            boolean unique = true;
+                            if (type == VTDNav.TOKEN_ATTR_NS) {
+                                for (int z = 0; z < fib.size(); z++) {
+                                    //System.out.println("fib size ==>
+                                    // "+fib.size());
+                                    //if (fib.size()==4);
+                                    if (matchTokens(fib.intAt(z), this, k)) {
+                                        unique = false;
+                                        break;
+                                    }
+                                }
+                                if (unique)
+                                    fib.append(k);
+                            }
                         }
-                        k+=2;
-                        type = this.getTokenType(k);
+                        k += 2;
+                       // type = this.getTokenType(k);
                     }
                 }
                 d--;
