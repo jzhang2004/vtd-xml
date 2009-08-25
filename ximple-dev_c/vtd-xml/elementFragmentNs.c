@@ -186,12 +186,14 @@ UByte* toFragmentBytes(ElementFragmentNs *ef){
 /* Write ns compensated fragments (bytes in original encoding format) to outputstream */
 void writeFragmentToFile(ElementFragmentNs *ef, FILE *f){
 	int os = (int)ef->l;
-	int len = (int)(ef->l>>32);
+	size_t len = (size_t)(ef->l>>32);
 	int os1 = 0;
 	encoding_t enc;
-	int temp,i;
+	size_t temp;
+	int i;
 	size_t temp2;
-	int tos =0,tlen=0;
+	int tos =0;
+	int tlen=0;
 	UByte *xml = ef->vn->XMLDoc;
 	if (ef->stLen==0){
 		//System.arraycopy(xml,os,ba,0,len);
@@ -207,9 +209,9 @@ void writeFragmentToFile(ElementFragmentNs *ef, FILE *f){
 
 	switch(enc){
 			case FORMAT_UTF_16BE: 
-			case FORMAT_UTF_16LE: temp= (ef->stLen+1)<<1; break;
+			case FORMAT_UTF_16LE: temp= (size_t)((ef->stLen+1)<<1); break;
 			default:
-				temp = ef->stLen+1;
+				temp = (size_t)(ef->stLen+1);
 	}            
 	//System.arraycopy(xml,os,ba,0,temp);
 	//memcpy(ba,xml,sizeof(UByte),temp);

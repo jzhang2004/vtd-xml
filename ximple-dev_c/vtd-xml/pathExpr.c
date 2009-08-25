@@ -240,7 +240,7 @@ void toString_pe(pathExpr *pe, UCSChar* string){
 
 int adjust_pe(pathExpr *pe, int n){
 	int i=pe->fe->adjust(pe->fe,n);
-	pe->lpe->adjust(pe->lpe,n);
+	pe->lpe->adjust((expr *)(pe->lpe),n);
 	if (pe->ih!=NULL && i==pe->ih->e)
 	{}else{
 		freeIntHash(pe->ih);

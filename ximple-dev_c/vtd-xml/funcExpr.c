@@ -843,28 +843,49 @@ static UCSChar* subString(funcExpr *fne, VTDNav *vn){
 	if (argCount(fne)==2){
 		double d1;
 		int temp;
+		
 		str = fne->al->e->evalString(fne->al->e,vn);
 		len = wcslen(str);
 		d1 = fne->al->next->e->evalNumber(fne->al->next->e,vn);
+		
 		if (d1!=d1 || d1>len)
 			return createEmptyString();
-		temp = max((int)d1-1,0);
-		wcsncpy(str,str+temp,len-temp);
-		*(str+len-temp) = 0;
+		
+		d1--; //change it to zero based index
+		
+		temp = max((int)d1,0);
+
+		len -= temp; //calculate the length to copy
+		wcsncpy(str,str+temp,len);
+		*(str+len) = 0;
+		
 		return str;
+
 	} else if (argCount(fne)==3){
 		double d1, d2;
-		int temp1, temp2;
+		int temp1, endIdx;
+		size_t cpLen;
+
 		str = fne->al->e->evalString(fne->al->e,vn);
 		len = wcslen(str);
+
 		d1 = floor(fne->al->next->e->evalNumber(fne->al->next->e,vn)+0.5);
 		d2 = floor(fne->al->next->next->e->evalNumber(fne->al->next->next->e,vn)+0.5);
+
 		if ((d1+d2)!=(d1+d2) || d1>len)
 			return createEmptyString();
-		temp1 = max((int)d1-1,0);
-		temp2 = min(len,(int)d1-1+(int)d2);
-		wcsncpy(str,str+temp1,temp2-temp1);
-		*(str+temp2-temp1)=0;
+
+		d1--;//change it to zero based index
+		temp1 = max((int)d1,0);
+
+		endIdx = (int)d1 + (int)d2;
+		cpLen = min((int)len, endIdx);
+
+		cpLen -= temp1; //calculate copy length
+
+		wcsncpy(str,str+temp1,cpLen);
+		*(str+cpLen)=0;
+
 		return str;
 	}
 	throwException2(invalid_argument,
@@ -939,15 +960,21 @@ static UCSChar* translate(funcExpr *fne, VTDNav *vn){
 		
 		//create a temp string to hold used char
 		temp = (UCSChar*) malloc(sizeof(UCSChar) * (lenIdxStr + 1));
+		if (temp == NULL)
+		{
+			throwException2(out_of_mem,
+			"String allocation failed in translate");
+		}
+
 		*temp = L'\0';
 
-		for (idx = 0; idx < lenIdxStr; idx++)
+		for (idx = 0; idx < (int)lenIdxStr; idx++)
 		{
 
 			UCSChar idxChar = idxStr[idx];
 			if(wcschr(temp,idxChar) == NULL) //this char has not been used
 			{			
-				if(idx < lenRepStr) //replace
+				if(idx < (int)lenRepStr) //replace
 				{
 					UCSChar repChar = repStr[idx];
 					int i;
