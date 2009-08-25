@@ -546,17 +546,19 @@ namespace com.ximpleware
                 int k = getCurrentIndex2() + 1;
                 if (k < this.vtdSize)
                 {
-                    int type = this.getTokenType(k);
-                    while (k < this.vtdSize &&
-                            (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS))
+                    while (k < this.vtdSize)
                     {
-                        if (type == VTDNav.TOKEN_ATTR_NS)
+                        int type = this.getTokenType(k);
+                        if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
                         {
-                            fib.append(k);
-                            //System.out.println(" ns name ==>" + toString(k));
+                            if (type == VTDNav.TOKEN_ATTR_NS)
+                            {
+                                fib.append(k);
+                                //System.out.println(" ns name ==>" + toString(k));
+                            }
                         }
                         k += 2;
-                        type = this.getTokenType(k);
+                        //type = this.getTokenType(k);
                     }
                 }
                 count = fib.size();
@@ -575,30 +577,31 @@ namespace com.ximpleware
                         k = this.rootIndex + 1;
                     }
                     if (k < this.vtdSize)
-                    {
-                        int type = this.getTokenType(k);
-                        while (k < this.vtdSize &&
-                             (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS))
-                        {
-                            bool unique = true;
-                            if (type == VTDNav.TOKEN_ATTR_NS)
+                    {                        
+                        while (k < this.vtdSize){
+                            int type = this.getTokenType(k);
+                            if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
                             {
-                                for (int z = 0; z < fib.size(); z++)
+                                bool unique = true;
+                                if (type == VTDNav.TOKEN_ATTR_NS)
                                 {
-                                    //System.out.println("fib size ==> "+fib.size());
-                                    //if (fib.size() == 4) ;
-                                    if (matchTokens(fib.intAt(z), this, k))
+                                    for (int z = 0; z < fib.size(); z++)
                                     {
-                                        unique = false;
-                                        break;
-                                    }
+                                        //System.out.println("fib size ==> "+fib.size());
+                                        //if (fib.size() == 4) ;
+                                        if (matchTokens(fib.intAt(z), this, k))
+                                        {
+                                            unique = false;
+                                            break;
+                                        }
 
+                                    }
+                                    if (unique)
+                                        fib.append(k);
                                 }
-                                if (unique)
-                                    fib.append(k);
                             }
                             k += 2;
-                            type = this.getTokenType(k);
+                            //type = this.getTokenType(k);
                         }
                     }
                     d--;
@@ -4591,8 +4594,8 @@ namespace com.ximpleware
         {
             return new VTDNav(rootIndex,
                 encoding,
-                ns, 
-                nestingLevel-1,
+                ns,
+                nestingLevel - 1,
                 XMLDoc,
                 vtdBuffer,
                 l1Buffer,
@@ -4608,26 +4611,26 @@ namespace com.ximpleware
             System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
             writeIndex(fos);
             fos.Close();
-            
+
         }
 
         public void writeSeparateIndex(System.IO.Stream os)
         {
             IndexHandler.writeSeparateIndex((byte)2,
-  	            this.encoding,
-  	            this.ns,
-  	            true,
-  	            this.nestingLevel-1,
- 	            3,
-  	            this.rootIndex,
-  	            // this.XMLDoc.getBytes(),
-  	            this.docOffset,
-  	            this.docLen,
-  	            (FastLongBuffer)this.vtdBuffer,
-  	            (FastLongBuffer)this.l1Buffer,
-  	            (FastLongBuffer)this.l2Buffer,
-  	            (FastIntBuffer)this.l3Buffer,
-  	            os);
+                this.encoding,
+                this.ns,
+                true,
+                this.nestingLevel - 1,
+                3,
+                this.rootIndex,
+                // this.XMLDoc.getBytes(),
+                this.docOffset,
+                this.docLen,
+                (FastLongBuffer)this.vtdBuffer,
+                (FastLongBuffer)this.l1Buffer,
+                (FastLongBuffer)this.l2Buffer,
+                (FastIntBuffer)this.l3Buffer,
+                os);
         }
     }
 }

@@ -3470,6 +3470,7 @@ ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
 		FastIntBuffer *fib = NULL;
 		int i = 0;	    
 		int count=0;
+		int type;
 
 		int* ia = vn->context;
 		int d =ia[0]; // -1 for document node, 0 for root element;
@@ -3485,17 +3486,19 @@ ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
 
 		if (d > 0){ // depth > 0 every node except document and root element
 			int k=getCurrentIndex2(vn)+1;
-			if (k<vn->vtdSize){
-				int type = getTokenType(vn,k);
-				while(k<vn->vtdSize && 
-					(type==TOKEN_ATTR_NAME || type==TOKEN_ATTR_NS)){
+			if (k<vn->vtdSize){				
+				while(k<vn->vtdSize) {
+					type = getTokenType(vn,k);
+					if(type==TOKEN_ATTR_NAME || type==TOKEN_ATTR_NS){
 						if (type == TOKEN_ATTR_NS){    
 							appendInt(fib,k);
 							//System.out.println(" ns name ==>" + toString(k));
 						}
-						k+=2;
-						type = getTokenType(vn,k);
+					}
+					k+=2;					
+					//type = getTokenType(vn,k);
 				}
+
 			}
 			count = fib->size;
 			d--; 
@@ -3509,9 +3512,10 @@ ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
 					k = vn->rootIndex+1;
 				}
 				if (k<vn->vtdSize){
-					int type = getTokenType(vn,k);
-					while(k<vn->vtdSize && 
-						(type==TOKEN_ATTR_NAME || type==TOKEN_ATTR_NS)){
+					
+					while(k<vn->vtdSize){ 
+						type = getTokenType(vn,k);
+						if (type==TOKEN_ATTR_NAME || type==TOKEN_ATTR_NS){
 							Boolean unique = TRUE;
 							if (type == TOKEN_ATTR_NS){
 								int z = 0;
@@ -3527,8 +3531,9 @@ ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
 								if (unique)
 									appendInt(fib,k);
 							}
+						}
 							k+=2;
-							type = getTokenType(vn,k);
+							//type = getTokenType(vn,k);
 					}
 				}
 				d--;
