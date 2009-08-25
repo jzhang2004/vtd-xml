@@ -924,7 +924,7 @@ static UCSChar* translate(funcExpr *fne, VTDNav *vn){
 	{
 		UCSChar* repStr;
 		UCSChar* temp;
-		int lenRepStr, lenIdxStr;
+		size_t lenRepStr, lenIdxStr;
 		int idx;
 
 		UCSChar* str = fne->al->e->evalString(fne->al->e,vn);
@@ -1017,7 +1017,7 @@ static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 }
 
 static UCSChar* normalize(UCSChar *s){
-	 int os=0,i; size_t len;
+	 int os=0; size_t i,len;
 	 len = wcslen(s);
 	 // strip off leading ws
 	 for (i = 0; i < len; i++)
