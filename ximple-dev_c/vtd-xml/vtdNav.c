@@ -3664,7 +3664,7 @@ int getRawStringLength(VTDNav *vn, int index){
 /* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
 int getOffsetAfterHead(VTDNav *vn){
 	    int i = getCurrentIndex(vn),j,offset;
-		encoding_t enc;
+		//encoding_t enc;
  	    if (getTokenType(vn,i)!= TOKEN_STARTING_TAG){
 	        return -1;
  	    }
