@@ -139,7 +139,11 @@ extern void throwException2(enum exception_type et1, char *msg);
 #endif
 
 #ifndef min
+
+#ifndef WIN32
 #define min(a,b)  (((a) > (b)) ? (b) : (a)) 
+#endif
+
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #endif
 
