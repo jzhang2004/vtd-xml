@@ -959,7 +959,7 @@ forward:;
 									lpe->currentStep = getPrevStep(lpe->currentStep);
 			                    }
 			                } else {
-								setAtTerminal(lpe->currentStep, TRUE);
+								setAtTerminal(vn, TRUE);
 			                    if (getNextStep(lpe->currentStep) != NULL) {
 			                        vn->LN = result;
 			                        lpe->state =  XPATH_EVAL_FORWARD;
