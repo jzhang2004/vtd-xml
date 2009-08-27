@@ -145,7 +145,7 @@ public class VTDGenHuge {
 	// max Qname length
 	public final static int MAX_QNAME_LENGTH = (1<<11) -1;
 	// max Token length
-	public final static int MAX_TOKEN_LENGTH = (1<<18) -1;
+	public final static int MAX_TOKEN_LENGTH = (1<<17) -1;
 
 
 	
@@ -3226,12 +3226,12 @@ public class VTDGenHuge {
 	 * @param depth int
 	 */
 	private void writeVTD(long offset, long length, int token_type, int depth) {
-	    /*System.out.print(" type "+token_type);
-	    System.out.print(" length "+ Long.toHexString(length));
+	    System.out.print(" type "+token_type);
+	    System.out.print(" length "+ Long.toHexString(length)+" length "+length);
 	    System.out.print(" prefix length " + (length>>10));
 	    System.out.print(" qn length " + (length & 0x3ff));
 	    System.out.print(" offset "+offset);
-	    System.out.println(" depth "+depth);*/
+	    System.out.println(" depth "+depth);
 			switch (token_type) {
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
