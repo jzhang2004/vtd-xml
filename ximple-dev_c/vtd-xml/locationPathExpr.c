@@ -823,7 +823,7 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 						        ti = (TextIter*) lpe->currentStep->o;
 						    } else {
 						        ti = createTextIter();
-						        lpe->currentStep->o = ti;
+						        lpe->currentStep->o = (struct autoPilot *)ti;
 						    }
 						    touch(ti,vn);
 						    lpe->state = XPATH_EVAL_END;
@@ -939,7 +939,7 @@ forward:;
 						        ti = (TextIter*) lpe->currentStep->o;
 						    } else {
 						        ti = createTextIter();
-						        lpe->currentStep->o = ti;
+						        lpe->currentStep->o = (struct autoPilot *)ti;
 						    }
 						    touch(ti,vn);
 						    //result = ti.getNext();
@@ -1807,7 +1807,7 @@ void freeStep(Step *s){
 		freePredicate(tmp);
 	}
 	if (s->nt->testType == NT_TEXT){
-		freeTextIter(s->o);
+		freeTextIter((TextIter *)s->o);
 	}else
 		freeAutoPilot(s->o);
 	freeNodeTest(s->nt);

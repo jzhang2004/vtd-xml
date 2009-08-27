@@ -426,7 +426,7 @@ Boolean _readIndex(FILE *f, VTDGen *vg){
 					throwException2(index_read_exception,"fread error occurred");
 					return FALSE;
 				}
-				appendLong(vg->l3Buffer,(int)(l >> 32));
+				appendLong((FastLongBuffer *)vg->l3Buffer,(int)(l >> 32));
 				l3Size--;
 			}
 		}
@@ -691,7 +691,7 @@ Boolean _readIndex2(UByte *ba, int len, VTDGen *vg){
 				}
 				l = ((Long*)(ba+count))[0];
 				count+=8;
-				appendLong(vg->l3Buffer,(int)(l >> 32));
+				appendLong((FastLongBuffer *)vg->l3Buffer,(int)(l >> 32));
 				l3Size--;
 			}
 		}
@@ -998,7 +998,7 @@ Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *f, VTDGen *vg){
 	int endian;
 	Byte ba[4];
 	int LCLevels;
-	Long l,l2;
+	Long l;
 	int size;
 	Byte *XMLDoc;
 	Boolean littleEndian = isLittleEndian();
@@ -1213,7 +1213,7 @@ Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *f, VTDGen *vg){
 					throwException2(index_read_exception,"fread error occurred");
 					return FALSE;
 				}
-				appendLong(vg->l3Buffer,(int)(l >> 32));
+				appendLong((FastLongBuffer *)vg->l3Buffer,(int)(l >> 32));
 				l3Size--;
 			}
 		}
