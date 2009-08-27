@@ -17,6 +17,8 @@
  */
 #include "transcoder.h"
 #include <stdio.h>
+#include <stdlib.h>
+
 static inline void my_fputc(int ch, FILE *f){
 	int i = fputc(ch, f);
 	if (i==EOF){
@@ -263,7 +265,10 @@ Long ISO8859_1_Coder_decode(UByte *input,int offset){
 }
 int ISO8859_1_Coder_getLen(int ch){
 	if (ch>255)
+	{
 		throwException2(transcode_exception,"Invalid UCS char for ISO-8859-1 format");
+		return -1;
+	}
 	else
 		return 1;
 }
@@ -287,6 +292,7 @@ Long Transcoder_decode(UByte* input, int offset, encoding_t input_encoding){
             return UTF16BE_Coder_decode(input, offset);
         default:
             throwException2(transcode_exception,"Unsupported encoding");
+			return -1;
         }
 }
 
@@ -304,6 +310,7 @@ int  Transcoder_encode(UByte* output, int offset, int ch, encoding_t output_enco
 			return UTF16BE_Coder_encode(output, offset, ch);
 		default:
 			throwException2(transcode_exception, "Unsupported encoding");
+			return -1;
 	}
 }
 
@@ -326,6 +333,7 @@ void Transcoder_encodeAndWrite(FILE* f, int ch, encoding_t output_encoding){
         	 return;
         default:
             throwException2(transcode_exception, "Unsupported encoding");
+			return;
         }
 }
 
@@ -343,6 +351,7 @@ int  Transcoder_getLen(int ch, encoding_t output_encoding){
 			return UTF16BE_Coder_getLen(ch);
 		default:
 			throwException2(transcode_exception,"Unsupported encoding");
+			return -1;
 	}
 }
 
