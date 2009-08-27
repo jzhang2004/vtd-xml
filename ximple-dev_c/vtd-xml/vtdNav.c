@@ -3566,7 +3566,7 @@ void dumpXML(VTDNav *vn, char *fileName){
 /* dump XML text into a given file descriptor */
 void dumpXML2(VTDNav *vn, FILE *f){	
 	size_t i = fwrite(vn->XMLDoc+vn->docOffset,1,vn->docLen,f);
-	if (i<vn->docLen)
+	if (i < (size_t) vn->docLen)
 		throwException2(io_exception, "can't complete the write");	
 }
 
@@ -3701,15 +3701,15 @@ int getOffsetAfterHead(VTDNav *vn){
 /* Write the VTDs and LCs into an Separate index file*/
 void writeSeparateIndex_VTDNav(VTDNav *vn, char *VTDIndexFile){
 	FILE *f = NULL;
-	Boolean b = FALSE;
+	//Boolean b = FALSE;
 	f = fopen(VTDIndexFile,"wb");
 	
 	if (f==NULL){
 		throwException2(invalid_argument,"fileName not valid");
-		return FALSE;
+		//return FALSE;
 	}
 
-	b = _writeSeparateIndex( (Byte)2, 
+	_writeSeparateIndex( (Byte)2, 
                 vn->encoding, 
                 vn->ns, 
                 TRUE, 

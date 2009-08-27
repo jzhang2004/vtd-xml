@@ -620,8 +620,8 @@ void insertAfterElement3(XMLModifier *xm, UByte* ba, int contentOffset, int cont
 void insertBeforeElement3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen){
 	int startTagIndex = getCurrentIndex(xm->md);
 	int type =  getTokenType(xm->md, startTagIndex);
-	int offset, len;
-	Long l;
+	int offset;
+	//Long l;
 	if (type!=TOKEN_STARTING_TAG){
 		throwException2(modify_exception,
 			"Token type is not a starting tag");
@@ -646,8 +646,8 @@ Insert an ns-compensated element fragment before the cursor element
 void insertBeforeElement4(XMLModifier *xm, ElementFragmentNs *ef){
 	int startTagIndex = getCurrentIndex(xm->md);
 	int type =  getTokenType(xm->md, startTagIndex);
-	int offset, len;
-	Long l;
+	int offset;
+	//Long l;
 	if (type!=TOKEN_STARTING_TAG){
 		throwException2(modify_exception,
 			"Token type is not a starting tag");
@@ -895,7 +895,6 @@ void output2(XMLModifier *xm, char *fileName){
 	
 	if (f==NULL){
 		throwException2(invalid_argument,"fileName not valid");
-		return FALSE;
 	}
 	output(xm,f);
 	fclose(f);
@@ -986,7 +985,6 @@ void resetXMLModifier(XMLModifier *xm){
 	
 */
 void updateElementName(XMLModifier *xm, UCSChar* newElementName){
-	exception e;
 	int i = getCurrentIndex(xm->md);
 	int type = getTokenType(xm->md,i);
 	int len,offset,temp;

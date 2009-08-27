@@ -307,7 +307,7 @@ void    toString_une(unionExpr *e, UCSChar* string){
 	   else{
             e->fe->toString(e->fe,string);
 			wprintf(L" | ");
-			e->next->toString(e->next, string);
+			e->next->toString((expr *)e->next, string);
 	   }
 }
 

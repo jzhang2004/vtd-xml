@@ -1398,7 +1398,7 @@ static int getPrevOffset(VTDGen *vg){
 				do {
 					prevOffset--;
 				} while (vg->XMLDoc[prevOffset] >= 128 && 
-					(vg->XMLDoc[prevOffset]& 0xc0 == 0x80));
+					((vg->XMLDoc[prevOffset] & 0xc0) == 0x80));
 				return prevOffset;
 			case FORMAT_ASCII :
 			case FORMAT_ISO_8859_1 :
@@ -3514,15 +3514,15 @@ Long getIndexSize(VTDGen *vg){
 /* offset shift in xml should be zero*/
 void writeSeparateIndex(VTDGen *vg, char *VTDIndexFile){
 	FILE *f = NULL;
-	Boolean b = FALSE;
+	//Boolean b = FALSE;
 	f = fopen(VTDIndexFile,"wb");
 	
 	if (f==NULL){
 		throwException2(invalid_argument,"fileName not valid");
-		return FALSE;
+		//return FALSE;
 	}
 
-	b = _writeSeparateIndex( (Byte)2, 
+	_writeSeparateIndex( (Byte)2, 
                 vg->encoding, 
                 vg->ns, 
                 TRUE, 
@@ -3539,7 +3539,7 @@ void writeSeparateIndex(VTDGen *vg, char *VTDIndexFile){
                 f);
 	
 	fclose(f);
-	return b;
+	//return b;
 }
 
 /* Load the separate VTD index and XmL file.*/
@@ -3556,7 +3556,7 @@ VTDNav* loadSeparateIndex(VTDGen *vg, char *XMLFile, char *VTDIndexFile){
 
 	if (xf==NULL||vf==NULL){
 		throwException2(invalid_argument,"fileName not valid");
-		return FALSE;
+		return NULL;
 	}
 	// clear internal state of vg
 	clear(vg);
