@@ -398,7 +398,7 @@ void Transcoder_transcodeAndFill(UByte* input, UByte* output,int offset, int len
 	}
 }
 
-void Transcoder_transcodeAndFill2(int initOutPosition, UByte* input, UByte* output, int offset, int length, 
+int Transcoder_transcodeAndFill2(int initOutPosition, UByte* input, UByte* output, int offset, int length, 
 								  encoding_t input_encoding, encoding_t output_encoding){
 	int len = 0;
 	int k = offset;
@@ -409,6 +409,7 @@ void Transcoder_transcodeAndFill2(int initOutPosition, UByte* input, UByte* outp
 		c = (int) l;
 		i = Transcoder_encode(output, i, c, output_encoding);
 	}
+	return i;
 }
 
 void Transcoder_transcodeAndWrite(UByte* input, FILE* f,int offset, int length, encoding_t input_encoding, encoding_t output_encoding){
