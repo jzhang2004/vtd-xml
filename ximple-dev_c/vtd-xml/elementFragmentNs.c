@@ -194,7 +194,7 @@ void writeFragmentToFile(ElementFragmentNs *ef, FILE *f){
 	int i;
 	size_t temp2;
 	int tos =0;
-	int tlen=0;
+	size_t tlen=0;
 	UByte *xml = ef->vn->XMLDoc;
 	if (ef->stLen==0){
 		//System.arraycopy(xml,os,ba,0,len);
