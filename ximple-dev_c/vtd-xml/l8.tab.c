@@ -1178,7 +1178,7 @@ yyreduce:
 #line 96 "l8.y"
     {
 								Try {
-										yyval.expression = createBinaryExpr(yyvsp[-2].expression, OP_OR,yyvsp[0].expression);
+										yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression, OP_OR,yyvsp[0].expression);
 										addObj(yyval.expression);
 									}
 								Catch(e){
@@ -1198,7 +1198,7 @@ yyreduce:
 #line 110 "l8.y"
     {
 	 							Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_AND,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_AND,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1217,7 +1217,7 @@ yyreduce:
 #line 123 "l8.y"
     {
 								Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_EQ,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_EQ,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1231,7 +1231,7 @@ yyreduce:
 #line 133 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_NE,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_NE,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1250,7 +1250,7 @@ yyreduce:
 #line 146 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_LT,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_LT,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1264,7 +1264,7 @@ yyreduce:
 #line 156 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_GT,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_GT,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1278,7 +1278,7 @@ yyreduce:
 #line 166 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_LE,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_LE,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1292,7 +1292,7 @@ yyreduce:
 #line 176 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_GE,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_GE,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1311,7 +1311,7 @@ yyreduce:
 #line 189 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_ADD,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_ADD,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1325,7 +1325,7 @@ yyreduce:
 #line 199 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_SUB,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_SUB,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1344,7 +1344,7 @@ yyreduce:
 #line 212 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_MULT,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_MULT,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1358,7 +1358,7 @@ yyreduce:
 #line 222 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_DIV,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_DIV,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1372,7 +1372,7 @@ yyreduce:
 #line 232 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createBinaryExpr(yyvsp[-2].expression,OP_MOD,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_MOD,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1384,14 +1384,14 @@ yyreduce:
 
   case 22:
 #line 244 "l8.y"
-    { yyval.expression = yyvsp[0].une;;}
+    { yyval.expression = (expr *)yyvsp[0].une;;}
     break;
 
   case 23:
 #line 245 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = createUnaryExpr(OP_NE,yyvsp[0].expression);
+	 									yyval.expression = (expr *)createUnaryExpr(OP_NE,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1405,7 +1405,7 @@ yyreduce:
 #line 258 "l8.y"
     {
 									Try {
-										yyval.une = createUnionExpr(yyvsp[0].pe);
+										yyval.une = createUnionExpr((expr *) yyvsp[0].pe);
 										addObj(yyval.une);
 									}
 									Catch(e) {
@@ -1419,7 +1419,7 @@ yyreduce:
 #line 268 "l8.y"
     {
    										Try {
-   										   yyval.une = createUnionExpr(yyvsp[-2].pe);
+   										   yyval.une = createUnionExpr((expr *)yyvsp[-2].pe);
    										   addObj(yyval.une);
    										   yyval.une->next = yyvsp[0].une;
    										}
@@ -1435,12 +1435,12 @@ yyreduce:
 
   case 26:
 #line 285 "l8.y"
-    { yyval.pe = yyvsp[0].lpe;  ;}
+    { yyval.pe = (pathExpr *)yyvsp[0].lpe;  ;}
     break;
 
   case 27:
 #line 286 "l8.y"
-    { yyval.pe = yyvsp[0].expression;;}
+    { yyval.pe = (pathExpr *)yyvsp[0].expression;;}
     break;
 
   case 28:
@@ -1497,7 +1497,7 @@ yyreduce:
   case 31:
 #line 330 "l8.y"
     {Try {
-  										yyval.expression = createFilterExpr(yyvsp[-1].expression,yyvsp[0].p);
+  										yyval.expression = (expr *)createFilterExpr(yyvsp[-1].expression,yyvsp[0].p);
   										addObj(yyval.expression);
   										}
   									Catch(e){
@@ -1520,7 +1520,7 @@ yyreduce:
   case 34:
 #line 345 "l8.y"
     { Try {
-							yyval.expression = createLiteralExpr(yyvsp[0].literal);
+							yyval.expression = (expr *)createLiteralExpr(yyvsp[0].literal);
 							addObj(yyval.expression);
 							addObj(yyvsp[0].literal);
 						} Catch (e) {
@@ -1533,7 +1533,7 @@ yyreduce:
   case 35:
 #line 354 "l8.y"
     { Try {
-						    yyval.expression = createNumberExpr(yyvsp[0].number);
+						    yyval.expression = (expr *)createNumberExpr(yyvsp[0].number);
 						    addObj(yyval.expression);
 					   } Catch (e) {
 							//freeAllObj();
@@ -1559,7 +1559,7 @@ yyreduce:
   case 38:
 #line 371 "l8.y"
     { Try {
-															yyval.expression = createFuncExpr(yyvsp[-3].fname, yyvsp[-1].a);
+															yyval.expression = (expr *)createFuncExpr(yyvsp[-3].fname, yyvsp[-1].a);
 															addObj(yyval.expression);
 													   }
 													   Catch(e){
