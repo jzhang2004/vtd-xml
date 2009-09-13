@@ -180,7 +180,7 @@ public class ElementFragment {
     public final void writeToOutputStream(OutputStream ost) throws IOException{
         int os = (int)l;
         int len = (int)(l>>32);
-        int os1 = 0;
+        //int os1 = 0;
         byte[] xml = vn.getXML().getBytes();
         if (stLen==0){
             //System.arraycopy(xml,os,ba,0,len);

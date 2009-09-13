@@ -342,7 +342,7 @@ public class ElementFragmentNs {
             }*/        
         if (vn.encoding == dest_encoding)
             return getSize();
-        int src_encoding= vn.encoding;
+        //int src_encoding= vn.encoding;
         byte[] ba = vn.getXML().getBytes();
         int len = Transcoder.getOutLength(ba, (int)l, (int)(l>>32), vn.encoding, dest_encoding );
         
@@ -379,7 +379,7 @@ public class ElementFragmentNs {
     public final void writeToOutputStream(OutputStream ost) throws IOException{
         int os = (int)l;
         int len = (int)(l>>32);
-        int os1 = 0;
+        //int os1 = 0;
         byte[] xml = vn.getXML().getBytes();
         if (stLen==0){
             //System.arraycopy(xml,os,ba,0,len);
@@ -496,7 +496,7 @@ public class ElementFragmentNs {
         }
         int os = (int)l;
         int len = (int)(l>>32);
-        int os1 = 0;
+        //int os1 = 0;
         byte[] xml = vn.getXML().getBytes();
         if (stLen==0){
             //System.arraycopy(xml,os,ba,0,len);
