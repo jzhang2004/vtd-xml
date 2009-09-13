@@ -401,12 +401,12 @@ public class XMLModifier {
         int offset = md.getTokenOffset(index);
         
         int type = md.getTokenType(index);
-        int len =
+        /*int len =
 			(type == VTDNav.TOKEN_STARTING_TAG
 				|| type == VTDNav.TOKEN_ATTR_NAME
 				|| type == VTDNav.TOKEN_ATTR_NS)
 				? md.getTokenLength(index) & 0xffff
-				: md.getTokenLength(index);
+				: md.getTokenLength(index);*/
         // one insert
         switch(type){
         	case VTDNav.TOKEN_CDATA_VAL:
@@ -454,12 +454,12 @@ public class XMLModifier {
          int offset = md.getTokenOffset(index);
          
          int type = md.getTokenType(index);
-         int len =
+         /*int len =
  			(type == VTDNav.TOKEN_STARTING_TAG
  				|| type == VTDNav.TOKEN_ATTR_NAME
  				|| type == VTDNav.TOKEN_ATTR_NS)
  				? md.getTokenLength(index) & 0xffff
- 				: md.getTokenLength(index);
+ 				: md.getTokenLength(index);*/
          // one insert
          byte[] bo = Transcoder.transcode(newContentBytes,0,
                  newContentBytes.length,src_encoding,encoding);
@@ -505,12 +505,12 @@ public class XMLModifier {
     int offset = md.getTokenOffset(index);
     //int len = md.getTokenLength(index);
     int type = md.getTokenType(index);
-    int len =
+    /*int len =
 		(type == VTDNav.TOKEN_STARTING_TAG
 			|| type == VTDNav.TOKEN_ATTR_NAME
 			|| type == VTDNav.TOKEN_ATTR_NS)
 			? md.getTokenLength(index) & 0xffff
-			: md.getTokenLength(index);
+			: md.getTokenLength(index);*/
     // one insert
     switch(type){
     	case VTDNav.TOKEN_CDATA_VAL:
@@ -562,10 +562,10 @@ public class XMLModifier {
         int offset = md.getTokenOffset(index);
         //int len = md.getTokenLength(index);
         int type = md.getTokenType(index);
-        int len = (type == VTDNav.TOKEN_STARTING_TAG
+        /*int len = (type == VTDNav.TOKEN_STARTING_TAG
                 || type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS) ? md
                 .getTokenLength(index) & 0xffff
-                : md.getTokenLength(index);
+                : md.getTokenLength(index);*/
         
         // one insert
         byte[] bo = Transcoder.transcode(newContentBytes,contentOffset,
@@ -636,12 +636,12 @@ public class XMLModifier {
         int offset = md.getTokenOffset(index);
         //int len = md.getTokenLength(index);
         int type = md.getTokenType(index);
-        int len =
+        /*int len =
 			(type == VTDNav.TOKEN_STARTING_TAG
 				|| type == VTDNav.TOKEN_ATTR_NAME
 				|| type == VTDNav.TOKEN_ATTR_NS)
 				? md.getTokenLength(index) & 0xffff
-				: md.getTokenLength(index);
+				: md.getTokenLength(index);*/
         // one insert
         switch(type){
         	case VTDNav.TOKEN_CDATA_VAL:
@@ -1645,7 +1645,7 @@ public class XMLModifier {
         if (type!=VTDNav.TOKEN_STARTING_TAG){
             throw new ModifyException("You can only update an element name");
         }
-        int offset = md.getTokenOffset(i);
+        //int offset = md.getTokenOffset(i);
         int len = md.getTokenLength(i)& 0xffff;
         updateToken(i,newElementName);
         long l = md.getElementFragment();

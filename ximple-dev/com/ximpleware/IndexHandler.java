@@ -286,7 +286,7 @@ class IndexHandler {
             adj = OFFSET_ADJUSTMENT>>1;
         }
         int intLongSwitch;
-        int ns;
+        //int ns;
         int endian;
         // third byte
         b= bb.get();
@@ -432,7 +432,7 @@ class IndexHandler {
         // second byte
         vg.encoding = dis.readByte();
         int intLongSwitch;
-        int ns;
+        //int ns;
         int endian;
         // third byte
         b= dis.readByte();
@@ -581,7 +581,7 @@ class IndexHandler {
         // second byte
         vg.encoding = dis.readByte();
         int intLongSwitch;
-        int ns;
+        //int ns;
         int endian;
         // third byte
         b= dis.readByte();
@@ -627,8 +627,8 @@ class IndexHandler {
         
         vg.setDoc(XMLDoc);
         
-        long l1= dis.readLong();
-        l1= dis.readLong();
+        dis.readLong();
+        dis.readLong();
         if (endian ==1){
             // read vtd records
             int vtdSize = (int)dis.readLong();
