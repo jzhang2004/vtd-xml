@@ -85,7 +85,7 @@ public class UnionExpr extends Expr {
         if (e.isNodeSet()== false)
             return e.evalNumber(vn);
         
-        double d;
+        //double d;
         int a = -1;
         vn.push2();
         int size = vn.contextStack2.size;
@@ -245,8 +245,6 @@ public class UnionExpr extends Expr {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        // TODO Auto-generated method stub
-
         if (this.next == null)
             return this.e.toString();
         else
@@ -260,7 +258,6 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#isNumerical()
      */
     public boolean isNumerical() {
-        // TODO Auto-generated method stub
         return e.isNumerical();
     }
 
@@ -270,7 +267,6 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#isNodeSet()
      */
     public boolean isNodeSet() {
-        // TODO Auto-generated method stub
         return e.isNodeSet();
     }
 
@@ -280,7 +276,6 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#isString()
      */
     public boolean isString() {
-        // TODO Auto-generated method stub
         return e.isString();
     }
 
@@ -290,7 +285,6 @@ public class UnionExpr extends Expr {
      * @see com.ximpleware.xpath.Expr#isBoolean()
      */
     public boolean isBoolean() {
-        // TODO Auto-generated method stub
         return e.isBoolean();
     }
 

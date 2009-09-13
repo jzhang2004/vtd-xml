@@ -344,7 +344,7 @@ public class FuncExpr extends Expr{
             double d1 = Math.floor(argumentList.next.e.evalNumber(vn) + 0.5d);
             double d2 = Math
                     .floor(argumentList.next.next.e.evalNumber(vn) + 0.5d);
-            int i1 = Math.max(0, (int) d1 - 1);
+            //int i1 = Math.max(0, (int) d1 - 1);
             if ((d1 + d2) != (d1 + d2) || d1 > s.length())
                 return "";
             return s.substring(Math.max(0, (int) d1 - 1), Math.min(s.length(),
@@ -537,7 +537,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	public String evalString(VTDNav vn) throws UnsupportedException{
-	    int d=0;
+	   // int d=0;
 	  switch(opCode){
 	  		case FuncName.CONCAT:
 	  		    return concat(vn);

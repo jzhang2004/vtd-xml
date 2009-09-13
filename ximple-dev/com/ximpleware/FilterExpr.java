@@ -68,7 +68,7 @@ public class FilterExpr extends Expr {
 	public double evalNumber(VTDNav vn) {
 	   // if (e.isNumerical())
 	   //     return e.evalNumber(vn);
-		double d;
+		//double d;
 		int a = -1;
 		vn.push2();
 		int size = vn.contextStack2.size;

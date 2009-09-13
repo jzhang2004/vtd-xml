@@ -908,7 +908,7 @@ public class VTDGen {
 	private int last_depth;
 	private int last_l1_index;
 	private int last_l2_index;
-	private int last_l3_index;
+	//private int last_l3_index;
 	private boolean must_utf_8;
 	//namespace aware flag
 	protected boolean ns;
@@ -1136,7 +1136,6 @@ public class VTDGen {
 		int so = docOffset;
 		int lineNumber = 0;
 		int lineOffset = 0;
-		int end = offset;
 
 		if (encoding < FORMAT_UTF_16BE) {
 			while (so <= offset-1) {
@@ -1791,7 +1790,7 @@ public class VTDGen {
 		boolean is_ns = false;
 		encoding = FORMAT_UTF8;
 		boolean helper=false;
-		boolean docEnd = false;
+		
 
 		// first check first several bytes to figure out the encoding
 		decide_encoding();
@@ -2600,7 +2599,6 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_dec_attr() throws ParseException, EncodingException, EOFException{
-		int length1;
 		int parser_state;
 		if (ch == 'v'
 			&& r.skipChar('e')
@@ -3466,7 +3464,7 @@ public class VTDGen {
 		docOffset = offset = os;
 		docLen = len;
 		endOffset = os + len;
-		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
+		last_l1_index= last_l2_index = last_depth =0;
 		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
@@ -3531,7 +3529,7 @@ public class VTDGen {
 		docOffset = offset = os;
 		docLen = len;
 		endOffset = os + len;
-		last_l1_index= last_l2_index = last_l3_index = last_depth =0;
+		last_l1_index= last_l2_index = last_depth =0;
 		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
