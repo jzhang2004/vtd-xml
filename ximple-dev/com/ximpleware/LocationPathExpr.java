@@ -103,7 +103,6 @@ public class LocationPathExpr extends Expr{
 		}
 
 		public double evalNumber(VTDNav vn){
-			double d;
 			int a = -1;
 			vn.push2();
 			int size = vn.contextStack2.size;
@@ -169,7 +168,6 @@ public class LocationPathExpr extends Expr{
 		private final int process_child(VTDNav vn)throws XPathEvalException,NavException{
 		    int result;
 		    boolean b = false, b1 = false;
-		    int contextSize;
 		    Predicate t= null;
 		    
 		    switch(state){
@@ -489,7 +487,6 @@ public class LocationPathExpr extends Expr{
 		throws XPathEvalException, NavException {
 		AutoPilot ap;
 		boolean b = false, b1 = false;
-	    int contextSize;
 	    Predicate t= null;
 		int result;
 		
@@ -676,8 +673,7 @@ public class LocationPathExpr extends Expr{
 	
 	private final int process_parent(VTDNav vn)
 	throws XPathEvalException, NavException{
-	    boolean b = false, b1 = false;
-	    int contextSize;
+	    boolean b1 = false;
 	    Predicate t= null;
 	    int result;
 		switch ( state) {
@@ -927,7 +923,6 @@ public class LocationPathExpr extends Expr{
 	private final int process_ancestor_or_self(VTDNav vn)
 	throws XPathEvalException,NavException{
 	    boolean b = false, b1 = false;
-	    int contextSize;
 	    Predicate t= null;
 	    int result;
 		switch ( state) {
@@ -1125,8 +1120,7 @@ public class LocationPathExpr extends Expr{
 	}
 	private int process_self(VTDNav vn)
 		throws XPathEvalException,NavException{
-	    boolean b = false, b1 = false;
-	    int contextSize;
+	    boolean b1 = false;
 	    Predicate t= null;
 	    int result;
 		switch( state){
@@ -1199,7 +1193,6 @@ public class LocationPathExpr extends Expr{
 	private int process_following_sibling(VTDNav vn)
 	throws XPathEvalException,NavException{
 	    boolean b = false, b1 = false;
-	    int contextSize;
 	    Predicate t= null;
 	    int result;
 		switch( state){
@@ -1317,7 +1310,6 @@ public class LocationPathExpr extends Expr{
 	private int process_preceding_sibling(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    boolean b = false, b1 = false;
-	    int contextSize;
 	    Predicate t= null;
 	    int result;
 	    switch(state){
@@ -1433,10 +1425,8 @@ public class LocationPathExpr extends Expr{
 	private int process_attribute(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    AutoPilot ap = null;
-	    boolean b = false, b1 = false;
-	    int contextSize;
+	    boolean b1 = false;
 	    Predicate t= null;
-	    int result;
 	    int temp;
 		switch( state){
 		case  START:
@@ -1679,7 +1669,7 @@ public class LocationPathExpr extends Expr{
 		throws NavException,XPathEvalException{
 	    
 	    boolean b = false;
-	    Predicate tp = null;
+	    //Predicate tp = null;
 	    int i = 0;
 	    AutoPilot ap;
 	    switch(currentStep.axis_type){
