@@ -88,7 +88,7 @@ public class Transcoder {
     public static final void transcodeAndFill(byte[] input, byte[] output,
             int offset, int length, int input_encoding, int output_encoding)
             throws TranscodeException {
-        int len = 0;
+        //int len = 0;
         int k = offset;
         int c, i = 0;
         while (k < offset + length) {
@@ -104,7 +104,7 @@ public class Transcoder {
             byte[] output,
             int offset, int length, int input_encoding, int output_encoding)
             throws TranscodeException {
-        int len = 0;
+        //int len = 0;
         int k = offset;
         int c, i = initOutPosition;
         while (k < offset + length) {
@@ -121,7 +121,7 @@ public class Transcoder {
             int offset, int length, int input_encoding, int output_encoding)
             throws TranscodeException,
             IOException {
-        int len = 0;
+        //int len = 0;
         int k = offset;
         int c;
         while (k < offset + length) {
