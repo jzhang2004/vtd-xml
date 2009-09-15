@@ -313,16 +313,79 @@ public class FuncExpr extends Expr{
 	    return b;
 	}
 	private boolean startsWith(VTDNav vn){
+		String s2 = argumentList.next.e.evalString(vn);
+		if (argumentList.e.isNodeSet()){
+			//boolean b = false;
+			vn.push2();
+	        int size = vn.contextStack2.size;
+	        int a = -1;
+	        try {
+	            a = argumentList.e.evalNodeSet(vn);
+	            if (a != -1) {
+	                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
+	                    a++;
+	                }
+	                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
+	                    a = vn.getText();
+	                }
+	            }	            
+	        } catch (Exception e) {
+	        }
+	        vn.contextStack2.size = size;
+	        argumentList.e.reset(vn);
+	        vn.pop2();
+	        if (a==-1)
+	        	return "".startsWith(s2);
+	        else{
+	        	try{
+	        		return vn.startsWith(a, s2);
+	        	}catch(Exception e){
+	        	}
+	        	return false;
+	        }								
+		} 
 	    String s1 = argumentList.e.evalString(vn);
-	    String s2 = argumentList.next.e.evalString(vn);
 	    return s1.startsWith(s2); 
 	}
 	
 	private boolean endsWith(VTDNav vn){
+		String s2 = argumentList.next.e.evalString(vn);
+		if (argumentList.e.isNodeSet()){
+			//boolean b = false;
+			vn.push2();
+	        int size = vn.contextStack2.size;
+	        int a = -1;
+	        try {
+	            a = argumentList.e.evalNodeSet(vn);
+	            if (a != -1) {
+	                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
+	                    a++;
+	                }
+	                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
+	                    a = vn.getText();
+	                }
+	            }	            
+	        } catch (Exception e) {
+	        }
+	        vn.contextStack2.size = size;
+	        argumentList.e.reset(vn);
+	        vn.pop2();
+	        if (a==-1)
+	        	return "".startsWith(s2);
+	        else{
+	        	try{
+	        		return vn.endsWith(a, s2);
+	        	}catch(Exception e){
+	        	}
+	        	return false;
+	        }								
+		} 
+		
 	    String s1 = argumentList.e.evalString(vn);
-	    String s2 = argumentList.next.e.evalString(vn);
 	    return s1.endsWith(s2); 
 	}
+	
+		
 	
 	private boolean contains(VTDNav vn){
 	    String s1 = argumentList.e.evalString(vn);
@@ -561,8 +624,8 @@ public class FuncExpr extends Expr{
 			case FuncName.TRANSLATE: 	return translate(vn);
 			case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
 			case FuncName.CODE_POINTS_TO_STRING:			
-			case FuncName.UPPER_CASE:
-			case FuncName.LOWER_CASE:
+			case FuncName.UPPER_CASE: return upperCase(vn);
+			case FuncName.LOWER_CASE: return lowerCase(vn);
 			case FuncName.QNAME:		
 			case FuncName.LOCAL_NAME_FROM_QNAME:				
 			case FuncName.NAMESPACE_URI_FROM_QNAME:				
@@ -913,5 +976,82 @@ public class FuncExpr extends Expr{
 	    	default: 
 	    }
 	    return i;
+	}
+	
+	private String upperCase(VTDNav vn){
+		if (argCount()==1){
+			if (argumentList.e.isNodeSet()){
+				vn.push2();
+		        int size = vn.contextStack2.size;
+		        int a = -1;
+		        try {
+		            a = argumentList.e.evalNodeSet(vn);
+		            if (a != -1) {
+		                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
+		                    a++;
+		                }
+		                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
+		                    a = vn.getText();
+		                }
+		            }	            
+		        } catch (Exception e) {
+		        }
+		        vn.contextStack2.size = size;
+		        argumentList.e.reset(vn);
+		        vn.pop2();
+		        if (a==-1)
+		        	return "";
+		        else{
+		        	try{
+		        		return vn.toStringUpperCase(a);
+		        	}catch(Exception e){
+		        	}
+		        	return "";
+		        }		
+			}else {
+				return (argumentList.e.evalString(vn)).toUpperCase();
+			}
+		}else 
+			throw new IllegalArgumentException
+			("upperCase()'s argument count is invalid");
+		
+	}
+	
+	private String lowerCase(VTDNav vn){
+		if (argCount()==1){
+			if (argumentList.e.isNodeSet()){
+				vn.push2();
+		        int size = vn.contextStack2.size;
+		        int a = -1;
+		        try {
+		            a = argumentList.e.evalNodeSet(vn);
+		            if (a != -1) {
+		                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
+		                    a++;
+		                }
+		                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
+		                    a = vn.getText();
+		                }
+		            }	            
+		        } catch (Exception e) {
+		        }
+		        vn.contextStack2.size = size;
+		        argumentList.e.reset(vn);
+		        vn.pop2();
+		        if (a==-1)
+		        	return "";
+		        else{
+		        	try{
+		        		return vn.toStringLowerCase(a);
+		        	}catch(Exception e){
+		        	}
+		        	return "";
+		        }		
+			}else {
+				return (argumentList.e.evalString(vn)).toLowerCase();
+			}
+		}else 
+			throw new IllegalArgumentException
+			("lowerCase()'s argument count is invalid");
 	}
 }
