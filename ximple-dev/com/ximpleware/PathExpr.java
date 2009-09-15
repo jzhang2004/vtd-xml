@@ -64,7 +64,6 @@ public class PathExpr extends Expr {
 
 
 	public double evalNumber(VTDNav vn) {
-		double d;
 		int a = -1;
 		vn.push2();
 		int size = vn.contextStack2.size;
@@ -91,10 +90,10 @@ public class PathExpr extends Expr {
 	}
 
 	public int evalNodeSet(VTDNav vn) throws XPathEvalException, NavException {
-		int a,b;
+		int a;
 		while (true) {
 			switch (evalState) {
-			case 0: //this state is teh initial state;
+			case 0: //this state is the initial state;
 				a = fe.evalNodeSet(vn);
 				if (a == -1){
 					evalState =4;
