@@ -46,7 +46,7 @@ import com.ximpleware.parser.WIN1256;
 import com.ximpleware.parser.WIN1257;
 import com.ximpleware.parser.WIN1258;
 import com.ximpleware.parser.XMLChar;
-import com.ximpleware.parser.ISO8859_11;
+//import com.ximpleware.parser.ISO8859_11;
 import com.ximpleware.parser.ISO8859_13;
 import com.ximpleware.parser.ISO8859_14;
 import com.ximpleware.parser.ISO8859_15;

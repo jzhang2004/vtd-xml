@@ -71,7 +71,6 @@ public class UnionExpr extends Expr {
     public double evalNumber(VTDNavHuge vn) {
         if (e.isNodeSet()==false)
             return e.evalNumber(vn);
-        double d;
         int a = -1;
         vn.push2();
         int size = vn.contextStack2.size;
