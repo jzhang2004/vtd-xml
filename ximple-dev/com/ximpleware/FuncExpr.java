@@ -143,17 +143,7 @@ public class FuncExpr extends Expr{
 	        }
 	        
 	    } else if (argCount() == 1){
-	        int a = -1;
-			vn.push2();
-			try{
-				a = argumentList.e.evalNodeSet(vn);						
-				argumentList.e.reset(vn);
-				vn.pop2();						
-			}catch(Exception e){
-				argumentList.e.reset(vn);
-				vn.pop2();
-			}
-			
+	        int a=evalFirstArgumentListNodeSet2(vn);
 			if (a == -1 || vn.ns == false)
 			    return "";
 			int type = vn.getTokenType(a);
@@ -201,16 +191,7 @@ public class FuncExpr extends Expr{
 	            return "";
 	        }
 	    }else if (argCount()==1){
-	        int a = -1;
-			vn.push2();
-			try{
-				a = argumentList.e.evalNodeSet(vn);
-				argumentList.e.reset(vn);
-				vn.pop2();						
-			}catch(Exception e){
-				argumentList.e.reset(vn);
-				vn.pop2();
-			}
+	        int a=evalFirstArgumentListNodeSet2(vn);
 			try {
                 if (a == -1 || vn.ns == false)
                     return "";
@@ -246,16 +227,7 @@ public class FuncExpr extends Expr{
 	        else 
 	            return "";
 	    } else if (argCount() == 1){
-	        a = -1;
-			vn.push2();
-			try{
-				a = argumentList.e.evalNodeSet(vn);
-				argumentList.e.reset(vn);
-				vn.pop2();						
-			}catch(Exception e){
-				argumentList.e.reset(vn);
-				vn.pop2();
-			}	
+	        a = evalFirstArgumentListNodeSet2(vn);
 			try {
                 if (a == -1 || vn.ns == false)
                     return "";
@@ -316,24 +288,7 @@ public class FuncExpr extends Expr{
 		String s2 = argumentList.next.e.evalString(vn);
 		if (argumentList.e.isNodeSet()){
 			//boolean b = false;
-			vn.push2();
-	        int size = vn.contextStack2.size;
-	        int a = -1;
-	        try {
-	            a = argumentList.e.evalNodeSet(vn);
-	            if (a != -1) {
-	                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
-	                    a++;
-	                }
-	                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
-	                    a = vn.getText();
-	                }
-	            }	            
-	        } catch (Exception e) {
-	        }
-	        vn.contextStack2.size = size;
-	        argumentList.e.reset(vn);
-	        vn.pop2();
+			int a = evalFirstArgumentListNodeSet(vn);
 	        if (a==-1)
 	        	return "".startsWith(s2);
 	        else{
@@ -348,28 +303,46 @@ public class FuncExpr extends Expr{
 	    return s1.startsWith(s2); 
 	}
 	
+	private int evalFirstArgumentListNodeSet(VTDNav vn){
+		vn.push2();
+        int size = vn.contextStack2.size;
+        int a = -1;
+        try {
+            a = argumentList.e.evalNodeSet(vn);
+            if (a != -1) {
+                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
+                    a++;
+                }
+                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
+                    a = vn.getText();
+                }
+            }	            
+        } catch (Exception e) {
+        }
+        vn.contextStack2.size = size;
+        argumentList.e.reset(vn);
+        vn.pop2();
+        return a;
+	}
+	
+	private int evalFirstArgumentListNodeSet2(VTDNav vn){
+		vn.push2();
+        int size = vn.contextStack2.size;
+        int a = -1;
+        try {
+            a = argumentList.e.evalNodeSet(vn);	            
+        } catch (Exception e) {
+        }
+        vn.contextStack2.size = size;
+        argumentList.e.reset(vn);
+        vn.pop2();
+        return a;
+	}
+	
 	private boolean endsWith(VTDNav vn){
 		String s2 = argumentList.next.e.evalString(vn);
 		if (argumentList.e.isNodeSet()){
-			//boolean b = false;
-			vn.push2();
-	        int size = vn.contextStack2.size;
-	        int a = -1;
-	        try {
-	            a = argumentList.e.evalNodeSet(vn);
-	            if (a != -1) {
-	                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
-	                    a++;
-	                }
-	                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
-	                    a = vn.getText();
-	                }
-	            }	            
-	        } catch (Exception e) {
-	        }
-	        vn.contextStack2.size = size;
-	        argumentList.e.reset(vn);
-	        vn.pop2();
+			int a = evalFirstArgumentListNodeSet(vn);
 	        if (a==-1)
 	        	return "".startsWith(s2);
 	        else{
@@ -379,8 +352,7 @@ public class FuncExpr extends Expr{
 	        	}
 	        	return false;
 	        }								
-		} 
-		
+		}	
 	    String s1 = argumentList.e.evalString(vn);
 	    return s1.endsWith(s2); 
 	}
@@ -864,18 +836,18 @@ public class FuncExpr extends Expr{
 			throw new IllegalArgumentException
 				("Count()'s argument count is invalid");
 		vn.push2();
+		int size= vn.contextStack2.size ;
 		try{
 			a = 0;
 			argumentList.e.adjust(vn.getTokenCount());
 			while(argumentList.e.evalNodeSet(vn)!=-1){
 				a ++;
 			}
-			argumentList.e.reset(vn);
-			vn.pop2();			
 		}catch(Exception e){
-			argumentList.e.reset(vn);
-			vn.pop2();
 		}
+		argumentList.e.reset(vn);
+		vn.contextStack2.size = size;
+		vn.pop2();
 		return a;
 	}
 	
@@ -884,6 +856,7 @@ public class FuncExpr extends Expr{
 	    if (argCount() != 1 || argumentList.e.isNodeSet() == false)
 	        throw new IllegalArgumentException("sum()'s argument count is invalid");
     	vn.push2();
+    	int size = vn.contextStack2.size;
     	try {
     	    a = 0;
     	    int i1;
@@ -911,10 +884,12 @@ public class FuncExpr extends Expr{
                 //    fib1.append(i);
     	    }
     	    argumentList.e.reset(vn);
-    	    vn.pop2();
+    	    vn.contextStack2.size = size;
+    	    vn.pop2();    	    
     	    return d;
     	} catch (Exception e) {
     	    argumentList.e.reset(vn);
+    	    vn.contextStack2.size = size;
     	    vn.pop2();
     	    return Double.NaN;
     	}
@@ -981,24 +956,7 @@ public class FuncExpr extends Expr{
 	private String upperCase(VTDNav vn){
 		if (argCount()==1){
 			if (argumentList.e.isNodeSet()){
-				vn.push2();
-		        int size = vn.contextStack2.size;
-		        int a = -1;
-		        try {
-		            a = argumentList.e.evalNodeSet(vn);
-		            if (a != -1) {
-		                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
-		                    a++;
-		                }
-		                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
-		                    a = vn.getText();
-		                }
-		            }	            
-		        } catch (Exception e) {
-		        }
-		        vn.contextStack2.size = size;
-		        argumentList.e.reset(vn);
-		        vn.pop2();
+				int a = evalFirstArgumentListNodeSet(vn);
 		        if (a==-1)
 		        	return "";
 		        else{
@@ -1020,24 +978,7 @@ public class FuncExpr extends Expr{
 	private String lowerCase(VTDNav vn){
 		if (argCount()==1){
 			if (argumentList.e.isNodeSet()){
-				vn.push2();
-		        int size = vn.contextStack2.size;
-		        int a = -1;
-		        try {
-		            a = argumentList.e.evalNodeSet(vn);
-		            if (a != -1) {
-		                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
-		                    a++;
-		                }
-		                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
-		                    a = vn.getText();
-		                }
-		            }	            
-		        } catch (Exception e) {
-		        }
-		        vn.contextStack2.size = size;
-		        argumentList.e.reset(vn);
-		        vn.pop2();
+				int a = evalFirstArgumentListNodeSet(vn);
 		        if (a==-1)
 		        	return "";
 		        else{
