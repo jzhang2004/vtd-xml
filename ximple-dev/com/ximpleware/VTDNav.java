@@ -4042,7 +4042,7 @@ public class VTDNav {
 	    while (offset < endOffset) {
 	        l = getCharResolved(offset);
 	        offset += (int)(l>>32);
-	        if (l>96 && l<123)
+	        if ((int)l>96 && (int)l<123)
 	        	sb.append((char)(l-32));
 	        else
 	        	sb.append((char)l);	                
@@ -4069,7 +4069,7 @@ public class VTDNav {
 	    while (offset < endOffset) {
 	        l = getCharResolved(offset);
 	        offset += (int)(l>>32);
-	        if (l>65 && l<91)
+	        if ((int)l>64 && (int)l<91)
 	        	sb.append((char)(l+32));
 	        else
 	        	sb.append((char)l);	                
@@ -4146,7 +4146,43 @@ public class VTDNav {
 	 * @param i
 	 * @return
 	 */
-	final public boolean endsWith(int i, String s){
+	final public boolean endsWith(int index, String s) throws NavException{
+		int type = getTokenType(index);
+		int len =
+			(type == TOKEN_STARTING_TAG
+				|| type == TOKEN_ATTR_NAME
+				|| type == TOKEN_ATTR_NS)
+				? getTokenLength(index) & 0xffff
+				: getTokenLength(index);
+	    int offset = getTokenOffset(index);
+	    long l1; 
+	    int i,l, i2;
+	    //int endOffset = offset + len;
+	    
+        //       System.out.print("currentOffset :" + currentOffset);
+        l = s.length();
+        i2 = getStringLength(index);
+        if (l> len || l> i2)
+        	return false;
+        i2 = i2 - l; // calculate the # of chars to be skipped
+        // eat away first several chars
+        for (i = 0; i < i2; i++) {
+            l1 = getCharResolved(offset);
+            offset += (int) (l1 >> 32);
+        }
+        //System.out.println(s);
+        for (i = 0; i < l; i++) {
+            l1 = getCharResolved(offset);
+            int i1 = s.charAt(i);
+            if (i1 != (int) l1)
+                return false;
+            offset += (int) (l1 >> 32);
+        }	    
+		return true;
+	}
+	
+	
+	final public boolean contains(int i, String s) throws NavException{
 		return false;
 	}
 	
@@ -4293,7 +4329,7 @@ public class VTDNav {
 	 * @return a VTDNav instance
 	 *
 	 */
-	public VTDNav duplicateNav(){
+	final public VTDNav duplicateNav(){
 	    return new VTDNav(rootIndex,
 	            encoding,
 	            ns,
