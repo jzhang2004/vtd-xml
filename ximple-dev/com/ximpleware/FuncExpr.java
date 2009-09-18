@@ -595,7 +595,7 @@ public class FuncExpr extends Expr{
 			case FuncName.SUBSTRING: 	return subString(vn);	
 			case FuncName.TRANSLATE: 	return translate(vn);
 			case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
-			case FuncName.CODE_POINTS_TO_STRING:			
+			case FuncName.CODE_POINTS_TO_STRING:	throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");		
 			case FuncName.UPPER_CASE: return upperCase(vn);
 			case FuncName.LOWER_CASE: return lowerCase(vn);
 			case FuncName.QNAME:		
@@ -731,7 +731,7 @@ public class FuncExpr extends Expr{
 			   					}
 								return !argumentList.e.evalBoolean(vn);
 		    case FuncName.LANG:
-		        				if (argCount()!=1){
+		        				if (argCount()!=2){
 		        				    	throw new IllegalArgumentException("lang()'s argument count is invalid");
 		        				}
 								return lang(vn,argumentList.e.evalString(vn));
