@@ -105,11 +105,11 @@ public class BinaryExpr extends Expr {
 
 	
 	public boolean evalBoolean(VTDNavHuge vn){
-	    int i,i1=0, s1, s2;
+	    /*int i,i1=0, s1, s2;
 	    int stackSize;
 	    Expr e1, e2;
 	    int t;
-	    boolean b = false;
+	    boolean b = false;*/
 		switch(op){
 			case OR: return left.evalBoolean(vn) || right.evalBoolean(vn);
 			case AND:return left.evalBoolean(vn) && right.evalBoolean(vn);
@@ -370,7 +370,7 @@ public class BinaryExpr extends Expr {
 	// this function computes the boolean when one expression is node set
 	// the other is numerical
 	private boolean compNumericalNodeSet(Expr left, Expr right, VTDNavHuge vn, int op ){
-	     int i, t, i1 = 0, stackSize;
+	     int i, i1 = 0, stackSize;
 	     double d;
         try {
             d = left.evalNumber(vn);
