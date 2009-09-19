@@ -191,19 +191,30 @@ public class FuncExpr extends Expr{
 	            return "";
 	        }
 	    }else if (argCount()==1){
-	        int a=evalFirstArgumentListNodeSet2(vn);
+	    	vn.push2();
+	        int size = vn.contextStack2.size;
+	        int a = -1;
+	        try {
+	            a = argumentList.e.evalNodeSet(vn);	            
+	        } catch (Exception e) {
+	        }
+	        String s="";
+	       // return a;
 			try {
                 if (a == -1 || vn.ns == false)
-                    return "";
+                   ;
                 else {
                     int type = vn.getTokenType(a);
                     if (type == VTDNav.TOKEN_STARTING_TAG
                             || type == VTDNav.TOKEN_ATTR_NAME)
-                       return vn.toString(vn.lookupNS());
-                    return "";
+                       s= vn.toString(vn.lookupNS());
+                    
                 }                
             } catch (Exception e){} ;
-            return "";
+            vn.contextStack2.size = size;
+	        argumentList.e.reset(vn);
+	        vn.pop2();
+            return s;
 			
 	    }else 
 	        throw new IllegalArgumentException
@@ -731,7 +742,7 @@ public class FuncExpr extends Expr{
 			   					}
 								return !argumentList.e.evalBoolean(vn);
 		    case FuncName.LANG:
-		        				if (argCount()!=2){
+		        				if (argCount()!=1){
 		        				    	throw new IllegalArgumentException("lang()'s argument count is invalid");
 		        				}
 								return lang(vn,argumentList.e.evalString(vn));
@@ -773,8 +784,8 @@ public class FuncExpr extends Expr{
 			case FuncName.CONCAT: 			return "concat";
 			case FuncName.STARTS_WITH:		return "starts-with";
 			case FuncName.CONTAINS: 		return "contains";
-			case FuncName.SUBSTRING_BEFORE: return "substring_before";
-			case FuncName.SUBSTRING_AFTER: 	return "substring_after";
+			case FuncName.SUBSTRING_BEFORE: return "substring-before";
+			case FuncName.SUBSTRING_AFTER: 	return "substring-after";
 			case FuncName.SUBSTRING: 		return "substring";
 			case FuncName.STRING_LENGTH: 	return "string-length";
 			case FuncName.NORMALIZE_SPACE: 	return "normalize-space";
