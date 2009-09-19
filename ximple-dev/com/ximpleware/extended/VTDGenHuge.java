@@ -19,7 +19,7 @@ package com.ximpleware.extended;
 import java.io.*;
 
 
-import com.ximpleware.parser.*;
+import com.ximpleware.extended.parser.*;
 
 //import java.io.*;
 /**
@@ -947,7 +947,7 @@ public class VTDGenHuge {
 		long so = docOffset;
 		int lineNumber = 0;
 		long lineOffset = 0;
-		long end = offset;
+		//long end = offset;
 
 		if (encoding < FORMAT_UTF_16BE) {
 			while (so <= offset-1) {
@@ -1248,7 +1248,7 @@ public class VTDGenHuge {
 		boolean is_ns = false;
 		encoding = FORMAT_UTF8;
 		boolean helper=false;
-		boolean docEnd = false;
+		//boolean docEnd = false;
 
 		// first check first several bytes to figure out the encoding
 		decide_encoding();
@@ -2189,7 +2189,7 @@ public class VTDGenHuge {
 	 * @throws EOFExceptionHuge
 	 */
 	private int process_dec_attr() throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge{
-		int length1;
+		//int length1;
 		int parser_state;
 		if (ch == 'v'
 			&& r.skipChar('e')
@@ -3226,12 +3226,12 @@ public class VTDGenHuge {
 	 * @param depth int
 	 */
 	private void writeVTD(long offset, long length, int token_type, int depth) {
-	    System.out.print(" type "+token_type);
+	    /*System.out.print(" type "+token_type);
 	    System.out.print(" length "+ Long.toHexString(length)+" length "+length);
 	    System.out.print(" prefix length " + (length>>10));
 	    System.out.print(" qn length " + (length & 0x3ff));
 	    System.out.print(" offset "+offset);
-	    System.out.println(" depth "+depth);
+	    System.out.println(" depth "+depth);*/
 			switch (token_type) {
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
