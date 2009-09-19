@@ -30,6 +30,15 @@ public class XMLBuffer implements IByteBuffer {
         //ArrayList al = new ArrayList();
     }
     
+    public XMLBuffer(byte[] ba){
+    	if (ba==null)
+    		throw new IllegalArgumentException("ba can't be null ");
+    	if (ba.length > 1<<30)
+    		throw new IllegalArgumentException("ba should be shorter than 1G bytes ");
+    	bufferArray = new byte[1][];
+    	bufferArray[0]= ba;
+    	length = ba.length;
+    }
     /**
      * 
      * @param fileName
