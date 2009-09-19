@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+//import com.ximpleware.NavException;
 import com.ximpleware.parser.ISO8859_10;
 import com.ximpleware.parser.ISO8859_2;
 import com.ximpleware.parser.ISO8859_3;
@@ -1008,7 +1009,7 @@ public class VTDNavHuge {
 	public int getTokenLength(int index) {
 		int type = getTokenType(index);
 		int depth;
-		int val;
+		//int val;
 		int len = 0;
 		long l;
 		long temp=0;
@@ -1577,12 +1578,12 @@ public class VTDNavHuge {
 	 * machine such as a load-balancer.
 	 * 
 	 */
-	final private boolean matchRawTokenString(long l, String s) throws NavExceptionHuge {
+	/*final private boolean matchRawTokenString(long l, String s) throws NavExceptionHuge {
 		int len = (int) ((l & MASK_TOKEN_FULL_LEN) >> 37);
 		// a little hardcode is always bad
 		//currentOffset = (int) l;
 		return compareRawTokenString((int)l, len, s)==0;
-	}
+	}*/
 	/**
 	 * Match a string against a token with given offset and len, entities get resolved properly.
 	 * Creation date: (11/24/03 1:37:42 PM)
@@ -1596,10 +1597,10 @@ public class VTDNavHuge {
 	 * machine such as a load-balancer.
 	 * @exception IllegalArguementException if s is null
 	 */
-	final private boolean matchTokenString(long offset, int len, String s)
+	/*final private boolean matchTokenString(long offset, int len, String s)
 		throws NavExceptionHuge {
 	    return compareTokenString(offset,len,s)==0;
-	}
+	}*/
 	
 	/**
 	 * <em>New in 2.0</em>
@@ -1669,11 +1670,11 @@ public class VTDNavHuge {
 	 * 
 	 */
 
-	final private boolean matchTokenString(long l, String s) throws NavExceptionHuge {
+	/*final private boolean matchTokenString(long l, String s) throws NavExceptionHuge {
 		int len = (int) (l >> 37) & 0xffff;
 		//currentOffset = (int) l;
 		return compareTokenString((int) l, len, s)==0;
-	}
+	}*/
 
 
 	/**
@@ -2028,7 +2029,7 @@ public class VTDNavHuge {
 		    offset += (int)(l>>32); //skip sign
 		}
 		long result = 0;
-		long pos = 1;
+		//long pos = 1;
 		while (offset <= endOffset) {
 			int digit = Character.digit((char) c, radix);
 			if (digit < 0)
@@ -2118,7 +2119,7 @@ public class VTDNavHuge {
 		    offset += (int)(l>>32);//skip sign
 		}
 		long result = 0;
-		long pos = 1;
+		//long pos = 1;
 		while (offset <= endOffset) {
 			int digit = Character.digit((char) c, radix);
 			if (digit < 0)
@@ -2829,7 +2830,7 @@ public class VTDNavHuge {
 	 * @exception IllegalArguementException if en is null
 	 */
 	public boolean toElement(int direction, String en) throws NavExceptionHuge {
-		int size;
+		//int size;
 		int temp;
 		int d;
 		int val=0;
@@ -2967,7 +2968,7 @@ public class VTDNavHuge {
 	 */
 	public boolean toElementNS(int direction, String URL, String ln)
 		throws NavExceptionHuge {
-		int size;
+		//int size;
 		int temp;
 		int val=0;
 		int d; // temp location
@@ -3194,7 +3195,7 @@ public class VTDNavHuge {
 				type!= TOKEN_ATTR_VAL)
 			return toRawString(index); 
 		int len;
-		long l;
+		//long l;
 		if (type == TOKEN_STARTING_TAG
 			|| type == TOKEN_ATTR_NAME
 			|| type == TOKEN_ATTR_NS)
@@ -3394,5 +3395,173 @@ public class VTDNavHuge {
 		    return 1;
 		else
 			return 0;
+	}
+	
+	final public boolean startsWith(int index, String s) throws NavExceptionHuge{
+		int type = getTokenType(index);
+		int len =
+			(type == TOKEN_STARTING_TAG
+				|| type == TOKEN_ATTR_NAME
+				|| type == TOKEN_ATTR_NS)
+				? getTokenLength(index) & 0xffff
+				: getTokenLength(index);
+	    long offset = getTokenOffset(index);
+	    long l1; 
+	    int i,l;
+	    long endOffset = offset + len;
+	    
+        //       System.out.print("currentOffset :" + currentOffset);
+        l = s.length();
+        if (l> len)
+        	return false;
+        //System.out.println(s);
+        for (i = 0; i < l && offset < endOffset; i++) {
+            l1 = getCharResolved(offset);
+            int i1 = s.charAt(i);
+            if (i1 != (int) l1)
+                return false;
+            offset += (int) (l1 >> 32);
+        }	    
+		return true;
+	}
+	
+	/**
+	 * Test the end of token content at index i matches the content 
+	 * of s, notice that this is to save the string allocation cost of
+	 * using String's built-in endsWidth 
+	 * @param i
+	 * @return
+	 */
+	final public boolean endsWith(int index, String s) throws NavExceptionHuge{
+		int type = getTokenType(index);
+		int len =
+			(type == TOKEN_STARTING_TAG
+				|| type == TOKEN_ATTR_NAME
+				|| type == TOKEN_ATTR_NS)
+				? getTokenLength(index) & 0xffff
+				: getTokenLength(index);
+	    long offset = getTokenOffset(index);
+	    long l1; 
+	    int i,l,i2;
+	    //int endOffset = offset + len;
+	    
+        //       System.out.print("currentOffset :" + currentOffset);
+        l = s.length();
+        i2 = getStringLength(index);
+        if (l> len || l> i2)
+        	return false;
+        i2 = i2 - l; // calculate the # of chars to be skipped
+        // eat away first several chars
+        for (i = 0; i < i2; i++) {
+            l1 = getCharResolved(offset);
+            offset += (int) (l1 >> 32);
+        }
+        //System.out.println(s);
+        for (i = 0; i < l; i++) {
+            l1 = getCharResolved(offset);
+            int i1 = s.charAt(i);
+            if (i1 != (int) l1)
+                return false;
+            offset += (int) (l1 >> 32);
+        }	    
+		return true;
+	}
+	
+	/**
+	 * Convert a token at the given index to a String and any upper case
+	 * character will be converted to lower case, (entities and char
+     * references resolved). An attribute name or an element name will get the
+     * UCS2 string of qualified name
+	 * @param index
+	 * @return
+	 * @throws NavExceptionHuge
+	 */
+	public String toStringLowerCase(int index) throws NavExceptionHuge {
+		int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			return toRawString(index); 
+		int len;
+		len = getTokenLength(index);
+
+		long offset = getTokenOffset(index);
+		return toStringLowerCase(offset, len);
+	}
+	
+	/**
+     * Convert the byte content segment (in terms of offset and length) to
+     * String, upper case characters are converted to lower case
+     * 
+     * @param os
+     *            the offset of the segment
+     * @param len
+     *            the length of the segment
+     * @return the corresponding string value
+     * @throws NavExceptionHuge
+     *  
+     */
+	final public String toStringLowerCase(long os, int len) throws NavExceptionHuge{
+	    StringBuffer sb = new StringBuffer(len);	    
+	    long offset = os;
+	    long endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getCharResolved(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>64 && (int)l<91)
+	        	sb.append((char)(l+32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    return sb.toString();
+	}
+	
+	/**
+	 * Convert a token at the given index to a String and any lower case
+	 * character will be converted to upper case, (entities and char
+     * references resolved). An attribute name or an element name will get the
+     * UCS2 string of qualified name
+	 * @param index
+	 * @return
+	 * @throws NavExceptionHuge
+	 */
+	public String toStringUpperCase(int index) throws NavExceptionHuge {
+		int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			return toRawString(index); 
+		int len;
+		len = getTokenLength(index);
+
+		long offset = getTokenOffset(index);
+		return toStringUpperCase(offset, len);
+	}
+	
+	/**
+     * Convert the byte content segment (in terms of offset and length) to
+     * String, lower case characters are converted to upper case
+     * 
+     * @param os
+     *            the offset of the segment
+     * @param len
+     *            the length of the segment
+     * @return the corresponding string value
+     * @throws NavExceptionHuge
+     *  
+     */
+	final public String toStringUpperCase(long os, int len) throws NavExceptionHuge{
+	    StringBuffer sb = new StringBuffer(len);	    
+	    long offset = os;
+	    long endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getCharResolved(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>96 && (int)l<123)
+	        	sb.append((char)(l-32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    return sb.toString();
 	}
 }
