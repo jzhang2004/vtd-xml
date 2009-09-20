@@ -492,25 +492,43 @@ public class FuncExpr extends Expr{
 	                    s= vn.toRawString(vn.LN);
 	                else if (ttype == VTDNav.TOKEN_ATTR_NAME ||
 	                         ttype == VTDNav.TOKEN_ATTR_NS){
-	                    s = vn.toString(vn.LN+1);
+	                    s = vn.toNormalizedString(vn.LN+1);
 	                } else
-	                    s= vn.toString(vn.LN);	                
+	                    s= vn.toNormalizedString(vn.LN);	                
 	            }else {
-	                s= vn.toString(vn.getCurrentIndex());
+	                s= vn.toNormalizedString(vn.getCurrentIndex());
 	            }
-	            return normalize(s);
+	            return s;
 	        }
 	    	catch(NavException e){
 	    	    return ""; // this will almost never occur
 	    	}
 	    } else if (argCount() == 1){
-	        String s = argumentList.e.evalString(vn);
-	        return normalize(s);
+	    	String s="";
+	    	if (argumentList.e.isNodeSet()){
+				//boolean b = false;
+				int a = evalFirstArgumentListNodeSet(vn);
+		        if (a==-1)
+		        	return ""; 
+		        else {		        	
+		        	try{
+		        		s = vn.toNormalizedString(a); 
+		        	} catch (Exception e){
+		        	}
+		        	return s;	
+		        }	    	
+	    	}
+	    	else {
+	    		s = argumentList.e.evalString(vn);
+		        return normalize(s);
+	    	}
+	        
 	    }
 	    throw new IllegalArgumentException
 		("normalize-space()'s argument count is invalid");
 	    //return null;
 	}
+	
 	private String normalize(String s){
 	    int len = s.length();
         StringBuffer sb = new StringBuffer(len);
