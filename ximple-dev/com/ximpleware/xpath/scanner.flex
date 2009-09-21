@@ -20,6 +20,7 @@
 package com.ximpleware.xpath;
 import java_cup.runtime.Symbol;
 import com.ximpleware.parser.*;
+import com.ximpleware.*;
 
 %%
 %cup
@@ -94,6 +95,7 @@ nc2	=  ([^\!-/:-@\[-\^ \n\r\t\|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 "<="	{isName = 1 ; return sym(LE);}
 "="	{isName = 1 ; return sym(EQ);}
 "!="	{isName = 1 ; return sym(NE);}
+"$" {isName = 1; return sym(DOLLAR);}
 
 "*"	{if (isName ==0){
 		isName = 1;

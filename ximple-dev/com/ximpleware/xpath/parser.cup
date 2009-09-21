@@ -21,15 +21,16 @@ import com.ximpleware.*;
 import com.ximpleware.xpath.*;
 import java.util.*;
 parser code {:  
-  public Hashtable ht;
+  public Hashtable nsHash;
+  public Hashtable symbolHash;
   Step tempStep;
   NodeTest tempNt;
   LocationPathExpr tempLPExpr;
-  ExprList tmpEL1, tmpEL2;
+  //ExprList tmpEL1, tmpEL2;
   
   public parser (java.io.Reader input) {
     super(new Yylex(input));
-    ht = null;
+    nsHash = null;
   }
   
   public parser (java.io.InputStream input) {
@@ -75,11 +76,11 @@ terminal Ntest NTEST;
 terminal NameType NAME;
 terminal AxisType AXISNAME;
 
-non terminal VariableReference;
+
 non terminal FuncExpr FunctionCall; 
 non terminal FuncName FunctionName;
 non terminal Expr Expr, OrExpr, EqualityExpr, AndExpr, RelationalExpr, AdditiveExpr;
-non terminal Expr MultiplicativeExpr, UnaryExpr, PathExpr, FilterExpr;
+non terminal Expr MultiplicativeExpr, UnaryExpr, PathExpr, FilterExpr, VariableReference;
 non terminal UnionExpr UnionExpr;
 non terminal Alist ArgumentList;
 non terminal Expr PrimaryExpr, Argument;
@@ -210,7 +211,8 @@ FilterExpr   	::=  PrimaryExpr:pe
 		{: RESULT = new FilterExpr(fe, p);:}
 		;
 
-PrimaryExpr     ::=  VariableReference  
+PrimaryExpr     ::=  VariableReference:ve 
+		{: RESULT = ve; :} 
 		|    LP Expr:e RP 
 		{: RESULT = e; :} 
 		|    LITERAL:le  
@@ -297,9 +299,9 @@ nodetest	::=    NAME:n
 		   RESULT.setNodeName(n.qname);
 		   if (n.localname!=null){
 		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
-		   	 if (parser.ht==null || parser.ht.get(n.prefix) ==null)
+		   	 if (parser.nsHash==null || parser.nsHash.get(n.prefix) ==null)
 		   	    throw new XPathParseException("No URL found for prefix:"+n.prefix);
-		   	 RESULT.URL = (String) parser.ht.get(n.prefix);
+		   	 RESULT.URL = (String) parser.nsHash.get(n.prefix);
 		   }
 		:}
 		|    NTEST:n2				
@@ -382,8 +384,13 @@ Predicate 	::=    LB Expr:e RB
 	   	;
 
 
-VariableReference ::= DOLLAR NAME	
-		  ;
+VariableReference ::= DOLLAR NAME:n	
+		{:
+		    if (parser.symbolHash.get(n.qname)==null)
+		      throw new XPathParseException("variableExpression not declared ==> $"+n.qname);
+			RESULT = new VariableExpr(n.qname, (Expr)parser.symbolHash.get(n.qname));					
+		:}
+        ;
 
 FunctionName 	::=  FNAME :fn
 		{: RESULT = fn; :} 
