@@ -47,7 +47,7 @@ public class AutoPilotHuge {
     
     private int[] contextCopy;  //for preceding axis
     private int stackSize;  // the stack size for xpath evaluation
-    private Hashtable ht;
+    static private Hashtable nsHash;
     //private parser p;
     // defines the type of "iteration"
     public final static int UNDEFINED = 0;
@@ -63,7 +63,7 @@ public class AutoPilotHuge {
     public final static int PRECEDING_NS=8;
     public final static int ATTR = 9;
     public final static int ATTR_NS = 10;
-    
+    static private Hashtable symbolHash;
     
  protected String getName(){
    	return name;
@@ -83,6 +83,7 @@ public AutoPilotHuge(VTDNavHuge v) {
     size = 0;
     special = false;
     xpe = null;
+    symbolHash = new Hashtable();
     //p = null;       
 }
 
@@ -100,6 +101,7 @@ public AutoPilotHuge(){
     size = 0;
     special = false;
     xpe = null;
+    symbolHash = new Hashtable();
 }
 /** This function creates URL ns prefix 
  *  and is intended to be called prior to selectXPath
@@ -108,9 +110,9 @@ public AutoPilotHuge(){
  */
 
 public void declareXPathNameSpace(String prefix, String URL){
-    if (ht==null)
-        ht = new Hashtable();
-    ht.put(prefix, URL);
+    if (nsHash==null)
+        nsHash = new Hashtable();
+    nsHash.put(prefix, URL);
     //System.out.println(ht); 
 }
 
@@ -132,6 +134,26 @@ public void bind (VTDNavHuge vnv){
     special = false;
     //resetXPath();
 }
+/**
+ * Register the binding between a variableExpr name and variableExpr expression 
+ * @param varName
+ * @param varExpr
+ * @throws XPathParseException
+ */
+public void declareVariableExpr(String varName, String varExpr) throws XPathParseExceptionHuge {
+    try{
+        parser p = new parser(new StringReader(varExpr));
+        p.nsHash = nsHash;
+        p.symbolHash = symbolHash;
+        xpe = (com.ximpleware.extended.xpath.Expr) p.parse().value;
+        symbolHash.put(varName, xpe);
+        ft = true;
+     }catch(XPathParseExceptionHuge e){
+         throw e;
+     }catch(Exception e){
+         throw new XPathParseExceptionHuge("Error occurred");
+     }
+ }
 /**
  * Iterate over all the selected element nodes in document order.
  * Null element name allowed, corresponding to node() in xpath
@@ -484,7 +506,8 @@ protected void selectAttrNS(String ns_URL, String ln){
 public void selectXPath(String s) throws XPathParseExceptionHuge {
     try{
        parser p = new parser(new StringReader(s));
-       p.ht = ht;
+       p.nsHash = nsHash;
+       p.symbolHash = symbolHash;
        xpe = (com.ximpleware.extended.xpath.Expr) p.parse().value;
        ft = true;
     }catch(XPathParseExceptionHuge e){
@@ -570,5 +593,19 @@ protected void setSpecial(boolean b ){
  */
 public String getExprString(){
 	return xpe.toString();
+}
+
+/**
+ * Remove all declared variable expressions
+ */
+public void clearVariableExprs(){
+	symbolHash.clear();
+}
+
+/**
+ * Remove all namespaces bindings 
+ */
+public void clearXPathNameSpaces(){
+	nsHash.clear();
 }
 }
