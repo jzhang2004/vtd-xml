@@ -25,6 +25,12 @@ public class VariableExpr extends Expr {
 	
 	private String exprName;
 	private Expr exprVal;
+	
+	public VariableExpr(String name, Expr e){
+		exprName = name;
+		exprVal = e;
+	}
+	
 	@Override
 	public int adjust(int n) {
 		// TODO Auto-generated method stub
@@ -106,7 +112,7 @@ public class VariableExpr extends Expr {
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
-		return exprVal.toString();
+		return "$"+exprName;
 	}
 
 }
