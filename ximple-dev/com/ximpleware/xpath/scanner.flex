@@ -24,6 +24,7 @@ import com.ximpleware.*;
 
 %%
 %cup
+%char
 %unicode
 %extends sym
 %yylexthrow XPathParseException
@@ -47,7 +48,11 @@ import com.ximpleware.*;
   String literal;
   Double number; 
   int colonPosition;
-
+  
+  public int getOffset(){
+  	return yychar;
+  }
+  
   /* public void report_error(String message, Object info) {
 	//throw new XPathParseException("Syntax error during parsing");
   }

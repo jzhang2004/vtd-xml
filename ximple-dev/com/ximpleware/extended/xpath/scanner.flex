@@ -17,15 +17,17 @@
  */
 
 
-package com.ximpleware.xpath;
+package com.ximpleware.extended.xpath;
 import java_cup.runtime.Symbol;
-import com.ximpleware.parser.*;
+import com.ximpleware.extended.parser.*;
+import com.ximpleware.extended.*;
 
 %%
 %cup
+%char
 %unicode
 %extends sym
-%yylexthrow XPathParseException
+%yylexthrow XPathParseExceptionHuge
 
 %{
 
@@ -36,7 +38,7 @@ import com.ximpleware.parser.*;
   private Symbol sym(int sym, Object val) {
     return new Symbol(sym, val);
   }
-
+ 
   int isName; 
   NameType name;
   FuncName fname; 
@@ -47,12 +49,15 @@ import com.ximpleware.parser.*;
   Double number; 
   int colonPosition;
 
+  public int getOffset(){
+  	return yychar;
+  }
   /* public void report_error(String message, Object info) {
 	//throw new XPathParseException("Syntax error during parsing");
   }
 
   public void report_fatal_error(String message, Object info) throws XPathParseException{
-	throw new XPathParseException("Syntax error during parsing: "+ message);
+	throw new XPathParseExceptionHuge("Syntax error during parsing: "+ message);
   }
 
   public void syntax_error(Symbol cur_token) {
@@ -60,7 +65,7 @@ import com.ximpleware.parser.*;
   }
   
   public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseException{
-	throw new XPathParseException("XPath Syntax error: "+cur_token);
+	throw new XPathParseExceptionHuge("XPath Syntax error: "+cur_token);
   }*/
 
 %}
@@ -94,6 +99,7 @@ nc2	=  ([^\!-/:-@\[-\^ \n\r\t\|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 "<="	{isName = 1 ; return sym(LE);}
 "="	{isName = 1 ; return sym(EQ);}
 "!="	{isName = 1 ; return sym(NE);}
+"$" {isName = 1; return sym(DOLLAR);}
 
 "*"	{if (isName ==0){
 		isName = 1;
@@ -285,6 +291,134 @@ translate{ws}*"("	{  	isName = 1;
 				//yyparser.yylval.fname.i = FuncName.TRANSLATE;
 				fname = new FuncName();
 				fname.i = FuncName.TRANSLATE;
+				return sym(FNAME,fname);
+			}
+			
+abs{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ABS;
+				fname = new FuncName();
+				fname.i = FuncName.ABS;
+				return sym(FNAME,fname);
+			}
+			
+round-half-to-even{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ROUND_HALF_TO_EVEN;
+				fname = new FuncName();
+				fname.i = FuncName.ROUND_HALF_TO_EVEN;
+				return sym(FNAME,fname);
+			}
+			
+round-half-to-odd{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ROUND_HALF_TO_ODD;
+				fname = new FuncName();
+				fname.i = FuncName.ROUND_HALF_TO_ODD;
+				return sym(FNAME,fname);
+			}
+
+code-points-to-string{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.CODE_POINTS_TO_STRING;
+				fname = new FuncName();
+				fname.i = FuncName.CODE_POINTS_TO_STRING;
+				return sym(FNAME,fname);
+			}
+			
+compare{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.COMPARE;
+				fname = new FuncName();
+				fname.i = FuncName.COMPARE;
+				return sym(FNAME,fname);
+			}
+			
+upper-case{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.UPPER_CASE;
+				fname = new FuncName();
+				fname.i = FuncName.UPPER_CASE;
+				return sym(FNAME,fname);
+			}
+			
+lower-case{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.LOWER_CASE;
+				fname = new FuncName();
+				fname.i = FuncName.LOWER_CASE;
+				return sym(FNAME,fname);
+			}
+
+ends-with{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ENDS_WITH;
+				fname = new FuncName();
+				fname.i = FuncName.ENDS_WITH;
+				return sym(FNAME,fname);
+			}
+			
+QName{ws}*"("	{  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.QNAME;
+				fname = new FuncName();
+				fname.i = FuncName.QNAME;
+				return sym(FNAME,fname);
+			}
+			
+local-name-from-QName{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.LOCAL_NAME_FROM_QNAME;
+				fname = new FuncName();
+				fname.i = FuncName.LOCAL_NAME_FROM_QNAME;
+				return sym(FNAME,fname);
+			}
+
+namespace-uri-from-QName{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.NAMESPACE_URI_FROM_QNAME;
+				fname = new FuncName();
+				fname.i = FuncName.NAMESPACE_URI_FROM_QNAME;
+				return sym(FNAME,fname);
+			}
+
+namespace-uri-for-prefix{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.NAMESPACE_URI_FOR_PREFIX;
+				fname = new FuncName();
+				fname.i = FuncName.NAMESPACE_URI_FOR_PREFIX;
+				return sym(FNAME,fname);
+			}			
+
+resolve-QName{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.RESOLVE_QNAME;
+				fname = new FuncName();
+				fname.i = FuncName.RESOLVE_QNAME;
+				return sym(FNAME,fname);
+			}
+
+iri-to-uri{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.IRI_TO_URI;
+				fname = new FuncName();
+				fname.i = FuncName.IRI_TO_URI;
+				return sym(FNAME,fname);
+			}
+			
+escape-html-uri{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ESCAPE_HTML_URI;
+				fname = new FuncName();
+				fname.i = FuncName.ESCAPE_HTML_URI;
+				return sym(FNAME,fname);
+			}
+			
+encode-for-uri{ws}*"(" {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ENCODE_FOR_URI;
+				fname = new FuncName();
+				fname.i = FuncName.ENCODE_FOR_URI;
 				return sym(FNAME,fname);
 			}
 
@@ -500,11 +634,11 @@ self{ws}*::		{	isName = 1;
 				len = yytext().length();
 				name = new NameType();
                                if (!XMLChar.isNCNameStartChar(yytext().charAt(0)))
-					throw new XPathParseException("Invalid char in name token:  "+yytext()+ "@position 0");
+					throw new XPathParseExceptionHuge("Invalid char in name token:  "+yytext()+ "@position 0");
 				
 				for(int i=1;i<len-2;i++){
 					if (!XMLChar.isNCNameChar(yytext().charAt(i)))
-						throw new XPathParseException("Invalid char in name token:  "+yytext()+ "@position "+i);
+						throw new XPathParseExceptionHuge("Invalid char in name token:  "+yytext()+ "@position "+i);
 				}
 
 				name.prefix = yytext().substring(0,len-2);
@@ -526,12 +660,12 @@ self{ws}*::		{	isName = 1;
 				
 				name.qname = new String(yytext());
 				if (!XMLChar.isNCNameStartChar(name.qname.charAt(0)))
-					throw new XPathParseException("Invalid char in name token:  "+yytext()+ "@position 0");
+					throw new XPathParseExceptionHuge("Invalid char in name token:  "+yytext()+ "@position 0");
 				
 				for(int i=1;i<name.qname.length();i++){
 					if (!XMLChar.isNCNameChar(name.qname.charAt(i)) 
 						&& name.qname.charAt(i)!=':' )
-						throw new XPathParseException("Invalid char in name token:  "+yytext()+ "@position "+i);
+						throw new XPathParseExceptionHuge("Invalid char in name token:  "+yytext()+ "@position "+i);
 					if (name.qname.charAt(i)==':'){
 						colonPosition = i;
 					}
@@ -548,5 +682,5 @@ self{ws}*::		{	isName = 1;
 
 
 .		{	
-			throw new XPathParseException("Invalid char in XPath Expression");
+			throw new XPathParseExceptionHuge("Invalid char in XPath Expression");
 		}
