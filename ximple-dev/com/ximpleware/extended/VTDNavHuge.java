@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 //import com.ximpleware.NavException;
+import com.ximpleware.VTDNav;
 import com.ximpleware.parser.ISO8859_10;
 import com.ximpleware.parser.ISO8859_2;
 import com.ximpleware.parser.ISO8859_3;
@@ -930,6 +931,40 @@ public class VTDNavHuge {
 	 */
 	final public int getNestingLevel() {
 		return nestingLevel;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	final public long getOffsetAfterHead(){
+	    
+	    int i = getCurrentIndex();
+	    if (getTokenType(i)!=VTDNav.TOKEN_STARTING_TAG){
+	        return -1;
+	    }
+	    int j=i+1;
+	    while (j<vtdSize && (getTokenType(j)==VTDNav.TOKEN_ATTR_NAME 
+	            || getTokenType(j)==VTDNav.TOKEN_ATTR_NS)){
+	        j += 2;
+	    }
+	    
+	    long offset; // this is character offset
+	    if (i+1==j)
+	    {
+	        offset = getTokenOffset(i)+getTokenLength(i);	                   
+	    }else {
+	        offset = getTokenOffset(j-1)+getTokenLength(j-1)+1;	                    
+	    }
+	    
+	    while(getCharUnit(offset)!='>'){
+	        offset++;	        
+	    }
+	    
+	    if (getCharUnit(offset-1)=='/')
+	        return -1;
+	    else
+	        return (encoding<= FORMAT_WIN_1258)? offset+1:((offset+1)<<1);
 	}
 	/**
 	 * Get root index value , which is the index val of document element
@@ -3396,7 +3431,15 @@ public class VTDNavHuge {
 		else
 			return 0;
 	}
-	
+	/**
+	 * Test the start of token content at index i matches the content 
+	 * of s, notice that this is to save the string allocation cost of
+	 * using String's built-in startsWidth 
+	 * @param index
+	 * @param s
+	 * @return
+	 * @throws NavExceptionHuge
+	 */
 	final public boolean startsWith(int index, String s) throws NavExceptionHuge{
 		int type = getTokenType(index);
 		int len =
