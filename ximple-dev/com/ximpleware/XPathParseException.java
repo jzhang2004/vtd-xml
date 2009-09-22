@@ -22,8 +22,17 @@ package com.ximpleware;
  *
  */
 public class XPathParseException extends VTDException{
+	int offset;
+	public XPathParseException(String s, int i){
+		super(s);
+		offset = i;
+	}
 	public XPathParseException(String s){
 		super(s);
+		offset = 0;
+	}
+	public int getOffset(){
+		return offset;
 	}
 }
 

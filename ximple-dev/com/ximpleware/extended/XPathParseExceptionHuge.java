@@ -26,5 +26,13 @@ public class XPathParseExceptionHuge extends VTDExceptionHuge{
 	public XPathParseExceptionHuge(String s){
 		super(s);
 	}
+	int offset;
+	public XPathParseExceptionHuge(String s, int i){
+		super(s);
+		offset = i;
+	}
+	public int getOffset(){
+		return offset;
+	}
 }
 

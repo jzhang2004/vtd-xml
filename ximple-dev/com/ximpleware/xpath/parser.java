@@ -471,7 +471,8 @@ public class parser extends java_cup.runtime.lr_parser {
   }
   
   public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseException{
-	throw new XPathParseException("XPath Syntax error: "+cur_token);
+	  Yylex scanner = (Yylex)getScanner();
+	  throw new XPathParseException("XPath Syntax error: "+cur_token, scanner.getOffset());
   }
  
 }

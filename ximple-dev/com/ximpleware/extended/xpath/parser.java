@@ -7,8 +7,12 @@
 package com.ximpleware.extended.xpath;
 
 import java_cup.runtime.*;
+
+import com.ximpleware.XPathParseException;
 import com.ximpleware.extended.*;
 import com.ximpleware.extended.xpath.*;
+//import com.ximpleware.xpath.Yylex;
+
 import java.util.*;
 
 /** CUP v0.10k generated parser.
@@ -446,7 +450,7 @@ public class parser extends java_cup.runtime.lr_parser {
     super(new Yylex(input));
   }
 
-  public static void main(String args[]){
+  /*public static void main(String args[]){
     try {
       parser p = new parser(System.in);
       Object result = p.parse().value;
@@ -456,7 +460,7 @@ public class parser extends java_cup.runtime.lr_parser {
     catch (Exception e) {
 		System.out.println("caught: "+e);
     }
-  }
+  }*/
  
   public void report_error(String message, Object info) {
 	//throw new XPathParseException("Syntax error during parsing");
@@ -471,8 +475,51 @@ public class parser extends java_cup.runtime.lr_parser {
   }
   
   public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseExceptionHuge{
-	throw new XPathParseExceptionHuge("XPath Syntax error: "+cur_token);
+	 //Yylex scanner = (Yylex)this.getScanner();
+	 Yylex scanner = (Yylex)getScanner();	 
+	 throw new XPathParseExceptionHuge("XPath Syntax error: "+cur_token, scanner.getOffset());
+	 //String input = scanner.getInputString();
+	//throw new XPathParseExceptionHuge("XPath Syntax error after the token "+ getSymbolString(prev_token)+getSymbolString(cur_token));
   }
+  /*private String getSymbolString(Symbol s){
+  	switch (s.sym){
+  	case 0:  return " ";
+  	case 1:  return " ";
+  	case 2:  return "+";
+  	case 3:  return "-";
+  	case 4:  return ".";
+  	case 5:  return "..";
+  	case 6:  return "@";
+  	case 7:  return ",";
+  	case 8:  return "(";
+  	case 9:  return ")";
+  	case 10:  return "[";
+  	case 11:  return "]";
+  	case 12:  return ">";
+  	case 13:  return "<";
+  	case 14:  return ">=";
+  	case 15:  return "<=";
+  	case 16:  return "=";
+  	case 17:  return "!=";
+  	case 18:  return "*";
+  	case 19:  return "/";
+  	case 20:  return "//";
+  	case 21:  return "div";
+  	case 22:  return "mod";
+  	case 23:  return "and";
+  	case 24:  return "or";
+  	case 25:  return "|";
+  	case 26:  return "-";
+  	case 27:  return "$";
+  	case 28:  return ((Double)s.value).toString();
+  	case 29:  return (String)s.value;
+  	case 30:  return ((FuncName)s.value).getFuncString();
+  	case 31:  return ((Ntest)s.value).getNtestString();
+  	case 32:  return ((NameType)s.value).qname;
+  	case 33:  return ((AxisType)s.value).getAxisString();
+  	}
+  	return null;
+  }*/
  
 }
 
@@ -1456,5 +1503,7 @@ class CUP$parser$actions {
 
         }
     }
+  
+   
 }
 
