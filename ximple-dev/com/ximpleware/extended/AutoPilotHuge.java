@@ -149,6 +149,7 @@ public void declareVariableExpr(String varName, String varExpr) throws XPathPars
         symbolHash.put(varName, xpe);
         ft = true;
      }catch(XPathParseExceptionHuge e){
+    	 System.out.println("Syntax error after  ==>"+varExpr.substring(0,e.getOffset()));
          throw e;
      }catch(Exception e){
          throw new XPathParseExceptionHuge("Error occurred");
@@ -511,6 +512,7 @@ public void selectXPath(String s) throws XPathParseExceptionHuge {
        xpe = (com.ximpleware.extended.xpath.Expr) p.parse().value;
        ft = true;
     }catch(XPathParseExceptionHuge e){
+    	System.out.println("Syntax error after  ==>"+ s.substring(0,e.getOffset()));
         throw e;
     }catch(Exception e){
         throw new XPathParseExceptionHuge("Error occurred");
