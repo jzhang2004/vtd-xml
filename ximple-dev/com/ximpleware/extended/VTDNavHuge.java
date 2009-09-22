@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 //import com.ximpleware.NavException;
-import com.ximpleware.VTDNav;
+
 import com.ximpleware.parser.ISO8859_10;
 import com.ximpleware.parser.ISO8859_2;
 import com.ximpleware.parser.ISO8859_3;
@@ -940,12 +940,12 @@ public class VTDNavHuge {
 	final public long getOffsetAfterHead(){
 	    
 	    int i = getCurrentIndex();
-	    if (getTokenType(i)!=VTDNav.TOKEN_STARTING_TAG){
+	    if (getTokenType(i)!=VTDNavHuge.TOKEN_STARTING_TAG){
 	        return -1;
 	    }
 	    int j=i+1;
-	    while (j<vtdSize && (getTokenType(j)==VTDNav.TOKEN_ATTR_NAME 
-	            || getTokenType(j)==VTDNav.TOKEN_ATTR_NS)){
+	    while (j<vtdSize && (getTokenType(j)==VTDNavHuge.TOKEN_ATTR_NAME 
+	            || getTokenType(j)==VTDNavHuge.TOKEN_ATTR_NS)){
 	        j += 2;
 	    }
 	    
@@ -1503,6 +1503,50 @@ public class VTDNavHuge {
             return -1;
         return 0;
     }
+	
+	/**
+	 * Test whether a given token contains s. notie that this function
+	 * directly operates on the byte content of the token to avoid string creation
+	 * @param index
+	 * @param s
+	 * @return
+	 * @throws NavExceptionHuge
+	 */
+	final public boolean contains(int index, String s) throws NavExceptionHuge{
+		int type = getTokenType(index);
+		int len =
+			(type == TOKEN_STARTING_TAG
+				|| type == TOKEN_ATTR_NAME
+				|| type == TOKEN_ATTR_NS)
+				? getTokenLength(index) & 0xffff
+				: getTokenLength(index);
+	    long offset = getTokenOffset(index);
+	    long l1; 
+	    int i,l;
+	    long endOffset = offset + len;
+	    
+        //       System.out.print("currentOffset :" + currentOffset);
+        long gOffset = offset;
+        l = s.length();
+        if (l> len)
+        	return false;
+        //System.out.println(s);
+        while( offset<endOffset){
+        	gOffset = offset;
+			for (i = 0; i < l && gOffset < endOffset; i++) {
+				l1 = getCharResolved(gOffset);
+				int i1 = s.charAt(i);
+				gOffset += (int) (l1 >> 32);
+				if (i ==0)
+					offset = gOffset;
+				if (i1 != (int) l1)
+					break;				
+			}
+			if (i==l)
+				return true;
+        }
+		return false;
+	}
 
 	/**
 	 * Lexicographically compare a string against a token with given 

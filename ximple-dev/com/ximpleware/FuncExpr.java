@@ -371,8 +371,18 @@ public class FuncExpr extends Expr{
 		
 	
 	private boolean contains(VTDNav vn){
+		String s2 = argumentList.next.e.evalString(vn);
+		if (argumentList.e.isNodeSet()){
+			int a = evalFirstArgumentListNodeSet(vn);
+			if (a==-1)
+				return false;
+			try {
+				return vn.contains(a, s2);
+			}catch (Exception e){
+				return false;
+			}				
+		} 
 	    String s1 = argumentList.e.evalString(vn);
-	    String s2 = argumentList.next.e.evalString(vn);
 	    //return s1.contains(s2);
 	    return s1.indexOf(s2)!=-1;
 	    //return (s1.i))

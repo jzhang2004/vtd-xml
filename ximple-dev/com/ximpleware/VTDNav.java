@@ -1137,7 +1137,7 @@ public class VTDNav {
 	
 	/**
 	 * Return the offset after head (the ending bracket of the starting tag, 
-	 * not including an empty element)
+	 * not including an empty element, in which case -1 is returned)
 	 * @return
 	 *
 	 */
@@ -4161,8 +4161,10 @@ public class VTDNav {
 	    
         //       System.out.print("currentOffset :" + currentOffset);
         l = s.length();
+        if (l>len)
+        	return false;
         i2 = getStringLength(index);
-        if (l> len || l> i2)
+        if (l> i2)
         	return false;
         i2 = i2 - l; // calculate the # of chars to be skipped
         // eat away first several chars
@@ -4181,16 +4183,55 @@ public class VTDNav {
 		return true;
 	}
 	
-	
-	final public boolean contains(int i, String s) throws NavException{
+	/**
+	 * Test whether a given token contains s. notie that this function
+	 * directly operates on the byte content of the token to avoid string creation
+	 * @param index
+	 * @param s
+	 * @return
+	 * @throws NavException
+	 */
+	final public boolean contains(int index, String s) throws NavException{
+		int type = getTokenType(index);
+		int len =
+			(type == TOKEN_STARTING_TAG
+				|| type == TOKEN_ATTR_NAME
+				|| type == TOKEN_ATTR_NS)
+				? getTokenLength(index) & 0xffff
+				: getTokenLength(index);
+	    int offset = getTokenOffset(index);
+	    long l1; 
+	    int i,l, i2;
+	    int endOffset = offset + len;
+	    
+        //       System.out.print("currentOffset :" + currentOffset);
+        int gOffset = offset;
+        l = s.length();
+        if (l> len)
+        	return false;
+        //System.out.println(s);
+        while( offset<endOffset){
+        	gOffset = offset;
+			for (i = 0; i < l && gOffset < endOffset; i++) {
+				l1 = getCharResolved(gOffset);
+				int i1 = s.charAt(i);
+				gOffset += (int) (l1 >> 32);
+				if (i ==0)
+					offset = gOffset;
+				if (i1 != (int) l1)
+					break;				
+			}
+			if (i==l)
+				return true;
+        }
 		return false;
 	}
 	
 	/**
-     * Get the value of atTerminal This function only gets called in XPath eval
-     * 
-     * @return boolean
-     */
+	 * Get the value of atTerminal This function only gets called in XPath eval
+	 * 
+	 * @return boolean
+	 */
 	final protected boolean getAtTerminal(){
 		return atTerminal;
 	}
