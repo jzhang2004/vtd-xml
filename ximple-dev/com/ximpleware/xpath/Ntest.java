@@ -28,4 +28,14 @@ public class Ntest{
 	public final static int TEXT = 2;
 	public final static int PROCESSING_INSTRUCTION = 3;
 	public final static int NODE = 1;
+	
+//	public String getNtestString(){		
+//	switch (i){
+//	case 1: return "node(";
+//	case 2: return "text(";
+//	case 3: return "processing-instruction(";
+//	case 5: return "comment(";
+//	default: return "invalid node type!!!";
+//	}
+//}
 }

@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware.extended.xpath;
+
+
 /**
  * 
  * This class is used by lexer to detect built-in functions
@@ -68,4 +70,57 @@ public class FuncName{
 	public static final int     ESCAPE_HTML_URI = 40;
 	public static final int     ENCODE_FOR_URI = 41;
 
+//	String getFuncString(){
+//		switch(i){
+//		case FuncName.LAST: 			return "last";
+//		case FuncName.POSITION: 		return "position";
+//		case FuncName.COUNT: 			return "count";
+//		case FuncName.LOCAL_NAME: 		return "local-name";
+//		case FuncName.NAMESPACE_URI: 	return "namespace-uri";
+//		case FuncName.NAME: 			return "name";
+//		case FuncName.STRING: 			return "string";
+//		case FuncName.CONCAT: 			return "concat";
+//		case FuncName.STARTS_WITH:		return "starts-with";
+//		case FuncName.CONTAINS: 		return "contains";
+//		case FuncName.SUBSTRING_BEFORE: return "substring-before";
+//		case FuncName.SUBSTRING_AFTER: 	return "substring-after";
+//		case FuncName.SUBSTRING: 		return "substring";
+//		case FuncName.STRING_LENGTH: 	return "string-length";
+//		case FuncName.NORMALIZE_SPACE: 	return "normalize-space";
+//		case FuncName.TRANSLATE:	 	return "translate";
+//		case FuncName.BOOLEAN: 			return "boolean";
+//		case FuncName.NOT: 				return "not";
+//		case FuncName.TRUE: 			return "true";
+//		case FuncName.FALSE: 			return "false";
+//		case FuncName.LANG: 			return "lang";
+//		case FuncName.NUMBER:			return "number";
+//		case FuncName.SUM: 			 	return "sum";
+//		case FuncName.FLOOR: 			return "floor";
+//		case FuncName.CEILING: 			return "ceiling";
+//		case FuncName.ROUND:			return "round";
+////		 added for 2.0
+//		case FuncName.ABS:				return "abs";
+//		case FuncName.ROUND_HALF_TO_EVEN :											
+//										return "round-half-to-even";
+//		case FuncName.ROUND_HALF_TO_ODD:
+//		    							return "round-half-to-odd";
+//		case FuncName.CODE_POINTS_TO_STRING:
+//		    							return "code-points-to-string";
+//		case FuncName.COMPARE:			return "compare";
+//		case FuncName.UPPER_CASE:		return "upper-case";
+//		case FuncName.LOWER_CASE:		return "lower-case";
+//		case FuncName.ENDS_WITH:		return "ends-with";
+//		case FuncName.QNAME:			return "QName";
+//		case FuncName.LOCAL_NAME_FROM_QNAME:
+//										return "local-name-from-QName";
+//		case FuncName.NAMESPACE_URI_FROM_QNAME:
+//										return "namespace-uri-from-QName";
+//		case FuncName.NAMESPACE_URI_FOR_PREFIX:
+//		    							return "namespace-uri-for-prefix";
+//		case FuncName.RESOLVE_QNAME:	return "resolve-QName";
+//		case FuncName.IRI_TO_URI:    	return "iri-to-uri";
+//		case FuncName.ESCAPE_HTML_URI:	return "escape-html-uri";
+//		default:						return "encode-for-uri";
+//		}
+//	}
 }
