@@ -15,10 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-package com.ximpleware.xpath;
+package com.ximpleware.extended.xpath;
 import java_cup.runtime.*;
-import com.ximpleware.*;
-import com.ximpleware.xpath.*;
+import com.ximpleware.extended.*;
+//import com.ximpleware.extended.xpath.*;
 import java.util.*;
 parser code {:  
   public Hashtable ht;
@@ -61,7 +61,8 @@ parser code {:
   }
   
   public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseException{
-	throw new XPathParseException("XPath Syntax error: "+cur_token);
+	 Yylex scanner = (Yylex)getScanner();
+	 throw new XPathParseExceptionHuge("XPath Syntax error: "+cur_token, scanner.getOffset());
   }
  :};
 
@@ -75,11 +76,11 @@ terminal Ntest NTEST;
 terminal NameType NAME;
 terminal AxisType AXISNAME;
 
-non terminal VariableReference;
+
 non terminal FuncExpr FunctionCall; 
 non terminal FuncName FunctionName;
 non terminal Expr Expr, OrExpr, EqualityExpr, AndExpr, RelationalExpr, AdditiveExpr;
-non terminal Expr MultiplicativeExpr, UnaryExpr, PathExpr, FilterExpr;
+non terminal Expr MultiplicativeExpr, UnaryExpr, PathExpr, FilterExpr, VariableReference;
 non terminal UnionExpr UnionExpr;
 non terminal Alist ArgumentList;
 non terminal Expr PrimaryExpr, Argument;
@@ -382,7 +383,11 @@ Predicate 	::=    LB Expr:e RB
 	   	;
 
 
-VariableReference ::= DOLLAR NAME	
+VariableReference ::= DOLLAR NAME:n	{:
+            if (parser.symbolHash.get(n.qname)==null)
+		      throw new XPathParseExceptionHuge("variableExpression not declared ==> $"+n.qname);
+			RESULT = new VariableExpr(n.qname, (Expr)parser.symbolHash.get(n.qname));	
+			:}
 		  ;
 
 FunctionName 	::=  FNAME :fn
