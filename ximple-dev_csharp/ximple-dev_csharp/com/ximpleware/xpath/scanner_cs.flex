@@ -29,6 +29,7 @@ using com.ximpleware.parser;
 %%
 %cup
 %unicode
+%char
 %extends sym
 %yylexthrow XPathParseException
 
@@ -52,6 +53,9 @@ using com.ximpleware.parser;
   Double number; 
   int colonPosition;
 
+  public int getOffset(){
+	return yychar;	
+  }
 
 %}
 %init{
@@ -84,6 +88,7 @@ nc2	=  ([^\!-/:-@\[-\^ \n\r\t\|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 "<="	{isName = 1 ; return sym(LE);}
 "="	{isName = 1 ; return sym(EQ);}
 "!="	{isName = 1 ; return sym(NE);}
+"$"	{isName = 1; return sym(DOLLAR);}
 
 "*"	{if (isName ==0){
 		isName = 1;

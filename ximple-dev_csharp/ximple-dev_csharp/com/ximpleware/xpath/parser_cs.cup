@@ -24,14 +24,15 @@ using System;
 using System.Collections;
 
 parser code {:  
-  public Hashtable ht;
+  public Hashtable nsHash;
+  public Hashtable symbolHash;
   public Step tempStep;
   public NodeTest tempNt;
   public LocationPathExpr tempLPExpr;
   
   public parser (System.IO.StringReader input):base(new Yylex(input)) {
     
-    ht = null;
+    nsHash = null;
   }
   /*
   public parser (java.io.InputStream input) {
@@ -64,7 +65,8 @@ parser code {:
   }
   
   public void unrecovered_syntax_error(Symbol cur_token){
-	throw new XPathParseException("XPath Syntax error: "+cur_token);
+	Yylex scanner = (Yylex)getScanner();
+	throw new XPathParseException("XPath Syntax error: "+cur_token, scanner.getOffset() );
   }
  :};
 
@@ -78,11 +80,10 @@ terminal Ntest NTEST;
 terminal NameType NAME;
 terminal AxisType AXISNAME;
 
-non terminal VariableReference;
 non terminal FuncExpr FunctionCall;
 non terminal FuncName FunctionName;
 non terminal Expr Expr, OrExpr, EqualityExpr, AndExpr, RelationalExpr, AdditiveExpr;
-non terminal Expr MultiplicativeExpr, UnaryExpr, PathExpr, FilterExpr;
+non terminal Expr MultiplicativeExpr, UnaryExpr, PathExpr, FilterExpr, VariableReference;
 non terminal UnionExpr UnionExpr;
 non terminal Alist ArgumentList;
 non terminal Expr PrimaryExpr, Argument;
@@ -214,7 +215,8 @@ FilterExpr   	::=  PrimaryExpr:pe
 		{: RESULT = new FilterExpr(fe, p);:}
 		;
 
-PrimaryExpr     ::=  VariableReference  
+PrimaryExpr     ::=  VariableReference:ve
+		{: RESULT = ve; :} 
 		|    LP Expr:e RP 
 		{: RESULT = e; :} 
 		|    LITERAL:le  
@@ -298,10 +300,10 @@ nodetest	::=    NAME:n
 		   RESULT.NodeName=n.qname;
 		   if (n.localname!=null){
 		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
-		   	 if (my_parser.ht==null || my_parser.ht[n.prefix] ==null)
+		   	 if (my_parser.nsHash==null || my_parser.nsHash[n.prefix] ==null)
 
 		   	    throw new XPathParseException("No URL found for prefix:"+n.prefix);
-		   	 RESULT.URL = (String) my_parser.ht[n.prefix];
+		   	 RESULT.URL = (String) my_parser.nsHash[n.prefix];
 		   }
 		:}
 		|    NTEST:n2				
@@ -383,8 +385,14 @@ Predicate 	::=    LB Expr:e RB
 	   	;
 
 
-VariableReference ::= DOLLAR NAME	
-		  ;
+VariableReference ::= DOLLAR NAME:n
+   		{:
+   		  if (my_parser.symbolHash[n.qname]==null)
+   		    throw new XPathParseException("variableExpression not declared ==> $"+n.qname);
+   		    RESULT = new VariableExpr(n.qname, (Expr)my_parser.symbolHash[n.qname]);
+   		:}
+           ;
+
 
 FunctionName 	::=  FNAME :fn
 		{: RESULT = fn; :} 
