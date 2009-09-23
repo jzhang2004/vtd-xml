@@ -279,19 +279,7 @@ namespace com.ximpleware
             }
             else if (argCount() == 1)
             {
-                int a = -1;
-                vn.push2();
-                try
-                {
-                    a = argumentList.e.evalNodeSet(vn);
-                    argumentList.e.reset(vn);
-                    vn.pop2();
-                }
-                catch (Exception e)
-                {
-                    argumentList.e.reset(vn);
-                    vn.pop2();
-                }
+                int a = evalFirstArgumentListNodeSet2(vn);
 
                 if (a == -1 || vn.ns == false)
                     return "";
@@ -354,34 +342,36 @@ namespace com.ximpleware
             }
             else if (argCount() == 1)
             {
-                int a = -1;
                 vn.push2();
+                int size = vn.contextStack2.size;
+                int a = -1;
                 try
                 {
                     a = argumentList.e.evalNodeSet(vn);
-                    argumentList.e.reset(vn);
-                    vn.pop2();
                 }
                 catch (Exception e)
                 {
-                    argumentList.e.reset(vn);
-                    vn.pop2();
                 }
+                String s = "";
+                // return a;
                 try
                 {
                     if (a == -1 || vn.ns == false)
-                        return "";
+                        ;
                     else
                     {
                         int type = vn.getTokenType(a);
                         if (type == VTDNav.TOKEN_STARTING_TAG
                                 || type == VTDNav.TOKEN_ATTR_NAME)
-                            return vn.toString(vn.lookupNS());
-                        return "";
+                            s = vn.toString(vn.lookupNS());
+
                     }
                 }
                 catch (Exception e) { };
-                return "";
+                vn.contextStack2.size = size;
+                argumentList.e.reset(vn);
+                vn.pop2();
+                return s;
 
             }
             else
@@ -414,19 +404,7 @@ namespace com.ximpleware
             }
             else if (argCount() == 1)
             {
-                a = -1;
-                vn.push2();
-                try
-                {
-                    a = argumentList.e.evalNodeSet(vn);
-                    argumentList.e.reset(vn);
-                    vn.pop2();
-                }
-                catch (Exception e)
-                {
-                    argumentList.e.reset(vn);
-                    vn.pop2();
-                }
+                a = evalFirstArgumentListNodeSet2(vn);
                 try
                 {
                     if (a == -1 || vn.ns == false)
@@ -475,9 +453,10 @@ namespace com.ximpleware
                 case FuncName.SUBSTRING: return subString(vn);
                 case FuncName.TRANSLATE: return translate(vn);
                 case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
-                case FuncName.CODE_POINTS_TO_STRING:
-   			    case FuncName.UPPER_CASE:
-   			    case FuncName.LOWER_CASE:
+                case FuncName.CODE_POINTS_TO_STRING: 
+                    throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
+   			    case FuncName.UPPER_CASE: return upperCase(vn);
+                case FuncName.LOWER_CASE: return lowerCase(vn);
    			    case FuncName.QNAME:
    			    case FuncName.LOCAL_NAME_FROM_QNAME:
    			    case FuncName.NAMESPACE_URI_FROM_QNAME:
@@ -635,7 +614,7 @@ namespace com.ximpleware
                     return (long)System.Math.Round(argumentList.e.evalNumber(vn));
 
                 case FuncName.ABS: if (argCount() != 1)
-                        throw new System.ArgumentException("round()'s argument count is invalid");
+                        throw new System.ArgumentException("abs()'s argument count is invalid");
                     //UPGRADE_TODO: Method 'java.lang.Math.round' was converted to 'System.Math.Round' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangMathround_double'"
                     return (long)System.Math.Abs(argumentList.e.evalNumber(vn));
                 case FuncName.ROUND_HALF_TO_EVEN : 
@@ -833,26 +812,6 @@ namespace com.ximpleware
             }
         }
 
-        private bool startsWith(VTDNav vn)
-        {
-            System.String s1 = argumentList.e.evalString(vn);
-            System.String s2 = argumentList.next.e.evalString(vn);
-            return s1.StartsWith(s2);
-        }
-
-        private bool endsWith(VTDNav vn) 
-        {
-            System.String s1 = argumentList.e.evalString(vn);
-            System.String s2 = argumentList.next.e.evalString(vn);
-            return s1.EndsWith(s2);
-        }
-
-        private bool contains(VTDNav vn)
-        {
-            System.String s1 = argumentList.e.evalString(vn);
-            System.String s2 = argumentList.next.e.evalString(vn);
-            return s1.Contains(s2);
-        }
 
         private System.String subStringAfter(VTDNav vn)
         {
@@ -1157,6 +1116,189 @@ namespace com.ximpleware
                 }
             }
             return false;
+        }
+
+        private int evalFirstArgumentListNodeSet(VTDNav vn)
+        {
+            vn.push2();
+            int size = vn.contextStack2.size;
+            int a = -1;
+            try
+            {
+                a = argumentList.e.evalNodeSet(vn);
+                if (a != -1)
+                {
+                    if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME)
+                    {
+                        a++;
+                    }
+                    if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG)
+                    {
+                        a = vn.getText();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+            }
+            vn.contextStack2.size = size;
+            argumentList.e.reset(vn);
+            vn.pop2();
+            return a;
+        }
+
+        private int evalFirstArgumentListNodeSet2(VTDNav vn)
+        {
+            vn.push2();
+            int size = vn.contextStack2.size;
+            int a = -1;
+            try
+            {
+                a = argumentList.e.evalNodeSet(vn);
+            }
+            catch (Exception e)
+            {
+            }
+            vn.contextStack2.size = size;
+            argumentList.e.reset(vn);
+            vn.pop2();
+            return a;
+        }
+
+        private bool endsWith(VTDNav vn)
+        {
+            String s2 = argumentList.next.e.evalString(vn);
+            if (argumentList.e.NodeSet)
+            {
+                int a = evalFirstArgumentListNodeSet(vn);
+                if (a == -1)
+                    return "".EndsWith(s2);
+                else
+                {
+                    try
+                    {
+                        return vn.endsWith(a, s2);
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                    return false;
+                }
+            }
+            String s1 = argumentList.e.evalString(vn);
+            return s1.EndsWith(s2);
+        }
+
+
+        private bool contains(VTDNav vn)
+        {
+            String s2 = argumentList.next.e.evalString(vn);
+            if (argumentList.e.NodeSet)
+            {
+                int a = evalFirstArgumentListNodeSet(vn);
+                if (a == -1)
+                    return false;
+                try
+                {
+                    return vn.contains(a, s2);
+                }
+                catch (Exception e)
+                {
+                    return false;
+                }
+            }
+            String s1 = argumentList.e.evalString(vn);
+            //return s1.contains(s2);
+            return s1.IndexOf(s2) != -1;
+            //return (s1.i))
+        }
+
+        private bool startsWith(VTDNav vn)
+        {
+            String s2 = argumentList.next.e.evalString(vn);
+            if (argumentList.e.NodeSet)
+            {
+                //boolean b = false;
+                int a = evalFirstArgumentListNodeSet(vn);
+                if (a == -1)
+                    return "".StartsWith(s2);
+                else
+                {
+                    try
+                    {
+                        return vn.startsWith(a, s2);
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                    return false;
+                }
+            }
+            String s1 = argumentList.e.evalString(vn);
+            return s1.StartsWith(s2);
+        }
+
+        private String upperCase(VTDNav vn)
+        {
+            if (argCount() == 1)
+            {
+                if (argumentList.e.NodeSet)
+                {
+                    int a = evalFirstArgumentListNodeSet(vn);
+                    if (a == -1)
+                        return "";
+                    else
+                    {
+                        try
+                        {
+                            return vn.toStringUpperCase(a);
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                        return "";
+                    }
+                }
+                else
+                {
+                    return (argumentList.e.evalString(vn)).ToUpper();
+                }
+            }
+            else
+                throw new System.ArgumentException
+                ("upperCase()'s argument count is invalid");
+
+        }
+
+        private String lowerCase(VTDNav vn)
+        {
+            if (argCount() == 1)
+            {
+                if (argumentList.e.NodeSet)
+                {
+                    int a = evalFirstArgumentListNodeSet(vn);
+                    if (a == -1)
+                        return "";
+                    else
+                    {
+                        try
+                        {
+                            return vn.toStringLowerCase(a);
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                        return "";
+                    }
+                }
+                else
+                {
+                    return (argumentList.e.evalString(vn)).ToLower();
+                }
+            }
+            else
+                throw new System.ArgumentException
+                ("lowerCase()'s argument count is invalid");
         }
     }
 }
