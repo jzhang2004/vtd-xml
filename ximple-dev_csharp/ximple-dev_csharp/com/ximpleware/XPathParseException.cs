@@ -23,10 +23,22 @@ namespace com.ximpleware
 	/// 
 	/// </summary>
 	[Serializable]
+
 	public class XPathParseException:VTDException
 	{
+        int i;
 		public XPathParseException(System.String s):base(s)
 		{
 		}
+
+        public XPathParseException(System.String s, int a):base(s)
+        {
+            i = a;
+
+        }
+        public int getOffset()
+        {
+            return i;
+        }
 	}
 }
