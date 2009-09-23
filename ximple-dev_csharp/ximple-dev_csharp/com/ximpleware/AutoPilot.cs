@@ -76,7 +76,8 @@ namespace com.ximpleware
 		
 		private int[] contextCopy; //for preceding axis
 		private int stackSize; // the stack size for xpath evaluation
-		private System.Collections.Hashtable ht;
+		static private System.Collections.Hashtable nsHash;
+        static private System.Collections.Hashtable symbolHash;
 		//private parser p;
 		// defines the type of "iteration"
 		public const int UNDEFINED = 0;
@@ -107,6 +108,7 @@ namespace com.ximpleware
 			size = 0;
 			special = false;
 			xpe = null;
+            symbolHash = new System.Collections.Hashtable();
 			//p = null;       
 		}
 		
@@ -124,6 +126,7 @@ namespace com.ximpleware
 			size = 0;
 			special = false;
 			xpe = null;
+            symbolHash = new System.Collections.Hashtable();
 		}
 		/// <summary>This function creates URL ns prefix 
 		/// and is intended to be called prior to selectXPath
@@ -135,11 +138,41 @@ namespace com.ximpleware
 		
 		public void  declareXPathNameSpace(System.String prefix, System.String URL)
 		{
-			if (ht == null)
-				ht = System.Collections.Hashtable.Synchronized(new System.Collections.Hashtable());
-			ht[prefix] = URL;
+			if (nsHash == null)
+				nsHash = System.Collections.Hashtable.Synchronized(new System.Collections.Hashtable());
+			nsHash[prefix] = URL;
 			//System.out.println(ht); 
 		}
+
+        /// <summary>
+        /// declare variable references
+        /// </summary>
+        /// <param name="varName"></param>
+        /// <param name="varExpr"></param>
+        public void declareVariableExpr(String varName, String varExpr)
+        {
+           
+            try
+            {
+                com.ximpleware.xpath.parser p = new com.ximpleware.xpath.parser(new System.IO.StringReader(varExpr));
+                p.nsHash = nsHash;
+                p.symbolHash = symbolHash;
+                xpe = (com.ximpleware.xpath.Expr)p.parse().value;
+                symbolHash[varName] = xpe;
+                ft = true;
+            }
+            catch (XPathParseException e)
+            {
+                //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Throwable.toString' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                Console.WriteLine("Syntax error after  ==>" + varExpr.Substring(0, e.getOffset()));
+                throw new XPathParseException(e.ToString());
+            }
+            catch (System.Exception e)
+            {
+                Console.WriteLine("error occurred");
+                throw new XPathParseException(e.ToString());
+            }
+        }
 		
 		/// <summary> Bind is to replace rebind() and setVTDNav()
 		/// It resets the internal state of AutoPilot
@@ -587,18 +620,39 @@ namespace com.ximpleware
 			try
 			{
 				com.ximpleware.xpath.parser p = new com.ximpleware.xpath.parser(new System.IO.StringReader(s));
-				p.ht = ht;
+				p.nsHash = nsHash;
+                p.symbolHash = symbolHash;
 				xpe = (com.ximpleware.xpath.Expr) p.parse().value;
                 ft = true;
 			}
-			catch (System.Exception e)
+			catch (XPathParseException e)
 			{
 				//UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Throwable.toString' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
-				throw new XPathParseException(e.ToString());
+                Console.WriteLine("Syntax error after  ==>" + s.Substring(0, e.getOffset()));
+                throw new XPathParseException(e.ToString());
 			}
+            catch (System.Exception e){
+                throw new XPathParseException(e.ToString());
+            }
 		}
+        /// <summary>
+        /// Remove all namespaces bindings
+        /// </summary>
+        public void clearVariableExprs()
+        {
+            symbolHash.Clear();
+        }
+
+        /// <summary>
+        /// Remove all namespace bindings
+        /// </summary>
+        public void clearXPathNameSpaceBindings()
+        {
+            nsHash.Clear();
+        }
 		
-		/// <summary> Reset the XPath so the XPath Expression can 
+		/// <summary> 
+        /// Reset the XPath so the XPath Expression can 
 		/// be reused and revaluated in anther context position
 		/// 
 		/// </summary>
@@ -638,7 +692,7 @@ namespace com.ximpleware
         ///  evalXPathToBoolean() evaluates the xpath expression to a boolean
         /// </summary>
         /// <returns> return the result as a boolean</returns>
-        public Boolean evalXPathToBoolean()
+        public bool evalXPathToBoolean()
         {
             return xpe.evalBoolean(vn);
         }
