@@ -646,7 +646,7 @@ namespace com.ximpleware
         /// <summary>
         /// Remove all namespace bindings
         /// </summary>
-        public void clearXPathNameSpaceBindings()
+        public void clearXPathNameSpaces()
         {
             nsHash.Clear();
         }
