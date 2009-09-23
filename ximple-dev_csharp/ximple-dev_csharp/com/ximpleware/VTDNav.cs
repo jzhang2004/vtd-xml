@@ -577,8 +577,9 @@ namespace com.ximpleware
                         k = this.rootIndex + 1;
                     }
                     if (k < this.vtdSize)
-                    {                        
-                        while (k < this.vtdSize){
+                    {
+                        while (k < this.vtdSize)
+                        {
                             int type = this.getTokenType(k);
                             if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
                             {
@@ -4631,6 +4632,230 @@ namespace com.ximpleware
                 (FastLongBuffer)this.l2Buffer,
                 (FastIntBuffer)this.l3Buffer,
                 os);
+        }
+
+        /// <summary>
+        /// Test the start of token content at index i matches the content 
+        /// of s, notice that this is to save the string allocation cost of 
+        /// using String's built-in startsWidth 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public bool startsWith(int index, String s)
+        {
+            int type = getTokenType(index);
+            int len =
+                    (type == TOKEN_STARTING_TAG
+                            || type == TOKEN_ATTR_NAME
+                            || type == TOKEN_ATTR_NS)
+                            ? getTokenLength(index) & 0xffff
+                            : getTokenLength(index);
+            int offset = getTokenOffset(index);
+            long l1;
+            int i, l;
+            int endOffset = offset + len;
+
+            l = s.Length;
+            if (l > len)
+                return false;
+
+            for (i = 0; i < l && offset < endOffset; i++)
+            {
+                l1 = getCharResolved(offset);
+                int i1 = s[i];
+                if (i1 != (int)l1)
+                    return false;
+                offset += (int)(l1 >> 32);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Test the end of token content at index i matches the content 
+        /// of s, notice that this is to save the string allocation cost of 
+        /// using String's built-in endsWidth 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
+
+        public bool endsWith(int index, String s)
+        {
+            int type = getTokenType(index);
+            int len =
+                    (type == TOKEN_STARTING_TAG
+                            || type == TOKEN_ATTR_NAME
+                            || type == TOKEN_ATTR_NS)
+                            ? getTokenLength(index) & 0xffff
+                            : getTokenLength(index);
+            int offset = getTokenOffset(index);
+            long l1;
+            int i, l, i2;
+            //int endOffset = offset + len; 
+
+            //       System.out.print("currentOffset :" + currentOffset); 
+            l = s.Length;
+            if (l > len)
+                return false;
+            i2 = getStringLength(index);
+            if (l > i2)
+                return false;
+            i2 = i2 - l; // calculate the # of chars to be skipped 
+            // eat away first several chars 
+            for (i = 0; i < i2; i++)
+            {
+                l1 = getCharResolved(offset);
+                offset += (int)(l1 >> 32);
+            }
+            //System.out.println(s); 
+            for (i = 0; i < l; i++)
+            {
+                l1 = getCharResolved(offset);
+                int i1 = s[i];
+                if (i1 != (int)l1)
+                    return false;
+                offset += (int)(l1 >> 32);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Test whether a given token contains s. notie that this function 
+        /// directly operates on the byte content of the token to avoid string creation 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public bool contains(int index, String s)
+        {
+            int type = getTokenType(index);
+            int len =
+                    (type == TOKEN_STARTING_TAG
+                            || type == TOKEN_ATTR_NAME
+                            || type == TOKEN_ATTR_NS)
+                            ? getTokenLength(index) & 0xffff
+                            : getTokenLength(index);
+            int offset = getTokenOffset(index);
+            long l1;
+            int i, l, i2;
+            int endOffset = offset + len;
+
+            //       System.out.print("currentOffset :" + currentOffset); 
+            int gOffset = offset;
+            l = s.Length;
+            if (l > len)
+                return false;
+            //System.out.println(s); 
+            while (offset < endOffset)
+            {
+                gOffset = offset;
+                for (i = 0; i < l && gOffset < endOffset; i++)
+                {
+                    l1 = getCharResolved(gOffset);
+                    int i1 = s[i];
+                    gOffset += (int)(l1 >> 32);
+                    if (i == 0)
+                        offset = gOffset;
+                    if (i1 != (int)l1)
+                        break;
+                }
+                if (i == l)
+                    return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Convert the byte content segment (in terms of offset and length) to 
+        /// String, lower case characters are converted to upper case 
+        /// </summary>
+        /// <param name="os"></param>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        public String toStringUpperCase(int os, int len)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
+            int offset = os;
+            int endOffset = os + len;
+            long l;
+            while (offset < endOffset)
+            {
+                l = getCharResolved(offset);
+                offset += (int)(l >> 32);
+                if ((int)l > 96 && (int)l < 123)
+                    sb.Append((char)(l - 32));
+                else
+                    sb.Append((char)l);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Convert the byte content segment (in terms of offset and length) to 
+        /// String, upper case characters are converted to lower case 
+        /// Notice this is more efficient than call toString, then can toLowerCase
+        /// </summary>
+        /// <param name="os"></param>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        public String toStringLowerCase(int os, int len)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
+            int offset = os;
+            int endOffset = os + len;
+            long l;
+            while (offset < endOffset)
+            {
+                l = getCharResolved(offset);
+                offset += (int)(l >> 32);
+                if ((int)l > 64 && (int)l < 91)
+                    sb.Append((char)(l + 32));
+                else
+                    sb.Append((char)l);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Convert a token at the given index to a String and any upper case
+	    /// character will be converted to lower case, (entities and char
+        /// references resolved). An attribute name or an element name will get the
+        /// UCS2 string of qualified name
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public String toStringLowerCase(int index)
+        {
+            int type = getTokenType(index);
+            if (type != TOKEN_CHARACTER_DATA &&
+                    type != TOKEN_ATTR_VAL)
+                return toRawString(index);
+            int len;
+            len = getTokenLength(index);
+
+            int offset = getTokenOffset(index);
+            return toStringLowerCase(offset, len);
+        }
+
+        /// <summary>
+        /// Convert a token at the given index to a String and any lower case
+	    /// character will be converted to upper case, (entities and char
+        /// references resolved). An attribute name or an element name will get the
+        /// UCS2 string of qualified name
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public String toStringUpperCase(int index)
+        {
+            int type = getTokenType(index);
+            if (type != TOKEN_CHARACTER_DATA &&
+                    type != TOKEN_ATTR_VAL)
+                return toRawString(index);
+            int len;
+            len = getTokenLength(index);
+
+            int offset = getTokenOffset(index);
+            return toStringUpperCase(offset, len);
         }
     }
 }
