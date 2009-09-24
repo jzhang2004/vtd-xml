@@ -3564,7 +3564,8 @@ namespace com.ximpleware
 
         private int process_start_doc()
         {
-            if (r.Char == '<')
+            int c = r.Char;
+            if (c == '<')
             {
                 temp_offset = offset;
                 // xml decl has to be right after the start of the document
@@ -3582,6 +3583,18 @@ namespace com.ximpleware
                 offset = temp_offset;
                 return STATE_LT_SEEN;
             }
+            else
+            {
+                if (c == ' ' || c == '\n' || c == '\r' || c == '\t')
+                {
+                    if (CharAfterS == '<')
+                    {
+                        return STATE_LT_SEEN; ;
+                    }
+                }
+            }
+  		
+
             throw new ParseException("Other Error: XML not starting properly" + formatLineNumber());
         }
 

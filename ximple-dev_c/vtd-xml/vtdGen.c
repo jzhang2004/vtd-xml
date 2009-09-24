@@ -2122,6 +2122,8 @@ Boolean parseFile(VTDGen *vg, Boolean ns,char *fileName){
 		free(ba);
 		clear(vg);
 		fclose(f);
+		printf("%s\n",e.msg);
+		printf("%s\n",e.sub_msg);
 		//throwException2(out_of_mem,"error occurred in parseFile");
 		return FALSE;
 	}
@@ -3283,7 +3285,8 @@ static int process_dec_attr(VTDGen *vg){
 
 
 static int process_start_doc(VTDGen *vg){
-	if (getChar(vg) == '<') {
+	int c = getChar(vg);
+	if (c == '<') {
 		vg->temp_offset = vg->offset;
 		/* xml decl has to be right after the start of the document*/
 		if (skipChar(vg,'?')
@@ -3305,7 +3308,13 @@ static int process_start_doc(VTDGen *vg){
 		}
 		vg->offset = vg->temp_offset;
 		return STATE_LT_SEEN;
-	}
+	}else if (c==' '||c=='\n'||c=='\r'||c=='\t'){ 
+		if (getCharAfterS(vg)=='<'){ 
+			return STATE_LT_SEEN;; 
+		} 
+	}                 
+
+
 	throwException(parse_exception,0,
 		"Parse exception in parse()",
 		"Other Error: XML not starting properly");
