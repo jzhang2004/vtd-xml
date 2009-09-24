@@ -668,7 +668,10 @@ public class FuncExpr extends Expr{
 			    						throw new IllegalArgumentException("round()'s argument count is invalid");
 			    					return Math.floor(argumentList.e.evalNumber(vn))+0.5d;
 			    					
-			case FuncName.ABS:				
+			case FuncName.ABS:		if (argCount() != 1)
+	    		throw new IllegalArgumentException(
+		    	"abs()'s argument count is invalid");
+					return Math.abs(argumentList.e.evalNumber(vn));			
 			case FuncName.ROUND_HALF_TO_EVEN :			    							
 			case FuncName.ROUND_HALF_TO_ODD:
 			    throw new com.ximpleware.extended.xpath.UnsupportedException("not yet implemented");
