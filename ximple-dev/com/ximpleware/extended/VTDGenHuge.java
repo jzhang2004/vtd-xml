@@ -2836,7 +2836,7 @@ public class VTDGenHuge {
 		return parser_state;
 	}
 	private int process_start_doc()throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
-	    int parser_state;
+	    
 	    int c = r.getChar();
 		if (c == '<') {
 			temp_offset = offset;
@@ -2851,20 +2851,17 @@ public class VTDGenHuge {
 					|| r.skipChar('\r')) {
 					ch = getCharAfterS();
 					temp_offset = offset;
-					parser_state = STATE_DEC_ATTR_NAME;
-					return parser_state;
+					return STATE_DEC_ATTR_NAME;
 				} else if (r.skipChar('?'))
 					throw new ParseExceptionHuge(
 						"Error in XML decl: Premature ending"
 							+ formatLineNumber());
 			}
 			offset = temp_offset;
-			parser_state = STATE_LT_SEEN;
-			return parser_state;
+			return STATE_LT_SEEN;
 		}else if (c==' '||c=='\n'||c=='\r'||c=='\t'){
 			if (getCharAfterS()=='<'){
-				parser_state = STATE_LT_SEEN;
-				return parser_state;
+				return STATE_LT_SEEN;
 			}
 		}
 		throw new ParseExceptionHuge(
