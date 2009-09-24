@@ -255,11 +255,11 @@ public class BinaryExpr extends Expr {
 
             st1 = left.evalString(vn);
             st2 = right.evalString(vn);
-            if (st1 == null || st2 == null)
+            /*if (st1 == null || st2 == null)
                 if (op == EQ)
                     return false;
                 else
-                    return true;
+                    return true;*/
 
             return (op == EQ) ? (st1.equals(st2)) : (!st1.equals(st2));
         }

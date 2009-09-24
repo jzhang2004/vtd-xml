@@ -224,12 +224,14 @@ public class BinaryExpr extends Expr {
                 return compNumericalNodeSet(left, right, vn, op);
             }
             if (left.isNodeSet() && right.isNumerical()) {
+                //return compNumericalNodeSet(right, left, vn, op);
                 return compNodeSetNumerical(left, right, vn, op);
             }
             if (left.isString() && right.isNodeSet()){
                 return compStringNodeSet(left, right, vn, op);
             }
             if (left.isNodeSet() && right.isString()) {
+                //return compStringNodeSet(right, left, vn, op);
                 return compNodeSetString(left, right, vn, op);
             }
         }
@@ -250,11 +252,11 @@ public class BinaryExpr extends Expr {
 
             st1 = left.evalString(vn);
             st2 = right.evalString(vn);
-            if (st1 == null || st2 == null)
+            /*if (st1 == null || st2 == null)
                 if (op == EQ)
                     return false;
                 else
-                    return true;
+                    return true;*/
 
             return (op == EQ) ? (st1.equals(st2)) : (!st1.equals(st2));
         }
