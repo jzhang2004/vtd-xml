@@ -3401,7 +3401,8 @@ public class VTDGen {
 	}
 	private int process_start_doc()throws ParseException, EncodingException, EOFException {
 	    int parser_state;
-		if (r.getChar() == '<') {
+	    int c = r.getChar();
+		if (c == '<') {
 			temp_offset = offset;
 			// xml decl has to be right after the start of the document
 			if (r.skipChar('?')
@@ -3424,6 +3425,11 @@ public class VTDGen {
 			offset = temp_offset;
 			parser_state = STATE_LT_SEEN;
 			return parser_state;
+		} else if (c==' '||c=='\n'||c=='\r'||c=='\t'){
+			if (getCharAfterS()=='<'){
+				parser_state = STATE_LT_SEEN;
+				return parser_state;
+			}
 		}
 		throw new ParseException(
 			"Other Error: XML not starting properly"

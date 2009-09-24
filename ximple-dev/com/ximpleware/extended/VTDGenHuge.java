@@ -2837,7 +2837,8 @@ public class VTDGenHuge {
 	}
 	private int process_start_doc()throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge {
 	    int parser_state;
-		if (r.getChar() == '<') {
+	    int c = r.getChar();
+		if (c == '<') {
 			temp_offset = offset;
 			// xml decl has to be right after the start of the document
 			if (r.skipChar('?')
@@ -2860,6 +2861,11 @@ public class VTDGenHuge {
 			offset = temp_offset;
 			parser_state = STATE_LT_SEEN;
 			return parser_state;
+		}else if (c==' '||c=='\n'||c=='\r'||c=='\t'){
+			if (getCharAfterS()=='<'){
+				parser_state = STATE_LT_SEEN;
+				return parser_state;
+			}
 		}
 		throw new ParseExceptionHuge(
 			"Other Error: XML not starting properly"
