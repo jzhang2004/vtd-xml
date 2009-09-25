@@ -17,6 +17,8 @@
  */
 
 package com.ximpleware.extended;
+import com.ximpleware.NodeTest;
+import com.ximpleware.XPathEvalException;
 import com.ximpleware.extended.xpath.*;
 // if the context node is text(),
 // then many axis simply won't work
@@ -531,11 +533,13 @@ public class LocationPathExpr extends Expr{
     	        }
     	        
     		    String helper = null;
-    			if (currentStep.nt.testType == NodeTest.NODE){
-    				helper = "*";
-    			}else {
+    		    if (currentStep.nt.testType == NodeTest.NAMETEST){
     				helper = currentStep.nt.nodeName;
-    			}
+    			} else if (currentStep.nt.testType == NodeTest.NODE){
+    				helper = "*";
+    			} else
+    				throw new XPathEvalExceptionHuge("can't run descendant "
+    						+ "following, or following-sibling axis over comment(), pi(), and text()"); 
     			if (currentStep.o == null)
     				currentStep.o = ap = new AutoPilotHuge(vn);
     			else {
@@ -1440,7 +1444,9 @@ public class LocationPathExpr extends Expr{
 		switch( state){
 		case  START:
 		case  FORWARD:
-		    
+			if (currentStep.nt.testType != NodeTest.NAMETEST)
+				throw new XPathEvalExceptionHuge("can't run descendant, descendant-or-self,"
+						+ "following, or following-sibling axis over non-element nodes"); 
 	        t = currentStep.p;
 	        while(t!=null){
 	            if (t.requireContextSize()){
