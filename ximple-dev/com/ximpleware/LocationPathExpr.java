@@ -1867,9 +1867,11 @@ public class LocationPathExpr extends Expr{
 			    String helper = null;
 				if (currentStep.nt.testType == NodeTest.NODE){
 				    helper = "*";
-				}else {
-				    helper = currentStep.nt.nodeName;
-				}
+				}else if (currentStep.nt.testType == NodeTest.NAMETEST){
+    				helper = currentStep.nt.nodeName;
+    			}else
+    				throw new XPathEvalException("can't run descendant "
+    						+ "following, or following-sibling axis over comment(), pi(), and text()");
 				ap = new AutoPilot(vn);
 				if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF )
 					if (currentStep.nt.testType == NodeTest.NODE)
