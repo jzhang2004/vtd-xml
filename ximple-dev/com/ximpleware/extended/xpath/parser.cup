@@ -21,15 +21,16 @@ import com.ximpleware.extended.*;
 //import com.ximpleware.extended.xpath.*;
 import java.util.*;
 parser code {:  
-  public Hashtable ht;
+  public Hashtable nsHash;
+  public Hashtable symbolHash;
   Step tempStep;
   NodeTest tempNt;
   LocationPathExpr tempLPExpr;
-  ExprList tmpEL1, tmpEL2;
+ // ExprList tmpEL1, tmpEL2;
   
   public parser (java.io.Reader input) {
     super(new Yylex(input));
-    ht = null;
+    nsHash = null;
   }
   
   public parser (java.io.InputStream input) {
@@ -52,15 +53,15 @@ parser code {:
 	//throw new XPathParseException("Syntax error during parsing");
   }
 
-  public void report_fatal_error(String message, Object info) throws XPathParseException{
-	throw new XPathParseException("Syntax error during parsing: "+ message);
+  public void report_fatal_error(String message, Object info) throws XPathParseExceptionHuge{
+	throw new XPathParseExceptionHuge("Syntax error during parsing: "+ message);
   }
 
   public void syntax_error(Symbol cur_token) {
 	
   }
   
-  public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseException{
+  public void unrecovered_syntax_error(Symbol cur_token) throws XPathParseExceptionHuge{
 	 Yylex scanner = (Yylex)getScanner();
 	 throw new XPathParseExceptionHuge("XPath Syntax error: "+cur_token, scanner.getOffset());
   }
@@ -211,7 +212,8 @@ FilterExpr   	::=  PrimaryExpr:pe
 		{: RESULT = new FilterExpr(fe, p);:}
 		;
 
-PrimaryExpr     ::=  VariableReference  
+PrimaryExpr     ::=  VariableReference: ve
+	    {: RESULT = ve; :} 
 		|    LP Expr:e RP 
 		{: RESULT = e; :} 
 		|    LITERAL:le  
@@ -279,6 +281,20 @@ RelativeLocationPath ::=  Step:s
 Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl 
 		{: RESULT = new Step();
       	   RESULT.setAxisType(as.i);
+      	   if ( (as.i== AxisType.ATTRIBUTE
+	        	 || as.i == AxisType.DESCENDANT
+      	         || as.i == AxisType.PRECEDING
+      	         || as.i == AxisType.FOLLOWING
+      	         || as.i == AxisType.FOLLOWING_SIBLING
+      	         || as.i == AxisType.PRECEDING_SIBLING
+      	         || as.i == AxisType.DESCENDANT_OR_SELF) && 
+      	        (nt.testType!=0)){
+      	          Yylex scanner = (Yylex)parser.getScanner();
+      	          throw new XPathParseExceptionHuge(as.getAxisString()+" axis can't operate on"+
+      	                 " node(), comment(), pi(), or text()",
+      	         	scanner.getOffset());
+      	         	}
+      	         	
       	   RESULT.setNodeTest(nt);
 		   RESULT.setPredicate(pl);
 		   	
@@ -298,9 +314,9 @@ nodetest	::=    NAME:n
 		   RESULT.setNodeName(n.qname);
 		   if (n.localname!=null){
 		   	 RESULT.setNodeNameNS(n.prefix,n.localname);
-		   	 if (parser.ht==null || parser.ht.get(n.prefix) ==null)
-		   	    throw new XPathParseException("No URL found for prefix:"+n.prefix);
-		   	 RESULT.URL = (String) parser.ht.get(n.prefix);
+		   	 if (parser.nsHash==null || parser.nsHash.get(n.prefix) ==null)
+		   	    throw new XPathParseExceptionHuge("No URL found for prefix:"+n.prefix);
+		   	 RESULT.URL = (String) parser.nsHash.get(n.prefix);
 		   }
 		:}
 		|    NTEST:n2				
