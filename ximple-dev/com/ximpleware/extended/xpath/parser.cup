@@ -287,7 +287,7 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
       	         || as.i == AxisType.FOLLOWING
       	         || as.i == AxisType.FOLLOWING_SIBLING
       	         || as.i == AxisType.PRECEDING_SIBLING) && 
-      	        (nt.testType!=0)){
+      	        (nt.testType>1)){
       	          Yylex scanner = (Yylex)parser.getScanner();
       	          throw new XPathParseExceptionHuge(as.getAxisString()+" axis can't operate on"+
       	                 " node(), comment(), pi(), or text()",
