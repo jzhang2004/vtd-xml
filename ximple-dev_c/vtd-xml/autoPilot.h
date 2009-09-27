@@ -22,7 +22,8 @@
 #include "vtdNav.h"
 #include "cexcept.h"
 #include "xpath.h"
-
+static struct nsList *nl;
+static struct exprList *el;
 /* iter_type defines the type of iteration, to be used in function iterateAP*/
 typedef enum iter_type { UNDEFINED,
 						SIMPLE,
@@ -35,6 +36,7 @@ typedef enum iter_type { UNDEFINED,
 						PRECEDING_NS,
 						ATTR,
 						ATTR_NS} iterType;
+
 
 
 
@@ -53,7 +55,7 @@ typedef struct autoPilot{
 	struct Expr *xpe; /* xpath Expr*/
 	int *contextCopy; /* for preceding axis */
 	int stackSize; /* record stack size for xpath evaluation */
-	struct nsList *nl;
+	
 } AutoPilot;
 
 /*create AutoPilot */
@@ -182,6 +184,9 @@ void resetXPath(AutoPilot *ap);
  */
 
 void declareXPathNameSpace(AutoPilot *ap, UCSChar *prefix, UCSChar *URL);
+
+
+
 
 #endif
 
