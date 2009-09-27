@@ -19,19 +19,22 @@
 /* This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
  the URL in the list is replaced with new URL*/
 static void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL);
-
+static void insertExpr(AutoPilot *ap, UCSChar *varName, expr *e);
 
 /* This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
    the URL is overwritten */
 void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL){
-	NsList *tmp = ap->nl;
+	NsList *tmp = nl;
 	/* search first */
 	if (tmp == NULL){
 		tmp = (NsList *)malloc(sizeof(NsList));
+		if (tmp == NULL){
+			throwException2(out_of_mem, "out of memory in insertItem");
+		}
 		tmp->next = NULL; 
 		tmp->prefix = prefix;
 		tmp->URL = URL;
-		ap->nl = tmp;
+		nl = tmp;
 		return;
 	}else {
 		if (wcscmp(tmp->prefix,prefix) == 0){
@@ -47,9 +50,54 @@ void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL){
 		}
 		
 		tmp->next = (NsList *)malloc(sizeof(NsList));
+		if (tmp->next == NULL){
+			throwException2(out_of_mem, "out of memory in insertItem");
+		}
 		tmp->next->next = NULL; 
 		tmp->next->prefix = prefix;
 		tmp->next->URL = URL;
+		return;
+	}
+}
+
+/* This method insert a name/expr pair into the exprList, if there are name duplicates 
+   the expr is overwritten */
+void insertExpr(AutoPilot *ap, UCSChar *varName, expr *e){
+	struct exprList *tmp = el;
+	
+	/* search first */
+	if (tmp == NULL){
+		tmp = (struct exprList *)malloc(sizeof(struct exprList));
+		if (tmp == NULL){
+			throwException2(out_of_mem, "out of memory in insertExpr");
+		}
+		tmp->next = NULL; 
+		tmp->variableName = varName;
+		tmp->Expr = e;
+		el = tmp;
+		return;
+	}else {
+		if (wcscmp(tmp->variableName, varName) == 0){
+			tmp->Expr->freeExpr(tmp->Expr);
+			tmp->Expr = e; /* overwritten */
+			return;
+		}
+		while(tmp->next!=NULL){
+			if (wcscmp(tmp->variableName,varName) == 0){
+				tmp->Expr->freeExpr(tmp->Expr);
+				tmp->Expr = e; /* overwritten */
+				return;
+			}
+			tmp = tmp->next;
+		}
+		
+		tmp->next = (struct exprList *)malloc(sizeof(struct exprList));
+		if (tmp->next == NULL){
+			throwException2(out_of_mem, "out of memory in insertExpr");
+		}
+		tmp->next->next = NULL; 
+		tmp->next->variableName = varName;
+		tmp->next->Expr = e;
 		return;
 	}
 }
@@ -62,6 +110,20 @@ UCSChar *lookup(NsList *l, UCSChar *prefix){
 	while(tmp!= NULL){
 		if (wcscmp(tmp->prefix,prefix)==0){
 			return tmp->URL;
+		}
+		tmp = tmp->next;
+	}
+	return NULL;
+}
+
+/*given a variable Name, find the expression */
+expr *getExprFromList(ExprList *el, UCSChar *varName){
+	ExprList *tmp = el;
+	if (tmp==NULL)
+		return NULL;
+	while(tmp!= NULL){
+		if (wcscmp(tmp->variableName,varName)==0){
+			return tmp->Expr;
 		}
 		tmp = tmp->next;
 	}
@@ -91,7 +153,7 @@ AutoPilot *createAutoPilot(VTDNav *v){
     ap->ft = TRUE;
 	//ap->startIndex = -1;
 	ap->xpe = NULL;
-	ap->nl = NULL;
+	nl = NULL;
 	ap->contextCopy = NULL;
 	ap->special = FALSE;
 	return ap;
@@ -116,7 +178,7 @@ AutoPilot *createAutoPilot2(){
     ap->ft = TRUE;
 	ap->xpe = NULL;
 	//ap->startIndex = -1;
-	ap->nl = NULL;
+	nl = NULL;
 	ap->contextCopy = NULL;
 	ap->special = FALSE;
 	return ap;
@@ -126,13 +188,14 @@ AutoPilot *createAutoPilot2(){
 void freeAutoPilot(AutoPilot *ap){
 	
 	if (ap!=NULL){
-		NsList *tmp = ap->nl;
+		/*nl has been made a package scoped static variable*/
+		/*NsList *tmp = nl;
 		NsList *tmp2 = NULL;
 		while(tmp!=NULL){
 			tmp2 = tmp->next;
 			free(tmp);
 			tmp  = tmp2;			
-		}
+		}*/
 		if (ap->contextCopy!=NULL)
 			free(ap->contextCopy);
 		if (ap->xpe!= NULL)
@@ -501,7 +564,7 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 	}
 	if(ap->xpe!=NULL)
 		ap->xpe->freeExpr(ap->xpe);
-	ap->xpe = xpathParse(s, ap->nl);
+	ap->xpe = xpathParse(s, nl,el);
 	ap->ft = TRUE;
 	if (ap->xpe == NULL){
 		return FALSE;
