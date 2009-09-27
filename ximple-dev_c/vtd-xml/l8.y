@@ -31,8 +31,10 @@ Predicate *tmpP;
 
 static expr *x;
 static NsList *xpathNSList = NULL;
+static ExprList *xpathExprList = NULL;
 extern int isName;
 extern int colonPosition;
+expr* ex;
 %}
 
 %union {
@@ -68,7 +70,7 @@ extern int colonPosition;
 %token <ntest> NTEST
 %type <expression> Expr OrExpr AndExpr EqualityExpr RelationalExpr AdditiveExpr
 %type <expression> MultiplicativeExpr UnaryExpr FilterExpr
-%type <expression> FunctionCall Argument PrimaryExpr
+%type <expression> FunctionCall Argument PrimaryExpr VariableReference
 %type <une> UnionExpr
 %type <lpe> LocationPath
 %type <pe> PathExpr
@@ -95,7 +97,7 @@ Expr 		:    OrExpr  { x=$$ = $1;}
 OrExpr 		:    AndExpr  {$$ = $1;}
 		|    OrExpr OR AndExpr {
 								Try {
-										$$ = createBinaryExpr($1, OP_OR,$3);
+										$$ = (expr *)createBinaryExpr($1, OP_OR,$3);
 										addObj($$);
 									}
 								Catch(e){
@@ -109,7 +111,7 @@ OrExpr 		:    AndExpr  {$$ = $1;}
 AndExpr		:    EqualityExpr { $$ = $1;}
 	 	|    AndExpr AND EqualityExpr {
 	 							Try {
-	 									$$ = createBinaryExpr($1,OP_AND,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_AND,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -122,7 +124,7 @@ AndExpr		:    EqualityExpr { $$ = $1;}
 EqualityExpr    :    RelationalExpr  { $$ = $1;}
 		|    EqualityExpr EQ RelationalExpr  { 
 								Try {
-	 									$$ = createBinaryExpr($1,OP_EQ,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_EQ,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -132,7 +134,7 @@ EqualityExpr    :    RelationalExpr  { $$ = $1;}
 								}
 		|    EqualityExpr NE RelationalExpr {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_NE,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_NE,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -145,7 +147,7 @@ EqualityExpr    :    RelationalExpr  { $$ = $1;}
 RelationalExpr  :    AdditiveExpr  { $$ = $1; }
   		|    RelationalExpr LT AdditiveExpr  {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_LT,$3);
+	 									$$ =(expr *) createBinaryExpr($1,OP_LT,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -155,7 +157,7 @@ RelationalExpr  :    AdditiveExpr  { $$ = $1; }
 								}
 		|    RelationalExpr GT AdditiveExpr  {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_GT,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_GT,$3);
 	 									addObj($$);	 									
 	 								}
 	 							Catch(e){
@@ -165,7 +167,7 @@ RelationalExpr  :    AdditiveExpr  { $$ = $1; }
 								}
 		|    RelationalExpr LE AdditiveExpr  {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_LE,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_LE,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -175,7 +177,7 @@ RelationalExpr  :    AdditiveExpr  { $$ = $1; }
 								}
 		|    RelationalExpr GE AdditiveExpr  {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_GE,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_GE,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -188,7 +190,7 @@ RelationalExpr  :    AdditiveExpr  { $$ = $1; }
 AdditiveExpr    :    MultiplicativeExpr  {$$  = $1; }
 		|    AdditiveExpr ADD MultiplicativeExpr  {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_ADD,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_ADD,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -198,7 +200,7 @@ AdditiveExpr    :    MultiplicativeExpr  {$$  = $1; }
 								}
 		|    AdditiveExpr SUB MultiplicativeExpr {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_SUB,$3);
+	 									$$ =(expr *) createBinaryExpr($1,OP_SUB,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -211,7 +213,7 @@ AdditiveExpr    :    MultiplicativeExpr  {$$  = $1; }
 MultiplicativeExpr    :  UnaryExpr  {$$ = $1; }
    		|    MultiplicativeExpr MULT UnaryExpr  {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_MULT,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_MULT,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -221,7 +223,7 @@ MultiplicativeExpr    :  UnaryExpr  {$$ = $1; }
 								}
 		|    MultiplicativeExpr DIV UnaryExpr  {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_DIV,$3);
+	 									$$ =(expr *) createBinaryExpr($1,OP_DIV,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -231,7 +233,7 @@ MultiplicativeExpr    :  UnaryExpr  {$$ = $1; }
 								}
 		|    MultiplicativeExpr MOD UnaryExpr  {
 			 					Try {
-	 									$$ = createBinaryExpr($1,OP_MOD,$3);
+	 									$$ = (expr *)createBinaryExpr($1,OP_MOD,$3);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -241,10 +243,10 @@ MultiplicativeExpr    :  UnaryExpr  {$$ = $1; }
 								}
 		;
 
-UnaryExpr    	:    UnionExpr  { $$ = $1;}
+UnaryExpr    	:    UnionExpr  { $$ = (expr *)$1;}
   		|    SUB UnaryExpr  %prec UMINUS  {
 			 					Try {
-	 									$$ = createUnaryExpr(OP_NE,$2);
+	 									$$ = (expr *)createUnaryExpr(OP_NE,$2);
 	 									addObj($$);
 	 								}
 	 							Catch(e){
@@ -257,7 +259,7 @@ UnaryExpr    	:    UnionExpr  { $$ = $1;}
 
 UnionExpr    	:    PathExpr  	{ 
 									Try {
-										$$ = createUnionExpr($1);
+										$$ = createUnionExpr((expr *)$1);
 										addObj($$);
 									}
 									Catch(e) {
@@ -267,7 +269,7 @@ UnionExpr    	:    PathExpr  	{
 								}		
    		|    PathExpr UNION UnionExpr {
    										Try {
-   										   $$ = createUnionExpr($1);
+   										   $$ = createUnionExpr((expr *)$1);
    										   addObj($$);
    										   $$->next = $3;
    										}
@@ -282,13 +284,14 @@ UnionExpr    	:    PathExpr  	{
 		;
 
 
-PathExpr     	:    LocationPath  { $$ = $1;  }
-   		|    FilterExpr  { $$ = $1;}
+PathExpr     	:    LocationPath  { $$ = (pathExpr *) $1;  }
+   		|    FilterExpr  { $$ = (pathExpr *)$1;}
   		|    FilterExpr SLASH RelativeLocationPath  {  														
   														Try{
   															tmpLPExpr = createLocationPathExpr();
   															addObj(tmpLPExpr);
   															addObj(tmpLPExpr->ih);
+  															addObj(tmpLPExpr->ih->storage);
   															setStep(tmpLPExpr, $3);
   															$$ = createPathExpr($1, tmpLPExpr);
   															addObj($$);
@@ -314,10 +317,12 @@ PathExpr     	:    LocationPath  { $$ = $1;  }
 															tmpLPExpr = createLocationPathExpr();
 															addObj(tmpLPExpr);
 															addObj(tmpLPExpr->ih);
+															addObj(tmpLPExpr->ih->storage);
 															setStep(tmpLPExpr, tmpStep);
 															$$ = createPathExpr($1, tmpLPExpr);
 															addObj($$);
-															addObj($$->ih);															
+															addObj($$->ih);	
+															addObj($$->ih->storage);															
 														} Catch (e){
 															//freeAllObj();		
 															YYABORT;																											
@@ -328,7 +333,7 @@ PathExpr     	:    LocationPath  { $$ = $1;  }
 
 FilterExpr   	:    PrimaryExpr  { $$ = $1;}
   		|    FilterExpr Predicate  {Try {
-  										$$ = createFilterExpr($1,$2);
+  										$$ = (expr *)createFilterExpr($1,$2);
   										addObj($$);
   										}
   									Catch(e){
@@ -340,10 +345,10 @@ FilterExpr   	:    PrimaryExpr  { $$ = $1;}
 
 
 
-PrimaryExpr     :    VariableReference {/*freeAllObj();*/ YYABORT;}
+PrimaryExpr     :    VariableReference {$$ = $1;}
 		|    LP Expr RP  { $$ = $2;} 
 		|    LITERAL  { Try {
-							$$ = createLiteralExpr($1);
+							$$ = (expr *)createLiteralExpr($1);
 							addObj($$);
 							addObj($1);
 						} Catch (e) {
@@ -352,7 +357,7 @@ PrimaryExpr     :    VariableReference {/*freeAllObj();*/ YYABORT;}
 						}						
 					  } 
 		|    NUMBER  { Try {
-						    $$ = createNumberExpr($1);
+						    $$ = (expr *)createNumberExpr($1);
 						    addObj($$);
 					   } Catch (e) {
 							//freeAllObj();
@@ -369,7 +374,7 @@ PrimaryExpr     :    VariableReference {/*freeAllObj();*/ YYABORT;}
 
 
 FunctionCall    :    FunctionName LP ArgumentList RP { Try {
-															$$ = createFuncExpr($1, $3);
+															$$ = (expr *)createFuncExpr($1, $3);
 															addObj($$);
 													   }
 													   Catch(e){
@@ -411,6 +416,7 @@ LocationPath    :    RelativeLocationPath	{ Try {
 													$$ = createLocationPathExpr();
 													addObj($$);
 													addObj($$->ih);
+													addObj($$->ih->storage);
 													setStep($$, $1);
 												  }
 											  Catch (e) {
@@ -598,7 +604,23 @@ Predicate 	:    LB Expr RB {
 							}
 	   	;
 
-VariableReference : DOLLAR NAME 
+VariableReference : DOLLAR NAME {
+								Try {
+								    //addObj($2);
+								    ex = getExprFromList(xpathExprList,$2.qname);
+								    if (ex==NULL) {
+										YYABORT;
+								    }
+								    $$ = (expr *)createVariableExpr($2.qname, ex);
+									//$$ = createPredicate();
+									addObj($$);
+									//$$->e = $2;
+								} Catch(e){
+									//freeAllObj();
+									YYABORT;
+								}
+
+							}
 		  ;
 
 FunctionName 	:  FNAME  {$$  = $1;}
@@ -608,11 +630,13 @@ FunctionName 	:  FNAME  {$$  = $1;}
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;
 extern unsigned short *xpathInputLimit;
-
-expr *xpathParse(UCSChar *input, NsList *nl){
+extern int num_chars;
+expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el){
 	int l = wcslen(input);
-	int i = 0;	
+	int i = 0;
+	num_chars = 0;	
 	xpathNSList = nl;
+	xpathExprList = el;
 	XMLChar_init();
 	xpathInputPtr = xpathInput = (unsigned short *)malloc((l+1)<<1);
 	// copy the string from wchar_t to unsigned short
@@ -631,6 +655,7 @@ expr *xpathParse(UCSChar *input, NsList *nl){
 		return x;
 	} else {
 		//wprintf(L"yyparse YYABORT\n");
+		wprintf(L"xpath syntax error after or around the end of \n     %.*s\n", num_chars, input);
 		free(xpathInput);
 		xpathInput = xpathInputPtr = xpathInputLimit = NULL;
 		//isName = 1;

@@ -1,20 +1,38 @@
-/*
-* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/
+/* A Bison parser, made by GNU Bison 1.875.  */
+
+/* Skeleton parser for Yacc-like parsing with Bison,
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.  */
+
+/* As a special exception, when this file is copied by Bison into a
+   Bison output file, you may use that output file without restriction.
+   This special exception was added by the Free Software Foundation
+   in version 1.24 of Bison.  */
+
+/* Written by Richard Stallman by simplifying the original so called
+   ``semantic'' parser.  */
+
+/* All symbols defined below should begin with yy or YY, to avoid
+   infringing on user name space.  This should be done even for local
+   variables, as they might otherwise be expanded by user macros.
+   There are some unavoidable exceptions within include files to
+   define necessary library symbols; they are noted "INFRINGES ON
+   USER NAME SPACE" below.  */
+
 /* Identify Bison output.  */
 #define YYBISON 1
 
@@ -110,7 +128,7 @@
 /* Copy the first part of user declarations.  */
 #line 1 "l8.y"
 
-/*
+/* 
 * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
@@ -142,8 +160,10 @@ Predicate *tmpP;
 
 static expr *x;
 static NsList *xpathNSList = NULL;
+static ExprList *xpathExprList = NULL;
 extern int isName;
 extern int colonPosition;
+expr* ex;
 
 
 /* Enabling traces.  */
@@ -160,7 +180,7 @@ extern int colonPosition;
 #endif
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 38 "l8.y"
+#line 40 "l8.y"
 typedef union YYSTYPE {
 	UCSChar*   literal;
 	axisType at;
@@ -186,7 +206,7 @@ typedef union YYSTYPE {
 	Predicate* p;
 } YYSTYPE;
 /* Line 191 of yacc.c.  */
-#line 207 "l8.tab.c"
+#line 209 "l8.tab.c"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -198,7 +218,7 @@ typedef union YYSTYPE {
 
 
 /* Line 214 of yacc.c.  */
-#line 219 "l8.tab.c"
+#line 221 "l8.tab.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -391,13 +411,13 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned short yyrline[] =
 {
-       0,    92,    92,    95,    96,   109,   110,   122,   123,   133,
-     145,   146,   156,   166,   176,   188,   189,   199,   211,   212,
-     222,   232,   244,   245,   258,   268,   285,   286,   287,   303,
-     329,   330,   343,   344,   345,   354,   362,   363,   371,   383,
-     384,   393,   406,   410,   421,   436,   437,   438,   441,   442,
-     446,   450,   463,   467,   491,   503,   504,   509,   510,   513,
-     514,   517,   531,   549,   567,   589,   601,   604
+       0,    94,    94,    97,    98,   111,   112,   124,   125,   135,
+     147,   148,   158,   168,   178,   190,   191,   201,   213,   214,
+     224,   234,   246,   247,   260,   270,   287,   288,   289,   306,
+     334,   335,   348,   349,   350,   359,   367,   368,   376,   388,
+     389,   398,   411,   415,   427,   442,   443,   444,   447,   448,
+     452,   456,   469,   473,   497,   509,   510,   515,   516,   519,
+     520,   523,   537,   555,   573,   595,   607,   626
 };
 #endif
 
@@ -406,17 +426,17 @@ static const unsigned short yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals. */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "AXISNAME", "LITERAL", "NUMBER", "NAME",
-  "FNAME", "NTEST", "OR", "AND", "EQ", "NE", "GT", "LT", "GE", "LE",
-  "ADD", "SUB", "MULT", "DIV", "MOD", "LP", "RP", "DOLLAR", "UNION",
-  "SLASH", "DSLASH", "COMMA", "ERROR", "AT", "DOT", "DDOT", "LB", "RB",
-  "UMINUS", "$accept", "Expr", "OrExpr", "AndExpr", "EqualityExpr",
-  "RelationalExpr", "AdditiveExpr", "MultiplicativeExpr", "UnaryExpr",
-  "UnionExpr", "PathExpr", "FilterExpr", "PrimaryExpr", "FunctionCall",
-  "ArgumentList", "Argument", "LocationPath", "AbsoluteLocationPath",
-  "RelativeLocationPath", "Step", "NodeTest", "PredicateList",
-  "AxisSpecifier", "AbbreviatedAxisSpecifier", "AbbreviatedStep",
-  "AbbreviatedAbsoluteLocationPath", "AbbreviatedRelativeLocationPath",
+  "$end", "error", "$undefined", "AXISNAME", "LITERAL", "NUMBER", "NAME", 
+  "FNAME", "NTEST", "OR", "AND", "EQ", "NE", "GT", "LT", "GE", "LE", 
+  "ADD", "SUB", "MULT", "DIV", "MOD", "LP", "RP", "DOLLAR", "UNION", 
+  "SLASH", "DSLASH", "COMMA", "ERROR", "AT", "DOT", "DDOT", "LB", "RB", 
+  "UMINUS", "$accept", "Expr", "OrExpr", "AndExpr", "EqualityExpr", 
+  "RelationalExpr", "AdditiveExpr", "MultiplicativeExpr", "UnaryExpr", 
+  "UnionExpr", "PathExpr", "FilterExpr", "PrimaryExpr", "FunctionCall", 
+  "ArgumentList", "Argument", "LocationPath", "AbsoluteLocationPath", 
+  "RelativeLocationPath", "Step", "NodeTest", "PredicateList", 
+  "AxisSpecifier", "AbbreviatedAxisSpecifier", "AbbreviatedStep", 
+  "AbbreviatedAbsoluteLocationPath", "AbbreviatedRelativeLocationPath", 
   "Predicate", "VariableReference", "FunctionName", 0
 };
 #endif
@@ -1165,17 +1185,17 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 92 "l8.y"
+#line 94 "l8.y"
     { x=yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 3:
-#line 95 "l8.y"
+#line 97 "l8.y"
     {yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 4:
-#line 96 "l8.y"
+#line 98 "l8.y"
     {
 								Try {
 										yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression, OP_OR,yyvsp[0].expression);
@@ -1184,18 +1204,18 @@ yyreduce:
 								Catch(e){
 									//freeAllObj();
 									 YYABORT;
-								}
-
+								} 
+		
 								;}
     break;
 
   case 5:
-#line 109 "l8.y"
+#line 111 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 6:
-#line 110 "l8.y"
+#line 112 "l8.y"
     {
 	 							Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_AND,yyvsp[0].expression);
@@ -1209,13 +1229,13 @@ yyreduce:
     break;
 
   case 7:
-#line 122 "l8.y"
+#line 124 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 8:
-#line 123 "l8.y"
-    {
+#line 125 "l8.y"
+    { 
 								Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_EQ,yyvsp[0].expression);
 	 									addObj(yyval.expression);
@@ -1228,7 +1248,7 @@ yyreduce:
     break;
 
   case 9:
-#line 133 "l8.y"
+#line 135 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_NE,yyvsp[0].expression);
@@ -1242,15 +1262,15 @@ yyreduce:
     break;
 
   case 10:
-#line 145 "l8.y"
+#line 147 "l8.y"
     { yyval.expression = yyvsp[0].expression; ;}
     break;
 
   case 11:
-#line 146 "l8.y"
+#line 148 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_LT,yyvsp[0].expression);
+	 									yyval.expression =(expr *) createBinaryExpr(yyvsp[-2].expression,OP_LT,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1261,11 +1281,11 @@ yyreduce:
     break;
 
   case 12:
-#line 156 "l8.y"
+#line 158 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_GT,yyvsp[0].expression);
-	 									addObj(yyval.expression);
+	 									addObj(yyval.expression);	 									
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
@@ -1275,7 +1295,7 @@ yyreduce:
     break;
 
   case 13:
-#line 166 "l8.y"
+#line 168 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_LE,yyvsp[0].expression);
@@ -1289,7 +1309,7 @@ yyreduce:
     break;
 
   case 14:
-#line 176 "l8.y"
+#line 178 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_GE,yyvsp[0].expression);
@@ -1303,12 +1323,12 @@ yyreduce:
     break;
 
   case 15:
-#line 188 "l8.y"
+#line 190 "l8.y"
     {yyval.expression  = yyvsp[0].expression; ;}
     break;
 
   case 16:
-#line 189 "l8.y"
+#line 191 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_ADD,yyvsp[0].expression);
@@ -1322,10 +1342,10 @@ yyreduce:
     break;
 
   case 17:
-#line 199 "l8.y"
+#line 201 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_SUB,yyvsp[0].expression);
+	 									yyval.expression =(expr *) createBinaryExpr(yyvsp[-2].expression,OP_SUB,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1336,12 +1356,12 @@ yyreduce:
     break;
 
   case 18:
-#line 211 "l8.y"
+#line 213 "l8.y"
     {yyval.expression = yyvsp[0].expression; ;}
     break;
 
   case 19:
-#line 212 "l8.y"
+#line 214 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_MULT,yyvsp[0].expression);
@@ -1355,10 +1375,10 @@ yyreduce:
     break;
 
   case 20:
-#line 222 "l8.y"
+#line 224 "l8.y"
     {
 			 					Try {
-	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_DIV,yyvsp[0].expression);
+	 									yyval.expression =(expr *) createBinaryExpr(yyvsp[-2].expression,OP_DIV,yyvsp[0].expression);
 	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
@@ -1369,7 +1389,7 @@ yyreduce:
     break;
 
   case 21:
-#line 232 "l8.y"
+#line 234 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_MOD,yyvsp[0].expression);
@@ -1383,12 +1403,12 @@ yyreduce:
     break;
 
   case 22:
-#line 244 "l8.y"
+#line 246 "l8.y"
     { yyval.expression = (expr *)yyvsp[0].une;;}
     break;
 
   case 23:
-#line 245 "l8.y"
+#line 247 "l8.y"
     {
 			 					Try {
 	 									yyval.expression = (expr *)createUnaryExpr(OP_NE,yyvsp[0].expression);
@@ -1402,21 +1422,21 @@ yyreduce:
     break;
 
   case 24:
-#line 258 "l8.y"
-    {
+#line 260 "l8.y"
+    { 
 									Try {
-										yyval.une = createUnionExpr((expr *) yyvsp[0].pe);
+										yyval.une = createUnionExpr((expr *)yyvsp[0].pe);
 										addObj(yyval.une);
 									}
 									Catch(e) {
 										YYABORT;
 									 }
-
+								
 								;}
     break;
 
   case 25:
-#line 268 "l8.y"
+#line 270 "l8.y"
     {
    										Try {
    										   yyval.une = createUnionExpr((expr *)yyvsp[-2].pe);
@@ -1424,46 +1444,47 @@ yyreduce:
    										   yyval.une->next = yyvsp[0].une;
    										}
    										Catch(e){
-   											YYABORT;
+   											YYABORT;   											
    										}
-
+   										
    		                         /*freeAllObj();*/
    		                         //YYABORT;
-
+   		                         
    		                         ;}
     break;
 
   case 26:
-#line 285 "l8.y"
-    { yyval.pe = (pathExpr *)yyvsp[0].lpe;  ;}
+#line 287 "l8.y"
+    { yyval.pe = (pathExpr *) yyvsp[0].lpe;  ;}
     break;
 
   case 27:
-#line 286 "l8.y"
+#line 288 "l8.y"
     { yyval.pe = (pathExpr *)yyvsp[0].expression;;}
     break;
 
   case 28:
-#line 287 "l8.y"
-    {
+#line 289 "l8.y"
+    {  														
   														Try{
   															tmpLPExpr = createLocationPathExpr();
   															addObj(tmpLPExpr);
   															addObj(tmpLPExpr->ih);
+  															addObj(tmpLPExpr->ih->storage);
   															setStep(tmpLPExpr, yyvsp[0].s);
   															yyval.pe = createPathExpr(yyvsp[-2].expression, tmpLPExpr);
   															addObj(yyval.pe);
   															addObj(yyval.pe->ih);
   															tmpLPExpr = NULL;
-  														}Catch(e){
+  														}Catch(e){  														
   															//freeAllObj();
   															YYABORT;
-  														}
+  														}  		
   													;}
     break;
 
   case 29:
-#line 303 "l8.y"
+#line 306 "l8.y"
     {
 														Try {
 															tmpStep = createStep();
@@ -1478,24 +1499,26 @@ yyreduce:
 															tmpLPExpr = createLocationPathExpr();
 															addObj(tmpLPExpr);
 															addObj(tmpLPExpr->ih);
+															addObj(tmpLPExpr->ih->storage);
 															setStep(tmpLPExpr, tmpStep);
 															yyval.pe = createPathExpr(yyvsp[-2].expression, tmpLPExpr);
 															addObj(yyval.pe);
-															addObj(yyval.pe->ih);
+															addObj(yyval.pe->ih);	
+															addObj(yyval.pe->ih->storage);															
 														} Catch (e){
-															//freeAllObj();
-															YYABORT;
-														}
+															//freeAllObj();		
+															YYABORT;																											
+														}								
 													;}
     break;
 
   case 30:
-#line 329 "l8.y"
+#line 334 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 31:
-#line 330 "l8.y"
+#line 335 "l8.y"
     {Try {
   										yyval.expression = (expr *)createFilterExpr(yyvsp[-1].expression,yyvsp[0].p);
   										addObj(yyval.expression);
@@ -1508,30 +1531,30 @@ yyreduce:
     break;
 
   case 32:
-#line 343 "l8.y"
-    {/*freeAllObj();*/ YYABORT;;}
+#line 348 "l8.y"
+    {yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 33:
-#line 344 "l8.y"
+#line 349 "l8.y"
     { yyval.expression = yyvsp[-1].expression;;}
     break;
 
   case 34:
-#line 345 "l8.y"
+#line 350 "l8.y"
     { Try {
 							yyval.expression = (expr *)createLiteralExpr(yyvsp[0].literal);
 							addObj(yyval.expression);
 							addObj(yyvsp[0].literal);
 						} Catch (e) {
 							//freeAllObj();
-							YYABORT;
-						}
+							YYABORT;	
+						}						
 					  ;}
     break;
 
   case 35:
-#line 354 "l8.y"
+#line 359 "l8.y"
     { Try {
 						    yyval.expression = (expr *)createNumberExpr(yyvsp[0].number);
 						    addObj(yyval.expression);
@@ -1543,12 +1566,12 @@ yyreduce:
     break;
 
   case 36:
-#line 362 "l8.y"
+#line 367 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 37:
-#line 363 "l8.y"
+#line 368 "l8.y"
     {
 						//freeAllObj();
 						//printf(" Invalid char encoutered \n");
@@ -1557,7 +1580,7 @@ yyreduce:
     break;
 
   case 38:
-#line 371 "l8.y"
+#line 376 "l8.y"
     { Try {
 															yyval.expression = (expr *)createFuncExpr(yyvsp[-3].fname, yyvsp[-1].a);
 															addObj(yyval.expression);
@@ -1571,49 +1594,50 @@ yyreduce:
     break;
 
   case 39:
-#line 383 "l8.y"
+#line 388 "l8.y"
     { yyval.a = NULL;;}
     break;
 
   case 40:
-#line 384 "l8.y"
+#line 389 "l8.y"
     {	Try {
 	     							yyval.a = createAlist();
 	     							addObj(yyval.a);
-	     							yyval.a->e = yyvsp[0].expression;
+	     							yyval.a->e = yyvsp[0].expression;  								     	
 	     						}Catch (e){
 	     							//freeAllObj();
 	     							YYABORT;
-	     						}
+	     						}	
 	     					;}
     break;
 
   case 41:
-#line 393 "l8.y"
+#line 398 "l8.y"
     {
-	     											Try {
+	     											Try {	     											
 	     												yyval.a = createAlist();
 	     												addObj(yyval.a);
 	     												yyval.a->e = yyvsp[-2].expression;
-	     												yyval.a->next = yyvsp[0].a;
+	     												yyval.a->next = yyvsp[0].a;	     												
 	     											} Catch (e){
 	     												//freeAllObj();
-	     												YYABORT;
-	     											}
+	     												YYABORT;	     													     												
+	     											}	     	
 	     									  ;}
     break;
 
   case 42:
-#line 406 "l8.y"
+#line 411 "l8.y"
     {yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 43:
-#line 410 "l8.y"
+#line 415 "l8.y"
     { Try {
 													yyval.lpe = createLocationPathExpr();
 													addObj(yyval.lpe);
 													addObj(yyval.lpe->ih);
+													addObj(yyval.lpe->ih->storage);
 													setStep(yyval.lpe, yyvsp[0].s);
 												  }
 											  Catch (e) {
@@ -1624,7 +1648,7 @@ yyreduce:
     break;
 
   case 44:
-#line 421 "l8.y"
+#line 427 "l8.y"
     {		Try {  /*printf("absolute locationpath \n");*/
 													yyval.lpe = createLocationPathExpr();
 													addObj(yyval.lpe);
@@ -1641,40 +1665,40 @@ yyreduce:
     break;
 
   case 45:
-#line 436 "l8.y"
+#line 442 "l8.y"
     {yyval.s = NULL;;}
     break;
 
   case 46:
-#line 437 "l8.y"
+#line 443 "l8.y"
     {/*printf("slash detected \n");*/ yyval.s = yyvsp[0].s;;}
     break;
 
   case 47:
-#line 438 "l8.y"
+#line 444 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 48:
-#line 441 "l8.y"
+#line 447 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 49:
-#line 442 "l8.y"
+#line 448 "l8.y"
     { yyvsp[-2].s->nextS = yyvsp[0].s;
 												yyvsp[0].s->prevS = yyvsp[-2].s;
-												yyval.s = yyvsp[-2].s;
+												yyval.s = yyvsp[-2].s;		
 												;}
     break;
 
   case 50:
-#line 446 "l8.y"
+#line 452 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 51:
-#line 450 "l8.y"
+#line 456 "l8.y"
     {
 														Try {
 															yyval.s = createStep();
@@ -1691,12 +1715,12 @@ yyreduce:
     break;
 
   case 52:
-#line 463 "l8.y"
+#line 469 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 53:
-#line 467 "l8.y"
+#line 473 "l8.y"
     { Try {
 										yyval.nodetest = createNodeTest();
 										addObj(yyval.nodetest);
@@ -1715,7 +1739,7 @@ yyreduce:
 											}
 										}
 										yyvsp[0].name.prefix = yyvsp[0].name.localname = yyvsp[0].name.qname = NULL;
-
+										
 									  } Catch(e){
 										//freeAllObj();
 										YYABORT;
@@ -1724,7 +1748,7 @@ yyreduce:
     break;
 
   case 54:
-#line 491 "l8.y"
+#line 497 "l8.y"
     { Try{
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
@@ -1733,44 +1757,44 @@ yyreduce:
 	 								Catch(e){
 	 									//freeAllObj();
 	 									YYABORT;
-	 								}
+	 								}	 								
 	 							;}
     break;
 
   case 55:
-#line 503 "l8.y"
+#line 509 "l8.y"
     { yyval.p = NULL;;}
     break;
 
   case 56:
-#line 504 "l8.y"
+#line 510 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
-	     									yyval.p = yyvsp[-1].p;
+	     									yyval.p = yyvsp[-1].p;	
 	     								  ;}
     break;
 
   case 57:
-#line 509 "l8.y"
+#line 515 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 58:
-#line 510 "l8.y"
+#line 516 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 59:
-#line 513 "l8.y"
+#line 519 "l8.y"
     { /*printf("abbreviated child axis \n");*/yyval.at  = AXIS_CHILD;;}
     break;
 
   case 60:
-#line 514 "l8.y"
+#line 520 "l8.y"
     {yyval.at = AXIS_ATTRIBUTE;;}
     break;
 
   case 61:
-#line 517 "l8.y"
+#line 523 "l8.y"
     {Try{
 								yyval.s = createStep();
 								addObj(yyval.s);
@@ -1788,7 +1812,7 @@ yyreduce:
     break;
 
   case 62:
-#line 531 "l8.y"
+#line 537 "l8.y"
     {
 					Try{
 						yyval.s = createStep();
@@ -1803,12 +1827,12 @@ yyreduce:
 						//freeAllObj();
 						YYABORT;
 					}
-
+		
 					;}
     break;
 
   case 63:
-#line 549 "l8.y"
+#line 555 "l8.y"
     {
 																Try{
 																	yyval.s = createStep();
@@ -1819,16 +1843,16 @@ yyreduce:
 																	setTestType(tmpNt, NT_NODE);
 																	setNodeTest(yyval.s,tmpNt);
 																	yyval.s->nextS = yyvsp[0].s;
-																	yyvsp[0].s->prevS = yyval.s;
+																	yyvsp[0].s->prevS = yyval.s;																
 																}Catch(e){
 																	//freeAllObj();
-																	YYABORT;
+																	YYABORT;																	
 																}
 																;}
     break;
 
   case 64:
-#line 567 "l8.y"
+#line 573 "l8.y"
     {
 																	Try{
 																		yyval.s= createStep();
@@ -1845,13 +1869,13 @@ yyreduce:
 																		yyval.s = yyvsp[-2].s;
 																	}Catch(e){
 																		//freeAllObj();
-																		YYABORT;
+																		YYABORT;	
 																	}
 																	;}
     break;
 
   case 65:
-#line 589 "l8.y"
+#line 595 "l8.y"
     {
 							   Try {
 									yyval.p = createPredicate();
@@ -1864,8 +1888,29 @@ yyreduce:
 							;}
     break;
 
+  case 66:
+#line 607 "l8.y"
+    {
+								Try {
+								    //addObj($2);
+								    ex = getExprFromList(xpathExprList,yyvsp[0].name.qname);
+								    if (ex==NULL) {
+										YYABORT;
+								    }
+								    yyval.expression = (expr *)createVariableExpr(yyvsp[0].name.qname, ex);
+									//$$ = createPredicate();
+									addObj(yyval.expression);
+									//$$->e = $2;
+								} Catch(e){
+									//freeAllObj();
+									YYABORT;
+								}
+
+							;}
+    break;
+
   case 67:
-#line 604 "l8.y"
+#line 626 "l8.y"
     {yyval.fname  = yyvsp[0].fname;;}
     break;
 
@@ -1873,7 +1918,7 @@ yyreduce:
     }
 
 /* Line 991 of yacc.c.  */
-#line 1894 "l8.tab.c"
+#line 1921 "l8.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2082,16 +2127,18 @@ yyreturn:
 }
 
 
-#line 607 "l8.y"
+#line 629 "l8.y"
 
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;
 extern unsigned short *xpathInputLimit;
-
-expr *xpathParse(UCSChar *input, NsList *nl){
+extern int num_chars;
+expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el){
 	int l = wcslen(input);
 	int i = 0;
+	num_chars = 0;	
 	xpathNSList = nl;
+	xpathExprList = el;
 	XMLChar_init();
 	xpathInputPtr = xpathInput = (unsigned short *)malloc((l+1)<<1);
 	// copy the string from wchar_t to unsigned short
@@ -2110,13 +2157,15 @@ expr *xpathParse(UCSChar *input, NsList *nl){
 		return x;
 	} else {
 		//wprintf(L"yyparse YYABORT\n");
+		wprintf(L"xpath syntax error after or around the end of \n     %.*s\n", num_chars, input);
 		free(xpathInput);
 		xpathInput = xpathInputPtr = xpathInputLimit = NULL;
 		//isName = 1;
 		freeAllObj();
 		return NULL;
 	}
-
+	
 }
+
 
 
