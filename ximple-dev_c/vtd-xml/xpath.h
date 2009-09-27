@@ -283,7 +283,24 @@ typedef enum FuncName {FN_LAST,
 		   FN_SUM,
 		   FN_FLOOR,
 		   FN_CEILING,
-		   FN_ROUND
+		   FN_ROUND,
+		   /* 2.0 functions */
+		   FN_ABS,
+		   FN_ROUND_HALF_TO_EVEN,
+		   FN_ROUND_HALF_TO_ODD,
+		   FN_CODE_POINTS_TO_STRING,
+		   FN_COMPARE,
+		   FN_UPPER_CASE,
+		   FN_LOWER_CASE,
+		   FN_ENDS_WITH,
+		   FN_QNAME,
+		   FN_LOCAL_NAME_FROM_QNAME,
+		   FN_NAMESPACE_URI_FROM_QNAME,
+		   FN_NAMESPACE_URI_FOR_PREFIX,
+		   FN_RESOLVE_QNAME,
+		   FN_IRI_TO_URI,
+		   FN_ESCAPE_HTML_URI,
+		   FN_ENCODE_FOR_URI
 } funcName;
 typedef struct AList {
 	expr *e;
@@ -607,6 +624,50 @@ void	setContextSize_une(unionExpr *e,int s);
 void	setPosition_une(unionExpr *e,int pos);
 void    toString_une(unionExpr *e, UCSChar* string);
 int	adjust_une(unionExpr *e, int n);
+
+typedef struct VariableExpr{
+	free_Expr freeExpr;
+	eval_NodeSet evalNodeSet;
+	eval_Number evalNumber;
+	eval_String evalString;
+	eval_Boolean evalBoolean;
+	is_Boolean isBoolean;
+	is_Numerical isNumerical;
+	is_String  isString;
+	is_NodeSet isNodeSet;
+	require_ContextSize requireContextSize;
+	reset_ reset;
+	set_ContextSize setContextSize;
+	set_Position setPosition;
+	to_String toString;
+	adjust_ adjust;
+	//expr *fe;
+	UCSChar* exprName;
+	expr *exprVal;
+	//struct UnionExpr *current;
+	//struct UnionExpr *next;
+	//int evalState;
+	/*FastIntBuffer *fib;*/
+	//IntHash *ih;
+} variableExpr;
+
+variableExpr *createVariableExpr(UCSChar* name, expr *e);
+void freeVariableExpr(variableExpr *e);
+int		evalNodeSet_ve (variableExpr *e,VTDNav *vn);
+double	evalNumber_ve (variableExpr *e,VTDNav *vn);
+UCSChar* evalString_ve  (variableExpr *e,VTDNav *vn);
+Boolean evalBoolean_ve (variableExpr *e,VTDNav *vn);
+Boolean isBoolean_ve (variableExpr *e);
+Boolean isNumerical_ve (variableExpr *e);
+Boolean isString_ve (variableExpr *e);
+Boolean isNodeSet_ve (variableExpr *e);
+Boolean requireContextSize_ve(variableExpr *e);
+void	reset_ve(variableExpr *e, VTDNav *vn);
+void	setContextSize_ve(variableExpr *e,int s);
+void	setPosition_ve(variableExpr *e,int pos);
+void    toString_ve(variableExpr *e, UCSChar* string);
+int	adjust_ve(variableExpr *e, int n);
+
 int yylex();
 /*void yyrestart(FILE *i);*/
 int yyerror(char *s);
@@ -621,11 +682,22 @@ typedef struct nsList {
 	struct nsList *next;
 } NsList;
 
+
 /* given a prefix, find the URL */
 UCSChar *lookup(NsList *nl, UCSChar *prefix);
-expr *xpathParse(UCSChar *input, NsList *nl);
 
 
 UCSChar* createEmptyString();
+
+typedef struct exprList {
+	UCSChar *variableName;
+	expr *Expr;
+	struct exprList *next;
+} ExprList;
+
+expr *getExprFromList(ExprList *el, UCSChar *varName);
+expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el);
+
+
 
 #endif
