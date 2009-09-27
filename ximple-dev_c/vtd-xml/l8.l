@@ -31,6 +31,7 @@
 #endif
 #undef  YY_INPUT
 #define YY_INPUT(b,r,ms)  r = my_yyinput(b,ms)
+#define YY_USER_ACTION num_chars += yyleng;
 
 static wchar_t *tmpstring;
 
@@ -42,6 +43,7 @@ wchar_t *mydup(YY_CHAR *text, int len);
 static int i;
 int isName;
 int colonPosition;
+int num_chars;
 %}
 %option noyywrap
 
@@ -71,6 +73,7 @@ nc2   ([^!-/;-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 "<="	{isName = 1 ; return LE;}
 "="	{isName = 1 ; return EQ;}
 "!="	{isName = 1 ; return NE;}
+"$"      {isName = 1; return DOLLAR;}
 
 "*"	{if (isName ==0 ){
 		isName = 1;
@@ -250,6 +253,104 @@ translate{ws}*"("	{  	isName = 1;
 				yylval.fname = FN_TRANSLATE;
 				return FNAME;	
 			}
+
+abs{ws}*"("		{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_ABS;
+				return FNAME;	
+			}
+
+round-half-to-even{ws}*"("	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_ROUND_HALF_TO_EVEN;
+				return FNAME;	
+			}
+
+round-half-to-odd{ws}*"("	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_ROUND_HALF_TO_ODD;
+				return FNAME;	
+			}
+
+code-points-to-string{ws}*"("	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_CODE_POINTS_TO_STRING;
+				return FNAME;	
+			}
+
+compare{ws}*"("		{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_COMPARE;
+				return FNAME;	
+			}
+
+upper-case{ws}*"("	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_UPPER_CASE;
+				return FNAME;	
+			}
+
+lower-case{ws}*"("	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_LOWER_CASE;
+				return FNAME;	
+			}
+
+ends-with{ws}*"("	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_ENDS_WITH;
+				return FNAME;	
+			}
+
+QName{ws}*"("		{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_QNAME;
+				return FNAME;	
+			}
+
+local-name-from-QName{ws}*"("		{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_LOCAL_NAME_FROM_QNAME;
+				return FNAME;	
+			}
+
+namespace-uri-from-QName{ws}*"(" 	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_NAMESPACE_URI_FROM_QNAME;
+				return FNAME;	
+			}
+
+namespace-uri-for-prefix{ws}*"("	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_NAMESPACE_URI_FOR_PREFIX;
+				return FNAME;	
+			}
+
+resolve-QName{ws}*"(" 	{  	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_RESOLVE_QNAME;
+				return FNAME;	
+			}
+
+iri-to-uri{ws}*"("	{	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_IRI_TO_URI;
+				return FNAME;	
+			}
+
+escape-html-uri{ws}*"(" {	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_ESCAPE_HTML_URI;
+				return FNAME;	
+			}
+
+
+encode-for-uri{ws}*"(" {	isName = 1; 
+			 	unput('(');
+				yylval.fname = FN_ENCODE_FOR_URI;
+				return FNAME;	
+			}
+
 
 boolean{ws}*"("		{  	isName = 1; 
 			 	unput('(');
