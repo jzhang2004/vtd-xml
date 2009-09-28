@@ -45,5 +45,26 @@ namespace com.ximpleware.xpath
 		public AxisType()
 		{
 		}
+
+        public String getAxisString()
+        {
+            switch (i)
+            {
+                case 0: return "child::";
+                case 1: return "descendent::";
+                case 2: return "parent::";
+                case 3: return "ancestor::";
+                case 4: return "following-sibling::";
+                case 5: return "preceding-sibling::";
+                case 6: return "following::";
+                case 7: return "preceding::";
+                case 8: return "attribute::";
+                case 9: return "namespace::";
+                case 10: return "self::";
+                case 11: return "descendant-or-self::";
+                default: return "ancestor-or-self::";
+            }
+        }
+
 	}
 }
