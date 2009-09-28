@@ -18,21 +18,21 @@
 #include "helper.h"
 
 
-void addObj(void *o){
-	exception e;
-	
+void addObj(void *o){	
 	if (objList ==NULL){
 		objList = ptr1 = (struct obj *)malloc(sizeof(struct obj));
 		if (ptr1 == NULL){
-			e.et = out_of_mem;
-			Throw e;
+			throwException2(out_of_mem, "out of memory in addObj during parsing XPath");
+			//e.et = out_of_mem;
+			//Throw e;
 		} 		
 
 	} else {
 		ptr1->next = malloc(sizeof(struct obj));	
 		if (ptr1->next == NULL){
-			e.et = out_of_mem;
-			Throw e;
+			throwException2(out_of_mem, "out of memory in addObj during parsing XPath");
+			//e.et = out_of_mem;
+			//Throw e;
 		} 	
 		ptr1 = ptr1->next;
 	}
