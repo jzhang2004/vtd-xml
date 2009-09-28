@@ -38,7 +38,7 @@ IntHash* createIntHash(){
 		ih->storage[i]= NULL;
 	}*/
 	// default size is 2^11=2048
-	return createIntHash2(ih_hashWidthE);
+	return createIntHash2(0);
 }
 IntHash* createIntHash2(int hashWidthExpo){
 	int i=0;
