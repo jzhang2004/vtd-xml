@@ -37,8 +37,8 @@ IntHash* createIntHash(){
 	/*for (i=0;i<ih->hw;i++){
 		ih->storage[i]= NULL;
 	}*/
-
-	return createIntHash2(0);
+	// default size is 2^11=2048
+	return createIntHash2(ih_hashWidthE);
 }
 IntHash* createIntHash2(int hashWidthExpo){
 	int i=0;
@@ -48,7 +48,7 @@ IntHash* createIntHash2(int hashWidthExpo){
 			"IntHash allocation failed ");
 		return NULL;
 	}
-	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)<<ih_hashWidthE);
+	ih->storage = (FastIntBuffer **) malloc(sizeof(FastIntBuffer*)<<hashWidthExpo);
 	ih->hw = 1<<hashWidthExpo;
 	ih->m1 = ih->hw -1;
 	ih->m2 = (~ih->m1) & 0xffffffff;
