@@ -417,11 +417,14 @@ round{ws}*"("		{  	isName = 1;
 '[^']*'			{
 				isName = 0;
 				tmpstring = mydup(yytext,yyleng);
+				if (tmpstring == NULL)
+				    return ERROR;
 				yylval.literal = malloc(sizeof(wchar_t)*(yyleng-1));
 				if (yylval.literal!=NULL){
 					wcsncpy(yylval.literal, (wchar_t *)(tmpstring+1), yyleng-2);
 					addObj(yylval.literal);
-				} 	
+				}else
+				    return ERROR;
 				*(yylval.literal+yyleng-2) = L'\0';
 				free(tmpstring);
 				tmpstring = NULL;
@@ -432,6 +435,8 @@ round{ws}*"("		{  	isName = 1;
 "."[0-9]+		{
 				isName = 0;
 				tmpstring = mydup(yytext,yyleng);
+				if (tmpstring==NULL)
+					return ERROR;
 				yylval.number = wcstod(tmpstring,NULL);
 				free(tmpstring);
 				tmpstring = NULL;
@@ -547,15 +552,22 @@ self{ws}*::		{	isName = 1;
 						return ERROR;
 				}
 				yylval.name.prefix = (UCSChar *)malloc (sizeof(UCSChar)*(yyleng-1));
+				if (yylval.name.prefix == NULL)
+					return ERROR;
 				tmpstring = mydup(yytext,yyleng);
+				if (tmpstring == NULL)
+					return ERROR;
 				if (tmpstring!=NULL){
 					wcsncpy(yylval.name.prefix, tmpstring, yyleng-2);
 					yylval.name.prefix[yyleng-2] = 0;
 					addObj(yylval.name.prefix);
-				}
+				} else 
+					return ERROR;
 				free(tmpstring);
 				tmpstring = NULL;
 				yylval.name.localname = _wcsdup(L"*");
+				if (yylval.name.localname == NULL)
+					return ERROR;
 				addObj(yylval.name.localname);
 				return NAME;
 			}
@@ -595,7 +607,10 @@ self{ws}*::		{	isName = 1;
 				}
 				isName = 0;
 				tmpstring = mydup(yytext,yyleng);
+				if (tmpstring==NULL)
+					return ERROR;
 				yylval.name.qname = tmpstring;
+				addObj(yylval.name.qname);
 				tmpstring = NULL;
 				//printf("returned a NAME \n");
 
@@ -640,7 +655,7 @@ wchar_t *mydup(YY_CHAR *text,int len){
 			i++;
 		}
 		string[i]=0;
-	}
+	} 
 	return string;
 }
 
