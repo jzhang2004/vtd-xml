@@ -73,19 +73,19 @@ void insertExpr(AutoPilot *ap, UCSChar *varName, expr *e){
 		}
 		tmp->next = NULL; 
 		tmp->variableName = varName;
-		tmp->Expr = e;
+		tmp->ve = e;
 		el = tmp;
 		return;
 	}else {
 		if (wcscmp(tmp->variableName, varName) == 0){
-			tmp->Expr->freeExpr(tmp->Expr);
-			tmp->Expr = e; /* overwritten */
+			tmp->ve->freeExpr(tmp->ve);
+			tmp->ve = e; /* overwritten */
 			return;
 		}
 		while(tmp->next!=NULL){
 			if (wcscmp(tmp->variableName,varName) == 0){
-				tmp->Expr->freeExpr(tmp->Expr);
-				tmp->Expr = e; /* overwritten */
+				tmp->ve->freeExpr(tmp->ve);
+				tmp->ve = e; /* overwritten */
 				return;
 			}
 			tmp = tmp->next;
@@ -97,7 +97,7 @@ void insertExpr(AutoPilot *ap, UCSChar *varName, expr *e){
 		}
 		tmp->next->next = NULL; 
 		tmp->next->variableName = varName;
-		tmp->next->Expr = e;
+		tmp->next->ve = e;
 		return;
 	}
 }
@@ -123,7 +123,7 @@ expr *getExprFromList(ExprList *el, UCSChar *varName){
 		return NULL;
 	while(tmp!= NULL){
 		if (wcscmp(tmp->variableName,varName)==0){
-			return tmp->Expr;
+			return tmp->ve;
 		}
 		tmp = tmp->next;
 	}
@@ -556,7 +556,7 @@ int iterateAttr(AutoPilot *ap){
  * Usually evalXPath is called afterwards
  */
 Boolean selectXPath(AutoPilot *ap, UCSChar *s){
-	
+	exception e;
 	if (s==NULL){
 		throwException2(xpath_parse_exception,
 			" xpath input string can't be NULL ");
@@ -564,12 +564,17 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 	}
 	if(ap->xpe!=NULL)
 		ap->xpe->freeExpr(ap->xpe);
-	ap->xpe = xpathParse(s, nl,el);
-	ap->ft = TRUE;
-	if (ap->xpe == NULL){
-		return FALSE;
+	Try{
+		ap->xpe = xpathParse(s, nl,el);
+		ap->ft = TRUE;
+		if (ap->xpe == NULL){
+			return FALSE;
+		}
+		return TRUE;
+	}Catch(e){
+		freeAllObj();
+		Throw e;
 	}
-	return TRUE;
 }
 
 /*
@@ -643,3 +648,52 @@ void bind(AutoPilot *ap, VTDNav *new_vn){
     ap->special = FALSE;
 }
 
+
+/* Clear the namespace prefix URL bindings in the global list */
+void clearXPathNameSpaces(){
+	/*nl has been made a package scoped static variable*/
+		NsList *tmp = nl;
+		NsList *tmp2 = NULL;
+		while(tmp!=NULL){
+			tmp2 = tmp->next;
+			free(tmp);
+			tmp  = tmp2;			
+		}
+}
+
+/* Clear the variable name and exprs in the global list  */
+void clearVariableExprs(){
+		ExprList *tmp = el;
+		ExprList *tmp2 = NULL;
+		while(tmp!=NULL){
+			tmp->ve->freeExpr(tmp->ve);
+			tmp2 = tmp->next;			
+			free(tmp);
+			tmp  = tmp2;			
+		}
+}
+
+/* Declare the variable name and expression binding*/
+void declareVariableExpr(AutoPilot *ap, UCSChar* varName, UCSChar* varExpr){
+	exception e;
+	expr* tmp = NULL;
+	if (varExpr==NULL || varName==NULL){
+		throwException2(xpath_parse_exception,
+			" xpath input string or variable name can't be NULL ");
+		//return FALSE;
+	}
+	tmp = getExprFromList(el,varName);
+	if(tmp!=NULL)
+		tmp->freeExpr(tmp);
+	Try{
+		tmp = xpathParse(varExpr, nl,el);
+		//ap->ft = TRUE;
+		if (tmp == NULL){
+			throwException2(xpath_parse_exception, "variable expr declaration failed ");
+		}
+		insertExpr(ap,varName,tmp);
+	}Catch(e){
+		freeAllObj();
+		Throw e;
+	}
+}
