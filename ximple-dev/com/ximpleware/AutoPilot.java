@@ -151,7 +151,7 @@ public void declareVariableExpr(String varName, String varExpr) throws XPathPars
         symbolHash.put(varName, xpe);
         ft = true;
      }catch(XPathParseException e){
-    	 System.out.println("Syntax error after  ==>"+varExpr.substring(0,e.getOffset()));
+    	 System.out.println("Syntax error after or around the end of  ==>"+varExpr.substring(0,e.getOffset()));
          throw e;
      }catch(Exception e){
          throw new XPathParseException("Error occurred");
@@ -434,7 +434,7 @@ protected void selectElement_F(String en) {
 }
 
 /**
- * Select all elements along the preceding axis as defined in XPath
+ * Select all elements along the following axis as defined in XPath
  * The namespace-aware version
  * @param en
  */
@@ -528,7 +528,7 @@ public void selectXPath(String s) throws XPathParseException {
        xpe = (com.ximpleware.xpath.Expr) p.parse().value;
        ft = true;
     }catch(XPathParseException e){
-    	System.out.println("Syntax error after  ==>"+s.substring(0,e.getOffset()));
+    	System.out.println("Syntax error after or around the end of ==>"+s.substring(0,e.getOffset()));
         throw e;
     }catch(Exception e){
         throw new XPathParseException("Error occurred");
