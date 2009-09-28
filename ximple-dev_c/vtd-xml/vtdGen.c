@@ -3573,7 +3573,7 @@ VTDNav* loadSeparateIndex(VTDGen *vg, char *XMLFile, char *VTDIndexFile){
 
 	//get xml file size
 	b=_readSeparateIndex(xf, xsize, vf, vg);
-	if (b==FALSE){
+	if (b==TRUE){
 		return getNav(vg);
 	}else {
 		return NULL;
