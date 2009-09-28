@@ -22,6 +22,7 @@
 #include "vtdNav.h"
 #include "cexcept.h"
 #include "xpath.h"
+#include "helper.h"
 static struct nsList *nl;
 static struct exprList *el;
 /* iter_type defines the type of iteration, to be used in function iterateAP*/
@@ -144,11 +145,6 @@ Boolean iterateAP(AutoPilot *ap);
 // This method implements the attribute axis for XPath
 int iterateAttr(AutoPilot *ap);
 
-/**
- * This method implements the attribute axis for XPath
- */
-Boolean iterateAttrAP(AutoPilot *ap);
-
 /*
  * This function selects the string representing XPath expression
  * Usually evalXPath is called afterwards
@@ -185,8 +181,12 @@ void resetXPath(AutoPilot *ap);
 
 void declareXPathNameSpace(AutoPilot *ap, UCSChar *prefix, UCSChar *URL);
 
+/* Clear the namespace prefix URL bindings in the global list */
+void clearXPathNameSpaces();
+/* Clear the variable name and exprs in the global list  */
+void clearVariableExprs();
 
-
-
+/* Declare the variable name and expression binding*/
+void declareVariableExpr(AutoPilot *ap, UCSChar* varName, UCSChar* varExpr);
 #endif
 
