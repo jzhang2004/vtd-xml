@@ -691,7 +691,7 @@ UCSChar* createEmptyString();
 
 typedef struct exprList {
 	UCSChar *variableName;
-	expr *Expr;
+	expr *ve;
 	struct exprList *next;
 } ExprList;
 
