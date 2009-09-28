@@ -27,6 +27,7 @@ static UCSChar *getString(funcExpr *fne, VTDNav *vn);
 static Boolean contains(funcExpr *fne, VTDNav *vn);
 static UCSChar* concat(funcExpr *fne, VTDNav *vn);
 static Boolean startsWith(funcExpr *fne, VTDNav *vn);
+static Boolean endsWith(funcExpr *fne, VTDNav *vn);
 static UCSChar* subString(funcExpr *fne, VTDNav *vn);
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn);
 static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn);
@@ -384,8 +385,26 @@ UCSChar *fname(funcExpr *fne, funcName i){
 			case FN_NUMBER:			return L"number";
 			case FN_SUM: 			return L"sum";
 			case FN_FLOOR: 			return L"floor";
-			case FN_CEILING: 			return L"ceiling";
-			default:			return L"round";
+			case FN_CEILING: 		return L"ceiling";
+			case FN_ROUND:		    return L"round";
+			case FN_ABS:		    return L"abs";
+			case FN_ROUND_HALF_TO_EVEN:		return L"round-half-to-even";
+			case FN_ROUND_HALF_TO_ODD:		return L"round-half-to-odd";
+			case FN_CODE_POINTS_TO_STRING: 	  return L"code-points-to-string";
+			case FN_COMPARE:		   return L"compare";
+			case FN_UPPER_CASE:		   return L"upper-case";
+			case FN_LOWER_CASE:		   return L"lower-case";
+			case FN_ENDS_WITH:		   return L"ends-with";
+			case FN_QNAME:			   return L"QName";
+			case FN_LOCAL_NAME_FROM_QNAME:		  return L"local-name-from-QName";
+			case FN_NAMESPACE_URI_FROM_QNAME:	  return L"namespace-uri-from-QName";
+			case FN_NAMESPACE_URI_FOR_PREFIX:	  return L"namespace-uri-for-prefix";
+			case FN_RESOLVE_QNAME:		  return L"resolve-QName";
+			case FN_IRI_TO_URI:			  return L"iri-to-uri";
+			case FN_ESCAPE_HTML_URI:	  return L"escape-html-uri";
+	
+			default:			return L"encode-for-uri";
+
 	}
 }
 
@@ -441,7 +460,23 @@ funcExpr *createFuncExpr(funcName oc, aList *a){
 			case FN_SUM: 			    fne->isNum = TRUE;break;
 			case FN_FLOOR: 			fne->isNum = TRUE;break;
 			case FN_CEILING: 			fne->isNum = TRUE;break;
-			default:			fne->isNum = TRUE;
+			case FN_ROUND:		   fne->isNum = TRUE;break;
+			case FN_ABS:		   fne->isNum = TRUE;break;
+			case FN_ROUND_HALF_TO_EVEN:		   fne->isNum = TRUE;break;
+			case FN_ROUND_HALF_TO_ODD:		   fne->isNum = TRUE;break;
+			case FN_CODE_POINTS_TO_STRING: 	   fne->isStr = TRUE;break;
+			case FN_COMPARE:		   fne->isBool = TRUE; break;
+			case FN_UPPER_CASE:		   fne->isStr = TRUE; break;
+			case FN_LOWER_CASE:		   fne->isStr = TRUE; break;
+			case FN_ENDS_WITH:		   fne->isBool = TRUE; break;
+			case FN_QNAME:		   fne->isStr = TRUE; break;
+			case FN_LOCAL_NAME_FROM_QNAME:		   fne->isStr = TRUE; break;
+			case FN_NAMESPACE_URI_FROM_QNAME:	   fne->isStr = TRUE; break;
+			case FN_NAMESPACE_URI_FOR_PREFIX:	   fne->isStr = TRUE; break;
+			case FN_RESOLVE_QNAME:		   fne->isStr = TRUE; break;
+			case FN_IRI_TO_URI:			   fne->isStr = TRUE; break;
+			case FN_ESCAPE_HTML_URI:	   fne->isStr = TRUE; break;
+			default:		fne->isStr = TRUE; break;	
 	  }
 	return fne;
 }
@@ -536,7 +571,11 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 
 			case FN_ROUND: 	if (argCount(fne)!=1 )
 										return round(fne->al->e->evalNumber(fne->al->e,vn));
-
+			case FN_ABS:
+			case FN_ROUND_HALF_TO_EVEN:
+			case FN_ROUND_HALF_TO_ODD:
+				    throwException2(other_exception, "functions not yet supported");
+			
 			default: if (fne->isBool){
 						if (evalBoolean_fne(fne,vn))
 							return 1;
@@ -593,6 +632,19 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 			
 			case FN_NORMALIZE_SPACE: return normalizeString(fne,vn);
 
+			case FN_CODE_POINTS_TO_STRING:
+  			case FN_UPPER_CASE:
+  			case FN_LOWER_CASE:
+  			case FN_QNAME:
+  			case FN_LOCAL_NAME_FROM_QNAME:
+   			case FN_NAMESPACE_URI_FROM_QNAME:
+  			case FN_NAMESPACE_URI_FOR_PREFIX:
+  			case FN_RESOLVE_QNAME:
+  			case FN_IRI_TO_URI:
+  			case FN_ESCAPE_HTML_URI:
+  			case FN_ENCODE_FOR_URI:
+				throwException2(other_exception, "functions not yet supported");
+				
 			default: if (isBoolean_fne(fne)){
 			    		if (evalBoolean_fne(fne,vn)== TRUE)
 			    		    tmp = _wcsdup(L"true");
@@ -686,6 +738,9 @@ Boolean evalBoolean_fne (funcExpr *fne,VTDNav *vn){
 				}
 				return lang(fne, vn, fne->al->e->evalString(fne->al->e,vn));
 
+			case FN_COMPARE:
+			case FN_ENDS_WITH:
+				throwException2(other_exception, "functions not yet supported");
 			default:
 				if (isNumerical_fne(fne)){
 					double d = evalNumber_fne(fne, vn);
@@ -788,7 +843,7 @@ static Boolean contains(funcExpr *fne, VTDNav *vn){
     return b;
 }
 static UCSChar* concat(funcExpr *fne, VTDNav *vn){
-	int totalLen = 0,capacity = 16;
+	size_t totalLen = 0,capacity = 16;
 	size_t len = 0;
 	UCSChar *result = NULL, *s = NULL, *tempBuf = NULL;
 	result = malloc(sizeof(UCSChar)<<4);
@@ -826,6 +881,7 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 		"concat()'s <funcExpr> argument count is invalid");
 	return NULL;
 }
+/* can be optimized to test whether the argument returns a VTD index */
 static Boolean startsWith(funcExpr *fne, VTDNav *vn){
 	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
@@ -833,6 +889,23 @@ static Boolean startsWith(funcExpr *fne, VTDNav *vn){
 	Boolean b = FALSE;
 	if (wcsstr(s1,s2)==s1)
 		b = TRUE;
+	free(s1);
+	free(s2);
+    return b;
+}
+/* can be optimized to test whether the argument returns a VTD index */
+static Boolean endsWith(funcExpr *fne, VTDNav *vn){
+    UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
+	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
+	size_t l1 = wcslen(s1);
+	size_t l2 = wcslen(s2);
+	//UCSChar* s3 = NULL;
+	Boolean b = FALSE;
+	if (wcsstr(s1,s2)==s1){
+		//
+		b = TRUE;
+
+	}
 	free(s1);
 	free(s2);
     return b;
@@ -918,10 +991,10 @@ static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
 	if (argCount(fne) == 2){
 		UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 		UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
-		int len1=wcslen(s1),len2=wcslen(s2);
+		size_t len1=wcslen(s1),len2=wcslen(s2);
 		UCSChar* temp = NULL;
 		if ((temp=wcsstr(s1,s2))!=NULL){
-			int len = wcslen(temp);
+			size_t len = wcslen(temp);
 			wcsncpy(s1,temp+len2,len-len2);
 			*(s1+len-len2) = 0;
 			free(s2);
