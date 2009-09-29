@@ -20,6 +20,7 @@
 #include <wchar.h>
 #include "cexcept.h"
 #include <string.h>
+#include <stdlib.h>
 //#include <float.h>
 // those are for min and max of a float number
 #define MAXFLOAT 3.402823466e+38F
@@ -139,11 +140,7 @@ extern void throwException2(enum exception_type et1, char *msg);
 #endif
 
 #ifndef min
-
-#ifndef WIN32
 #define min(a,b)  (((a) > (b)) ? (b) : (a)) 
-#endif
-
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #endif
 
