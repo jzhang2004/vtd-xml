@@ -564,17 +564,15 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 	}
 	if(ap->xpe!=NULL)
 		ap->xpe->freeExpr(ap->xpe);
-	Try{
-		ap->xpe = xpathParse(s, nl,el);
-		ap->ft = TRUE;
-		if (ap->xpe == NULL){
-			return FALSE;
-		}
-		return TRUE;
-	}Catch(e){
-		freeAllObj();
-		Throw e;
+
+	ap->xpe = xpathParse(s, nl,el);
+	ap->ft = TRUE;
+	if (ap->xpe == NULL){
+		throwException2(xpath_parse_exception, "variable expr declaration failed ");
+		return FALSE;
 	}
+	return TRUE;
+	
 }
 
 /*
