@@ -370,6 +370,8 @@ typedef enum AxisType {  AXIS_CHILD,
 						 AXIS_ANCESTOR_OR_SELF
 					} axisType;
 
+char* getAxisString(axisType at);
+
 typedef enum {	NT_NAMETEST ,
 		NT_NODE,
 		NT_TEXT,

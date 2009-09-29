@@ -122,3 +122,22 @@ void    toString_le(literalExpr *le, UCSChar* string){
 int adjust_le(literalExpr *le, int n){
 	return 0;
 }
+
+char* getAxisString(axisType at){
+
+	switch(at){
+		case AXIS_CHILD : return "child::";
+		case AXIS_DESCENDANT : return "descendant::";
+		case AXIS_PARENT :	return "parent::";
+		case AXIS_ANCESTOR :	return "ancestor::";
+		case AXIS_FOLLOWING_SIBLING :	return "following-sibling::";
+		case AXIS_PRECEDING_SIBLING :	return "preceding-sibling::";
+		case AXIS_FOLLOWING :	return "following::";
+		case AXIS_PRECEDING :	return "preceding::";
+		case AXIS_ATTRIBUTE :	return "attribute::";
+		case AXIS_NAMESPACE :	return "namespace::";
+		case AXIS_SELF :	return "self::";
+		case AXIS_DESCENDANT_OR_SELF :	return "descendant-or-self::";
+		case AXIS_ANCESTOR_OR_SELF :	return "ancestor-or-self::";
+	}
+}
