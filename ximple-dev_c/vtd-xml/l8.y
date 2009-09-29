@@ -296,6 +296,7 @@ PathExpr     	:    LocationPath  { $$ = (pathExpr *) $1;  }
   															$$ = createPathExpr($1, tmpLPExpr);
   															addObj($$);
   															addObj($$->ih);
+  															addObj($$->ih->storage);
   															tmpLPExpr = NULL;
   														}Catch(e){  														
   															//freeAllObj();
@@ -476,11 +477,11 @@ NodeTest	:    NAME 				{ Try {
 										setTestType($$,NT_NAMETEST);
 										//wprintf(L"$1.qname %ls\n",$1.qname);
 										setNodeName($$,$1.qname);
-										addObj($1.qname);
+										//addObj($1.qname);
 										if ($1.localname!=NULL){
 											setNodeNameNS($$,$1.prefix,$1.localname);
-											addObj($1.prefix);
-											addObj($1.localname);
+											//addObj($1.prefix);
+											//addObj($1.localname);
 											// the part for URL mapping goes here
 											$$->URL = lookup(xpathNSList,$1.prefix);
 											if ($$->URL == NULL){
@@ -631,6 +632,7 @@ extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;
 extern unsigned short *xpathInputLimit;
 extern int num_chars;
+extern int isName;
 expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el){
 	int l = wcslen(input);
 	int i = 0;

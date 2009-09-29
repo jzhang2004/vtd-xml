@@ -1,3 +1,20 @@
+/* 
+* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
 /* A Bison parser, made by GNU Bison 1.875.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
@@ -413,11 +430,11 @@ static const unsigned short yyrline[] =
 {
        0,    94,    94,    97,    98,   111,   112,   124,   125,   135,
      147,   148,   158,   168,   178,   190,   191,   201,   213,   214,
-     224,   234,   246,   247,   260,   270,   287,   288,   289,   306,
-     334,   335,   348,   349,   350,   359,   367,   368,   376,   388,
-     389,   398,   411,   415,   427,   442,   443,   444,   447,   448,
-     452,   456,   469,   473,   497,   509,   510,   515,   516,   519,
-     520,   523,   537,   555,   573,   595,   607,   626
+     224,   234,   246,   247,   260,   270,   287,   288,   289,   307,
+     335,   336,   349,   350,   351,   360,   368,   369,   377,   389,
+     390,   399,   412,   416,   428,   443,   444,   445,   448,   449,
+     453,   457,   470,   474,   498,   510,   511,   516,   517,   520,
+     521,   524,   538,   556,   574,   596,   608,   627
 };
 #endif
 
@@ -1475,6 +1492,7 @@ yyreduce:
   															yyval.pe = createPathExpr(yyvsp[-2].expression, tmpLPExpr);
   															addObj(yyval.pe);
   															addObj(yyval.pe->ih);
+  															addObj(yyval.pe->ih->storage);
   															tmpLPExpr = NULL;
   														}Catch(e){  														
   															//freeAllObj();
@@ -1484,7 +1502,7 @@ yyreduce:
     break;
 
   case 29:
-#line 306 "l8.y"
+#line 307 "l8.y"
     {
 														Try {
 															tmpStep = createStep();
@@ -1513,12 +1531,12 @@ yyreduce:
     break;
 
   case 30:
-#line 334 "l8.y"
+#line 335 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 31:
-#line 335 "l8.y"
+#line 336 "l8.y"
     {Try {
   										yyval.expression = (expr *)createFilterExpr(yyvsp[-1].expression,yyvsp[0].p);
   										addObj(yyval.expression);
@@ -1531,17 +1549,17 @@ yyreduce:
     break;
 
   case 32:
-#line 348 "l8.y"
+#line 349 "l8.y"
     {yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 33:
-#line 349 "l8.y"
+#line 350 "l8.y"
     { yyval.expression = yyvsp[-1].expression;;}
     break;
 
   case 34:
-#line 350 "l8.y"
+#line 351 "l8.y"
     { Try {
 							yyval.expression = (expr *)createLiteralExpr(yyvsp[0].literal);
 							addObj(yyval.expression);
@@ -1554,7 +1572,7 @@ yyreduce:
     break;
 
   case 35:
-#line 359 "l8.y"
+#line 360 "l8.y"
     { Try {
 						    yyval.expression = (expr *)createNumberExpr(yyvsp[0].number);
 						    addObj(yyval.expression);
@@ -1566,12 +1584,12 @@ yyreduce:
     break;
 
   case 36:
-#line 367 "l8.y"
+#line 368 "l8.y"
     { yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 37:
-#line 368 "l8.y"
+#line 369 "l8.y"
     {
 						//freeAllObj();
 						//printf(" Invalid char encoutered \n");
@@ -1580,7 +1598,7 @@ yyreduce:
     break;
 
   case 38:
-#line 376 "l8.y"
+#line 377 "l8.y"
     { Try {
 															yyval.expression = (expr *)createFuncExpr(yyvsp[-3].fname, yyvsp[-1].a);
 															addObj(yyval.expression);
@@ -1594,12 +1612,12 @@ yyreduce:
     break;
 
   case 39:
-#line 388 "l8.y"
+#line 389 "l8.y"
     { yyval.a = NULL;;}
     break;
 
   case 40:
-#line 389 "l8.y"
+#line 390 "l8.y"
     {	Try {
 	     							yyval.a = createAlist();
 	     							addObj(yyval.a);
@@ -1612,7 +1630,7 @@ yyreduce:
     break;
 
   case 41:
-#line 398 "l8.y"
+#line 399 "l8.y"
     {
 	     											Try {	     											
 	     												yyval.a = createAlist();
@@ -1627,12 +1645,12 @@ yyreduce:
     break;
 
   case 42:
-#line 411 "l8.y"
+#line 412 "l8.y"
     {yyval.expression = yyvsp[0].expression;;}
     break;
 
   case 43:
-#line 415 "l8.y"
+#line 416 "l8.y"
     { Try {
 													yyval.lpe = createLocationPathExpr();
 													addObj(yyval.lpe);
@@ -1648,7 +1666,7 @@ yyreduce:
     break;
 
   case 44:
-#line 427 "l8.y"
+#line 428 "l8.y"
     {		Try {  /*printf("absolute locationpath \n");*/
 													yyval.lpe = createLocationPathExpr();
 													addObj(yyval.lpe);
@@ -1665,27 +1683,27 @@ yyreduce:
     break;
 
   case 45:
-#line 442 "l8.y"
+#line 443 "l8.y"
     {yyval.s = NULL;;}
     break;
 
   case 46:
-#line 443 "l8.y"
+#line 444 "l8.y"
     {/*printf("slash detected \n");*/ yyval.s = yyvsp[0].s;;}
     break;
 
   case 47:
-#line 444 "l8.y"
+#line 445 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 48:
-#line 447 "l8.y"
+#line 448 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 49:
-#line 448 "l8.y"
+#line 449 "l8.y"
     { yyvsp[-2].s->nextS = yyvsp[0].s;
 												yyvsp[0].s->prevS = yyvsp[-2].s;
 												yyval.s = yyvsp[-2].s;		
@@ -1693,12 +1711,12 @@ yyreduce:
     break;
 
   case 50:
-#line 452 "l8.y"
+#line 453 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 51:
-#line 456 "l8.y"
+#line 457 "l8.y"
     {
 														Try {
 															yyval.s = createStep();
@@ -1715,23 +1733,23 @@ yyreduce:
     break;
 
   case 52:
-#line 469 "l8.y"
+#line 470 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 53:
-#line 473 "l8.y"
+#line 474 "l8.y"
     { Try {
 										yyval.nodetest = createNodeTest();
 										addObj(yyval.nodetest);
 										setTestType(yyval.nodetest,NT_NAMETEST);
 										//wprintf(L"$1.qname %ls\n",$1.qname);
 										setNodeName(yyval.nodetest,yyvsp[0].name.qname);
-										addObj(yyvsp[0].name.qname);
+										//addObj($1.qname);
 										if (yyvsp[0].name.localname!=NULL){
 											setNodeNameNS(yyval.nodetest,yyvsp[0].name.prefix,yyvsp[0].name.localname);
-											addObj(yyvsp[0].name.prefix);
-											addObj(yyvsp[0].name.localname);
+											//addObj($1.prefix);
+											//addObj($1.localname);
 											// the part for URL mapping goes here
 											yyval.nodetest->URL = lookup(xpathNSList,yyvsp[0].name.prefix);
 											if (yyval.nodetest->URL == NULL){
@@ -1748,7 +1766,7 @@ yyreduce:
     break;
 
   case 54:
-#line 497 "l8.y"
+#line 498 "l8.y"
     { Try{
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
@@ -1762,39 +1780,39 @@ yyreduce:
     break;
 
   case 55:
-#line 509 "l8.y"
+#line 510 "l8.y"
     { yyval.p = NULL;;}
     break;
 
   case 56:
-#line 510 "l8.y"
+#line 511 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
 	     									yyval.p = yyvsp[-1].p;	
 	     								  ;}
     break;
 
   case 57:
-#line 515 "l8.y"
-    {yyval.at  = yyvsp[0].at;;}
-    break;
-
-  case 58:
 #line 516 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
+  case 58:
+#line 517 "l8.y"
+    {yyval.at  = yyvsp[0].at;;}
+    break;
+
   case 59:
-#line 519 "l8.y"
+#line 520 "l8.y"
     { /*printf("abbreviated child axis \n");*/yyval.at  = AXIS_CHILD;;}
     break;
 
   case 60:
-#line 520 "l8.y"
+#line 521 "l8.y"
     {yyval.at = AXIS_ATTRIBUTE;;}
     break;
 
   case 61:
-#line 523 "l8.y"
+#line 524 "l8.y"
     {Try{
 								yyval.s = createStep();
 								addObj(yyval.s);
@@ -1812,7 +1830,7 @@ yyreduce:
     break;
 
   case 62:
-#line 537 "l8.y"
+#line 538 "l8.y"
     {
 					Try{
 						yyval.s = createStep();
@@ -1832,7 +1850,7 @@ yyreduce:
     break;
 
   case 63:
-#line 555 "l8.y"
+#line 556 "l8.y"
     {
 																Try{
 																	yyval.s = createStep();
@@ -1852,7 +1870,7 @@ yyreduce:
     break;
 
   case 64:
-#line 573 "l8.y"
+#line 574 "l8.y"
     {
 																	Try{
 																		yyval.s= createStep();
@@ -1875,7 +1893,7 @@ yyreduce:
     break;
 
   case 65:
-#line 595 "l8.y"
+#line 596 "l8.y"
     {
 							   Try {
 									yyval.p = createPredicate();
@@ -1889,7 +1907,7 @@ yyreduce:
     break;
 
   case 66:
-#line 607 "l8.y"
+#line 608 "l8.y"
     {
 								Try {
 								    //addObj($2);
@@ -1910,7 +1928,7 @@ yyreduce:
     break;
 
   case 67:
-#line 626 "l8.y"
+#line 627 "l8.y"
     {yyval.fname  = yyvsp[0].fname;;}
     break;
 
@@ -1918,7 +1936,7 @@ yyreduce:
     }
 
 /* Line 991 of yacc.c.  */
-#line 1921 "l8.tab.c"
+#line 1922 "l8.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2127,12 +2145,13 @@ yyreturn:
 }
 
 
-#line 629 "l8.y"
+#line 630 "l8.y"
 
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;
 extern unsigned short *xpathInputLimit;
 extern int num_chars;
+extern int isName;
 expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el){
 	int l = wcslen(input);
 	int i = 0;

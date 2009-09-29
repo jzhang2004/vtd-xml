@@ -32,7 +32,6 @@
 #undef  YY_INPUT
 #define YY_INPUT(b,r,ms)  r = my_yyinput(b,ms)
 #define YY_USER_ACTION num_chars += yyleng;
-
 static wchar_t *tmpstring;
 
 int my_yyinput(unsigned short *buf, int s);
@@ -74,7 +73,6 @@ nc2   ([^!-/;-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 "="	{isName = 1 ; return EQ;}
 "!="	{isName = 1 ; return NE;}
 "$"      {isName = 1; return DOLLAR;}
-
 "*"	{if (isName ==0 ){
 		isName = 1;
 		return MULT;
@@ -253,7 +251,7 @@ translate{ws}*"("	{  	isName = 1;
 				yylval.fname = FN_TRANSLATE;
 				return FNAME;	
 			}
-
+			
 abs{ws}*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_ABS;
@@ -351,7 +349,6 @@ encode-for-uri{ws}*"(" {	isName = 1;
 				return FNAME;	
 			}
 
-
 boolean{ws}*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_BOOLEAN;
@@ -417,14 +414,11 @@ round{ws}*"("		{  	isName = 1;
 '[^']*'			{
 				isName = 0;
 				tmpstring = mydup(yytext,yyleng);
-				if (tmpstring == NULL)
-				    return ERROR;
 				yylval.literal = malloc(sizeof(wchar_t)*(yyleng-1));
 				if (yylval.literal!=NULL){
 					wcsncpy(yylval.literal, (wchar_t *)(tmpstring+1), yyleng-2);
 					addObj(yylval.literal);
-				}else
-				    return ERROR;
+				} 	
 				*(yylval.literal+yyleng-2) = L'\0';
 				free(tmpstring);
 				tmpstring = NULL;
@@ -435,8 +429,6 @@ round{ws}*"("		{  	isName = 1;
 "."[0-9]+		{
 				isName = 0;
 				tmpstring = mydup(yytext,yyleng);
-				if (tmpstring==NULL)
-					return ERROR;
 				yylval.number = wcstod(tmpstring,NULL);
 				free(tmpstring);
 				tmpstring = NULL;
@@ -553,21 +545,17 @@ self{ws}*::		{	isName = 1;
 				}
 				yylval.name.prefix = (UCSChar *)malloc (sizeof(UCSChar)*(yyleng-1));
 				if (yylval.name.prefix == NULL)
-					return ERROR;
+						return ERROR; 
+				addObj(yylval.name.prefix);
 				tmpstring = mydup(yytext,yyleng);
-				if (tmpstring == NULL)
-					return ERROR;
 				if (tmpstring!=NULL){
 					wcsncpy(yylval.name.prefix, tmpstring, yyleng-2);
 					yylval.name.prefix[yyleng-2] = 0;
 					addObj(yylval.name.prefix);
-				} else 
-					return ERROR;
+				}
 				free(tmpstring);
 				tmpstring = NULL;
 				yylval.name.localname = _wcsdup(L"*");
-				if (yylval.name.localname == NULL)
-					return ERROR;
 				addObj(yylval.name.localname);
 				return NAME;
 			}
@@ -589,11 +577,11 @@ self{ws}*::		{	isName = 1;
 					yylval.name.prefix = (wchar_t *)malloc(sizeof(wchar_t)*(colonPosition+1));
 					if (yylval.name.prefix == NULL)
 						return ERROR; 
+					addObj(yylval.name.prefix);
 					yylval.name.localname = (wchar_t *)malloc(sizeof(wchar_t)*(yyleng - colonPosition));
 					if (yylval.name.localname == NULL){
 						return ERROR;
-					}
-					addObj(yylval.name.prefix);
+					}					
 					addObj(yylval.name.localname);
 					// copy content of prefix and localname
 					for (i=0;i<colonPosition;i++){
@@ -607,10 +595,12 @@ self{ws}*::		{	isName = 1;
 				}
 				isName = 0;
 				tmpstring = mydup(yytext,yyleng);
-				if (tmpstring==NULL)
+				if (tmpstring ==NULL){
+					printf("tmpstring can't be null");
 					return ERROR;
+				}
 				yylval.name.qname = tmpstring;
-				addObj(yylval.name.qname);
+				addObj(tmpstring);
 				tmpstring = NULL;
 				//printf("returned a NAME \n");
 
@@ -655,7 +645,7 @@ wchar_t *mydup(YY_CHAR *text,int len){
 			i++;
 		}
 		string[i]=0;
-	} 
+	}
 	return string;
 }
 
