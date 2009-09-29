@@ -18,6 +18,7 @@
 #ifndef ELEMENT_FRAGMENT_NS_H
 #define ELEMENT_FRAGMENT_NS_H
 #include "vtdNav.h"
+#include "transcoder.h"
 
 typedef struct elementFragmentNs {
   VTDNav *vn;

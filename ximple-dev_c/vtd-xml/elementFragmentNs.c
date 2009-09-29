@@ -17,7 +17,6 @@
  */
 #include <stdio.h>
 #include "elementFragmentNs.h"
-#include "transcoder.h"
 
 /* Create an ElementFragmentNs object */
 ElementFragmentNs* createElementFragmentNs(VTDNav *vn, Long l1, FastIntBuffer *fib, int len){
