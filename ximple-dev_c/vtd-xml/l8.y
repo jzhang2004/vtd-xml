@@ -459,6 +459,16 @@ Step		:    AxisSpecifier NodeTest PredicateList {
 															$$ = createStep();
 															addObj($$);
 															setAxisType($$, $1);
+															if ( ($1== AXIS_ATTRIBUTE
+	        												|| $1 == AXIS_DESCENDANT
+      														|| $1 == AXIS_PRECEDING
+      														|| $1 == AXIS_FOLLOWING
+      														|| $1 == AXIS_FOLLOWING_SIBLING
+      														|| $1 == AXIS_PRECEDING_SIBLING) && 
+      														($2->testType>1)){
+      																printf("%s axis can't operate on comment(), pi(), or text()\n", getAxisString($1));
+      																throwException2(xpath_parse_exception," attr|descedant|preceding|following|following-sibling|preceding-sibling axis can't operate on comment(), pi(), or text()");
+      	         											}
 															setNodeTest($$, $2);
 															setPredicate($$, $3);
 															}

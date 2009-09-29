@@ -1,20 +1,20 @@
-/* 
-* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/
+/*
+ * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 /* A Bison parser, made by GNU Bison 1.875.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
@@ -433,8 +433,8 @@ static const unsigned short yyrline[] =
      224,   234,   246,   247,   260,   270,   287,   288,   289,   307,
      335,   336,   349,   350,   351,   360,   368,   369,   377,   389,
      390,   399,   412,   416,   428,   443,   444,   445,   448,   449,
-     453,   457,   470,   474,   498,   510,   511,   516,   517,   520,
-     521,   524,   538,   556,   574,   596,   608,   627
+     453,   457,   480,   484,   508,   520,   521,   526,   527,   530,
+     531,   534,   548,   566,   584,   606,   618,   637
 };
 #endif
 
@@ -1722,6 +1722,16 @@ yyreduce:
 															yyval.s = createStep();
 															addObj(yyval.s);
 															setAxisType(yyval.s, yyvsp[-2].at);
+															if ( (yyvsp[-2].at== AXIS_ATTRIBUTE
+	        												|| yyvsp[-2].at == AXIS_DESCENDANT
+      														|| yyvsp[-2].at == AXIS_PRECEDING
+      														|| yyvsp[-2].at == AXIS_FOLLOWING
+      														|| yyvsp[-2].at == AXIS_FOLLOWING_SIBLING
+      														|| yyvsp[-2].at == AXIS_PRECEDING_SIBLING) && 
+      														(yyvsp[-1].nodetest->testType>1)){
+      																printf("%s axis can't operate on comment(), pi(), or text()\n", getAxisString(yyvsp[-2].at));
+      																throwException2(xpath_parse_exception," attr|descedant|preceding|following|following-sibling|preceding-sibling axis can't operate on comment(), pi(), or text()");
+      	         											}
 															setNodeTest(yyval.s, yyvsp[-1].nodetest);
 															setPredicate(yyval.s, yyvsp[0].p);
 															}
@@ -1733,12 +1743,12 @@ yyreduce:
     break;
 
   case 52:
-#line 470 "l8.y"
+#line 480 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 53:
-#line 474 "l8.y"
+#line 484 "l8.y"
     { Try {
 										yyval.nodetest = createNodeTest();
 										addObj(yyval.nodetest);
@@ -1766,7 +1776,7 @@ yyreduce:
     break;
 
   case 54:
-#line 498 "l8.y"
+#line 508 "l8.y"
     { Try{
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
@@ -1780,39 +1790,39 @@ yyreduce:
     break;
 
   case 55:
-#line 510 "l8.y"
+#line 520 "l8.y"
     { yyval.p = NULL;;}
     break;
 
   case 56:
-#line 511 "l8.y"
+#line 521 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
 	     									yyval.p = yyvsp[-1].p;	
 	     								  ;}
     break;
 
   case 57:
-#line 516 "l8.y"
+#line 526 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 58:
-#line 517 "l8.y"
+#line 527 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 59:
-#line 520 "l8.y"
+#line 530 "l8.y"
     { /*printf("abbreviated child axis \n");*/yyval.at  = AXIS_CHILD;;}
     break;
 
   case 60:
-#line 521 "l8.y"
+#line 531 "l8.y"
     {yyval.at = AXIS_ATTRIBUTE;;}
     break;
 
   case 61:
-#line 524 "l8.y"
+#line 534 "l8.y"
     {Try{
 								yyval.s = createStep();
 								addObj(yyval.s);
@@ -1830,7 +1840,7 @@ yyreduce:
     break;
 
   case 62:
-#line 538 "l8.y"
+#line 548 "l8.y"
     {
 					Try{
 						yyval.s = createStep();
@@ -1850,7 +1860,7 @@ yyreduce:
     break;
 
   case 63:
-#line 556 "l8.y"
+#line 566 "l8.y"
     {
 																Try{
 																	yyval.s = createStep();
@@ -1870,7 +1880,7 @@ yyreduce:
     break;
 
   case 64:
-#line 574 "l8.y"
+#line 584 "l8.y"
     {
 																	Try{
 																		yyval.s= createStep();
@@ -1893,7 +1903,7 @@ yyreduce:
     break;
 
   case 65:
-#line 596 "l8.y"
+#line 606 "l8.y"
     {
 							   Try {
 									yyval.p = createPredicate();
@@ -1907,7 +1917,7 @@ yyreduce:
     break;
 
   case 66:
-#line 608 "l8.y"
+#line 618 "l8.y"
     {
 								Try {
 								    //addObj($2);
@@ -1928,7 +1938,7 @@ yyreduce:
     break;
 
   case 67:
-#line 627 "l8.y"
+#line 637 "l8.y"
     {yyval.fname  = yyvsp[0].fname;;}
     break;
 
@@ -1936,7 +1946,7 @@ yyreduce:
     }
 
 /* Line 991 of yacc.c.  */
-#line 1922 "l8.tab.c"
+#line 1932 "l8.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2145,7 +2155,7 @@ yyreturn:
 }
 
 
-#line 630 "l8.y"
+#line 640 "l8.y"
 
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;
