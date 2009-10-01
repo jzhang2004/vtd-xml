@@ -45,8 +45,12 @@ static Long getChar4OtherEncoding(VTDNav *vn, int offset);
 static int decode(VTDNav *vn,int offset);
 static int compareRawTokenString2(VTDNav *vn, int offset, int len, UCSChar *s);
 static int compareTokenString2(VTDNav *vn, int offset, int len, UCSChar *s);
-
-
+static UCSChar *toStringUpperCase2(VTDNav *vn, int os, int len);
+static UCSChar *toStringLowerCase2(VTDNav *vn, int os, int len);
+static UCSChar *toRawStringUpperCase(VTDNav *vn, int index);
+static UCSChar *toRawStringLowerCase(VTDNav *vn, int index);
+static UCSChar *toRawStringUpperCase2(VTDNav *vn, int os, int len);
+static UCSChar *toRawStringLowerCase2(VTDNav *vn, int os, int len);
 
 /*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, Long temp, int offset){
@@ -3726,4 +3730,270 @@ void writeSeparateIndex_VTDNav(VTDNav *vn, char *VTDIndexFile){
 	
 	fclose(f);
 	//return b;
+}
+
+
+/* Test the start of token content at index i matches the content 
+of s, notice that this is to save the string allocation cost of
+using String's built-in startsWidth */
+Boolean startsWith(VTDNav *vn, int index, UCSChar *s){
+	tokenType type = getTokenType(vn, index);
+	int len =
+		(type == TOKEN_STARTING_TAG
+		|| type == TOKEN_ATTR_NAME
+		|| type == TOKEN_ATTR_NS)
+		? getTokenLength(vn,index) & 0xffff
+		: getTokenLength(vn,index);
+	int offset = getTokenOffset(vn, index);
+	Long l1; 
+	size_t l,i;
+	int i1;
+	int endOffset = offset + len;
+
+	//       System.out.print("currentOffset :" + currentOffset);
+	l = wcslen(s);
+	if (l> (size_t)len)
+		return FALSE;
+	//System.out.println(s);
+	for (i = 0; i < l && offset < endOffset; i++) {
+		l1 = getCharResolved(vn, offset);
+		i1 = s[i];
+		if (i1 != (int) l1)
+			return FALSE;
+		offset += (int) (l1 >> 32);
+	}	    
+	return TRUE;
+
+}
+
+/*Test the end of token content at index i matches the content 
+of s, notice that this is to save the string allocation cost of
+using String's built-in endsWidth */
+Boolean endsWith(VTDNav *vn, int index, UCSChar *s){
+	tokenType type = getTokenType(vn,index);
+	size_t len =
+		(type == TOKEN_STARTING_TAG
+		|| type == TOKEN_ATTR_NAME
+		|| type == TOKEN_ATTR_NS)
+		? (size_t)getTokenLength(vn,index) & 0xffff
+		: (size_t)getTokenLength(vn,index);
+	int offset = getTokenOffset(vn, index);
+	Long l1; 
+	size_t l,i,i2;
+	int i1;
+	//int endOffset = offset + len;
+
+	//       System.out.print("currentOffset :" + currentOffset);
+	l = wcslen(s);
+	if (l>len)
+		return FALSE;
+	i2 = (size_t)getStringLength(vn,index);
+	if (l> i2)
+		return FALSE;
+	i2 = i2 - l; // calculate the # of chars to be skipped
+	// eat away first several chars
+	for (i = 0; i < i2; i++) {
+		l1 = getCharResolved(vn,offset);
+		offset += (int) (l1 >> 32);
+	}
+	//System.out.println(s);
+	for (i = 0; i < l; i++) {
+		l1 = getCharResolved(vn,offset);
+		i1 = s[i];
+		if (i1 != (int) l1)
+			return FALSE;
+		offset += (int) (l1 >> 32);
+	}	    
+	return TRUE;
+}
+
+/*Test whether a given token contains s. notie that this function
+directly operates on the byte content of the token to avoid string creation */
+
+Boolean contains(VTDNav *vn, int index, UCSChar *s){
+	tokenType type = getTokenType(vn,index);
+	size_t len =
+		(type == TOKEN_STARTING_TAG
+		|| type == TOKEN_ATTR_NAME
+		|| type == TOKEN_ATTR_NS)
+		? getTokenLength(vn,index) & 0xffff
+		: getTokenLength(vn,index);
+	int offset = getTokenOffset(vn,index);
+	Long l1;
+	size_t l,i;
+	int i1;
+	int endOffset = offset + len;
+
+	//       System.out.print("currentOffset :" + currentOffset);
+	int gOffset = offset;
+	l = wcslen(s);
+	if (l> len)
+		return FALSE;
+	//System.out.println(s);
+	while( offset<endOffset){
+		gOffset = offset;
+		for (i = 0; i < l && gOffset < endOffset; i++) {
+			l1 = getCharResolved(vn,gOffset);
+			i1 = s[i];
+			gOffset += (int) (l1 >> 32);
+			if (i ==0)
+				offset = gOffset;
+			if (i1 != (int) l1)
+				break;				
+		}
+		if (i==l)
+			return TRUE;
+	}
+	return FALSE;
+}
+
+
+UCSChar *toStringUpperCase2(VTDNav *vn, int os, int len){
+	int offset = os, endOffset=os+len,k=0;
+	Long l;
+	UCSChar *s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
+	if (s == NULL)
+	{
+		throwException2(out_of_mem,
+			" string allocation failed in toString ");
+	}
+	while (offset < endOffset) {
+		l = getCharResolved(vn,offset);
+		offset += (int)(l>>32);
+		if ((int)l>96 && (int)l<123)
+			s[k++] = (UCSChar)(l-32); // java only support 16 bit unit code
+		else 
+			s[k++] = (UCSChar)l;
+	}
+	s[k] = 0;
+	return s;
+}
+
+UCSChar *toStringLowerCase2(VTDNav *vn, int os, int len){
+	int offset = os, endOffset=os+len,k=0;
+	Long l;
+	UCSChar *s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
+	if (s == NULL)
+	{
+		throwException2(out_of_mem,
+			" string allocation failed in toString ");
+	}
+	while (offset < endOffset) {
+		l = getCharResolved(vn,offset);
+		offset += (int)(l>>32);
+		if ((int)l>64 && (int)l<91)
+			s[k++] = (UCSChar)(l+32); // java only support 16 bit unit code
+		else 
+			s[k++] = (UCSChar)l; // java only support 16 bit unit code
+	}
+	s[k] = 0;
+	return s;
+}
+
+/* Convert a token at the given index to a String and any lower case
+   character will be converted to upper case, (entities and char
+   references resolved).*/
+UCSChar *toStringUpperCase(VTDNav *vn, int index){
+	int offset,len;
+	tokenType type = getTokenType(vn,index);
+
+	UCSChar *s = NULL;
+	if (type!=TOKEN_CHARACTER_DATA &&
+		type!= TOKEN_ATTR_VAL)
+		return toRawStringUpperCase(vn,index);
+
+	len = getTokenLength(vn,index);
+
+	offset = getTokenOffset(vn,index);
+	return toStringUpperCase2(vn,offset,len);
+}
+
+/* Convert a token at the given index to a String and any upper case
+   character will be converted to lower case, (entities and char
+   references resolved).*/
+UCSChar *toStringLowerCase(VTDNav *vn, int index){
+	int offset,len;
+	tokenType type = getTokenType(vn,index);
+
+	UCSChar *s = NULL;
+	if (type!=TOKEN_CHARACTER_DATA &&
+		type!= TOKEN_ATTR_VAL)
+		return toRawStringLowerCase(vn,index);
+
+	len = getTokenLength(vn,index);
+
+	offset = getTokenOffset(vn,index);
+	return toStringLowerCase2(vn,offset,len);
+}
+
+static UCSChar *toRawStringUpperCase(VTDNav *vn, int index){
+	int offset,len;
+	tokenType type = getTokenType(vn,index);					 
+	UCSChar *s = NULL;
+
+	if (type == TOKEN_STARTING_TAG
+		|| type == TOKEN_ATTR_NAME
+		|| type == TOKEN_ATTR_NS)
+		len = getTokenLength(vn,index) & 0xffff;
+	else
+		len = getTokenLength(vn,index);
+
+	offset = getTokenOffset(vn,index);
+	return toRawStringUpperCase2(vn, offset, len);
+}
+static UCSChar *toRawStringLowerCase(VTDNav *vn, int index){
+	int offset,len;
+	tokenType type = getTokenType(vn,index);						 
+	UCSChar *s = NULL;
+
+	if (type == TOKEN_STARTING_TAG
+		|| type == TOKEN_ATTR_NAME
+		|| type == TOKEN_ATTR_NS)
+		len = getTokenLength(vn,index) & 0xffff;
+	else
+		len = getTokenLength(vn,index);
+
+	offset = getTokenOffset(vn,index);
+	return toRawStringLowerCase2(vn, offset, len);
+}
+static UCSChar *toRawStringUpperCase2(VTDNav *vn, int os, int len){
+	int offset = os, endOffset=os+len,k=0;
+	Long l;
+	UCSChar *s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
+	if (s == NULL)
+	{
+		throwException2(out_of_mem,
+			" string allocation failed in toString ");
+	}
+	while (offset < endOffset) {
+		l = getChar(vn,offset);
+		offset += (int)(l>>32);
+		if ((int)l>96 && (int)l<123)
+			s[k++] = (UCSChar)(l-32); // java only support 16 bit unit code
+		else 
+			s[k++] = (UCSChar)l;
+	}
+	s[k] = 0;
+	return s;
+}
+
+static UCSChar *toRawStringLowerCase2(VTDNav *vn, int os, int len){
+	int offset = os, endOffset=os+len,k=0;
+	Long l;
+	UCSChar *s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
+	if (s == NULL)
+	{
+		throwException2(out_of_mem,
+			" string allocation failed in toString ");
+	}
+	while (offset < endOffset) {
+		l = getChar(vn,offset);
+		offset += (int)(l>>32);
+		if ((int)l>64 && (int)l<91)
+			s[k++] = (UCSChar)(l+32); // java only support 16 bit unit code
+		else 
+			s[k++] = (UCSChar)l; // java only support 16 bit unit code
+	}
+	s[k] = 0;
+	return s;
 }
