@@ -370,4 +370,30 @@ int getRawStringLength(VTDNav *vn, int index);
 /* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
 int getOffsetAfterHead(VTDNav *vn);
 
+/* Test the start of token content at index i matches the content 
+of s, notice that this is to save the string allocation cost of
+using String's built-in startsWidth */
+Boolean startsWith(VTDNav *vn, int index, UCSChar *s);
+
+/*Test the end of token content at index i matches the content 
+of s, notice that this is to save the string allocation cost of
+using String's built-in endsWidth */
+
+Boolean endsWith(VTDNav *vn, int index, UCSChar *s);
+
+/*Test whether a given token contains s. notie that this function
+directly operates on the byte content of the token to avoid string creation */
+
+Boolean contains(VTDNav *vn, int index, UCSChar *s);
+
+/* Convert a token at the given index to a String and any lower case
+   character will be converted to upper case, (entities and char
+   references resolved).*/
+UCSChar *toStringUpperCase(VTDNav *vn, int index);
+
+/* Convert a token at the given index to a String and any upper case
+   character will be converted to lower case, (entities and char
+   references resolved).*/
+UCSChar *toStringLowerCase(VTDNav *vn, int index);
+
 #endif
