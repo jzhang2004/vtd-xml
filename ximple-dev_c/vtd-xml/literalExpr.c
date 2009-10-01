@@ -138,6 +138,6 @@ char* getAxisString(axisType at){
 		case AXIS_NAMESPACE :	return "namespace::";
 		case AXIS_SELF :	return "self::";
 		case AXIS_DESCENDANT_OR_SELF :	return "descendant-or-self::";
-		case AXIS_ANCESTOR_OR_SELF :	return "ancestor-or-self::";
+		default :	return "ancestor-or-self::";
 	}
 }
