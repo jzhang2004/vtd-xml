@@ -56,7 +56,7 @@ parser code {:
 	//throw new XPathParseException("Syntax error during parsing");
   }
 
-  public void report_fatal_error(String message, Object info){
+  override public void report_fatal_error(String message, Object info){
 	throw new XPathParseException("Syntax error during parsing: "+ message);
   }
 
@@ -64,7 +64,7 @@ parser code {:
 	
   }
   
-  public void unrecovered_syntax_error(Symbol cur_token){
+  override public void unrecovered_syntax_error(Symbol cur_token){
 	Yylex scanner = (Yylex)getScanner();
 	throw new XPathParseException("XPath Syntax error: "+cur_token, scanner.getOffset() );
   }
@@ -284,6 +284,19 @@ RelativeLocationPath ::=  Step:s
 Step		::= AxisSpecifier:as1 nodetest:nt PredicateList:pl 
 		{: RESULT = new Step();
       	   RESULT.AxisType=as1.i;
+      	   if ( (as1.i== AxisType.ATTRIBUTE
+	        	 || as1.i == AxisType.DESCENDANT
+      	         || as1.i == AxisType.PRECEDING
+      	         || as1.i == AxisType.FOLLOWING
+      	         || as1.i == AxisType.FOLLOWING_SIBLING
+      	         || as1.i == AxisType.PRECEDING_SIBLING) && 
+      	        (nt.testType>1)){
+      	          Yylex scanner = (Yylex)my_parser.getScanner();
+      	          throw new XPathParseException(as1.getAxisString()+" axis can't operate on"+
+      	                 " comment(), pi(), or text()",
+      	         	scanner.getOffset());
+      	         	}
+      	   
       	   RESULT.NodeTest=nt;
 		   RESULT.Predicate=pl;	
 		   //System.out.println(" Step 3 ");
