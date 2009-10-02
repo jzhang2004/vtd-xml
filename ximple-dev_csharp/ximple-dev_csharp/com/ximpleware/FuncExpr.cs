@@ -204,7 +204,29 @@ namespace com.ximpleware
 
                 case FuncName.CEILING: isNumerical_Renamed_Field = true; break;
 
-                default: isNumerical_Renamed_Field = true;
+                case FuncName.ROUND: isNumerical_Renamed_Field = true; break;
+                case FuncName.ABS: isNumerical_Renamed_Field = true; break;
+                case FuncName.ROUND_HALF_TO_EVEN:
+                    isNumerical_Renamed_Field = true; break;
+                case FuncName.ROUND_HALF_TO_ODD:
+                    isNumerical_Renamed_Field = true; break;
+                case FuncName.CODE_POINTS_TO_STRING:
+                    isString_Renamed_Field = true; break;
+                case FuncName.COMPARE: isBoolean_Renamed_Field = true; break;
+                case FuncName.UPPER_CASE: isString_Renamed_Field = true; break;
+                case FuncName.LOWER_CASE: isString_Renamed_Field = true; break;
+                case FuncName.ENDS_WITH: isBoolean_Renamed_Field = true; break;
+                case FuncName.QNAME: isString_Renamed_Field = true; break;
+                case FuncName.LOCAL_NAME_FROM_QNAME:
+                    isString_Renamed_Field = true; break;
+                case FuncName.NAMESPACE_URI_FROM_QNAME:
+                    isString_Renamed_Field = true; break;
+                case FuncName.NAMESPACE_URI_FOR_PREFIX:
+                    isString_Renamed_Field = true; break;
+                case FuncName.RESOLVE_QNAME: isString_Renamed_Field = true; break;
+                case FuncName.IRI_TO_URI: isString_Renamed_Field = true; break;
+                case FuncName.ESCAPE_HTML_URI: isString_Renamed_Field = true; break;
+                default: isString_Renamed_Field = true; break;
                     break;
 
             }
@@ -357,7 +379,7 @@ namespace com.ximpleware
                 try
                 {
                     if (a == -1 || vn.ns == false)
-                        ;
+                    { }
                     else
                     {
                         int type = vn.getTokenType(a);
@@ -1034,19 +1056,19 @@ namespace com.ximpleware
                     {
                         i1 = vn.getText();
                         if (i1 != -1)
-                            d = (int)(d + vn.parseDouble(i1));
+                            d = d + vn.parseDouble(i1);
                         if (System.Double.IsNaN(d))
                             break;
                     }
                     else if (t == VTDNav.TOKEN_ATTR_NAME || t == VTDNav.TOKEN_ATTR_NS)
                     {
-                        d = (int)(d + vn.parseDouble(a + 1));
+                        d = d + vn.parseDouble(a + 1);
                         if (System.Double.IsNaN(d))
                             break;
                     }
                     else if (t == VTDNav.TOKEN_CHARACTER_DATA || t == VTDNav.TOKEN_CDATA_VAL)
                     {
-                        d = (int)(d + vn.parseDouble(a));
+                        d = d + vn.parseDouble(a);
                         if (System.Double.IsNaN(d))
                             break;
                     }
