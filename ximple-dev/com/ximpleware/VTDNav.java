@@ -3715,17 +3715,18 @@ public class VTDNav {
 
 	}
 	/**
-     * This method normalizes a token into a string in a way that resembles DOM.
-     * The leading and trailing white space characters will be stripped. The
-     * entity and character references will be resolved Multiple whitespaces
-     * char will be collapsed into one. Whitespaces via entities will
-     * nonetheless be preserved. Creation date: (12/8/03 1:57:10 PM)
+     * This method normalizes a token into a string value of character data 
+     * and attr val in a way that resembles DOM. The leading and trailing 
+     * white space characters will be stripped. The entity and character 
+     * references will be resolved Multiple whitespaces char will be collapsed 
+     * into one. Whitespaces via entities will nonetheless be preserved. 
+     * Creation date: (12/8/03 1:57:10 PM)
      * 
      * @return java.lang.String
      * @param index
-     *            int
+     *     int
      * @exception NavException
-     *                When the encoding has errors
+     *     When the encoding has errors
      */
 	public String toNormalizedString(int index) throws NavException {
 		int type = getTokenType(index);
@@ -3838,8 +3839,8 @@ public class VTDNav {
 	}
 
 	/**
-     * Convert a token at the given index to a String, (built-in entity and char
-     * references not resolved) (entities and char references not expanded).
+     * Convert a token at the given index to a String, 
+     * (entities and char references not expanded).
      * Creation date: (11/16/03 7:28:49 PM)
      * 
      * @return java.lang.String
@@ -3859,7 +3860,9 @@ public class VTDNav {
 		return toRawString(offset, len);
 	}
 	/**
-	 * 
+	 * Convert a token at the given index to a String, upper case chars
+	 * get converted into lower case 
+     * (entities and char references not expanded).
 	 * @param index
 	 * @return
 	 * @throws NavException
@@ -3877,7 +3880,9 @@ public class VTDNav {
 		return toRawStringLowerCase(offset, len);
 	}
 	/**
-	 * 
+	 * Convert a token at the given index to a String, lower case chars
+	 * get converted into upper case 
+     * (entities and char references not expanded).
 	 * @param index
 	 * @return
 	 * @throws NavException
@@ -3918,7 +3923,7 @@ public class VTDNav {
 	
 	/**
 	 * getStringLength return the string length of a token as if the token is converted into 
-	 * a string (entity resolved)
+	 * a string (entity resolved for character data and attr val)
 	 * @param index
 	 * @return the string length as if the token is converted to a UCS string (entity resolved)
 	 * @throws NavException
@@ -3977,8 +3982,9 @@ public class VTDNav {
 	
 	/**
      * Convert a token at the given index to a String, (entities and char
-     * references resolved). An attribute name or an element name will get the
-     * UCS2 string of qualified name Creation date: (11/16/03 7:27:19 PM)
+     * references resolved character data and attr val). An attribute name or 
+     * an element name will get the UCS2 string of qualified name 
+     * Creation date: (11/16/03 7:27:19 PM)
      * 
      * @return java.lang.String
      * @param index
@@ -3999,7 +4005,7 @@ public class VTDNav {
 	/**
 	 * Convert a token at the given index to a String and any lower case
 	 * character will be converted to upper case, (entities and char
-     * references resolved). 
+     * references resolved character data and attr val). 
 	 * @param index
 	 * @return
 	 * @throws NavException
@@ -4019,7 +4025,7 @@ public class VTDNav {
 	/**
 	 * Convert a token at the given index to a String and any upper case
 	 * character will be converted to lower case, (entities and char
-     * references resolved).
+     * references resolved for character data and attr val).
 	 * @param index
 	 * @return
 	 * @throws NavException
