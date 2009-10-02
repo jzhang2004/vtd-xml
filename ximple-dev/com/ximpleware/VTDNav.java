@@ -3858,6 +3858,42 @@ public class VTDNav {
 		int offset = getTokenOffset(index);
 		return toRawString(offset, len);
 	}
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 * @throws NavException
+	 */
+	final public String toRawStringLowerCase(int index) throws NavException {
+		int type = getTokenType(index);
+		int len;
+		if (type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_ATTR_NS)
+			len = getTokenLength(index) & 0xffff;
+		else
+			len = getTokenLength(index);
+		int offset = getTokenOffset(index);
+		return toRawStringLowerCase(offset, len);
+	}
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 * @throws NavException
+	 */
+	final public String toRawStringUpperCase(int index) throws NavException {
+		int type = getTokenType(index);
+		int len;
+		if (type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_ATTR_NS)
+			len = getTokenLength(index) & 0xffff;
+		else
+			len = getTokenLength(index);
+		int offset = getTokenOffset(index);
+		return toRawStringUpperCase(offset, len);
+	}
 	
 	/**
 	 * 
@@ -3867,7 +3903,7 @@ public class VTDNav {
 	 * @throws NavException
 	 *
 	 */
-	final public String toRawString(int os, int len) throws NavException{
+	final protected String toRawString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -3923,6 +3959,11 @@ public class VTDNav {
             len = getTokenLength(index) & 0xffff;
         else
             len = getTokenLength(index);
+        if (encoding!=VTDNav.FORMAT_UTF8 &&
+        		encoding!=VTDNav.FORMAT_UTF_16BE &&
+        		encoding!=VTDNav.FORMAT_UTF_16LE) {
+        	return len;
+        }
         int offset = getTokenOffset(index);
         int endOffset = offset + len;
         long l;
@@ -3958,8 +3999,7 @@ public class VTDNav {
 	/**
 	 * Convert a token at the given index to a String and any lower case
 	 * character will be converted to upper case, (entities and char
-     * references resolved). An attribute name or an element name will get the
-     * UCS2 string of qualified name
+     * references resolved). 
 	 * @param index
 	 * @return
 	 * @throws NavException
@@ -3968,7 +4008,7 @@ public class VTDNav {
 		int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
-			return toRawString(index); 
+			return toRawStringUpperCase(index); 
 		int len;
 		len = getTokenLength(index);
 
@@ -3979,8 +4019,7 @@ public class VTDNav {
 	/**
 	 * Convert a token at the given index to a String and any upper case
 	 * character will be converted to lower case, (entities and char
-     * references resolved). An attribute name or an element name will get the
-     * UCS2 string of qualified name
+     * references resolved).
 	 * @param index
 	 * @return
 	 * @throws NavException
@@ -3989,7 +4028,7 @@ public class VTDNav {
 		int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
-			return toRawString(index); 
+			return toRawStringLowerCase(index); 
 		int len;
 		len = getTokenLength(index);
 
@@ -4009,7 +4048,7 @@ public class VTDNav {
      * @throws NavException
      *  
      */
-	final public String toString(int os, int len) throws NavException{
+	final protected String toString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -4034,7 +4073,7 @@ public class VTDNav {
      * @throws NavException
      *  
      */
-	final public String toStringUpperCase(int os, int len) throws NavException{
+	final protected String toStringUpperCase(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -4061,7 +4100,7 @@ public class VTDNav {
      * @throws NavException
      *  
      */
-	final public String toStringLowerCase(int os, int len) throws NavException{
+	final protected String toStringLowerCase(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -4071,6 +4110,39 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>64 && (int)l<91)
 	        	sb.append((char)(l+32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    return sb.toString();
+	}
+	
+	
+	final protected String toRawStringLowerCase(int os, int len) throws NavException{
+	    StringBuffer sb = new StringBuffer(len);	    
+	    int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>64 && (int)l<91)
+	        	sb.append((char)(l+32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    return sb.toString();
+	}
+	
+	final protected String toRawStringUpperCase(int os, int len) throws NavException{
+	    StringBuffer sb = new StringBuffer(len);	    
+	    int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>96 && (int)l<123)
+	        	sb.append((char)(l-32));
 	        else
 	        	sb.append((char)l);	                
 	    }
@@ -4123,14 +4195,18 @@ public class VTDNav {
 	    long l1; 
 	    int i,l;
 	    int endOffset = offset + len;
-	    
+	    boolean b = (type == TOKEN_ATTR_VAL
+	    		|| type == TOKEN_CHARACTER_DATA);
         //       System.out.print("currentOffset :" + currentOffset);
         l = s.length();
         if (l> len)
         	return false;
         //System.out.println(s);
         for (i = 0; i < l && offset < endOffset; i++) {
-            l1 = getCharResolved(offset);
+        	if (b)
+        		l1 = getCharResolved(offset);
+        	else
+        		l1 = getChar(offset);
             int i1 = s.charAt(i);
             if (i1 != (int) l1)
                 return false;
@@ -4157,24 +4233,35 @@ public class VTDNav {
 	    int offset = getTokenOffset(index);
 	    long l1; 
 	    int i,l, i2;
+	    boolean b = (type == TOKEN_ATTR_VAL
+	    		|| type == TOKEN_CHARACTER_DATA);
 	    //int endOffset = offset + len;
 	    
         //       System.out.print("currentOffset :" + currentOffset);
         l = s.length();
         if (l>len)
         	return false;
-        i2 = getStringLength(index);
+        if (b == true)
+        	i2 = getStringLength(index);
+        else 
+        	i2 = getRawStringLength(index);
         if (l> i2)
         	return false;
         i2 = i2 - l; // calculate the # of chars to be skipped
         // eat away first several chars
         for (i = 0; i < i2; i++) {
-            l1 = getCharResolved(offset);
+        	if (b== true)
+        		l1 = getCharResolved(offset);
+        	else 
+        		l1 = getChar(offset);
             offset += (int) (l1 >> 32);
         }
         //System.out.println(s);
         for (i = 0; i < l; i++) {
-            l1 = getCharResolved(offset);
+        	if (b==true)
+        		l1 = getCharResolved(offset);
+        	else
+        		l1 = getChar(offset);
             int i1 = s.charAt(i);
             if (i1 != (int) l1)
                 return false;
@@ -4201,9 +4288,10 @@ public class VTDNav {
 				: getTokenLength(index);
 	    int offset = getTokenOffset(index);
 	    long l1; 
-	    int i,l, i2;
+	    int i,l;
 	    int endOffset = offset + len;
-	    
+	    boolean b = (type == TOKEN_ATTR_VAL
+	    		|| type == TOKEN_CHARACTER_DATA);
         //       System.out.print("currentOffset :" + currentOffset);
         int gOffset = offset;
         l = s.length();
@@ -4212,8 +4300,13 @@ public class VTDNav {
         //System.out.println(s);
         while( offset<endOffset){
         	gOffset = offset;
+        	if (endOffset-gOffset< l)
+        		return false;
 			for (i = 0; i < l && gOffset < endOffset; i++) {
-				l1 = getCharResolved(gOffset);
+				if (b==true)
+					l1 = getCharResolved(gOffset);
+				else
+					l1 = getChar(gOffset);
 				int i1 = s.charAt(i);
 				gOffset += (int) (l1 >> 32);
 				if (i ==0)
@@ -4384,4 +4477,36 @@ public class VTDNav {
 	            docLen
 	            );
 	}
+	/**
+	 * This function return the substring 
+	 * @param offset
+	 * @return sub string of  
+	 */
+	/*final public String toSubString(int index, int so){
+		int type = getTokenType(index);
+		int len =
+			(type == TOKEN_STARTING_TAG
+				|| type == TOKEN_ATTR_NAME
+				|| type == TOKEN_ATTR_NS)
+				? getTokenLength(index) & 0xffff
+				: getTokenLength(index);
+	    int offset = getTokenOffset(index);
+	    long l1; 
+	    int i,l;
+	    int endOffset = offset + len;
+	    
+        if (so >= len)
+        	return "";
+        return "";
+	}*/
+	
+	/**
+	 * 
+	 * @param offset
+	 * @param size
+	 * @return
+	 */
+	/*final protected String toSubString(int index, int so, int size){
+		return null;
+	}*/
 }

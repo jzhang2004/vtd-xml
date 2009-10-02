@@ -29,6 +29,7 @@ import java.io.OutputStream;
 
 //import com.ximpleware.NavException;
 
+import com.ximpleware.NavException;
 import com.ximpleware.parser.ISO8859_10;
 import com.ximpleware.parser.ISO8859_2;
 import com.ximpleware.parser.ISO8859_3;
@@ -1524,7 +1525,8 @@ public class VTDNavHuge {
 	    long l1; 
 	    int i,l;
 	    long endOffset = offset + len;
-	    
+	    boolean b = (type == TOKEN_ATTR_VAL
+	    		|| type == TOKEN_CHARACTER_DATA);
         //       System.out.print("currentOffset :" + currentOffset);
         long gOffset = offset;
         l = s.length();
@@ -1533,8 +1535,13 @@ public class VTDNavHuge {
         //System.out.println(s);
         while( offset<endOffset){
         	gOffset = offset;
+        	if (endOffset-gOffset< l)
+        		return false;
 			for (i = 0; i < l && gOffset < endOffset; i++) {
-				l1 = getCharResolved(gOffset);
+				if (b)
+					l1 = getCharResolved(gOffset);
+				else
+					l1 = getChar(gOffset);
 				int i1 = s.charAt(i);
 				gOffset += (int) (l1 >> 32);
 				if (i ==0)
@@ -3260,6 +3267,74 @@ public class VTDNavHuge {
 	    }
 	    return sb.toString();
 	}
+	
+	 /* @param index
+	 * @return
+	 * @throws NavException
+	 */
+	final public String toRawStringLowerCase(int index) throws NavExceptionHuge {
+		int type = getTokenType(index);
+		int len;
+		if (type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_ATTR_NS)
+			len = getTokenLength(index) & 0xffff;
+		else
+			len = getTokenLength(index);
+		long offset = getTokenOffset(index);
+		return toRawStringLowerCase(offset, len);
+	}
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 * @throws NavException
+	 */
+	final public String toRawStringUpperCase(int index) throws NavExceptionHuge {
+		int type = getTokenType(index);
+		int len;
+		if (type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_ATTR_NS)
+			len = getTokenLength(index) & 0xffff;
+		else
+			len = getTokenLength(index);
+		long offset = getTokenOffset(index);
+		return toRawStringUpperCase(offset, len);
+	}
+	
+	final protected String toRawStringLowerCase(long os, int len) throws NavExceptionHuge{
+	    StringBuffer sb = new StringBuffer(len);	    
+	    long offset = os;
+	    long endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>64 && (int)l<91)
+	        	sb.append((char)(l+32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    return sb.toString();
+	}
+	
+	final protected String toRawStringUpperCase(long os, int len) throws NavExceptionHuge{
+	    StringBuffer sb = new StringBuffer(len);	    
+	    long offset = os;
+	    long endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>96 && (int)l<123)
+	        	sb.append((char)(l-32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    return sb.toString();
+	}
+	
 	/**
 	 * Convert a token at the given index to a String, (entities and char references resolved).
 	 * An attribute name or an element name will get the UCS2 string of qualified name 
@@ -3496,6 +3571,8 @@ public class VTDNavHuge {
 	    long l1; 
 	    int i,l;
 	    long endOffset = offset + len;
+	    boolean b = (type == TOKEN_CHARACTER_DATA 
+	    		|| type == TOKEN_ATTR_VAL);
 	    
         //       System.out.print("currentOffset :" + currentOffset);
         l = s.length();
@@ -3503,7 +3580,10 @@ public class VTDNavHuge {
         	return false;
         //System.out.println(s);
         for (i = 0; i < l && offset < endOffset; i++) {
-            l1 = getCharResolved(offset);
+        	if (b)
+        		l1 = getCharResolved(offset);
+        	else
+        		l1 = getChar(offset);
             int i1 = s.charAt(i);
             if (i1 != (int) l1)
                 return false;
@@ -3530,6 +3610,8 @@ public class VTDNavHuge {
 	    long offset = getTokenOffset(index);
 	    long l1; 
 	    int i,l,i2;
+	    boolean b = (type == TOKEN_CHARACTER_DATA 
+	    		|| type == TOKEN_ATTR_VAL);
 	    //int endOffset = offset + len;
 	    
         //       System.out.print("currentOffset :" + currentOffset);
@@ -3540,12 +3622,18 @@ public class VTDNavHuge {
         i2 = i2 - l; // calculate the # of chars to be skipped
         // eat away first several chars
         for (i = 0; i < i2; i++) {
-            l1 = getCharResolved(offset);
+        	if (b)
+        		l1 = getCharResolved(offset);
+        	else
+        		l1 = getChar(offset);
             offset += (int) (l1 >> 32);
         }
         //System.out.println(s);
         for (i = 0; i < l; i++) {
-            l1 = getCharResolved(offset);
+        	if (b)
+        		l1 = getCharResolved(offset);
+        	else
+        		l1 = getChar(offset);
             int i1 = s.charAt(i);
             if (i1 != (int) l1)
                 return false;
@@ -3567,7 +3655,7 @@ public class VTDNavHuge {
 		int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
-			return toRawString(index); 
+			return toRawStringLowerCase(index); 
 		int len;
 		len = getTokenLength(index);
 
@@ -3587,7 +3675,7 @@ public class VTDNavHuge {
      * @throws NavExceptionHuge
      *  
      */
-	final public String toStringLowerCase(long os, int len) throws NavExceptionHuge{
+	final protected String toStringLowerCase(long os, int len) throws NavExceptionHuge{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    long offset = os;
 	    long endOffset = os + len;
@@ -3616,7 +3704,7 @@ public class VTDNavHuge {
 		int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
-			return toRawString(index); 
+			return toRawStringUpperCase(index); 
 		int len;
 		len = getTokenLength(index);
 
@@ -3636,7 +3724,7 @@ public class VTDNavHuge {
      * @throws NavExceptionHuge
      *  
      */
-	final public String toStringUpperCase(long os, int len) throws NavExceptionHuge{
+	final protected String toStringUpperCase(long os, int len) throws NavExceptionHuge{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    long offset = os;
 	    long endOffset = os + len;
