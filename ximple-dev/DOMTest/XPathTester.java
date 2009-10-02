@@ -1058,6 +1058,9 @@ public class XPathTester {
             + "<f1 attr='3'>1000</f1>" 
             + "<f1 attr='4' attr1='6' attr2='0.1'>10e5</f1>" 
             + "<test xml:lang='en'>abc az AZ ABC</test>"
+            + "<test3 ><![CDATA[abc &lt; az AZ ABC]]></test3>"
+            + "<test4 ><![CDATA[&lt; az AZ ABC &lt;]]></test4>"
+            + "<test5 >&lt; az AZ ABC &lt;</test5>"
             + "<a:test xmlns:a='xyz'> xyz </a:test> "
             + "</test2>";
         vn = parseString(s);
@@ -1069,7 +1072,7 @@ public class XPathTester {
         else
         	println("test6 7 failed ");
         
-        ap.selectXPath("contains(/test2/test,'AZ ABC')");
+        ap.selectXPath("contains(/test2/test,'bc az AZ ABC')");
         if (ap.evalXPathToBoolean())
         	println("test6 8 succeed");
         else
@@ -1123,19 +1126,96 @@ public class XPathTester {
         else 
         	println("test6 14 failed");
         
-        ap.selectXPath("contains(/test2/test, 'abc')");
+        ap.selectXPath("contains(/test2/test/text(), 'abc')");
         //println("  "+ ap.evalXPathToString());
         if (ap.evalXPathToBoolean())
         	println("test6 15 succeed");
         else 
         	println("test6 15 failed");
         
-        ap.selectXPath("contains(/test2/test, 'ABC')");
+        ap.selectXPath("contains(/test2/test3/text(), 'ABC')");
         //println("  "+ ap.evalXPathToString());
         if (ap.evalXPathToBoolean())
         	println("test6 16 succeed");
         else 
         	println("test6 16 failed");
+        
+        ap.selectXPath("contains(/test2/test3/text(), '&lt;')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 17 succeed");
+        else 
+        	println("test6 17 failed");
+        
+        ap.selectXPath("contains(/test2/test3/text(), 'abc')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 18 succeed");
+        else 
+        	println("test6 18 failed");
+        
+        ap.selectXPath("contains(/test2/test3/text(), 'ABC')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 19 succeed");
+        else 
+        	println("test6 19 failed");
+        
+        ap.selectXPath("starts-with(/test2/test4/text(), '&lt;')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 20 succeed");
+        else 
+        	println("test6 20 failed");
+        
+        ap.selectXPath("ends-with(/test2/test4/text(), '&lt;')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 21 succeed");
+        else 
+        	println("test6 21 failed");
+        
+        ap.selectXPath("starts-with(/test2/test5/text(), '<')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 22 succeed");
+        else 
+        	println("test6 22 failed");
+        
+        ap.selectXPath("ends-with(/test2/test5/text(), '<')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 23 succeed");
+        else 
+        	println("test6 23 failed");
+        
+        ap.selectXPath("upper-case(/test2/test5/text())='< AZ AZ ABC <'");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 24 succeed");
+        else 
+        	println("test6 24 failed");
+        
+        ap.selectXPath("lower-case(/test2/test5/text())='< az az abc <'");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 25 succeed");
+        else 
+        	println("test6 25 failed");
+        
+        ap.selectXPath("upper-case(/test2/test4/text())='&LT; AZ AZ ABC &LT;'");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 26 succeed");
+        else 
+        	println("test6 26 failed");
+        
+        ap.selectXPath("lower-case(/test2/test4/text())='&lt; az az abc &lt;'");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test6 27 succeed");
+        else 
+        	println("test6 27 failed");
     }
     
     public static void test66() throws Exception{
@@ -1190,6 +1270,9 @@ public class XPathTester {
             + "<f1 attr='3'>1000</f1>" 
             + "<f1 attr='4' attr1='6' attr2='0.1'>10e5</f1>" 
             + "<test xml:lang='en'>abc az AZ ABC</test>"
+            + "<test3 ><![CDATA[abc &lt; az AZ ABC]]></test3>"
+            + "<test4 ><![CDATA[&lt; az AZ ABC &lt;]]></test4>"
+            + "<test5 >&lt; az AZ ABC &lt;</test5>"
             + "<a:test xmlns:a='xyz'> xyz </a:test> "
             + "</test2>";
         vn = parseString1(s);
@@ -1248,29 +1331,113 @@ public class XPathTester {
         else 
         	println("test66 14 failed");
         
-        ap.selectXPath("contains(/test2/test, 'abc')");
-        //println("  "+ ap.evalXPathToString());
+        ap.selectXPath("local-name(/test2/abc:test)");
+        println("local name "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 14 succeed");
+        else 
+        	println("test66 14 failed");
+        
+        ap.selectXPath("contains(/test2/test/text(), 'abc')");
         if (ap.evalXPathToBoolean())
         	println("test66 15 succeed");
         else 
         	println("test66 15 failed");
         
-        ap.selectXPath("contains(/test2/test, 'ABC')");
+        ap.selectXPath("contains(/test2/test3/text(), 'ABC')");
         //println("  "+ ap.evalXPathToString());
         if (ap.evalXPathToBoolean())
         	println("test66 16 succeed");
         else 
         	println("test66 16 failed");
+        
+        ap.selectXPath("contains(/test2/test3/text(), '&lt;')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 17 succeed");
+        else 
+        	println("test66 17 failed");
+        
+        ap.selectXPath("contains(/test2/test3/text(), 'abc')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 18 succeed");
+        else 
+        	println("test66 18 failed");
+        
+        ap.selectXPath("contains(/test2/test3/text(), 'ABC')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 19 succeed");
+        else 
+        	println("test66 19 failed");
+        
+        ap.selectXPath("starts-with(/test2/test4/text(), '&lt;')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 20 succeed");
+        else 
+        	println("test66 20 failed");
+        
+        ap.selectXPath("ends-with(/test2/test4/text(), '&lt;')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 21 succeed");
+        else 
+        	println("test66 21 failed");
+        
+        ap.selectXPath("starts-with(/test2/test5/text(), '<')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 22 succeed");
+        else 
+        	println("test66 22 failed");
+        
+        ap.selectXPath("ends-with(/test2/test5/text(), '<')");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 23 succeed");
+        else 
+        	println("test66 23 failed");
+        
+        ap.selectXPath("upper-case(/test2/test5/text())='< AZ AZ ABC <'");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 24 succeed");
+        else 
+        	println("test66 24 failed");
+        
+        ap.selectXPath("lower-case(/test2/test5/text())='< az az abc <'");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 25 succeed");
+        else 
+        	println("test66 25 failed");
+        
+        ap.selectXPath("upper-case(/test2/test4/text())='&LT; AZ AZ ABC &LT;'");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 26 succeed");
+        else 
+        	println("test66 26 failed");
+        
+        ap.selectXPath("lower-case(/test2/test4/text())='&lt; az az abc &lt;'");
+        //println("  "+ ap.evalXPathToString());
+        if (ap.evalXPathToBoolean())
+        	println("test66 27 succeed");
+        else 
+        	println("test66 27 failed");
     }
     /** should spit error*/
     public static void test7(){
     	try {
-    	String s = "<test2>"
+    	String s = "  <test2>"
             + "<e1 attr='1.1'>4</e1>" 
             + "<e1 attr='2.2'>44</e1>"
             + "<f1 attr='3'>1000</f1>" 
             + "<f1 attr='4' attr1='6' attr2='0.1'>10e5</f1>" 
-            + "<test >abc az AZ ABC</test>"
+            + "<test ><![CDATA[abc az AZ ABC]]></test>"
+            + "<test3>abc az AZ ABC</test3>"
             + "</test2>";
         VTDNav vn = parseString(s);
         AutoPilot ap = new AutoPilot(vn);
@@ -1294,7 +1461,8 @@ public class XPathTester {
             + "<e1 attr='2.2'>44</e1>"
             + "<f1 attr='3'>1000</f1>" 
             + "<f1 attr='4' attr1='6' attr2='0.1'>10e5</f1>" 
-            + "<test >abc az AZ ABC</test>"
+            + "<test ><![CDATA[abc az AZ ABC]]></test>"
+            + "<test3>abc az AZ ABC</test3>"
             + "</test2>";
         VTDNavHuge vn = parseString1(s);
         AutoPilotHuge ap = new AutoPilotHuge(vn);
