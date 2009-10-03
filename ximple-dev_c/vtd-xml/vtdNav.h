@@ -396,4 +396,14 @@ UCSChar *toStringUpperCase(VTDNav *vn, int index);
    references resolved).*/
 UCSChar *toStringLowerCase(VTDNav *vn, int index);
 
+/* Convert a token at the given index to a String and any lower case
+   character will be converted to upper case, (entities and char
+   references resolved for character data and attr val).*/
+UCSChar *toRawStringUpperCase(VTDNav *vn, int index);
+
+/* Convert a token at the given index to a String and any upper case
+   character will be converted to lower case, (entities and char
+   references resolved for character data and attr val).*/
+UCSChar *toRawStringLowerCase(VTDNav *vn, int index);
+
 #endif

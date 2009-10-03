@@ -3659,6 +3659,11 @@ int getRawStringLength(VTDNav *vn, int index){
             len = getTokenLength(vn, index) & 0xffff;
         else
             len = getTokenLength(vn, index);
+		if (vn->encoding!=FORMAT_UTF8 &&
+			vn->encoding!=FORMAT_UTF_16BE &&
+        	vn->encoding!=FORMAT_UTF_16LE) {
+        	return len;
+        }
         offset = getTokenOffset(vn,index);
         endOffset = offset + len;
         
@@ -3749,14 +3754,18 @@ Boolean startsWith(VTDNav *vn, int index, UCSChar *s){
 	size_t l,i;
 	int i1;
 	int endOffset = offset + len;
-
+	Boolean b = (type == TOKEN_CHARACTER_DATA 
+		|| type == TOKEN_ATTR_VAL);
 	//       System.out.print("currentOffset :" + currentOffset);
 	l = wcslen(s);
 	if (l> (size_t)len)
 		return FALSE;
 	//System.out.println(s);
 	for (i = 0; i < l && offset < endOffset; i++) {
-		l1 = getCharResolved(vn, offset);
+		if (b)
+			l1 = getCharResolved(vn, offset);
+		else
+			l1 = getChar(vn, offset);
 		i1 = s[i];
 		if (i1 != (int) l1)
 			return FALSE;
@@ -3781,6 +3790,8 @@ Boolean endsWith(VTDNav *vn, int index, UCSChar *s){
 	Long l1; 
 	size_t l,i,i2;
 	int i1;
+	Boolean b = (type == TOKEN_CHARACTER_DATA 
+		|| type == TOKEN_ATTR_VAL);
 	//int endOffset = offset + len;
 
 	//       System.out.print("currentOffset :" + currentOffset);
@@ -3793,12 +3804,18 @@ Boolean endsWith(VTDNav *vn, int index, UCSChar *s){
 	i2 = i2 - l; // calculate the # of chars to be skipped
 	// eat away first several chars
 	for (i = 0; i < i2; i++) {
-		l1 = getCharResolved(vn,offset);
+		if (b)
+			l1 = getCharResolved(vn,offset);
+		else 
+			l1 = getChar(vn,offset);
 		offset += (int) (l1 >> 32);
 	}
 	//System.out.println(s);
 	for (i = 0; i < l; i++) {
-		l1 = getCharResolved(vn,offset);
+		if (b)
+			l1 = getCharResolved(vn,offset);
+		else
+			l1 = getChar(vn,offset);
 		i1 = s[i];
 		if (i1 != (int) l1)
 			return FALSE;
@@ -3824,6 +3841,8 @@ Boolean contains(VTDNav *vn, int index, UCSChar *s){
 	int i1;
 	int endOffset = offset + len;
 
+	Boolean b = (type == TOKEN_CHARACTER_DATA 
+		|| type == TOKEN_ATTR_VAL);
 	//       System.out.print("currentOffset :" + currentOffset);
 	int gOffset = offset;
 	l = wcslen(s);
@@ -3833,7 +3852,10 @@ Boolean contains(VTDNav *vn, int index, UCSChar *s){
 	while( offset<endOffset){
 		gOffset = offset;
 		for (i = 0; i < l && gOffset < endOffset; i++) {
-			l1 = getCharResolved(vn,gOffset);
+			if (b)
+				l1 = getCharResolved(vn,gOffset);
+			else
+				l1 = getChar(vn,gOffset);
 			i1 = s[i];
 			gOffset += (int) (l1 >> 32);
 			if (i ==0)
