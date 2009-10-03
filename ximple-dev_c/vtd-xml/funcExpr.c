@@ -24,10 +24,10 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn);
 static UCSChar *getName(funcExpr *fne, VTDNav *vn);
 static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn);
 static UCSChar *getString(funcExpr *fne, VTDNav *vn);
-static Boolean contains(funcExpr *fne, VTDNav *vn);
+static Boolean contains_fe(funcExpr *fne, VTDNav *vn);
 static UCSChar* concat(funcExpr *fne, VTDNav *vn);
-static Boolean startsWith(funcExpr *fne, VTDNav *vn);
-static Boolean endsWith(funcExpr *fne, VTDNav *vn);
+static Boolean startsWith_fe(funcExpr *fne, VTDNav *vn);
+static Boolean endsWith_fe(funcExpr *fne, VTDNav *vn);
 static UCSChar* subString(funcExpr *fne, VTDNav *vn);
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn);
 static UCSChar* subStringBefore(funcExpr *fne, VTDNav *vn);
@@ -37,13 +37,59 @@ static Boolean isWS(UCSChar c);
 static Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s);
 static inline UCSChar* normalize(UCSChar *s);
 static double round(double v);
+static int evalFirstArgumentListNodeSet(funcExpr *fne, VTDNav *vn);
+static int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn);
+static UCSChar* upperCase(funcExpr *fne, VTDNav *vn);
+static UCSChar* lowerCase(funcExpr *fne, VTDNav *vn);
 static double round(double v)
 {
  return (v>0.0) ? floor(v+0.5) : ceil(v-0.5);
 }
 
 
+
+
+
 static UCSChar *fname(funcExpr *fne,funcName i);
+
+
+static UCSChar* upperCase(funcExpr *fne, VTDNav *vn){
+	if (argCount(fne) == 1){
+		UCSChar *s = fne->al->e->evalString(fne->al->e, vn);
+		UCSChar *s1= s;
+		int i=0;
+		while( s1[i] != 0){
+			if (s1[i]>96 && s1[i] <123){
+				s1[i] -=32;
+			}
+			i++;
+		}
+		return s;
+	}else{
+		throwException2(invalid_argument,
+			"upper-case()'s  <funcExpr> argument count is invalid");
+		return createEmptyString();
+	}
+}
+static UCSChar* lowerCase(funcExpr *fne, VTDNav *vn){
+	if (argCount(fne) == 1){
+		UCSChar *s = fne->al->e->evalString(fne->al->e, vn);
+		UCSChar *s1= s;
+		int i=0;
+		while( s1[i] != 0){
+			if (s1[i]>64 && s1[i]<91){
+				s1[i] +=32;
+			}
+			i++;
+		}
+		return s;
+		
+	}else{
+		throwException2(invalid_argument,
+			"lower-case()'s  <funcExpr> argument count is invalid");
+		return createEmptyString();
+	}
+}
 
 static UCSChar *getString(funcExpr *fne, VTDNav *vn){
 	if (argCount(fne)== 0){
@@ -77,7 +123,7 @@ static UCSChar *getLocalName(funcExpr *fne, VTDNav *vn){
 		Try{
 			index = getCurrentIndex(vn);
 			type = getTokenType(vn,index);
-			if (vn->ns && type == TOKEN_STARTING_TAG && type == TOKEN_ATTR_NAME) {
+			if (vn->ns && (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME)) {
 				int offset = getTokenOffset(vn,index);
 				int length = getTokenLength(vn,index);
 				if (length < 0x10000)
@@ -152,31 +198,34 @@ static UCSChar *getNameSpaceURI(funcExpr *fne, VTDNav *vn){
 		}
 	}
 	else if (argCount(fne) == 1){
-		int a = -1;
+		int a = -1, size;
 		push2(vn);
+		size = vn->contextBuf2->size;
 		Try{
 			a = fne->al->e->evalNodeSet(fne->al->e,vn);
-			fne->al->e->reset(fne->al->e,vn);
-			pop2(vn);
-		}Catch(e){
-			fne->al->e->reset(fne->al->e,vn);
-			pop2(vn);
-		}
-		Try{
 			if (a==-1 || vn->ns == FALSE){
 				return createEmptyString();
 			}
 			else {
 				int type = getTokenType(vn,a);
 				if (type == TOKEN_STARTING_TAG
-					|| type == TOKEN_ATTR_NAME)
-					return toString(vn,lookupNS(vn));
+					|| type == TOKEN_ATTR_NAME){
+						UCSChar *tmp = toString(vn,lookupNS(vn));
+						fne->al->e->reset(fne->al->e,vn);
+						vn->contextBuf2->size = size;
+						pop2(vn);
+						return tmp;
+				}
 			}
-		}Catch(e){}
+		}Catch(e){
+			
+		}
+		fne->al->e->reset(fne->al->e,vn);
+		vn->contextBuf2->size = size;
+		pop2(vn);
 	} else {
-		e.et = invalid_argument;
-		e.msg = "namespace-uri()'s  <funcExpr> argument count is invalid";
-		Throw e;
+		throwException2(invalid_argument,
+			"namespace-uri()'s  <funcExpr> argument count is invalid");
 	}
 	return createEmptyString();
 }
@@ -569,9 +618,18 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 										"string-length()'s  <funcExpr> argument count is invalid");
 			    				}
 
-			case FN_ROUND: 	if (argCount(fne)!=1 )
-										return round(fne->al->e->evalNumber(fne->al->e,vn));
-			case FN_ABS:
+			case FN_ROUND: 	if (argCount(fne)==1 )
+								return round(fne->al->e->evalNumber(fne->al->e,vn));
+							else {
+								throwException2(invalid_argument,
+									"round()'s  <funcExpr> argument count is invalid");
+							}
+			case FN_ABS:    if (argCount(fne)==1 )
+								return abs(fne->al->e->evalNumber(fne->al->e,vn));
+							else {
+								throwException2(invalid_argument,
+									"round()'s  <funcExpr> argument count is invalid");
+							}
 			case FN_ROUND_HALF_TO_EVEN:
 			case FN_ROUND_HALF_TO_ODD:
 				    throwException2(other_exception, "functions not yet supported");
@@ -632,9 +690,9 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 			
 			case FN_NORMALIZE_SPACE: return normalizeString(fne,vn);
 
-			case FN_CODE_POINTS_TO_STRING:
-  			case FN_UPPER_CASE:
-  			case FN_LOWER_CASE:
+			case FN_CODE_POINTS_TO_STRING:throwException2(other_exception, "functions not yet supported");
+  			case FN_UPPER_CASE: return upperCase(fne,vn);
+  			case FN_LOWER_CASE: return lowerCase(fne,vn);
   			case FN_QNAME:
   			case FN_LOCAL_NAME_FROM_QNAME:
    			case FN_NAMESPACE_URI_FROM_QNAME:
@@ -698,14 +756,14 @@ Boolean evalBoolean_fne (funcExpr *fne,VTDNav *vn){
 					throwException2(invalid_argument,
 						"starts-with()'s <funcExpr> argument count is invalid");
 				}
-				return startsWith(fne,vn);
+				return startsWith_fe(fne,vn);
 
 			case FN_CONTAINS:
 				if (argCount(fne)!=2){
 					throwException2(invalid_argument,
 						"contains()'s <funcExpr> argument count is invalid");
 				}
-				return contains(fne,vn);
+				return contains_fe(fne,vn);
 
 			case FN_TRUE:
 				if (argCount(fne)!=0){
@@ -739,8 +797,16 @@ Boolean evalBoolean_fne (funcExpr *fne,VTDNav *vn){
 				return lang(fne, vn, fne->al->e->evalString(fne->al->e,vn));
 
 			case FN_COMPARE:
-			case FN_ENDS_WITH:
 				throwException2(other_exception, "functions not yet supported");
+			
+			case FN_ENDS_WITH:
+				if (argCount(fne)!=2){
+					throwException2(invalid_argument,
+						"ends-with()'s <funcExpr> argument count is invalid");
+				}
+				return endsWith_fe(fne,vn);
+				
+				
 			default:
 				if (isNumerical_fne(fne)){
 					double d = evalNumber_fne(fne, vn);
@@ -830,7 +896,7 @@ void   toString_fne(funcExpr *fne, UCSChar* string){
 		wprintf(L")");
 	}
 }
-static Boolean contains(funcExpr *fne, VTDNav *vn){
+static Boolean contains_fe(funcExpr *fne, VTDNav *vn){
 	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
 	Boolean b = FALSE;
@@ -882,10 +948,11 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 	return NULL;
 }
 /* can be optimized to test whether the argument returns a VTD index */
-static Boolean startsWith(funcExpr *fne, VTDNav *vn){
-	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
+static Boolean startsWith_fe(funcExpr *fne, VTDNav *vn){
 	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
 	//UCSChar* s3 = NULL;
+	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
+	
 	Boolean b = FALSE;
 	if (wcsstr(s1,s2)==s1)
 		b = TRUE;
@@ -894,14 +961,15 @@ static Boolean startsWith(funcExpr *fne, VTDNav *vn){
     return b;
 }
 /* can be optimized to test whether the argument returns a VTD index */
-static Boolean endsWith(funcExpr *fne, VTDNav *vn){
-    UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
+static Boolean endsWith_fe(funcExpr *fne, VTDNav *vn){
 	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
+    UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
+	
 	size_t l1 = wcslen(s1);
 	size_t l2 = wcslen(s2);
 	//UCSChar* s3 = NULL;
 	Boolean b = FALSE;
-	if (wcsstr(s1,s2)==s1){
+	if (wcsstr(s1+(l1-l2),s2)== (s1+l1-l2)){
 		//
 		b = TRUE;
 
@@ -1194,4 +1262,44 @@ Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s){
 	}
 	pop2(vn);
 	return b;
+}
+
+int evalFirstArgumentListNodeSet(funcExpr *fne, VTDNav *vn){
+	exception e;
+	int size, a;
+	push2(vn);
+	size = vn->contextBuf2->size;
+    a = -1;
+    Try {
+		a = fne->al->e->evalNodeSet(fne->al->e, vn);
+        if (a != -1) {
+           if (getTokenType(vn, a) == TOKEN_ATTR_NAME) {
+                a++;
+           }
+           if (getTokenType(vn, a) == TOKEN_STARTING_TAG) {
+               a = getText(vn);
+           }
+       }	            
+    } Catch (e) {
+    }
+	vn->contextBuf2->size = size;
+	fne->al->e->reset(fne->al->e,vn);
+    pop2(vn);
+    return a;
+}
+
+int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn){
+	exception e;
+	int size, a;
+	push2(vn);
+	size = vn->contextBuf2->size;
+    a = -1;
+    Try {
+		a = fne->al->e->evalNodeSet(fne->al->e, vn);            
+    } Catch (e) {
+    }
+	vn->contextBuf2->size = size;
+	fne->al->e->reset(fne->al->e,vn);
+    pop2(vn);
+    return a;
 }
