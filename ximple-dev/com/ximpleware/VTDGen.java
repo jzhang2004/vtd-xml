@@ -913,7 +913,7 @@ public class VTDGen {
 	//namespace aware flag
 	protected boolean ns;
 	protected int offset;	// this is byte offset, not char offset as encoded in VTD
-
+	protected boolean ws;  // to prserve whitespace or not, default to false
 
 	protected int prev_offset;
 	protected IReader r;
@@ -936,6 +936,7 @@ public class VTDGen {
 		r = new UTF8Reader();
 		br = false;
 		e =  new EOFException("permature EOF reached, XML document incomplete");
+		ws = false;
 	}
 	/**
 	 * Clear internal states so VTDGEn can process the next file.
@@ -958,7 +959,29 @@ public class VTDGen {
 		ch = ch_temp = 0;
 		
 	}
+	
+	/**
+	 * Enable the parser to collect all white spaces, including the ignored white spaces
+	 * By default, ignore white spaces are ignored
+	 * @param b
+	 */
+	public void enableIgnoredWhiteSpace(boolean b){
+		ws = b;
+	}
 
+	/**
+	 * Write white space records that are ignored by default 
+	 */
+	private void addWhiteSpaceRecord() {
+		int length1 = offset - increment - temp_offset;
+		if (length1 != 0)
+			if (encoding < FORMAT_UTF_16BE)
+				writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
+			else
+				writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA,
+						depth);
+	}
+	
 	/**
 	 * A private method that detects the BOM and decides document encoding
 	 * @throws EncodingException
@@ -1896,6 +1919,8 @@ public class VTDGen {
 							temp_offset = offset;
 							ch = getCharAfterSe(); // consume WSs
 							if (ch == '<') {
+								if (ws) 
+									addWhiteSpaceRecord();
 								parser_state = STATE_LT_SEEN;
 								if (r.skipChar('/')) {
 									if (helper == true) {
@@ -1973,8 +1998,11 @@ public class VTDGen {
 						if (depth != -1) {
 							temp_offset = offset;
 							ch = getCharAfterS();
-							if (ch == '<')
+							if (ch == '<'){
+								if (ws) 
+							    	addWhiteSpaceRecord();
 								parser_state = STATE_LT_SEEN;
+							}
 							else if (XMLChar.isContentChar(ch)) {
 								parser_state = STATE_TEXT;
 							} 
@@ -2213,6 +2241,8 @@ public class VTDGen {
 								temp_offset = offset;
 								ch = getCharAfterSe();
 								if (ch == '<') {
+									if (ws) 
+								    	addWhiteSpaceRecord();
 									parser_state = STATE_LT_SEEN;
 									if (r.skipChar('/')) {
 										if (helper == true) {
@@ -2493,20 +2523,23 @@ public class VTDGen {
 				depth);
 		}
 		//System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
+		temp_offset = offset;
 		ch = getCharAfterSe();
 		if (ch == '<') {
+			if (ws) 
+		    	addWhiteSpaceRecord();
 			parser_state = STATE_LT_SEEN;
 		} else if (XMLChar.isContentChar(ch)) {
-			temp_offset = offset-1;
+			//temp_offset = offset-1;
 			parser_state = STATE_TEXT;
 		} else if (ch == '&') {
 			//has_amp = true;
-			temp_offset = offset-1;
+			//temp_offset = offset-1;
 			entityIdentifier();
 			parser_state = STATE_TEXT;
 			//temp_offset = offset;
 		} else if (ch == ']') {
-		    temp_offset = offset-1;
+		    //temp_offset = offset-1;
 			if (r.skipChar(']')) {
 				while (r.skipChar(']')) {
 				}
@@ -2562,6 +2595,8 @@ public class VTDGen {
 			temp_offset = offset;
 			ch = getCharAfterSe();
 			if (ch == '<') {
+				if (ws) 
+			    	addWhiteSpaceRecord();
 				parser_state = STATE_LT_SEEN;
 			} else if (XMLChar.isContentChar(ch)) {
 				//temp_offset = offset;
@@ -2976,7 +3011,6 @@ public class VTDGen {
 					length1 >> 1,
 					TOKEN_COMMENT,
 					depth);
-			//length1 = 0;
 			parser_state = STATE_DOC_END;
 			return parser_state;
 		}
@@ -3259,6 +3293,8 @@ public class VTDGen {
 				temp_offset = offset;
 				ch = getCharAfterSe();
 				if (ch == '<') {
+					if (ws) 
+				    	addWhiteSpaceRecord();
 					parser_state = STATE_LT_SEEN;
 				} else if (XMLChar.isContentChar(ch)) {
 					parser_state = STATE_TEXT;
@@ -3350,6 +3386,8 @@ public class VTDGen {
 		ch = getCharAfterSe();
 		
 		if (ch == '<') {
+		    if (ws) 
+		    	addWhiteSpaceRecord();
 			parser_state = STATE_LT_SEEN;
 		} else if (XMLChar.isContentChar(ch)) {
 			//temp_offset = offset;
