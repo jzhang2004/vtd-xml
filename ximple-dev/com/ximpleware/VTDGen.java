@@ -973,13 +973,15 @@ public class VTDGen {
 	 * Write white space records that are ignored by default 
 	 */
 	private void addWhiteSpaceRecord() {
-		int length1 = offset - increment - temp_offset;
-		if (length1 != 0)
-			if (encoding < FORMAT_UTF_16BE)
-				writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
-			else
-				writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA,
-						depth);
+		if (depth > -1) {
+			int length1 = offset - increment - temp_offset;
+			if (length1 != 0)
+				if (encoding < FORMAT_UTF_16BE)
+					writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
+				else
+					writeVTD(temp_offset >> 1, length1 >> 1,
+							TOKEN_CHARACTER_DATA, depth);
+		}
 	}
 	
 	/**
