@@ -20,6 +20,8 @@ package com.ximpleware;
  * This class iterates through all text nodes of an element.
  * VTDNav has getText() which is inadequate for mixed content style of XML.
  * text nodes include character_data and CDATA.
+ * Since version 2.8, selectText(), selectComment(), and selectPI() were
+ * added 
  * Creation date: (12/5/03 5:53:41 PM)
  */
 public class TextIter {
@@ -33,18 +35,41 @@ public class TextIter {
     private int lcIndex;
     private int lcLower;
     private int lcUpper;
+    private int sel_type;
     /**
      * TextIter constructor comment.
+     * Text type is selected by default
      */
     public TextIter() {
         super();
         vn = null;
+        sel_type = 0;
         /*sel_char_data = true;
         sel_comment = true;
         sel_cdata = true;*/
     }
+    /**
+     * Ask textIter to return character data or CDATA nodes
+     */
+    public void selectText( ){
+    	sel_type = 0;
+    }
+    
+    /**
+     * Ask textIter to return comment nodes
+     */
+    public void selectComment(){
+    	sel_type = 1;
+    }
+    
+    /**
+     * Ask TextIter to return processing instruction name
+     */
+    public void selectPI(){
+    	sel_type = 2;
+    }
 /**
- * Get the index vals for the text nodes in document order.
+ * Get the index vals for the text, PI name, or comment node in document order.
  * Creation date: (12/5/03 6:11:50 PM)
  * @return int  (-1 if no more left)
  */
@@ -312,23 +337,33 @@ public int getNext() {
     return -1;
 }
 /**
- * Test whether a give token type is a TEXT.
+ * Test whether a give token type is a TEXT, comment or PI name
  * Creation date: (12/11/03 3:46:10 PM)
  * @return boolean
  * @param type int
  */
-final private boolean isText(int index) {
-    int type = vn.getTokenType(index);
-    return (type == VTDNav.TOKEN_CHARACTER_DATA
-    //|| type == vn.TOKEN_COMMENT
-    || type == VTDNav.TOKEN_CDATA_VAL);
-}
+	final private boolean isText(int index) {
+		int type = vn.getTokenType(index);
+		if (sel_type == 0) {
+			return (type == VTDNav.TOKEN_CHARACTER_DATA
+			// || type == vn.TOKEN_COMMENT
+			|| type == VTDNav.TOKEN_CDATA_VAL);
+		}
+
+		if (sel_type == 1) {
+			return (type == VTDNav.TOKEN_COMMENT);
+		}
+
+		return (type == VTDNav.TOKEN_PI_NAME);
+	}
     /**
-     * Obtain the current navigation position and element info from VTDNav.
-     * So one can instantiate it once and use it for many different elements
-     * Creation date: (12/5/03 6:20:44 PM)
-     * @param v com.ximpleware.VTDNav
-     */
+	 * Obtain the current navigation position and element info from VTDNav. So
+	 * one can instantiate it once and use it for many different elements
+	 * Creation date: (12/5/03 6:20:44 PM)
+	 * 
+	 * @param v
+	 *            com.ximpleware.VTDNav
+	 */
     public void touch(VTDNav v) {
         if (v == null)
             throw new IllegalArgumentException(" VTDNav instance can't be null");
