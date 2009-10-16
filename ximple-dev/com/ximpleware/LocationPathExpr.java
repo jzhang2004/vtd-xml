@@ -172,7 +172,7 @@ public class LocationPathExpr extends Expr{
 		    
 		    switch(state){
 		    	case START:
-		    	    if (currentStep.nt.testType != NodeTest.TEXT){
+		    	    if (currentStep.nt.testType < NodeTest.TEXT){
 		    	        // first search for any predicate that 
 		    	        // requires contextSize
 		    	        // if so, compute its context size
@@ -250,6 +250,8 @@ public class LocationPathExpr extends Expr{
 						        ti = new TextIter();
 						        currentStep.o = ti;
 						    }
+						    //select comment, pi or text here
+						    selectNodeType(ti);
 						    ti.touch(vn);
 						    state = END;
 						    while((result = ti.getNext())!=-1){
@@ -290,7 +292,7 @@ public class LocationPathExpr extends Expr{
 					return -1;
 					
 		    	case FORWARD:
-		    	    if (currentStep.nt.testType != NodeTest.TEXT){
+		    	    if (currentStep.nt.testType < NodeTest.TEXT){
 		    	        t = currentStep.p;
 		    	        while(t!=null){
 		    	            if (t.requireContextSize()){
@@ -365,6 +367,7 @@ public class LocationPathExpr extends Expr{
 						        currentStep.o = ti;
 						    }
 						    ti.touch(vn);
+						    selectNodeType(ti);
 						    //result = ti.getNext();
 						    
 						    while((result = ti.getNext())!=-1){
@@ -402,7 +405,7 @@ public class LocationPathExpr extends Expr{
 		    	    break;
 		    	
 		    	case BACKWARD:
-					if (currentStep.nt.testType != NodeTest.TEXT) {
+					if (currentStep.nt.testType < NodeTest.TEXT) {
 						//currentStep = currentStep.getPrevStep();
 						b = false;
 						while (vn.toElement(VTDNav.NS)) {
@@ -438,7 +441,7 @@ public class LocationPathExpr extends Expr{
 					break;
 		    	    
 		    	case TERMINAL:
-					if (currentStep.nt.testType != NodeTest.TEXT) {
+					if (currentStep.nt.testType < NodeTest.TEXT) {
 						while (vn.toElement(VTDNav.NS)) {
 							if (currentStep.eval(vn)) {
 								// state =  TERMINAL;
@@ -1834,7 +1837,7 @@ public class LocationPathExpr extends Expr{
 	    AutoPilot ap;
 	    switch(currentStep.axis_type){
 	    	case AxisType.CHILD:
-	    	    if (currentStep.nt.testType != NodeTest.TEXT){
+	    	    if (currentStep.nt.testType < NodeTest.TEXT){
 	    	    b = vn.toElement(VTDNav.FIRST_CHILD);
 	    		if (b) {
 	    		    do {
@@ -1850,6 +1853,7 @@ public class LocationPathExpr extends Expr{
 	    	    }else {	    
 	    	        TextIter ti = new TextIter();
 	    	        ti.touch(vn);
+	    	        selectNodeType(ti);
 	    	        while((ti.getNext())!=-1){
 	    	            if (currentStep.evalPredicates(vn,p)){
 	    	                i++;
@@ -2015,6 +2019,16 @@ public class LocationPathExpr extends Expr{
         else 
             ih = new intHash(i);
         return i;
+	}
+	
+	private void selectNodeType(TextIter ti){
+		if (currentStep.nt.testType == NodeTest.TEXT )
+			ti.selectText();
+		else if (currentStep.nt.testType == NodeTest.COMMENT )
+			ti.selectComment();
+		else 
+			ti.selectPI();
+		
 	}
 	
 }
