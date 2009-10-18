@@ -28,7 +28,7 @@ import com.ximpleware.*;
 %unicode
 %extends sym
 %yylexthrow XPathParseException
-
+%cupdebug 
 %{
 
   private Symbol sym(int sym) {
@@ -51,6 +51,12 @@ import com.ximpleware.*;
   
   public int getOffset(){
   	return yychar;
+  }
+  
+  public String getArgument(char c, String input){
+		int os1=input.indexOf(c), os2=input.lastIndexOf(c);
+		
+		return input.substring(os1+1, os2);
   }
   
   /* public void report_error(String message, Object info) {
@@ -542,14 +548,35 @@ node{ws}*"("{ws}*")"	{
 				ntest.arg = null;
 				return sym(NTEST,ntest);
 			}
-
+			
+processing-instruction{ws}*"("{ws}*'[^']+'{ws}*")"	{
+						isName = 0;
+						ntest = new Ntest();
+						ntest.i = Ntest.PROCESSING_INSTRUCTION;
+						ntest.arg = getArgument('\'', yytext());
+						//System.out.println(" !!!!!!!!!!!argument ==>" +ntest.arg);
+						return sym(NTEST,ntest);
+					}
+					
+processing-instruction{ws}*"("{ws}*\"[^\"]+\"{ws}*")"	{
+						isName = 0;
+						ntest = new Ntest();
+						ntest.i = Ntest.PROCESSING_INSTRUCTION;
+						ntest.arg = getArgument('"',yytext());
+						//System.out.println(" !!!!!!!!!!!argument ==>" +ntest.arg);
+						return sym(NTEST,ntest);
+					}
+					
 processing-instruction{ws}*"("{ws}*")"	{
 						isName = 0;
 						ntest = new Ntest();
 						ntest.i = Ntest.PROCESSING_INSTRUCTION;
 						ntest.arg = null;
+						//System.out.println(" !!!!!!!!!!!argument ");
 						return sym(NTEST,ntest);
 					}
+					
+
 
 ancestor{ws}*::		{	isName = 1;
 				at = new AxisType();

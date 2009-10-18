@@ -36,6 +36,7 @@ public class TextIter {
     private int lcLower;
     private int lcUpper;
     private int sel_type;
+    private String piName;
     /**
      * TextIter constructor comment.
      * Text type is selected by default
@@ -44,9 +45,17 @@ public class TextIter {
         super();
         vn = null;
         sel_type = 0;
+        piName = null;
         /*sel_char_data = true;
         sel_comment = true;
         sel_cdata = true;*/
+    }
+    /**
+     * Select the Pi Name
+     * @param s
+     */
+    public void setPiName(String s){
+    	piName =s;
     }
     /**
      * Ask textIter to return character data or CDATA nodes
@@ -63,10 +72,16 @@ public class TextIter {
     }
     
     /**
-     * Ask TextIter to return processing instruction name
+     * Ask TextIter to return processing instruction name 
+     * no value
      */
-    public void selectPI(){
+    public void selectPI0(){
     	sel_type = 2;
+    }
+    
+    public void selectPI1(String s){
+    	sel_type =3;
+    	setPiName(s);
     }
 /**
  * Get the index vals for the text, PI name, or comment node in document order.
@@ -107,7 +122,15 @@ public int getNext() {
 			return (type == VTDNav.TOKEN_COMMENT);
 		}
 
-		return (type == VTDNav.TOKEN_PI_NAME);
+		if (sel_type == 2)
+			return (type == VTDNav.TOKEN_PI_NAME);
+		try {
+			return (vn.matchRawTokenString(index, piName));
+		} catch(NavException e){
+			return false;
+		}
+		
+		   
 	}
     /**
 	 * Obtain the current navigation position and element info from VTDNav. So
