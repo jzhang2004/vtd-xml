@@ -187,6 +187,12 @@ public class VTDNav {
 	// length of the document
 	protected int docLen;
 	protected int vtdSize; //vtd record count
+	
+	public String name;
+	public int nameIndex;
+	
+	public String localName;
+	public int localNameIndex;
 	/**
      * Initialize the VTD navigation object.
      * 
@@ -287,6 +293,10 @@ public class VTDNav {
 		vtdSize = vtd.size();
 		//writeOffsetAdjustment = false;
 		//recentNS = -1;
+		name  = null;
+		nameIndex = -1;
+		localName = null;
+		localNameIndex = -1;
 	}
 	/**
      * Return the attribute count of the element at the cursor position. when ns
@@ -2811,9 +2821,20 @@ public class VTDNav {
      * @return int The index of the NS URL
      */
 	private void resolveLC() {
-		int temp;
 		if (context[0]<=0)
 			return;
+		resolveLC_l1();
+		if (context[0] == 1)
+			return;
+		resolveLC_l2();
+		if (context[0] == 2)
+			return;		
+		resolveLC_l3();
+
+	}
+	
+	
+	private void resolveLC_l1(){
 		if (l1index < 0 || l1index >= l1Buffer.size()
 				|| context[1] != l1Buffer.upper32At(l1index)) {
 			if (l1index >= l1Buffer.size() || l1index < 0) {
@@ -2846,13 +2867,11 @@ public class VTDNav {
 						}
 				}
 			}
-			//	l1index = l1index + 1;
-			// for iterations, l1index+1 is the logical next value for l1index
 		}
-		if (context[0] == 1)
-			return;
-
-		temp = l1Buffer.lower32At(l1index);
+	}
+	
+	private void resolveLC_l2(){
+		int temp = l1Buffer.lower32At(l1index);
 		if (l2lower != temp) {
 			l2lower = temp;
 			// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
@@ -2901,11 +2920,9 @@ public class VTDNav {
 					l2index++;
 			}	
 		}
-
-		if (context[0] == 2)
-			return;
-		
-		temp = l2Buffer.lower32At(l2index);
+	}
+	private void resolveLC_l3(){
+		int temp = l2Buffer.lower32At(l2index);
 		if (l3lower != temp) {
 			//l3lower and l3upper are always together
 			l3lower = temp;
@@ -2951,8 +2968,8 @@ public class VTDNav {
 				}
 			}
 		}
-
 	}
+	
 	/**
      * Test whether the URL is defined in the scope. Null is allowed to indicate
      * the name space is undefined. Creation date: (11/16/03 7:54:01 PM)
