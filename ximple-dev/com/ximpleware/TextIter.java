@@ -50,13 +50,7 @@ public class TextIter {
         sel_comment = true;
         sel_cdata = true;*/
     }
-    /**
-     * Select the Pi Name
-     * @param s
-     */
-    public void setPiName(String s){
-    	piName =s;
-    }
+   
     /**
      * Ask textIter to return character data or CDATA nodes
      */
@@ -81,7 +75,7 @@ public class TextIter {
     
     public void selectPI1(String s){
     	sel_type =3;
-    	setPiName(s);
+    	piName = s;
     }
 /**
  * Get the index vals for the text, PI name, or comment node in document order.
