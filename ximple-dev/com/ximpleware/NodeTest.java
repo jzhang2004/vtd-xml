@@ -76,8 +76,10 @@ public class NodeTest implements LocationPathNode{
 			        return prefix+":"+localName;
 			case NODE: return "node()";
 			case TEXT: return "text()";
-			case PI0: 
-			case PI1: return "processing-instruction()";
+			case PI0: return "processing-instruction()";
+			case PI1: return (nodeName.indexOf('"')>0)?
+								"processing-instruction('"+nodeName+"')"
+						      :"processing-instruction(\""+nodeName+"\")";
 			default:  return "comment()";
 		}
 	}
