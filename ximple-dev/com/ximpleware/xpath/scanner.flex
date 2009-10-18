@@ -549,7 +549,7 @@ node{ws}*"("{ws}*")"	{
 				return sym(NTEST,ntest);
 			}
 			
-processing-instruction{ws}*"("{ws}*'[^']+'{ws}*")"	{
+processing-instruction{ws}*"("{ws}*'[^']*'{ws}*")"	{
 						isName = 0;
 						ntest = new Ntest();
 						ntest.i = Ntest.PROCESSING_INSTRUCTION;
@@ -558,7 +558,7 @@ processing-instruction{ws}*"("{ws}*'[^']+'{ws}*")"	{
 						return sym(NTEST,ntest);
 					}
 					
-processing-instruction{ws}*"("{ws}*\"[^\"]+\"{ws}*")"	{
+processing-instruction{ws}*"("{ws}*\"[^\"]*\"{ws}*")"	{
 						isName = 0;
 						ntest = new Ntest();
 						ntest.i = Ntest.PROCESSING_INSTRUCTION;
