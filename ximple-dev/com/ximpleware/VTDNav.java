@@ -1455,8 +1455,9 @@ public class VTDNav {
 					}
 				}
 				//dumpContext();
-				if (index!= a[depth] && (special || matchElement(en))) {					
-					resolveLC();
+				if (index!= a[depth] && (special || matchElement(en))) {
+					if (depth <4)
+						resolveLC();
 					return true;
 				}
 			} 
@@ -1501,8 +1502,9 @@ public class VTDNav {
 					}
 				}
 				//dumpContext();
-				if (index != a[depth] && matchElementNS(URL,ln)) {					
-					resolveLC();
+				if (index != a[depth] && matchElementNS(URL,ln)) {	
+					if (depth <4)
+						resolveLC();
 					return true;
 				}
 			} 
@@ -1531,8 +1533,9 @@ public class VTDNav {
 				context[0] = depth;
 				if (depth>0)
 					context[depth] = index;
-				if (special || matchElement(en)) {					
-					resolveLC();
+				if (special || matchElement(en)) {	
+					if (depth <4)
+					  resolveLC();
 					return true;
 				}
 			} 
@@ -1559,8 +1562,9 @@ public class VTDNav {
 				context[0] = depth;
 				if (depth>0)
 					context[depth] = index;
-				if (matchElementNS(URL,ln)) {					
-					resolveLC();
+				if (matchElementNS(URL,ln)) {	
+					if (depth <4)
+						resolveLC();
 					return true;
 				}
 			} 
@@ -2830,10 +2834,11 @@ public class VTDNav {
 		if (context[0] == 2)
 			return;		
 		resolveLC_l3();
-
 	}
 	
-	
+	/** 
+	 * Sync level 1 location cache
+	 */
 	private void resolveLC_l1(){
 		if (l1index < 0 || l1index >= l1Buffer.size()
 				|| context[1] != l1Buffer.upper32At(l1index)) {
@@ -2870,6 +2875,9 @@ public class VTDNav {
 		}
 	}
 	
+	/**
+	 * Sync Level 2 location cache
+	 */
 	private void resolveLC_l2(){
 		int temp = l1Buffer.lower32At(l1index);
 		if (l2lower != temp) {
@@ -2921,6 +2929,10 @@ public class VTDNav {
 			}	
 		}
 	}
+	
+	/**
+	 * Sync L3 location Cache
+	 */
 	private void resolveLC_l3(){
 		int temp = l2Buffer.lower32At(l2index);
 		if (l3lower != temp) {
