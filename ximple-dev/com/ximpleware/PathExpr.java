@@ -152,13 +152,18 @@ public class PathExpr extends Expr {
 		try {
 			a = evalNodeSet(vn);
 			if (a != -1) {
-				if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
-					a++;
-				}
-				if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
-					a = vn.getText();
-				}
-			}
+            	int t = vn.getTokenType(a);
+                if (t == VTDNav.TOKEN_ATTR_NAME) {
+                    a++;
+                } else if (t == VTDNav.TOKEN_STARTING_TAG) {
+                    a = vn.getText();
+                } else if (t == VTDNav.TOKEN_PI_NAME) {
+                    if (a+1<vn.vtdSize && vn.getTokenType(a)== VTDNav.TOKEN_PI_VAL)
+                    	a=a+1;
+                    else
+                    	a = -1;                    
+                }
+            }
 		} catch (Exception e) {
 		}
 		vn.contextStack2.size = size;
