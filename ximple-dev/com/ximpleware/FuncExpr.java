@@ -124,16 +124,30 @@ public class FuncExpr extends Expr{
 	                    || type == VTDNav.TOKEN_ATTR_NAME)) {
                     int offset = vn.getTokenOffset(index);
                     int length = vn.getTokenLength(index);
-                    if (length < 0x10000)
-                        return vn.toRawString(index);
+                    if (length < 0x10000){
+                    	if (vn.localNameIndex != index){
+                    		vn.localNameIndex = index;
+                    		vn.localName = vn.toRawString(index);
+                    	}
+                        return vn.localName;
+                    }
                     else {
                         int preLen = length >> 16;
                         int QLen = length & 0xffff;
-                        if (preLen != 0)
-                            return vn.toRawString(offset + preLen+1, QLen
-                                    - preLen - 1);
+                        if (preLen != 0){
+                        	if (vn.localNameIndex != index){
+                        		vn.localNameIndex = index;
+                        		vn.localName = vn.toRawString(offset + preLen+1, QLen
+                                        - preLen - 1);
+                        	}
+                            return vn.localName;
+                        }
                         else {
-                            return vn.toRawString(offset, QLen);
+                        	if (vn.localNameIndex != index){
+                        		vn.localNameIndex = index;
+                        		vn.localName = vn.toRawString(offset, QLen);
+                        	}
+                            return vn.localName;
                         }
                     }
                 } else
@@ -230,7 +244,12 @@ public class FuncExpr extends Expr{
             if (type == VTDNav.TOKEN_STARTING_TAG 
                     || type == VTDNav.TOKEN_ATTR_NAME){
 	            try{
-	                return vn.toString(a);
+	            	if (vn.nameIndex!=a){
+	            		vn.name = vn.toString(a);
+	            		vn.nameIndex = a;	
+	            	}
+            		return vn.name;
+	                
 	            }catch(Exception e){
 	                return "";
 	            }            
