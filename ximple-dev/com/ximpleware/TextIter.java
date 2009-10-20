@@ -182,11 +182,14 @@ public int getNext() {
                     if (sp == s) { // get to the next l1 element then do a rewind
                         lcIndex++;
                         sp = vn.l1Buffer.upper32At(lcIndex)-1;
+                        boolean b = false;
                         while (vn.getTokenDepth(sp) == 0
-                            && vn.getTokenType(sp) != VTDNav.TOKEN_STARTING_TAG) { //probe depth in here
-                            sp--;
+                            /*&& vn.getTokenType(sp) != VTDNav.TOKEN_STARTING_TAG*/) { //probe depth in here
+                            b = true;
+                        	sp--;
                         }
-                        sp++; // point to the first possible node  
+                        if (b)
+                        	sp++; // point to the first possible node  
                     }
                     if (isText(sp) == true && vn.getTokenDepth(sp)==0) {
                         prevLocation = sp;
@@ -267,9 +270,12 @@ public int getNext() {
                     if (sp == s) {
                         lcIndex++;
                         sp = vn.l2Buffer.upper32At(lcIndex) - 1;
+                        //boolean b = false;
                         while (vn.getTokenDepth(sp) == 1) {
+                        	//b = true;
                             sp--;
                         }
+                        //if (b)
                         sp++;
                         //continue; 
                     }
@@ -354,10 +360,13 @@ public int getNext() {
                     if (sp == s) {
                         lcIndex++;
                         sp = vn.l3Buffer.intAt(lcIndex) - 1;
+                        //boolean b = false;
                         while (vn.getTokenDepth(sp) == 2) {
                             sp--;
+                          //  b = true;
                         }
-                        sp++;
+                        //if (b)
+                        	sp++;
                         //continue;
                     }
                     if (isText(sp) == true && vn.getTokenDepth(sp)==2) {
