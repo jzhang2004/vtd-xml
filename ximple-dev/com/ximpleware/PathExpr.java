@@ -17,7 +17,6 @@
  */
 package com.ximpleware;
 
-import com.ximpleware.xpath.Expr;
 
 /**
  * PathExpr implements the Path expression as defined
@@ -64,24 +63,7 @@ public class PathExpr extends Expr {
 
 
 	public double evalNumber(VTDNav vn) {
-		int a = -1;
-		vn.push2();
-		int size = vn.contextStack2.size;
-	        try {
-		  a =evalNodeSet(vn);
-		  if (a!=-1){
-		  	if (vn.getTokenType(a)== VTDNav.TOKEN_ATTR_NAME){
-			  a ++;
-		  	}else if (vn.getTokenType(a)== VTDNav.TOKEN_STARTING_TAG) {
-			  a = vn.getText();
-		  	}
-		  }			  
-		} catch (Exception e){
-			
-		}
-		vn.contextStack2.size = size;
-		reset(vn);
-		vn.pop2();
+		int a = getStringIndex(vn);
 		try{
 			if (a!=-1) return vn.parseDouble(a);
 		}catch (NavException e){
@@ -146,29 +128,7 @@ public class PathExpr extends Expr {
 
 
 	public String evalString(VTDNav vn) {
-		vn.push2();
-		int size = vn.contextStack2.size;
-		int a = -1;
-		try {
-			a = evalNodeSet(vn);
-			if (a != -1) {
-            	int t = vn.getTokenType(a);
-                if (t == VTDNav.TOKEN_ATTR_NAME) {
-                    a++;
-                } else if (t == VTDNav.TOKEN_STARTING_TAG) {
-                    a = vn.getText();
-                } else if (t == VTDNav.TOKEN_PI_NAME) {
-                    if (a+1<vn.vtdSize && vn.getTokenType(a)== VTDNav.TOKEN_PI_VAL)
-                    	a=a+1;
-                    else
-                    	a = -1;                    
-                }
-            }
-		} catch (Exception e) {
-		}
-		vn.contextStack2.size = size;
-		reset(vn);
-		vn.pop2();
+		int a = getStringIndex(vn);
 		try {
 			if (a != -1)
 				return vn.toString(a);
