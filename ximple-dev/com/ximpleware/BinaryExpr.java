@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
-import com.ximpleware.xpath.Expr;
 /**
  * The parser.java uses this class to contruct the corresponding
  * AST for XPath expression when there are two operands and one

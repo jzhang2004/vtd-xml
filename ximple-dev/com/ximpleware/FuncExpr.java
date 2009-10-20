@@ -16,10 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
-import com.ximpleware.xpath.Alist;
-import com.ximpleware.xpath.Expr;
-import com.ximpleware.xpath.FuncName;
-import com.ximpleware.xpath.UnsupportedException;
+import com.ximpleware.xpath.*;
+
 /**
  * FuncExpr implements the function expression defined
  * in XPath spec
