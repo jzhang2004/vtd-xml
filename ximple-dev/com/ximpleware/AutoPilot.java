@@ -147,7 +147,7 @@ public void declareVariableExpr(String varName, String varExpr) throws XPathPars
         parser p = new parser(new StringReader(varExpr));
         p.nsHash = nsHash;
         p.symbolHash = symbolHash;
-        xpe = (com.ximpleware.xpath.Expr) p.parse().value;
+        xpe = (Expr) p.parse().value;
         symbolHash.put(varName, xpe);
         ft = true;
      }catch(XPathParseException e){
@@ -525,7 +525,7 @@ public void selectXPath(String s) throws XPathParseException {
        parser p = new parser(new StringReader(s));
        p.nsHash = nsHash;
        p.symbolHash = symbolHash;
-       xpe = (com.ximpleware.xpath.Expr) p.parse().value;
+       xpe = (com.ximpleware.Expr) p.parse().value;
        ft = true;
     }catch(XPathParseException e){
     	System.out.println("Syntax error after or around the end of ==>"+s.substring(0,e.getOffset()));
