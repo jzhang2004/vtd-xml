@@ -83,27 +83,9 @@ public class UnionExpr extends Expr {
      */
     public double evalNumber(VTDNav vn) {
         if (e.isNodeSet()== false)
-            return e.evalNumber(vn);
-        
+            return e.evalNumber(vn);   
         //double d;
-        int a = -1;
-        vn.push2();
-        int size = vn.contextStack2.size;
-        try {
-            a = evalNodeSet(vn);
-            if (a != -1) {
-                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
-                    a++;
-                } else if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
-                    a = vn.getText();
-                }
-            }
-        } catch (Exception e) {
-
-        }
-        vn.contextStack2.size = size;
-        reset(vn);
-        vn.pop2();
+        int a = getStringIndex(vn);
         try {
             if (a != -1)
                 return vn.parseDouble(a);
@@ -178,7 +160,6 @@ public class UnionExpr extends Expr {
                 }
             }
         }
-
         /*
          * default: throw new XPathEvalException( "Invalid state evaluating
          * PathExpr");
@@ -194,29 +175,7 @@ public class UnionExpr extends Expr {
         if (e.isNodeSet()==false){
             return e.evalString(vn);
         }
-        vn.push2();
-        int size = vn.contextStack2.size;
-        int a = -1;
-        try {
-            a = evalNodeSet(vn);
-            if (a != -1) {
-            	int t = vn.getTokenType(a);
-                if (t == VTDNav.TOKEN_ATTR_NAME) {
-                    a++;
-                } else if (t == VTDNav.TOKEN_STARTING_TAG) {
-                    a = vn.getText();
-                } else if (t == VTDNav.TOKEN_PI_NAME) {
-                    if (a+1<vn.vtdSize && vn.getTokenType(a)== VTDNav.TOKEN_PI_VAL)
-                    	a=a+1;
-                    else
-                    	a = -1;                    
-                }
-            }
-        } catch (Exception e) {
-        }
-        vn.contextStack2.size = size;
-        reset(vn);
-        vn.pop2();
+        int a = getStringIndex(vn);
         try {
             if (a != -1)
                 return vn.toString(a);
@@ -349,6 +308,8 @@ public class UnionExpr extends Expr {
     
     public int adjust(int n){        
 	    int i = e.adjust(n);
+	    if (this.next == null)
+	    	return i; // no need to create hash table here 
 	    if (ih!=null && i==ih.e)
         {}
 	    else
