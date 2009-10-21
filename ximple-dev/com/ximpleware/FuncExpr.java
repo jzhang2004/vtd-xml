@@ -932,10 +932,17 @@ public class FuncExpr extends Expr{
                         break;
                 }
                 else if (t == VTDNav.TOKEN_CHARACTER_DATA
-                        || t == VTDNav.TOKEN_CDATA_VAL){
+                        || t == VTDNav.TOKEN_CDATA_VAL || t== VTDNav.TOKEN_COMMENT){
                     d += vn.parseDouble(a);
                     if (Double.isNaN(d))
                         break;
+                } else if (t==VTDNav.TOKEN_PI_NAME){
+                	if (a+1<vn.vtdSize && vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL){
+                		d += vn.parseDouble(a+1);
+                	} else {
+                		d = Double.NaN;
+                		break;
+                	}
                 }
                 //    fib1.append(i);
     	    }
