@@ -50,7 +50,7 @@ abstract public class Expr {
 	// needs to add 
 	//abstract public boolean needContextSize();
 	//abstract public boolean SetContextSize(int contextSize);
-    protected int getStringIndex(VTDNav vn){
+    final protected int getStringIndex(VTDNav vn){
     	int a = -1;
         vn.push2();
         int size = vn.contextStack2.size;
