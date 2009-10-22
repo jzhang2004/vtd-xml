@@ -1004,6 +1004,70 @@ public class XPathTester {
             println("test55 3 succeed");
         else
             println("test55 3 failed: " + value);
+        
+        //test round-half-to-even
+        //non extended version
+        VTDNav vn1 = parseString(s);
+        
+        AutoPilot ap1 = new AutoPilot(vn1);
+        ap1.selectXPath("round-half-to-even(0.5)");
+        double num = ap1.evalXPathToNumber();
+        if (num == 0)
+            println("test55 4 succeed");
+        else
+            println("test55 4 failed: " + num);
+        
+        ap1.selectXPath("round-half-to-even(1.5)");
+        num = ap1.evalXPathToNumber();
+        if (num == 2)
+            println("test55 5 succeed");
+        else
+            println("test55 5 failed: " + num);
+        
+        ap1.selectXPath("round-half-to-even(-1.5)");
+        num = ap1.evalXPathToNumber();
+        if (num == -2)
+            println("test55 6 succeed");
+        else
+            println("test55 6 failed: " + num);
+
+        ap1.selectXPath("round-half-to-even(2.5)");
+        num = ap1.evalXPathToNumber();
+        if (num == 2)
+            println("test55 7 succeed");
+        else
+            println("test55 7 failed: " + num);
+        
+        ap1.selectXPath("round-half-to-even(-2.5)");
+        num = ap1.evalXPathToNumber();
+        if (num == -2)
+            println("test55 8 succeed");
+        else
+            println("test55 8 failed: " + num);
+        
+        //this caused exception:
+        //"XPath Syntax error: #32" from parser
+        //ap1.selectXPath("round-half-to-even(3.567812E+3, 2)");
+        //num = ap1.evalXPathToNumber();
+        //if (num == 3567.81)
+        //    println("test55 9 succeed");
+        //else
+        //    println("test55 9 failed: " + num);        
+
+        ap1.selectXPath("round-half-to-even(3567.812, 2)");
+        num = ap1.evalXPathToNumber();
+        if (num == 3567.81)
+            println("test55 9 succeed");
+        else
+            println("test55 9 failed: " + num);        
+        
+        ap1.selectXPath("round-half-to-even(35612.25, -2)");
+        num = ap1.evalXPathToNumber();
+        if (num == 35600)
+            println("test55 10 succeed");
+        else
+            println("test55 10 failed: " + num);        
+        
     }
     
     public static void test6() throws Exception{
