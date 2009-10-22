@@ -86,7 +86,7 @@ public int getNext() {
     if (vn == null)
         throw new IllegalArgumentException(" VTDNav instance can't be null");
     switch (depth) {
-        case -1: return -1;
+        case -1: return handleDocumentNode();
         case 0 :
         	return handleLevel0();
         case 1 :
@@ -437,6 +437,42 @@ public int getNext() {
             type = vn.getTokenType(sp);                
         }
         return -1;
+    }
+    
+    private int handleDocumentNode(){
+    	if (sel_type == 0)
+    		return -1;
+    	int sp = (prevLocation != -1) ? increment(prevLocation): index + 1;
+    	if (sp>=vn.vtdSize) return -1;
+    	//int d = vn.getTokenDepth(sp);
+        //int type = vn.getTokenType(sp);
+        //while (d == -1/*&& !(d == depth && type == VTDNav.TOKEN_STARTING_TAG)*/) {
+        while(true){
+        	 if (sp< vn.rootIndex) {
+        		 if (isText(sp)){
+        	   		 prevLocation = sp;
+        	   		 return sp;
+        		 } else 
+        			 sp++;
+        	 } else { 
+        		 // rewind to the end of document
+        		 if (sp == vn.rootIndex){
+        			 sp = vn.vtdSize-1;
+        			 while(vn.getTokenDepth(sp)==-1){
+        				 sp--;
+        			 }
+        			 sp++;
+        		 }        		 
+        		 if (sp>=vn.vtdSize){
+        			 return -1;
+        		 } else if (isText(sp)){
+        			 prevLocation = sp;
+        			 return sp;
+        		 } else
+        			 sp++;        		         		 
+        	 }
+         
+        }
     }
     
 }
