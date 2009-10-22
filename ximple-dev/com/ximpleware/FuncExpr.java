@@ -732,9 +732,9 @@ public class FuncExpr extends Expr{
 			    					return Math.floor(argumentList.e.evalNumber(vn))+0.5d;
 			    					
 			case FuncName.ABS:		if (argCount()!=1 )
-				throw new IllegalArgumentException("abs()'s argument count is invalid");
-			return Math.abs(argumentList.e.evalNumber(vn));		
-			case FuncName.ROUND_HALF_TO_EVEN :			    							
+										throw new IllegalArgumentException("abs()'s argument count is invalid");
+									return Math.abs(argumentList.e.evalNumber(vn));		
+			case FuncName.ROUND_HALF_TO_EVEN :	return roundHalfToEven(vn);		    							
 			case FuncName.ROUND_HALF_TO_ODD:
 			    throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
 			
@@ -754,6 +754,59 @@ public class FuncExpr extends Expr{
 	  }
 	}
 
+	private double roundHalfToEven(VTDNav vn) {
+		
+		int numArg = argCount();
+	    if (numArg < 1 || numArg > 2){
+	    	throw new IllegalArgumentException("Argument count for roundHalfToEven() is invalid. Expected: 1 or 2; Actual: " + numArg);	    	
+	    }
+	    
+	    double value = argumentList.e.evalNumber(vn);
+	    long precision = (numArg == 2)? (long)Math.floor(argumentList.next.e.evalNumber(vn)+0.5d) : 0;
+	    
+	    if(value < 0) return -roundHalfToEvenPositive(-value, precision);	    
+	    else return roundHalfToEvenPositive(value, precision);
+	}
+	
+	private double roundHalfToEvenPositive(double value, long precision){
+		final double ROUNDING_EPSILON  = 0.00000001;
+	    long dec = 1;
+	    
+	    //shif the decimal point by precision
+	    long absPre = Math.abs(precision);
+	    
+	    for(int i = 0; i < absPre; i++){
+	    	dec *= 10;
+	    }
+	    
+	    if(precision > 0) value *= dec;
+	    else if (precision < 0)value /= dec;
+	    
+	    double result = 0;
+	    long intPart = (long)value;
+	    
+	    //'value' is exctly halfway between two integers
+	    if(Math.abs(value -(intPart +0.5d)) < ROUNDING_EPSILON){
+	    	// 'ipart' is even 
+	    	if(intPart%2 == 0){
+	    		result = intPart;
+	    	}else{// nearest even integer
+	    		result = (long)Math.ceil( intPart + 0.5d );
+	    	}
+	    }else{
+	    	//use the usual round to closest	    
+	    	result = Math.round(value);
+	    }
+	    
+	    //shif the decimal point back to where it was
+	    if(precision > 0) result /= dec;
+	    else if(precision < 0) result *= dec;
+	    
+		return result;
+		
+		
+	}
+	
 	public int evalNodeSet(VTDNav vn) throws XPathEvalException{
 	  throw new XPathEvalException(" Function Expr can't eval to node set ");
 	}
