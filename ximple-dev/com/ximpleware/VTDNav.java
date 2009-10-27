@@ -188,11 +188,13 @@ public class VTDNav {
 	protected int docLen;
 	protected int vtdSize; //vtd record count
 	
-	public String name;
-	public int nameIndex;
+	protected String name;
+	protected int nameIndex;
 	
-	public String localName;
-	public int localNameIndex;
+	protected String localName;
+	protected int localNameIndex;
+	protected FastIntBuffer fib;//for store string value 
+	
 	/**
      * Initialize the VTD navigation object.
      * 
@@ -297,6 +299,7 @@ public class VTDNav {
 		nameIndex = -1;
 		localName = null;
 		localNameIndex = -1;
+		fib = new FastIntBuffer(5); // page size is 32 ints
 	}
 	/**
      * Return the attribute count of the element at the cursor position. when ns
@@ -3888,6 +3891,21 @@ public class VTDNav {
 		int offset = getTokenOffset(index);
 		return toRawString(offset, len);
 	}
+	
+	final protected String toRawString(StringBuffer sb, int index) 
+		throws NavException {
+		
+		int type = getTokenType(index);
+		int len;
+		if (type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_ATTR_NS)
+			len = getTokenLength(index) & 0xffff;
+		else
+			len = getTokenLength(index);
+		int offset = getTokenOffset(index);
+		return toRawString(offset, len);
+	}
 	/**
 	 * Convert a token at the given index to a String, upper case chars
 	 * get converted into lower case 
@@ -3930,14 +3948,14 @@ public class VTDNav {
 	}
 	
 	/**
-	 * 
+	 * Convert a segment of XML bytes a into string, without entity resolution
 	 * @param os
 	 * @param len
 	 * @return
 	 * @throws NavException
 	 *
 	 */
-	final protected String toRawString(int os, int len) throws NavException{
+	final public String toRawString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -3948,6 +3966,28 @@ public class VTDNav {
 	        sb.append((char)l);	                
 	    }
 	    return sb.toString();
+	}
+	
+	final protected void toRawString(int os, int len, StringBuffer sb) throws NavException {
+		int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        sb.append((char)l);	                
+	    }
+	}
+	
+	final protected void toString(int os, int len, StringBuffer sb) throws NavException {
+		int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getCharResolved(offset);
+	        offset += (int)(l>>32);
+	        sb.append((char)l);	                
+	    }
 	}
 	
 	/**
@@ -4073,7 +4113,7 @@ public class VTDNav {
 	
 	/**
      * Convert the byte content segment (in terms of offset and length) to
-     * String
+     * String (entities are resolved)
      * 
      * @param os
      *            the offset of the segment
@@ -4083,7 +4123,7 @@ public class VTDNav {
      * @throws NavException
      *  
      */
-	final protected String toString(int os, int len) throws NavException{
+	final public String toString(int os, int len) throws NavException{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -4095,6 +4135,20 @@ public class VTDNav {
 	    }
 	    return sb.toString();
 	}
+	
+	final protected void toString(StringBuffer sb, int index) 
+	throws NavException {
+	
+		int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			toRawString(sb, index); 
+		int len;
+		len = getTokenLength(index);
+
+		int offset = getTokenOffset(index);
+		toString(offset, len, sb);
+}
 	
 	/**
      * Convert the byte content segment (in terms of offset and length) to
@@ -4541,7 +4595,201 @@ public class VTDNav {
 	 * @param size
 	 * @return
 	 */
-	/*final protected String toSubString(int index, int so, int size){
-		return null;
-	}*/
+	final protected String getXPathStringVal() throws NavException{
+		int index = getCurrentIndex() + 1;
+		int tokenType, depth, t=0;
+		int dp = context[0];
+		//int size = vtdBuffer.size();
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+		    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+		    	t += getTokenLength(index);
+		    	fib.append(index);
+		    }		   
+			if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		
+		// calculate the total length
+		StringBuffer sb = new StringBuffer(t);
+		
+		for(t=0;t<fib.size();t++ ){
+			toString(sb,t);
+		}
+				
+		// clear the fib and return a string
+		return sb.toString();
+	}
+	
+	/**
+	 *  
+	 * @return
+	 */
+	public long getContentFragment() throws NavException{
+		// a little scanning is needed
+		// has next sibling case
+		// if not
+		
+		int depth = getCurrentDepth();
+//		 document length and offset returned if depth == -1
+		if (depth == -1){
+		    int i=vtdBuffer.lower32At(0);
+		    if (i==0)
+		        return ((long)docLen)<<32| docOffset;
+		    else
+		        return ((long)(docLen-32))| 32;
+		}
+
+		
+		int so = getOffsetAfterHead();
+		if (so==-1)
+			return -1L;
+		int length = 0;
+		
+
+		// for an element with next sibling
+		if (toElement(NEXT_SIBLING)) {
+
+			int temp = getCurrentIndex();
+			// rewind
+			while (getTokenDepth(temp) < depth) {
+				temp--;
+			}
+			//temp++;
+			int so2 = getTokenOffset(temp) - 1;
+			// look for the first '>'
+			while (getCharUnit(so2) != '>') {
+				so2--;
+			}
+			while (getCharUnit(so2) != '/') {
+				so2--;
+			}
+			while (getCharUnit(so2) != '<') {
+				so2--;
+			}
+			length = so2 - so;
+			toElement(PREV_SIBLING);
+			if (encoding <= FORMAT_WIN_1258)
+				return ((long) length) << 32 | so;
+			else
+				return ((long) length) << 33 | (so << 1);
+		}
+
+		// for root element
+		if (depth == 0) {
+			int temp = vtdBuffer.size() - 1;
+			boolean b = false;
+			int so2 = 0;
+			while (getTokenDepth(temp) == -1) {
+				temp--; // backward scan
+				b = true;
+			}
+			if (b == false)
+				so2 =
+					(encoding <= FORMAT_WIN_1258 )
+						? (docOffset + docLen - 1)
+						: ((docOffset + docLen) >> 1) - 1;
+			else
+				so2 = getTokenOffset(temp + 1);
+			while (getCharUnit(so2) != '>') {
+				so2--;
+			}
+			while (getCharUnit(so2) != '/') {
+				so2--;
+			}
+			while (getCharUnit(so2) != '<') {
+				so2--;
+			}
+			length = so2 - so;
+			if (encoding <= FORMAT_WIN_1258)
+				return ((long) length) << 32 | so;
+			else
+				return ((long) length) << 33 | (so << 1);
+		}
+		// for a non-root element with no next sibling
+		int temp = getCurrentIndex() + 1;
+		int size = vtdBuffer.size();
+		// temp is not the last entry in VTD buffer
+		if (temp < size) {
+			while (temp < size && getTokenDepth(temp) >= depth) {
+				temp++;
+			}
+			if (temp != size) {
+				int d =
+					depth
+						- getTokenDepth(temp)
+						+ ((getTokenType(temp) == TOKEN_STARTING_TAG) ? 1 : 0);
+				int so2 = getTokenOffset(temp) - 1;
+				int i = 0;
+				// scan backward
+				while (i < d) {
+					if (getCharUnit(so2) == '>')
+						i++;
+					so2--;
+				}
+				while (getCharUnit(so2) != '/') {
+					so2--;
+				}
+				while (getCharUnit(so2) != '<') {
+					so2--;
+				}
+				length = so2 - so;
+				if (encoding <= FORMAT_WIN_1258)
+					return ((long) length) << 32 | so;
+				else
+					return ((long) length) << 33 | (so << 1);
+			}
+			/*
+             * int so2 = getTokenOffset(temp - 1) - 1; int d = depth -
+             * getTokenDepth(temp - 1); int i = 0; while (i < d) { if
+             * (getCharUnit(so2) == '>') { i++; } so2--; } length = so2 - so +
+             * 2; if (encoding < 3) return ((long) length) < < 32 | so; else
+             * return ((long) length) < < 33 | (so < < 1);
+             */
+		}
+		// temp is the last entry
+		// scan forward search for /> or </cc>
+		
+		int so2 =
+			(encoding <= FORMAT_WIN_1258)
+				? (docOffset + docLen - 1)
+				: ((docOffset + docLen) >> 1) - 1;
+		int d;
+	   
+	    d = depth + 1;
+	    
+	    int i = 0;
+        while (i < d) {
+            if (getCharUnit(so2) == '>') {
+                i++;
+            }
+            so2--;
+        }
+        while (getCharUnit(so2) != '/') {
+			so2--;
+		}
+		while (getCharUnit(so2) != '<') {
+			so2--;
+		}
+
+		length = so2 - so;
+
+		if (encoding <= FORMAT_WIN_1258)
+			return ((long) length) << 32 | so;
+		else
+			return ((long) length) << 33 | (so << 1);
+	}
+	
 }
