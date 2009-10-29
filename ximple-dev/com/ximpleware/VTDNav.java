@@ -4597,7 +4597,7 @@ public class VTDNav {
 	 */
 	final protected String getXPathStringVal() throws NavException{
 		int index = getCurrentIndex() + 1;
-		int tokenType, depth, t=0;
+		int tokenType, depth, t=0, length,i=0;
 		int dp = context[0];
 		//int size = vtdBuffer.size();
 		// store all text tokens underneath the current element node
@@ -4611,10 +4611,20 @@ public class VTDNav {
 		    
 		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
 		    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
-		    	t += getTokenLength(index);
+		    	length = getTokenLength(index);
+		    	t += length;
 		    	fib.append(index);
-		    }		   
-			if (tokenType==VTDNav.TOKEN_ATTR_NAME
+		    	if (length > VTDGen.MAX_TOKEN_LENGTH){
+		    		while(length > VTDGen.MAX_TOKEN_LENGTH){
+		    			length -=VTDGen.MAX_TOKEN_LENGTH;
+		    			i++;
+		    		}
+		    		index += i+1;
+		    	}else
+		    		index++;
+		    	continue;
+		    	//
+		    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
 			        || tokenType == VTDNav.TOKEN_ATTR_NS){			  
 			    index = index+2;
 			    continue;
@@ -4634,8 +4644,11 @@ public class VTDNav {
 	}
 	
 	/**
-	 *  
-	 * @return
+	 * Get content fragment returns a long encoding the offset and length of the byte segment of
+	 * the content of current element, which is the byte segment between the starting tag and 
+	 * ending tag, -1 is returned if the current element is an empty element
+	 * 
+	 * @return long whose upper 32 bite is length, lower 32 bit is offset
 	 */
 	public long getContentFragment() throws NavException{
 		// a little scanning is needed
