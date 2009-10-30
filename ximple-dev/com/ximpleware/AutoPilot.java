@@ -37,6 +37,7 @@ public class AutoPilot {
     				   		   // the case of node() and * for preceding axis
     						   // of xpath evaluation
     private String name; // Store element name after selectElement
+    private String name2; // store xmlns:+name
     private String localName; // Store local name after selectElemntNS
     private String URL; // Store URL name after selectElementNS
     private int size; // for iterateAttr
@@ -61,6 +62,7 @@ public class AutoPilot {
     public final static int PRECEDING_NS=8;
     public final static int ATTR = 9;
     public final static int ATTR_NS = 10;
+    public final static int NAME_SPACE = 11;
     
     static private Hashtable symbolHash;
     
@@ -277,8 +279,50 @@ public boolean iterate() throws PilotException, NavException {
             throw new PilotException(" iteration action type undefined");
     }
 }
+
+/**
+ * 
+ * @return
+ * @throws PilotException
+ * @throws NavException
+ */
+	protected int iterateNameSpace() throws PilotException, NavException {
+		if (vn.ns == false)
+			return -1;
+		if (ft != false) {
+			ft = false;
+			index = vn.getCurrentIndex2() + 1;
+		} else
+			index += 2;
+
+		while (index < size) {
+			int type = vn.getTokenType(index);
+			if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS) {
+				if (type == VTDNav.TOKEN_ATTR_NS){ 
+				    if  (name.equals("*")  
+				    		|| vn.matchRawTokenString(index, name2)
+				    ){
+				    	vn.LN = index;
+				    	vn.atTerminal = true;
+				    	return index;
+				    }
+				} 
+				index += 2;
+			} else {
+				vn.atTerminal = false;
+				if (vn.toElement(VTDNav.P) == false) {
+					return -1;
+				} else {
+					index = vn.getCurrentIndex2() + 1;
+				}
+			}
+		}
+
+		return -1;
+	}
 /**
  * This method implements the attribute axis for XPath
+ * 
  * @return the integer of the selected VTD index for attribute name
  * @throws PilotException
  */
@@ -484,6 +528,20 @@ protected void selectElementNS_P(String ns_URL, String ln){
         vn.context[i]=-1;
     }
     contextCopy[0]=vn.rootIndex;
+}
+
+/**
+ * Select the name space nodes as defined in XPath
+ * @param en
+ */
+protected void selectNameSpace(String en){
+	if (en == null)
+		throw new IllegalArgumentException("namespace name can't be null");
+	iter_type = NAME_SPACE;
+    ft = true;
+    size = vn.getTokenCount();
+    name = en;
+    name2="xmlns:"+en;
 }
 
 /**
