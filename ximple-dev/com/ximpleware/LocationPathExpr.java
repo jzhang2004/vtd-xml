@@ -130,7 +130,7 @@ public class LocationPathExpr extends Expr{
 		}
 		
 		
-		private final int process_child(VTDNav vn)throws XPathEvalException,NavException{
+	private final int process_child(VTDNav vn)throws XPathEvalException,NavException{
 		    int result;
 		    boolean b = false, b1 = false;
 		    Predicate t= null;
@@ -451,7 +451,7 @@ public class LocationPathExpr extends Expr{
 		    return -2;
 		}
 		
-		private int process_DDFP(VTDNav vn) 
+	private final int process_DDFP(VTDNav vn) 
 		throws XPathEvalException, NavException {
 		AutoPilot ap;
 		boolean b = false, b1 = false;
@@ -1089,7 +1089,7 @@ public class LocationPathExpr extends Expr{
 		}
 	    return -2;
 	}
-	private int process_self(VTDNav vn)
+	private final int process_self(VTDNav vn)
 		throws XPathEvalException,NavException{
 	    boolean b1 = false;
 	    Predicate t= null;
@@ -1162,7 +1162,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	
-	private int process_namespace(VTDNav vn)
+	private final int process_namespace(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    AutoPilot ap = null;
 	    boolean b1 = false;
@@ -1201,6 +1201,7 @@ public class LocationPathExpr extends Expr{
 					currentStep  = currentStep.getPrevStep();
 				}
 			} else {
+				
                 if (currentStep.get_ft() == true) {
                     if (currentStep.o == null)
                         currentStep.o = ap = new AutoPilot(vn);
@@ -1209,22 +1210,23 @@ public class LocationPathExpr extends Expr{
                         ap.bind(vn);
                         //ap.set_ft(true);
                     }
-                    if (currentStep.nt.localName != null)
-                        ap.selectAttrNS(currentStep.nt.URL,
-                                currentStep.nt.localName);
+                    if (currentStep.nt.testType == NodeTest.NODE)
+                    	ap.selectNameSpace("*");
                     else
-                        ap.selectAttr(currentStep.nt.nodeName);
+                    	ap.selectNameSpace(currentStep.nt.nodeName);
                     currentStep.set_ft(false);
                 }
                 if (state == START)
                     state = END;
-                vn.setAtTerminal(true);
-                while ((temp = ap.iterateAttr()) != -1) {
+                vn.push2();
+                //vn.setAtTerminal(true);
+                while ((temp = ap.iterateNameSpace()) != -1) {
                     if (currentStep.evalPredicates(vn)) {
                         break;
                     }
                 }
                 if (temp == -1) {
+                	vn.pop2();
                     currentStep.set_ft(true);
                     currentStep.resetP(vn);
                     vn.setAtTerminal(false);
@@ -1233,7 +1235,7 @@ public class LocationPathExpr extends Expr{
                         currentStep = currentStep.getPrevStep();
                     }
                 } else {
-
+                	vn.setAtTerminal(true);
                     if (currentStep.getNextStep() != null) {
                         vn.LN = temp;
                         state = FORWARD;
@@ -1259,12 +1261,13 @@ public class LocationPathExpr extends Expr{
 		case  BACKWARD:
 			ap = (AutoPilot) currentStep.o;
 			//vn.push();
-			while( (temp = ap.iterateAttr()) != -1){
+			while( (temp = ap.iterateNameSpace()) != -1){
 				if (currentStep.evalPredicates(vn)){
 					break;
 				}							
 			}
 			if (temp == -1) {
+				vn.pop2();
 				currentStep.set_ft(true);
 				currentStep.resetP(vn);
 				vn.setAtTerminal(false);
@@ -1289,7 +1292,7 @@ public class LocationPathExpr extends Expr{
 			
 		case  TERMINAL:
 			ap = (AutoPilot) currentStep.o;
-			while( (temp = ap.iterateAttr()) != -1){
+			while( (temp = ap.iterateNameSpace()) != -1){
 				if (currentStep.evalPredicates(vn)){
 					break;
 				}							
@@ -1303,9 +1306,11 @@ public class LocationPathExpr extends Expr{
 			currentStep.resetP(vn);
 			if (currentStep.getPrevStep() == null) {
 				currentStep.set_ft(true);
+				vn.pop2();
 				 state =  END;
 			} else {
 				 state =  BACKWARD;
+				 vn.pop2();
 				currentStep.set_ft(true);
 				currentStep = currentStep.getPrevStep();
 			}
@@ -1318,7 +1323,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private int process_following_sibling(VTDNav vn)
+	private final int process_following_sibling(VTDNav vn)
 	throws XPathEvalException,NavException{
 	    boolean b = false, b1 = false;
 	    Predicate t= null;
@@ -1435,7 +1440,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private int process_preceding_sibling(VTDNav vn)
+	private final int process_preceding_sibling(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    boolean b = false, b1 = false;
 	    Predicate t= null;
@@ -1550,7 +1555,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private int process_attribute(VTDNav vn)
+	private final int process_attribute(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    AutoPilot ap = null;
 	    boolean b1 = false;
@@ -1597,7 +1602,9 @@ public class LocationPathExpr extends Expr{
                         ap.bind(vn);
                         //ap.set_ft(true);
                     }
-                    if (currentStep.nt.localName != null)
+                    if (currentStep.nt.testType == NodeTest.NODE)
+                    	ap.selectAttr("*");
+                    else if (currentStep.nt.localName != null)
                         ap.selectAttrNS(currentStep.nt.URL,
                                 currentStep.nt.localName);
                     else
@@ -1769,7 +1776,8 @@ public class LocationPathExpr extends Expr{
 			        return result;
 			    break;
 			default:
-			    throw new XPathEvalException("axis not supported");
+				if ((result = process_namespace(vn))!= -2)
+			        return result;
 			}
 		}
         
@@ -1799,7 +1807,7 @@ public class LocationPathExpr extends Expr{
 	    boolean b = false;
 	    //Predicate tp = null;
 	    int i = 0;
-	    AutoPilot ap;
+	    AutoPilot ap = (AutoPilot)currentStep.o;
 	    switch(currentStep.axis_type){
 	    	case AxisType.CHILD:
 	    	    if (currentStep.nt.testType < NodeTest.TEXT){
@@ -1841,7 +1849,10 @@ public class LocationPathExpr extends Expr{
     			}else
     				throw new XPathEvalException("can't run descendant "
     						+ "following, or following-sibling axis over comment(), pi(), and text()");
-				ap = new AutoPilot(vn);
+				if (ap==null)
+					ap = new AutoPilot(vn);
+				else
+					ap.bind(vn);
 				if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF )
 					if (currentStep.nt.testType == NodeTest.NODE)
 						ap.setSpecial(true);
@@ -1876,6 +1887,7 @@ public class LocationPathExpr extends Expr{
     			}
     			vn.pop2();
     			currentStep.resetP(vn,p);
+    			currentStep.o = ap;
     			return i;
 			  
 			case AxisType.PARENT:
@@ -1888,6 +1900,7 @@ public class LocationPathExpr extends Expr{
 				}			    
 				vn.pop2();
 				currentStep.resetP(vn,p);
+				currentStep.o = ap;
 				return i;
 				
 			case AxisType.ANCESTOR:
@@ -1900,6 +1913,7 @@ public class LocationPathExpr extends Expr{
 				}				
 				vn.pop2();
 				currentStep.resetP(vn,p);
+				currentStep.o = ap;
 				return i;
 				
 			case AxisType.ANCESTOR_OR_SELF:
@@ -1912,6 +1926,7 @@ public class LocationPathExpr extends Expr{
 				}while(vn.toElement(VTDNav.PARENT));
 				vn.pop2();
 				currentStep.resetP(vn,p);
+				currentStep.o = ap;
 				return i;
 				
 			case AxisType.SELF:
@@ -1922,6 +1937,7 @@ public class LocationPathExpr extends Expr{
 				    }
 				}			    
 				currentStep.resetP(vn,p);
+				currentStep.o = ap;
 				return i;
 			    
 			case AxisType.FOLLOWING_SIBLING:
@@ -1933,6 +1949,7 @@ public class LocationPathExpr extends Expr{
 				}			    
 			    vn.pop2();
 				currentStep.resetP(vn,p);
+				currentStep.o = ap;
 				return i;
 			    
 			case AxisType.PRECEDING_SIBLING:
@@ -1944,11 +1961,17 @@ public class LocationPathExpr extends Expr{
 				}			    
 				vn.pop2();
 				currentStep.resetP(vn,p);
+				currentStep.o = ap;
 				return i;
 				
 			case AxisType.ATTRIBUTE:
-			    ap = new AutoPilot(vn);
-				if (currentStep.nt.localName!=null)
+				if (ap==null)
+					ap = new AutoPilot(vn);
+				else
+					ap.bind(vn);
+				if (currentStep.nt.testType == NodeTest.NODE)
+					ap.selectAttr("*");
+				else if (currentStep.nt.localName!=null)
 				    ap.selectAttrNS(currentStep.nt.URL,
 			            currentStep.nt.localName);
 				else 
@@ -1960,8 +1983,29 @@ public class LocationPathExpr extends Expr{
 				    }
 				}
           		currentStep.resetP(vn,p);
+          		currentStep.o = ap;
 				return i;
 			    
+			case AxisType.NAMESPACE:
+				if (ap==null)
+					ap = new AutoPilot(vn);
+				else
+					ap.bind(vn);
+				if (currentStep.nt.testType == NodeTest.NODE)
+                	ap.selectNameSpace("*");
+                else
+                	ap.selectNameSpace(currentStep.nt.nodeName);
+				i=0;
+				vn.push2();
+				while(ap.iterateNameSpace()!=-1){
+				    if (currentStep.evalPredicates(vn,p)){
+				        i++;
+				    }
+				}	    
+				vn.pop2();
+				currentStep.resetP(vn,p);
+				currentStep.o = ap;
+				return i;
 	    	default:
 	    	    throw new XPathEvalException("axis not supported");
 	    }
