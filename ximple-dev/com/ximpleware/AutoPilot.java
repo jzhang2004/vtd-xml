@@ -541,7 +541,8 @@ protected void selectNameSpace(String en){
     ft = true;
     size = vn.getTokenCount();
     name = en;
-    name2="xmlns:"+en;
+    if (!en.equals("*"))
+    	name2="xmlns:"+en;
 }
 
 /**
