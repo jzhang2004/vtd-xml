@@ -627,7 +627,7 @@ following-sibling{ws}*::  {	isName = 1;
 				return sym(AXISNAME,at);
 			}
 
-namespace{ws}*::	{	isName =0;
+namespace{ws}*::	{	isName =1;
 				at = new AxisType();
 				at.i = AxisType.NAMESPACE;
 				return sym(AXISNAME,at);
