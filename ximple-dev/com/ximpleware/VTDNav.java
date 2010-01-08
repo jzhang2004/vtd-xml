@@ -1169,9 +1169,9 @@ public class VTDNav {
 	    int offset; // this is character offset
 	    if (i+1==j)
 	    {
-	        offset = getTokenOffset(i)+getTokenLength(i);	                   
+	        offset = getTokenOffset(i)+ ((ns=false)?getTokenLength(i):getTokenLength(i)&0xff);	                   
 	    }else {
-	        offset = getTokenOffset(j-1)+getTokenLength(j-1)+1;	                    
+	        offset = getTokenOffset(j-1)+((ns=false)?getTokenLength(j-1):getTokenLength(j-1))+1;	                    
 	    }
 	    
 	    while(getCharUnit(offset)!='>'){
