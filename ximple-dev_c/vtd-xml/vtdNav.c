@@ -3690,9 +3690,9 @@ int getOffsetAfterHead(VTDNav *vn){
 
 		if (i+1==j)
 	    {
- 	        offset = getTokenOffset(vn,i)+getTokenLength(vn,i);
+			offset = getTokenOffset(vn,i)+((vn->ns==FALSE)?getTokenLength(vn,i):(getTokenLength(vn,i)&0xff));
  	    }else {
-	        offset = getTokenOffset(vn,j-1)+getTokenLength(vn,j-1)+1;
+			offset = getTokenOffset(vn,j-1)+(vn->ns==FALSE)?getTokenLength(vn,j-1):(getTokenLength(vn,j-1)&0xff))+1;
 	    }
 
  	    while(getCharUnit(vn,offset)!='>'){

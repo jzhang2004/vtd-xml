@@ -1078,7 +1078,7 @@ namespace com.ximpleware
             }
             catch (NavException e)
             {
-                //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Throwable.toString' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                //UPGRADE_TODO: The equivalent in .NET for method 'Throwable.toString' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                 System.Console.Out.WriteLine("toString exception condition occurred " + e);
             }
         }
@@ -1111,7 +1111,7 @@ namespace com.ximpleware
         /// <summary> Get the token index of the attribute value given an attribute name.     </summary>
         /// <returns> int  (-1 if no such attribute name exists)
         /// </returns>
-        /// <param name="an">java.lang.String
+        /// <param name="an">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">The exception if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1171,9 +1171,9 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> int (-1 if no matching attribute found)
         /// </returns>
-        /// <param name="URL">java.lang.String  (Name space URL)
+        /// <param name="URL">String  (Name space URL)
         /// </param>
-        /// <param name="ln">java.lang.String   (local name)
+        /// <param name="ln">String   (local name)
         /// </param>
         /// <exception cref="com.ximpleware.NavException">The exception if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1318,11 +1318,11 @@ namespace com.ximpleware
             int offset; // this is character offset
             if (i + 1 == j)
             {
-                offset = getTokenOffset(i) + getTokenLength(i);
+                offset = getTokenOffset(i) + ((ns==false)?getTokenLength(i):(getTokenLength(i)&0xff));
             }
             else
             {
-                offset = getTokenOffset(j - 1) + getTokenLength(j - 1) + 1;
+                offset = getTokenOffset(j - 1) + ((ns==false)?getTokenLength(j - 1):(getTokenLength(j+1)&0xff)) + 1;
             }
 
             while (getCharUnit(offset) != '>')
@@ -1433,7 +1433,7 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> boolean (true if such an attribute exists)
         /// </returns>
-        /// <param name="an">java.lang.String
+        /// <param name="an">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">The exception if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1507,9 +1507,9 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> boolean
         /// </returns>
-        /// <param name="URL">java.lang.String (namespace URL)
+        /// <param name="URL">String (namespace URL)
         /// </param>
-        /// <param name="ln">java.lang.String  (localname )
+        /// <param name="ln">String  (localname )
         /// </param>
         /// <exception cref="com.ximpleware.NavException">The exception if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1743,7 +1743,7 @@ namespace com.ximpleware
         /// </returns>
         /// <param name="dp">int    (The depth of the starting position before iterating)
         /// </param>
-        /// <param name="en">java.lang.String
+        /// <param name="en">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">The exception is signaled if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1792,9 +1792,9 @@ namespace com.ximpleware
         /// </returns>
         /// <param name="dp">int    (The depth of the starting position before iterating)
         /// </param>
-        /// <param name="URL"> java.lang.String
+        /// <param name="URL"> String
         /// </param>
-        /// <param name="ln"> java.lang.String
+        /// <param name="ln"> String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">The exception if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1849,7 +1849,7 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> boolean
         /// </returns>
-        /// <param name="en">java.lang.String
+        /// <param name="en">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">If the underlying raw char representation has errors.
         /// </exception>
@@ -1872,13 +1872,13 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> boolean
         /// </returns>
-        /// <param name="URL">java.lang.String
+        /// <param name="URL">String
         /// </param>
-        /// <param name="ln">java.lang.String
+        /// <param name="ln">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">When there is any encoding conversion error or unknown entity.
         /// </exception>
-        /// <exception cref="java.lang.IllegalArgumentException"> if ln == null
+        /// <exception cref="IllegalArgumentException"> if ln == null
         /// </exception>
         public bool matchElementNS(System.String URL, System.String ln)
         {
@@ -1904,7 +1904,7 @@ namespace com.ximpleware
         /// </param>
         /// <param name="len">int
         /// </param>
-        /// <param name="s">java.lang.String
+        /// <param name="s">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">The exception if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1925,7 +1925,7 @@ namespace com.ximpleware
         /// </returns>
         /// <param name="index">int   (index into the VTD token buffer)
         /// </param>
-        /// <param name="s">java.lang.String
+        /// <param name="s">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">When if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1949,7 +1949,7 @@ namespace com.ximpleware
         /// </returns>
         /// <param name="l">long
         /// </param>
-        /// <param name="s">java.lang.String
+        /// <param name="s">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">When if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1973,7 +1973,7 @@ namespace com.ximpleware
         /// </param>
         /// <param name="len">int
         /// </param>
-        /// <param name="s">java.lang.String
+        /// <param name="s">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">The exception if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -1995,7 +1995,7 @@ namespace com.ximpleware
         /// </returns>
         /// <param name="index">int
         /// </param>
-        /// <param name="s">java.lang.String
+        /// <param name="s">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">When if the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -2019,7 +2019,7 @@ namespace com.ximpleware
         /// </returns>
         /// <param name="l">long
         /// </param>
-        /// <param name="s">java.lang.String
+        /// <param name="s">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">When the underlying byte 
         /// content contains various errors. Notice that we are being conservative in making little assumption on
@@ -2209,7 +2209,7 @@ namespace com.ximpleware
             {
                 //must be <= since we get the next one at last.
 
-                //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                //UPGRADE_TODO: The equivalent in .NET for method 'Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                 int dig = (int)System.Char.GetNumericValue((char)ch); //only consider decimal
                 if (dig < 0)
                     break;
@@ -2238,7 +2238,7 @@ namespace com.ximpleware
                 {
                     //must be <= since we get the next one at last.
 
-                    //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                    //UPGRADE_TODO: The equivalent in .NET for method 'Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                     int dig = (int)System.Char.GetNumericValue((char)ch);
                     //only consider decimal
                     if (dig < 0)
@@ -2279,7 +2279,7 @@ namespace com.ximpleware
                 {
                     //must be <= since we get the next one at last.
 
-                    //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                    //UPGRADE_TODO: The equivalent in .NET for method 'Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                     int dig = (int)System.Char.GetNumericValue((char)ch);
                     //only consider decimal
                     if (dig < 0)
@@ -2382,7 +2382,7 @@ namespace com.ximpleware
             {
                 //must be <= since we get the next one at last.
 
-                //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                //UPGRADE_TODO: The equivalent in .NET for method 'Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                 int dig = (int)System.Char.GetNumericValue((char)ch); //only consider decimal
                 if (dig < 0)
                     break;
@@ -2411,7 +2411,7 @@ namespace com.ximpleware
                 {
                     //must be <= since we get the next one at last.
 
-                    //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                    //UPGRADE_TODO: The equivalent in .NET for method 'Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                     int dig = (int)System.Char.GetNumericValue((char)ch);
                     //only consider decimal
                     if (dig < 0)
@@ -2452,7 +2452,7 @@ namespace com.ximpleware
                 {
                     //must be <= since we get the next one at last.
 
-                    //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                    //UPGRADE_TODO: The equivalent in .NET for method 'Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                     int dig = (int)System.Char.GetNumericValue((char)ch);
                     //only consider decimal
                     if (dig < 0)
@@ -2510,7 +2510,7 @@ namespace com.ximpleware
             else
             {
                 //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
-                //UPGRADE_TODO: The equivalent in .NET for field 'java.lang.Float.MIN_VALUE' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                //UPGRADE_TODO: The equivalent in .NET for field 'Float.MIN_VALUE' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                 if (v <= (double)System.Single.Epsilon)
                 {
                     //UPGRADE_TODO: The equivalent in .NET for field 'java.lang.Float.MIN_VALUE' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
@@ -2597,7 +2597,7 @@ namespace com.ximpleware
             //long pos = 1;
             while (offset <= endOffset)
             {
-                //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                //UPGRADE_TODO: The equivalent in .NET for method 'Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                 int digit = (int)System.Char.GetNumericValue((char)ch);
                 if (digit < 0)
                     break;
@@ -2706,7 +2706,7 @@ namespace com.ximpleware
             //long pos = 1;
             while (offset <= endOffset)
             {
-                //UPGRADE_TODO: The equivalent in .NET for method 'java.lang.Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
+                //UPGRADE_TODO: The equivalent in .NET for method 'Character.digit' may return a different value. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1043'"
                 int digit = (int)System.Char.GetNumericValue((char)ch);
                 if (digit < 0)
                     break;
@@ -3106,7 +3106,7 @@ namespace com.ximpleware
         /// PM)
         /// 
         /// </summary>
-        /// <param name="URL">java.lang.String
+        /// <param name="URL">String
         /// </param>
         /// <exception cref="com.ximpleware.NavException">When there is any encoding conversion error or unknown
         /// entity.
@@ -3264,7 +3264,7 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> boolean
         /// </returns>
-        /// <param name="URL">java.lang.String
+        /// <param name="URL">String
         /// </param>
         /// <param name="offset">(offset of the prefix)
         /// </param>
@@ -4037,7 +4037,7 @@ namespace com.ximpleware
         /// Whitespaces via entities will nonetheless be preserved.
         /// Creation date: (12/8/03 1:57:10 PM)
         /// </summary>
-        /// <returns> java.lang.String
+        /// <returns> String
         /// </returns>
         /// <param name="index">int
         /// </param>
@@ -4114,7 +4114,7 @@ namespace com.ximpleware
             {
                 l = getChar(offset);
                 offset += (int)(l >> 32);
-                sb.Append((char)l); // java only support 16 bit unit code
+                sb.Append((char)l); //  only support 16 bit unit code
             }
             return sb.ToString();
         }
@@ -4122,7 +4122,7 @@ namespace com.ximpleware
         /// (entities and char references not expanded).
         /// Creation date: (11/16/03 7:28:49 PM)
         /// </summary>
-        /// <returns> java.lang.String
+        /// <returns> String
         /// </returns>
         /// <param name="index">int
         /// </param>
@@ -4152,7 +4152,7 @@ namespace com.ximpleware
             {
                 l = getCharResolved(offset);
                 offset += (int)(l >> 32);
-                sb.Append((char)l); // java only support 16 bit unit code
+                sb.Append((char)l); // support 16 bit unit code
             }
 
             return sb.ToString();
@@ -4161,7 +4161,7 @@ namespace com.ximpleware
         /// An attribute name or an element name will get the UCS2 string of qualified name 
         /// Creation date: (11/16/03 7:27:19 PM)
         /// </summary>
-        /// <returns> java.lang.String
+        /// <returns> String
         /// </returns>
         /// <param name="int">index
         /// </param>
@@ -4485,6 +4485,12 @@ namespace com.ximpleware
                 len = getTokenLength(index) & 0xffff;
             else
                 len = getTokenLength(index);
+            if (encoding != VTDNav.FORMAT_UTF8 &&
+                encoding != VTDNav.FORMAT_UTF_16BE &&
+                encoding != VTDNav.FORMAT_UTF_16LE)
+            {
+                return len;
+            }
             int offset = getTokenOffset(index);
             int endOffset = offset + len;
             long l;
@@ -4655,14 +4661,18 @@ namespace com.ximpleware
             long l1;
             int i, l;
             int endOffset = offset + len;
-
+            bool b = (type == TOKEN_ATTR_VAL
+                || type == TOKEN_CHARACTER_DATA);
             l = s.Length;
             if (l > len)
                 return false;
 
             for (i = 0; i < l && offset < endOffset; i++)
             {
-                l1 = getCharResolved(offset);
+                if (b)
+                    l1 = getCharResolved(offset);
+                else
+                    l1 = getChar(offset);
                 int i1 = s[i];
                 if (i1 != (int)l1)
                     return false;
@@ -4692,6 +4702,8 @@ namespace com.ximpleware
             int offset = getTokenOffset(index);
             long l1;
             int i, l, i2;
+            bool b = (type == TOKEN_ATTR_VAL
+                || type == TOKEN_CHARACTER_DATA);
             //int endOffset = offset + len; 
 
             //       System.out.print("currentOffset :" + currentOffset); 
@@ -4705,13 +4717,19 @@ namespace com.ximpleware
             // eat away first several chars 
             for (i = 0; i < i2; i++)
             {
-                l1 = getCharResolved(offset);
+                if (b)
+                    l1 = getCharResolved(offset);
+                else
+                    l1 = getChar(offset);
                 offset += (int)(l1 >> 32);
             }
             //System.out.println(s); 
             for (i = 0; i < l; i++)
             {
-                l1 = getCharResolved(offset);
+                if (b)
+                    l1 = getCharResolved(offset);
+                else
+                    l1 = getChar(offset);
                 int i1 = s[i];
                 if (i1 != (int)l1)
                     return false;
@@ -4740,6 +4758,8 @@ namespace com.ximpleware
             long l1;
             int i, l, i2;
             int endOffset = offset + len;
+            bool b = (type == TOKEN_ATTR_VAL
+                || type == TOKEN_CHARACTER_DATA);
 
             //       System.out.print("currentOffset :" + currentOffset); 
             int gOffset = offset;
@@ -4752,7 +4772,10 @@ namespace com.ximpleware
                 gOffset = offset;
                 for (i = 0; i < l && gOffset < endOffset; i++)
                 {
-                    l1 = getCharResolved(gOffset);
+                    if (b)
+                        l1 = getCharResolved(gOffset);
+                    else
+                        l1 = getChar(gOffset);
                     int i1 = s[i];
                     gOffset += (int)(l1 >> 32);
                     if (i == 0)
@@ -4772,7 +4795,7 @@ namespace com.ximpleware
         /// <param name="os"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        public String toStringUpperCase(int os, int len)
+        protected internal String toStringUpperCase(int os, int len)
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
             int offset = os;
@@ -4798,7 +4821,7 @@ namespace com.ximpleware
         /// <param name="os"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        public String toStringLowerCase(int os, int len)
+        protected internal String toStringLowerCase(int os, int len)
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
             int offset = os;
@@ -4818,7 +4841,7 @@ namespace com.ximpleware
 
         /// <summary>
         /// Convert a token at the given index to a String and any upper case
-	    /// character will be converted to lower case, (entities and char
+        /// character will be converted to lower case, (entities and char
         /// references resolved). An attribute name or an element name will get the
         /// UCS2 string of qualified name
         /// </summary>
@@ -4829,7 +4852,7 @@ namespace com.ximpleware
             int type = getTokenType(index);
             if (type != TOKEN_CHARACTER_DATA &&
                     type != TOKEN_ATTR_VAL)
-                return toRawString(index);
+                return toRawStringLowerCase(index);
             int len;
             len = getTokenLength(index);
 
@@ -4839,7 +4862,7 @@ namespace com.ximpleware
 
         /// <summary>
         /// Convert a token at the given index to a String and any lower case
-	    /// character will be converted to upper case, (entities and char
+        /// character will be converted to upper case, (entities and char
         /// references resolved). An attribute name or an element name will get the
         /// UCS2 string of qualified name
         /// </summary>
@@ -4850,12 +4873,100 @@ namespace com.ximpleware
             int type = getTokenType(index);
             if (type != TOKEN_CHARACTER_DATA &&
                     type != TOKEN_ATTR_VAL)
-                return toRawString(index);
+                return toRawStringUpperCase(index);
             int len;
             len = getTokenLength(index);
 
             int offset = getTokenOffset(index);
             return toStringUpperCase(offset, len);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="os"></param>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        protected internal String toRawStringLowerCase(int os, int len)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
+            int offset = os;
+            int endOffset = os + len;
+            long l;
+            while (offset < endOffset)
+            {
+                l = getChar(offset);
+                offset += (int)(l >> 32);
+                if ((int)l > 64 && (int)l < 91)
+                    sb.Append((char)(l + 32));
+                else
+                    sb.Append((char)l);
+            }
+            return sb.ToString();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="os"></param>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        protected internal String toRawStringUpperCase(int os, int len)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
+            int offset = os;
+            int endOffset = os + len;
+            long l;
+            while (offset < endOffset)
+            {
+                l = getChar(offset);
+                offset += (int)(l >> 32);
+                if ((int)l > 96 && (int)l < 123)
+                    sb.Append((char)(l - 32));
+                else
+                    sb.Append((char)l);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Convert a token at the given index to a String, lower case chars
+        /// get converted into upper case 
+        /// (entities and char references not expanded).
+        /// </summary>
+        /// <param name="index"> VTD index</param>
+        /// <returns></returns>
+        public String toRawStringUpperCase(int index)
+        {
+            int type = getTokenType(index);
+            int len;
+            if (type == TOKEN_STARTING_TAG
+                || type == TOKEN_ATTR_NAME
+                || type == TOKEN_ATTR_NS)
+                len = getTokenLength(index) & 0xffff;
+            else
+                len = getTokenLength(index);
+            int offset = getTokenOffset(index);
+            return toRawStringUpperCase(offset, len);
+        }
+        /// <summary>
+        /// Convert a token at the given index to a String, upper case chars
+        /// get converted into lower case 
+        /// (entities and char references not expanded).
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public String toRawStringLowerCase(int index)
+        {
+            int type = getTokenType(index);
+            int len;
+            if (type == TOKEN_STARTING_TAG
+                || type == TOKEN_ATTR_NAME
+                || type == TOKEN_ATTR_NS)
+                len = getTokenLength(index) & 0xffff;
+            else
+                len = getTokenLength(index);
+            int offset = getTokenOffset(index);
+            return toRawStringLowerCase(offset, len);
         }
     }
 }
