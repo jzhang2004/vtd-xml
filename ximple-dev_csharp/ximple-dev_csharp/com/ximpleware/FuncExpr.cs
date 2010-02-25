@@ -639,7 +639,17 @@ namespace com.ximpleware
                         throw new System.ArgumentException("abs()'s argument count is invalid");
                     //UPGRADE_TODO: Method 'java.lang.Math.round' was converted to 'System.Math.Round' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangMathround_double'"
                     return (long)System.Math.Abs(argumentList.e.evalNumber(vn));
-                case FuncName.ROUND_HALF_TO_EVEN : 
+                case FuncName.ROUND_HALF_TO_EVEN :
+                    int numArg = argCount();
+                    if (numArg < 1 || numArg > 2)
+                    {
+                        throw new System.ArgumentException("Argument count for roundHalfToEven() is invalid. Expected: 1 or 2; Actual: " + numArg);
+                    }
+
+                    double value = argumentList.e.evalNumber(vn);
+                    int precision = (numArg == 2) ? (int)Math.Floor(argumentList.next.e.evalNumber(vn) + 0.5d) : 0;
+                    return (long)System.Math.Round(value, precision, MidpointRounding.ToEven);
+
    			    case FuncName.ROUND_HALF_TO_ODD:
    			        throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
 
