@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3724,7 +3724,7 @@ public class VTDNavHuge {
      * @throws NavExceptionHuge
      *  
      */
-	final protected String toStringUpperCase(long os, int len) throws NavExceptionHuge{
+	final protected String toStringUpperCase(long os, int len ) throws NavExceptionHuge{
 	    StringBuffer sb = new StringBuffer(len);	    
 	    long offset = os;
 	    long endOffset = os + len;
@@ -3738,5 +3738,373 @@ public class VTDNavHuge {
 	        	sb.append((char)l);	                
 	    }
 	    return sb.toString();
+	}	
+	
+	/**
+	 * Return the offset (64-bit) and length (64-bit) of an element
+	 * fragment 
+	 * @return a long[2], result[0]=offset, result[1]=length
+	 * @throws NavException
+	 */
+	public long[] getElementFragment() throws NavExceptionHuge {
+		// a little scanning is needed
+		// has next sibling case
+		// if not
+		long[] result = new long[2];
+		int depth = getCurrentDepth();
+//		 document length and offset returned if depth == -1
+		if (depth == -1){
+		    int i=vtdBuffer.lower32At(0);
+		    if (i==0){
+		    	result[0] = docOffset;
+		    	result[1] = docLen;
+		        //return ((long)docLen)<<32| docOffset;
+		    }
+		    else {
+		    	result[0] = 32;
+		    	result[1] = docLen-32;
+		        //return ((long)(docLen-32))| 32;
+		    }
+		    return result;
+		}
+		long so = getTokenOffset(getCurrentIndex2()) - 1;
+		long length = 0;
+		
+
+		// for an element with next sibling
+		if (toElement(NEXT_SIBLING)) {
+
+			int temp = getCurrentIndex();
+			// rewind
+			while (getTokenDepth(temp) < depth) {
+				temp--;
+			}
+			//temp++;
+			long so2 = getTokenOffset(temp) - 1;
+			// look for the first '>'
+			while (getCharUnit(so2) != '>') {
+				so2--;
+			}
+			length = so2 - so + 1;
+			toElement(PREV_SIBLING);
+			if (encoding <= FORMAT_WIN_1258){
+				result[0]= so;
+				result[1]= length;
+				//return ((long) length) << 32 | so;
+			}
+			else {
+				result[0]=so<<1;
+				result[1]=length<<1;
+				//return ((long) length) << 33 | (so << 1);
+			}
+			return result;
+		}
+
+		// for root element
+		if (depth == 0) {
+			int temp = vtdBuffer.size() - 1;
+			boolean b = false;
+			long so2 = 0;
+			while (getTokenDepth(temp) == -1) {
+				temp--; // backward scan
+				b = true;
+			}
+			if (b == false)
+				so2 =
+					(encoding <= FORMAT_WIN_1258 )
+						? (docOffset + docLen - 1)
+						: ((docOffset + docLen) >> 1) - 1;
+			else
+				so2 = getTokenOffset(temp + 1);
+			while (getCharUnit(so2) != '>') {
+				so2--;
+			}
+			length = so2 - so + 1;
+			if (encoding <= FORMAT_WIN_1258){
+				result[0]= so;
+				result[1]= length;
+				//return ((long) length) << 32 | so;
+			}
+			else{
+				result[0]=so<<1;
+				result[1]=length<<1;
+				//return ((long) length) << 33 | (so << 1);
+			}
+			return result;
+		}
+		// for a non-root element with no next sibling
+		int temp = getCurrentIndex() + 1;
+		int size = vtdBuffer.size();
+		// temp is not the last entry in VTD buffer
+		if (temp < size) {
+			while (temp < size && getTokenDepth(temp) >= depth) {
+				temp++;
+			}
+			if (temp != size) {
+				int d =
+					depth
+						- getTokenDepth(temp)
+						+ ((getTokenType(temp) == TOKEN_STARTING_TAG) ? 1 : 0);
+				long so2 = getTokenOffset(temp) - 1;
+				int i = 0;
+				// scan backward
+				while (i < d) {
+					if (getCharUnit(so2) == '>')
+						i++;
+					so2--;
+				}
+				length = so2 - so + 2;
+				if (encoding <= FORMAT_WIN_1258){
+					result[0]=so;
+					result[1]=length;
+					//return ((long) length) << 32 | so;
+				}
+				else{
+					result[0]=so<<1;
+					result[1]=length<<1;
+					//return ((long) length) << 33 | (so << 1);
+				}
+				return result;
+			}
+			/*
+             * int so2 = getTokenOffset(temp - 1) - 1; int d = depth -
+             * getTokenDepth(temp - 1); int i = 0; while (i < d) { if
+             * (getCharUnit(so2) == '>') { i++; } so2--; } length = so2 - so +
+             * 2; if (encoding < 3) return ((long) length) < < 32 | so; else
+             * return ((long) length) < < 33 | (so < < 1);
+             */
+		}
+		// temp is the last entry
+		// scan forward search for /> or </cc>
+		
+		long so2 =
+			(encoding <= FORMAT_WIN_1258)
+				? (docOffset + docLen - 1)
+				: ((docOffset + docLen) >> 1) - 1;
+		int d;
+	   
+	    d = depth + 1;
+	    
+	    int i = 0;
+        while (i < d) {
+            if (getCharUnit(so2) == '>') {
+                i++;
+            }
+            so2--;
+        }
+	  
+
+		length = so2 - so + 2;
+
+		if (encoding <= FORMAT_WIN_1258){
+			result[0]=so;
+			result[1]=length;
+			//return ((long) length) << 32 | so;
+		}
+		else{
+			result[0]=so<<1;
+			result[1]=length<<1;
+			//return ((long) length) << 33 | (so << 1);
+		}
+		return result;
 	}
+	
+	/**
+	 * Get content fragment returns a long[2] encoding the offset and length of the byte segment of
+	 * the content of current element, which is the byte segment between the starting tag and 
+	 * ending tag, null is returned if the current element is an empty element
+	 * 
+	 * @return long[2] whose upper 64 bite is length, lower 64 bit is offset
+	 */
+	public long[] getContentFragment() throws NavExceptionHuge{
+		// a little scanning is needed
+		// has next sibling case
+		// if not
+		long[] result = new long[2];
+		int depth = getCurrentDepth();
+//		 document length and offset returned if depth == -1
+		if (depth == -1){
+		    int i=vtdBuffer.lower32At(0);
+		    if (i==0){
+		    	result[0]= docOffset;
+				result[1]= docLen;
+		        //return ((long)docLen)<<32| docOffset;
+		    }
+		    else{
+		    	result[0]= 32;
+				result[1]= docLen-32;
+		        //return ((long)(docLen-32))| 32;
+		    }
+		    return result;
+		}
+
+		
+		long so = getOffsetAfterHead();
+		if (so==-1)
+			return null;
+		long length = 0;
+		
+
+		// for an element with next sibling
+		if (toElement(NEXT_SIBLING)) {
+
+			int temp = getCurrentIndex();
+			// rewind
+			while (getTokenDepth(temp) < depth) {
+				temp--;
+			}
+			//temp++;
+			long so2 = getTokenOffset(temp) - 1;
+			// look for the first '>'
+			while (getCharUnit(so2) != '>') {
+				so2--;
+			}
+			while (getCharUnit(so2) != '/') {
+				so2--;
+			}
+			while (getCharUnit(so2) != '<') {
+				so2--;
+			}
+			length = so2 - so;
+			toElement(PREV_SIBLING);
+			if (encoding <= FORMAT_WIN_1258){
+				result[0]= so;
+				result[1]= length;
+				//return ((long) length) << 32 | so;
+			}
+			else{
+				result[0]=so<<1;
+				result[1]=length<<1;
+				//return ((long) length) << 33 | (so << 1);
+			}
+			return result;
+		}
+
+		// for root element
+		if (depth == 0) {
+			int temp = vtdBuffer.size() - 1;
+			boolean b = false;
+			long so2 = 0;
+			while (getTokenDepth(temp) == -1) {
+				temp--; // backward scan
+				b = true;
+			}
+			if (b == false)
+				so2 =
+					(encoding <= FORMAT_WIN_1258 )
+						? (docOffset + docLen - 1)
+						: ((docOffset + docLen) >> 1) - 1;
+			else
+				so2 = getTokenOffset(temp + 1);
+			while (getCharUnit(so2) != '>') {
+				so2--;
+			}
+			while (getCharUnit(so2) != '/') {
+				so2--;
+			}
+			while (getCharUnit(so2) != '<') {
+				so2--;
+			}
+			length = so2 - so;
+			if (encoding <= FORMAT_WIN_1258){
+				result[0]= so;
+				result[1]= length;
+				//return ((long) length) << 32 | so;
+			}
+			else {
+				result[0]=so<<1;
+				result[1]=length<<1;
+				//return ((long) length) << 33 | (so << 1);
+			}
+			return result;
+		}
+		// for a non-root element with no next sibling
+		int temp = getCurrentIndex() + 1;
+		int size = vtdBuffer.size();
+		// temp is not the last entry in VTD buffer
+		if (temp < size) {
+			while (temp < size && getTokenDepth(temp) >= depth) {
+				temp++;
+			}
+			if (temp != size) {
+				int d =
+					depth
+						- getTokenDepth(temp)
+						+ ((getTokenType(temp) == TOKEN_STARTING_TAG) ? 1 : 0);
+				long so2 = getTokenOffset(temp) - 1;
+				int i = 0;
+				// scan backward
+				while (i < d) {
+					if (getCharUnit(so2) == '>')
+						i++;
+					so2--;
+				}
+				while (getCharUnit(so2) != '/') {
+					so2--;
+				}
+				while (getCharUnit(so2) != '<') {
+					so2--;
+				}
+				length = so2 - so;
+				if (encoding <= FORMAT_WIN_1258){
+					result[0]= so;
+					result[1]= length;
+					//return ((long) length) << 32 | so;
+				}
+				else{
+					result[0]=so<<1;
+					result[1]=length<<1;
+					//return ((long) length) << 33 | (so << 1);
+				}
+				return result;
+			}
+			/*
+             * int so2 = getTokenOffset(temp - 1) - 1; int d = depth -
+             * getTokenDepth(temp - 1); int i = 0; while (i < d) { if
+             * (getCharUnit(so2) == '>') { i++; } so2--; } length = so2 - so +
+             * 2; if (encoding < 3) return ((long) length) < < 32 | so; else
+             * return ((long) length) < < 33 | (so < < 1);
+             */
+		}
+		// temp is the last entry
+		// scan forward search for /> or </cc>
+		
+		long so2 =
+			(encoding <= FORMAT_WIN_1258)
+				? (docOffset + docLen - 1)
+				: ((docOffset + docLen) >> 1) - 1;
+		int d;
+	   
+	    d = depth + 1;
+	    
+	    int i = 0;
+        while (i < d) {
+            if (getCharUnit(so2) == '>') {
+                i++;
+            }
+            so2--;
+        }
+        while (getCharUnit(so2) != '/') {
+			so2--;
+		}
+		while (getCharUnit(so2) != '<') {
+			so2--;
+		}
+
+		length = so2 - so;
+
+		if (encoding <= FORMAT_WIN_1258){
+			result[0]= so;
+			result[1]= length;
+			//return ((long) length) << 32 | so;
+		}
+		else {
+			result[0]=so<<1;
+			result[1]=length<<1;
+			//return ((long) length) << 33 | (so << 1);
+		}
+		return result;
+	}
+
+
 }
