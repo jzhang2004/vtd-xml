@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,4 +101,35 @@ public class XMLBuffer implements IByteBuffer {
 	public byte[] getBytes(){
 	    return null;
 	}
+	
+	public void writeToOutputStream(java.io.OutputStream ost, long os, long len) 
+	throws java.io.IOException{
+		//page size is 1<<30
+		// then find the remainder
+		//ost's page #
+    	int pageN = (int)(os>>30);
+    	//ost's remainder
+    	int pos =  (int)(os&((1<<31)-1));
+    	// only write to outputStream once
+    	if (pos+len <= 1<<30){
+    		ost.write(bufferArray[pageN], pos,(int) len);
+    		return;
+    	}
+    	//write the head
+    	ost.write(bufferArray[pageN],pos, (1<<30)-pos);
+    	pageN++;
+    	len -= (1<<30)-pos;
+    	
+    	//write the mid sections
+    	while(len>(1<<30)){
+    		ost.write(bufferArray[pageN],0, (1<<30));
+    		pageN++;
+    		len -= (1<<30);
+    	}
+    	
+    	//write the tail
+    	ost.write(bufferArray[pageN], 0, (int)len);
+    	return;
+	}
+	
 }

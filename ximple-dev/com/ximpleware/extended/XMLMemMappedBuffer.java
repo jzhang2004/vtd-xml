@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,4 +87,41 @@ public class XMLMemMappedBuffer implements IByteBuffer {
     public byte[] getBytes(int offset, int len){
 	    return (byte[]) null;
 	}    
+    
+    /**
+     * 
+     */
+    public void writeToOutputStream(java.io.OutputStream ost, long os, long len) 
+	throws java.io.IOException{
+    	//page size is 1<<30
+		// then find the remainder
+		//ost's page #
+    	int pageN = (int)(os>>30);
+    	byte[] ba = null;
+    	//ost's remainder
+    	int pos =  (int)(os&((1<<31)-1));
+    	// only write to outputStream once
+    	if (pos+len <= 1<<30){
+    		ba = input[pageN].array();
+    		ost.write(ba, pos,(int) len);
+    		return;
+    	}
+    	//write the head
+    	ba = input[pageN].array();
+    	ost.write(ba,pos, (1<<30)-pos);
+    	pageN++;
+    	len -= (1<<30)-pos;
+    	
+    	//write the mid sections
+    	while(len>(1<<30)){
+    		ba = input[pageN].array();
+    		ost.write(ba,0, (1<<30));
+    		pageN++;
+    		len -= (1<<30);
+    	}
+    	ba = input[pageN].array();
+    	//write the tail
+    	ost.write(ba, 0, (int)len);
+    	return;
+	}
 }
