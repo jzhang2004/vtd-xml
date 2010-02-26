@@ -4549,6 +4549,7 @@ public class VTDNav {
 	/**
 	 * Duplicate the VTDNav instance with shared XML, VTD and LC buffers
 	 * This method may be useful for parallel XPath evaluation
+	 * The node Position is at root element
 	 * @return a VTDNav instance
 	 *
 	 */
@@ -4566,6 +4567,38 @@ public class VTDNav {
 	            docLen
 	            );
 	}
+	
+	/**
+	 * Clone the VTDNav instance to get with shared XML, VTD and LC buffers
+	 * The node position is also copied from the original instance
+	 * @return
+	 */
+	final public VTDNav cloneNav(){
+		VTDNav vn = new VTDNav(rootIndex,
+	            encoding,
+	            ns,
+	            nestingLevel-1,
+	            XMLDoc,
+	            vtdBuffer,
+	            l1Buffer,
+	            l2Buffer,
+	            l3Buffer,
+	            docOffset,
+	            docLen
+	            );
+		vn.atTerminal = this.atTerminal;
+		vn.LN = this.LN;
+		System.arraycopy(this.context, 0, vn.context, 0, this.context[0] );
+		vn.l1index = l1index; 
+		vn.l2index = this.l2index;
+		vn.l3index = l3index;
+		vn.l2lower = l2lower;
+		vn.l3lower = l3lower;
+		vn.l2upper = l2upper;
+		vn.l3upper = l3upper;
+		return vn;
+	}
+	
 	/**
 	 * This function return the substring 
 	 * @param offset
@@ -4803,6 +4836,116 @@ public class VTDNav {
 			return ((long) length) << 32 | so;
 		else
 			return ((long) length) << 33 | (so << 1);
+	}
+	
+	/**
+	 * This method takes a vtd index, and recover its correspondin
+	 * node position, the index can only be of node type element,
+	 * document, attribute name, attribute value or character data,
+	 * or CDATA
+	 * @param index
+	 * @throws NavException
+	 */
+	public void recoverNode(int index) throws NavException{
+		if (index <0 || index>=vtdSize )
+			throw new NavException("Invalid VTD index");
+		
+		int type = getTokenType(index);
+		if (type == VTDNav.TOKEN_COMMENT ||
+				type == VTDNav.TOKEN_PI_NAME ||
+				type == VTDNav.TOKEN_PI_VAL ||
+				type == VTDNav.TOKEN_DEC_ATTR_NAME ||
+				type == VTDNav.TOKEN_DEC_ATTR_VAL ||
+				type == VTDNav.TOKEN_ATTR_VAL)
+			throw new NavException("Token type not yet supported");
+		
+		// get depth
+		int d = getTokenDepth(index);
+		// handle document node;
+		switch (d){
+		case -1:
+			context[0]=-1;
+			if (index != 0){
+				LN = index;
+				atTerminal = true;
+			}			
+			return;
+		case 0:
+			context[0]=0;
+			if (index != rootIndex){
+				LN = index;
+				atTerminal = true;
+			}
+			return;		
+		}
+		context[0]=d;
+		if (d != VTDNav.TOKEN_STARTING_TAG){
+			LN = index;
+			atTerminal = true;
+		}
+		// search LC level 1
+		int i= (index/vtdSize)*l1Buffer.size();
+		
+		if (l1Buffer.upper32At(i)< index) {
+			while(l1Buffer.upper32At(i)<index){
+				i++;
+			}
+			if (l1Buffer.upper32At(i)!=index)
+				i--;
+		} else {
+			while(l1Buffer.upper32At(i)>index){
+				i--;
+			}
+		}
+		context[1] = l1Buffer.upper32At(i);
+		l1index = i;
+		if (d==1)
+			return;
+		// search LC level 2
+		i = l2Buffer.upper32At(l1Buffer.lower32At(i));
+		while(l2Buffer.upper32At(i)<index){
+			i++;	
+		}
+		if (l2Buffer.upper32At(i)!=index)
+			i--;
+		context[2] = l2Buffer.upper32At(i);
+		if (d==2){
+			resolveLC();
+			return;
+		}
+		// search LC level 3
+		i = l3Buffer.intAt(l2Buffer.lower32At(i));
+		while(l3Buffer.intAt(i)<index){
+			i++;	
+		}
+		if (l3Buffer.intAt(i)!=index)
+			i--;
+		context[3] = l3Buffer.intAt(i);
+		if (d==3){
+			resolveLC();
+			return;
+		}
+		// scan backward
+		if ( type == VTDNav.TOKEN_STARTING_TAG ){
+			context[d] = index;
+		} else{
+			int t = index-1;
+			while( !(getTokenType(t)==VTDNav.TOKEN_STARTING_TAG && 
+					getTokenDepth(t)==d)){
+				t--;
+			}
+			context[d] = t;
+		}
+		int t = context[d]-1;
+		while(d>3){
+			while( !(getTokenType(t)==VTDNav.TOKEN_STARTING_TAG && 
+					getTokenDepth(t)==d)){
+				t--;
+			}
+			context[d] = t;
+			d--;
+		}
+		resolveLC();		
 	}
 	
 }
