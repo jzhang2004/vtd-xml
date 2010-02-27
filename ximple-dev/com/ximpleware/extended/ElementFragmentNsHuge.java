@@ -24,7 +24,7 @@ import com.ximpleware.extended.VTDNavHuge;
 //import com.ximpleware.extended.transcode.Transcoder;
 public class ElementFragmentNsHuge {
     VTDNavHuge vn;
-    long l;
+    long[] l;
     FastIntBuffer fib;
      long stLen; // length of starting tag 
      int UTF_8_Size;
@@ -48,7 +48,7 @@ public class ElementFragmentNsHuge {
      * @param fib1
      * @param len
      */
-    protected ElementFragmentNsHuge(VTDNavHuge vn1, long l1, FastIntBuffer fib1, long len){
+    protected ElementFragmentNsHuge(VTDNavHuge vn1, long l1[], FastIntBuffer fib1, long len){
         UTF_8_Size = -1;
         ASCII_Size = -1;
         ISO_8859_1_Size = -1;
@@ -205,7 +205,7 @@ public class ElementFragmentNsHuge {
      */
     public final long getSize(){
         //int encoding = vn.encoding;
-        long len = (int) (l >> 32);
+        long len = l[1];
         if (stLen != 0)
             for (int i = 0; i < fib.size(); i++) {
                 int k = fib.intAt(i);
@@ -275,8 +275,8 @@ public class ElementFragmentNsHuge {
      *
      */
     public final void writeToFileOutputStream(FileOutputStream ost) throws IOException{
-        int os = (int)l;
-        int len = (int)(l>>32);
+        long os = l[0];
+        long len = l[1];
         //int os1 = 0;
         IByteBuffer xml = vn.getXML();
         if (stLen==0){
@@ -522,7 +522,7 @@ public class ElementFragmentNsHuge {
      * @return
      *
      */
-    public final long getOffsetLen(){
+    public final long[] getOffsetLen(){
         return l;
     }
 }
