@@ -274,7 +274,7 @@ public class ElementFragmentNsHuge {
      * @throws IOException
      *
      */
-    public final void writeToOutputStream(OutputStream ost) throws IOException{
+    public final void writeToFileOutputStream(FileOutputStream ost) throws IOException{
         int os = (int)l;
         int len = (int)(l>>32);
         //int os1 = 0;
@@ -282,7 +282,7 @@ public class ElementFragmentNsHuge {
         if (stLen==0){
             //System.arraycopy(xml,os,ba,0,len);
             //ost.write(xml,os,len);
-            xml.writeToOutputStream(ost, os, len);
+            xml.writeToFileOutputStream(ost, os, len);
             return;
             //return ba;
         }
@@ -296,7 +296,7 @@ public class ElementFragmentNsHuge {
           	    temp = stLen+1;
         }
         //ost.write(xml,os,temp);
-        xml.writeToOutputStream(ost, os, temp);
+        xml.writeToFileOutputStream(ost, os, temp);
         //System.arraycopy(xml,os,ba,0,temp);
         
         //namespace compensation
@@ -315,7 +315,7 @@ public class ElementFragmentNsHuge {
             	tlen= (vn.getTokenLength(fib.intAt(i)) & 0xffff)<<1;
             	//System.arraycopy(xml,tos,ba,os1,tlen);
             	//ost.write(xml,tos,tlen);
-            	xml.writeToOutputStream(ost, tos, tlen);
+            	xml.writeToFileOutputStream(ost, tos, tlen);
             	//os1 +=tlen;
             	// write a 0 and =
                 //System.arraycopy(ws,2,ba,os1,2);
@@ -325,7 +325,7 @@ public class ElementFragmentNsHuge {
             	tlen= ((vn.getTokenLength(fib.intAt(i)+1) & 0xffff)+2)<<1;
             	//System.arraycopy(xml,tos,ba,os1,tlen);
             	//ost.write(xml,tos,tlen);
-            	xml.writeToOutputStream(ost, tos, tlen);
+            	xml.writeToFileOutputStream(ost, tos, tlen);
             	//os1 +=tlen;
                 break;
             case VTDNavHuge.FORMAT_UTF_16LE:
@@ -337,7 +337,7 @@ public class ElementFragmentNsHuge {
             	tlen= (vn.getTokenLength(fib.intAt(i)) & 0xffff)<<1;
             	//System.arraycopy(xml,tos,ba,os1,tlen);
             	//ost.write(xml,tos,tlen);
-            	xml.writeToOutputStream(ost, tos, tlen);
+            	xml.writeToFileOutputStream(ost, tos, tlen);
             	//os1 +=tlen;
             	// 	 write a = and 0
                 //System.arraycopy(ws,3,ba,os1,2);
@@ -347,7 +347,7 @@ public class ElementFragmentNsHuge {
             	tlen= ((vn.getTokenLength(fib.intAt(i)+1) & 0xffff)+2)<<1;
             	//System.arraycopy(xml,tos,ba,os1,tlen);
             	//ost.write(xml,tos,tlen);
-            	xml.writeToOutputStream(ost, tos, tlen);
+            	xml.writeToFileOutputStream(ost, tos, tlen);
             	//os1 +=tlen;
                 break;
             default:
@@ -359,7 +359,7 @@ public class ElementFragmentNsHuge {
                 tlen = (vn.getTokenLength(fib.intAt(i)) & 0xffff);
                 //System.arraycopy(xml, tos, ba, os1, tlen);
                 //ost.write(xml,tos,tlen);
-                xml.writeToOutputStream(ost, tos, tlen);
+                xml.writeToFileOutputStream(ost, tos, tlen);
                 //os1 +=tlen;
                 // 	 write a = 
                 //System.arraycopy(ws, 3, ba, os1, 1);
@@ -369,7 +369,7 @@ public class ElementFragmentNsHuge {
                 tlen = (vn.getTokenLength(fib.intAt(i) + 1) & 0xffff) + 2;
                 //System.arraycopy(xml, tos, ba, os1, tlen);
                 //ost.write(xml,tos,tlen);
-                xml.writeToOutputStream(ost, tos, tlen);
+                xml.writeToFileOutputStream(ost, tos, tlen);
                 //os1 +=tlen;
             }
         }
@@ -383,7 +383,7 @@ public class ElementFragmentNsHuge {
         }  
         //System.arraycopy(xml, os + temp, ba, os1, len - temp);
         //ost.write(xml,os+temp,len-temp);
-        xml.writeToOutputStream(ost,os+temp,len-temp);
+        xml.writeToFileOutputStream(ost,os+temp,len-temp);
     }
     
     /**
