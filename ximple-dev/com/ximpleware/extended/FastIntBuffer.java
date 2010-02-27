@@ -330,6 +330,21 @@ public void modifyEntry(int index, int newValue) {
 public int size() {
 	return size;
 }
+
+/**
+ * 
+ * @param newSz
+ * @return status of resize
+ *
+ */
+public boolean resize(int newSz){     
+	 if (newSz <= capacity && newSz >=0){
+		 size = newSz;
+		 return true;
+	 }	 
+	 else
+		 return false;       
+}
 /**
  * Returns the int array corresponding to all int values in this buffer instance
  * @return int[] (null if the buffer is empty)
