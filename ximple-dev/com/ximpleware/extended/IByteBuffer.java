@@ -41,5 +41,5 @@ public interface IByteBuffer {
 	// get the whole XML 
 	byte[] getBytes();
 	
-	void writeToOutputStream(java.io.OutputStream ost, long offset, long length) throws java.io.IOException;
+	void writeToFileOutputStream(java.io.FileOutputStream ost, long offset, long length) throws java.io.IOException;
 }

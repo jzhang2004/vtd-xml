@@ -102,7 +102,7 @@ public class XMLBuffer implements IByteBuffer {
 	    return null;
 	}
 	
-	public void writeToOutputStream(java.io.OutputStream ost, long os, long len) 
+	public void writeToFileOutputStream(java.io.FileOutputStream ost, long os, long len) 
 	throws java.io.IOException{
 		//page size is 1<<30
 		// then find the remainder
