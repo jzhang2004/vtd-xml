@@ -29,6 +29,9 @@ import java.nio.channels.*;
 
 public class XMLMemMappedBuffer implements IByteBuffer {
     MappedByteBuffer input[];
+    FileChannel fc;
+    RandomAccessFile raf;
+    String fn;
     long length;
     public XMLMemMappedBuffer(){
         
@@ -44,13 +47,14 @@ public class XMLMemMappedBuffer implements IByteBuffer {
     
     public void readFile(String fileName) throws java.io.IOException, ParseExceptionHuge {
         File f = new File(fileName);
+        fn = fileName;
         long l = f.length();
         length = l;
         if (l>= (1L<< 38)){
             throw new ParseExceptionHuge("document too big > 256 Gbyte");
         }
-        RandomAccessFile raf = new RandomAccessFile(fileName, "r");
-        FileChannel fc  = raf.getChannel();
+        raf = new RandomAccessFile(fileName, "r");
+        fc  = raf.getChannel();
         int pageNumber = (int)(l>>30)+(((l & 0x3fffffffL)==0)?0:1);
                 
         input = new MappedByteBuffer[pageNumber];
@@ -68,10 +72,10 @@ public class XMLMemMappedBuffer implements IByteBuffer {
             //input[i] = new RandomAccessFile(fileName, "r").getChannel()
             //.map(FileChannel.MapMode.READ_ONLY, 0,(1<<32)-1);
         }
-        if (fc!=null)
-        fc.close();
-        if (raf!=null)
-        raf.close();
+        //if (fc!=null)
+        //fc.close();
+        //if (raf!=null)
+        //raf.close();
     }
     
 	/**
@@ -89,39 +93,14 @@ public class XMLMemMappedBuffer implements IByteBuffer {
 	}    
     
     /**
-     * 
+     * write the segment (denoted by its offset and length) into an output file stream
      */
-    public void writeToOutputStream(java.io.OutputStream ost, long os, long len) 
+    public void writeToFileOutputStream(java.io.FileOutputStream ost, long os, long len) 
 	throws java.io.IOException{
-    	//page size is 1<<30
-		// then find the remainder
-		//ost's page #
-    	int pageN = (int)(os>>30);
-    	byte[] ba = null;
-    	//ost's remainder
-    	int pos =  (int)(os&((1<<31)-1));
-    	// only write to outputStream once
-    	if (pos+len <= 1<<30){
-    		ba = input[pageN].array();
-    		ost.write(ba, pos,(int) len);
-    		return;
-    	}
-    	//write the head
-    	ba = input[pageN].array();
-    	ost.write(ba,pos, (1<<30)-pos);
-    	pageN++;
-    	len -= (1<<30)-pos;
     	
-    	//write the mid sections
-    	while(len>(1<<30)){
-    		ba = input[pageN].array();
-    		ost.write(ba,0, (1<<30));
-    		pageN++;
-    		len -= (1<<30);
-    	}
-    	ba = input[pageN].array();
-    	//write the tail
-    	ost.write(ba, 0, (int)len);
-    	return;
+    	FileChannel ostChannel = ost.getChannel();
+    	
+    	fc.transferTo(os, len, ostChannel);
+    	
 	}
 }
