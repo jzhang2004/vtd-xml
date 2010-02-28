@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-
+ 
 #include "vtdNav.h"
 #include "indexHandler.h"
 #include "elementFragmentNs.h"
@@ -51,6 +51,9 @@ static UCSChar *toRawStringUpperCase(VTDNav *vn, int index);
 static UCSChar *toRawStringLowerCase(VTDNav *vn, int index);
 static UCSChar *toRawStringUpperCase2(VTDNav *vn, int os, int len);
 static UCSChar *toRawStringLowerCase2(VTDNav *vn, int os, int len);
+static void resolveLC_l1(VTDNav *vn);
+static void resolveLC_l2(VTDNav *vn);
+static void resolveLC_l3(VTDNav *vn);
 
 /*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, Long temp, int offset){
@@ -610,7 +613,7 @@ static int getCharUnit(VTDNav *vn, int offset){
 	<< 8 | vn->XMLDoc[offset << 1]));
 }
 
-// Get the starting offset and length of an element
+// Get the starting offset and length of an element fragment
 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
 Long getElementFragment(VTDNav *vn){
 	// a little scanning is needed
@@ -732,6 +735,161 @@ Long getElementFragment(VTDNav *vn){
 		return ((Long) length) << 33 | (so << 1);
 }
 
+
+// Get the starting offset and length of an element content 
+// ie. everything warpped around the starting and ending tags of the 
+// cursor element, return -1 if the cursor element is an empty element
+// 
+Long getContentFragment(VTDNav *vn){
+	int so,length,so2,temp,size,d,i;
+		int depth = getCurrentDepth(vn);
+//		 document length and offset returned if depth == -1
+		if (depth == -1){
+		    int i=lower32At(vn->vtdBuffer,0);
+		    if (i==0)
+		        return ((Long)vn->docLen)<<32| vn->docOffset;
+		    else
+		        return ((Long)(vn->docLen-32))| 32;
+		}
+
+		
+		so = getOffsetAfterHead(vn);
+		if (so==-1)
+			return -1L;
+		length = 0;
+		
+
+		// for an element with next sibling
+		if (toElement(vn,NEXT_SIBLING)) {
+
+			int temp = getCurrentIndex(vn);
+			// rewind
+			while (getTokenDepth(vn,temp) < depth) {
+				temp--;
+			}
+			//temp++;
+			so2 = getTokenOffset(vn,temp) - 1;
+			// look for the first '>'
+			while (getCharUnit(vn,so2) != '>') {
+				so2--;
+			}
+			while (getCharUnit(vn,so2) != '/') {
+				so2--;
+			}
+			while (getCharUnit(vn,so2) != '<') {
+				so2--;
+			}
+			length = so2 - so;
+			toElement(vn,PREV_SIBLING);
+			if (vn->encoding <= FORMAT_WIN_1258)
+				return ((Long) length) << 32 | so;
+			else
+				return ((Long) length) << 33 | (so << 1);
+		}
+
+		// for root element
+		if (depth == 0) {
+			int temp = vn->vtdBuffer->size - 1;
+			Boolean b = FALSE;
+			int so2 = 0;
+			while (getTokenDepth(vn,temp) == -1) {
+				temp--; // backward scan
+				b = TRUE;
+			}
+			if (b == FALSE)
+				so2 =
+					(vn->encoding <= FORMAT_WIN_1258 )
+						? (vn->docOffset + vn->docLen - 1)
+						: ((vn->docOffset + vn->docLen) >> 1) - 1;
+			else
+				so2 = getTokenOffset(vn,temp + 1);
+			while (getCharUnit(vn,so2) != '>') {
+				so2--;
+			}
+			while (getCharUnit(vn,so2) != '/') {
+				so2--;
+			}
+			while (getCharUnit(vn,so2) != '<') {
+				so2--;
+			}
+			length = so2 - so;
+			if (vn->encoding <= FORMAT_WIN_1258)
+				return ((Long) length) << 32 | so;
+			else
+				return ((Long) length) << 33 | (so << 1);
+		}
+		// for a non-root element with no next sibling
+		temp = getCurrentIndex(vn) + 1;
+		size = vn->vtdBuffer->size;
+		// temp is not the last entry in VTD buffer
+		if (temp < size) {
+			while (temp < size && getTokenDepth(vn,temp) >= depth) {
+				temp++;
+			}
+			if (temp != size) {
+				int d =
+					depth
+						- getTokenDepth(vn,temp)
+						+ ((getTokenType(vn,temp) == TOKEN_STARTING_TAG) ? 1 : 0);
+				int so2 = getTokenOffset(vn,temp) - 1;
+				int i = 0;
+				// scan backward
+				while (i < d) {
+					if (getCharUnit(vn,so2) == '>')
+						i++;
+					so2--;
+				}
+				while (getCharUnit(vn,so2) != '/') {
+					so2--;
+				}
+				while (getCharUnit(vn,so2) != '<') {
+					so2--;
+				}
+				length = so2 - so;
+				if (vn->encoding <= FORMAT_WIN_1258)
+					return ((Long) length) << 32 | so;
+				else
+					return ((Long) length) << 33 | (so << 1);
+			}
+			/*
+             * int so2 = getTokenOffset(temp - 1) - 1; int d = depth -
+             * getTokenDepth(temp - 1); int i = 0; while (i < d) { if
+             * (getCharUnit(so2) == '>') { i++; } so2--; } length = so2 - so +
+             * 2; if (encoding < 3) return ((long) length) < < 32 | so; else
+             * return ((long) length) < < 33 | (so < < 1);
+             */
+		}
+		// temp is the last entry
+		// scan forward search for /> or </cc>
+		
+		so2 =
+			(vn->encoding <= FORMAT_WIN_1258)
+				? (vn->docOffset + vn->docLen - 1)
+				: ((vn->docOffset + vn->docLen) >> 1) - 1;
+			   
+	    d = depth + 1;
+	    
+	    i = 0;
+        while (i < d) {
+            if (getCharUnit(vn,so2) == '>') {
+                i++;
+            }
+            so2--;
+        }
+        while (getCharUnit(vn,so2) != '/') {
+			so2--;
+		}
+		while (getCharUnit(vn,so2) != '<') {
+			so2--;
+		}
+
+		length = so2 - so;
+
+		if (vn->encoding <= FORMAT_WIN_1258)
+			return ((Long) length) << 32 | so;
+		else
+			return ((Long) length) << 33 | (so << 1);
+}
 // This function returns of the token index of the type character data or CDATA.
 // Notice that it is intended to support data orient XML (not mixed-content XML).
 int getText(VTDNav *vn){
@@ -1024,7 +1182,8 @@ Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 			}
 			//dumpContext();
 			if (index!= a[depth] && (special || matchElement(vn,en))) {					
-				resolveLC(vn);
+				if (depth <4)				
+					resolveLC(vn);
 				return TRUE;
 			}
 		} 
@@ -1063,7 +1222,8 @@ Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 			}
 			//dumpContext();
 			if (index != a[depth] && matchElementNS(vn,URL,ln)) {					
-				resolveLC(vn);
+				if (depth <4)
+					resolveLC(vn);
 				return TRUE;
 			}
 		} 
@@ -1085,7 +1245,8 @@ Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
 			if (depth>0)
 				vn->context[depth] = index;
 			if (special || matchElement(vn,en)) {					
-				resolveLC(vn);
+				if (depth <4)
+					resolveLC(vn);
 				return TRUE;
 			}
 		} 
@@ -1107,7 +1268,8 @@ Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 			if (depth>0)
 				vn->context[depth] = index;
 			if (matchElementNS(vn,URL,ln)) {					
-				resolveLC(vn);
+				if (depth <4)
+					resolveLC(vn);
 				return TRUE;
 			}
 		} 
@@ -1916,169 +2078,18 @@ Boolean push2(VTDNav *vn){
 
 //Sync up the current context with location cache.
 static void resolveLC(VTDNav *vn){	
-	int temp;
-	int i,k;
 	if (vn->context[0]<=0)
 		return;
-	if (vn->l1index < 0
-		|| vn->l1index >= vn->l1Buffer->size
-		|| vn->context[1] != upper32At(vn->l1Buffer, vn->l1index)) {
-			if (vn->l1index >= vn->l1Buffer->size || vn->l1index <0) {
-				vn->l1index = 0;
-			}
-			if (vn->l1index+1< vn->l1Buffer->size 
-				&& vn->context[1] != upper32At(vn->l1Buffer,vn->l1index + 1)) {
-					int init_guess;
-					k = vn->context[1];
-					init_guess =
-						(int) (vn->l1Buffer->size
-						* ((float) /*vn->context[1]*/k / vn->vtdBuffer->size));
-					if (upper32At(vn->l1Buffer,init_guess) > k /*vn->context[1]*/) {
-						while (upper32At(vn->l1Buffer,init_guess)
-							!= k /*vn->context[1]*/) {
-								init_guess--;
-						}
-					} else if (
-						upper32At(vn->l1Buffer,init_guess) < k /*vn->context[1]*/) {
-							while (upper32At(vn->l1Buffer,init_guess)
-								!= k /*vn->context[1]*/) {
-									init_guess++;
-							}
-					}
-					vn->l1index = init_guess;
-			} else{
-				if (vn->context[1]>=upper32At(vn->l1Buffer,vn->l1index)){
-					while(vn->context[1]!=upper32At(vn->l1Buffer,vn->l1index)
-						&& vn->l1index<vn->l1Buffer->size){
-							vn->l1index++;								
-					}
-				} else {
-					while(vn->context[1]!=upper32At(vn->l1Buffer,vn->l1index)
-						&& vn->l1index >= 0){
-							vn->l1index--;								
-					}
-				}
-
-			}
-			// for iterations, l1index+1 is the logical next value for l1index
-	}
+	resolveLC_l1(vn);
 	if (vn->context[0] == 1)
 		return;
-
-	temp = lower32At(vn->l1Buffer,vn->l1index);
-	if (vn->l2lower != temp) {
-		vn->l2lower = temp;
-		// l2lower shouldn't be -1 !!!!  l2lower and l2upper always get resolved simultaneously
-		vn->l2index = vn->l2lower;
-		vn->l2upper = vn->l2Buffer->size - 1;
-		k = vn->l1Buffer->size;
-		for (i = vn->l1index + 1; i < k; i++) {
-			temp = lower32At(vn->l1Buffer,i);
-			if (temp != 0xffffffff) {
-				vn->l2upper = temp - 1;
-				break;
-			}
-		}
-	} // intelligent guess again ??
-
-	if (vn->l2index < 0
-		|| vn->l2index >= vn->l2Buffer->size
-		|| vn->context[2] != upper32At(vn->l2Buffer,vn->l2index)) {
-			if (vn->l2index >= vn->l2Buffer->size || vn->l2index<0)
-				vn->l2index = vn->l2lower;
-			if (vn->l2index+1< vn->l2Buffer->size 
-				&& vn->context[2] == upper32At(vn->l2Buffer,vn->l2index + 1))
-				vn->l2index = vn->l2index + 1;
-			else if (vn->l2upper - vn->l2lower >= 16) {
-				int init_guess =
-					vn->l2lower
-					+ (int) ((vn->l2upper - vn->l2lower)
-					* ((float) vn->context[2]
-				- upper32At(vn->l2Buffer,vn->l2lower))
-					/ (upper32At(vn->l2Buffer,vn->l2upper)
-					- upper32At(vn->l2Buffer,vn->l2lower)));
-				if (upper32At(vn->l2Buffer,init_guess) > vn->context[2]) {
-					while (vn->context[2]
-					!= upper32At(vn->l2Buffer,init_guess))
-						init_guess--;
-				} else if (
-					upper32At(vn->l2Buffer,init_guess) < vn->context[2]) {
-						while (vn->context[2]
-						!= upper32At(vn->l2Buffer,init_guess))
-							init_guess++;
-				}
-				vn->l2index = init_guess;
-			} else if (vn->context[2]<upper32At(vn->l2Buffer,vn->l2index)){
-				while (vn->context[2] != upper32At(vn->l2Buffer,vn->l2index)) {
-					vn->l2index--;
-				}
-			}
-			else {
-				while (vn->context[2] != upper32At(vn->l2Buffer,vn->l2index)) {
-					vn->l2index++;
-				}
-			}
-	}
-
+	resolveLC_l2(vn);	
 	if (vn->context[0] == 2)
 		return;
-	temp = lower32At(vn->l2Buffer,vn->l2index);
-	k = vn->l2Buffer->size;
-	if (vn->l3lower != temp) {
-		//l3lower and l3upper are always together
-		vn->l3lower = temp;
-		// l3lower shouldn't be -1
-		vn->l3index = vn->l3lower;
-		vn->l3upper = vn->l3Buffer->size - 1;
-		for (i = vn->l2index + 1; i < k; i++) {
-			temp = lower32At(vn->l2Buffer,i);
-			if (temp != 0xffffffff) {
-				vn->l3upper = temp - 1;
-				break;
-			}
-		}
-	}
-
-	if (vn->l3index < 0
-		|| vn->l3index >= vn->l3Buffer->size
-		|| vn->context[3] != intAt(vn->l3Buffer,vn->l3index)) {
-			if (vn->l3index >= vn->l3Buffer->size || vn->l3index<0)
-				vn->l3index = vn->l3lower;
-			if (vn->l3index+1 < vn->l3Buffer->size  
-				&& vn->context[3] == intAt(vn->l3Buffer,vn->l3index + 1))
-				vn->l3index = vn->l3index + 1;
-			else if (vn->l3upper - vn->l3lower >= 16) {
-				int init_guess =
-					vn->l3lower
-					+ (int) ((vn->l3upper - vn->l3lower)
-					* ((float) (vn->context[3]
-				- intAt(vn->l3Buffer,vn->l3lower))
-					/ (intAt(vn->l3Buffer,vn->l3upper)
-					- intAt(vn->l3Buffer,vn->l3lower))));
-				if (intAt(vn->l3Buffer,init_guess) > vn->context[3]) {
-					while (vn->context[3] != intAt(vn->l3Buffer, init_guess))
-						init_guess--;
-				} else if (intAt(vn->l3Buffer,init_guess) < vn->context[3]) {
-					while (vn->context[3] != intAt(vn->l3Buffer,init_guess))
-						init_guess++;
-				}
-				vn->l3index = init_guess;
-			} else if (vn->context[3] < intAt(vn->l3Buffer, vn->l3index)){
-				while (vn->context[3] != intAt(vn->l3Buffer,vn->l3index)) {
-					vn->l3index--;
-				}
-			} else {
-				while (vn->context[3] != intAt(vn->l3Buffer,vn->l3index)) {
-					vn->l3index++;
-				}
-
-			}
-	}
+	resolveLC_l3(vn);
 
 	/*if (vn->context[0] == 3)
 	break;*/
-
-	return;
 }
 
 //Test whether the URL is defined in the document.
@@ -3692,7 +3703,7 @@ int getOffsetAfterHead(VTDNav *vn){
 	    {
 			offset = getTokenOffset(vn,i)+((vn->ns==FALSE)?getTokenLength(vn,i):(getTokenLength(vn,i)&0xff));
  	    }else {
-			offset = getTokenOffset(vn,j-1)+(vn->ns==FALSE)?getTokenLength(vn,j-1):(getTokenLength(vn,j-1)&0xff))+1;
+			offset = getTokenOffset(vn,j-1)+((vn->ns==FALSE)?getTokenLength(vn,j-1):(getTokenLength(vn,j-1)&0xff))+1;
 	    }
 
  	    while(getCharUnit(vn,offset)!='>'){
@@ -4018,4 +4029,160 @@ static UCSChar *toRawStringLowerCase2(VTDNav *vn, int os, int len){
 	}
 	s[k] = 0;
 	return s;
+}
+
+static void resolveLC_l1(VTDNav *vn){
+		int k;
+		if (vn->l1index < 0
+		|| vn->l1index >= vn->l1Buffer->size
+		|| vn->context[1] != upper32At(vn->l1Buffer, vn->l1index)) {
+			if (vn->l1index >= vn->l1Buffer->size || vn->l1index <0) {
+				vn->l1index = 0;
+			}
+			if (vn->l1index+1< vn->l1Buffer->size 
+				&& vn->context[1] != upper32At(vn->l1Buffer,vn->l1index + 1)) {
+					int init_guess;
+					k = vn->context[1];
+					init_guess =
+						(int) (vn->l1Buffer->size
+						* ((float) /*vn->context[1]*/k / vn->vtdBuffer->size));
+					if (upper32At(vn->l1Buffer,init_guess) > k /*vn->context[1]*/) {
+						while (upper32At(vn->l1Buffer,init_guess)
+							!= k /*vn->context[1]*/) {
+								init_guess--;
+						}
+					} else if (
+						upper32At(vn->l1Buffer,init_guess) < k /*vn->context[1]*/) {
+							while (upper32At(vn->l1Buffer,init_guess)
+								!= k /*vn->context[1]*/) {
+									init_guess++;
+							}
+					}
+					vn->l1index = init_guess;
+			} else{
+				if (vn->context[1]>=upper32At(vn->l1Buffer,vn->l1index)){
+					while(vn->context[1]!=upper32At(vn->l1Buffer,vn->l1index)
+						&& vn->l1index<vn->l1Buffer->size){
+							vn->l1index++;								
+					}
+				} else {
+					while(vn->context[1]!=upper32At(vn->l1Buffer,vn->l1index)
+						&& vn->l1index >= 0){
+							vn->l1index--;								
+					}
+				}
+
+			}
+			// for iterations, l1index+1 is the logical next value for l1index
+	}
+}
+static void resolveLC_l2(VTDNav *vn){
+	int temp = lower32At(vn->l1Buffer,vn->l1index),i,k;
+	if (vn->l2lower != temp) {
+		vn->l2lower = temp;
+		// l2lower shouldn't be -1 !!!!  l2lower and l2upper always get resolved simultaneously
+		vn->l2index = vn->l2lower;
+		vn->l2upper = vn->l2Buffer->size - 1;
+		k = vn->l1Buffer->size;
+		for (i = vn->l1index + 1; i < k; i++) {
+			temp = lower32At(vn->l1Buffer,i);
+			if (temp != 0xffffffff) {
+				vn->l2upper = temp - 1;
+				break;
+			}
+		}
+	} // intelligent guess again ??
+
+	if (vn->l2index < 0
+		|| vn->l2index >= vn->l2Buffer->size
+		|| vn->context[2] != upper32At(vn->l2Buffer,vn->l2index)) {
+			if (vn->l2index >= vn->l2Buffer->size || vn->l2index<0)
+				vn->l2index = vn->l2lower;
+			if (vn->l2index+1< vn->l2Buffer->size 
+				&& vn->context[2] == upper32At(vn->l2Buffer,vn->l2index + 1))
+				vn->l2index = vn->l2index + 1;
+			else if (vn->l2upper - vn->l2lower >= 16) {
+				int init_guess =
+					vn->l2lower
+					+ (int) ((vn->l2upper - vn->l2lower)
+					* ((float) vn->context[2]
+				- upper32At(vn->l2Buffer,vn->l2lower))
+					/ (upper32At(vn->l2Buffer,vn->l2upper)
+					- upper32At(vn->l2Buffer,vn->l2lower)));
+				if (upper32At(vn->l2Buffer,init_guess) > vn->context[2]) {
+					while (vn->context[2]
+					!= upper32At(vn->l2Buffer,init_guess))
+						init_guess--;
+				} else if (
+					upper32At(vn->l2Buffer,init_guess) < vn->context[2]) {
+						while (vn->context[2]
+						!= upper32At(vn->l2Buffer,init_guess))
+							init_guess++;
+				}
+				vn->l2index = init_guess;
+			} else if (vn->context[2]<upper32At(vn->l2Buffer,vn->l2index)){
+				while (vn->context[2] != upper32At(vn->l2Buffer,vn->l2index)) {
+					vn->l2index--;
+				}
+			}
+			else {
+				while (vn->context[2] != upper32At(vn->l2Buffer,vn->l2index)) {
+					vn->l2index++;
+				}
+			}
+	}
+}
+
+static void resolveLC_l3(VTDNav *vn){
+	int i,k,temp = lower32At(vn->l2Buffer,vn->l2index);
+	k = vn->l2Buffer->size;
+	if (vn->l3lower != temp) {
+		//l3lower and l3upper are always together
+		vn->l3lower = temp;
+		// l3lower shouldn't be -1
+		vn->l3index = vn->l3lower;
+		vn->l3upper = vn->l3Buffer->size - 1;
+		for (i = vn->l2index + 1; i < k; i++) {
+			temp = lower32At(vn->l2Buffer,i);
+			if (temp != 0xffffffff) {
+				vn->l3upper = temp - 1;
+				break;
+			}
+		}
+	}
+
+	if (vn->l3index < 0
+		|| vn->l3index >= vn->l3Buffer->size
+		|| vn->context[3] != intAt(vn->l3Buffer,vn->l3index)) {
+			if (vn->l3index >= vn->l3Buffer->size || vn->l3index<0)
+				vn->l3index = vn->l3lower;
+			if (vn->l3index+1 < vn->l3Buffer->size  
+				&& vn->context[3] == intAt(vn->l3Buffer,vn->l3index + 1))
+				vn->l3index = vn->l3index + 1;
+			else if (vn->l3upper - vn->l3lower >= 16) {
+				int init_guess =
+					vn->l3lower
+					+ (int) ((vn->l3upper - vn->l3lower)
+					* ((float) (vn->context[3]
+				- intAt(vn->l3Buffer,vn->l3lower))
+					/ (intAt(vn->l3Buffer,vn->l3upper)
+					- intAt(vn->l3Buffer,vn->l3lower))));
+				if (intAt(vn->l3Buffer,init_guess) > vn->context[3]) {
+					while (vn->context[3] != intAt(vn->l3Buffer, init_guess))
+						init_guess--;
+				} else if (intAt(vn->l3Buffer,init_guess) < vn->context[3]) {
+					while (vn->context[3] != intAt(vn->l3Buffer,init_guess))
+						init_guess++;
+				}
+				vn->l3index = init_guess;
+			} else if (vn->context[3] < intAt(vn->l3Buffer, vn->l3index)){
+				while (vn->context[3] != intAt(vn->l3Buffer,vn->l3index)) {
+					vn->l3index--;
+				}
+			} else {
+				while (vn->context[3] != intAt(vn->l3Buffer,vn->l3index)) {
+					vn->l3index++;
+				}
+			}
+	}
 }
