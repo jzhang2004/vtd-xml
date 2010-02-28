@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -127,7 +127,7 @@ extern inline int getCurrentIndex2(VTDNav *vn);
 // Get the starting offset and length of an element
 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
 Long getElementFragment(VTDNav *vn);
-
+Long getContentFragment(VTDNav *vn);
 // Get the element fragment object corresponding to a ns 
 // compensated element
 struct elementFragmentNs *getElementFragmentNs(VTDNav *vn);
