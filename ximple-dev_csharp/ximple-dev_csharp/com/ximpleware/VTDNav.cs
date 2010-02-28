@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1318,11 +1318,11 @@ namespace com.ximpleware
             int offset; // this is character offset
             if (i + 1 == j)
             {
-                offset = getTokenOffset(i) + ((ns==false)?getTokenLength(i):(getTokenLength(i)&0xff));
+                offset = getTokenOffset(i) + ((ns == false) ? getTokenLength(i) : (getTokenLength(i) & 0xff));
             }
             else
             {
-                offset = getTokenOffset(j - 1) + ((ns==false)?getTokenLength(j - 1):(getTokenLength(j+1)&0xff)) + 1;
+                offset = getTokenOffset(j - 1) + ((ns == false) ? getTokenLength(j - 1) : (getTokenLength(j + 1) & 0xff)) + 1;
             }
 
             while (getCharUnit(offset) != '>')
@@ -1606,7 +1606,8 @@ namespace com.ximpleware
                     //dumpContext();
                     if (index != a[depth] && (special || matchElement(en)))
                     {
-                        resolveLC();
+                        if (depth < 4)
+                            resolveLC();
                         return true;
                     }
                 }
@@ -1661,7 +1662,8 @@ namespace com.ximpleware
                     //dumpContext();
                     if (index != a[depth] && matchElementNS(URL, ln))
                     {
-                        resolveLC();
+                        if (depth < 4)
+                            resolveLC();
                         return true;
                     }
                 }
@@ -1694,7 +1696,8 @@ namespace com.ximpleware
                         context[depth] = index;
                     if (special || matchElement(en))
                     {
-                        resolveLC();
+                        if (depth < 4)
+                            resolveLC();
                         return true;
                     }
                 }
@@ -1725,7 +1728,8 @@ namespace com.ximpleware
                         context[depth] = index;
                     if (matchElementNS(URL, ln))
                     {
-                        resolveLC();
+                        if (depth < 4)
+                            resolveLC();
                         return true;
                     }
                 }
@@ -2921,21 +2925,11 @@ namespace com.ximpleware
                 fib.append(l3upper);
             }
         }
-        /// <summary> Sync up the current context with location cache.
-        /// This operation includes finding out l1index, l2index, 
-        /// l3index and restores upper and lower bound info
-        /// To improve efficieny this method employs some heuristic search algorithm.
-        /// The result is that it is quite close to direct access.
-        /// Creation date: (11/16/03 7:44:53 PM)
-        /// </summary>
-        /// <returns> int  The index of the NS URL
-        /// </returns>
-        private void resolveLC()
+
+        private void resolveLC_l1()
         {
-            int temp;
-            if (context[0] <= 0)
-                return;
-            if (l1index < 0 || l1index >= l1Buffer.size() || context[1] != l1Buffer.upper32At(l1index))
+            if (l1index < 0 || l1index >= l1Buffer.size()
+        || context[1] != l1Buffer.upper32At(l1index))
             {
                 if (l1index >= l1Buffer.size() || l1index < 0)
                 {
@@ -2943,8 +2937,8 @@ namespace com.ximpleware
                 }
                 if (l1index + 1 < l1Buffer.size() && context[1] != l1Buffer.upper32At(l1index + 1))
                 {
-                    //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
-                    int init_guess = (int)(l1Buffer.size() * ((float)context[1] / vtdBuffer.size()));
+                    int init_guess = (int)(l1Buffer.size() * ((float)context[1] / vtdBuffer
+                            .size()));
                     if (l1Buffer.upper32At(init_guess) > context[1])
                     {
                         while (l1Buffer.upper32At(init_guess) != context[1])
@@ -2965,26 +2959,27 @@ namespace com.ximpleware
                 {
                     if (context[1] >= l1Buffer.upper32At(l1index))
                     {
-                        while (context[1] != l1Buffer.upper32At(l1index) && l1index < l1Buffer.size())
+                        while (context[1] != l1Buffer.upper32At(l1index)
+                            && l1index < l1Buffer.size())
                         {
                             l1index++;
                         }
                     }
                     else
                     {
-                        while (context[1] != l1Buffer.upper32At(l1index) && l1index >= 0)
+                        while (context[1] != l1Buffer.upper32At(l1index)
+                                && l1index >= 0)
                         {
                             l1index--;
                         }
                     }
                 }
-                //	l1index = l1index + 1;
-                // for iterations, l1index+1 is the logical next value for l1index
             }
-            if (context[0] == 1)
-                return;
+        }
 
-            temp = l1Buffer.lower32At(l1index);
+        private void resolveLC_l2()
+        {
+            int temp = l1Buffer.lower32At(l1index);
             if (l2lower != temp)
             {
                 l2lower = temp;
@@ -3003,7 +2998,8 @@ namespace com.ximpleware
                 }
             } // intelligent guess again ??
 
-            if (l2index < 0 || l2index >= l2Buffer.size() || context[2] != l2Buffer.upper32At(l2index))
+            if (l2index < 0 || l2index >= l2Buffer.size()
+                    || context[2] != l2Buffer.upper32At(l2index))
             {
 
                 if (l2index >= l2Buffer.size() || l2index < 0)
@@ -3012,8 +3008,12 @@ namespace com.ximpleware
                     l2index = l2index + 1;
                 else if (l2upper - l2lower >= 16)
                 {
-                    //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
-                    int init_guess = l2lower + (int)((l2upper - l2lower) * ((float)context[2] - l2Buffer.upper32At(l2lower)) / (l2Buffer.upper32At(l2upper) - l2Buffer.upper32At(l2lower)));
+                    int init_guess = l2lower
+                            + (int)((l2upper - l2lower)
+                                    * ((float)context[2] - l2Buffer
+                                            .upper32At(l2lower)) / (l2Buffer
+                                    .upper32At(l2upper) - l2Buffer
+                                    .upper32At(l2lower)));
                     if (l2Buffer.upper32At(init_guess) > context[2])
                     {
                         while (context[2] != l2Buffer.upper32At(init_guess))
@@ -3040,11 +3040,11 @@ namespace com.ximpleware
                         l2index++;
                 }
             }
+        }
 
-            if (context[0] == 2)
-                return;
-
-            temp = l2Buffer.lower32At(l2index);
+        private void resolveLC_l3()
+        {
+            int temp = l2Buffer.lower32At(l2index);
             if (l3lower != temp)
             {
                 //l3lower and l3upper are always together
@@ -3063,16 +3063,20 @@ namespace com.ximpleware
                 }
             }
 
-            if (l3index < 0 || l3index >= l3Buffer.size() || context[3] != l3Buffer.intAt(l3index))
+            if (l3index < 0 || l3index >= l3Buffer.size()
+                    || context[3] != l3Buffer.intAt(l3index))
             {
                 if (l3index >= l3Buffer.size() || l3index < 0)
                     l3index = l3lower;
-                if (l3index + 1 < l3Buffer.size() && context[3] == l3Buffer.intAt(l3index + 1))
+                if (l3index + 1 < l3Buffer.size() &&
+                        context[3] == l3Buffer.intAt(l3index + 1))
                     l3index = l3index + 1;
                 else if (l3upper - l3lower >= 16)
                 {
-                    //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
-                    int init_guess = l3lower + (int)((l3upper - l3lower) * ((float)(context[3] - l3Buffer.intAt(l3lower)) / (l3Buffer.intAt(l3upper) - l3Buffer.intAt(l3lower))));
+                    int init_guess = l3lower
+                            + (int)((l3upper - l3lower) * ((float)(context[3] - l3Buffer
+                                    .intAt(l3lower)) / (l3Buffer.intAt(l3upper) - l3Buffer
+                                    .intAt(l3lower))));
                     if (l3Buffer.intAt(init_guess) > context[3])
                     {
                         while (context[3] != l3Buffer.intAt(init_guess))
@@ -3100,6 +3104,27 @@ namespace com.ximpleware
                     }
                 }
             }
+        }
+        /// <summary> Sync up the current context with location cache.
+        /// This operation includes finding out l1index, l2index, 
+        /// l3index and restores upper and lower bound info
+        /// To improve efficieny this method employs some heuristic search algorithm.
+        /// The result is that it is quite close to direct access.
+        /// Creation date: (11/16/03 7:44:53 PM)
+        /// </summary>
+        /// <returns> int  The index of the NS URL
+        /// </returns>
+        private void resolveLC()
+        {
+            if (context[0] <= 0)
+                return;
+            resolveLC_l1();
+            if (context[0] == 1)
+                return;
+            resolveLC_l2();
+            if (context[0] == 2)
+                return;
+            resolveLC_l3();
         }
         /// <summary> Test whether the URL is defined in the scope. Null is allowed to
         /// indicate the name space is undefined. Creation date: (11/16/03 7:54:01
@@ -4967,6 +4992,188 @@ namespace com.ximpleware
                 len = getTokenLength(index);
             int offset = getTokenOffset(index);
             return toRawStringLowerCase(offset, len);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public long getContentFragment()
+        {
+            // a little scanning is needed
+            // has next sibling case
+            // if not
+            int temp, so2, d, i;
+
+            int depth = getCurrentDepth();
+            //		 document length and offset returned if depth == -1
+            if (depth == -1)
+            {
+                i = vtdBuffer.lower32At(0);
+                if (i == 0)
+                    return ((long)docLen) << 32 | docOffset;
+                else
+                    return ((long)(docLen - 32)) | 32;
+            }
+
+
+            int so = getOffsetAfterHead();
+            if (so == -1)
+                return -1L;
+            int length = 0;
+
+
+            // for an element with next sibling
+            if (toElement(NEXT_SIBLING))
+            {
+
+                temp = getCurrentIndex();
+                // rewind
+                while (getTokenDepth(temp) < depth)
+                {
+                    temp--;
+                }
+                //temp++;
+                so2 = getTokenOffset(temp) - 1;
+                // look for the first '>'
+                while (getCharUnit(so2) != '>')
+                {
+                    so2--;
+                }
+                while (getCharUnit(so2) != '/')
+                {
+                    so2--;
+                }
+                while (getCharUnit(so2) != '<')
+                {
+                    so2--;
+                }
+                length = so2 - so;
+                toElement(PREV_SIBLING);
+                if (encoding <= FORMAT_WIN_1258)
+                    return ((long)length) << 32 | so;
+                else
+                    return ((long)length) << 33 | (so << 1);
+            }
+
+            // for root element
+            if (depth == 0)
+            {
+                temp = vtdBuffer.size() - 1;
+                bool b = false;
+                so2 = 0;
+                while (getTokenDepth(temp) == -1)
+                {
+                    temp--; // backward scan
+                    b = true;
+                }
+                if (b == false)
+                    so2 =
+                        (encoding <= FORMAT_WIN_1258)
+                            ? (docOffset + docLen - 1)
+                            : ((docOffset + docLen) >> 1) - 1;
+                else
+                    so2 = getTokenOffset(temp + 1);
+                while (getCharUnit(so2) != '>')
+                {
+                    so2--;
+                }
+                while (getCharUnit(so2) != '/')
+                {
+                    so2--;
+                }
+                while (getCharUnit(so2) != '<')
+                {
+                    so2--;
+                }
+                length = so2 - so;
+                if (encoding <= FORMAT_WIN_1258)
+                    return ((long)length) << 32 | so;
+                else
+                    return ((long)length) << 33 | (so << 1);
+            }
+            // for a non-root element with no next sibling
+            temp = getCurrentIndex() + 1;
+            int size = vtdBuffer.size();
+            // temp is not the last entry in VTD buffer
+            if (temp < size)
+            {
+                while (temp < size && getTokenDepth(temp) >= depth)
+                {
+                    temp++;
+                }
+                if (temp != size)
+                {
+                    d =
+                        depth
+                            - getTokenDepth(temp)
+                            + ((getTokenType(temp) == TOKEN_STARTING_TAG) ? 1 : 0);
+                    so2 = getTokenOffset(temp) - 1;
+                    i = 0;
+                    // scan backward
+                    while (i < d)
+                    {
+                        if (getCharUnit(so2) == '>')
+                            i++;
+                        so2--;
+                    }
+                    while (getCharUnit(so2) != '/')
+                    {
+                        so2--;
+                    }
+                    while (getCharUnit(so2) != '<')
+                    {
+                        so2--;
+                    }
+                    length = so2 - so;
+                    if (encoding <= FORMAT_WIN_1258)
+                        return ((long)length) << 32 | so;
+                    else
+                        return ((long)length) << 33 | (so << 1);
+                }
+                /*
+                 * int so2 = getTokenOffset(temp - 1) - 1; int d = depth -
+                 * getTokenDepth(temp - 1); int i = 0; while (i < d) { if
+                 * (getCharUnit(so2) == '>') { i++; } so2--; } length = so2 - so +
+                 * 2; if (encoding < 3) return ((long) length) < < 32 | so; else
+                 * return ((long) length) < < 33 | (so < < 1);
+                 */
+            }
+            // temp is the last entry
+            // scan forward search for /> or </cc>
+
+            so2 =
+                (encoding <= FORMAT_WIN_1258)
+                    ? (docOffset + docLen - 1)
+                    : ((docOffset + docLen) >> 1) - 1;
+            //int d;
+
+            d = depth + 1;
+
+            i = 0;
+            while (i < d)
+            {
+                if (getCharUnit(so2) == '>')
+                {
+                    i++;
+                }
+                so2--;
+            }
+            while (getCharUnit(so2) != '/')
+            {
+                so2--;
+            }
+            while (getCharUnit(so2) != '<')
+            {
+                so2--;
+            }
+
+            length = so2 - so;
+
+            if (encoding <= FORMAT_WIN_1258)
+                return ((long)length) << 32 | so;
+            else
+                return ((long)length) << 33 | (so << 1);
         }
     }
 }
