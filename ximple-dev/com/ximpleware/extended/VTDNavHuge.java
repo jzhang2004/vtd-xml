@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 //import com.ximpleware.extended.parser.UTF8Char;
+import com.ximpleware.VTDNav;
 import com.ximpleware.extended.parser.*;
 
 //import com.ximpleware.NavException;
@@ -4175,5 +4176,61 @@ public class VTDNavHuge {
 	     long[] l = getElementFragment();
 	     //return new ElementFragmentNsHuge(this,l,fib,(long)len);
 	     return new ElementFragmentNsHuge(this, l, fib, len);
+	}
+	
+	/**
+	 * Duplicate the VTDNavHuge instance with shared XML, VTD and LC buffers
+	 * This method may be useful for parallel XPath evaluation
+	 * The node Position is at root element
+	 * @return a VTDNavHuge instance
+	 *
+	 */
+	final public VTDNavHuge duplicateNav(){
+	    return new VTDNavHuge(rootIndex,
+	            encoding,
+	            ns,
+	            nestingLevel-1,
+	            XMLDoc,
+	            vtdBuffer,
+	            l1Buffer,
+	            l2Buffer,
+	            l3Buffer,
+	            docOffset,
+	            docLen
+	            );
+	}
+	/**
+	 * Clone the VTDNav instance to get with shared XML, VTD and LC buffers
+	 * The node position is also copied from the original instance
+	 * @return
+	 */
+	final public VTDNavHuge cloneNav(){
+		VTDNavHuge vn = new VTDNavHuge(rootIndex,
+	            encoding,
+	            ns,
+	            nestingLevel-1,
+	            XMLDoc,
+	            vtdBuffer,
+	            l1Buffer,
+	            l2Buffer,
+	            l3Buffer,
+	            docOffset,
+	            docLen
+	            );
+		vn.atTerminal = this.atTerminal;
+		vn.LN = this.LN;
+		System.arraycopy(this.context, 0, vn.context, 0, this.context[0] );
+		vn.l1index = l1index; 
+		if (getCurrentDepth()>1){
+			vn.l2index = this.l2index;
+			vn.l2upper = l2upper;
+			vn.l2lower = l2lower;
+		}
+		if (getCurrentDepth() > 2) {
+			vn.l3lower = l3lower;
+			vn.l3index = l3index;
+			vn.l3upper = l3upper;
+		}
+		return vn;
 	}
 }
