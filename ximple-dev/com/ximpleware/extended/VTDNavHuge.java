@@ -922,7 +922,7 @@ public class VTDNavHuge {
 	 * 
 	 * @return
 	 */
-	final public long getOffsetAfterHead(){
+	final protected long getOffsetAfterHead(){
 	    
 	    int i = getCurrentIndex();
 	    if (getTokenType(i)!=VTDNavHuge.TOKEN_STARTING_TAG){
@@ -949,7 +949,7 @@ public class VTDNavHuge {
 	    if (getCharUnit(offset-1)=='/')
 	        return -1;
 	    else
-	        return (encoding<= FORMAT_WIN_1258)? offset+1:((offset+1)<<1);
+	        return offset+1;
 	}
 	/**
 	 * Get root index value , which is the index val of document element
