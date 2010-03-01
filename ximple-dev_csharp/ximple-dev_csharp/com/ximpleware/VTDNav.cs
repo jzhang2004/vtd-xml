@@ -1333,7 +1333,7 @@ namespace com.ximpleware
             if (getCharUnit(offset - 1) == '/')
                 return -1;
             else
-                return (encoding <= FORMAT_WIN_1258) ? offset + 1 : ((offset + 1) << 1);
+                return offset + 1;
         }
 
         /// <summary> Get the token length at the given index value
@@ -4128,12 +4128,24 @@ namespace com.ximpleware
             return sb.ToString();
         }
 
-        protected internal System.String toRawString(int os, int len)
+        /// <summary>
+        /// Convert a segment of xml document into string
+        /// entities not resolved
+        /// </summary>
+        /// <param name="os"> os in bytes</param>
+        /// <param name="len">len in bytes</param>
+        /// <returns></returns>
+        public System.String toRawString(int os, int len)
         {
             int endOffset = len + os;
             int offset = os;
             long l;
             System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
+            if (encoding > FORMAT_WIN_1258)
+            {
+                offset = offset >> 1;
+                endOffset = endOffset >> 1;
+            }
 
             while (offset < endOffset)
             {
@@ -4165,14 +4177,24 @@ namespace com.ximpleware
             return toRawString(offset, len);
         }
 
-        protected internal System.String toString(int os, int len)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="os"></param>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        public System.String toString(int os, int len)
         {
             int endOffset = len + os;
             int offset = os;
             System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
             //System.String s = null;
             long l;
-
+            if (encoding > FORMAT_WIN_1258)
+            {
+                offset = offset >> 1;
+                endOffset = endOffset >> 1;
+            }
             while (offset < endOffset)
             {
                 l = getCharResolved(offset);
