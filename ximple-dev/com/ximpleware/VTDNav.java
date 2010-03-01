@@ -1149,7 +1149,7 @@ public class VTDNav {
 	}
 	
 	/**
-	 * Return the offset after head (the ending bracket of the starting tag, 
+	 * Return the charater (not byte) offset after head (the ending bracket of the starting tag, 
 	 * not including an empty element, in which case -1 is returned)
 	 * @return
 	 *
@@ -1181,7 +1181,7 @@ public class VTDNav {
 	    if (getCharUnit(offset-1)=='/')
 	        return -1;
 	    else
-	        return (encoding<= FORMAT_WIN_1258)? offset+1:((offset+1)<<1);
+	        return offset+1;
 	}
 	/**
      * Get root index value , which is the index val of root element
@@ -3949,8 +3949,8 @@ public class VTDNav {
 	
 	/**
 	 * Convert a segment of XML bytes a into string, without entity resolution
-	 * @param os
-	 * @param len
+	 * @param os (in terms of bytes)
+	 * @param len (in terms of bytes)
 	 * @return
 	 * @throws NavException
 	 *
@@ -3959,6 +3959,10 @@ public class VTDNav {
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
+	    if (encoding> FORMAT_WIN_1258){
+	    	offset = offset>>1;
+			endOffset = endOffset>>1;
+	    }
 	    long l;
 	    while (offset < endOffset) {
 	        l = getChar(offset);
@@ -4115,10 +4119,10 @@ public class VTDNav {
      * Convert the byte content segment (in terms of offset and length) to
      * String (entities are resolved)
      * 
-     * @param os
-     *            the offset of the segment
-     * @param len
-     *            the length of the segment
+     * @param os 
+     *            the byte offset of the segment
+     * @param len  
+     *            the length of the segment in byte
      * @return the corresponding string value
      * @throws NavException
      *  
@@ -4127,6 +4131,11 @@ public class VTDNav {
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
+	    if (encoding> FORMAT_WIN_1258){
+	    	offset = offset>>1;
+			endOffset = endOffset>>1;
+	    }
+	    	
 	    long l;
 	    while (offset < endOffset) {
 	        l = getCharResolved(offset);
@@ -4725,6 +4734,7 @@ public class VTDNav {
 			while (getCharUnit(so2) != '<') {
 				so2--;
 			}
+			
 			length = so2 - so;
 			toElement(PREV_SIBLING);
 			if (encoding <= FORMAT_WIN_1258)
