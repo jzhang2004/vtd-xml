@@ -2820,6 +2820,10 @@ UCSChar *toRawString2(VTDNav *vn, int os, int len){
 		throwException2(out_of_mem,
 			" string allocation failed in toString ");
 	}
+	if (vn->encoding > FORMAT_WIN_1258){
+		offset = offset>>1;
+		endOffset = endOffset>>1;
+	}
 	while (offset < endOffset) {
 		l = getChar(vn,offset);
 		offset += (int)(l>>32);
@@ -2858,6 +2862,10 @@ UCSChar *toString2(VTDNav *vn, int os, int len){
 	{
 		throwException2(out_of_mem,
 			" string allocation failed in toString ");
+	}
+	if (vn->encoding > FORMAT_WIN_1258){
+		offset = offset>>1;
+		endOffset = endOffset>>1;
 	}
 	while (offset < endOffset) {
 		l = getCharResolved(vn,offset);
@@ -3713,7 +3721,7 @@ int getOffsetAfterHead(VTDNav *vn){
 	    if (getCharUnit(vn,offset-1)=='/')
  	        return -1;
 	    else
- 	        return (vn->encoding<= FORMAT_WIN_1258)? offset+1:((offset+1)<<1);
+ 	        return  offset+1;
 
 }
 
