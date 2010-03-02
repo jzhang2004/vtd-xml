@@ -280,7 +280,7 @@ void freeVTDNav(VTDNav *vn)
 	if (vn!=NULL){
 		freeContextBuffer(vn->contextBuf);
 		freeContextBuffer(vn->contextBuf2);
-		if (vn->br == FALSE){
+		if (vn->br == FALSE && vn->master){
 			freeFastLongBuffer(vn->vtdBuffer);
 			freeFastLongBuffer(vn->l1Buffer);
 			freeFastLongBuffer(vn->l2Buffer);
@@ -4193,4 +4193,62 @@ static void resolveLC_l3(VTDNav *vn){
 				}
 			}
 	}
+}
+
+
+/* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
+VTDNav* duplicateNav(VTDNav *vn){
+	VTDNav* vn1 = createVTDNav( vn->rootIndex,
+		vn->encoding,
+		vn->ns,
+		vn->nestingLevel-1,
+		vn->XMLDoc,
+		vn->bufLen,
+		vn->vtdBuffer,
+		vn->l1Buffer,
+		vn->l2Buffer,
+		vn->l3Buffer,
+		vn->docOffset,
+		vn->docLen,
+		vn->br);	
+	vn1->master = FALSE;
+	return vn1;
+}
+
+
+/* ClineNav duplicates an instance of VTDNav, also copies node position over */
+VTDNav *cloneNav(VTDNav *vn){
+	VTDNav* vn1 = createVTDNav( vn->rootIndex,
+		vn->encoding,
+		vn->ns,
+		vn->nestingLevel-1,
+		vn->XMLDoc,
+		vn->bufLen,
+		vn->vtdBuffer,
+		vn->l1Buffer,
+		vn->l2Buffer,
+		vn->l3Buffer,
+		vn->docOffset,
+		vn->docLen,
+		vn->br);	
+	vn->master = FALSE;
+	vn1->atTerminal = vn->atTerminal;
+	vn1->LN = vn->LN;
+	if (vn->context[0]!=-1)
+		memcpy(vn1->context,vn->context, vn->context[0]);
+		//System.arraycopy(vn.context, 0, vn.context, 0, this.context[0] );
+	else 
+		vn1->context[0]=-1;
+	vn1->l1index = vn->l1index; 
+	if (getCurrentDepth(vn)>1){
+		vn1->l2index = vn->l2index;
+		vn1->l2upper = vn->l2upper;
+		vn1->l2lower = vn->l2lower;
+	}
+	if (getCurrentDepth(vn) > 2) {
+		vn1->l3lower = vn->l3lower;
+		vn1->l3index = vn->l3index;
+		vn1->l3upper = vn->l3upper;
+	}
+	return vn1;
 }
