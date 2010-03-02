@@ -4641,9 +4641,11 @@ namespace com.ximpleware
         }
 
         /// <summary>
-        /// 
+        /// Duplicate the VTDNav instance with shared XML, VTD and LC buffers
+	    /// This method may be useful for parallel XPath evaluation
+	    /// The node Position is at root element
         /// </summary>
-        /// <returns></returns>
+        /// <returns>an instance of VTDNav</returns>
         public VTDNav duplicateNav()
         {
             return new VTDNav(rootIndex,
@@ -4659,7 +4661,52 @@ namespace com.ximpleware
                 docLen
                 );
         }
+        /// <summary>
+        /// Duplicate the VTDNav instance with shared XML, VTD and LC buffers
+        /// This method may be useful for parallel XPath evaluation
+        /// The node Position is copied over.
+        /// </summary>
+        /// <returns>an instance of VTDNav</returns>
+        public VTDNav cloneNav()
+        {
+            VTDNav vn = new VTDNav(rootIndex,
+                    encoding,
+                    ns,
+                    nestingLevel - 1,
+                    XMLDoc,
+                    vtdBuffer,
+                    l1Buffer,
+                    l2Buffer,
+                    l3Buffer,
+                    docOffset,
+                    docLen
+                    );
+            vn.atTerminal = this.atTerminal;
+            vn.LN = this.LN;
+            if (this.context[0] > -1)
+                Array.Copy(this.context, 0, vn.context, 0, this.context[0]);
+            else
+                this.context[0] = -1;
+            vn.l1index = l1index;
+            if (getCurrentDepth() > 1)
+            {
+                vn.l2index = this.l2index;
+                vn.l2upper = l2upper;
+                vn.l2lower = l2lower;
+            }
+            if (getCurrentDepth() > 2)
+            {
+                vn.l3lower = l3lower;
+                vn.l3index = l3index;
+                vn.l3upper = l3upper;
+            }
+            return vn;
+        }
 
+        /// <summary>
+        /// Write VTDNav's internal structure into an OutputStream (XML not written out)
+        /// </summary>
+        /// <param name="fileName"></param>
         public void writeSeparateIndex(String fileName)
         {
             System.IO.FileStream fos = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
@@ -4668,6 +4715,10 @@ namespace com.ximpleware
 
         }
 
+        /// <summary>
+        /// Write VTDNav's VTD and LCs into an OutputStream (XML not written out)
+        /// </summary>
+        /// <param name="os"></param>
         public void writeSeparateIndex(System.IO.Stream os)
         {
             IndexHandler.writeSeparateIndex((byte)2,
@@ -5017,9 +5068,11 @@ namespace com.ximpleware
         }
 
         /// <summary>
-        /// 
+        /// Get content fragment returns a long encoding the offset and length of the byte segment of
+	    /// the content of current element, which is the byte segment between the starting tag and 
+	    /// ending tag, -1 is returned if the current element is an empty element
         /// </summary>
-        /// <returns></returns>
+        /// <returns>long whose upper 32 bite is length, lower 32 bit is offset</returns>
         public long getContentFragment()
         {
             // a little scanning is needed
