@@ -93,6 +93,8 @@ typedef struct vTDNav{
 	             // to calling size(FastLongBuffer *flb) defined in fastLongBuffer.h
 	int bufLen; // size of XMLDoc in bytes
 	Boolean br; // buffer reuse flag
+	Boolean master; // true if vn is obtained by calling getNav(), otherwise false
+	                // useful for implementing dupliateNav() and cloneNav();
 } VTDNav;
 
 
@@ -407,5 +409,12 @@ UCSChar *toRawStringUpperCase(VTDNav *vn, int index);
    character will be converted to lower case, (entities and char
    references resolved for character data and attr val).*/
 UCSChar *toRawStringLowerCase(VTDNav *vn, int index);
+
+/* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
+VTDNav *duplicateNav(VTDNav *vn);
+/* ClineNav duplicates an instance of VTDNav, also copies node position over */
+VTDNav *cloneNav(VTDNav *vn);
+
+
 
 #endif
