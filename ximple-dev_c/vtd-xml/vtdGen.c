@@ -1385,6 +1385,7 @@ VTDNav *getNav(VTDGen *vg){
 		vg->docLen,
 		vg->br);
 	vg->stateTransfered = TRUE;
+	vn->master = TRUE;
 	clear(vg);
 	return vn;
 
