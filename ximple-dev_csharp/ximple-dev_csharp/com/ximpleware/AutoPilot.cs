@@ -40,9 +40,7 @@ namespace com.ximpleware
 		/// <param name="b">
 		/// </param>
 		protected internal bool Special
-		{
-			
-			
+		{			
 			set
 			{
 				special = value;
@@ -68,7 +66,8 @@ namespace com.ximpleware
 		// the case of node() and * for preceding axis
 		// of xpath evaluation
 		private System.String name; // Store element name after selectElement
-		private System.String localName; // Store local name after selectElemntNS
+        private System.String name2; //xmlns:+name
+        private System.String localName; // Store local name after selectElemntNS
 		private System.String URL; // Store URL name after selectElementNS
 		private int size; // for iterateAttr
 		
@@ -93,6 +92,7 @@ namespace com.ximpleware
 		public const int PRECEDING_NS = 8;
 		public const int ATTR = 9;
 		public const int ATTR_NS = 10;
+        public const int NAME_SPACE = 11;
 		/// <summary> AutoPilot constructor comment.</summary>
 		/// <exception cref="IllegalArgumentException">If the VTDNav object is null 
 		/// </exception>
@@ -157,7 +157,7 @@ namespace com.ximpleware
                 com.ximpleware.xpath.parser p = new com.ximpleware.xpath.parser(new System.IO.StringReader(varExpr));
                 p.nsHash = nsHash;
                 p.symbolHash = symbolHash;
-                xpe = (com.ximpleware.xpath.Expr)p.parse().value;
+                xpe = (com.ximpleware.Expr)p.parse().value;
                 symbolHash[varName] = xpe;
                 ft = true;
             }
@@ -331,6 +331,60 @@ namespace com.ximpleware
 				
 			}
 		}
+/// <summary>
+/// 
+/// </summary>
+/// <param name="en"></param>
+        protected internal void selectNameSpace(String en)
+        {
+            if (en == null)
+                throw new ArgumentException("namespace name can't be null");
+            iter_type = NAME_SPACE;
+            ft = true;
+            size = vn.getTokenCount();
+            name = en;
+            if (!en.Equals("*"))
+                name2 = "xmlns:" + en;
+        }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+	protected internal int iterateNameSpace(){
+		if (vn.ns == false)
+			return -1;
+		if (ft != false) {
+			ft = false;
+			index = vn.getCurrentIndex2() + 1;
+		} else
+			index += 2;
+
+		while (index < size) {
+			int type = vn.getTokenType(index);
+			if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS) {
+				if (type == VTDNav.TOKEN_ATTR_NS){ 
+				    if  (name.Equals("*")  
+				    		|| vn.matchRawTokenString(index, name2)
+				    ){
+				    	vn.LN = index;
+				    	vn.atTerminal = true;
+				    	return index;
+				    }
+				} 
+				index += 2;
+			} else {
+				vn.atTerminal = false;
+				if (vn.toElement(VTDNav.P) == false) {
+					return -1;
+				} else {
+					index = vn.getCurrentIndex2() + 1;
+				}
+			}
+		}
+
+		return -1;
+	}
+
 		/// <summary> This method implements the attribute axis for XPath</summary>
 		/// <returns> the integer of the selected VTD index for attribute name
 		/// </returns>
@@ -615,14 +669,13 @@ namespace com.ximpleware
 		/// </param>
 		/// <throws>  XPathParseException </throws>
 		public void  selectXPath(System.String s)
-		{
-			
+		{			
 			try
 			{
 				com.ximpleware.xpath.parser p = new com.ximpleware.xpath.parser(new System.IO.StringReader(s));
 				p.nsHash = nsHash;
                 p.symbolHash = symbolHash;
-				xpe = (com.ximpleware.xpath.Expr) p.parse().value;
+				xpe = (com.ximpleware.Expr) p.parse().value;
                 ft = true;
 			}
 			catch (XPathParseException e)
