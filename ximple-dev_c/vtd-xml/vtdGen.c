@@ -73,6 +73,7 @@ static int process_start_doc(VTDGen *vg);
 static int process_end_doc(VTDGen *vg);
 static int process_qm_seen(VTDGen *vg);
 static int process_ex_seen(VTDGen *vg);
+static void addWhiteSpaceRecord(VTDGen *vg);
 
 /* create VTDGen */
 VTDGen *createVTDGen(){
@@ -118,6 +119,7 @@ VTDGen *createVTDGen(){
 	vg->stateTransfered = TRUE; // free VTDGen won't free all location cache and VTD buffer
 
 	vg->br = FALSE;
+	vg->ws = FALSE;
 	return vg;
 }
 
@@ -1570,6 +1572,8 @@ void parse(VTDGen *vg, Boolean ns){
 								vg->temp_offset = vg->offset;
 								vg->ch = getCharAfterSe(vg); // consume WSs
 								if (vg->ch == '<') {
+									if (vg->ws) 
+										addWhiteSpaceRecord(vg);
 									parser_state = STATE_LT_SEEN;
 									if (skipChar(vg,'/')) {
 										if (helper == TRUE){
@@ -1659,8 +1663,11 @@ void parse(VTDGen *vg, Boolean ns){
 						if (vg->depth != -1) {
 							vg->temp_offset = vg->offset;
 							vg->ch = getCharAfterS(vg);
-							if (vg->ch == '<')
+							if (vg->ch == '<'){
+								if (vg->ws) 
+							    	addWhiteSpaceRecord(vg);
 								parser_state = STATE_LT_SEEN;
+							}
 							else if (XMLChar_isContentChar(vg->ch)) {
 								parser_state = STATE_TEXT;
 							} else if (vg->ch == '&') {
@@ -1917,6 +1924,8 @@ void parse(VTDGen *vg, Boolean ns){
 								vg->temp_offset = vg->offset;
 								vg->ch = getCharAfterSe(vg);
 								if (vg->ch == '<') {
+									if (vg->ws) 
+								    	addWhiteSpaceRecord(vg);
 									parser_state = STATE_LT_SEEN;
 									if (skipChar(vg,'/')) {
 										if (helper == TRUE){
@@ -2672,6 +2681,8 @@ int process_comment(VTDGen *vg){
 		vg->temp_offset = vg->offset;
 		vg->ch = getCharAfterSe(vg);
 		if (vg->ch == '<') {
+			if (vg->ws)
+				addWhiteSpaceRecord(vg);
 			parser_state = STATE_LT_SEEN;
 		} else if (XMLChar_isContentChar(vg->ch)) {
 			parser_state = STATE_TEXT;
@@ -2790,18 +2801,21 @@ static int process_cdata(VTDGen *vg){
 			TOKEN_CDATA_VAL,
 			vg->depth);
 	}
+	vg->temp_offset = vg->offset;
 	vg->ch = getCharAfterSe(vg);
 	if (vg->ch == '<') {
+		if (vg->ws) 
+		    addWhiteSpaceRecord(vg);
 		parser_state = STATE_LT_SEEN;
 	} else if (XMLChar_isContentChar(vg->ch)) {
-		vg->temp_offset = vg->offset-1;
+		//vg->temp_offset = vg->offset-1;
 		parser_state = STATE_TEXT;
 	} else if (vg->ch == '&') {
-		vg->temp_offset = vg->offset-1;
+		//vg->temp_offset = vg->offset-1;
 		entityIdentifier(vg);
 		parser_state = STATE_TEXT;
 	} else if (vg->ch == ']') {
-		vg->temp_offset = vg->offset-1;
+		//vg->temp_offset = vg->offset-1;
 		if (skipChar(vg,']')) {
 			while (skipChar(vg,']')) {
 			}
@@ -2864,6 +2878,8 @@ int length1,parser_state;
 	vg->temp_offset = vg->offset;
 	vg->ch = getCharAfterSe(vg);
 	if (vg->ch == '<') {
+		if (vg->ws) 
+		    addWhiteSpaceRecord(vg);
 		parser_state = STATE_LT_SEEN;
 	} else if (XMLChar_isContentChar(vg->ch)) {
 		parser_state = STATE_TEXT;
@@ -2931,6 +2947,8 @@ int process_pi_tag(VTDGen *vg){
 			vg->temp_offset = vg->offset;
 			vg->ch = getCharAfterSe(vg);
 			if (vg->ch == '<') {
+				if (vg->ws) 
+				    addWhiteSpaceRecord(vg);
 				parser_state = STATE_LT_SEEN;
 			} else if (XMLChar_isContentChar(vg->ch)) {
 				parser_state = STATE_TEXT;
@@ -3446,6 +3464,18 @@ static int process_ex_seen(VTDGen *vg){
 	return parser_state;
 }
 
+static void addWhiteSpaceRecord(VTDGen *vg){
+	if (vg->depth > -1) {
+			int length1 = vg->offset - vg->increment - vg->temp_offset;
+			if (length1 != 0)
+				if (vg->encoding < FORMAT_UTF_16BE)
+					writeVTD(vg,vg->temp_offset, length1, 
+							TOKEN_CHARACTER_DATA, vg->depth);
+				else
+					writeVTD(vg, vg->temp_offset >> 1,length1 >> 1,
+							TOKEN_CHARACTER_DATA, vg->depth);
+		}
+}
 
 /* Load VTD+XML from a FILE pointer */
 VTDNav* loadIndex(VTDGen *vg, FILE *f){
@@ -3580,4 +3610,10 @@ VTDNav* loadSeparateIndex(VTDGen *vg, char *XMLFile, char *VTDIndexFile){
 		return NULL;
 	}
 	//
+}
+
+/* configure the VTDGen to enable or disable (disabled by default) white space nodes */
+void enableIgnoredWhiteSpace(VTDGen *vg, Boolean b){
+	vg->ws = b;
+
 }

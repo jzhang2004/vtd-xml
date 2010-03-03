@@ -56,6 +56,7 @@ typedef struct vTDGen {
 	int ch;
 	int ch_temp;
 	int offset;
+	Boolean ws;
 	int temp_offset;
 	int depth;
 
@@ -133,5 +134,8 @@ void writeSeparateIndex(VTDGen *vg, char *vtdIndex);
 
 /* Load the separate VTD index and XmL file.*/
 VTDNav* loadSeparateIndex(VTDGen *vg, char *XMLFile, char *VTDIndexFile);
+
+/* configure the VTDGen to enable or disable (disabled by default) white space nodes */
+void enableIgnoredWhiteSpace(VTDGen *vg, Boolean b);
 
 #endif
