@@ -16,7 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 using System;
-using Expr = com.ximpleware.xpath.Expr;
+using Expr = com.ximpleware.Expr;
 using XPathEvalException = com.ximpleware.XPathEvalException;
 namespace com.ximpleware
 {
@@ -130,40 +130,15 @@ namespace com.ximpleware
 		
 		public override double evalNumber(VTDNav vn)
 		{
-			int a = - 1;
-			vn.push2();
-			int size = vn.contextStack2.size;
-			try
-			{
-				a = evalNodeSet(vn);
-				if (a != - 1)
-				{
-					if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME)
-					{
-						a++;
-					}
-					else if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG)
-					{
-						a = vn.getText();
-					}
-				}
-			}
-			catch (System.Exception e)
-			{
-				
-			}
-			vn.contextStack2.size = size;
-			reset(vn);
-			vn.pop2();
-			try
-			{
-				if (a != - 1)
-					return vn.parseDouble(a);
-			}
-			catch (NavException e)
-			{
-			}
-			return System.Double.NaN;
+            int a = getStringIndex(vn);
+            try
+            {
+                if (a != -1) return vn.parseDouble(a);
+            }
+            catch (NavException e)
+            {
+            }
+            return Double.NaN;
 		}
 		
 		public override int evalNodeSet(VTDNav vn)
@@ -241,39 +216,16 @@ namespace com.ximpleware
 		
 		public override System.String evalString(VTDNav vn)
 		{
-			vn.push2();
-			int size = vn.contextStack2.size;
-			int a = - 1;
-			try
-			{
-				a = evalNodeSet(vn);
-				if (a != - 1)
-				{
-					if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME)
-					{
-						a++;
-					}
-					if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG)
-					{
-						a = vn.getText();
-					}
-				}
-			}
-			catch (System.Exception e)
-			{
-			}
-			vn.contextStack2.size = size;
-			reset(vn);
-			vn.pop2();
-			try
-			{
-				if (a != - 1)
-					return vn.toString(a);
-			}
-			catch (NavException e)
-			{
-			}
-			return "";
+            int a = getStringIndex(vn);
+            try
+            {
+                if (a != -1)
+                    return vn.toString(a);
+            }
+            catch (NavException e)
+            {
+            }
+            return "";	
 		}
 		// The improved version, use hashtable to check for uniqueness
 		public bool isUnique(int i)
