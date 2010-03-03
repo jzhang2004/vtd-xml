@@ -18,7 +18,7 @@
 using System;
 using System.Text;
 using Alist = com.ximpleware.xpath.Alist;
-using Expr = com.ximpleware.xpath.Expr;
+using Expr = com.ximpleware.Expr;
 using FuncName = com.ximpleware.xpath.FuncName;
 using UnsupportedException = com.ximpleware.xpath.UnsupportedException;
 using XPathEvalException = com.ximpleware.XPathEvalException;
@@ -276,17 +276,36 @@ namespace com.ximpleware
                         int offset = vn.getTokenOffset(index);
                         int length = vn.getTokenLength(index);
                         if (length < 0x10000)
-                            return vn.toRawString(index);
+                        {
+                            if (vn.localNameIndex != index)
+                            {
+                                vn.localNameIndex = index;
+                                vn.localName = vn.toRawString(index);
+                            }
+                            return vn.localName;
+                        }
                         else
                         {
                             int preLen = length >> 16;
                             int QLen = length & 0xffff;
                             if (preLen != 0)
-                                return vn.toRawString(offset + preLen + 1, QLen
-                                        - preLen - 1);
+                            {
+                                if (vn.localNameIndex != index)
+                                {
+                                    vn.localNameIndex = index;
+                                    vn.localName = vn.toRawString(offset + preLen + 1, QLen
+                                            - preLen - 1);
+                                }
+                                return vn.localName;
+                            }
                             else
                             {
-                                return vn.toRawString(offset, QLen);
+                                if (vn.localNameIndex != index)
+                                {
+                                    vn.localNameIndex = index;
+                                    vn.localName = vn.toRawString(offset, QLen);
+                                }
+                                return vn.localName;
                             }
                         }
                     }
@@ -414,7 +433,12 @@ namespace com.ximpleware
                 {
                     try
                     {
-                        return vn.toString(a);
+                        if (vn.nameIndex != a)
+                        {
+                            vn.name = vn.toString(a);
+                            vn.nameIndex = a;
+                        }
+                        return vn.name;
                     }
                     catch (Exception e)
                     {
@@ -1076,7 +1100,9 @@ namespace com.ximpleware
                         if (System.Double.IsNaN(d))
                             break;
                     }
-                    else if (t == VTDNav.TOKEN_CHARACTER_DATA || t == VTDNav.TOKEN_CDATA_VAL)
+                    else if (t == VTDNav.TOKEN_CHARACTER_DATA 
+                        || t == VTDNav.TOKEN_CDATA_VAL
+                        || t== VTDNav.TOKEN_COMMENT)
                     {
                         d = d + vn.parseDouble(a);
                         if (System.Double.IsNaN(d))
