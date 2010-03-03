@@ -112,40 +112,16 @@ namespace com.ximpleware
 		{
             if (e.NodeSet==false)
                 return e.evalNumber(vn);
-			int a = - 1;
-			vn.push2();
-			int size = vn.contextStack2.size;
-			try
-			{
-				a = evalNodeSet(vn);
-				if (a != - 1)
-				{
-					if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME)
-					{
-						a++;
-					}
-					else if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG)
-					{
-						a = vn.getText();
-					}
-				}
-			}
-			catch (System.Exception ee)
-			{
-				
-			}
-			vn.contextStack2.size = size;
-			reset(vn);
-			vn.pop2();
-			try
-			{
-				if (a != - 1)
-					return vn.parseDouble(a);
-			}
-			catch (NavException ee)
-			{
-			}
-			return System.Double.NaN;
+            int a = getStringIndex(vn);
+            try
+            {
+                if (a != -1)
+                    return vn.parseDouble(a);
+            }
+            catch (NavException ee)
+            {
+            }
+            return Double.NaN;
 		}
 		
 		/*
@@ -252,40 +228,16 @@ namespace com.ximpleware
               if (e.NodeSet == false){
                 return e.evalString(vn);                
               }
-
-			vn.push2();
-			int size = vn.contextStack2.size;
-			int a = - 1;
-			try
-			{
-				a = evalNodeSet(vn);
-				if (a != - 1)
-				{
-					if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME)
-					{
-						a++;
-					}
-					if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG)
-					{
-						a = vn.getText();
-					}
-				}
-			}
-			catch (System.Exception ee)
-			{
-			}
-			vn.contextStack2.size = size;
-			reset(vn);
-			vn.pop2();
-			try
-			{
-				if (a != - 1)
-					return vn.toString(a);
-			}
-			catch (NavException ee)
-			{
-			}
-			return "";
+              int a = getStringIndex(vn);
+              try
+              {
+                  if (a != -1)
+                      return vn.toString(a);
+              }
+              catch (NavException ee)
+              {
+              }
+              return "";
 		}
 		
 		/*
