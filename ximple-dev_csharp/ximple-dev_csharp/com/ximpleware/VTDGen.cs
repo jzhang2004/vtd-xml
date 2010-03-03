@@ -258,6 +258,7 @@ namespace com.ximpleware
         private int ch;
         private int ch_temp;
         protected internal int offset; // this is byte offset, not char offset as encoded in VTD
+        private bool ws; // to prserve whitespace or not, default to false
         private int temp_offset;
         protected internal int depth;
 
@@ -1733,6 +1734,7 @@ namespace com.ximpleware
             r = new UTF8Reader(this);
             br = false;
             e = new EOFException("permature EOF reached, XML document incomplete");
+            ws = false;
         }
         /// <summary> Clear internal states so VTDGEn can process the next file.</summary>
         public void clear()
@@ -2312,6 +2314,8 @@ namespace com.ximpleware
                                     ch = CharAfterSe; // consume WSs
                                     if (ch == '<')
                                     {
+                                        if (ws)
+                                            addWhiteSpaceRecord();
                                         parser_state = STATE_LT_SEEN;
                                         if (r.skipChar('/'))
                                         {
@@ -2388,7 +2392,11 @@ namespace com.ximpleware
                                 temp_offset = offset;
                                 ch = CharAfterS;
                                 if (ch == '<')
+                                {
+                                    if (ws)
+                                        addWhiteSpaceRecord();
                                     parser_state = STATE_LT_SEEN;
+                                }
                                 else if (XMLChar.isContentChar(ch))
                                 {
                                     parser_state = STATE_TEXT;
@@ -2603,6 +2611,8 @@ namespace com.ximpleware
                                     ch = CharAfterSe;
                                     if (ch == '<')
                                     {
+                                        if (ws)
+                                            addWhiteSpaceRecord();
                                         parser_state = STATE_LT_SEEN;
                                         if (r.skipChar('/'))
                                         {
@@ -3374,6 +3384,8 @@ namespace com.ximpleware
                     ch = CharAfterSe;
                     if (ch == '<')
                     {
+                        if (ws)
+                            addWhiteSpaceRecord();
                         parser_state = STATE_LT_SEEN;
                     }
                     else if (XMLChar.isContentChar(ch))
@@ -3462,6 +3474,8 @@ namespace com.ximpleware
 
             if (ch == '<')
             {
+                if (ws)
+                    addWhiteSpaceRecord();
                 parser_state = STATE_LT_SEEN;
             }
             else if (XMLChar.isContentChar(ch))
@@ -3527,6 +3541,8 @@ namespace com.ximpleware
                 ch = CharAfterSe;
                 if (ch == '<')
                 {
+                    if (ws)
+                        addWhiteSpaceRecord();
                     parser_state = STATE_LT_SEEN;
                 }
                 else if (XMLChar.isContentChar(ch))
@@ -3769,27 +3785,30 @@ namespace com.ximpleware
                 writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CDATA_VAL, depth);
             }
             //System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
+            temp_offset = offset;
             ch = CharAfterSe;
             if (ch == '<')
             {
+                if (ws)
+                    addWhiteSpaceRecord();
                 parser_state = STATE_LT_SEEN;
             }
             else if (XMLChar.isContentChar(ch))
             {
-                temp_offset = offset -1;
+                //temp_offset = offset -1;
                 parser_state = STATE_TEXT;
             }
             else if (ch == '&')
             {
                 //has_amp = true;
-                temp_offset = offset-1;
+                //temp_offset = offset-1;
                 entityIdentifier();
                 parser_state = STATE_TEXT;
                 //temp_offset = offset;
             }
             else if (ch == ']')
             {
-                temp_offset = offset - 1;
+                //temp_offset = offset - 1;
                 if (r.skipChar(']'))
                 {
                     while (r.skipChar(']'))
@@ -4439,6 +4458,31 @@ namespace com.ximpleware
                 (FastLongBuffer)this.l2Buffer,
                 (FastIntBuffer)this.l3Buffer,
                 os);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void addWhiteSpaceRecord()
+        {
+            if (depth > -1)
+            {
+                int length1 = offset - increment - temp_offset;
+                if (length1 != 0)
+                    if (encoding < FORMAT_UTF_16BE)
+                        writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
+                    else
+                        writeVTD(temp_offset >> 1, length1 >> 1,
+                                TOKEN_CHARACTER_DATA, depth);
+            }
+        }
+        /// <summary>
+        /// Enable the parser to collect all white spaces, including the ignored white spaces
+	    /// By default, ignore white spaces are ignored
+        /// </summary>
+        /// <param name="b"></param>
+        public void enableIgnoredWhiteSpace(bool b)
+        {
+            ws = b;
         }
     }
 }
