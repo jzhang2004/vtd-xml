@@ -984,6 +984,13 @@ namespace com.ximpleware
         // length of the document
         protected internal int docLen;
         protected internal int vtdSize; //vtd record count
+
+        protected internal String name;
+        protected internal int nameIndex;
+
+        protected internal String localName;
+        protected internal int localNameIndex;
+        protected internal FastIntBuffer fib;//for store string value 
         /// <summary> Initialize the VTD navigation object.</summary>
         /// <param name="RootIndex">int
         /// </param>
@@ -1060,7 +1067,11 @@ namespace com.ximpleware
             //System.out.println("offset " + offset + "  length " + length);
             //printL2Buffer();
             vtdSize = vtd.size();
-
+            name = null;
+            nameIndex = -1;
+            localName = null;
+            localNameIndex = -1;
+            fib = new FastIntBuffer(5);
             //recentNS = -1;
         }
         /// <summary> This method print out the current state info of the navigation object.
@@ -4642,8 +4653,8 @@ namespace com.ximpleware
 
         /// <summary>
         /// Duplicate the VTDNav instance with shared XML, VTD and LC buffers
-	    /// This method may be useful for parallel XPath evaluation
-	    /// The node Position is at root element
+        /// This method may be useful for parallel XPath evaluation
+        /// The node Position is at root element
         /// </summary>
         /// <returns>an instance of VTDNav</returns>
         public VTDNav duplicateNav()
@@ -5069,8 +5080,8 @@ namespace com.ximpleware
 
         /// <summary>
         /// Get content fragment returns a long encoding the offset and length of the byte segment of
-	    /// the content of current element, which is the byte segment between the starting tag and 
-	    /// ending tag, -1 is returned if the current element is an empty element
+        /// the content of current element, which is the byte segment between the starting tag and 
+        /// ending tag, -1 is returned if the current element is an empty element
         /// </summary>
         /// <returns>long whose upper 32 bite is length, lower 32 bit is offset</returns>
         public long getContentFragment()
@@ -5250,5 +5261,123 @@ namespace com.ximpleware
             else
                 return ((long)length) << 33 | (so << 1);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="index"></param>
+        protected internal void toString(System.Text.StringBuilder sb, int index)
+        {
+
+            int type = getTokenType(index);
+            if (type != TOKEN_CHARACTER_DATA &&
+                    type != TOKEN_ATTR_VAL)
+                toRawString(sb, index);
+            int len;
+            len = getTokenLength(index);
+
+            int offset = getTokenOffset(index);
+            toString(offset, len, sb);
+        }
+
+        protected internal void toRawString(int os, int len, System.Text.StringBuilder sb)
+        {
+            int offset = os;
+            int endOffset = os + len;
+            long l;
+            while (offset < endOffset)
+            {
+                l = getChar(offset);
+                offset += (int)(l >> 32);
+                sb.Append((char)l);
+            }
+        }
+
+        protected internal void toString(int os, int len, System.Text.StringBuilder sb)
+        {
+            int offset = os;
+            int endOffset = os + len;
+            long l;
+            while (offset < endOffset)
+            {
+                l = getCharResolved(offset);
+                offset += (int)(l >> 32);
+                sb.Append((char)l);
+            }
+        }
+
+        protected internal String toRawString(System.Text.StringBuilder sb, int index)
+        {
+            int type = getTokenType(index);
+            int len;
+            if (type == TOKEN_STARTING_TAG
+                || type == TOKEN_ATTR_NAME
+                || type == TOKEN_ATTR_NS)
+                len = getTokenLength(index) & 0xffff;
+            else
+                len = getTokenLength(index);
+            int offset = getTokenOffset(index);
+            return toRawString(offset, len);
+        }
+
+        protected internal String getXPathStringVal()
+        {
+            int index = getCurrentIndex() + 1;
+            int tokenType, depth, t = 0, length, i = 0;
+            int dp = context[0];
+            //int size = vtdBuffer.size();
+            // store all text tokens underneath the current element node
+            while (index < vtdSize)
+            {
+                tokenType = getTokenType(index);
+                depth = getTokenDepth(index);
+                if (depth < dp ||
+                        (depth == dp && tokenType == VTDNav.TOKEN_STARTING_TAG))
+                {
+                    break;
+                }
+
+                if (tokenType == VTDNav.TOKEN_CHARACTER_DATA
+                        || tokenType == VTDNav.TOKEN_CDATA_VAL)
+                {
+                    length = getTokenLength(index);
+                    t += length;
+                    fib.append(index);
+                    if (length > VTDGen.MAX_TOKEN_LENGTH)
+                    {
+                        while (length > VTDGen.MAX_TOKEN_LENGTH)
+                        {
+                            length -= VTDGen.MAX_TOKEN_LENGTH;
+                            i++;
+                        }
+                        index += i + 1;
+                    }
+                    else
+                        index++;
+                    continue;
+                    //
+                }
+                else if (tokenType == VTDNav.TOKEN_ATTR_NAME
+                        || tokenType == VTDNav.TOKEN_ATTR_NS)
+                {
+                    index = index + 2;
+                    continue;
+                }
+                index++;
+            }
+
+            // calculate the total length
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(t);
+
+            for (t = 0; t < fib.size(); t++)
+            {
+                toString(sb, t);
+            }
+
+            // clear the fib and return a string
+            return sb.ToString();
+        }
+
     }
 }
