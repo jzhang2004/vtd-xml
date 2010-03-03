@@ -56,6 +56,12 @@ using com.ximpleware.parser;
   public int getOffset(){
 	return yychar;	
   }
+  
+  public String getArgument(char c, String input){
+		int os1=input.indexOf(c), os2=input.lastIndexOf(c);
+		
+		return input.substring(os1+1, os2);
+  }
 
 %}
 %init{
@@ -532,11 +538,31 @@ node{ws}*"("{ws}*")"	{
 				return sym(NTEST,ntest);
 			}
 
+			
+processing-instruction{ws}*"("{ws}*'[^']*'{ws}*")"	{
+						isName = 0;
+						ntest = new Ntest();
+						ntest.i = Ntest.PROCESSING_INSTRUCTION;
+						ntest.arg = getArgument('\'', yytext());
+						//System.out.println(" !!!!!!!!!!!argument ==>" +ntest.arg);
+						return sym(NTEST,ntest);
+					}
+					
+processing-instruction{ws}*"("{ws}*\"[^\"]*\"{ws}*")"	{
+						isName = 0;
+						ntest = new Ntest();
+						ntest.i = Ntest.PROCESSING_INSTRUCTION;
+						ntest.arg = getArgument('"',yytext());
+						//System.out.println(" !!!!!!!!!!!argument ==>" +ntest.arg);
+						return sym(NTEST,ntest);
+					}
+					
 processing-instruction{ws}*"("{ws}*")"	{
 						isName = 0;
 						ntest = new Ntest();
 						ntest.i = Ntest.PROCESSING_INSTRUCTION;
 						ntest.arg = null;
+						//System.out.println(" !!!!!!!!!!!argument ");
 						return sym(NTEST,ntest);
 					}
 
@@ -589,7 +615,7 @@ following-sibling{ws}*::  {	isName = 1;
 				return sym(AXISNAME,at);
 			}
 
-namespace{ws}*::	{	isName =0;
+namespace{ws}*::	{	isName =1;
 				at = new AxisType();
 				at.i = AxisType.NAMESPACE;
 				return sym(AXISNAME,at);

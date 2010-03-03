@@ -289,7 +289,8 @@ Step		::= AxisSpecifier:as1 nodetest:nt PredicateList:pl
       	         || as1.i == AxisType.PRECEDING
       	         || as1.i == AxisType.FOLLOWING
       	         || as1.i == AxisType.FOLLOWING_SIBLING
-      	         || as1.i == AxisType.PRECEDING_SIBLING) && 
+      	         || as1.i == AxisType.PRECEDING_SIBLING
+      	         || as.i == AxisType.NAMESPACE) && 
       	        (nt.testType>1)){
       	          Yylex scanner = (Yylex)my_parser.getScanner();
       	          throw new XPathParseException(as1.getAxisString()+" axis can't operate on"+
@@ -321,7 +322,16 @@ nodetest	::=    NAME:n
 		:}
 		|    NTEST:n2				
 		{: RESULT = new NodeTest();
-		  RESULT.TestType=n2.i;				
+		  		   if (n2.i!=3)
+		   	RESULT.setTestType(n2.i);
+		   else {
+		   	if (n2.arg ==null)
+		   	   RESULT.setTestType(n2.i); //PI0
+		   	else {
+		   		RESULT.setTestType(4); //PI1
+		   		RESULT.setNodeName(n2.arg);
+		   	}
+		   }		  					
 		:}
 		;
 
