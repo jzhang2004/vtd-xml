@@ -99,9 +99,11 @@ namespace com.ximpleware
 				case NODE:  return "node()";
 				
 				case TEXT:  return "text()";
-				
-				case PI0: 
-				case PI1:  return "processing-instruction()";
+
+                case PI0: return "processing-instruction()";
+                case PI1: return (nodeName.IndexOf('"') > 0) ?
+                                    "processing-instruction('" + nodeName + "')"
+                                  : "processing-instruction(\"" + nodeName + "\")";
 				
 				default:  return "comment()";
 				
