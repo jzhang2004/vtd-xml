@@ -41,6 +41,8 @@ static int evalFirstArgumentListNodeSet(funcExpr *fne, VTDNav *vn);
 static int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn);
 static UCSChar* upperCase(funcExpr *fne, VTDNav *vn);
 static UCSChar* lowerCase(funcExpr *fne, VTDNav *vn);
+static double roundHalfToEven(funcExpr *fne, VTDNav *vn);
+
 static double round(double v)
 {
  return (v>0.0) ? floor(v+0.5) : ceil(v-0.5);
@@ -631,6 +633,7 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 									"round()'s  <funcExpr> argument count is invalid");
 							}
 			case FN_ROUND_HALF_TO_EVEN:
+							return roundHalfToEven(fne, vn);
 			case FN_ROUND_HALF_TO_ODD:
 				    throwException2(other_exception, "functions not yet supported");
 			
@@ -1303,3 +1306,60 @@ int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn){
     pop2(vn);
     return a;
 }
+
+static double roundHalfToEvenPositive(double value, long precision){
+		int i;
+		double result = 0;
+		const double ROUNDING_EPSILON  = 0.00000001;
+	    long dec = 1;
+		long intPart = (long)value;
+	    
+	    //shif the decimal point by precision
+	    long absPre = abs(precision);
+	    
+	    for(i = 0; i < absPre; i++){
+	    	dec *= 10;
+	    }
+	    
+	    if(precision > 0) value *= dec;
+	    else if (precision < 0)value /= dec;
+	    	    
+	    //'value' is exctly halfway between two integers
+	    if(abs(value -((double)intPart +(double)0.5)) < ROUNDING_EPSILON){
+	    	// 'ipart' is even 
+	    	if(intPart%2 == 0){
+	    		result = intPart;
+	    	}else{// nearest even integer
+	    		result = (long)ceil( intPart + (double)0.5 );
+	    	}
+	    }else{
+	    	//use the usual round to closest	    
+	    	result = round(value);
+	    }
+	    
+	    //shif the decimal point back to where it was
+	    if(precision > 0) result /= dec;
+	    else if(precision < 0) result *= dec;
+	    
+		return result;
+		
+		
+	}
+
+static double roundHalfToEven(funcExpr *fne, VTDNav *vn) {
+		double value;
+		long precision;
+		int numArg = argCount(fne);
+
+	    if (numArg < 1 || numArg > 2){
+	    	throwException2(invalid_argument,
+				"Argument count for roundHalfToEven() is invalid.");	    	
+	    }
+
+		value = (double)fne->al->e->evalNumber(fne->al->e, vn);	    
+	    precision = (numArg == 2)? (long)floor((double)fne->al->next->e->evalNumber(fne->al->next->e,vn)+0.5) : 0;
+	    
+	    if(value < 0) return -roundHalfToEvenPositive(-value, precision);	    
+	    else return roundHalfToEvenPositive(value, precision);
+	}
+	
