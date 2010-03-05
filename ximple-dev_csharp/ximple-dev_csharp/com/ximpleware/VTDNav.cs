@@ -4143,8 +4143,8 @@ namespace com.ximpleware
         /// Convert a segment of xml document into string
         /// entities not resolved
         /// </summary>
-        /// <param name="os"> os in bytes</param>
-        /// <param name="len">len in bytes</param>
+        /// <param name="os"> os in char</param>
+        /// <param name="len">len in char</param>
         /// <returns></returns>
         public System.String toRawString(int os, int len)
         {
@@ -4152,11 +4152,11 @@ namespace com.ximpleware
             int offset = os;
             long l;
             System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
-            if (encoding > FORMAT_WIN_1258)
-            {
-                offset = offset >> 1;
-                endOffset = endOffset >> 1;
-            }
+            //if (encoding > FORMAT_WIN_1258)
+            //{
+            //    offset = offset >> 1;
+            //    endOffset = endOffset >> 1;
+            //}
 
             while (offset < endOffset)
             {
@@ -4189,10 +4189,10 @@ namespace com.ximpleware
         }
 
         /// <summary>
-        /// 
+        /// convert the document segment to String, entities resolved
         /// </summary>
-        /// <param name="os"></param>
-        /// <param name="len"></param>
+        /// <param name="os">offset in char</param>
+        /// <param name="len">length in char</param>
         /// <returns></returns>
         public System.String toString(int os, int len)
         {
