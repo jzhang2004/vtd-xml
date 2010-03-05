@@ -3949,8 +3949,8 @@ public class VTDNav {
 	
 	/**
 	 * Convert a segment of XML bytes a into string, without entity resolution
-	 * @param os (in terms of bytes)
-	 * @param len (in terms of bytes)
+	 * @param os (in terms of chars <em>not bytes</em>)
+	 * @param len (in terms of chars <em>not bytes</em>)
 	 * @return
 	 * @throws NavException
 	 *
@@ -3959,10 +3959,10 @@ public class VTDNav {
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
-	    if (encoding> FORMAT_WIN_1258){
-	    	offset = offset>>1;
-			endOffset = endOffset>>1;
-	    }
+	    //if (encoding> FORMAT_WIN_1258){
+	    //	offset = offset>>1;
+		//	endOffset = endOffset>>1;
+	    //}
 	    long l;
 	    while (offset < endOffset) {
 	        l = getChar(offset);
@@ -4120,9 +4120,9 @@ public class VTDNav {
      * String (entities are resolved)
      * 
      * @param os 
-     *            the byte offset of the segment
+     *            the char offset of the segment (not byte)
      * @param len  
-     *            the length of the segment in byte
+     *            the length of the segment in char (not byte)
      * @return the corresponding string value
      * @throws NavException
      *  
@@ -4131,10 +4131,10 @@ public class VTDNav {
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
-	    if (encoding> FORMAT_WIN_1258){
-	    	offset = offset>>1;
-			endOffset = endOffset>>1;
-	    }
+	    //if (encoding> FORMAT_WIN_1258){
+	    //	offset = offset>>1;
+		//	endOffset = endOffset>>1;
+	    //}
 	    	
 	    long l;
 	    while (offset < endOffset) {
@@ -4580,7 +4580,7 @@ public class VTDNav {
 	/**
 	 * Clone the VTDNav instance to get with shared XML, VTD and LC buffers
 	 * The node position is also copied from the original instance
-	 * @return
+	 * @return a new instance of VTDNav
 	 */
 	final public VTDNav cloneNav(){
 		VTDNav vn = new VTDNav(rootIndex,
@@ -4597,14 +4597,21 @@ public class VTDNav {
 	            );
 		vn.atTerminal = this.atTerminal;
 		vn.LN = this.LN;
-		System.arraycopy(this.context, 0, vn.context, 0, this.context[0] );
+		if (this.context[0]!=-1)
+			System.arraycopy(this.context, 0, vn.context, 0, this.context[0] );
+		else 
+			vn.context[0]=-1;
 		vn.l1index = l1index; 
-		vn.l2index = this.l2index;
-		vn.l3index = l3index;
-		vn.l2lower = l2lower;
-		vn.l3lower = l3lower;
-		vn.l2upper = l2upper;
-		vn.l3upper = l3upper;
+		if (getCurrentDepth()>1){
+			vn.l2index = this.l2index;
+			vn.l2upper = l2upper;
+			vn.l2lower = l2lower;
+		}
+		if (getCurrentDepth() > 2) {
+			vn.l3lower = l3lower;
+			vn.l3index = l3index;
+			vn.l3upper = l3upper;
+		}
 		return vn;
 	}
 	
