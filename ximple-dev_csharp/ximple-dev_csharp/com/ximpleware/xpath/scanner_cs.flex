@@ -32,6 +32,7 @@ using com.ximpleware.parser;
 %char
 %extends sym
 %yylexthrow XPathParseException
+%cupdebug 
 
 %{
 
@@ -58,9 +59,13 @@ using com.ximpleware.parser;
   }
   
   public String getArgument(char c, String input){
-		int os1=input.indexOf(c), os2=input.lastIndexOf(c);
-		
-		return input.substring(os1+1, os2);
+		int os1=input.IndexOf(c), os2=input.LastIndexOf(c);
+      //Console.WriteLine("os 1  " + os1);
+      //Console.WriteLine("os 2  " + os2);
+      //Console.WriteLine("input  " + input);
+      //Console.WriteLine("char c is " + c);
+      //Console.WriteLine("subString is " + input.Substring(os1 + 1, os2 - os1 - 1));
+      return input.Substring(os1+1, os2-os1-1);
   }
 
 %}
