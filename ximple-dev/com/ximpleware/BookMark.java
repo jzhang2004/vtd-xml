@@ -183,20 +183,43 @@ public class BookMark {
     public boolean recordCursorPosition(){
         return recordCursorPosition(vn1);
     }
+    
+    /**
+     * Compare the bookmarks to ensure they represent the same
+     * node in the same VTDnav instance
+     * @param bm2
+     * @return
+     */
     public final boolean deepEquals(BookMark bm2) {
         if (bm2.vn1 == this.vn1){
-            if (bm2.ba[bm2.ba[0]]==this.ba[this.ba[0]])
+            if (bm2.ba[bm2.ba[0]]==this.ba[this.ba[0]]){
+            	if (this.ba[this.vn1.nestingLevel+7] < 0){
+            		if (this.ba[this.vn1.nestingLevel+7]
+            		            != bm2.ba[this.vn1.nestingLevel+7])
+            			return false;
+            	}
                 return true;
+            }
         }
         return false;
     }
 
+    /**
+     * Compare the bookmarks to ensure they represent the same
+     * node in the same VTDnav instance
+     * @param bm2
+     * @return
+     */
     public final boolean equals(BookMark bm2) {
         if (this == bm2)
             return true;
         return deepEquals(bm2);
     }
 
+    /**
+     * Compare two bookmarks to ensure they represent the same
+     * node in the same VTDnav instance
+     */
     public final boolean equals(Object obj) {
         if (this == obj)
             return true;
@@ -205,11 +228,18 @@ public class BookMark {
         return deepEquals((BookMark) obj);
     }
     
+    /**
+     * Returns the hash code which is a unique integer for every node
+     */
     public final int hashCode(){
         if (ba == null || vn1==null || ba[0]==-2)
             return -2;
+        if (vn1.atTerminal)
+        	return vn1.LN;
         if (ba[0]==1)
             return vn1.rootIndex;
         return ba[ba[0]];
     }
+    
+    
 }
