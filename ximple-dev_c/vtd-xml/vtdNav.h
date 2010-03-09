@@ -415,6 +415,10 @@ VTDNav *duplicateNav(VTDNav *vn);
 /* ClineNav duplicates an instance of VTDNav, also copies node position over */
 VTDNav *cloneNav(VTDNav *vn);
 
-
+/* This method takes a vtd index, and recover its correspondin
+ * node position, the index can only be of node type element,
+ * document, attribute name, attribute value or character data,
+ * or CDATA  */
+void recoverNode(VTDNav *vn, int index);
 
 #endif

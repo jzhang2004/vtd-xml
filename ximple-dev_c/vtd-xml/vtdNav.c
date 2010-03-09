@@ -54,6 +54,9 @@ static UCSChar *toRawStringLowerCase2(VTDNav *vn, int os, int len);
 static void resolveLC_l1(VTDNav *vn);
 static void resolveLC_l2(VTDNav *vn);
 static void resolveLC_l3(VTDNav *vn);
+static void recoverNode_l1(VTDNav *vn,int index);
+static void recoverNode_l2(VTDNav *vn,int index);
+static void recoverNode_l3(VTDNav *vn,int index);
 
 /*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, Long temp, int offset){
@@ -4251,4 +4254,190 @@ VTDNav *cloneNav(VTDNav *vn){
 		vn1->l3upper = vn->l3upper;
 	}
 	return vn1;
+}
+
+/* This method takes a vtd index, and recover its correspondin
+ * node position, the index can only be of node type element,
+ * document, attribute name, attribute value or character data,
+ * or CDATA  */
+void recoverNode(VTDNav *vn, int index){
+	int d, type,t;
+	//exception e;
+	if (index <0 || index>=vn->vtdSize ){
+		throwException2(invalid_argument,"Invalid VTD index");
+		//throw new NavException("Invalid VTD index");
+	}
+
+	type = getTokenType(vn,index);
+
+	if (//type == VTDNav.TOKEN_COMMENT ||
+		//	type == VTDNav.TOKEN_PI_NAME ||
+		type == TOKEN_PI_VAL ||
+		type == TOKEN_DEC_ATTR_NAME ||
+		type == TOKEN_DEC_ATTR_VAL ||
+		type == TOKEN_ATTR_VAL){
+			throwException2( nav_exception, "Invalid VTD index");
+			//throw new NavException("Token type not yet supported");
+	}
+	// get depth
+	d = getTokenDepth(vn,index);
+	// handle document node;	
+	switch (d){
+		case -1:
+			vn->context[0]=-1;
+			if (index != 0){
+				vn->LN = index;
+				vn->atTerminal = TRUE;
+			}			
+			return;
+		case 0:
+			vn->context[0]=0;
+			if (index != vn->rootIndex){
+				vn->LN = index;
+				vn->atTerminal = TRUE;
+			}
+			return;		
+	}
+	vn->context[0]=d;
+	if (type != TOKEN_STARTING_TAG){
+		vn->LN = index;
+		vn->atTerminal = TRUE;
+	}
+	// search LC level 1
+	recoverNode_l1(vn,index);
+
+	if (d==1)
+		return;
+	// search LC level 2
+	recoverNode_l2(vn,index);
+	if (d==2){
+		//resolveLC();
+		return;
+	}
+	// search LC level 3
+	recoverNode_l3(vn,index);
+	if (d==3){
+		//resolveLC();
+		return;
+	}
+	// scan backward
+	if ( type == TOKEN_STARTING_TAG ){
+		vn->context[d] = index;
+	} else{
+		int t = index-1;
+		while( !(getTokenType(vn,t)==TOKEN_STARTING_TAG && 
+			getTokenDepth(vn,t)==d)){
+				t--;
+		}
+		vn->context[d] = t;
+	}
+	t = vn->context[d]-1;
+	d--;
+	while(d>3){
+		while( !(getTokenType(vn,t)==TOKEN_STARTING_TAG && 
+			getTokenDepth(vn,t)==d)){
+				t--;
+		}
+		vn->context[d] = t;
+		d--;
+	}
+}
+
+static void recoverNode_l1(VTDNav *vn,int index){
+	int i;
+	if(vn->context[1]==index){
+
+	}
+	else if (vn->context[1]>index 
+		&& vn->l1index+1<vn->l1Buffer->size
+		&& upper32At(vn->l1Buffer,vn->l1index+1) < index){
+
+	}
+	else {
+		i= (index/vn->vtdSize)*vn->l1Buffer->size;
+		if (i>=vn->l1Buffer->size)
+			i=vn->l1Buffer->size-1;
+
+		if (upper32At(vn->l1Buffer,i)< index) {
+			while(i<vn->l1Buffer->size-1 && 
+				upper32At(vn->l1Buffer,i)<index){
+					i++;
+			}
+			if (upper32At(vn->l1Buffer,i)>index)
+				i--;
+		} else {
+			while(upper32At(vn->l1Buffer,i)>index){
+				i--;
+			}
+		}	
+		vn->context[1] = upper32At(vn->l1Buffer,i);
+		vn->l1index = i;
+	}
+}
+
+static void recoverNode_l2(VTDNav *vn,int index){
+	int i = lower32At(vn->l1Buffer,vn->l1index),k,t1,t2;
+
+	if (vn->l2lower != i) {
+		vn->l2lower = i;
+		// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+		// resolved simultaneously
+		//l2index = l2lower;
+		vn->l2upper = vn->l2Buffer->size - 1;
+		for (k = vn->l1index + 1; k < vn->l1Buffer->size; k++) {
+			i = lower32At(vn->l1Buffer,k);
+			if (i != 0xffffffff) {
+				vn->l2upper = i - 1;
+				break;
+			}
+		}
+	}
+	// guess what i would be in l2 cache
+	t1=upper32At(vn->l2Buffer, vn->l2lower);
+	t2=upper32At(vn->l2Buffer, vn->l2upper);
+	//System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
+	i= min(vn->l2lower+ 
+		(int)(((float)(index-t1)/(t2-t1+1))*(vn->l2upper-vn->l2lower))
+		,vn->l2upper) ;
+	//System.out.print("  i1  "+i);
+	while(i<vn->l2Buffer->size-1 && upper32At(vn->l2Buffer,i)<index){
+		i++;	
+	}
+	//System.out.println(" ==== i2    "+i+"    index  ==>  "+index);
+
+	while (upper32At(vn->l2Buffer,i)>index && i>0)
+		i--;
+	vn->context[2] = upper32At(vn->l2Buffer,i);
+	vn->l2index = i;
+}
+
+static void recoverNode_l3(VTDNav *vn,int index){
+int i = lower32At(vn->l2Buffer,vn->l2index),k,t1,t2;
+		
+		if (vn->l3lower != i) {
+			//l3lower and l3upper are always together
+			vn->l3lower = i;
+			// l3lower shouldn't be -1
+			//l3index = l3lower;
+			vn->l3upper = vn->l3Buffer->size - 1;
+			for (k = vn->l2index + 1; k < vn->l2Buffer->size; k++) {
+				i = lower32At(vn->l2Buffer,k);
+				if (i != 0xffffffff) {
+					vn->l3upper = i - 1;
+					break;
+				}
+			}
+		}
+		t1=intAt(vn->l3Buffer,vn->l3lower);
+		t2=intAt(vn->l3Buffer,vn->l3upper);
+
+		i= min(vn->l3lower+ (int)(((float)(index-t1)/(t2-t1+1))*(vn->l3upper-vn->l3lower)),vn->l3upper) ;
+		while(i<vn->l3Buffer->size-1 && intAt(vn->l3Buffer,i)<index){
+			i++;	
+		}
+		while (intAt(vn->l3Buffer,i)>index && i>0)
+			i--;
+		//System.out.println(" i ===> "+i);
+		vn->context[3] = intAt(vn->l3Buffer,i);
+		vn->l3index = i;
 }
