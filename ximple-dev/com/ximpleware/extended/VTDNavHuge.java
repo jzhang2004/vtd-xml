@@ -2329,21 +2329,10 @@ public class VTDNavHuge {
 	final protected void clearStack2(){
 		contextStack2.clear();
 	}
-	
-	
-	/**
-	 * Sync up the current context with location cache.
-	 * This operation includes finding out l1index, l2index, 
-	 * l3index and restores upper and lower bound info
-	 * To improve efficieny this method employs some heuristic search algorithm.
-	 * The result is that it is quite close to direct access.
-	 * Creation date: (11/16/03 7:44:53 PM)
-	 * @return int  The index of the NS URL
+	/** 
+	 * Sync level 1 location cache
 	 */
-	private void resolveLC() {
-		int temp;
-		if (context[0]<=0)
-			return;
+	private void resolveLC_l1(){
 		if (l1index < 0 || l1index >= l1Buffer.size()
 				|| context[1] != l1Buffer.upper32At(l1index)) {
 			if (l1index >= l1Buffer.size() || l1index < 0) {
@@ -2376,13 +2365,14 @@ public class VTDNavHuge {
 						}
 				}
 			}
-			//	l1index = l1index + 1;
-			// for iterations, l1index+1 is the logical next value for l1index
 		}
-		if (context[0] == 1)
-			return;
-
-		temp = l1Buffer.lower32At(l1index);
+	}
+	
+	/**
+	 * Sync Level 2 location cache
+	 */
+	private void resolveLC_l2(){
+		int temp = l1Buffer.lower32At(l1index);
 		if (l2lower != temp) {
 			l2lower = temp;
 			// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
@@ -2431,11 +2421,13 @@ public class VTDNavHuge {
 					l2index++;
 			}	
 		}
-
-		if (context[0] == 2)
-			return;
-		
-		temp = l2Buffer.lower32At(l2index);
+	}
+	
+	/**
+	 * Sync L3 location Cache
+	 */
+	private void resolveLC_l3(){
+		int temp = l2Buffer.lower32At(l2index);
 		if (l3lower != temp) {
 			//l3lower and l3upper are always together
 			l3lower = temp;
@@ -2481,8 +2473,30 @@ public class VTDNavHuge {
 				}
 			}
 		}
-
 	}
+	
+	
+	/**
+	 * Sync up the current context with location cache.
+	 * This operation includes finding out l1index, l2index, 
+	 * l3index and restores upper and lower bound info
+	 * To improve efficieny this method employs some heuristic search algorithm.
+	 * The result is that it is quite close to direct access.
+	 * Creation date: (11/16/03 7:44:53 PM)
+	 * @return int  The index of the NS URL
+	 */
+	private void resolveLC() {
+		if (context[0]<=0)
+			return;
+		resolveLC_l1();
+		if (context[0] == 1)
+			return;
+		resolveLC_l2();
+		if (context[0] == 2)
+			return;		
+		resolveLC_l3();
+	}
+	
 	/**
      * Test whether the URL is defined in the scope. Null is allowed to
      * indicate the name space is undefined. Creation date: (11/16/03 7:54:01
@@ -4219,7 +4233,11 @@ public class VTDNavHuge {
 	            );
 		vn.atTerminal = this.atTerminal;
 		vn.LN = this.LN;
-		System.arraycopy(this.context, 0, vn.context, 0, this.context[0] );
+		if (this.context[0]!=-1)
+			System.arraycopy(this.context, 0, vn.context, 0, this.context[0] );
+		else 
+			vn.context[0]=-1;
+		
 		vn.l1index = l1index; 
 		if (getCurrentDepth()>1){
 			vn.l2index = this.l2index;
@@ -4233,4 +4251,5 @@ public class VTDNavHuge {
 		}
 		return vn;
 	}
+
 }
