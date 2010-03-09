@@ -5379,5 +5379,221 @@ namespace com.ximpleware
             return sb.ToString();
         }
 
+        /// <summary>
+        /// This method takes a vtd index, and recover its correspondin
+	    /// node position, the index can only be of node type element,
+	    /// document, attribute name, attribute value or character data,
+	    /// or CDATA
+        /// </summary>
+        /// <param name="index"></param>
+       public void recoverNode(int index){
+		if (index <0 || index>=vtdSize )
+			throw new NavException("Invalid VTD index");
+        int t;
+		int type = getTokenType(index);
+		if (//type == VTDNav.TOKEN_COMMENT ||
+			//	type == VTDNav.TOKEN_PI_NAME ||
+				type == VTDNav.TOKEN_PI_VAL ||
+				type == VTDNav.TOKEN_DEC_ATTR_NAME ||
+				type == VTDNav.TOKEN_DEC_ATTR_VAL ||
+				type == VTDNav.TOKEN_ATTR_VAL)
+			throw new NavException("Token type not yet supported");
+		
+		// get depth
+		int d = getTokenDepth(index);
+		// handle document node;
+		switch (d){
+		case -1:
+			context[0]=-1;
+			if (index != 0){
+				LN = index;
+				atTerminal = true;
+			}			
+			return;
+		case 0:
+			context[0]=0;
+			if (index != rootIndex){
+				LN = index;
+				atTerminal = true;
+			}
+			return;		
+		}
+		context[0]=d;
+		if (type != VTDNav.TOKEN_STARTING_TAG){
+			LN = index;
+			atTerminal = true;
+		}
+		// search LC level 1
+		recoverNode_l1(index);
+
+		if (d==1)
+			return;
+		// search LC level 2
+		recoverNode_l2(index);
+		if (d==2){
+			//resolveLC();
+			return;
+		}
+		// search LC level 3
+		recoverNode_l3(index);
+		if (d==3){
+			//resolveLC();
+			return;
+		}
+		// scan backward
+		if ( type == VTDNav.TOKEN_STARTING_TAG ){
+			context[d] = index;
+		} else{
+			t = index-1;
+			while( !(getTokenType(t)==VTDNav.TOKEN_STARTING_TAG && 
+					getTokenDepth(t)==d)){
+				t--;
+			}
+			context[d] = t;
+		}
+		t = context[d]-1;
+		d--;
+		while(d>3){
+			while( !(getTokenType(t)==VTDNav.TOKEN_STARTING_TAG && 
+					getTokenDepth(t)==d)){
+				t--;
+			}
+			context[d] = t;
+			d--;
+		}
+		//resolveLC();		
+	}
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        private void recoverNode_l1(int index)
+        {
+            int i;
+            if (context[1] == index)
+            {
+
+            }
+            else if (context[1] > index
+                    && l1index + 1 < l1Buffer.size()
+                    && l1Buffer.upper32At(l1index + 1) < index)
+            {
+
+            }
+            else
+            {
+                i = (index / vtdSize) * l1Buffer.size();
+                if (i >= l1Buffer.size())
+                    i = l1Buffer.size() - 1;
+
+                if (l1Buffer.upper32At(i) < index)
+                {
+                    while (i < l1Buffer.size() - 1 &&
+                            l1Buffer.upper32At(i) < index)
+                    {
+                        i++;
+                    }
+                    if (l1Buffer.upper32At(i) > index)
+                        i--;
+                }
+                else
+                {
+                    while (l1Buffer.upper32At(i) > index)
+                    {
+                        i--;
+                    }
+                }
+                context[1] = l1Buffer.upper32At(i);
+                l1index = i;
+            }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        private void recoverNode_l2(int index)
+        {
+            int i = l1Buffer.lower32At(l1index);
+
+            if (l2lower != i)
+            {
+                l2lower = i;
+                // l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+                // resolved simultaneously
+                //l2index = l2lower;
+                l2upper = l2Buffer.size() - 1;
+                for (int k = l1index + 1; k < l1Buffer.size(); k++)
+                {
+                    i = l1Buffer.lower32At(k);
+                    if (i != -1)
+                    {
+                        l2upper = i - 1;
+                        break;
+                    }
+                }
+            }
+            // guess what i would be in l2 cache
+            int t1 = l2Buffer.upper32At(l2lower);
+            int t2 = l2Buffer.upper32At(l2upper);
+            //System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
+            i = System.Math.Min(l2lower + (int)(((float)(index - t1) / (t2 - t1 + 1)) * (l2upper - l2lower)), l2upper);
+            //System.out.print("  i1  "+i);
+            while (i < l2Buffer.size() - 1 && l2Buffer.upper32At(i) < index)
+            {
+                i++;
+            }
+            //System.out.println(" ==== i2    "+i+"    index  ==>  "+index);
+
+            while (l2Buffer.upper32At(i) > index && i > 0)
+                i--;
+            context[2] = l2Buffer.upper32At(i);
+            l2index = i;
+            //System.out.println("l2lower ==>"+l2lower+"  l2upper==>"+l2upper+"   l2index==> "+l2index);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        private void recoverNode_l3(int index)
+        {
+            int i = l2Buffer.lower32At(l2index);
+
+            if (l3lower != i)
+            {
+                //l3lower and l3upper are always together
+                l3lower = i;
+                // l3lower shouldn't be -1
+                //l3index = l3lower;
+                l3upper = l3Buffer.size() - 1;
+                for (int k = l2index + 1; k < l2Buffer.size(); k++)
+                {
+                    i = l2Buffer.lower32At(k);
+                    if (i != -1)
+                    {
+                        l3upper = i - 1;
+                        break;
+                    }
+                }
+            }
+            int t1 = l3Buffer.intAt(l3lower);
+            int t2 = l3Buffer.intAt(l3upper);
+            i = System.Math.Min(l3lower + (int)(((float)(index - t1) / (t2 - t1 + 1)) * (l3upper - l3lower)), l3upper);
+            while (i < l3Buffer.size() - 1 && l3Buffer.intAt(i) < index)
+            {
+                i++;
+            }
+            while (l3Buffer.intAt(i) > index && i > 0)
+                i--;
+            //System.out.println(" i ===> "+i);
+            context[3] = l3Buffer.intAt(i);
+            l3index = i;
+        }
+
     }
 }
