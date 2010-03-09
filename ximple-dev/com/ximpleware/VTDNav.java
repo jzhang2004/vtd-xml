@@ -4993,15 +4993,19 @@ public class VTDNav {
 		// guess what i would be in l2 cache
 		int t1=l2Buffer.upper32At(l2lower);
 		int t2=l2Buffer.upper32At(l2upper);
-		i= Math.min(l2lower+ ((index-t1)/(t2-t1+1))*l2lower,l2upper) ;
-		
+		//System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
+		i= Math.min(l2lower+ (int)(((float)(index-t1)/(t2-t1+1))*(l2upper-l2lower)),l2upper) ;
+		//System.out.print("  i1  "+i);
 		while(i<l2Buffer.size()-1 && l2Buffer.upper32At(i)<index){
 			i++;	
 		}
-		if (l2Buffer.upper32At(i)>index && i>0)
+		//System.out.println(" ==== i2    "+i+"    index  ==>  "+index);
+		
+		while (l2Buffer.upper32At(i)>index && i>0)
 			i--;
 		context[2] = l2Buffer.upper32At(i);
 		l2index = i;
+		//System.out.println("l2lower ==>"+l2lower+"  l2upper==>"+l2upper+"   l2index==> "+l2index);
 	}
 	
 	private final void recoverNode_l3(int index){
@@ -5023,11 +5027,11 @@ public class VTDNav {
 		}
 		int t1=l3Buffer.intAt(l3lower);
 		int t2=l3Buffer.intAt(l3upper);
-		i= Math.min(l3lower+ ((index-t1)/(t2-t1+1))*l3lower,l3upper) ;
+		i= Math.min(l3lower+ (int)(((float)(index-t1)/(t2-t1+1))*(l3upper-l3lower)),l3upper) ;
 		while(i<l3Buffer.size()-1 && l3Buffer.intAt(i)<index){
 			i++;	
 		}
-		if (l3Buffer.intAt(i)>index && i>0)
+		while (l3Buffer.intAt(i)>index && i>0)
 			i--;
 		//System.out.println(" i ===> "+i);
 		context[3] = l3Buffer.intAt(i);
