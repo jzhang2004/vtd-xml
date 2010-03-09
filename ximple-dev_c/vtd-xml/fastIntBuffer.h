@@ -58,7 +58,7 @@ int *getIntArray(FastIntBuffer *fib, int offset, int len);
 #define getPageSizeFIB(fib) fib->pageSize
 
 // Get the int at the index position of FastIntBuffer
-extern inline int intAt();
+extern inline int intAt(FastIntBuffer *fib, int index);
 
 // Replace the value at the index position of FastIntBuffer 
 // with newVal
