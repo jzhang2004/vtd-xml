@@ -388,7 +388,7 @@ void insertBytesAt3(XMLModifier *xm, int offset, ElementFragmentNs* ef){
 			"There can be only one insertion per offset value");
 	}
 	appendLong(xm->flb, offset | MASK_INSERT_FRAGMENT_NS);
-	appendLong(xm->fob, ef);
+	appendLong(xm->fob, (Long) ef);
 }
 
 
