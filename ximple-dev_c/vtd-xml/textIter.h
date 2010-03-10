@@ -30,6 +30,8 @@ typedef struct textIter{
 	int lcIndex;
 	int lcLower;
 	int lcUpper;
+	int sel_type;
+	UCSChar *piName;
 } TextIter;
 
 /* create TextIter */
@@ -41,5 +43,15 @@ void freeTextIter(TextIter* ti);
 void touch(TextIter *ti, VTDNav *vn);
 /* Get the index vals for the text nodes in document order.*/
 int getNext(TextIter *ti);
+/* Ask textIter to return character data or CDATA nodes*/
+void selectText(TextIter *ti);
+/*  Ask textIter to return comment nodes*/
+void selectComment(TextIter *ti);
+/* Ask TextIter to return processing instruction name 
+ * no value */
+void selectPI0(TextIter *ti);
+/* Ask TextIter to return processing instruction of 
+given name */
+void selectPI1(TextIter *ti, UCSChar *piName);
 
 #endif
