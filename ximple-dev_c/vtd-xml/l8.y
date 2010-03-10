@@ -1,6 +1,6 @@
 %{
 /* 
-* Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -464,7 +464,8 @@ Step		:    AxisSpecifier NodeTest PredicateList {
       														|| $1 == AXIS_PRECEDING
       														|| $1 == AXIS_FOLLOWING
       														|| $1 == AXIS_FOLLOWING_SIBLING
-      														|| $1 == AXIS_PRECEDING_SIBLING) && 
+      														|| $1 == AXIS_PRECEDING_SIBLING
+      														|| $1 == AXIS_NAMESPACE) && 
       														($2->testType>1)){
       																printf("%s axis can't operate on comment(), pi(), or text()\n", getAxisString($1));
       																throwException2(xpath_parse_exception," attr|descedant|preceding|following|following-sibling|preceding-sibling axis can't operate on comment(), pi(), or text()");
@@ -508,7 +509,17 @@ NodeTest	:    NAME 				{ Try {
 	 	|    NTEST				{ Try{
 	 								$$ = createNodeTest();
 	 								addObj($$);
-	 								setTestType($$,$1.nt);
+	 								if ($1.nt !=3)
+	 									setTestType($$,$1.nt);
+	 								else {
+	 									if ($1.arg == NULL)
+	 										setTestType($$, $1.nt);
+	 									else{
+	 										setTestType($$,4);
+	 										setNodeName($$, $1.arg);
+	 									}
+	 								}
+	 								//setTestType($$,$1.nt);
 	 								}
 	 								Catch(e){
 	 									//freeAllObj();

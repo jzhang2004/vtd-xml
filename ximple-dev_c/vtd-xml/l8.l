@@ -43,6 +43,8 @@ static int i;
 int isName;
 int colonPosition;
 int num_chars;
+int tmp1,tmp2;
+UCSChar *c1, *c2;
 %}
 %option noyywrap
 
@@ -456,6 +458,47 @@ node{ws}*"("{ws}*")"	{
 				yylval.ntest.arg = NULL;
 				return NTEST;
 			}
+
+			
+processing-instruction{ws}*"("{ws}*'[^']*'{ws}*")"	{
+						isName = 0;
+						//ntest = new Ntest();
+						//ntest.i = Ntest.PROCESSING_INSTRUCTION;
+						//ntest.arg = getArgument('\'', yytext());
+						//System.out.println(" !!!!!!!!!!!argument ==>" +ntest.arg);
+						//return sym(NTEST,ntest);
+						yylval.ntest.nt = NT_PI1;
+						c1 = wcsrchr(yytext,'\'');
+						c2 = wcschr(yytext,'\'');
+						yylval.ntest.arg = (UCSChar *)malloc (sizeof(UCSChar)*(c1-c2-1));
+						if (yylval.ntest.arg == NULL)
+							return ERROR;
+						addObj(yylval.ntest.arg);
+						wcsncpy(yylval.ntest.arg, c2+1, c1-c2-1);
+						yylval.ntest.arg = NULL;
+						return NTEST;
+					}
+					
+processing-instruction{ws}*"("{ws}*\"[^\"]*\"{ws}*")"	{
+						isName = 0;
+						//ntest = new Ntest();
+						//ntest.i = Ntest.PROCESSING_INSTRUCTION;
+						//ntest.arg = getArgument('"',yytext());
+						//System.out.println(" !!!!!!!!!!!argument ==>" +ntest.arg);
+						//return sym(NTEST,ntest);
+						yylval.ntest.nt = NT_PI1;
+						c1 = wcsrchr(yytext,'"');
+						c2 = wcschr(yytext,'"');
+						yylval.ntest.arg = (UCSChar *)malloc (sizeof(UCSChar)*(c1-c2-1));
+						if (yylval.ntest.arg == NULL)
+							return ERROR;
+						addObj(yylval.ntest.arg);
+						wcsncpy(yylval.ntest.arg, c2+1, c1-c2-1);
+						
+						//yylval.ntest.arg = 
+						yylval.ntest.arg = NULL;
+						return NTEST;
+					}
 
 processing-instruction{ws}*"("{ws}*")"	{
 						isName = 0;
