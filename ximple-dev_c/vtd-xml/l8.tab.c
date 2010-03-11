@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
@@ -433,8 +433,8 @@ static const unsigned short yyrline[] =
      224,   234,   246,   247,   260,   270,   287,   288,   289,   307,
      335,   336,   349,   350,   351,   360,   368,   369,   377,   389,
      390,   399,   412,   416,   428,   443,   444,   445,   448,   449,
-     453,   457,   480,   484,   508,   520,   521,   526,   527,   530,
-     531,   534,   548,   566,   584,   606,   618,   637
+     453,   457,   481,   485,   509,   531,   532,   537,   538,   541,
+     542,   545,   559,   577,   595,   617,   629,   648
 };
 #endif
 
@@ -1727,7 +1727,8 @@ yyreduce:
       														|| yyvsp[-2].at == AXIS_PRECEDING
       														|| yyvsp[-2].at == AXIS_FOLLOWING
       														|| yyvsp[-2].at == AXIS_FOLLOWING_SIBLING
-      														|| yyvsp[-2].at == AXIS_PRECEDING_SIBLING) && 
+      														|| yyvsp[-2].at == AXIS_PRECEDING_SIBLING
+      														|| yyvsp[-2].at == AXIS_NAMESPACE) && 
       														(yyvsp[-1].nodetest->testType>1)){
       																printf("%s axis can't operate on comment(), pi(), or text()\n", getAxisString(yyvsp[-2].at));
       																throwException2(xpath_parse_exception," attr|descedant|preceding|following|following-sibling|preceding-sibling axis can't operate on comment(), pi(), or text()");
@@ -1743,12 +1744,12 @@ yyreduce:
     break;
 
   case 52:
-#line 480 "l8.y"
+#line 481 "l8.y"
     {yyval.s = yyvsp[0].s;;}
     break;
 
   case 53:
-#line 484 "l8.y"
+#line 485 "l8.y"
     { Try {
 										yyval.nodetest = createNodeTest();
 										addObj(yyval.nodetest);
@@ -1776,11 +1777,21 @@ yyreduce:
     break;
 
   case 54:
-#line 508 "l8.y"
+#line 509 "l8.y"
     { Try{
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
-	 								setTestType(yyval.nodetest,yyvsp[0].ntest.nt);
+	 								if (yyvsp[0].ntest.nt !=3)
+	 									setTestType(yyval.nodetest,yyvsp[0].ntest.nt);
+	 								else {
+	 									if (yyvsp[0].ntest.arg == NULL)
+	 										setTestType(yyval.nodetest, yyvsp[0].ntest.nt);
+	 									else{
+	 										setTestType(yyval.nodetest,4);
+	 										setNodeName(yyval.nodetest, yyvsp[0].ntest.arg);
+	 									}
+	 								}
+	 								//setTestType($$,$1.nt);
 	 								}
 	 								Catch(e){
 	 									//freeAllObj();
@@ -1790,39 +1801,39 @@ yyreduce:
     break;
 
   case 55:
-#line 520 "l8.y"
+#line 531 "l8.y"
     { yyval.p = NULL;;}
     break;
 
   case 56:
-#line 521 "l8.y"
+#line 532 "l8.y"
     { yyvsp[-1].p->nextP = yyvsp[0].p;
 	     									yyval.p = yyvsp[-1].p;	
 	     								  ;}
     break;
 
   case 57:
-#line 526 "l8.y"
+#line 537 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 58:
-#line 527 "l8.y"
+#line 538 "l8.y"
     {yyval.at  = yyvsp[0].at;;}
     break;
 
   case 59:
-#line 530 "l8.y"
+#line 541 "l8.y"
     { /*printf("abbreviated child axis \n");*/yyval.at  = AXIS_CHILD;;}
     break;
 
   case 60:
-#line 531 "l8.y"
+#line 542 "l8.y"
     {yyval.at = AXIS_ATTRIBUTE;;}
     break;
 
   case 61:
-#line 534 "l8.y"
+#line 545 "l8.y"
     {Try{
 								yyval.s = createStep();
 								addObj(yyval.s);
@@ -1840,7 +1851,7 @@ yyreduce:
     break;
 
   case 62:
-#line 548 "l8.y"
+#line 559 "l8.y"
     {
 					Try{
 						yyval.s = createStep();
@@ -1860,7 +1871,7 @@ yyreduce:
     break;
 
   case 63:
-#line 566 "l8.y"
+#line 577 "l8.y"
     {
 																Try{
 																	yyval.s = createStep();
@@ -1880,7 +1891,7 @@ yyreduce:
     break;
 
   case 64:
-#line 584 "l8.y"
+#line 595 "l8.y"
     {
 																	Try{
 																		yyval.s= createStep();
@@ -1903,7 +1914,7 @@ yyreduce:
     break;
 
   case 65:
-#line 606 "l8.y"
+#line 617 "l8.y"
     {
 							   Try {
 									yyval.p = createPredicate();
@@ -1917,7 +1928,7 @@ yyreduce:
     break;
 
   case 66:
-#line 618 "l8.y"
+#line 629 "l8.y"
     {
 								Try {
 								    //addObj($2);
@@ -1938,7 +1949,7 @@ yyreduce:
     break;
 
   case 67:
-#line 637 "l8.y"
+#line 648 "l8.y"
     {yyval.fname  = yyvsp[0].fname;;}
     break;
 
@@ -1946,7 +1957,7 @@ yyreduce:
     }
 
 /* Line 991 of yacc.c.  */
-#line 1932 "l8.tab.c"
+#line 1943 "l8.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2155,7 +2166,7 @@ yyreturn:
 }
 
 
-#line 640 "l8.y"
+#line 651 "l8.y"
 
 extern unsigned short *xpathInput;
 extern unsigned short *xpathInputPtr;
@@ -2195,6 +2206,5 @@ expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el){
 	}
 	
 }
-
 
 

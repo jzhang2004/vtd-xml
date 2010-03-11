@@ -467,7 +467,7 @@ processing-instruction{ws}*"("{ws}*'[^']*'{ws}*")"	{
 						//ntest.arg = getArgument('\'', yytext());
 						//System.out.println(" !!!!!!!!!!!argument ==>" +ntest.arg);
 						//return sym(NTEST,ntest);
-						yylval.ntest.nt = NT_PI1;
+						yylval.ntest.nt = NT_PI0;
 						c1 = wcsrchr(yytext,'\'');
 						c2 = wcschr(yytext,'\'');
 						yylval.ntest.arg = (UCSChar *)malloc (sizeof(UCSChar)*(c1-c2-1));
@@ -475,7 +475,7 @@ processing-instruction{ws}*"("{ws}*'[^']*'{ws}*")"	{
 							return ERROR;
 						addObj(yylval.ntest.arg);
 						wcsncpy(yylval.ntest.arg, c2+1, c1-c2-1);
-						yylval.ntest.arg = NULL;
+						//yylval.ntest.arg = NULL;
 						return NTEST;
 					}
 					
@@ -486,7 +486,7 @@ processing-instruction{ws}*"("{ws}*\"[^\"]*\"{ws}*")"	{
 						//ntest.arg = getArgument('"',yytext());
 						//System.out.println(" !!!!!!!!!!!argument ==>" +ntest.arg);
 						//return sym(NTEST,ntest);
-						yylval.ntest.nt = NT_PI1;
+						yylval.ntest.nt = NT_PI0;
 						c1 = wcsrchr(yytext,'"');
 						c2 = wcschr(yytext,'"');
 						yylval.ntest.arg = (UCSChar *)malloc (sizeof(UCSChar)*(c1-c2-1));
@@ -496,7 +496,7 @@ processing-instruction{ws}*"("{ws}*\"[^\"]*\"{ws}*")"	{
 						wcsncpy(yylval.ntest.arg, c2+1, c1-c2-1);
 						
 						//yylval.ntest.arg = 
-						yylval.ntest.arg = NULL;
+						//yylval.ntest.arg = NULL;
 						return NTEST;
 					}
 
