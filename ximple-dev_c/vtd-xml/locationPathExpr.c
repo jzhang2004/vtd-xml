@@ -29,7 +29,20 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn);
 static int process_parent(locationPathExpr *lpe, VTDNav *vn);
 static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn);
 static int process_self(locationPathExpr *lpe, VTDNav *vn);
+static void selectNodeType(locationPathExpr *lpe, TextIter *ti);
 
+static void selectNodeType(locationPathExpr *lpe, TextIter *ti){
+		if (lpe->currentStep->nt->testType == NT_TEXT )
+			selectText(ti);
+		else if (lpe->currentStep->nt->testType == NT_COMMENT )
+			selectComment(ti);
+		else if (lpe->currentStep->nt->testType == NT_PI0 )
+			selectPI0(ti);
+		else {
+			selectPI1(ti,lpe->currentStep->nt->nodeName);
+		}
+		
+	}
 
 
 UCSChar *axisName(axisType i){
@@ -59,22 +72,35 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 	Boolean b = FALSE;
 	Predicate *tp = NULL;
     int i = 0;
-    AutoPilot *ap;
+    AutoPilot *ap = (AutoPilot *)lpe->currentStep->o;
 	UCSChar *helper = NULL;
 	switch(lpe->currentStep->axis_type){
     	case AXIS_CHILD:
-    	    b = toElement(vn,FIRST_CHILD);
-    		if (b) {
-    		    do {
-					if (eval_s2(lpe->currentStep,vn, p)) {
-                       	i++;
-    		        }
-    		    } while (toElement(vn, NEXT_SIBLING));
-    		    toElement(vn,PARENT);
+			if (lpe->currentStep->nt->testType < NT_TEXT){
+    			b = toElement(vn,FIRST_CHILD);
+    			if (b) {
+    				do {
+						if (eval_s2(lpe->currentStep,vn, p)) {
+							i++;
+    					}
+    				} while (toElement(vn, NEXT_SIBLING));
+    				toElement(vn,PARENT);
+					resetP2_s(lpe->currentStep,vn,p);
+    				return i;
+   				} else
+    				return 0;
+			}else {
+				TextIter* ti = createTextIter();
+	    	    touch(ti,vn);
+	    	    selectNodeType(lpe,ti);
+	    	    while((getNext(ti))!=-1){
+	    	        if (evalPredicates2(lpe->currentStep,vn,p)){
+	    	            i++;
+	    	        }
+	    	    }
 				resetP2_s(lpe->currentStep,vn,p);
-    		    return i;
-   			} else
-    		    return 0;
+	    	    return i;
+			}
 
 		case AXIS_DESCENDANT_OR_SELF:
 		case AXIS_DESCENDANT:
@@ -83,10 +109,15 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 
 			if (lpe->currentStep->nt->testType == NT_NODE){
 				helper = L"*";
-			}else {
+			}else if (lpe->currentStep->nt->testType == NT_NAMETEST){
 				helper = lpe->currentStep->nt->nodeName;
-			}
-			ap = createAutoPilot(vn);
+			}else    			
+				throwException2(xpath_eval_exception,
+				   "can't run descendant following, or following-sibling axis over comment(), pi(), and text()");
+			if (ap==NULL)
+					ap = createAutoPilot(vn);
+				else
+					bind(ap,vn);
 			if (lpe->currentStep->axis_type == AXIS_DESCENDANT_OR_SELF )
 				if (lpe->currentStep->nt->testType == NT_NODE)
 					setSpecial(ap,TRUE);
@@ -580,7 +611,7 @@ static int process_ancestor(locationPathExpr *lpe, VTDNav *vn){
 }
 static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 	AutoPilot *ap = NULL;
-	Boolean b = FALSE, b1 = FALSE;
+	Boolean b1 = FALSE;
 	Predicate *t= NULL;
 	int temp;
 	switch(lpe->state){
@@ -623,10 +654,13 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 						ap = lpe->currentStep->o;
 						bind(ap,vn);
 					}
-					if (lpe->currentStep->nt->localName!=NULL)
+					if (lpe->currentStep->nt->localName== NT_NODE)
 						selectAttrNS(ap,lpe->currentStep->nt->URL,
-						lpe->currentStep->nt->localName);
-					else
+							lpe->currentStep->nt->localName);
+					else if (lpe->currentStep->nt->localName != NULL)
+						selectAttrNS(ap,lpe->currentStep->nt->URL,
+                                lpe->currentStep->nt->localName);
+					else 
 						selectAttr(ap,lpe->currentStep->nt->nodeName);
 					lpe->currentStep->ft = FALSE;
 				}
@@ -738,8 +772,8 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 				"unknown state");
 	}
 	return -2;
-
 }
+
 static int process_child(locationPathExpr *lpe, VTDNav *vn){
 	int result;
 	Boolean b = FALSE, b1 = FALSE;
@@ -747,7 +781,7 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 
 	switch(lpe->state){
 				case XPATH_EVAL_START:
-					if (lpe->currentStep->nt->testType != NT_TEXT){
+					if (lpe->currentStep->nt->testType < NT_TEXT){
 						/* first search for any predicate that
 						// requires contextSize
 						// if so, compute its context size
@@ -825,6 +859,7 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 						        ti = createTextIter();
 						        lpe->currentStep->o = (struct autoPilot *)ti;
 						    }
+							selectNodeType(lpe,ti);
 						    touch(ti,vn);
 						    lpe->state = XPATH_EVAL_END;
 						    while((result = getNext(ti))!=-1){
@@ -865,7 +900,7 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 					return -1;
 
 				case XPATH_EVAL_FORWARD:
-					if (lpe->currentStep->nt->testType != NT_TEXT){
+					if (lpe->currentStep->nt->testType < NT_TEXT){
 						t = lpe->currentStep->p;
 						while(t!=NULL){
 							if (requireContextSize_p(t)){
@@ -942,6 +977,7 @@ forward:;
 						        lpe->currentStep->o = (struct autoPilot *)ti;
 						    }
 						    touch(ti,vn);
+							selectNodeType(lpe,ti);
 						    //result = ti.getNext();
 
 						    while((result = getNext(ti))!=-1){
@@ -980,7 +1016,7 @@ forward:;
 					break;
 
 				case XPATH_EVAL_BACKWARD:
-					if (lpe->currentStep->nt->testType != NT_TEXT) {
+					if (lpe->currentStep->nt->testType < NT_TEXT) {
 						b = FALSE;
 						while (toElement(vn,NEXT_SIBLING)) {
 							if (eval_s(lpe->currentStep,vn)) {
@@ -1014,7 +1050,7 @@ forward:;
 					break;
 
 				case XPATH_EVAL_TERMINAL:
-					if (lpe->currentStep->nt->testType != NT_TEXT) {
+					if (lpe->currentStep->nt->testType < NT_TEXT) {
 						while (toElement(vn,NEXT_SIBLING)) {
 							if (eval_s(lpe->currentStep,vn)) {
 								result = getCurrentIndex(vn);
@@ -1104,11 +1140,13 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 
 
 				helper = NULL;
-				if (lpe->currentStep->nt->testType == NT_NODE){
-					helper = L"*";
-				}else {
+				if (lpe->currentStep->nt->testType == NT_NAMETEST){
 					helper = lpe->currentStep->nt->nodeName;
-				}
+				}else if (lpe->currentStep->nt->testType == NT_NODE){
+					helper = L"*";
+				}else
+    				throwException2(xpath_eval_exception,
+					"can't run descendant following, or following-sibling axis over comment(), pi(), and text()"); 
 				if (lpe->currentStep->o == NULL)
 					lpe->currentStep->o = ap = createAutoPilot(vn);
 				else{
@@ -1700,8 +1738,19 @@ void toString_nt(NodeTest *nt, UCSChar *string){
 			break;
 		case NT_NODE: wprintf(L"node()");break;
 		case NT_TEXT: wprintf(L"text()");break;
-		case NT_PI0:
-		case NT_PI1: wprintf(L"processing-instruction()");break;
+		case NT_PI0:  wprintf(L"processing-instruction()");break;
+		case NT_PI1: wprintf(L"processing-instruction(");
+			if (wcschr(nt->nodeName,'"')!=NULL){
+				wprintf(L"'");
+				wprintf(nt->nodeName);
+				wprintf(L"'");
+			}else{
+				wprintf(L"\"");
+				wprintf(nt->nodeName);
+				wprintf(L"\"");
+			}
+			         wprintf(L")");
+					 break;
 		default:  wprintf(L"comment()");
 	}
 }
@@ -2158,7 +2207,7 @@ void setStep(locationPathExpr *lpe, Step* st){
 int adjust_lpe(locationPathExpr *lpe, int n){
 	int i;
 	if (lpe->pathType == RELATIVE_PATH){
-		i= min(5,determineHashWidth(n));//hashwidth 64
+		i= min(6,determineHashWidth(n));//hashwidth 64
 	} else {
 		i=determineHashWidth(n);
 	}
