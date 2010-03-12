@@ -96,7 +96,12 @@ Boolean setCursorPosition(BookMark *bm, VTDNav *vn){
 Boolean setCursorPosition2(BookMark *bm){
 	return setCursorPosition(bm,bm->vn1);
 }
-
+/**
+* Record the cursor position
+* This method is implemented to be lenient on loading in
+* that it can load nodes from any VTDNav object
+* if vn is null, return false
+*/
 Boolean recordCursorPosition(BookMark *bm, VTDNav *vn){
 	int i;
 	if (vn == NULL)
@@ -122,6 +127,51 @@ Boolean recordCursorPosition(BookMark *bm, VTDNav *vn){
 		(vn->LN | 0x80000000) : vn->LN ;
 	return TRUE;
 }
+
+/**
+* Record cursor position of the VTDNav object as embedded in the
+* bookmark
+*/
 Boolean recordCursorPosition2(BookMark *bm){
 	return recordCursorPosition(bm,bm->vn1);
+}
+
+/**
+* Compare the bookmarks to ensure they represent the same
+* node in the same VTDnav instance
+*/
+Boolean equal4BookMark(BookMark *bm1, BookMark *bm2){
+	if (bm1 == bm2)
+		return TRUE;
+	return deepEqual4BookMark(bm1,bm2);
+}
+/**
+* Returns the hash code which is a unique integer for every node
+*/
+int hashCode4BookMark(BookMark *bm){
+	if (bm->ba == NULL || bm->vn1==NULL || bm->ba[0]==-2)
+		return -2;
+	if (bm->vn1->atTerminal)
+		return bm->vn1->LN;
+	if (bm->ba[0]==1)
+		return bm->vn1->rootIndex;
+	return bm->ba[bm->ba[0]];
+}
+/**
+* Compare the bookmarks to ensure they represent the same
+* node in the same VTDnav instance
+*/
+   
+Boolean deepEqual4BookMark(BookMark *bm1, BookMark *bm2){
+	if (bm2->vn1 == bm1->vn1){
+		if (bm2->ba[bm2->ba[0]]==bm1->ba[bm1->ba[0]]){
+			if (bm1->ba[bm1->vn1->nestingLevel+7] < 0){
+				if (bm1->ba[bm1->vn1->nestingLevel+7]
+				!= bm2->ba[bm1->vn1->nestingLevel+7])
+					return FALSE;
+			}
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
