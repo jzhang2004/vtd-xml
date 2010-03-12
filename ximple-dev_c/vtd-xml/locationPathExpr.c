@@ -654,7 +654,7 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 						ap = lpe->currentStep->o;
 						bind(ap,vn);
 					}
-					if (lpe->currentStep->nt->localName== NT_NODE)
+					if (lpe->currentStep->nt->testType== NT_NODE)
 						selectAttrNS(ap,lpe->currentStep->nt->URL,
 							lpe->currentStep->nt->localName);
 					else if (lpe->currentStep->nt->localName != NULL)
