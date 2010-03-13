@@ -700,6 +700,6 @@ typedef struct exprList {
 expr *getExprFromList(ExprList *el, UCSChar *varName);
 expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el);
 
-
+int getStringIndex(expr *exp, VTDNav *vn);
 
 #endif

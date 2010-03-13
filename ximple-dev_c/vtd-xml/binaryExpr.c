@@ -635,3 +635,42 @@ int adjust_be(binaryExpr *be, int n){
 	int j = be->right->adjust(be->right,n);
 	return min(i,j);
 }
+
+int getStringIndex(expr *exp, VTDNav *vn){
+	int a = -1,size;
+	exception e;
+	push2(vn);
+	size = vn->contextBuf2->size;
+	Try
+	{
+		a = exp->evalNodeSet(exp,vn);
+		if (a != -1)
+		{
+			int t = getTokenType(vn,a);
+			if (t == TOKEN_ATTR_NAME)
+			{
+				a++;
+			}
+			else if (getTokenType(vn,a) == TOKEN_STARTING_TAG)
+			{
+				a = getText(vn);
+			}
+			else if (t == TOKEN_PI_NAME)
+			{
+				if (a + 1 < vn->vtdSize && getTokenType(vn,a + 1) == TOKEN_PI_VAL)
+					a = a + 1;
+				else
+					a = -1;
+			}
+		}
+	}
+	Catch (e)
+	{
+
+	}
+	vn->contextBuf2->size = size;
+	exp->reset(exp,vn);
+	pop2(vn);
+	return a;
+
+}
