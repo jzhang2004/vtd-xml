@@ -558,8 +558,8 @@ void writeFragmentToFile2(ElementFragmentNs *ef, FILE *ost, encoding_t dest_enco
 				//ost.write(ws,1,2);
 				Transcoder_transcodeAndWrite(ws,ost,1,2, enc,dest_encoding );
 				//os1 += 2;
-				tos = getTokenOffset(ef->vn,intAt(ef->vn,i))<<1;
-				tlen= (getTokenLength(ef->vn,intAt(ef->vn,i)) & 0xffff)<<1;
+				tos = getTokenOffset(ef->vn,intAt(ef->fib,i))<<1;
+				tlen= (getTokenLength(ef->vn,intAt(ef->fib,i)) & 0xffff)<<1;
 				//System.arraycopy(xml,tos,ba,os1,tlen);
 				//ost.write(xml,tos,tlen);
 				Transcoder_transcodeAndWrite(xml,ost,tos,tlen, enc,dest_encoding );
