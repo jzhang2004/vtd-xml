@@ -142,7 +142,11 @@ int	evalNodeSet_une (unionExpr *e,VTDNav *vn){
 double	evalNumber_une (unionExpr *e,VTDNav *vn){
 	double d = 0.0;
 	exception ee;
-	int a = getStringIndex((expr *)e,vn);
+	int a;
+	if (e->fe->isNodeSet(e->fe)==FALSE){   
+		return e->fe->evalNumber(e->fe,vn);   
+	}
+	a = getStringIndex((expr *)e,vn);
 	Try{
 		if (a!=-1) return parseDouble(vn,a);
 	}Catch (ee){
@@ -151,8 +155,11 @@ double	evalNumber_une (unionExpr *e,VTDNav *vn){
 }
 UCSChar* evalString_une  (unionExpr *e,VTDNav *vn){
 	exception ee;
-	int size;
-	int a = getStringIndex((expr *)e,vn);
+	int a;
+	if (e->fe->isNodeSet(e->fe)==FALSE){   
+		return e->fe->evalString(e->fe,vn);   
+	}
+	a = getStringIndex((expr *)e,vn);
 	Try {
 		if (a != -1)
 			return toString(vn,a);
