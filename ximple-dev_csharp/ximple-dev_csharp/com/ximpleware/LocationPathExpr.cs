@@ -476,7 +476,7 @@ forward_brk: ;
                             ti.touch(vn);
                             selectNodeType(ti);
                             //result = ti.getNext();
-                            state = END;
+                            //state = END;
                             while ((result = ti.getNext()) != -1)
                             {
                                 if (currentStep.evalPredicates(vn))
