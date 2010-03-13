@@ -36,7 +36,8 @@ typedef enum iter_type { UNDEFINED,
 						PRECEDING,
 						PRECEDING_NS,
 						ATTR,
-						ATTR_NS} iterType;
+						ATTR_NS,
+						NAMESPACE} iterType;
 
 
 
@@ -46,6 +47,7 @@ typedef struct autoPilot{
 	UCSChar *URL;
 	UCSChar *localName;
 	UCSChar *elementName;
+	UCSChar *elementName2;
 	int depth;
 	VTDNav *vn;
 	int index; /* for iterAttr*/
