@@ -974,7 +974,7 @@ forward:;
 						        ti = (TextIter*) lpe->currentStep->o;
 						    } else {
 						        ti = createTextIter();
-						        lpe->currentStep->o = (struct autoPilot *)ti;
+						        lpe->currentStep->o = (AutoPilot *)ti;
 						    }
 						    touch(ti,vn);
 							selectNodeType(lpe,ti);
