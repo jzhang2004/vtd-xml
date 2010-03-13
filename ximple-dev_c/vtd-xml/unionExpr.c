@@ -142,27 +142,7 @@ int	evalNodeSet_une (unionExpr *e,VTDNav *vn){
 double	evalNumber_une (unionExpr *e,VTDNav *vn){
 	double d = 0.0;
 	exception ee;
-	int a = -1;
-	int size;
-	if (e->fe->isNodeSet(e->fe)==FALSE){
-		return e->fe->evalNumber(e->fe,vn);
-	}
-	push2(vn);
-	size = vn->contextBuf2->size;
-	Try {
-		a =evalNodeSet_une(e,vn);
-		if (a!=-1){
-			if (getTokenType(vn,a)== TOKEN_ATTR_NAME){
-				a ++;
-			}else if (getTokenType(vn,a)== TOKEN_STARTING_TAG) {
-				a = getText(vn);
-			}
-		}			  
-	} Catch (ee){
-	}
-	vn->contextBuf2->size = size;
-	reset_une(e,vn);
-	pop2(vn);
+	int a = getStringIndex((expr *)e,vn);
 	Try{
 		if (a!=-1) return parseDouble(vn,a);
 	}Catch (ee){
@@ -172,29 +152,7 @@ double	evalNumber_une (unionExpr *e,VTDNav *vn){
 UCSChar* evalString_une  (unionExpr *e,VTDNav *vn){
 	exception ee;
 	int size;
-	int a = -1;
-	if (e->fe->isNodeSet(e->fe)==FALSE){
-		return e->fe->evalString(e->fe,vn);
-	}
-	push2(vn);
-	size = vn->contextBuf2->size;
-
-	Try {
-		a = evalNodeSet_une(e,vn);
-		if (a != -1) {
-			if (getTokenType(vn,a) == TOKEN_ATTR_NAME) {
-				a++;
-			}
-			if (getTokenType(vn,a) == TOKEN_STARTING_TAG) {
-				a = getText(vn);
-			}
-		}
-
-	} Catch (ee) {
-	}
-	vn->contextBuf2->size = size;
-	reset_une(e,vn);
-	pop2(vn);
+	int a = getStringIndex((expr *)e,vn);
 	Try {
 		if (a != -1)
 			return toString(vn,a);

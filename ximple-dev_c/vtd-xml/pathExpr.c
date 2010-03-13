@@ -125,24 +125,7 @@ double	evalNumber_pe (pathExpr *pe,VTDNav *vn){
 
 	double d = 0.0;
 	exception e;
-	int a = -1;
-	int size;
-	push2(vn);
-	size = vn->contextBuf2->size;
-	Try {
-		a =evalNodeSet_pe(pe,vn);
-		if (a!=-1){
-			if (getTokenType(vn,a)== TOKEN_ATTR_NAME){
-				a ++;
-			}else if (getTokenType(vn,a)== TOKEN_STARTING_TAG) {
-				a = getText(vn);
-			}
-		}
-	} Catch (e){
-	}
-	vn->contextBuf2->size = size;
-	reset_pe(pe,vn);
-	pop2(vn);
+	int a = getStringIndex((expr *)pe,vn);
 	Try{
 		if (a!=-1) return parseDouble(vn,a);
 	}Catch (e){
@@ -152,23 +135,7 @@ double	evalNumber_pe (pathExpr *pe,VTDNav *vn){
 
 UCSChar* evalString_pe  (pathExpr *pe,VTDNav *vn){
 	exception e;
-	int size = vn->contextBuf2->size ,a = -1;
-	push2(vn);
-	Try {
-		a = evalNodeSet_pe(pe,vn);
-		if (a != -1) {
-			if (getTokenType(vn,a) == TOKEN_ATTR_NAME) {
-				a++;
-			}
-			if (getTokenType(vn,a) == TOKEN_STARTING_TAG) {
-				a = getText(vn);
-			}
-		}
-	} Catch (e) {
-	}
-	vn->contextBuf2->size = size;
-	reset_pe(pe,vn);
-	pop2(vn);
+	int a = getStringIndex((expr *)pe,vn);
 	Try {
 		if (a != -1)
 			return toString(vn,a);
