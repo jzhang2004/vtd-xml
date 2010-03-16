@@ -567,7 +567,7 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 	ap->xpe = xpathParse(s, nl,el);
 	ap->ft = TRUE;
 	if (ap->xpe == NULL){
-		throwException2(xpath_parse_exception, "variable expr declaration failed ");
+		throwException2(xpath_parse_exception, "Invalid XPath expression");
 		return FALSE;
 	}
 	return TRUE;
