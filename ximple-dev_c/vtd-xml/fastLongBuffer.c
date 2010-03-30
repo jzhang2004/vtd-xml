@@ -230,7 +230,7 @@ Long *getLongArray(FastLongBuffer *flb, int offset, int len){
 		|| offset < 0 
 		|| len <0 
 		|| offset + len > flb->size) {
-			throwException2(out_of_mem,
+			throwException2(invalid_argument,
 				"Invalid argument for getLongArray in FastLongBuffer");
 		}
    
