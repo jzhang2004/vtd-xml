@@ -100,6 +100,7 @@ VTDNav *getNav(VTDGen *vg);
 // One specifies whether the parsing is namespace aware or not.
 void parse(VTDGen *vg, Boolean ns);
 
+// Generating VTD tokens and Location cache info for an XML file
 Boolean parseFile(VTDGen *vg, Boolean ns,char *fileName);
 
 // Set the XMLDoc container.
