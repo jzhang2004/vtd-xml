@@ -122,8 +122,8 @@ void appendIntArray(FastIntBuffer *fib, int* int_array, int len){
 	if (fib->al->size == 0){
 		lastBuffer = (int *)malloc(sizeof(int)<<fib->exp);
 		if(lastBuffer==NULL){
-			throwException2(invalid_argument,
-				"invalid argument for appendIntArray in FastIntBuffer");
+			throwException2(out_of_mem,
+				"out of memory for appendIntArray in FastIntBuffer");
 		}       
 		add(fib->al,lastBuffer);
 		lastBufferIndex = 0;
