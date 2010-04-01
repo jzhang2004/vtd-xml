@@ -1691,4 +1691,25 @@ public class XMLModifier {
             removeContent(temp+2 , len<<1);
         }
     }
+
+    
+    /**
+     * outAndReparse writes updated XML content into a new byte
+     * array, then parse and return a new VTDNav object 
+     * @return VTDNav encapsulating update XML documents
+     * @throws ParseException
+     * @throws IOException
+     * @throws TranscodeException
+     * @throws ModifyException
+     */
+    public VTDNav outputAndReparse() throws ParseException, IOException,TranscodeException,ModifyException{
+    	XMLByteOutputStream xbos = new XMLByteOutputStream(getUpdatedDocumentSize());
+    	output(xbos);
+    	VTDGen vg = new VTDGen();
+    	vg.setDoc(xbos.getXML());
+    	vg.parse(this.md.ns);
+    	return vg.getNav();
+    }
+    
+    
 }
