@@ -1598,5 +1598,15 @@ namespace com.ximpleware
             insertAfterHead(vn.encoding, vn.XMLDoc.getBytes(), l1);
         }
 
+        public VTDNav outputAndReparse()
+        {
+            XMLByteStream xbos = new XMLByteStream(getUpdatedDocumentSize());
+            output(xbos);
+            VTDGen vg = new VTDGen();
+            vg.setDoc(xbos.getXML());
+            vg.parse(this.md.ns);
+            return vg.getNav();
+        }
+
     }
 }
