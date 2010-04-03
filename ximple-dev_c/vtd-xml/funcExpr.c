@@ -627,10 +627,10 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 									"round()'s  <funcExpr> argument count is invalid");
 							}
 			case FN_ABS:    if (argCount(fne)==1 )
-								return abs(fne->al->e->evalNumber(fne->al->e,vn));
+								return fabs(fne->al->e->evalNumber(fne->al->e,vn));
 							else {
 								throwException2(invalid_argument,
-									"round()'s  <funcExpr> argument count is invalid");
+									"abs()'s  <funcExpr> argument count is invalid");
 							}
 			case FN_ROUND_HALF_TO_EVEN:
 							return roundHalfToEven(fne, vn);
@@ -1325,7 +1325,7 @@ static double roundHalfToEvenPositive(double value, long precision){
 	    else if (precision < 0)value /= dec;
 	    	    
 	    //'value' is exctly halfway between two integers
-	    if(abs(value -((double)intPart +(double)0.5)) < ROUNDING_EPSILON){
+	    if(fabs(value -((double)intPart +(double)0.5)) < ROUNDING_EPSILON){
 	    	// 'ipart' is even 
 	    	if(intPart%2 == 0){
 	    		result = intPart;
