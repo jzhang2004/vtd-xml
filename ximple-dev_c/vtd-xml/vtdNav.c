@@ -1004,7 +1004,7 @@ Boolean hasAttr(VTDNav *vn, UCSChar *an){
 	int index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 
 	if (vn->context[0]==-1) 
-		return -1;
+		return FALSE;
 
 	if (index >= size)
 		return FALSE;
@@ -2929,7 +2929,7 @@ int getCurrentIndex2(VTDNav *vn){
 * <pre>   3  UTF-16BE    </pre>
 * <pre>   4  UTF-16LE    </pre>
 */
-encoding_t getEncoding(VTDNav *vn){
+inline encoding_t getEncoding(VTDNav *vn){
 	return vn->encoding;
 }
 
@@ -2937,16 +2937,16 @@ encoding_t getEncoding(VTDNav *vn){
 // max depth is nestingLevel -1
 
 // max depth is nestingLevel -1
-int getNestingLevel(VTDNav *vn){
+inline int getNestingLevel(VTDNav *vn){
 	return vn->nestingLevel;
 }
 // Get root index value.
-int getRootIndex(VTDNav *vn){
+inline int getRootIndex(VTDNav *vn){
 	return vn->rootIndex;
 }
 
 //Get total number of VTD tokens for the current XML document.
-int getTokenCount(VTDNav *vn){
+inline int getTokenCount(VTDNav *vn){
 	return vn->vtdSize;
 }
 
@@ -2957,7 +2957,7 @@ int getTokenCount(VTDNav *vn){
 * when a step calls for @* or child::text()
 */
 
-void setAtTerminal(VTDNav* vn, Boolean b){
+inline void setAtTerminal(VTDNav* vn, Boolean b){
 	vn->atTerminal = b;
 }
 
@@ -2965,12 +2965,12 @@ void setAtTerminal(VTDNav* vn, Boolean b){
 * Get the value of atTerminal
 * This function only gets called in XPath eval
 */
-Boolean getAtTerminal(VTDNav *vn){
+inline Boolean getAtTerminal(VTDNav *vn){
 	return vn->atTerminal;
 }
 
 
-int swap_bytes(int i){
+inline int swap_bytes(int i){
 	return (((i & 0xff) << 24) |
 		((i & 0xff00) <<8) |
 		((i & 0xff0000) >> 8) |
@@ -3547,7 +3547,7 @@ ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
 								int z = 0;
 								for (z=0;z<fib->size;z++){
 									//System.out.println("fib size ==> "+fib.size());
-									if (fib->size==4);
+									//if (fib->size==4);
 									if (matchTokens(vn, intAt(fib,z),vn,k)){
 										unique = FALSE;
 										break;
@@ -4234,7 +4234,7 @@ VTDNav *cloneNav(VTDNav *vn){
 		vn->docOffset,
 		vn->docLen,
 		vn->br);	
-	vn->master = FALSE;
+	vn1->master = FALSE;
 	vn1->atTerminal = vn->atTerminal;
 	vn1->LN = vn->LN;
 	if (vn->context[0]!=-1)

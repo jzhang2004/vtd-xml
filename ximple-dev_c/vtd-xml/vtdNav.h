@@ -324,13 +324,18 @@ UCSChar *toString2(VTDNav *vn, int os, int len);
  * when a step calls for @* or child::text()
  */
 
-void setAtTerminal(VTDNav* vn, Boolean b);
-
+//inline void setAtTerminal(VTDNav* vn, Boolean b);
+extern inline void setAtTerminal(VTDNav* vn, Boolean b);/*{
+	vn->atTerminal = b;
+}*/
 /**
  * Get the value of atTerminal
  * This function only gets called in XPath eval
  */
-Boolean getAtTerminal(VTDNav *vn);
+//inline Boolean getAtTerminal(VTDNav *vn);
+extern inline Boolean getAtTerminal(VTDNav *vn);/*{
+	return vn->atTerminal;
+}*/
 
 extern inline int swap_bytes(int i);
 int lookupNS(VTDNav *vn);
