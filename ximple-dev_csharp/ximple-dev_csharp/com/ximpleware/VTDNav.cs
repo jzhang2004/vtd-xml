@@ -4201,11 +4201,11 @@ namespace com.ximpleware
             System.Text.StringBuilder sb = new System.Text.StringBuilder(len);
             //System.String s = null;
             long l;
-            if (encoding > FORMAT_WIN_1258)
+            /*if (encoding > FORMAT_WIN_1258)
             {
                 offset = offset >> 1;
                 endOffset = endOffset >> 1;
-            }
+            }*/
             while (offset < endOffset)
             {
                 l = getCharResolved(offset);
