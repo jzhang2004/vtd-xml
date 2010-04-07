@@ -399,7 +399,7 @@ public boolean iterate() throws PilotException, NavException {
    	    }
    	
    }
-   
+ 
    /**
     * This method is meant to be called after calling
     * selectAttr() or selectAttrNs(), it will return the 
