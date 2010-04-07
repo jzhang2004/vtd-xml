@@ -281,7 +281,7 @@ public boolean iterate() throws PilotException, NavException {
 }
 
 /**
- * 
+ * This method implements the namespace axis for XPath
  * @return
  * @throws PilotException
  * @throws NavException
@@ -326,7 +326,7 @@ public boolean iterate() throws PilotException, NavException {
  * @return the integer of the selected VTD index for attribute name
  * @throws PilotException
  */
-   protected int iterateAttr() throws PilotException,NavException{
+   protected int iterateAttr2() throws PilotException,NavException{
       
    	    switch(iter_type){
    	    	case ATTR:
@@ -399,6 +399,88 @@ public boolean iterate() throws PilotException, NavException {
    	    }
    	
    }
+   
+   /**
+    * This method is meant to be called after calling
+    * selectAttr() or selectAttrNs(), it will return the 
+    * vtd index attribute name or -1 if there is none left
+    * @return vtd index attribute name or -1 if there is none left
+    * @throws PilotException
+    * @throws NavException
+    */
+   public int iterateAttr() throws PilotException,NavException{
+	      
+  	    switch(iter_type){
+  	    	case ATTR:
+  	    		if (name.compareTo("*")==0){
+  	    			if (ft != false){
+  	    				ft = false;
+  	    				index = vn.getCurrentIndex2()+1;
+  	    			} else
+  	    				index +=2;
+  	    			if (vn.ns == false){
+  	    				while(index<size){
+  	    					int type = vn.getTokenType(index);
+  	    					if (type == VTDNav.TOKEN_ATTR_NAME
+  	    						|| type == VTDNav.TOKEN_ATTR_NS){
+  	    					    //vn.LN = index;
+  	    						return index;
+  	    					}else{   	    				
+  	    						return -1;
+  	    					}
+  	    				}
+  	    				return -1;
+  	    			}else {
+  	    				
+  	    				while(index<size){
+  	    				 int type = vn.getTokenType(index);
+	    					if (type == VTDNav.TOKEN_ATTR_NAME
+	    						|| type == VTDNav.TOKEN_ATTR_NS){
+	    						if (type == VTDNav.TOKEN_ATTR_NAME){
+	    						    //vn.LN = index;
+	    							return index;
+	    						}
+	    						else 
+	    							index += 2;	    						
+	    					}else{   	    				
+	    						return -1;
+	    					}
+	    					
+  	    				}
+  	    				return -1;
+  	    			}
+  	    		}else{
+  	    			if (ft == false){
+  	    				return -1;
+  	    			} else {
+  	    				ft = false;
+  	    				int i = vn.getAttrVal(name);
+  	    				if(i!=-1){
+  	    				    //vn.LN = i-1;
+  	    					return i-1;
+  	    				}
+  	    				else 
+  	    					return -1;
+  	    			}   	    			
+  	    		}
+  	        case ATTR_NS:
+	    			if (ft == false){
+  	    				return -1;
+  	    			} else {
+  	    				ft = false;
+  	    				int i = vn.getAttrValNS(URL,localName);
+  	    				if(i!=-1){
+  	    				    //vn.LN = i -1;
+  	    					return i-1;
+  	    				}
+  	    				else 
+  	    					return -1;
+  	    			} 
+  	        default:
+  	        	throw new PilotException("invalid iteration type");
+  	    }
+  	
+  }
 /**
  * Select the element name before iterating.
  * "*" matches every element
@@ -549,7 +631,7 @@ protected void selectNameSpace(String en){
  * Select an attribute name for iteration, * choose all attributes of an element
  * @param en
  */
-protected void selectAttr(String en) {
+public void selectAttr(String en) {
 	if (en == null)
 		throw new IllegalArgumentException("attribute name can't be null");
 	iter_type = ATTR;
@@ -563,7 +645,7 @@ protected void selectAttr(String en) {
  * @param ns_URL
  * @param ln
  */
-protected void selectAttrNS(String ns_URL, String ln){
+public void selectAttrNS(String ns_URL, String ln){
 	if (ln == null)
 		throw new IllegalArgumentException("local name of an attribute can't be null");
 	iter_type = ATTR_NS;

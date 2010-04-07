@@ -1614,7 +1614,7 @@ public class LocationPathExpr extends Expr{
                 if (state == START)
                     state = END;
                 vn.setAtTerminal(true);
-                while ((temp = ap.iterateAttr()) != -1) {
+                while ((temp = ap.iterateAttr2()) != -1) {
                     if (currentStep.evalPredicates(vn)) {
                         break;
                     }
@@ -1654,7 +1654,7 @@ public class LocationPathExpr extends Expr{
 		case  BACKWARD:
 			ap = (AutoPilot) currentStep.o;
 			//vn.push();
-			while( (temp = ap.iterateAttr()) != -1){
+			while( (temp = ap.iterateAttr2()) != -1){
 				if (currentStep.evalPredicates(vn)){
 					break;
 				}							
@@ -1684,7 +1684,7 @@ public class LocationPathExpr extends Expr{
 			
 		case  TERMINAL:
 			ap = (AutoPilot) currentStep.o;
-			while( (temp = ap.iterateAttr()) != -1){
+			while( (temp = ap.iterateAttr2()) != -1){
 				if (currentStep.evalPredicates(vn)){
 					break;
 				}							
@@ -1977,7 +1977,7 @@ public class LocationPathExpr extends Expr{
 				else 
 				    ap.selectAttr(currentStep.nt.nodeName);
 				i = 0;
-				while(ap.iterateAttr()!=-1){
+				while(ap.iterateAttr2()!=-1){
 				    if (currentStep.evalPredicates(vn,p)){
 				        i++;
 				    }
