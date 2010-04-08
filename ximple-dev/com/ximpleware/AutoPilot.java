@@ -46,6 +46,8 @@ public class AutoPilot {
     
     private int[] contextCopy;  //for preceding axis
     private int stackSize;  // the stack size for xpath evaluation
+    private FastIntBuffer fib; // for namespace axis
+    
     static private Hashtable nsHash;
     //private parser p;
     // defines the type of "iteration"
@@ -86,6 +88,7 @@ public AutoPilot(VTDNav v) {
     special = false;
     xpe = null;
     symbolHash = new Hashtable();
+    //fib = new FastIntBuffer(4);
     //p = null;       
 }
 
@@ -302,9 +305,12 @@ public boolean iterate() throws PilotException, NavException {
 				    if  (name.equals("*")  
 				    		|| vn.matchRawTokenString(index, name2)
 				    ){
-				    	vn.LN = index;
-				    	vn.atTerminal = true;
-				    	return index;
+				    	// check to see if the namespace has appeared before
+				    	if (checkNsUniqueness(index)){
+				    		vn.LN = index;
+				    		vn.atTerminal = true;
+				    		return index;
+				    	}
 				    }
 				} 
 				index += 2;
@@ -319,6 +325,16 @@ public boolean iterate() throws PilotException, NavException {
 		}
 
 		return -1;
+	}
+	
+	protected boolean checkNsUniqueness(int i) throws NavException{
+		for (int j=0;j<fib.size();j++){
+			if (vn.compareTokens(fib.intAt(j), vn, i)==0)
+				return false;
+		}
+			
+		fib.append(i);
+		return true;
 	}
 /**
  * This method implements the attribute axis for XPath
@@ -625,6 +641,10 @@ protected void selectNameSpace(String en){
     name = en;
     if (!en.equals("*"))
     	name2="xmlns:"+en;
+    if (fib==null)
+    	fib = new FastIntBuffer(4);
+    else 
+    	fib.clear();
 }
 
 /**
@@ -652,6 +672,7 @@ public void selectAttrNS(String ns_URL, String ln){
     ft = true;
     localName = ln;
     URL = ns_URL;
+   
 }
 
 /**
