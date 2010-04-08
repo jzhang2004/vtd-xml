@@ -70,7 +70,7 @@ namespace com.ximpleware
         private System.String localName; // Store local name after selectElemntNS
 		private System.String URL; // Store URL name after selectElementNS
 		private int size; // for iterateAttr
-		
+        private FastIntBuffer fib; 
 		private Expr xpe; // for evalXPath
 		
 		private int[] contextCopy; //for preceding axis
@@ -345,6 +345,10 @@ namespace com.ximpleware
             name = en;
             if (!en.Equals("*"))
                 name2 = "xmlns:" + en;
+            if (fib == null)
+                fib = new FastIntBuffer(4);
+            else
+                fib.clear();
         }
     /// <summary>
     /// 
@@ -366,9 +370,12 @@ namespace com.ximpleware
 				    if  (name.Equals("*")  
 				    		|| vn.matchRawTokenString(index, name2)
 				    ){
-				    	vn.LN = index;
-				    	vn.atTerminal = true;
-				    	return index;
+                        if (checkNsUniqueness(index))
+                        {
+                            vn.LN = index;
+                            vn.atTerminal = true;
+                            return index;
+                        }
 				    }
 				} 
 				index += 2;
@@ -383,6 +390,16 @@ namespace com.ximpleware
 		}
 
 		return -1;
+	}
+
+    protected internal bool checkNsUniqueness(int i){
+		for (int j=0;j<fib.size();j++){
+			if (vn.compareTokens(fib.intAt(j), vn, i)==0)
+				return false;
+		}
+			
+		fib.append(i);
+		return true;
 	}
 
 		/// <summary> This method implements the attribute axis for XPath</summary>
