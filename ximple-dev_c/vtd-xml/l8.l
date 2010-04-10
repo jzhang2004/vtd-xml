@@ -159,164 +159,164 @@ nc2   ([^!-/:-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 
 "|"	{isName = 1 ; return UNION ; }
 
-last{ws}*"("		{  	isName = 1; 
+last([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_LAST;
 				return FNAME;				 
 			}
 
-position{ws}*"("	{  	isName = 1; 
+position([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_POSITION;
 				return FNAME;	
 			}
 
-count{ws}*"("		{  	isName = 1; 
+count([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_COUNT;
 				return FNAME;	
 			}
 
-local-name{ws}*"("	{  	isName = 1; 
+local-name([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_LOCAL_NAME;
 				return FNAME;	
 			}
 
-namespace-uri{ws}*"("	{  	isName = 1; 
+namespace-uri([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_NAMESPACE_URI;
 				return FNAME;	
 			}
 
-name{ws}*"("		{  	isName = 1; 
+name([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_NAME;
 				return FNAME;	
 			}
 
-string{ws}*"("		{  	isName = 1; 
+string([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_STRING;
 				return FNAME;	
 			}
 
 
-concat{ws}*"("		{  	isName = 1; 
+concat([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_CONCAT;
 				return FNAME;	
 			}
 
-starts-with{ws}*"("	{  	isName = 1; 
+starts-with([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_STARTS_WITH;
 				return FNAME;	
 			}
 
-contains{ws}*"("	{  	isName = 1; 
+contains([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_CONTAINS;
 				return FNAME;	
 			}
 
-substring-before{ws}*"("  {  	isName = 1; 
+substring-before([ \t\r\n])*"("  {  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_SUBSTRING_BEFORE;
 				return FNAME;	
 			}
 
-substring-after{ws}*"(" {  	isName = 1; 
+substring-after([ \t\r\n])*"(" {  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_SUBSTRING_AFTER;
 				return FNAME;	
 			} 	
 
-substring{ws}*"("	{  	isName = 1; 
+substring([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_SUBSTRING;
 				return FNAME;	
 			}
 
-string-length{ws}*"("	{  	isName = 1; 
+string-length([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_STRING_LENGTH;
 				return FNAME;	
 			}
 
-normalize-space{ws}*"("	{  	isName = 1; 
+normalize-space([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_NORMALIZE_SPACE;
 				return FNAME;	
 			}
 
-translate{ws}*"("	{  	isName = 1; 
+translate([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_TRANSLATE;
 				return FNAME;	
 			}
 			
-abs{ws}*"("		{  	isName = 1; 
+abs([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_ABS;
 				return FNAME;	
 			}
 
-round-half-to-even{ws}*"("	{  	isName = 1; 
+round-half-to-even([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_ROUND_HALF_TO_EVEN;
 				return FNAME;	
 			}
 
-round-half-to-odd{ws}*"("	{  	isName = 1; 
+round-half-to-odd([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_ROUND_HALF_TO_ODD;
 				return FNAME;	
 			}
 
-code-points-to-string{ws}*"("	{  	isName = 1; 
+code-points-to-string([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_CODE_POINTS_TO_STRING;
 				return FNAME;	
 			}
 
-compare{ws}*"("		{  	isName = 1; 
+compare([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_COMPARE;
 				return FNAME;	
 			}
 
-upper-case{ws}*"("	{  	isName = 1; 
+upper-case([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_UPPER_CASE;
 				return FNAME;	
 			}
 
-lower-case{ws}*"("	{  	isName = 1; 
+lower-case([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_LOWER_CASE;
 				return FNAME;	
 			}
 
-ends-with{ws}*"("	{  	isName = 1; 
+ends-with([ \t\r\n])*"("	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_ENDS_WITH;
 				return FNAME;	
 			}
 
-QName{ws}*"("		{  	isName = 1; 
+QName([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_QNAME;
 				return FNAME;	
 			}
 
-local-name-from-QName{ws}*"("		{  	isName = 1; 
+local-name-from-QName([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_LOCAL_NAME_FROM_QNAME;
 				return FNAME;	
 			}
 
-namespace-uri-from-QName{ws}*"(" 	{  	isName = 1; 
+namespace-uri-from-QName([ \t\r\n])*"(" 	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_NAMESPACE_URI_FROM_QNAME;
 				return FNAME;	
@@ -328,19 +328,19 @@ namespace-uri-for-prefix{ws}*"("	{  	isName = 1;
 				return FNAME;	
 			}
 
-resolve-QName{ws}*"(" 	{  	isName = 1; 
+resolve-QName([ \t\r\n])*"(" 	{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_RESOLVE_QNAME;
 				return FNAME;	
 			}
 
-iri-to-uri{ws}*"("	{	isName = 1; 
+iri-to-uri([ \t\r\n])*"("	{	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_IRI_TO_URI;
 				return FNAME;	
 			}
 
-escape-html-uri{ws}*"(" {	isName = 1; 
+escape-html-uri([ \t\r\n])*"(" {	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_ESCAPE_HTML_URI;
 				return FNAME;	
@@ -353,61 +353,61 @@ encode-for-uri{ws}*"(" {	isName = 1;
 				return FNAME;	
 			}
 
-boolean{ws}*"("		{  	isName = 1; 
+boolean([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_BOOLEAN;
 				return FNAME;	
 			}
 
-not{ws}*"("		{  	isName = 1; 
+not([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_NOT;
 				return FNAME;	
 			}
 
-true{ws}*"("		{  	isName = 1; 
+true([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_TRUE;
 				return FNAME;	
 			}
 
-false{ws}*"("		{  	isName = 1; 
+false([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_FALSE;
 				return FNAME;	
 			}
 
-lang{ws}*"("		{  	isName = 1; 
+lang([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_LANG;
 				return FNAME;	
 			}
 
-number{ws}*"("		{  	isName = 1; 
+number([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_NUMBER;
 				return FNAME;	
 			}
 
-sum{ws}*"("		{  	isName = 1; 
+sum([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_SUM;
 				return FNAME;	
 			}
 
-floor{ws}*"("		{  	isName = 1; 
+floor([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_FLOOR;
 				return FNAME;	
 			}
 
-ceiling{ws}*"("		{  	isName = 1; 
+ceiling([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_CEILING;
 				return FNAME;	
 			}
 
-round{ws}*"("		{  	isName = 1; 
+round([ \t\r\n])*"("		{  	isName = 1; 
 			 	unput('(');
 				yylval.fname = FN_ROUND;
 				return FNAME;	
@@ -440,21 +440,21 @@ round{ws}*"("		{  	isName = 1;
 			}
 
 
-text{ws}*"("{ws}*")"	{	
+text([ \t\r\n])*"("([ \t\r\n])*")"	{	
 				isName = 0;
 				yylval.ntest.nt = NT_TEXT;
 				yylval.ntest.arg = NULL;
 				return NTEST;
 			}
 
-comment{ws}*"("{ws}*")"	{
+comment([ \t\r\n])*"("([ \t\r\n])*")"	{
 				isName = 0;
 				yylval.ntest.nt = NT_COMMENT;
 				yylval.ntest.arg = NULL;
 				return NTEST;
 			}
 
-node{ws}*"("{ws}*")"	{
+node([ \t\r\n])*"("([ \t\r\n])*")"	{
 				isName = 0;
 				yylval.ntest.nt = NT_NODE;
 				yylval.ntest.arg = NULL;
@@ -462,7 +462,7 @@ node{ws}*"("{ws}*")"	{
 			}
 
 			
-processing-instruction{ws}*"("{ws}*'[^']*'{ws}*")"	{
+processing-instruction([ \t\r\n])*"("([ \t\r\n])*'[^']*'([ \t\r\n])*")"	{
 						isName = 0;
 						//ntest = new Ntest();
 						//ntest.i = Ntest.PROCESSING_INSTRUCTION;
@@ -482,7 +482,7 @@ processing-instruction{ws}*"("{ws}*'[^']*'{ws}*")"	{
 						return NTEST;
 					}
 					
-processing-instruction{ws}*"("{ws}*\"[^\"]*\"{ws}*")"	{
+processing-instruction([ \t\r\n])*"("([ \t\r\n])*\"[^\"]*\"([ \t\r\n])*")"	{
 						isName = 0;
 						//ntest = new Ntest();
 						//ntest.i = Ntest.PROCESSING_INSTRUCTION;
@@ -503,7 +503,7 @@ processing-instruction{ws}*"("{ws}*\"[^\"]*\"{ws}*")"	{
 						return NTEST;
 					}
 
-processing-instruction{ws}*"("{ws}*")"	{
+processing-instruction([ \t\r\n])*"("([ \t\r\n])*")"	{
 						isName = 0;
 						yylval.ntest.nt = NT_PI0;
 						yylval.ntest.arg = NULL;
@@ -511,43 +511,43 @@ processing-instruction{ws}*"("{ws}*")"	{
 					}
 
 
-ancestor{ws}*::		{	isName = 1;
+ancestor([ \t\r\n])*::		{	isName = 1;
 				yylval.at = AXIS_ANCESTOR;
 				return AXISNAME;
 			}
 
-ancestor-or-self{ws}*::	{	isName = 1;
+ancestor-or-self([ \t\r\n])*::	{	isName = 1;
 				yylval.at = AXIS_ANCESTOR_OR_SELF;
 				return AXISNAME;
 			}
 
 
-attribute{ws}*::	{	isName =1;
+attribute([ \t\r\n])*::	{	isName =1;
 				yylval.at = AXIS_ATTRIBUTE;
 				return AXISNAME;
 			}
 
-child{ws}*::		{	isName = 1;
+child([ \t\r\n])*::		{	isName = 1;
 				yylval.at = AXIS_CHILD;
 				return AXISNAME;
 			}
 
-descendant{ws}*::	{	isName = 1;
+descendant([ \t\r\n])*::	{	isName = 1;
 				yylval.at = AXIS_DESCENDANT;
 				return AXISNAME;
 			}
 
-descendant-or-self{ws}*:: {	isName = 1;
+descendant-or-self([ \t\r\n])*:: {	isName = 1;
 				yylval.at = AXIS_DESCENDANT_OR_SELF;
 				return AXISNAME;
 			}
 
-following{ws}*::	{	isName = 1;
+following([ \t\r\n])*::	{	isName = 1;
 				yylval.at = AXIS_FOLLOWING;
 				return AXISNAME;
 			}
 
-following-sibling{ws}*::  {	isName = 1;
+following-sibling([ \t\r\n])*::  {	isName = 1;
 				yylval.at = AXIS_FOLLOWING_SIBLING;
 				return AXISNAME;
 			}
@@ -557,22 +557,22 @@ namespace{ws}*::	{	isName = 1;
 				return AXISNAME;
 			}
 
-parent{ws}*::		{	isName = 1;
+parent([ \t\r\n])*::		{	isName = 1;
 				yylval.at = AXIS_PARENT;
 				return AXISNAME;
 			}
 
-preceding{ws}*::	{	isName = 1;
+preceding([ \t\r\n])*::	{	isName = 1;
 				yylval.at = AXIS_PRECEDING;
 				return AXISNAME;
 			}
 
-preceding-sibling{ws}*:: {	isName = 1;
+preceding-sibling([ \t\r\n])*:: {	isName = 1;
 				yylval.at = AXIS_PRECEDING_SIBLING;
 				return AXISNAME;
 			}
 
-self{ws}*::		{	isName = 1;
+self([ \t\r\n])*::		{	isName = 1;
 				yylval.at = AXIS_SELF;
 				return AXISNAME;
 			}
