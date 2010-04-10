@@ -29,6 +29,7 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn);
 static int process_parent(locationPathExpr *lpe, VTDNav *vn);
 static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn);
 static int process_self(locationPathExpr *lpe, VTDNav *vn);
+static int process_namespace(locationPathExpr *lpe, VTDNav *vn);
 static void selectNodeType(locationPathExpr *lpe, TextIter *ti);
 
 static void selectNodeType(locationPathExpr *lpe, TextIter *ti){
@@ -152,7 +153,8 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 			}
 			pop2(vn);
 			resetP2_s(lpe->currentStep,vn,p);
-			freeAutoPilot(ap);
+			lpe->currentStep->o= ap;
+			//freeAutoPilot(ap);
 			return i;
 
 		case AXIS_PARENT:
@@ -224,8 +226,14 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 			return i;
 
 		case AXIS_ATTRIBUTE:
-			ap = createAutoPilot(vn);
-			if (lpe->currentStep->nt->localName!=NULL)
+			if (ap==NULL)
+					ap = createAutoPilot(vn);
+				else
+					bind(ap,vn);
+			//ap = createAutoPilot(vn);
+			if (lpe->currentStep->nt->testType == NT_NODE)
+				selectAttr(ap,L"*");
+			else if (lpe->currentStep->nt->localName!=NULL)
 				selectAttrNS(ap,lpe->currentStep->nt->URL,
 				lpe->currentStep->nt->localName);
 			else
@@ -237,7 +245,28 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 				}
 			}
 			resetP2_s(lpe->currentStep,vn,p);
-			freeAutoPilot(ap);
+			lpe->currentStep->o= ap;
+			//freeAutoPilot(ap);
+			return i;
+
+		case AXIS_NAMESPACE:
+			if (ap==NULL)
+					ap = createAutoPilot(vn);
+				else
+					bind(ap,vn);
+			if (lpe->currentStep->nt->testType == NT_NODE)
+				selectNameSpace(ap,L"*");
+			else
+				selectNameSpace(ap,lpe->currentStep->nt->nodeName);
+			i = 0;
+			while(iterateNameSpace(ap)!=-1){
+				if ( evalPredicates2(lpe->currentStep, vn, p)){
+					i++;
+				}
+			}
+			resetP2_s(lpe->currentStep,vn,p);
+			lpe->currentStep->o= ap;
+			//freeAutoPilot(ap);
 			return i;
 
 		default:
@@ -655,8 +684,7 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 						bind(ap,vn);
 					}
 					if (lpe->currentStep->nt->testType== NT_NODE)
-						selectAttrNS(ap,lpe->currentStep->nt->URL,
-							lpe->currentStep->nt->localName);
+						selectAttr(ap,L"*");
 					else if (lpe->currentStep->nt->localName != NULL)
 						selectAttrNS(ap,lpe->currentStep->nt->URL,
                                 lpe->currentStep->nt->localName);
@@ -774,6 +802,171 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 	return -2;
 }
 
+
+static int process_namespace(locationPathExpr *lpe, VTDNav *vn){
+	AutoPilot *ap = NULL;
+	Boolean b1 = FALSE;
+	Predicate *t= NULL;
+	int temp;
+	switch(lpe->state){
+		case  XPATH_EVAL_START:
+		case  XPATH_EVAL_FORWARD:
+
+			t = lpe->currentStep->p;
+			while(t!=NULL){
+				if (requireContextSize_p(t)){
+					int i = computeContextSize(lpe,t,vn);
+					if (i==0){
+						b1 = TRUE;
+						break;
+					}else
+						setContextSize_p(t,i);
+				}
+				t = t->nextP;
+			}
+			if (b1){
+				if (lpe->state == XPATH_EVAL_FORWARD){
+					lpe->state= XPATH_EVAL_BACKWARD;
+					lpe->currentStep = lpe->currentStep->prevS;
+				}else
+					lpe->state= XPATH_EVAL_END;
+				break;
+			}
+
+			if (getAtTerminal(vn)==TRUE){
+				if (lpe->state ==XPATH_EVAL_START)
+					lpe->state = XPATH_EVAL_END;
+				else {
+					lpe->state = XPATH_EVAL_BACKWARD;
+					lpe->currentStep  = lpe->currentStep->prevS;
+				}
+			} else {
+				if (lpe->currentStep->ft == TRUE) {
+					if (lpe->currentStep->o == NULL)
+						lpe->currentStep->o = ap = createAutoPilot(vn);
+					else {
+						ap = lpe->currentStep->o;
+						bind(ap,vn);
+					}
+					if (lpe->currentStep->nt->testType== NT_NODE)
+						selectNameSpace(ap,L"*");
+					else 
+						selectNameSpace(ap,lpe->currentStep->nt->nodeName);
+					lpe->currentStep->ft = FALSE;
+				}
+				if ( lpe->state==  XPATH_EVAL_START)
+					lpe->state=  XPATH_EVAL_END;
+				push2(vn);
+				//setAtTerminal(vn,TRUE);
+				while( (temp = iterateNameSpace(ap)) != -1){
+					if (evalPredicates(lpe->currentStep,vn)){
+						break;
+					}
+				}
+				if (temp == -1){
+					lpe->currentStep->ft = TRUE;
+					resetP_s(lpe->currentStep,vn);
+					setAtTerminal(vn,FALSE);
+					if ( lpe->state==  XPATH_EVAL_FORWARD){
+						lpe->state =  XPATH_EVAL_BACKWARD;
+						lpe->currentStep = lpe->currentStep->prevS;
+					}
+				}else {
+
+					if (lpe->currentStep->nextS != NULL){
+						vn->LN = temp;
+						lpe->state=  XPATH_EVAL_FORWARD;
+						lpe->currentStep = lpe->currentStep->nextS;
+					}
+					else {
+						//vn.pop();
+						lpe->state=  XPATH_EVAL_TERMINAL;
+						if ( isUnique_lpe(lpe,temp)){
+							vn->LN = temp;
+							return temp;
+						}
+					}
+
+				}
+			}
+			break;
+
+		case  XPATH_EVAL_END:
+			lpe->currentStep = NULL;
+			// reset();
+			return -1;
+
+		case  XPATH_EVAL_BACKWARD:
+			ap = lpe->currentStep->o;
+			//vn.push();
+			while( (temp = iterateNameSpace(ap)) != -1){
+				if (evalPredicates(lpe->currentStep,vn)){
+					break;
+				}
+			}
+			if (temp == -1) {
+				pop2(vn);
+				lpe->currentStep->ft = TRUE;
+				//freeAutoPilot(lpe->currentStep->o);
+				//lpe->currentStep->o = NULL;
+				resetP_s(lpe->currentStep,vn);
+				setAtTerminal(vn,FALSE);
+				if (lpe->currentStep->prevS != NULL) {
+					lpe->state =  XPATH_EVAL_BACKWARD;
+					lpe->currentStep = lpe->currentStep->prevS;
+				} else
+					lpe->state =  XPATH_EVAL_END;
+			} else {
+				if (lpe->currentStep->nextS != NULL) {
+					lpe->state =  XPATH_EVAL_FORWARD;
+					lpe->currentStep = lpe->currentStep->nextS;
+				} else {
+					lpe->state =  XPATH_EVAL_TERMINAL;
+					if ( isUnique_lpe(lpe,temp)){
+						vn->LN = temp;
+						return temp;
+					}
+				}
+			}
+			break;
+
+		case  XPATH_EVAL_TERMINAL:
+			ap = lpe->currentStep->o;
+			while( (temp = iterateNameSpace(ap)) != -1){
+				if (evalPredicates(lpe->currentStep,vn)){
+					break;
+				}
+			}
+			if (temp != -1)
+				if (isUnique_lpe(lpe,temp)){
+					vn->LN = temp;
+					return temp;
+				}
+				setAtTerminal(vn,FALSE);
+				resetP_s(lpe->currentStep,vn);
+				if (lpe->currentStep->prevS == NULL) {
+					lpe->currentStep->ft = TRUE;
+					//freeAutoPilot(lpe->currentStep->o);
+					//lpe->currentStep->o = NULL;
+					pop2(vn);
+					lpe->state=  XPATH_EVAL_END;
+				} else {
+					lpe->state=  XPATH_EVAL_BACKWARD;
+					pop2(vn);
+					lpe->currentStep->ft = TRUE;
+					//freeAutoPilot(lpe->currentStep->o);
+					//lpe->currentStep->o = NULL;
+					lpe->currentStep = lpe->currentStep->prevS;
+				}
+
+				break;
+
+		default:
+			throwException2(xpath_eval_exception,
+				"unknown state");
+	}
+	return -2;
+}
 static int process_child(locationPathExpr *lpe, VTDNav *vn){
 	int result;
 	Boolean b = FALSE, b1 = FALSE;
@@ -2069,6 +2262,10 @@ int	evalNodeSet_lpe (locationPathExpr *lpe,VTDNav *vn){
 			    if ((result = process_attribute(lpe,vn))!= -2)
 			        return result;
 			    break;
+			case AXIS_NAMESPACE:
+			    if ((result = process_namespace(lpe,vn))!= -2)
+			        return result;
+				break;
 			default:
 				throwException2(xpath_eval_exception,
 					"axis not supported");

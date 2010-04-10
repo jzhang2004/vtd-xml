@@ -20,6 +20,7 @@
  the URL in the list is replaced with new URL*/
 static void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL);
 static void insertExpr(AutoPilot *ap, UCSChar *varName, expr *e);
+static Boolean checkNsUniqueness(AutoPilot *ap, int index);
 
 /* This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
    the URL is overwritten */
@@ -146,6 +147,7 @@ AutoPilot *createAutoPilot(VTDNav *v){
 		return NULL;
 	}
     ap->elementName = NULL;
+	ap->elementName2 = NULL;
 	ap->localName = NULL;
 	ap->URL = NULL;
     ap->vn = v;
@@ -156,6 +158,7 @@ AutoPilot *createAutoPilot(VTDNav *v){
 	nl = NULL;
 	ap->contextCopy = NULL;
 	ap->special = FALSE;
+	ap->fib = NULL;
 	return ap;
 }
 
@@ -170,6 +173,7 @@ AutoPilot *createAutoPilot2(){
 		return NULL;
 	}
     ap->elementName = NULL;
+	ap->elementName2 = NULL;
 	ap->localName = NULL;
 	ap->URL = NULL;
     ap->vn = NULL;
@@ -181,6 +185,7 @@ AutoPilot *createAutoPilot2(){
 	nl = NULL;
 	ap->contextCopy = NULL;
 	ap->special = FALSE;
+	ap->fib = NULL;
 	return ap;
 }
 
@@ -199,7 +204,11 @@ void freeAutoPilot(AutoPilot *ap){
 		if (ap->contextCopy!=NULL)
 			free(ap->contextCopy);
 		if (ap->xpe!= NULL)
-		ap->xpe->freeExpr(ap->xpe);
+			ap->xpe->freeExpr(ap->xpe);
+		if (ap->fib!=NULL)
+			freeFastIntBuffer(ap->fib);
+		if (ap->elementName2!=NULL)
+			free(ap->elementName2);
 	}	
 	free(ap);
 
@@ -638,6 +647,7 @@ void declareXPathNameSpace(AutoPilot *ap, UCSChar* prefix, UCSChar *URL){
  */
 void bind(AutoPilot *ap, VTDNav *new_vn){
 	ap->elementName = NULL;
+	ap->elementName2 = NULL;
     ap->vn = new_vn;
 	ap->it = UNDEFINED; 
     ap->ft = TRUE;
@@ -694,3 +704,74 @@ void declareVariableExpr(AutoPilot *ap, UCSChar* varName, UCSChar* varExpr){
 		Throw e;
 	}
 }
+
+void selectNameSpace(AutoPilot *ap, UCSChar *en){
+	if (en == NULL)
+		throwException2(invalid_argument,"namespace name can't be null");
+	ap->it = NAMESPACE;
+    ap->ft = TRUE;
+    ap->size = getTokenCount(ap->vn);
+	ap->elementName = en;
+	if (wcscmp(en,L"*")!=0){
+		UCSChar *tmp = malloc(sizeof(UCSChar)*(wcslen(en)+7));
+		if (tmp == NULL)
+			throwException2(out_of_mem,"allocating string failed in selectNameSpace()");
+		wcscpy(tmp,L"xmlns:");
+		wcscpy(tmp+6,en);
+		*(tmp+(wcslen(en)+6))= 0;
+		ap->elementName2=tmp;
+	}
+    if (ap->fib== NULL)
+    	ap->fib = createFastIntBuffer2(4);
+    else 
+    	clearFastIntBuffer(ap->fib);
+}
+
+int iterateNameSpace(AutoPilot *ap){
+		if (ap->vn->ns == FALSE)
+			return -1;
+		if (ap->ft != FALSE) {
+			ap->ft = FALSE;
+			ap->index = getCurrentIndex2(ap->vn) + 1;
+		} else
+			ap->index += 2;
+
+		while (ap->index < ap->size) {
+			tokenType type = getTokenType(ap->vn,ap->index);
+			if (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS) {
+				if (type == TOKEN_ATTR_NS){ 
+					if  (wcscmp(ap->elementName,L"*") == 0   
+						|| matchRawTokenString(ap->vn,ap->index, ap->elementName2)
+				    ){
+				    	// check to see if the namespace has appeared before
+				    	if (checkNsUniqueness(ap,ap->index)){
+				    		ap->vn->LN = ap->index;
+				    		ap->vn->atTerminal = TRUE;
+				    		return ap->index;
+				    	}
+				    }
+				} 
+				ap->index += 2;
+			} else {
+				ap->vn->atTerminal = FALSE;
+				if (toElement(ap->vn, P) == FALSE) {
+					return -1;
+				} else {
+					ap->index = getCurrentIndex2(ap->vn) + 1;
+				}
+			}
+		}
+
+		return -1;
+}
+
+Boolean checkNsUniqueness(AutoPilot *ap, int index){
+	int j;
+	for (j=0;j<ap->fib->size;j++){
+		if (compareTokens(ap->vn,intAt(ap->fib,j), ap->vn, index)==0)
+			return FALSE;
+	}		
+	appendInt(ap->fib,index);
+	return TRUE;
+}
+

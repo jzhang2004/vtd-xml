@@ -58,6 +58,7 @@ typedef struct autoPilot{
 	struct Expr *xpe; /* xpath Expr*/
 	int *contextCopy; /* for preceding axis */
 	int stackSize; /* record stack size for xpath evaluation */
+	FastIntBuffer *fib;
 	
 } AutoPilot;
 
@@ -190,5 +191,9 @@ void clearVariableExprs();
 
 /* Declare the variable name and expression binding*/
 void declareVariableExpr(AutoPilot *ap, UCSChar* varName, UCSChar* varExpr);
+
+void selectNameSpace(AutoPilot *ap, UCSChar *name);
+
+int iterateNameSpace(AutoPilot *ap);
 #endif
 
