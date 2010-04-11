@@ -18,6 +18,9 @@
 #include "autoPilot.h"
 /* This method insert a prefix/URL pair into the nsList, if there are prefix duplicates 
  the URL in the list is replaced with new URL*/
+static struct nsList *nl;
+static struct exprList *el;
+
 static void insertItem(AutoPilot *ap, UCSChar *prefix, UCSChar *URL);
 static void insertExpr(AutoPilot *ap, UCSChar *varName, expr *e);
 static Boolean checkNsUniqueness(AutoPilot *ap, int index);

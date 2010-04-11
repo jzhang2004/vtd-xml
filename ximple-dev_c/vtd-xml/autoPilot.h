@@ -23,8 +23,7 @@
 #include "cexcept.h"
 #include "xpath.h"
 #include "helper.h"
-static struct nsList *nl;
-static struct exprList *el;
+
 /* iter_type defines the type of iteration, to be used in function iterateAP*/
 typedef enum iter_type { UNDEFINED,
 						SIMPLE,
