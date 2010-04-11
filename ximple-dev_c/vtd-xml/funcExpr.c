@@ -36,14 +36,14 @@ static UCSChar* translate(funcExpr *fne, VTDNav *vn);
 static Boolean isWS(UCSChar c);
 static Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s);
 static inline UCSChar* normalize(UCSChar *s);
-static double round(double v);
+static double myround(double v);
 static int evalFirstArgumentListNodeSet(funcExpr *fne, VTDNav *vn);
 static int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn);
 static UCSChar* upperCase(funcExpr *fne, VTDNav *vn);
 static UCSChar* lowerCase(funcExpr *fne, VTDNav *vn);
 static double roundHalfToEven(funcExpr *fne, VTDNav *vn);
 
-static double round(double v)
+static double myround(double v)
 {
  return (v>0.0) ? floor(v+0.5) : ceil(v-0.5);
 }
@@ -621,7 +621,7 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 			    				}
 
 			case FN_ROUND: 	if (argCount(fne)==1 )
-								return round(fne->al->e->evalNumber(fne->al->e,vn));
+								return myround(fne->al->e->evalNumber(fne->al->e,vn));
 							else {
 								throwException2(invalid_argument,
 									"round()'s  <funcExpr> argument count is invalid");
@@ -1334,7 +1334,7 @@ static double roundHalfToEvenPositive(double value, long precision){
 	    	}
 	    }else{
 	    	//use the usual round to closest	    
-	    	result = round(value);
+	    	result = myround(value);
 	    }
 	    
 	    //shif the decimal point back to where it was
