@@ -88,6 +88,7 @@ public AutoPilot(VTDNav v) {
     special = false;
     xpe = null;
     symbolHash = new Hashtable();
+    fib = null;
     //fib = new FastIntBuffer(4);
     //p = null;       
 }
@@ -107,6 +108,7 @@ public AutoPilot(){
     special = false;
     xpe = null;
     symbolHash = new Hashtable();
+    fib = null;
 }
 /** This function creates URL ns prefix 
  *  and is intended to be called prior to selectXPath
