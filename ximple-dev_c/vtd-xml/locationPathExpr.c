@@ -71,7 +71,7 @@ UCSChar *axisName(axisType i){
 
 int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 	Boolean b = FALSE;
-	Predicate *tp = NULL;
+	//Predicate *tp = NULL;
     int i = 0;
     AutoPilot *ap = (AutoPilot *)lpe->currentStep->o;
 	UCSChar *helper = NULL;
@@ -1597,7 +1597,7 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn){
 }
 
 static int process_parent(locationPathExpr *lpe, VTDNav *vn){
-	Boolean b = FALSE, b1 = FALSE;
+	Boolean /*b = FALSE,*/ b1 = FALSE;
 	Predicate *t= NULL;
 	int result;
 	switch ( lpe->state) {
@@ -1801,7 +1801,7 @@ static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn){
 	return -2;
 }
 static int process_self(locationPathExpr *lpe, VTDNav *vn){
-		Boolean b = FALSE, b1 = FALSE;
+		Boolean /*b = FALSE,*/ b1 = FALSE;
 	    //int contextSize;
 	    Predicate *t= NULL;
 	    int result;

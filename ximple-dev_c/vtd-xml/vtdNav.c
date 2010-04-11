@@ -948,7 +948,7 @@ int getTokenDepth(VTDNav *vn, int index){
 //please refer to VTD spec for more details
 int getTokenLength(VTDNav *vn, int index){
 	Long i = 0;
-	int j=0;
+	//int j=0;
 	int depth;
 	int len = 0;
 	int type = getTokenType(vn,index), temp=0;
@@ -2800,7 +2800,7 @@ UCSChar *toRawString(VTDNav *vn, int index){
 	int offset;
 	tokenType type = getTokenType(vn,index);
 	int len;						 
-	UCSChar *s = NULL;
+	/*UCSChar *s = NULL;*/
 
 	if (type == TOKEN_STARTING_TAG
 		|| type == TOKEN_ATTR_NAME
@@ -2845,7 +2845,7 @@ UCSChar *toString(VTDNav *vn, int index){
 	tokenType type = getTokenType(vn,index);
 	int len;
 
-	UCSChar *s = NULL;
+	/*UCSChar *s = NULL;*/
 	if (type!=TOKEN_CHARACTER_DATA &&
 		type!= TOKEN_ATTR_VAL)
 		return toRawString(vn,index);
@@ -3941,7 +3941,7 @@ UCSChar *toStringUpperCase(VTDNav *vn, int index){
 	int offset,len;
 	tokenType type = getTokenType(vn,index);
 
-	UCSChar *s = NULL;
+	/*UCSChar *s = NULL;*/
 	if (type!=TOKEN_CHARACTER_DATA &&
 		type!= TOKEN_ATTR_VAL)
 		return toRawStringUpperCase(vn,index);
@@ -3959,7 +3959,7 @@ UCSChar *toStringLowerCase(VTDNav *vn, int index){
 	int offset,len;
 	tokenType type = getTokenType(vn,index);
 
-	UCSChar *s = NULL;
+	/*UCSChar *s = NULL;*/
 	if (type!=TOKEN_CHARACTER_DATA &&
 		type!= TOKEN_ATTR_VAL)
 		return toRawStringLowerCase(vn,index);
@@ -3973,7 +3973,7 @@ UCSChar *toStringLowerCase(VTDNav *vn, int index){
 static UCSChar *toRawStringUpperCase(VTDNav *vn, int index){
 	int offset,len;
 	tokenType type = getTokenType(vn,index);					 
-	UCSChar *s = NULL;
+	/*UCSChar *s = NULL;*/
 
 	if (type == TOKEN_STARTING_TAG
 		|| type == TOKEN_ATTR_NAME
@@ -3988,7 +3988,7 @@ static UCSChar *toRawStringUpperCase(VTDNav *vn, int index){
 static UCSChar *toRawStringLowerCase(VTDNav *vn, int index){
 	int offset,len;
 	tokenType type = getTokenType(vn,index);						 
-	UCSChar *s = NULL;
+	/*UCSChar *s = NULL;*/
 
 	if (type == TOKEN_STARTING_TAG
 		|| type == TOKEN_ATTR_NAME

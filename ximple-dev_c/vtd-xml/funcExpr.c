@@ -37,8 +37,8 @@ static Boolean isWS(UCSChar c);
 static Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s);
 static inline UCSChar* normalize(UCSChar *s);
 static double myround(double v);
-static int evalFirstArgumentListNodeSet(funcExpr *fne, VTDNav *vn);
-static int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn);
+//static int evalFirstArgumentListNodeSet(funcExpr *fne, VTDNav *vn);
+//static int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn);
 static UCSChar* upperCase(funcExpr *fne, VTDNav *vn);
 static UCSChar* lowerCase(funcExpr *fne, VTDNav *vn);
 static double roundHalfToEven(funcExpr *fne, VTDNav *vn);
@@ -1062,7 +1062,7 @@ static UCSChar* subStringAfter(funcExpr *fne, VTDNav *vn){
 	if (argCount(fne) == 2){
 		UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
 		UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
-		size_t len1=wcslen(s1),len2=wcslen(s2);
+		size_t /*len1=wcslen(s1),*/len2=wcslen(s2);
 		UCSChar* temp = NULL;
 		if ((temp=wcsstr(s1,s2))!=NULL){
 			size_t len = wcslen(temp);
@@ -1267,45 +1267,45 @@ Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s){
 	return b;
 }
 
-int evalFirstArgumentListNodeSet(funcExpr *fne, VTDNav *vn){
-	exception e;
-	int size, a;
-	push2(vn);
-	size = vn->contextBuf2->size;
-    a = -1;
-    Try {
-		a = fne->al->e->evalNodeSet(fne->al->e, vn);
-        if (a != -1) {
-           if (getTokenType(vn, a) == TOKEN_ATTR_NAME) {
-                a++;
-           }
-           if (getTokenType(vn, a) == TOKEN_STARTING_TAG) {
-               a = getText(vn);
-           }
-       }	            
-    } Catch (e) {
-    }
-	vn->contextBuf2->size = size;
-	fne->al->e->reset(fne->al->e,vn);
-    pop2(vn);
-    return a;
-}
-
-int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn){
-	exception e;
-	int size, a;
-	push2(vn);
-	size = vn->contextBuf2->size;
-    a = -1;
-    Try {
-		a = fne->al->e->evalNodeSet(fne->al->e, vn);            
-    } Catch (e) {
-    }
-	vn->contextBuf2->size = size;
-	fne->al->e->reset(fne->al->e,vn);
-    pop2(vn);
-    return a;
-}
+//int evalFirstArgumentListNodeSet(funcExpr *fne, VTDNav *vn){
+//	exception e;
+//	int size, a;
+//	push2(vn);
+//	size = vn->contextBuf2->size;
+//    a = -1;
+//    Try {
+//		a = fne->al->e->evalNodeSet(fne->al->e, vn);
+//        if (a != -1) {
+//           if (getTokenType(vn, a) == TOKEN_ATTR_NAME) {
+//                a++;
+//           }
+//           if (getTokenType(vn, a) == TOKEN_STARTING_TAG) {
+//               a = getText(vn);
+//           }
+//       }	            
+//    } Catch (e) {
+//    }
+//	vn->contextBuf2->size = size;
+//	fne->al->e->reset(fne->al->e,vn);
+//    pop2(vn);
+//    return a;
+//}
+//
+//int evalFirstArgumentListNodeSet2(funcExpr *fne, VTDNav *vn){
+//	exception e;
+//	int size, a;
+//	push2(vn);
+//	size = vn->contextBuf2->size;
+//    a = -1;
+//    Try {
+//		a = fne->al->e->evalNodeSet(fne->al->e, vn);            
+//    } Catch (e) {
+//    }
+//	vn->contextBuf2->size = size;
+//	fne->al->e->reset(fne->al->e,vn);
+//    pop2(vn);
+//    return a;
+//}
 
 static double roundHalfToEvenPositive(double value, long precision){
 		int i;

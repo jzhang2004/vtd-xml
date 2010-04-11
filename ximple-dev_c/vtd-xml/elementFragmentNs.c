@@ -187,7 +187,7 @@ UByte* toFragmentBytes(ElementFragmentNs *ef){
 void writeFragmentToFile(ElementFragmentNs *ef, FILE *f){
 	int os = (int)ef->l;
 	size_t len = (size_t)(ef->l>>32);
-	int os1 = 0;
+	/*int os1 = 0;*/
 	encoding_t enc;
 	size_t temp;
 	int i;
@@ -497,7 +497,7 @@ void writeFragmentToFile2(ElementFragmentNs *ef, FILE *ost, encoding_t dest_enco
 	}else{
 		int os = (int)ef->l;
 		int i, len = (int)(ef->l>>32);
-		int temp=0,os1 = 0;
+		int temp=0 /*,os1 = 0*/;
 		encoding_t enc;
 		int tos =0,tlen=0;
 		UByte* xml = ef->vn->XMLDoc;
@@ -619,7 +619,7 @@ int getFragmentSize2(ElementFragmentNs *ef, encoding_t dest_encoding){
         if (ef->vn->encoding == dest_encoding)
             return getFragmentSize(ef);
 		else{
-        int i, src_encoding= ef->vn->encoding;
+        int i /*, src_encoding= ef->vn->encoding*/;
 		UByte *ba = ef->vn->XMLDoc;
         int len = Transcoder_getOutLength(ba, (int)ef->l, (int)(ef->l >>32 ), ef->vn->encoding, dest_encoding );
         

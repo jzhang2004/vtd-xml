@@ -541,7 +541,7 @@ Boolean evalBoolean_be (binaryExpr *be,VTDNav *vn){
 	//int stackSize;
 	//expr *e1, *e2;
 	//int t;
-	Boolean b = FALSE;
+	//Boolean b = FALSE;
 	double dval;
 	switch(be->op){
 			case OP_OR: return be->left->evalBoolean(be->left,vn)
