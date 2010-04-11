@@ -86,7 +86,7 @@ nc2   ([^!-/:-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 		yylval.name.qname = NULL;
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
-		yylval.name.qname = _wcsdup(L"*");
+		yylval.name.qname = wcsdup(L"*");
 		//addObj(yylval.name.qname);
 		//yylval.name.localname = NULL;
 		//yylval.name.prefix = NULL;
@@ -107,7 +107,7 @@ nc2   ([^!-/:-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 		yylval.name.qname = NULL;
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
-		yylval.name.qname = _wcsdup(L"div");
+		yylval.name.qname = wcsdup(L"div");
 		addObj(yylval.name.qname);
 		return NAME;
 	 } 
@@ -121,7 +121,7 @@ nc2   ([^!-/:-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
 		isName = 0;
-		yylval.name.qname = _wcsdup(L"mod");
+		yylval.name.qname = wcsdup(L"mod");
 		addObj(yylval.name.qname);
 		return NAME;
 	 } 
@@ -136,7 +136,7 @@ nc2   ([^!-/:-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
 		isName = 0;
-		yylval.name.qname = _wcsdup(L"and");
+		yylval.name.qname = wcsdup(L"and");
 		addObj(yylval.name.qname);
 		return NAME;
 	 } 
@@ -151,7 +151,7 @@ nc2   ([^!-/:-@[-^ \n\r\t|0-9]|"#"|"&"|";"|"?"|_|"\\"|"^"|"%"|".")
 		yylval.name.localname = NULL;
 		yylval.name.prefix = NULL;
 		isName = 0;
-		yylval.name.qname = _wcsdup(L"or");
+		yylval.name.qname = wcsdup(L"or");
 		addObj(yylval.name.qname);
 		return NAME;
 	 }
@@ -601,7 +601,7 @@ self([ \t\r\n])*::		{	isName = 1;
 				}
 				free(tmpstring);
 				tmpstring = NULL;
-				yylval.name.localname = _wcsdup(L"*");
+				yylval.name.localname = wcsdup(L"*");
 				addObj(yylval.name.localname);
 				return NAME;
 			}

@@ -708,9 +708,9 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 				
 			default: if (isBoolean_fne(fne)){
 			    		if (evalBoolean_fne(fne,vn)== TRUE)
-			    		    tmp = _wcsdup(L"true");
+			    		    tmp = wcsdup(L"true");
 			    		else
-			    		    tmp = _wcsdup(L"false");
+			    		    tmp = wcsdup(L"false");
 						if (tmp == NULL){
 							throwException2(out_of_mem,
 								"allocate string failed in funcExpr's evalString()");
@@ -721,15 +721,15 @@ UCSChar* evalString_fne (funcExpr *fne, VTDNav *vn){
 						 double d = evalNumber_fne(fne,vn);
 						 Boolean b = FALSE;
 							if (d != d){
-								tmp = _wcsdup(L"NaN");
+								tmp = wcsdup(L"NaN");
 								b = TRUE;
 							}
 							else if ( d == 1/d1){
-								tmp = _wcsdup(L"Infinity");
+								tmp = wcsdup(L"Infinity");
 								b = TRUE;
 							}
 							else if (d == -1/d1){
-								tmp = _wcsdup(L"-Infinity");
+								tmp = wcsdup(L"-Infinity");
 								b = TRUE;
 							}	else
 								tmp = malloc(sizeof(UCSChar)<<8);

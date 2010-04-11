@@ -64,15 +64,15 @@ UCSChar* evalString_ne  (numberExpr *ne,VTDNav *vn){
 	double d = 0;
 	UCSChar *tmp;
 	if (ne->dval != ne->dval){
-		tmp = _wcsdup(L"NaN");
+		tmp = wcsdup(L"NaN");
 		b = TRUE;
 	}
 	else if ( ne->dval == 1/d){
-		tmp = _wcsdup(L"Infinity");
+		tmp = wcsdup(L"Infinity");
 		b= TRUE;
 	}
 	else if (ne->dval == -1/d){
-		tmp = _wcsdup(L"-Infinity");
+		tmp = wcsdup(L"-Infinity");
 		b = TRUE;
 	}	else
 	tmp = malloc(sizeof(UCSChar)<<8);
