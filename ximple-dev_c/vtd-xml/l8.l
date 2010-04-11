@@ -552,7 +552,7 @@ following-sibling([ \t\r\n])*::  {	isName = 1;
 				return AXISNAME;
 			}
 
-namespace{ws}*::	{	isName = 1;
+namespace([ \t\r\n])*::	{	isName = 1;
 				yylval.at = AXIS_NAMESPACE;
 				return AXISNAME;
 			}
