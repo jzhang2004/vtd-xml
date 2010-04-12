@@ -18,18 +18,18 @@
 
 /* BookMarkHuge is based on (and inspired by) the concept and 
  * implementation contributed by Rodrigo Cunha. It corresponds 
- * to a single node position of VTDNav's cursor. It is adapted to
+ * to a single node position of VTDNavHuge's cursor. It is adapted to
  * supported extended VTD (256 GB file size) 
  * 
- * setCursorPosition(VTDNav vn) sets the node position of vn. 
- * setCursorPosition() sets the node position of the BookMark object's embeddd 
- * VTDNav object
+ * setCursorPosition(VTDNavHuge vn) sets the node position of vn. 
+ * setCursorPosition() sets the node position of the BookMark object's embedded 
+ * VTDNavHuge object
  * 
- * recordCursorPosition(VTDNav vn) records the node position of the VTDNav
+ * recordCursorPosition(VTDNavHuge vn) records the node position of the VTDNavHuge
  * Object.
  * 
- * recordCursorPosition() records the node position of the BookMark object's 
- * embedded VTDNav object
+ * recordCursorPosition() records the node position of the BookMarkHuge object's 
+ * embedded VTDNavHuge object
  * 
  * BookMarkHuge(VTDNavHuge vn) implicitly sets the node position for 
  * the created BookMark instance.
@@ -46,7 +46,7 @@ public class BookMarkHuge {
     VTDNavHuge vn1; // the reference to the corresponding VTDNav object
     int ba[];
     /**
-     * Constructor for BookMark
+     * Constructor for BookMarkHuge
      * Take no argument
      * 
      */
@@ -57,7 +57,7 @@ public class BookMarkHuge {
     
     /**
      * separate a bookMark object apart from its embedded
-     * VTDNav instance 
+     * VTDNavHuge instance 
      *
      */
     public void unbind(){
@@ -65,7 +65,7 @@ public class BookMarkHuge {
     }
     
     /**
-     * bind a BookMark object to a VTDNav object
+     * bind a BookMarkHuge object to a VTDNavHuge object
      * the cursor position is set to an invalid state
      * @param vn
      *
@@ -80,8 +80,8 @@ public class BookMarkHuge {
     }
     
     /**
-     * This method returns the embedded VTDNav Object 
-     * @return VTDNav
+     * This method returns the embedded VTDNavHuge Object 
+     * @return VTDNavHuge
      *
      */
     public VTDNavHuge getNav(){
@@ -89,7 +89,7 @@ public class BookMarkHuge {
     }
     
     /**
-     * BookMark constructor with an instance of vn
+     * BookMarkHuge constructor with an instance of vn
      * as input
      * @param vn
      */
@@ -101,7 +101,7 @@ public class BookMarkHuge {
     /**
      * set cursor position
      * This method can only set the cursor position
-     * of an VTDNav object identical to its internal copy 
+     * of an VTDNavHuge object identical to its internal copy 
      * @param vn
      * @return
      *
@@ -130,8 +130,8 @@ public class BookMarkHuge {
     }
     
     /**
-     * Set the cursor position of VTDNav object corresponding to the internal reference
-     * position of the embedded VTDNav object 
+     * Set the cursor position of VTDNavHuge object corresponding to the internal reference
+     * position of the embedded VTDNavHuge object 
      * @return
      *
      */
@@ -141,7 +141,7 @@ public class BookMarkHuge {
     /**
      * Record the cursor position
      * This method is implemented to be lenient on loading in
-     * that it can load nodes from any VTDNav object
+     * that it can load nodes from any VTDNavHuge object
      * if vn is null, return false
      * 
      * @param vn
@@ -174,7 +174,7 @@ public class BookMarkHuge {
         return true;
     }
     /**
-     * Record cursor position of the VTDNav object as embedded in the
+     * Record cursor position of the VTDNavHuge object as embedded in the
      * bookmark
      *   
      * @return
@@ -186,7 +186,7 @@ public class BookMarkHuge {
     
     /**
      * Compare the bookmarks to ensure they represent the same
-     * node in the same VTDnav instance
+     * node in the same VTDNavHuge instance
      * @param bm2
      * @return
      */
@@ -206,7 +206,7 @@ public class BookMarkHuge {
 
     /**
      * Compare the bookmarks to ensure they represent the same
-     * node in the same VTDNavHue instance
+     * node in the same VTDNavHuge instance
      * @param bm2
      * @return
      */
@@ -218,7 +218,7 @@ public class BookMarkHuge {
 
     /**
      * Compare two bookmarks to ensure they represent the same
-     * node in the same VTDNavHue instance
+     * node in the same VTDNavHuge instance
      */
     public final boolean equals(Object obj) {
         if (this == obj)
@@ -229,7 +229,7 @@ public class BookMarkHuge {
     }
     
     /**
-     * 
+     * Returns the hash code which is a unique integer for every node
      */
     public final int hashCode(){
         if (ba == null || vn1==null || ba[0]==-2)
@@ -239,5 +239,24 @@ public class BookMarkHuge {
         if (ba[0]==1)
             return vn1.rootIndex;
         return ba[ba[0]];
+    }
+    
+       /**
+     * Compare the node positions of two bookMarkHuge objects
+     * @param bm1
+     * @return
+     */
+    public boolean compare(BookMarkHuge bm1){
+    	
+    	/*for (int i = 0; i < vn1.nestingLevel; i++) {
+            ba[i] = bm1.ba[i];
+		}    	
+    	if (vn1.getCurrentDepth()>)*/
+    	for (int i = 0; i < vn1.nestingLevel+6; i++) {
+           if(ba[i] != bm1.ba[i])
+        	   return false;
+		}
+		
+    	return true;
     }
 }
