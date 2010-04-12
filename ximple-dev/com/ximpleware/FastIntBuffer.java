@@ -61,6 +61,7 @@ public class FastIntBuffer implements IIntBuffer {
     }
     /**
      * Constructor with adjustable buffer page size of the value bfz
+     * The actually page size is 1<<e
      * @param e int  is the size of the internal buffer
      */
     public FastIntBuffer(int e) {
