@@ -241,7 +241,17 @@ public class BookMark {
         return ba[ba[0]];
     }
     
+    /**
+     * Compare the node positions of two bookMarks
+     * @param bm1
+     * @return
+     */
     public boolean compare(BookMark bm1){
+    	
+    	/*for (int i = 0; i < vn1.nestingLevel; i++) {
+            ba[i] = bm1.ba[i];
+		}    	
+    	if (vn1.getCurrentDepth()>)*/
     	for (int i = 0; i < vn1.nestingLevel+6; i++) {
            if(ba[i] != bm1.ba[i])
         	   return false;
