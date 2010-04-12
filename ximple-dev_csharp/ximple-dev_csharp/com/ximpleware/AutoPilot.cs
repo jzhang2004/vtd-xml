@@ -402,11 +402,119 @@ namespace com.ximpleware
 		return true;
 	}
 
+
+    /// <summary> This method implements the attribute axis for XPath</summary>
+    /// <returns> the integer of the selected VTD index for attribute name
+    /// </returns>
+    /// <throws>  PilotException </throws>
+    public int iterateAttr()
+    {
+
+        switch (iter_type)
+        {
+
+            case ATTR:
+                if (String.CompareOrdinal(name, "*") == 0)
+                {
+                    if (ft != false)
+                    {
+                        ft = false;
+                        index = vn.getCurrentIndex2() + 1;
+                    }
+                    else
+                        index += 2;
+                    if (vn.ns == false)
+                    {
+                        while (index < size)
+                        {
+                            int type = vn.getTokenType(index);
+                            if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
+                            {
+                                //vn.LN = index;
+                                return index;
+                            }
+                            else
+                            {
+                                return -1;
+                            }
+                        }
+                        return -1;
+                    }
+                    else
+                    {
+
+                        while (index < size)
+                        {
+                            int type = vn.getTokenType(index);
+                            if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
+                            {
+                                if (type == VTDNav.TOKEN_ATTR_NAME)
+                                {
+                                    //vn.LN = index;
+                                    return index;
+                                }
+                                else
+                                    index += 2;
+                            }
+                            else
+                            {
+                                return -1;
+                            }
+                        }
+                        return -1;
+                    }
+                }
+                else
+                {
+                    if (ft == false)
+                    {
+                        return -1;
+                    }
+                    else
+                    {
+                        ft = false;
+                        int i = vn.getAttrVal(name);
+                        if (i != -1)
+                        {
+                            //vn.LN = i - 1;
+                            return i - 1;
+                        }
+                        else
+                            return -1;
+                    }
+                }
+            //goto case ATTR_NS;
+
+            case ATTR_NS:
+                if (ft == false)
+                {
+                    return -1;
+                }
+                else
+                {
+                    ft = false;
+                    int i = vn.getAttrValNS(URL, localName);
+                    if (i != -1)
+                    {
+                        //vn.LN = i - 1;
+                        return i - 1;
+                    }
+                    else
+                        return -1;
+                }
+            //goto default;
+
+            default:
+                throw new PilotException("invalid iteration type");
+
+        }
+    }
+
 		/// <summary> This method implements the attribute axis for XPath</summary>
 		/// <returns> the integer of the selected VTD index for attribute name
 		/// </returns>
 		/// <throws>  PilotException </throws>
-		protected internal int iterateAttr()
+		protected internal int iterateAttr2()
 		{
 			
 			switch (iter_type)
@@ -654,7 +762,7 @@ namespace com.ximpleware
 		/// <summary> Select an attribute name for iteration, * choose all attributes of an element</summary>
 		/// <param name="en">
 		/// </param>
-		protected internal void  selectAttr(System.String en)
+		public void  selectAttr(System.String en)
 		{
 			if (en == null)
 				throw new System.ArgumentException("attribute name can't be null");
@@ -669,7 +777,7 @@ namespace com.ximpleware
 		/// </param>
 		/// <param name="ln">
 		/// </param>
-		protected internal void  selectAttrNS(System.String ns_URL, System.String ln)
+		public void  selectAttrNS(System.String ns_URL, System.String ln)
 		{
 			if (ln == null)
 				throw new System.ArgumentException("local name of an attribute can't be null");

@@ -1908,7 +1908,7 @@ forward_brk: ;
                         if (state == START)
                             state = END;
                         vn.AtTerminal = true;
-                        while ((temp = ap.iterateAttr()) != -1)
+                        while ((temp = ap.iterateAttr2()) != -1)
                         {
                             if (currentStep.evalPredicates(vn))
                             {
@@ -1959,7 +1959,7 @@ forward_brk: ;
                 case BACKWARD:
                     ap = (AutoPilot)currentStep.o;
                     //vn.push();
-                    while ((temp = ap.iterateAttr()) != -1)
+                    while ((temp = ap.iterateAttr2()) != -1)
                     {
                         if (currentStep.evalPredicates(vn))
                         {
@@ -2001,7 +2001,7 @@ forward_brk: ;
 
                 case TERMINAL:
                     ap = (AutoPilot)currentStep.o;
-                    while ((temp = ap.iterateAttr()) != -1)
+                    while ((temp = ap.iterateAttr2()) != -1)
                     {
                         if (currentStep.evalPredicates(vn))
                         {
@@ -2336,7 +2336,7 @@ forward_brk: ;
                     else
                         ap.selectAttr(currentStep.nt.nodeName);
                     i = 0;
-                    while (ap.iterateAttr() != -1)
+                    while (ap.iterateAttr2() != -1)
                     {
                         if (currentStep.evalPredicates(vn, p))
                         {
