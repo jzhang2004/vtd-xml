@@ -379,7 +379,7 @@ public class VTDNav {
 			}
 		}
 		return -1;
-	}
+	} 
 	/**
      * Get the token index of the attribute value of given URL and local name.
      * If ns is not enabled, the lookup will return -1, indicating a no-found.
@@ -1785,12 +1785,14 @@ public class VTDNav {
      * <em>New in 2.0</em> This method compares two VTD tokens of VTDNav
      * objects The behavior of this method is like compare the strings
      * corresponds to i1 and i2, meaning for text or attribute val, entities
-     * will be converted into the corresponding char
+     * will be converted into the corresponding char, return 0 if two tokens
+     * are the identical when converted to Unicode String using toString() 
+     * respectively
      * 
      * @param i1
      * @param vn2
      * @param i2
-     * @return -1,0, or 1
+     * @return -1,0 (when equal), or 1
      * @throws NavException
      *  
      */
@@ -4598,7 +4600,7 @@ public class VTDNav {
 		vn.atTerminal = this.atTerminal;
 		vn.LN = this.LN;
 		if (this.context[0]!=-1)
-			System.arraycopy(this.context, 0, vn.context, 0, this.context[0] );
+			System.arraycopy(this.context, 0, vn.context, 0, this.context[0]+1 );
 		else 
 			vn.context[0]=-1;
 		vn.l1index = l1index; 
