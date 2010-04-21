@@ -220,6 +220,8 @@ public class LocationPathExpr extends Expr{
 						    ti.touch(vn);
 						    state = END;
 						    while((result = ti.getNext())!=-1){
+						    	vn.LN = result;
+						    	vn.setAtTerminal(true);
 						        if (currentStep.evalPredicates(vn)){
 									break;
 								}
@@ -336,6 +338,8 @@ public class LocationPathExpr extends Expr{
 						    //result = ti.getNext();
 						    
 						    while((result = ti.getNext())!=-1){
+						    	vn.setAtTerminal(true);
+						    	vn.LN = result;
 						        if (currentStep.evalPredicates(vn)){
 									break;
 								}
@@ -429,6 +433,8 @@ public class LocationPathExpr extends Expr{
 					}else {
 					    TextIter ti = (TextIter) currentStep.o;
 					    while ((result=ti.getNext())!=-1) {
+					    	vn.setAtTerminal(true);
+					    	vn.LN = result;
 					        if (currentStep.evalPredicates(vn)) {
 					            if ( isUnique(result))
 									return result;
@@ -1827,11 +1833,15 @@ public class LocationPathExpr extends Expr{
 	    	        TextIter ti = new TextIter();
 	    	        ti.touch(vn);
 	    	        selectNodeType(ti);
-	    	        while((ti.getNext())!=-1){
+	    	        int result = -1;
+	    	        while((result=ti.getNext())!=-1){
+	    	        	vn.setAtTerminal(true);
+	    	        	vn.LN = result;
 	    	            if (currentStep.evalPredicates(vn,p)){
 	    	                i++;
 	    	            }
 	    	        }
+	    	        vn.atTerminal = false;
 	    	        currentStep.resetP(vn,p);
 	    	        return i;
 	    	    }
