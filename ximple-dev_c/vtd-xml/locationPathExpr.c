@@ -91,14 +91,18 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
    				} else
     				return 0;
 			}else {
+				int result;
 				TextIter* ti = createTextIter();
 	    	    touch(ti,vn);
 	    	    selectNodeType(lpe,ti);
-	    	    while((getNext(ti))!=-1){
+	    	    while((result=getNext(ti))!=-1){
+					vn->LN = result;
+					vn->atTerminal = TRUE;
 	    	        if (evalPredicates2(lpe->currentStep,vn,p)){
 	    	            i++;
 	    	        }
 	    	    }
+				vn->atTerminal = FALSE;
 				resetP2_s(lpe->currentStep,vn,p);
 	    	    return i;
 			}
@@ -1056,6 +1060,8 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 						    touch(ti,vn);
 						    lpe->state = XPATH_EVAL_END;
 						    while((result = getNext(ti))!=-1){
+								vn->LN = result;
+								vn->atTerminal = TRUE;
 								if (evalPredicates(lpe->currentStep,vn)){
 									break;
 								}
@@ -1174,6 +1180,8 @@ forward:;
 						    //result = ti.getNext();
 
 						    while((result = getNext(ti))!=-1){
+								vn->LN = result;
+								vn->atTerminal = TRUE;
 								if (evalPredicates(lpe->currentStep,vn)){
 									break;
 								}
@@ -1265,6 +1273,8 @@ forward:;
 					}else {
 						TextIter* ti = (TextIter*) lpe->currentStep->o;
 					    while ((result= getNext(ti))!=-1) {
+							vn->LN = result;
+							vn->atTerminal = TRUE;
 							if (evalPredicates(lpe->currentStep,vn)) {
 					            if ( isUnique_lpe(lpe,result))
 									return result;
