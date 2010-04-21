@@ -320,6 +320,8 @@ namespace com.ximpleware
                             state = END;
                             while ((result = ti.getNext()) != -1)
                             {
+                                vn.LN = result;
+                                vn.atTerminal=true;
                                 if (currentStep.evalPredicates(vn))
                                 {
                                     break;
@@ -479,6 +481,8 @@ forward_brk: ;
                             //state = END;
                             while ((result = ti.getNext()) != -1)
                             {
+                                vn.LN = result;
+                                vn.atTerminal = true;
                                 if (currentStep.evalPredicates(vn))
                                 {
                                     break;
@@ -601,6 +605,8 @@ forward_brk: ;
                         TextIter ti = (TextIter)currentStep.o;
                         while ((result = ti.getNext()) != -1)
                         {
+                            vn.LN = result;
+                            vn.atTerminal = true;
                             if (currentStep.evalPredicates(vn))
                             {
                                 if (isUnique(result))
@@ -2167,13 +2173,17 @@ forward_brk: ;
                         TextIter ti = new TextIter();
                         ti.touch(vn);
                         selectNodeType(ti);
-                        while ((ti.getNext()) != -1)
+                        int result;
+                        while ((result=ti.getNext()) != -1)
                         {
+                            vn.atTerminal=true;
+                            vn.LN = result;
                             if (currentStep.evalPredicates(vn, p))
                             {
                                 i++;
                             }
                         }
+                        vn.atTerminal = false;
                         currentStep.resetP(vn, p);
                         return i;
                     }
