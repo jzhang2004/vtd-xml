@@ -4695,7 +4695,7 @@ namespace com.ximpleware
             vn.atTerminal = this.atTerminal;
             vn.LN = this.LN;
             if (this.context[0] > -1)
-                Array.Copy(this.context, 0, vn.context, 0, this.context[0]);
+                Array.Copy(this.context, 0, vn.context, 0, this.context[0]+1);
             else
                 this.context[0] = -1;
             vn.l1index = l1index;
