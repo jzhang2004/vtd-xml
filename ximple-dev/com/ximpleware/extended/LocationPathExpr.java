@@ -256,6 +256,8 @@ public class LocationPathExpr extends Expr{
 						    ti.touch(vn);
 						    state = END;
 						    while((result = ti.getNext())!=-1){
+						    	vn.LN = result;
+						    	vn.setAtTerminal(true);
 						        if (currentStep.evalPredicates(vn)){
 									break;
 								}
@@ -371,6 +373,8 @@ public class LocationPathExpr extends Expr{
 						    //result = ti.getNext();
 						    
 						    while((result = ti.getNext())!=-1){
+						    	vn.LN = result;
+						    	vn.setAtTerminal(true);
 						        if (currentStep.evalPredicates(vn)){
 									break;
 								}
@@ -1705,7 +1709,10 @@ public class LocationPathExpr extends Expr{
 	    	    }else {	    
 	    	        TextIterHuge ti = new TextIterHuge();
 	    	        ti.touch(vn);
+	    	        int result = -1;
 	    	        while((ti.getNext())!=-1){
+	    	        	vn.setAtTerminal(true);
+	    	        	vn.LN = result;
 	    	            if (currentStep.evalPredicates(vn,p)){
 	    	                i++;
 	    	            }
