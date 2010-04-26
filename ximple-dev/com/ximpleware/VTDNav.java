@@ -403,6 +403,8 @@ public class VTDNav {
     public int getAttrValNS(String URL, String ln) throws NavException {
     	if (ns == false)
     		return -1;
+    	if (URL!=null && URL.length()==0)
+        	URL = null;
     	if (URL == null)
     		return getAttrVal(ln);
     	int size = vtdBuffer.size();
@@ -428,6 +430,11 @@ public class VTDNav {
     				ln)
     			&& resolveNS(URL, offset, preLen)) {
     			return index + 1;
+    		} else if (	preLen==3 
+    				&& matchRawTokenString(offset, 3,"xml")
+    				&& URL.equals("http://www.w3.org/XML/1998/namespace")){
+    			// prefix matches "xml"
+    			return index+1;
     		}
     		index += 2;
     		if (index>=vtdSize)
@@ -996,7 +1003,41 @@ public class VTDNav {
 	     return new ElementFragmentNs(this,l,fib,len);
 	}
 	
-	
+	/**
+	 * Return the byte offset and length of up to i sibling fragments. If 
+	 * there is a i+1 sibling element, the cursor element would 
+	 * move to it; otherwise, there is no cursor movement. If the cursor isn't 
+	 * positioned at an element (due to XPath evaluation), then -1 will be 
+	 * returned
+	 * @param i number of silbing elements including the cursor element
+	 * @return a long encoding byte offset (bit 31 to bit 0), length (bit 62 
+	 * to bit 32) of those fragments as well as whether the cursor has 
+	 * moved or not (bit 63 is 1 if there is no movement) 
+	 * @throws NavException
+	 */
+	public long getSiblingElementFragments(int i) throws NavException{
+		if (i<=0)
+			throw new IllegalArgumentException(" # of sibling can be less or equal to 0");
+		// get starting char offset
+		if(atTerminal==true)
+			return -1L;
+		// so is the char offset
+		int so = getTokenOffset(getCurrentIndex())-1;
+		// char offset to byte offset conversion
+		if (encoding>=FORMAT_UTF_16BE)
+			so = so<<1;
+		BookMark bm = new BookMark(this);
+		bm.recordCursorPosition();
+		while(i>1 && toElement(VTDNav.NEXT_SIBLING)){
+			i--;
+		}
+		long l= getElementFragment();
+		int len = (int)l+(int)(l>>32)-so;
+		if (i==1 && toElement(VTDNav.NEXT_SIBLING)){
+		}else
+			bm.setCursorPosition();
+		return (((long)len)<<32)|so;
+	}
 	
 	/**
      * Get the starting offset and length of an element encoded in a long, upper
@@ -1720,8 +1761,7 @@ public class VTDNav {
      * @exception com.ximpleware.NavException
      *                When there is any encoding conversion error or unknown
      *                entity.
-     * @exception java.lang.IllegalArgumentException
-     *                if ln == null
+     * 
      */
     final public boolean matchElementNS(String URL, String ln) throws NavException {
     	if (context[0]==-1)
@@ -1732,7 +1772,8 @@ public class VTDNav {
     		getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
     	int preLen = (i >> 16) & 0xffff;
     	int fullLen = i & 0xffff;
-    
+        if (URL!=null && URL.length()==0)
+        	URL = null;
     	if (ln.equals("*")
     		|| ((preLen != 0)
     			? matchRawTokenString(
@@ -1746,6 +1787,10 @@ public class VTDNav {
     		if (((URL != null) ? URL.equals("*") : false)
     			|| (resolveNS(URL, offset, preLen) == true))
     			return true;
+    		if ( preLen==3 
+    			&& matchRawTokenString(offset, preLen,"xml")
+    			&& URL.equals("http://www.w3.org/XML/1998/namespace"))
+    			return true;    			
     	}
     	return false;
     }
@@ -2085,6 +2130,63 @@ public class VTDNav {
 		// for UTF 8 and ISO, the performance is a little better by avoid
         // calling getChar() everytime
 		return compareTokenString(getTokenOffset(index), len, s)==0;
+	}
+	
+	/**
+	 * Match the string against the token at the given index value. The token will be
+     * interpreted as if it is normalized (i.e. all white space char (\r\n\a ) is replaced
+     * by a white space, char entities and entity references will be replaced by their correspondin
+     * char see xml 1.0 spec interpretation of attribute value normalization) 
+	 * @param index
+	 * @param s
+	 * @return
+	 * @throws NavException
+	 */
+	final protected boolean matchNormalizedTokenString2(int index, String s) throws NavException{
+		int type = getTokenType(index);
+		int len =
+			(type == TOKEN_STARTING_TAG
+				|| type == TOKEN_ATTR_NAME
+				|| type == TOKEN_ATTR_NS)
+				? getTokenLength(index) & 0xffff
+				: getTokenLength(index);
+
+		return compareNormalizedTokenString2(getTokenOffset(index), len, s)==0;
+	
+	}
+	
+	final protected int compareNormalizedTokenString2(int offset, int len,
+			String s) throws NavException {
+		int i, l, temp;
+		long l1,l2;
+		//boolean b = false;
+		// this.currentOffset = offset;
+		int endOffset = offset + len;
+
+		// System.out.print("currentOffset :" + currentOffset);
+		l = s.length();
+		// System.out.println(s);
+		for (i = 0; i < l && offset < endOffset;) {
+			l1 = getCharResolved(offset);
+			temp = (int) l1;
+			l2 = (l1>>32);
+			if (l2<=2 && isWS(temp))
+				temp = ' ';
+			int i1 = s.charAt(i);
+			if (i1 < temp)
+				return 1;
+			if (i1 > temp)
+				return -1;
+			i++;			
+			offset += (int) (l1 >> 32);
+		}
+
+		if (i == l && offset < endOffset)
+			return 1;
+		if (i < l && offset == endOffset)
+			return -1;
+		return 0;
+		// return -1;
 	}
 	/**
      * Match a string against a "non-extractive" token represented by a long
@@ -3144,10 +3246,13 @@ public class VTDNav {
                return false;
             }
         default:
-            if (URL == null)
+            if (URL == null) {
+            	if (getTokenLength(result)==0)
+            		return true;
 		        return false;
+            }
 		    else {
-		        return matchTokenString(result, URL);
+		        return matchNormalizedTokenString2(result, URL);
 		    }
         	
         }
@@ -3747,6 +3852,49 @@ public class VTDNav {
 				throw new NavException("illegal navigation options");
 		}
 
+	}
+	
+	/**
+	 * (New since version 2.9)
+	 * Shallow Normalization follows the rules below to normalize a token into
+	 * a string
+	 * *#xD#xA gets converted to #xA
+	 * *For a character reference, append the referenced character to the normalized value.
+	 * *For an entity reference, recursively apply step 3 of this algorithm to the replacement text of the entity.
+	 * *For a white space character (#x20, #xD, #xA, #x9), append a space character (#x20) to the normalized value.
+	 * *For another character, append the character to the normalized value.
+	 * @param index
+	 * @return
+	 * @throws NavException
+	 */
+	public String toNormalizedString2(int index) throws NavException{
+		int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			return toRawString(index); 
+		long l;
+		int len;
+		len = getTokenLength(index);
+		if (len == 0)
+			return "";
+		int offset = getTokenOffset(index);
+		int endOffset = len + offset - 1; // point to the last character
+		StringBuffer sb = new StringBuffer(len);
+		
+		int ch;
+
+		//boolean d = false;
+		while (offset <= endOffset) {
+			l = getCharResolved(offset);
+			ch = (int)l;
+			offset += (int)(l>>32);
+			if (isWS(ch) && (l>>32)<=2) {
+				//d = true;
+				sb.append(' ');
+			} else
+				sb.append((char) ch);
+		}
+		return sb.toString();
 	}
 	/**
      * This method normalizes a token into a string value of character data 
