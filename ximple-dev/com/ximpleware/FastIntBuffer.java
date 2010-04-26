@@ -370,7 +370,8 @@ public int[] toIntArray() {
  }
  
  /**
-  * 
+  * Set the size of FastIntBuffer to newSz if newSz is less than the
+  * capacity, otherwise return false
   * @param newSz
   * @return status of resize
   *
