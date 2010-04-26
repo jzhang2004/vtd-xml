@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 //import com.ximpleware.extended.parser.UTF8Char;
+import com.ximpleware.BookMark;
+import com.ximpleware.NavException;
 import com.ximpleware.VTDNav;
 import com.ximpleware.extended.parser.*;
 
@@ -3743,7 +3745,7 @@ public class VTDNavHuge {
 	 * Return the offset (64-bit) and length (64-bit) of an element
 	 * fragment 
 	 * @return a long[2], result[0]=offset, result[1]=length
-	 * @throws NavException
+	 * @throws NavExceptionHuge
 	 */
 	public long[] getElementFragment() throws NavExceptionHuge {
 		// a little scanning is needed
@@ -4250,6 +4252,42 @@ public class VTDNavHuge {
 			vn.l3upper = l3upper;
 		}
 		return vn;
+	}
+	
+	/**
+	 * Return the byte offset and length of up to i sibling fragments. If 
+	 * there is a i+1 sibling element, the cursor element would 
+	 * move to it; otherwise, there is no cursor movement. If the cursor isn't 
+	 * positioned at an element (due to XPath evaluation), then -1 will be 
+	 * returned
+	 * @param i number of silbing elements including the cursor element
+	 * @return a long[2] encoding byte offset (lower 64 bits), length (
+	 * upper 64 bits) of those fragments 
+	 * @throws NavExceptionHuge
+	 */
+	public long[] getSiblingElementFragments(int i) throws NavExceptionHuge{
+		if (i<=0)
+			throw new IllegalArgumentException(" # of sibling can be less or equal to 0");
+		// get starting char offset
+		if(atTerminal==true)
+			return null;
+		// so is the char offset
+		long so = getTokenOffset(getCurrentIndex())-1;
+		// char offset to byte offset conversion
+		if (encoding>=FORMAT_UTF_16BE)
+			so = so<<1;
+		BookMarkHuge bmh = new BookMarkHuge(this);
+		bmh.recordCursorPosition();
+		while(i>1 && toElement(VTDNav.NEXT_SIBLING)){
+			i--;
+		}
+		long[] l= getElementFragment();
+		long len = l[0]+l[1]-so;
+		if (i==1 && toElement(VTDNav.NEXT_SIBLING)){
+		}else
+			bmh.setCursorPosition();
+		l[0] = so; l[1]=len;
+		return l;
 	}
 
 }
