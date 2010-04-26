@@ -31,14 +31,18 @@ namespace com.ximpleware
 
         public override void Write(byte[] ba, int os, int len) 
         {
-            if (len < 0 || offset+len > XMLDoc.Length)
-                throw new System.IndexOutOfRangeException("bad value for Length");
+            if (offset+len > XMLDoc.Length)
+                throw new System.IndexOutOfRangeException("XMLDoc size exceeds maximum size");
             Array.Copy(ba, os, XMLDoc, offset, len);
+            offset += len;
         }
 
         public void Write(byte[] ba)
         {
+            if (ba.Length > XMLDoc.Length)
+                throw new System.IndexOutOfRangeException("XMLDoc size exceeds maximum size");
             Write(ba, 0, ba.Length);
+            offset += ba.Length;
         }
 
         public override void Flush()
