@@ -394,5 +394,21 @@ public int upper32At(int index) {
  public final void clear(){
  	size = 0;
  }
+ 
+ /**
+  * Set the size of FastLongBuffer to newSz if newSz is less than the
+  * capacity, otherwise return false
+  * @param newSz
+  * @return status of resize
+  *
+  */
+ public boolean resize(int newSz){     
+	 if (newSz <= capacity && newSz >=0){
+		 size = newSz;
+		 return true;
+	 }	 
+	 else
+		 return false;       
+ }
 }
 
