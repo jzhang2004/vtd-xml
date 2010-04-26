@@ -135,7 +135,7 @@ public class BookMarkHuge {
      * @return
      *
      */
-    public boolean setCursorPostion(){
+    public boolean setCursorPosition(){
         return setCursorPosition(vn1);
     }
     /**
