@@ -36,14 +36,14 @@ public class XMLByteOutputStream extends OutputStream {
 	}
 	
 	public void write(byte[] ba) throws IOException{
-		if (ba.length+offset>=XMLDoc.length)
+		if (ba.length+offset>XMLDoc.length)
 			throw new IOException("XMLDoc size exceeds maximum size");
 		System.arraycopy(ba, 0, XMLDoc, offset, ba.length);
 		offset+=ba.length;
 	}
 	
 	public void write(byte[] ba, int os, int len) throws IOException{
-		if (len+os>=XMLDoc.length)
+		if (len+offset>XMLDoc.length)
 			throw new IOException("XMLDoc size exceeds maximum size");
 		System.arraycopy(ba, os, XMLDoc, offset, len);
 		offset +=len;
