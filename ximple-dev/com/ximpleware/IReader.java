@@ -40,4 +40,8 @@ interface IReader {
      */
     boolean skipChar(int ch)
         throws ParseException, EncodingException, EOFException;
+    
+    char decode(int ch);
+    
+    long _getChar(int byte_offset);
 }
