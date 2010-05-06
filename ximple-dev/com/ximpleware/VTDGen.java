@@ -1300,7 +1300,7 @@ public class VTDGen {
 		tag_stack = new long[TAG_STACK_SIZE];
 		//scratch_buffer = new int[10];
 		VTDDepth = 0;
-		r = new UTF8Reader();
+		
 		br = false;
 		e =  new EOFException("permature EOF reached, XML document incomplete");
 		ws = false;
@@ -4203,7 +4203,7 @@ public class VTDGen {
 		nsBuffer1.clear();
 		nsBuffer2.clear();
 		nsBuffer3.clear();
-		
+		r = new UTF8Reader();
 		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
 			//a = 1024; //set the floor
@@ -4273,6 +4273,7 @@ public class VTDGen {
 		nsBuffer1.clear();
 		nsBuffer2.clear();
 		nsBuffer3.clear();
+		r = new UTF8Reader();
 		
 		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
