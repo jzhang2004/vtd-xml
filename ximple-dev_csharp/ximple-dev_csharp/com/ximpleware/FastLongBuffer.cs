@@ -390,5 +390,21 @@ namespace com.ximpleware
 		{
 			size_Renamed_Field = 0;
 		}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newSz"></param>
+        /// <returns></returns>
+        public bool resize(int newSz)
+        {
+            if (newSz <= capacity && newSz >= 0)
+            {
+                this.size_Renamed_Field = newSz;
+                return true;
+            }
+            else
+                return false;
+        }
 	}
 }
