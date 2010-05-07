@@ -48,5 +48,10 @@ namespace com.ximpleware
 		/// <exception cref="com.ximpleware.EOFException">The end of file exception.
 		/// </exception>
 		bool skipChar(int ch);
+
+        long _getChar(int offset);
+
+        char decode(int offset);
+
 	}
 }
