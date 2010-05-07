@@ -117,7 +117,7 @@ namespace com.ximpleware
                         {
                             prevOffset--;
                         }
-                        while ((XMLDoc[prevOffset]) > 127 
+                        while ((XMLDoc[prevOffset]) > 127
                             && ((XMLDoc[prevOffset] & ((byte)0xc0)) == (byte)0x80));
                         return prevOffset;
 
@@ -245,7 +245,7 @@ namespace com.ximpleware
 
 
         //namespace aware flag
-        protected internal bool ns;
+        protected internal bool ns, is_ns;
         protected internal int VTDDepth; // Maximum Depth of VTDs
         protected internal int encoding;
         private int last_depth;
@@ -257,6 +257,8 @@ namespace com.ximpleware
         private bool must_utf_8;
         private int ch;
         private int ch_temp;
+        private int length1, length2;
+
         protected internal int offset; // this is byte offset, not char offset as encoded in VTD
         private bool ws; // to prserve whitespace or not, default to false
         private int temp_offset;
@@ -270,6 +272,13 @@ namespace com.ximpleware
         protected internal FastLongBuffer l1Buffer;
         protected internal FastLongBuffer l2Buffer;
         protected internal FastIntBuffer l3Buffer;
+
+        protected FastIntBuffer nsBuffer1;
+        protected FastLongBuffer nsBuffer2;
+        protected FastLongBuffer nsBuffer3;
+        protected long currentElementRecord;
+
+
         protected internal bool br; //buffer reuse
 
 
@@ -277,7 +286,11 @@ namespace com.ximpleware
         // again, in terms of byte, not char as encoded in VTD
         protected internal int endOffset;
         protected internal long[] tag_stack;
-        public long[] attr_name_array;
+        private long[] attr_name_array;
+        private int attr_count;
+        private long[] prefixed_attr_name_array;
+        private int[] prefix_URL_array;
+        private int prefixed_attr_count;
         public const int MAX_DEPTH = 254; // maximum depth value
         protected internal int docOffset;
 
@@ -302,7 +315,7 @@ namespace com.ximpleware
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -325,7 +338,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_2.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -337,6 +350,20 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_2.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return ISO8859_2.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_3Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
         internal class ISO8859_3Reader : IReader
@@ -346,7 +373,7 @@ namespace com.ximpleware
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -369,7 +396,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_3.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -381,6 +408,18 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_3.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return ISO8859_3.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_4Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
@@ -391,7 +430,7 @@ namespace com.ximpleware
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -414,7 +453,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_4.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -426,6 +465,18 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_4.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return ISO8859_4.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_5Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
@@ -436,7 +487,7 @@ namespace com.ximpleware
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -459,7 +510,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_5.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -471,6 +522,18 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_5.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return ISO8859_5.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_6Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
@@ -481,7 +544,7 @@ namespace com.ximpleware
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -504,7 +567,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_6.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -516,6 +579,18 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_6.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return ISO8859_6.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_7Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
         internal class ISO8859_7Reader : IReader
@@ -525,7 +600,7 @@ namespace com.ximpleware
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -548,7 +623,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_7.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -560,6 +635,18 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_7.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return ISO8859_7.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_8Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
@@ -570,7 +657,7 @@ namespace com.ximpleware
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -593,7 +680,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_8.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -605,6 +692,19 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_8.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return ISO8859_8.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_9Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
@@ -615,7 +715,7 @@ namespace com.ximpleware
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -638,7 +738,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_9.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -650,17 +750,29 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_9.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return ISO8859_9.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_10Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class ISO8859_10Reader : IReader
+        sealed internal class ISO8859_10Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -683,7 +795,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_10.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -695,15 +807,27 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_10.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+            public char decode(int offset)
+            {
+                return ISO8859_10.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
-        internal class ISO8859_11Reader : IReader
+
+        sealed internal class ISO8859_11Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -726,7 +850,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_11.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -738,15 +862,28 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_11.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+            public char decode(int offset)
+            {
+                return ISO8859_11.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
-        internal class ISO8859_13Reader : IReader
+
+        sealed internal class ISO8859_13Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -769,7 +906,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_13.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -781,15 +918,27 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_13.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+            public char decode(int offset)
+            {
+                return ISO8859_13.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
-        internal class ISO8859_14Reader : IReader
+        sealed internal class ISO8859_14Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -812,7 +961,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_14.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -824,15 +973,27 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_14.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+            public char decode(int offset)
+            {
+                return ISO8859_14.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
-        internal class ISO8859_15Reader : IReader
+        sealed internal class ISO8859_15Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -855,7 +1016,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == ISO8859_15.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -867,10 +1028,22 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = ISO8859_15.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+            public char decode(int offset)
+            {
+                return ISO8859_15.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF8Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class UTF8Reader : IReader
+        sealed internal class UTF8Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
@@ -1039,9 +1212,89 @@ namespace com.ximpleware
                 else
                     return false;
             }
+
+            public long _getChar(int offset)
+            {
+                int temp = Enclosing_Instance.XMLDoc[offset];
+                if (temp >= 0)
+                {
+                    if (temp == '\r')
+                    {
+                        if (Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                        {
+                            return '\n' | (2L << 32);
+                        }
+                        else
+                        {
+                            return '\n' | (1L << 32);
+                        }
+                    }
+                    //currentOffset++;
+                    return temp | (1L << 32);
+                }
+                return handle_utf8(temp, offset);
+
+            }
+
+            private long handle_utf8(int temp, int offset)
+            {
+                // TODO Auto-generated method stub
+                int c = 0, d = 0, a = 0;
+
+                long val;
+                switch (UTF8Char.byteCount((int)temp & 0xff))
+                {
+                    case 2:
+                        c = 0x1f;
+                        d = 6;
+                        a = 1;
+                        break;
+                    case 3:
+                        c = 0x0f;
+                        d = 12;
+                        a = 2;
+                        break;
+                    case 4:
+                        c = 0x07;
+                        d = 18;
+                        a = 3;
+                        break;
+                    case 5:
+                        c = 0x03;
+                        d = 24;
+                        a = 4;
+                        break;
+                    case 6:
+                        c = 0x01;
+                        d = 30;
+                        a = 5;
+                        break;
+                }
+
+                val = (temp & c) << d;
+                int i = a - 1;
+                while (i >= 0)
+                {
+                    temp = Enclosing_Instance.XMLDoc[offset + a - i];
+                    val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
+                    i--;
+                }
+                //currentOffset += a + 1;
+                return val | (((long)(a + 1)) << 32);
+            }
+
+            public char decode(int offset)
+            {
+                return (char)0;
+            }
+
+
         }
+
+
+
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF16BEReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class UTF16BEReader : IReader
+        sealed internal class UTF16BEReader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
@@ -1078,6 +1331,8 @@ namespace com.ximpleware
                         return val;
                     }
                 }
+
+
 
             }
             public VTDGen Enclosing_Instance
@@ -1129,16 +1384,62 @@ namespace com.ximpleware
                         return false;
                 }
             }
+
+            public char decode(int offset)
+            {
+                return (char)0;
+            }
+
+            public long _getChar(int offset)
+            {
+                long val;
+
+                int temp =
+                    ((Enclosing_Instance.XMLDoc[offset] & 0xff) << 8)
+                            | (Enclosing_Instance.XMLDoc[offset + 1] & 0xff);
+                if ((temp < 0xd800)
+                    || (temp > 0xdfff))
+                { // not a high surrogate
+                    if (temp == '\r')
+                    {
+                        if (Enclosing_Instance.XMLDoc[offset + 3] == '\n'
+                            && Enclosing_Instance.XMLDoc[offset + 2] == 0)
+                        {
+
+                            return '\n' | (4L << 32);
+                        }
+                        else
+                        {
+                            return '\n' | (2L << 32);
+                        }
+                    }
+                    //currentOffset++;
+                    return temp | (2L << 32);
+                }
+                else
+                {
+                    val = temp;
+                    temp =
+                        ((Enclosing_Instance.XMLDoc[offset + 2] & 0xff)
+                            << 8) | (Enclosing_Instance.XMLDoc[offset + 3] & 0xff);
+                    val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
+                    //currentOffset += 2;
+                    return val | (4L << 32);
+                }
+            }
         }
+
+
+
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1250Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1250Reader : IReader
+        sealed internal class WIN1250Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1161,7 +1462,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1250.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1173,16 +1474,28 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = WIN1250.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1250.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1251Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1251Reader : IReader
+        sealed internal class WIN1251Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1205,7 +1518,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1251.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1217,20 +1530,33 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = WIN1251.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1251.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
 
 
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1252Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1252Reader : IReader
+        sealed internal class WIN1252Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1253,7 +1579,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1252.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1265,17 +1591,30 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = WIN1252.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1252.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1253Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1253Reader : IReader
+        sealed internal class WIN1253Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1298,7 +1637,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1253.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1310,17 +1649,30 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = WIN1253.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1253.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1254Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1254Reader : IReader
+        sealed internal class WIN1254Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1343,7 +1695,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1254.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1355,17 +1707,29 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = WIN1254.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1254.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1255Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1255Reader : IReader
+        sealed internal class WIN1255Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1388,7 +1752,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1255.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1400,17 +1764,29 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = WIN1255.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1255.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1256Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1256Reader : IReader
+        sealed internal class WIN1256Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1433,7 +1809,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1256.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1445,17 +1821,29 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = WIN1256.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1256.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1257Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1257Reader : IReader
+        sealed internal class WIN1257Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1478,7 +1866,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1257.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1490,17 +1878,29 @@ namespace com.ximpleware
                     return false;
                 }
             }
+            public long _getChar(int offset)
+            {
+                int c = WIN1257.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1257.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'WIN1258Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class WIN1258Reader : IReader
+        sealed internal class WIN1258Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
                 this.enclosingInstance = enclosingInstance;
             }
             private VTDGen enclosingInstance;
-            virtual public int Char
+            public int Char
             {
                 get
                 {
@@ -1523,7 +1923,7 @@ namespace com.ximpleware
             {
                 InitBlock(enclosingInstance);
             }
-            public virtual bool skipChar(int ch)
+            public bool skipChar(int ch)
             {
                 if (ch == WIN1258.decode(Enclosing_Instance.XMLDoc[Enclosing_Instance.offset]))
                 {
@@ -1535,9 +1935,22 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = WIN1258.decode(Enclosing_Instance.XMLDoc[offset]);
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return WIN1258.decode(Enclosing_Instance.XMLDoc[offset]);
+            }
         }
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'UTF16LEReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class UTF16LEReader : IReader
+        sealed internal class UTF16LEReader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
@@ -1574,6 +1987,7 @@ namespace com.ximpleware
                         return val;
                     }
                 }
+
 
             }
             public VTDGen Enclosing_Instance
@@ -1627,10 +2041,48 @@ namespace com.ximpleware
                         return false;
                 }
             }
+            public char decode(int offset)
+            {
+                return (char)0;
+            }
+
+            public long _getChar(int offset)
+            {
+                // implement UTF-16LE to UCS4 conversion
+                int val, temp =
+                    (Enclosing_Instance.XMLDoc[offset + 1] & 0xff)
+                        << 8 | (Enclosing_Instance.XMLDoc[offset] & 0xff);
+                if (temp < 0xdc00 || temp > 0xdfff)
+                { // check for low surrogate
+                    if (temp == '\r')
+                    {
+                        if (Enclosing_Instance.XMLDoc[offset + 2] == '\n'
+                            && Enclosing_Instance.XMLDoc[offset + 3] == 0)
+                        {
+                            return '\n' | (4L << 32);
+                        }
+                        else
+                        {
+                            return '\n' | (2L << 32);
+                        }
+                    }
+                    return temp | (2L << 32);
+                }
+                else
+                {
+                    val = temp;
+                    temp =
+                        (Enclosing_Instance.XMLDoc[offset + 3] & 0xff)
+                            << 8 | (Enclosing_Instance.XMLDoc[offset + 2] & 0xff);
+                    val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
+
+                    return val | (4L << 32);
+                }
+            }
         }
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ASCIIReader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class ASCIIReader : IReader
+        sealed internal class ASCIIReader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
@@ -1677,9 +2129,22 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = Enclosing_Instance.XMLDoc[offset];
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return (char)Enclosing_Instance.XMLDoc[offset];
+            }
         }
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
-        internal class ISO8859_1Reader : IReader
+        sealed internal class ISO8859_1Reader : IReader
         {
             private void InitBlock(VTDGen enclosingInstance)
             {
@@ -1721,6 +2186,19 @@ namespace com.ximpleware
                     return false;
                 }
             }
+
+            public long _getChar(int offset)
+            {
+                int c = 0xff & Enclosing_Instance.XMLDoc[offset];
+                if (c == '\r' && Enclosing_Instance.XMLDoc[offset + 1] == '\n')
+                    return (2L << 32) | '\n';
+                return (1L << 32) | c;
+            }
+
+            public char decode(int offset)
+            {
+                return (char)(Enclosing_Instance.XMLDoc[offset] & 0xff);
+            }
         }
         protected internal IReader r;
 
@@ -1728,13 +2206,19 @@ namespace com.ximpleware
         public VTDGen()
         {
             attr_name_array = new long[ATTR_NAME_ARRAY_SIZE];
+            prefixed_attr_name_array = new long[ATTR_NAME_ARRAY_SIZE];
+            prefix_URL_array = new int[ATTR_NAME_ARRAY_SIZE];
             tag_stack = new long[TAG_STACK_SIZE];
             //scratch_buffer = new int[10];
             VTDDepth = 0;
-            r = new UTF8Reader(this);
+
             br = false;
             e = new EOFException("permature EOF reached, XML document incomplete");
             ws = false;
+            nsBuffer1 = new FastIntBuffer(4);
+            nsBuffer2 = new FastLongBuffer(4);
+            nsBuffer3 = new FastLongBuffer(4);
+            currentElementRecord = 0;
         }
         /// <summary> Clear internal states so VTDGEn can process the next file.</summary>
         public void clear()
@@ -1756,6 +2240,10 @@ namespace com.ximpleware
             must_utf_8 = false;
             ch = ch_temp = 0;
             r = new UTF8Reader(this);
+            nsBuffer1.clear();
+            nsBuffer2.clear();
+            nsBuffer3.clear();
+            currentElementRecord = 0;
         }
         /// <summary> This method will detect whether the entity is valid or not and increment offset.</summary>
         /// <returns> int
@@ -1889,54 +2377,9 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> java.lang.String indicating the line number and offset of the exception
         /// </returns>
-        private System.String formatLineNumber()
+        private String formatLineNumber()
         {
-            int so = docOffset;
-            int lineNumber = 0;
-            int lineOffset = 0;
-            int end = offset;
-
-            if (encoding < FORMAT_UTF_16BE)
-            {
-                while (so <= offset - 1)
-                {
-                    if (XMLDoc[so] == '\n')
-                    {
-                        lineNumber++;
-                        lineOffset = so;
-                    }
-                    //lineOffset++;
-                    so++;
-                }
-                lineOffset = offset - lineOffset;
-            }
-            else if (encoding == FORMAT_UTF_16BE)
-            {
-                while (so <= offset - 2)
-                {
-                    if (XMLDoc[so + 1] == '\n' && XMLDoc[so] == 0)
-                    {
-                        lineNumber++;
-                        lineOffset = so;
-                    }
-                    so += 2;
-                }
-                lineOffset = (offset - lineOffset) >> 1;
-            }
-            else
-            {
-                while (so <= offset - 2)
-                {
-                    if (XMLDoc[so] == '\n' && XMLDoc[so + 1] == 0)
-                    {
-                        lineNumber++;
-                        lineOffset = so;
-                    }
-                    so += 2;
-                }
-                lineOffset = (offset - lineOffset) >> 1;
-            }
-            return "\nLine Number: " + (lineNumber + 1) + " Offset: " + (lineOffset - 1);
+            return formatLineNumber(offset);
         }
         /// <summary> Write the remaining portion of LC info
         /// 
@@ -2169,7 +2612,9 @@ namespace com.ximpleware
         }
 
 
-        /// <summary> Generating VTD tokens and Location cache info.</summary>
+        /// <summary> Generating VTD tokens and Location cache info.
+        /// VTDGen conforms to XML namespace 1.0 spec
+        /// </summary>
         /// <param name="NS">boolean Enable namespace or not
         /// </param>
         /// <throws>  ParseException Super class for any exceptions during parsing.      </throws>
@@ -2181,13 +2626,16 @@ namespace com.ximpleware
 
             // define internal variables	
             ns = NS;
-            int length1 = 0, length2 = 0;
-            int attr_count = 0;
+            length1 = length2 = 0;
+            attr_count = prefixed_attr_count = 0;
             int parser_state = STATE_DOC_START;
             //boolean has_amp = false; 
-            bool is_ns = false;
+            is_ns = false;
             encoding = FORMAT_UTF8;
             bool helper = false;
+            bool default_ns = false; //true xmlns='abc'
+            bool isXML = false;      //true only for xmlns:xml
+
             //char char_temp; //holds the ' or " indicating start of attr val
             //boolean must_utf_8 = false;
             //boolean BOM_detected = false;
@@ -2256,6 +2704,10 @@ namespace com.ximpleware
                                     if (ch == ':')
                                     {
                                         length2 = offset - temp_offset - increment;
+                                        if (ns == true && checkPrefix2(temp_offset, length2))
+                                            throw new ParseException(
+                                                    "xmlns can't be an element prefix "
+                                                    + formatLineNumber(offset));
                                     }
                                 }
                                 else
@@ -2287,6 +2739,25 @@ namespace com.ximpleware
                                 writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG, depth);
                             }
                             //offset += length1;
+                            if (ns == true)
+                            {
+                                if (length2 != 0)
+                                {
+                                    length2 += increment;
+                                    currentElementRecord = (((long)((length2 << 16) | length1)) << 32)
+                                    | temp_offset;
+                                }
+                                else
+                                    currentElementRecord = 0;
+
+                                if (depth <= nsBuffer1.size() - 1)
+                                {
+                                    nsBuffer1.resize(depth + 1);
+                                    int t = nsBuffer1.intAt(depth) + 1;
+                                    nsBuffer2.resize(t);
+                                    nsBuffer3.resize(t);
+                                }
+                            }
                             length2 = 0;
                             if (XMLChar.isSpaceChar(ch))
                             {
@@ -2308,6 +2779,11 @@ namespace com.ximpleware
                             }
                             if (ch == '>')
                             {
+                                if (ns == true)
+                                {
+                                    nsBuffer1.append(nsBuffer3.size() - 1);
+                                    qualifyElement();
+                                }
                                 if (depth != -1)
                                 {
                                     temp_offset = offset;
@@ -2432,9 +2908,16 @@ namespace com.ximpleware
                                 if (r.skipChar('m') && r.skipChar('l') && r.skipChar('n') && r.skipChar('s'))
                                 {
                                     ch = r.Char;
-                                    if (ch == '=' || XMLChar.isSpaceChar(ch) || ch == ':')
+                                    if (ch == '='
+                                    || XMLChar.isSpaceChar(ch))
+                                    {
+                                        is_ns = true;
+                                        default_ns = true;
+                                    }
+                                    else if (ch == ':')
                                     {
                                         is_ns = true; //break;
+                                        default_ns = false;
                                     }
                                 }
                             }
@@ -2452,54 +2935,71 @@ namespace com.ximpleware
                                     break;
                             }
                             length1 = PrevOffset - temp_offset;
+                            if (is_ns && ns)
+                            {
+                                // make sure postfix isn't xmlns
+                                if (!default_ns)
+                                {
+                                    if (increment == 1 && (length1 - length2 - 1 == 5)
+                                            || (increment == 2 && (length1 - length2 - 2 == 10)))
+                                        disallow_xmlns(temp_offset + length2 + increment);
+
+                                    // if the post fix is xml, signal it
+                                    if (increment == 1 && (length1 - length2 - 1 == 3)
+                                            || (increment == 2 && (length1 - length2 - 2 == 6)))
+                                        isXML = matchXML(temp_offset + length2 + increment);
+                                }
+                            }
                             // check for uniqueness here
-                            bool unique = true;
-                            bool unequal;
-                            for (int i = 0; i < attr_count; i++)
-                            {
-                                unequal = false;
-                                int prevLen = (int)attr_name_array[i];
-                                if (length1 == prevLen)
-                                {
-                                    int prevOffset = (int)(attr_name_array[i] >> 32);
-                                    for (int j = 0; j < prevLen; j++)
-                                    {
-                                        if (XMLDoc[prevOffset + j] != XMLDoc[temp_offset + j])
-                                        {
-                                            unequal = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                else
-                                    unequal = true;
-                                unique = unique && unequal;
-                            }
-                            if (!unique && attr_count != 0)
-                                throw new ParseException("Error in attr: Attr name not unique" + formatLineNumber());
-                            unique = true;
-                            if (attr_count < attr_name_array.Length)
-                            {
-                                attr_name_array[attr_count] = ((long)(temp_offset) << 32) + length1;
-                                attr_count++;
-                            }
-                            // grow the attr_name_array by 16
-                            else
-                            {
-                                long[] temp_array = attr_name_array;
-                                /*System.out.println(
-                                "size increase from "
-                                + temp_array.length
-                                + "  to "
-                                + (attr_count + 16));*/
-                                attr_name_array = new long[attr_count + ATTR_NAME_ARRAY_SIZE];
-                                for (int i = 0; i < attr_count; i++)
-                                {
-                                    attr_name_array[i] = temp_array[i];
-                                }
-                                attr_name_array[attr_count] = ((long)(temp_offset) << 32) + length1;
-                                attr_count++;
-                            }
+                            checkAttributeUniqueness();
+                            // check for uniqueness here
+                            //bool unique = true;
+                            //bool unequal;
+                            //for (int i = 0; i < attr_count; i++)
+                            //{
+                            //    unequal = false;
+                            //    int prevLen = (int)attr_name_array[i];
+                            //    if (length1 == prevLen)
+                            //    {
+                            //        int prevOffset = (int)(attr_name_array[i] >> 32);
+                            //        for (int j = 0; j < prevLen; j++)
+                            //        {
+                            //            if (XMLDoc[prevOffset + j] != XMLDoc[temp_offset + j])
+                            //            {
+                            //                unequal = true;
+                            //                break;
+                            //            }
+                            //        }
+                            //    }
+                            //    else
+                            //        unequal = true;
+                            //    unique = unique && unequal;
+                            //}
+                            //if (!unique && attr_count != 0)
+                            //    throw new ParseException("Error in attr: Attr name not unique" + formatLineNumber());
+                            //unique = true;
+                            //if (attr_count < attr_name_array.Length)
+                            //{
+                            //    attr_name_array[attr_count] = ((long)(temp_offset) << 32) + length1;
+                            //    attr_count++;
+                            //}
+                            //// grow the attr_name_array by 16
+                            //else
+                            //{
+                            //    long[] temp_array = attr_name_array;
+                            //    /*System.out.println(
+                            //    "size increase from "
+                            //    + temp_array.length
+                            //    + "  to "
+                            //    + (attr_count + 16));*/
+                            //    attr_name_array = new long[attr_count + ATTR_NAME_ARRAY_SIZE];
+                            //    for (int i = 0; i < attr_count; i++)
+                            //    {
+                            //        attr_name_array[i] = temp_array[i];
+                            //    }
+                            //    attr_name_array[attr_count] = ((long)(temp_offset) << 32) + length1;
+                            //    attr_count++;
+                            //}
 
                             // after checking, write VTD
                             if (is_ns)
@@ -2516,7 +3016,19 @@ namespace com.ximpleware
                                         throw new ParseException("Token length overflow error: Attr NS prefix or qname length too long" + formatLineNumber());
                                     writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NS, depth);
                                 }
-                                is_ns = false;
+                                // append to nsBuffer2
+                                if (ns)
+                                {
+                                    //unprefixed xmlns are not recorded
+                                    if (length2 != 0 && !isXML)
+                                    {
+                                        //nsBuffer2.append(VTDBuffer.size() - 1);
+                                        long l = ((long)((length2 << 16) | length1)) << 32
+                                            | temp_offset;
+                                        nsBuffer3.append(l); // byte offset and byte
+                                        // length
+                                    }
+                                }
                             }
                             else
                             {
@@ -2571,6 +3083,45 @@ namespace com.ximpleware
                             }
 
                             length1 = offset - temp_offset - increment;
+                            if (ns && is_ns)
+                            {
+                                if (!default_ns && length1 == 0)
+                                {
+                                    throw new ParseException(" non-default ns URL can't be empty"
+                                        + formatLineNumber());
+                                }
+                                //identify nsURL return 0,1,2
+                                int t = identifyNsURL(temp_offset, length1);
+                                if (isXML)
+                                {//xmlns:xml
+                                    if (t != 1)
+                                        //URL points to "http://www.w3.org/XML/1998/namespace"
+                                        throw new ParseException("xmlns:xml can only point to"
+                                                + "\"http://www.w3.org/XML/1998/namespace\""
+                                                + formatLineNumber());
+
+                                }
+                                else
+                                {
+                                    if (!default_ns)
+                                        nsBuffer2.append(((long)temp_offset << 32) | length1);
+                                    if (t != 0)
+                                    {
+                                        if (t == 1)
+                                            throw new ParseException("namespace declaration can't point to"
+                                                + " \"http://www.w3.org/XML/1998/namespace\""
+                                                + formatLineNumber());
+                                        throw new ParseException("namespace declaration can't point to"
+                                            + " \"http://www.w3.org/2000/xmlns/\""
+                                            + formatLineNumber());
+                                    }
+                                }
+                                // no ns URL points to 
+                                //"http://www.w3.org/2000/xmlns/"
+
+                                // no ns URL points to  
+                                //"http://www.w3.org/XML/1998/namespace"
+                            }
                             if (encoding < FORMAT_UTF_16BE)
                             {
                                 if (length1 > MAX_TOKEN_LENGTH)
@@ -2583,6 +3134,10 @@ namespace com.ximpleware
                                     throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
                                 writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_ATTR_VAL, depth);
                             }
+
+                            isXML = false;
+                            is_ns = false;
+
                             ch = r.Char;
                             if (XMLChar.isSpaceChar(ch))
                             {
@@ -2604,6 +3159,14 @@ namespace com.ximpleware
 
                             if (ch == '>')
                             {
+                                if (ns == true)
+                                {
+                                    nsBuffer1.append(nsBuffer3.size() - 1);
+                                    qualifyAttributes();
+                                    checkQualifiedAttributeUniqueness();
+                                    qualifyElement();
+                                    prefixed_attr_count = 0;
+                                }
                                 attr_count = 0;
                                 if (depth != -1)
                                 {
@@ -3123,7 +3686,7 @@ namespace com.ximpleware
                 else
                     throw new ParseException("XML decl error: Can't switch encoding to ISO-8859" + formatLineNumber());
                 if (r.skipChar(ch_temp))
-                    return;		
+                    return;
             }
             throw new ParseException("XML decl error: Invalid Encoding" + formatLineNumber());
         }
@@ -3609,7 +4172,7 @@ namespace com.ximpleware
                     }
                 }
             }
-  		
+
 
             throw new ParseException("Other Error: XML not starting properly" + formatLineNumber());
         }
@@ -4052,6 +4615,11 @@ namespace com.ximpleware
             endOffset = os + len;
             last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
             int i1 = 7, i2 = 9, i3 = 11;
+            currentElementRecord = 0;
+            nsBuffer1.clear();
+            nsBuffer2.clear();
+            nsBuffer3.clear();
+            r = new UTF8Reader(this);
             if (docLen <= 1024)
             {
                 //a = 1024; //set the floor
@@ -4128,6 +4696,12 @@ namespace com.ximpleware
             endOffset = os + len;
             last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
             int i1 = 7, i2 = 9, i3 = 11;
+            currentElementRecord = 0;
+            nsBuffer1.clear();
+            nsBuffer2.clear();
+            nsBuffer3.clear();
+            //r = new UTF8Reader();
+            r = new UTF8Reader(this);
             if (docLen <= 1024)
             {
                 //a = 1024; //set the floor
@@ -4390,7 +4964,7 @@ namespace com.ximpleware
                  this.l3Buffer,
                  os);
         }
-       
+
         /// <summary> This method writes the VTD+XML file into a file of the given name</summary>
         /// <param name="fileName">
         /// </param>
@@ -4477,12 +5051,716 @@ namespace com.ximpleware
         }
         /// <summary>
         /// Enable the parser to collect all white spaces, including the ignored white spaces
-	    /// By default, ignore white spaces are ignored
+        /// By default, ignore white spaces are ignored
         /// </summary>
         /// <param name="b"></param>
         public void enableIgnoredWhiteSpace(bool b)
         {
             ws = b;
         }
+
+        private void checkAttributeUniqueness()
+        {
+            bool unique = true;
+            bool unequal;
+            for (int i = 0; i < attr_count; i++)
+            {
+                unequal = false;
+                int prevLen = (int)attr_name_array[i];
+                if (length1 == prevLen)
+                {
+                    int prevOffset =
+                        (int)(attr_name_array[i] >> 32);
+                    for (int j = 0; j < prevLen; j++)
+                    {
+                        if (XMLDoc[prevOffset + j]
+                            != XMLDoc[temp_offset + j])
+                        {
+                            unequal = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                    unequal = true;
+                unique = unique && unequal;
+            }
+            if (!unique && attr_count != 0)
+                throw new ParseException(
+                    "Error in attr: Attr name not unique"
+                        + formatLineNumber());
+            unique = true;
+            if (attr_count < attr_name_array.Length)
+            {
+                attr_name_array[attr_count] =
+                    ((long)(temp_offset) << 32) | length1;
+                attr_count++;
+            }
+            else // grow the attr_name_array by 16
+            {
+                long[] temp_array = attr_name_array;
+                /*System.out.println(
+                    "size increase from "
+                        + temp_array.length
+                        + "  to "
+                        + (attr_count + 16));*/
+                attr_name_array =
+                    new long[attr_count + ATTR_NAME_ARRAY_SIZE];
+                Array.Copy(temp_array, 0, attr_name_array, 0, attr_count);
+                /*for (int i = 0; i < attr_count; i++) {
+                    attr_name_array[i] = temp_array[i];
+                }*/
+                attr_name_array[attr_count] =
+                    ((long)(temp_offset) << 32) | length1;
+                attr_count++;
+            }
+
+            if (ns && !is_ns && length2 != 0)
+            {
+                if ((increment == 1 && length2 == 3 && matchXML(temp_offset))
+                        || (increment == 2 && length2 == 6 && matchXML(temp_offset)))
+                {
+                    return;
+                }
+                else if (prefixed_attr_count < prefixed_attr_name_array.Length)
+                {
+                    prefixed_attr_name_array[prefixed_attr_count] =
+                        ((long)(temp_offset) << 32) | (length2 << 16) | length1;
+                    prefixed_attr_count++;
+                }
+                else
+                {
+                    long[] temp_array1 = prefixed_attr_name_array;
+                    prefixed_attr_name_array =
+                        new long[prefixed_attr_count + ATTR_NAME_ARRAY_SIZE];
+                    prefix_URL_array =
+                        new int[prefixed_attr_count + ATTR_NAME_ARRAY_SIZE];
+                    Array.Copy(temp_array1, 0, prefixed_attr_name_array, 0, prefixed_attr_count);
+                    //System.arraycopy(temp_array1, 0, prefixed_attr_val_array, 0, prefixed_attr_count)
+                    /*for (int i = 0; i < attr_count; i++) {
+                        attr_name_array[i] = temp_array[i];
+                    }*/
+                    prefixed_attr_name_array[prefixed_attr_count] =
+                        ((long)(temp_offset) << 32) | (length2 << 16) | length1;
+                    prefixed_attr_count++;
+                }
+            }
+        }
+
+        private bool checkPrefix(int os, int len)
+        {
+            //int i=0;
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                if (len == 4 && XMLDoc[os] == 'x'
+                    && XMLDoc[os + 1] == 'm' && XMLDoc[os + 2] == 'l')
+                {
+                    return true;
+                }
+            }
+            else if (encoding == FORMAT_UTF_16BE)
+            {
+                if (len == 8 && XMLDoc[os] == 0 && XMLDoc[os + 1] == 'x'
+                    && XMLDoc[os + 2] == 0 && XMLDoc[os + 3] == 'm'
+                    && XMLDoc[os + 4] == 0 && XMLDoc[os + 5] == 'l')
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (len == 8 && XMLDoc[os] == 'x' && XMLDoc[os + 1] == 0
+                    && XMLDoc[os + 2] == 'm' && XMLDoc[os + 3] == 0
+                    && XMLDoc[os + 4] == 'l' && XMLDoc[os + 5] == 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool checkPrefix2(int os, int len)
+        {
+            //int i=0;
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                if (len == 5 && XMLDoc[os] == 'x'
+                    && XMLDoc[os + 1] == 'm' && XMLDoc[os + 2] == 'l'
+                    && XMLDoc[os + 3] == 'n' && XMLDoc[os + 4] == 's')
+                {
+                    return true;
+                }
+            }
+            else if (encoding == FORMAT_UTF_16BE)
+            {
+                if (len == 10 && XMLDoc[os] == 0 && XMLDoc[os + 1] == 'x'
+                    && XMLDoc[os + 2] == 0 && XMLDoc[os + 3] == 'm'
+                    && XMLDoc[os + 4] == 0 && XMLDoc[os + 5] == 'l'
+                    && XMLDoc[os + 6] == 0 && XMLDoc[os + 7] == 'n'
+                    && XMLDoc[os + 8] == 0 && XMLDoc[os + 9] == 's'
+                )
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (len == 10 && XMLDoc[os] == 'x' && XMLDoc[os + 1] == 0
+                    && XMLDoc[os + 2] == 'm' && XMLDoc[os + 3] == 0
+                    && XMLDoc[os + 4] == 'l' && XMLDoc[os + 5] == 0
+                    && XMLDoc[os + 6] == 'n' && XMLDoc[os + 3] == 0
+                    && XMLDoc[os + 8] == 's' && XMLDoc[os + 5] == 0
+                )
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private long _getCharResolved(int byte_offset)
+        {
+
+            int ch = 0;
+            int val = 0;
+            long inc = 2 << (increment - 1);
+            long l = r._getChar(byte_offset);
+
+            ch = (int)l;
+
+            if (ch != '&')
+                return l;
+
+            // let us handle references here
+            //currentOffset++;
+            byte_offset += increment;
+            ch = getCharUnit(byte_offset);
+            byte_offset += increment;
+            switch (ch)
+            {
+                case '#':
+
+                    ch = getCharUnit(byte_offset);
+
+                    if (ch == 'x')
+                    {
+                        while (true)
+                        {
+                            byte_offset += increment;
+                            inc += increment;
+                            ch = getCharUnit(byte_offset);
+
+                            if (ch >= '0' && ch <= '9')
+                            {
+                                val = (val << 4) + (ch - '0');
+                            }
+                            else if (ch >= 'a' && ch <= 'f')
+                            {
+                                val = (val << 4) + (ch - 'a' + 10);
+                            }
+                            else if (ch >= 'A' && ch <= 'F')
+                            {
+                                val = (val << 4) + (ch - 'A' + 10);
+                            }
+                            else if (ch == ';')
+                            {
+                                inc += increment;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        while (true)
+                        {
+                            ch = getCharUnit(byte_offset);
+                            byte_offset += increment;
+                            inc += increment;
+                            if (ch >= '0' && ch <= '9')
+                            {
+                                val = val * 10 + (ch - '0');
+                            }
+                            else if (ch == ';')
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    break;
+
+                case 'a':
+                    ch = getCharUnit(byte_offset);
+                    if (encoding < FORMAT_UTF_16BE)
+                    {
+                        if (ch == 'm')
+                        {
+                            if (getCharUnit(byte_offset + 1) == 'p'
+                                && getCharUnit(byte_offset + 2) == ';')
+                            {
+                                inc = 5;
+                                val = '&';
+                            }
+                        }
+                        else if (ch == 'p')
+                        {
+                            if (getCharUnit(byte_offset + 1) == 'o'
+                                && getCharUnit(byte_offset + 2) == 's'
+                                && getCharUnit(byte_offset + 3) == ';')
+                            {
+                                inc = 6;
+                                val = '\'';
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (ch == 'm')
+                        {
+                            if (getCharUnit(byte_offset + 2) == 'p'
+                                && getCharUnit(byte_offset + 4) == ';')
+                            {
+                                inc = 10;
+                                val = '&';
+                            }
+                        }
+                        else if (ch == 'p')
+                        {
+                            if (getCharUnit(byte_offset + 2) == 'o'
+                                && getCharUnit(byte_offset + 4) == 's'
+                                && getCharUnit(byte_offset + 6) == ';')
+                            {
+                                inc = 12;
+                                val = '\'';
+                            }
+                        }
+                    }
+                    break;
+
+                case 'q':
+
+                    if (encoding < FORMAT_UTF_16BE)
+                    {
+                        if (getCharUnit(byte_offset) == 'u'
+                            && getCharUnit(byte_offset + 1) == 'o'
+                            && getCharUnit(byte_offset + 2) == 't'
+                            && getCharUnit(byte_offset + 3) == ';')
+                        {
+                            inc = 6;
+                            val = '\"';
+                        }
+                    }
+                    else
+                    {
+                        if (getCharUnit(byte_offset) == 'u'
+                            && getCharUnit(byte_offset + 2) == 'o'
+                            && getCharUnit(byte_offset + 4) == 't'
+                            && getCharUnit(byte_offset + 6) == ';')
+                        {
+                            inc = 12;
+                            val = '\"';
+                        }
+                    }
+                    break;
+                case 'l':
+                    if (encoding < FORMAT_UTF_16BE)
+                    {
+                        if (getCharUnit(byte_offset) == 't'
+                            && getCharUnit(byte_offset + 1) == ';')
+                        {
+                            //offset += 2;
+                            inc = 4;
+                            val = '<';
+                        }
+                    }
+                    else
+                    {
+                        if (getCharUnit(byte_offset) == 't'
+                            && getCharUnit(byte_offset + 2) == ';')
+                        {
+                            //offset += 2;
+                            inc = 8;
+                            val = '<';
+                        }
+                    }
+                    break;
+                case 'g':
+                    if (encoding < FORMAT_UTF_16BE)
+                    {
+                        if (getCharUnit(byte_offset) == 't'
+                            && getCharUnit(byte_offset + 1) == ';')
+                        {
+                            inc = 4;
+                            val = '>';
+                        }
+                    }
+                    else
+                    {
+                        if (getCharUnit(byte_offset) == 't'
+                            && getCharUnit(byte_offset + 2) == ';')
+                        {
+                            inc = 8;
+                            val = '>';
+                        }
+                    }
+                    break;
+            }
+
+            //currentOffset++;
+            return val | (inc << 32);
+        }
+
+        private int getCharUnit(int byte_offset)
+        {
+            return (encoding <= 2)
+                ? XMLDoc[byte_offset] & 0xff
+                : (encoding < FORMAT_UTF_16BE)
+                ? r.decode(byte_offset) : (encoding == FORMAT_UTF_16BE)
+                ? (((int)XMLDoc[byte_offset])
+                    << 8 | XMLDoc[byte_offset + 1])
+                : (((int)XMLDoc[byte_offset + 1])
+                    << 8 | XMLDoc[byte_offset]);
+        }
+
+        private bool matchURL(int bos1, int len1, int bos2, int len2)
+        {
+            long l1, l2;
+            int i1 = bos1, i2 = bos2, i3 = bos1 + len1, i4 = bos2 + len2;
+            //System.out.println("--->"+new String(XMLDoc, bos1, len1)+" "+new String(XMLDoc,bos2,len2));
+            while (i1 < i3 && i2 < i4)
+            {
+                l1 = _getCharResolved(i1);
+                l2 = _getCharResolved(i2);
+                if ((int)l1 != (int)l2)
+                    return false;
+                i1 += (int)(l1 >> 32);
+                i2 += (int)(l2 >> 32);
+            }
+            if (i1 == i3 && i2 == i4)
+                return true;
+            return false;
+        }
+
+        private bool matchXML(int byte_offset)
+        {
+            // TODO Auto-generated method stub
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                if (XMLDoc[byte_offset] == 'x'
+                       && XMLDoc[byte_offset + 1] == 'm'
+                       && XMLDoc[byte_offset + 2] == 'l')
+                    return true;
+            }
+            else
+            {
+                if (encoding == FORMAT_UTF_16LE)
+                {
+                    if (XMLDoc[byte_offset] == 'x' && XMLDoc[byte_offset + 1] == 0
+                        && XMLDoc[byte_offset + 2] == 'm' && XMLDoc[byte_offset + 3] == 0
+                        && XMLDoc[byte_offset + 4] == 'l' && XMLDoc[byte_offset + 5] == 0)
+                        return true;
+                }
+                else
+                {
+                    if (XMLDoc[byte_offset] == 0 && XMLDoc[byte_offset + 1] == 'x'
+                            && XMLDoc[byte_offset + 2] == 0 && XMLDoc[byte_offset + 3] == 'm'
+                            && XMLDoc[byte_offset + 4] == 0 && XMLDoc[byte_offset + 5] == 'l')
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private void disallow_xmlns(int byte_offset)
+        {
+            // TODO Auto-generated method stub
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                if (XMLDoc[byte_offset] == 'x'
+                       && XMLDoc[byte_offset + 1] == 'm'
+                       && XMLDoc[byte_offset + 2] == 'l'
+                       && XMLDoc[byte_offset + 3] == 'n'
+                       && XMLDoc[byte_offset + 4] == 's')
+                    throw new ParseException(
+                            "xmlns as a ns prefix can't be re-declared"
+                            + formatLineNumber(offset));
+
+            }
+            else
+            {
+                if (encoding == FORMAT_UTF_16LE)
+                {
+                    if (XMLDoc[byte_offset] == 'x' && XMLDoc[byte_offset + 1] == 0
+                        && XMLDoc[byte_offset + 2] == 'm' && XMLDoc[byte_offset + 3] == 0
+                        && XMLDoc[byte_offset + 4] == 'l' && XMLDoc[byte_offset + 5] == 0
+                        && XMLDoc[byte_offset + 6] == 'n' && XMLDoc[byte_offset + 7] == 0
+                        && XMLDoc[byte_offset + 8] == 's' && XMLDoc[byte_offset + 9] == 0)
+                        throw new ParseException(
+                                "xmlns as a ns prefix can't be re-declared"
+                                + formatLineNumber(offset));
+                }
+                else
+                {
+                    if (XMLDoc[byte_offset] == 0 && XMLDoc[byte_offset + 1] == 'x'
+                            && XMLDoc[byte_offset + 2] == 0 && XMLDoc[byte_offset + 3] == 'm'
+                            && XMLDoc[byte_offset + 4] == 0 && XMLDoc[byte_offset + 5] == 'l'
+                            && XMLDoc[byte_offset + 6] == 0 && XMLDoc[byte_offset + 7] == 'n'
+                            && XMLDoc[byte_offset + 8] == 0 && XMLDoc[byte_offset + 9] == 's')
+                        throw new ParseException(
+                                "xmlns as a ns prefix can't be re-declared"
+                                + formatLineNumber(offset));
+                }
+            }
+        }
+
+        private String formatLineNumber(int os)
+        {
+            int so = docOffset;
+            int lineNumber = 0;
+            int lineOffset = 0;
+
+            if (encoding < FORMAT_UTF_16BE)
+            {
+                while (so <= os - 1)
+                {
+                    if (XMLDoc[so] == '\n')
+                    {
+                        lineNumber++;
+                        lineOffset = so;
+                    }
+                    //lineOffset++;
+                    so++;
+                }
+                lineOffset = os - lineOffset;
+            }
+            else if (encoding == FORMAT_UTF_16BE)
+            {
+                while (so <= os - 2)
+                {
+                    if (XMLDoc[so + 1] == '\n' && XMLDoc[so] == 0)
+                    {
+                        lineNumber++;
+                        lineOffset = so;
+                    }
+                    so += 2;
+                }
+                lineOffset = (os - lineOffset) >> 1;
+            }
+            else
+            {
+                while (so <= os - 2)
+                {
+                    if (XMLDoc[so] == '\n' && XMLDoc[so + 1] == 0)
+                    {
+                        lineNumber++;
+                        lineOffset = so;
+                    }
+                    so += 2;
+                }
+                lineOffset = (os - lineOffset) >> 1;
+            }
+            return "\nLine Number: " + (lineNumber + 1) + " Offset: " + (lineOffset - 1);
+        }
+        private int identifyNsURL(int byte_offset, int length)
+        {
+            // TODO Auto-generated method stub
+            // URL points to "http://www.w3.org/XML/1998/namespace" return 1
+            // URL points to "http://www.w3.org/2000/xmlns/" return 2
+            String URL1 = "2000/xmlns/";
+            String URL2 = "http://www.w3.org/XML/1998/namespace";
+            long l;
+            int i, t, g = byte_offset + length;
+            int os = byte_offset;
+            if (length < 29
+                    || (increment == 2 && length < 58))
+                return 0;
+
+            for (i = 0; i < 18 && os < g; i++)
+            {
+                l = _getCharResolved(os);
+                //System.out.println("char ==>"+(char)l);
+                if (URL2[i] != (int)l)
+                    return 0;
+                os += (int)(l >> 32);
+            }
+
+            //store offset value 
+            t = os;
+
+            for (i = 0; i < 11 && os < g; i++)
+            {
+                l = _getCharResolved(os);
+                if (URL1[i] != (int)l)
+                    break;
+                os += (int)(l >> 32);
+            }
+            if (os == g)
+                return 2;
+
+            //so far a match
+            os = t;
+            for (i = 18; i < 36 && os < g; i++)
+            {
+                l = _getCharResolved(os);
+                if (URL2[i] != (int)l)
+                    return 0;
+                os += (int)(l >> 32);
+            }
+            if (os == g)
+                return 1;
+
+            return 0;
+        }
+        private void qualifyAttributes()
+        {
+            int i1 = nsBuffer3.size() - 1;
+            int j = 0, i = 0;
+            // two cases:
+            // 1. the current element has no prefix, look for xmlns
+            // 2. the current element has prefix, look for xmlns:something
+            while (j < prefixed_attr_count)
+            {
+                int preLen = (int)((prefixed_attr_name_array[j] & 0xffff0000L) >> 16);
+                int preOs = (int)(prefixed_attr_name_array[j] >> 32);
+                //Console.WriteLine(new String(XMLDoc, preOs, preLen)+"===");
+                i = i1;
+                while (i >= 0)
+                {
+                    int t = nsBuffer3.upper32At(i);
+                    // with prefix, get full length and prefix length
+                    if ((t & 0xffff) - (t >> 16) == preLen + increment)
+                    {
+                        // doing byte comparison here
+                        int os = nsBuffer3.lower32At(i) + (t >> 16) + increment;
+                        //System.out.println(new String(XMLDoc, os, preLen)+"");
+                        int k = 0;
+                        for (; k < preLen; k++)
+                        {
+                            //System.out.println(i+" "+(char)(XMLDoc[os+k])+"<===>"+(char)(XMLDoc[preOs+k]));
+                            if (XMLDoc[os + k] != XMLDoc[preOs + k])
+                                break;
+                        }
+                        if (k == preLen)
+                        {
+                            break; // found the match
+                        }
+                    }
+                    /*if ( (nsBuffer3.upper32At(i) & 0xffff0000) == 0){
+                        return;
+                    }*/
+                    i--;
+                }
+                if (i < 0)
+                    throw new ParseException("Name space qualification Exception: prefixed attribute not qualified\n"
+                            + formatLineNumber(preOs));
+                else
+                    prefix_URL_array[j] = i;
+                j++;
+                // no need to check if xml is the prefix
+            }
+            //for (int h=0;h<prefixed_attr_count;h++)
+            //	System.out.print(" "+prefix_URL_array[h]);
+
+            //System.out.println();
+            // print line # column# and full element name
+            //throw new ParseException("Name space qualification Exception: Element not qualified\n"
+            //		+formatLineNumber((int)pref));
+
+        }
+
+        private void qualifyElement()
+        {
+            int i = nsBuffer3.size() - 1;
+            // two cases:
+            // 1. the current element has no prefix, look for xmlns
+            // 2. the current element has prefix, look for xmlns:something
+            if (((ulong)currentElementRecord & 0xffff000000000000L) == 0)
+            {
+                return; //no check unprefixed element 
+            }
+            else
+            {
+
+                int preLen = (int)(((ulong)currentElementRecord & 0xffff000000000000L) >> 48);
+                int preOs = (int)currentElementRecord;
+                while (i >= 0)
+                {
+                    int t = nsBuffer3.upper32At(i);
+                    // with prefix, get full length and prefix length
+                    if ((t & 0xffff) - (t >> 16) == preLen)
+                    {
+                        // doing byte comparison here
+                        int os = nsBuffer3.lower32At(i) + (t >> 16) + increment;
+                        int k = 0;
+                        for (; k < preLen - increment; k++)
+                        {
+                            if (XMLDoc[os + k] != XMLDoc[preOs + k])
+                                break;
+                        }
+                        if (k == preLen - increment)
+                            return; // found the match
+                    }
+                    /*if ( (nsBuffer3.upper32At(i) & 0xffff0000) == 0){
+                        return;
+                    }*/
+                    i--;
+                }
+                // no need to check if xml is the prefix
+                if (checkPrefix(preOs, preLen))
+                    return;
+            }
+
+
+            // print line # column# and full element name
+            throw new ParseException("Name space qualification Exception: Element not qualified\n"
+                    + formatLineNumber((int)currentElementRecord));
+        }
+
+        private void checkQualifiedAttributeUniqueness()
+        {
+            // TODO Auto-generated method stub
+            int preLen1, os1, postLen1, URLLen1, URLOs1,
+                 preLen2, os2, postLen2, URLLen2, URLOs2, k;
+            for (int i = 0; i < prefixed_attr_count; i++)
+            {
+                preLen1 = (int)((prefixed_attr_name_array[i] & 0xffff0000L) >> 16);
+                postLen1 = (int)((prefixed_attr_name_array[i] & 0xffffL)) - preLen1 - increment;
+                os1 = (int)(prefixed_attr_name_array[i] >> 32) + preLen1 + increment;
+                URLLen1 = nsBuffer2.lower32At(prefix_URL_array[i]);
+                URLOs1 = nsBuffer2.upper32At(prefix_URL_array[i]);
+                for (int j = i + 1; j < prefixed_attr_count; j++)
+                {
+                    // prefix of i matches that of j
+                    preLen2 = (int)((prefixed_attr_name_array[j] & 0xffff0000L) >> 16);
+                    postLen2 = (int)((prefixed_attr_name_array[j] & 0xffffL)) - preLen2 - increment;
+                    os2 = (int)(prefixed_attr_name_array[j] >> 32) + preLen2 + increment;
+                    //System.out.println(new String(XMLDoc,os1, postLen1)
+                    //	+" "+ new String(XMLDoc, os2, postLen2));
+                    if (postLen1 == postLen2)
+                    {
+                        k = 0;
+                        for (; k < postLen1; k++)
+                        {
+                            //System.out.println(i+" "+(char)(XMLDoc[os+k])+"<===>"+(char)(XMLDoc[preOs+k]));
+                            if (XMLDoc[os1 + k] != XMLDoc[os2 + k])
+                                break;
+                        }
+                        if (k == postLen1)
+                        {
+                            // found the match
+                            URLLen2 = nsBuffer2.lower32At(prefix_URL_array[j]);
+                            URLOs2 = nsBuffer2.upper32At(prefix_URL_array[j]);
+                            //System.out.println(" URLOs1 ===>" + URLOs1);
+                            //System.out.println("nsBuffer2 ===>"+nsBuffer2.longAt(i)+" i==>"+i);
+                            //System.out.println("URLLen2 "+ URLLen2+" URLLen1 "+ URLLen1+" ");
+                            if (matchURL(URLOs1, URLLen1, URLOs2, URLLen2))
+                                throw new ParseException(" qualified attribute names collide "
+                                        + formatLineNumber(os2));
+                        }
+                    }
+                }
+                //System.out.println("======");
+            }
+        }
+
     }
 }
