@@ -17,6 +17,7 @@
 */
 // added set
 using System;
+using System.Text;
 using UTF8Char = com.ximpleware.parser.UTF8Char;
 using com.ximpleware.parser;
 namespace com.ximpleware
@@ -1197,6 +1198,8 @@ namespace com.ximpleware
         {
             if (ns == false)
                 return -1;
+            if (URL != null && URL.Length == 0)
+                URL = null;
             if (URL == null)
                 return getAttrVal(ln);
             int size = vtdBuffer.size();
@@ -1215,6 +1218,13 @@ namespace com.ximpleware
                 int fullLen = i & 0xffff;
                 if (preLen != 0 && matchRawTokenString(offset + preLen + 1, fullLen - preLen - 1, ln) && resolveNS(URL, offset, preLen))
                 {
+                    return index + 1;
+                }
+                else if (preLen == 3
+                    && matchRawTokenString(offset, 3, "xml")
+                    && URL.Equals("http://www.w3.org/XML/1998/namespace"))
+                {
+                    // prefix matches "xml"
                     return index + 1;
                 }
                 index += 2;
@@ -1903,12 +1913,19 @@ namespace com.ximpleware
             int offset = getTokenOffset((context[0] != 0) ? context[context[0]] : rootIndex);
             int preLen = (i >> 16) & 0xffff;
             int fullLen = i & 0xffff;
+            if (URL != null && URL.Length == 0)
+                URL = null;
 
             if (ln.Equals("*") || ((preLen != 0) ? matchRawTokenString(offset + preLen + 1, fullLen - preLen - 1, ln) : matchRawTokenString(offset, fullLen, ln)))
             {
                 // no prefix, search for xmlns
-                if (((URL != null) ? URL.Equals("*") : false) || (resolveNS(URL, offset, preLen) == true))
+                if (((URL != null) ? URL.Equals("*") : false) 
+                    || (resolveNS(URL, offset, preLen) == true))
                     return true;
+                if (preLen == 3
+                && matchRawTokenString(offset, preLen, "xml")
+                && URL.Equals("http://www.w3.org/XML/1998/namespace"))
+                    return true; 
             }
             return false;
         }
@@ -3320,9 +3337,13 @@ namespace com.ximpleware
                         return false;
                 default:
                     if (URL == null)
+                    {
+                        if (getTokenLength(result) == 0)
+                            return true;
                         return false;
+                    }
                     else
-                        return matchTokenString(result, URL);
+                        return matchNormalizedTokenString2(result, URL);
             }
         }
         /// <summary> A generic navigation method.
@@ -4695,7 +4716,7 @@ namespace com.ximpleware
             vn.atTerminal = this.atTerminal;
             vn.LN = this.LN;
             if (this.context[0] > -1)
-                Array.Copy(this.context, 0, vn.context, 0, this.context[0]+1);
+                Array.Copy(this.context, 0, vn.context, 0, this.context[0] + 1);
             else
                 this.context[0] = -1;
             vn.l1index = l1index;
@@ -5381,88 +5402,101 @@ namespace com.ximpleware
 
         /// <summary>
         /// This method takes a vtd index, and recover its correspondin
-	    /// node position, the index can only be of node type element,
-	    /// document, attribute name, attribute value or character data,
-	    /// or CDATA
+        /// node position, the index can only be of node type element,
+        /// document, attribute name, attribute value or character data,
+        /// or CDATA
         /// </summary>
         /// <param name="index"></param>
-       public void recoverNode(int index){
-		if (index <0 || index>=vtdSize )
-			throw new NavException("Invalid VTD index");
-        int t;
-		int type = getTokenType(index);
-		if (//type == VTDNav.TOKEN_COMMENT ||
-			//	type == VTDNav.TOKEN_PI_NAME ||
-				type == VTDNav.TOKEN_PI_VAL ||
-				type == VTDNav.TOKEN_DEC_ATTR_NAME ||
-				type == VTDNav.TOKEN_DEC_ATTR_VAL ||
-				type == VTDNav.TOKEN_ATTR_VAL)
-			throw new NavException("Token type not yet supported");
-		
-		// get depth
-		int d = getTokenDepth(index);
-		// handle document node;
-		switch (d){
-		case -1:
-			context[0]=-1;
-			if (index != 0){
-				LN = index;
-				atTerminal = true;
-			}			
-			return;
-		case 0:
-			context[0]=0;
-			if (index != rootIndex){
-				LN = index;
-				atTerminal = true;
-			}
-			return;		
-		}
-		context[0]=d;
-		if (type != VTDNav.TOKEN_STARTING_TAG){
-			LN = index;
-			atTerminal = true;
-		}
-		// search LC level 1
-		recoverNode_l1(index);
+        public void recoverNode(int index)
+        {
+            if (index < 0 || index >= vtdSize)
+                throw new NavException("Invalid VTD index");
+            int t;
+            int type = getTokenType(index);
+            if (//type == VTDNav.TOKEN_COMMENT ||
+                //	type == VTDNav.TOKEN_PI_NAME ||
+                    type == VTDNav.TOKEN_PI_VAL ||
+                    type == VTDNav.TOKEN_DEC_ATTR_NAME ||
+                    type == VTDNav.TOKEN_DEC_ATTR_VAL ||
+                    type == VTDNav.TOKEN_ATTR_VAL)
+                throw new NavException("Token type not yet supported");
 
-		if (d==1)
-			return;
-		// search LC level 2
-		recoverNode_l2(index);
-		if (d==2){
-			//resolveLC();
-			return;
-		}
-		// search LC level 3
-		recoverNode_l3(index);
-		if (d==3){
-			//resolveLC();
-			return;
-		}
-		// scan backward
-		if ( type == VTDNav.TOKEN_STARTING_TAG ){
-			context[d] = index;
-		} else{
-			t = index-1;
-			while( !(getTokenType(t)==VTDNav.TOKEN_STARTING_TAG && 
-					getTokenDepth(t)==d)){
-				t--;
-			}
-			context[d] = t;
-		}
-		t = context[d]-1;
-		d--;
-		while(d>3){
-			while( !(getTokenType(t)==VTDNav.TOKEN_STARTING_TAG && 
-					getTokenDepth(t)==d)){
-				t--;
-			}
-			context[d] = t;
-			d--;
-		}
-		//resolveLC();		
-	}
+            // get depth
+            int d = getTokenDepth(index);
+            // handle document node;
+            switch (d)
+            {
+                case -1:
+                    context[0] = -1;
+                    if (index != 0)
+                    {
+                        LN = index;
+                        atTerminal = true;
+                    }
+                    return;
+                case 0:
+                    context[0] = 0;
+                    if (index != rootIndex)
+                    {
+                        LN = index;
+                        atTerminal = true;
+                    }
+                    return;
+            }
+            context[0] = d;
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+            {
+                LN = index;
+                atTerminal = true;
+            }
+            // search LC level 1
+            recoverNode_l1(index);
+
+            if (d == 1)
+                return;
+            // search LC level 2
+            recoverNode_l2(index);
+            if (d == 2)
+            {
+                //resolveLC();
+                return;
+            }
+            // search LC level 3
+            recoverNode_l3(index);
+            if (d == 3)
+            {
+                //resolveLC();
+                return;
+            }
+            // scan backward
+            if (type == VTDNav.TOKEN_STARTING_TAG)
+            {
+                context[d] = index;
+            }
+            else
+            {
+                t = index - 1;
+                while (!(getTokenType(t) == VTDNav.TOKEN_STARTING_TAG &&
+                        getTokenDepth(t) == d))
+                {
+                    t--;
+                }
+                context[d] = t;
+            }
+            t = context[d] - 1;
+            d--;
+            while (d > 3)
+            {
+                while (!(getTokenType(t) == VTDNav.TOKEN_STARTING_TAG &&
+                        getTokenDepth(t) == d))
+                {
+                    t--;
+                }
+                context[d] = t;
+                d--;
+            }
+            //resolveLC();		
+        }
 
 
 
@@ -5595,7 +5629,160 @@ namespace com.ximpleware
             l3index = i;
         }
 
-       
 
+        /// <summary>
+        ///    
+        /// (New since version 2.9)
+        /// Shallow Normalization follows the rules below to normalize a token into
+        /// a string
+        /// *#xD#xA gets converted to #xA
+        /// *For a character reference, append the referenced character to the normalized value.
+        /// *For an entity reference, recursively apply step 3 of this algorithm to the replacement text of the entity.
+        /// *For a white space character (#x20, #xD, #xA, #x9), append a space character (#x20) to the normalized value.
+        /// *For another character, append the character to the normalized value.
+        /// @param index
+        /// @return
+        /// @throws NavException
+        ///
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+
+        public String toNormalizedString2(int index)
+        {
+            int type = getTokenType(index);
+            if (type != TOKEN_CHARACTER_DATA &&
+                    type != TOKEN_ATTR_VAL)
+                return toRawString(index);
+            long l;
+            int len;
+            len = getTokenLength(index);
+            if (len == 0)
+                return "";
+            int offset = getTokenOffset(index);
+            int endOffset = len + offset - 1; // point to the last character
+            StringBuilder sb = new StringBuilder(len);
+
+            int ch;
+
+            //boolean d = false;
+            while (offset <= endOffset)
+            {
+                l = getCharResolved(offset);
+                ch = (int)l;
+                offset += (int)(l >> 32);
+                if (isWS(ch) && (l >> 32) <= 2)
+                {
+                    //d = true;
+                    sb.Append(' ');
+                }
+                else
+                    sb.Append((char)ch);
+            }
+            return sb.ToString();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        protected bool matchNormalizedTokenString2(int index, String s)
+        {
+            int type = getTokenType(index);
+            int len =
+                (type == TOKEN_STARTING_TAG
+                    || type == TOKEN_ATTR_NAME
+                    || type == TOKEN_ATTR_NS)
+                    ? getTokenLength(index) & 0xffff
+                    : getTokenLength(index);
+
+            return compareNormalizedTokenString2(getTokenOffset(index), len, s) == 0;
+
+        }
+        /// <summary>
+        /// compareNormalizedTokenString2
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="len"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        protected int compareNormalizedTokenString2(int offset, int len,
+                String s)
+        {
+            int i, l, temp;
+            long l1, l2;
+            //boolean b = false;
+            // this.currentOffset = offset;
+            int endOffset = offset + len;
+
+            // System.out.print("currentOffset :" + currentOffset);
+            l = s.Length;
+            // System.out.println(s);
+            for (i = 0; i < l && offset < endOffset; )
+            {
+                l1 = getCharResolved(offset);
+                temp = (int)l1;
+                l2 = (l1 >> 32);
+                if (l2 <= 2 && isWS(temp))
+                    temp = ' ';
+                int i1 = s[i];
+                if (i1 < temp)
+                    return 1;
+                if (i1 > temp)
+                    return -1;
+                i++;
+                offset += (int)(l1 >> 32);
+            }
+
+            if (i == l && offset < endOffset)
+                return 1;
+            if (i < l && offset == endOffset)
+                return -1;
+            return 0;
+            // return -1;
+        }
+
+        /// <summary>
+        /// 
+        /// Return the byte offset and length of up to i sibling fragments. If 
+        /// there is a i+1 sibling element, the cursor element would 
+        /// move to it; otherwise, there is no cursor movement. If the cursor isn't 
+        /// positioned at an element (due to XPath evaluation), then -1 will be 
+        /// returned
+        /// @param i number of silbing elements including the cursor element
+        /// @return a long encoding byte offset (bit 31 to bit 0), length (bit 62 
+        /// to bit 32) of those fragments 
+        /// @throws NavException
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public long getSiblingElementFragments(int i)
+        {
+            if (i <= 0)
+                throw new ArgumentException(" # of sibling can be less or equal to 0");
+            // get starting char offset
+            if (atTerminal == true)
+                return -1L;
+            // so is the char offset
+            int so = getTokenOffset(getCurrentIndex()) - 1;
+            // char offset to byte offset conversion
+            if (encoding >= FORMAT_UTF_16BE)
+                so = so << 1;
+            BookMark bm = new BookMark(this);
+            bm.recordCursorPosition();
+            while (i > 1 && toElement(VTDNav.NEXT_SIBLING))
+            {
+                i--;
+            }
+            long l = getElementFragment();
+            int len = (int)l + (int)(l >> 32) - so;
+            if (i == 1 && toElement(VTDNav.NEXT_SIBLING))
+            {
+            }
+            else
+                bm.setCursorPosition();
+            return (((long)len) << 32) | so;
+        }
     }
 }
