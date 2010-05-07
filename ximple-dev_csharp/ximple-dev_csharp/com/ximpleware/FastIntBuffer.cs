@@ -43,6 +43,8 @@ namespace com.ximpleware
 		/* bufferArrayList is a resizable array list of int buffers
 		*
 		*/
+       	public const int ASCENDING = 0;
+	    public const int DESCENDING = 1;
 		private System.Collections.ArrayList bufferArrayList;
 		
 		/// <summary> Total capacity of the IntBuffer</summary>
@@ -368,6 +370,87 @@ namespace com.ximpleware
             }
             else
                 return false;
+        }
+
+        /**
+  * Sort the integers in the buffer 
+  * @param order (as of version 2.9) 
+  * it can be either ASCENDING or DESCENDING
+  */
+        public void sort(int order)
+        {
+            switch (order)
+            {
+                case ASCENDING:
+                    if (size_Renamed_Field > 0)
+                        quickSort_ascending(0, size_Renamed_Field - 1);
+                    break;
+                case DESCENDING:
+                    if (size_Renamed_Field > 0)
+                        quickSort_descending(0, size_Renamed_Field - 1);
+                    break;
+                default:
+                    throw new System.ArgumentException("Sort type undefined");
+            }
+
+        }
+
+        void quickSort_ascending(int lo, int hi)
+        {
+            //   lo is the lower index, hi is the upper index
+            //   of the region of array a that is to be sorted
+            //System.out.println("lo ==>"+lo);
+            //System.out.println("hi ==>"+hi);
+            int i = lo, j = hi;
+            int h;
+            //Object o;
+            int x = this.intAt((lo + hi) / 2);
+            //  partition
+            do
+            {
+                while (intAt(i) < x) i++;
+                while (intAt(j) > x) j--;
+                if (i <= j)
+                {
+                    h = this.intAt(i);
+                    modifyEntry(i, this.intAt(j));
+                    modifyEntry(j, h);
+                    i++;
+                    j--;
+                }
+            } while (i <= j);
+            //  recursion
+            if (lo < j) quickSort_ascending(lo, j);
+            if (i < hi) quickSort_ascending(i, hi);
+        }
+
+        void quickSort_descending(int lo, int hi)
+        {
+            //   lo is the lower index, hi is the upper index
+            //   of the region of array a that is to be sorted
+            //System.out.println("lo ==>"+lo);
+            //System.out.println("hi ==>"+hi);
+            int i = lo, j = hi;
+            int h;
+            //Object o;
+            int x = this.intAt((lo + hi) / 2);
+            //  partition
+            do
+            {
+                while (intAt(i) > x) i++;
+                while (intAt(j) < x) j--;
+                if (i <= j)
+                {
+                    h = this.intAt(i);
+                    modifyEntry(i, this.intAt(j));
+                    modifyEntry(j, h);
+                    i++;
+                    j--;
+                }
+            } while (i <= j);
+            //  recursion
+            if (lo < j) quickSort_descending(lo, j);
+            if (i < hi) quickSort_descending(i, hi);
         }
 	}
 }
