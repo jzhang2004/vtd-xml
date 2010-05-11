@@ -152,7 +152,7 @@ public class VTDGen {
 		}
 		
 		final public char decode(int offset){
-			return ISO8859_10.decode(XMLDoc[offset]);
+			return (char)(XMLDoc[offset] & 0xff);
 		}
 	}
 	
@@ -2290,8 +2290,8 @@ public class VTDGen {
 							currentElementRecord = 0;
 						
 						if (depth <= nsBuffer1.size() - 1) {
-							nsBuffer1.resize(depth+1);
-							int t= nsBuffer1.intAt(depth)+1;
+							nsBuffer1.resize(depth);
+							int t= nsBuffer1.intAt(depth-1)+1;
 							nsBuffer2.resize(t);
 							nsBuffer3.resize(t);
 						}
@@ -2697,10 +2697,8 @@ public class VTDGen {
 								break;
 							}
 						}
-						
 
 						helper = true;
-						
 						if (ch == '/') {
 							depth--;
 							helper = false;
@@ -3049,7 +3047,7 @@ public class VTDGen {
 					&& XMLDoc[byte_offset+4]=='s')
 					throw new ParseException(
 							"xmlns as a ns prefix can't be re-declared"
-							+formatLineNumber(offset));
+							+formatLineNumber(byte_offset));
 			
 		}else{
 			 if (encoding==FORMAT_UTF_16LE){
@@ -3060,7 +3058,7 @@ public class VTDGen {
 					&& XMLDoc[byte_offset+8]=='s' && XMLDoc[byte_offset+9]==0)
 					throw new ParseException(
 							"xmlns as a ns prefix can't be re-declared"
-							+formatLineNumber(offset));
+							+formatLineNumber(byte_offset));
 			} else {
 				if (XMLDoc[byte_offset]== 0 && XMLDoc[byte_offset+1]=='x'
 						&& XMLDoc[byte_offset+2]==0 && XMLDoc[byte_offset+3]=='m'
@@ -3069,7 +3067,7 @@ public class VTDGen {
 						&& XMLDoc[byte_offset+8]==0 && XMLDoc[byte_offset+9]=='s')
 						throw new ParseException(
 								"xmlns as a ns prefix can't be re-declared"
-								+formatLineNumber(offset));
+								+formatLineNumber(byte_offset));
 			}
 		}		
 	}
