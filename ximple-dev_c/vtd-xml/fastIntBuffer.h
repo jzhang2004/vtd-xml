@@ -77,4 +77,11 @@ void clearFastIntBuffer (FastIntBuffer *fib);
 // reset the size of fastIntBuffer
 Boolean resizeFIB(FastIntBuffer *fib, int newSz);
 
+/**
+  * Sort the integers in the buffer 
+  * @param order (as of version 2.9) 
+  * it can be either ASCENDING or DESCENDING
+  */
+void sortFIB(FastIntBuffer *fib,sortType order);
+
 #endif

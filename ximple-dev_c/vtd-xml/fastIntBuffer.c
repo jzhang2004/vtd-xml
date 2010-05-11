@@ -16,7 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #include "fastIntBuffer.h"
-
+static void quickSort_ascending(FastIntBuffer *fib,int i1, int i2);
+static void quickSort_descending(FastIntBuffer *fib,int i1, int i2);
 /* Create FastIntBuffer with initial page size of 1024 ints */
 FastIntBuffer *createFastIntBuffer(){
 	FastIntBuffer *fib = NULL;
@@ -308,3 +309,67 @@ Boolean resizeFIB(FastIntBuffer *fib, int newSz){
 		 return FALSE;
 }
 
+
+void sortFIB(FastIntBuffer *fib,sortType order){
+	switch (order) {
+		case ASCENDING:
+			if (fib->size > 0)
+				quickSort_ascending(fib,0, fib->size - 1);
+			break;
+		case DESCENDING:
+			if (fib->size > 0)
+				quickSort_descending(fib,0, fib->size - 1);
+			break;
+		default:
+			throwException2( invalid_argument, "Sort type undefined");
+		}
+}
+
+void quickSort_ascending(FastIntBuffer *fib,int lo, int hi){
+     int i=lo, j=hi; 
+     int h;
+     //Object o;
+     int x= intAt(fib,(lo+hi)/2);
+     //  partition
+     do
+     {    
+         while (intAt(fib,i)<x) i++; 
+         while (intAt(fib,j)>x) j--;
+         if (i<=j)
+         {
+             h=intAt(fib,i);
+             modifyEntryFIB(fib,i,intAt(fib,j)); 
+             modifyEntryFIB(fib,j,h);   
+             i++; 
+             j--;
+         }
+     } while (i<=j);
+     //  recursion
+     if (lo<j) quickSort_ascending(fib,lo, j);
+     if (i<hi) quickSort_ascending(fib,i, hi);
+}
+
+
+void quickSort_descending(FastIntBuffer *fib,int lo, int hi){
+     int i=lo, j=hi; 
+     int h;
+     //Object o;
+     int x=intAt(fib,(lo+hi)/2);
+     //  partition
+     do
+     {    
+         while (intAt(fib,i)>x) i++; 
+         while (intAt(fib,j)<x) j--;
+         if (i<=j)
+         {
+             h=intAt(fib,i);
+             modifyEntryFIB(fib,i,intAt(fib,j)); 
+             modifyEntryFIB(fib,j,h);   
+             i++; 
+             j--;
+         }
+     } while (i<=j);
+     //  recursion
+     if (lo<j) quickSort_descending(fib,lo, j);
+     if (i<hi) quickSort_descending(fib,i, hi);
+}
