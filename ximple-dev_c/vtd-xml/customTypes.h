@@ -101,6 +101,8 @@ typedef enum VTDtokentype {TOKEN_STARTING_TAG,
 						   TOKEN_DOCUMENT}
 					tokenType;
 
+typedef enum SType {ASCENDING,DESCENDING}
+					sortType;
 
 
 					enum exception_type {out_of_mem, 
