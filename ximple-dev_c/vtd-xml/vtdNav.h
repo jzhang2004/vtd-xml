@@ -425,5 +425,44 @@ VTDNav *cloneNav(VTDNav *vn);
  * document, attribute name, attribute value or character data,
  * or CDATA  */
 void recoverNode(VTDNav *vn, int index);
+/**
+	 * Match the string against the token at the given index value. The token will be
+     * interpreted as if it is normalized (i.e. all white space char (\r\n\a ) is replaced
+     * by a white space, char entities and entity references will be replaced by their correspondin
+     * char see xml 1.0 spec interpretation of attribute value normalization) */
 
+Boolean matchNormalizedTokenString2(VTDNav *vn,int index, UCSChar *s);
+
+/**
+	 * Return the byte offset and length of up to i sibling fragments. If 
+	 * there is a i+1 sibling element, the cursor element would 
+	 * move to it; otherwise, there is no cursor movement. If the cursor isn't 
+	 * positioned at an element (due to XPath evaluation), then -1 will be 
+	 * returned
+	 * @param i number of silbing elements including the cursor element
+	 * @return a long encoding byte offset (bit 31 to bit 0), length (bit 62 
+	 * to bit 32) of those fragments 
+	 * @throws NavException
+	 */
+
+Long getSiblingElementFragments(VTDNav *vn,int i);
+
+/**
+	 * Match the string against the token at the given index value. The token will be
+     * interpreted as if it is normalized (i.e. all white space char (\r\n\a ) is replaced
+     * by a white space, char entities and entity references will be replaced by their correspondin
+     * char see xml 1.0 spec interpretation of attribute value normalization) 
+	 */
+Boolean matchNormalizedTokenString2(VTDNav *vn, int index, UCSChar *s);
+
+/**
+	 * (New since version 2.9)
+	 * Shallow Normalization follows the rules below to normalize a token into
+	 * a string
+	 * *#xD#xA gets converted to #xA
+	 * *For a character reference, append the referenced character to the normalized value.
+	 * *For an entity reference, recursively apply step 3 of this algorithm to the replacement text of the entity.
+	 * *For a white space character (#x20, #xD, #xA, #x9), append a space character (#x20) to the normalized value.
+	 * *For another character, append the character to the normalized value.*/
+UCSChar* toNormalizedString2(VTDNav *vn, int index);
 #endif

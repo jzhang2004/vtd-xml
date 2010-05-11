@@ -74,15 +74,45 @@ static int process_end_doc(VTDGen *vg);
 static int process_qm_seen(VTDGen *vg);
 static int process_ex_seen(VTDGen *vg);
 static void addWhiteSpaceRecord(VTDGen *vg);
+static void qualifyAttributes(VTDGen *vg);
+static void qualifyElement(VTDGen *vg);
+static Boolean matchXML(VTDGen *vg, int byte_offset);
+static Boolean matchURL(VTDGen *vg, int bos1, int len1, int bos2, int len2);
+static Boolean identifyNsURL(VTDGen *vg, int byte_offset, int length);
+static int getCharUnit(VTDGen *vg, int byte_offset);
+static void disallow_xmlns(VTDGen *vg, int byte_offset);
+static void checkQualifiedAttributeUniqueness(VTDGen *vg);
+static Boolean checkPrefix(VTDGen *vg, int os, int len);
+static Boolean checkPrefix2(VTDGen *vg, int os, int len);
+static void checkAttributeUniqueness(VTDGen *vg);
+static Long _getCharResolved(VTDGen *vg,int byte_offset);
+static Long _getChar(VTDGen *vg, int byte_offset);
+static int decode(VTDGen *vg, int byte_offset);
+static Long _handle_16be(VTDGen *vg, int byte_offset);
+static Long _handle_16le(VTDGen *vg, int byte_offset);
+static Long _handle_utf8(VTDGen *vg,int c,int offset);
+static Long _handleOtherEncoding(VTDGen *vg,int byte_offset);
 
 /* create VTDGen */
 VTDGen *createVTDGen(){
-	Long* l = NULL;
+	Long* l = NULL, *l1=NULL; int* l2=NULL;
 	Long* ts = NULL;
 	VTDGen *vg = NULL;
 
 	l = (Long*) malloc(ATTR_NAME_ARRAY_SIZE*sizeof(Long));
 	if (l==NULL){
+		throwException2(out_of_mem,
+			"VTDGen allocation failed ");
+		return NULL;
+	}
+	l1 = (Long*) malloc(ATTR_NAME_ARRAY_SIZE*sizeof(Long));
+	if (l1==NULL){
+		throwException2(out_of_mem,
+			"VTDGen allocation failed ");
+		return NULL;
+	}
+	l2 = (int*) malloc(ATTR_NAME_ARRAY_SIZE*sizeof(int));
+	if (l2==NULL){
 		throwException2(out_of_mem,
 			"VTDGen allocation failed ");
 		return NULL;
@@ -97,14 +127,22 @@ VTDGen *createVTDGen(){
 
 	vg = (VTDGen *)malloc(sizeof(VTDGen));
 	if (vg==NULL){
-		free(l);
+		free(l);free(l1);free(l2);
 		free(ts);
 		throwException2(out_of_mem,
 			"VTDGen allocation failed ");
 		return NULL;
 	}
+	vg->nsBuffer1 = createFastIntBuffer(4);
+	vg->nsBuffer2 = createFastLongBuffer(4);
+	vg->nsBuffer3 = createFastLongBuffer(4);
+	vg->currentElementRecord = 0;
+
 	vg->anaLen = ATTR_NAME_ARRAY_SIZE;
+	vg->panaLen = ATTR_NAME_ARRAY_SIZE;
 	vg->attr_name_array = l;
+	vg->prefixed_attr_name_array= l1;
+	vg->prefix_URL_array = l2;
 	vg->tag_stack = ts;
 
 	vg->VTDDepth = 0;
@@ -127,7 +165,12 @@ VTDGen *createVTDGen(){
 void freeVTDGen(VTDGen *vg){
 	if (vg != NULL){
 		free(vg->attr_name_array);
+		free(vg->prefix_URL_array);
+		free(vg->prefixed_attr_name_array);
 		free(vg->tag_stack);
+		freeFastLongBuffer(vg->nsBuffer3);
+		freeFastLongBuffer(vg->nsBuffer2);
+		freeFastIntBuffer(vg->nsBuffer1);
 		if (vg->stateTransfered == FALSE || vg->br == TRUE){
 			//free(vg->XMLDoc);
 			freeFastLongBuffer(vg->VTDBuffer);
@@ -156,7 +199,11 @@ void clear(VTDGen *vg){
 		vg->l3Buffer = NULL;
 		vg->XMLDoc = NULL;
 	}
-
+	
+	vg->currentElementRecord = 0;
+	clearFastIntBuffer(vg->nsBuffer1);
+	clearFastLongBuffer(vg->nsBuffer2);
+	clearFastLongBuffer(vg->nsBuffer3);
 	vg->last_depth = vg->last_l1_index = 
 		vg->last_l2_index = vg->last_i3_index =0;
 	vg->offset = vg->temp_offset = 0;
@@ -1451,26 +1498,31 @@ void parse(VTDGen *vg, Boolean ns){
 
 	/* define internal variables*/
 	exception e;
-	int length1 = 0, length2 = 0;
-	int attr_count = 0 /*, ch = 0, ch_temp = 0*/;
+	
+	
 	/*int prev_ch = 0, prev2_ch = 0; */
-	int i,j;
+	//int j;
 	volatile parseState parser_state = STATE_DOC_START;
 	/*boolean has_amp = false; */ 
-	Boolean is_ns = FALSE;
-	Boolean unique;
-	Boolean unequal;
+	
+	//Boolean unique;
+	//Boolean unequal;
 	Boolean helper = FALSE;
+	Boolean default_ns = FALSE;
+	Boolean isXML = FALSE;
 	/*Boolean BOM_detected = FALSE;*/
 	/*Boolean must_utf_8 = FALSE; */
 	Long x;
 	/*char char_temp; //holds the ' or " indicating start of attr val */
 	int sos = 0, sl = 0;
+	vg->length1 = vg->length2 = 0;
 	XMLChar_init();
 	vg->ns = ns;
+	vg->is_ns = FALSE;
 	vg->encoding = FORMAT_UTF8;
-
+	vg->attr_count =vg->prefixed_attr_count=0; /*, ch = 0, ch_temp = 0*/
 	
+
 	/* first check first 2 bytes BOM to determine if encoding is UTF16*/
 	decide_encoding(vg);
 
@@ -1509,13 +1561,17 @@ void parse(VTDGen *vg, Boolean ns){
 							vg->ch = getChar(vg);
 							if (XMLChar_isNameChar(vg->ch)) {
 								if (vg->ch == ':') {
-									length2 = vg->offset - vg->temp_offset - vg->increment;
+									vg->length2 = vg->offset - vg->temp_offset - vg->increment;
+									if (vg->ns==TRUE && checkPrefix2(vg,vg->temp_offset,vg->length2))
+										throwException2(parse_exception,
+												"xmlns can't be an element prefix ");
+												//+ formatLineNumber(offset));
 								}
 							} else
 								break;
 						}
-						length1 = vg->offset - vg->temp_offset - vg->increment;
-						x = ((Long) length1 << 32) + vg->temp_offset;
+						vg->length1 = vg->offset - vg->temp_offset - vg->increment;
+						x = ((Long) vg->length1 << 32) + vg->temp_offset;
 						vg->tag_stack[vg->depth] = x;
 						if (vg->depth > MAX_DEPTH) {
 							throwException(parse_exception,0,
@@ -1525,8 +1581,8 @@ void parse(VTDGen *vg, Boolean ns){
 						if (vg->depth > vg->VTDDepth)
 							vg->VTDDepth = vg->depth;
 						if (vg->encoding < FORMAT_UTF_16BE){
-							if (length2>MAX_PREFIX_LENGTH 
-								|| length1 > MAX_QNAME_LENGTH){
+							if (vg->length2>MAX_PREFIX_LENGTH 
+								|| vg->length1 > MAX_QNAME_LENGTH){
 									throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: Starting tag prefix or qname length too long");
@@ -1534,13 +1590,13 @@ void parse(VTDGen *vg, Boolean ns){
 
 							writeVTD(vg,
 								(vg->temp_offset),
-								(length2 << 11) | length1,
+								(vg->length2 << 11) | vg->length1,
 								TOKEN_STARTING_TAG,
 								vg->depth);
 						}
 						else{
-							if ((length2>(MAX_PREFIX_LENGTH<<1)) 
-								|| (length1 > (MAX_QNAME_LENGTH <<1))){
+							if ((vg->length2>(MAX_PREFIX_LENGTH<<1)) 
+								|| (vg->length1 > (MAX_QNAME_LENGTH <<1))){
 									throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: Starting tag prefix or qname length too long");
@@ -1548,11 +1604,28 @@ void parse(VTDGen *vg, Boolean ns){
 
 							writeVTD(vg,
 								(vg->temp_offset) >> 1,
-								(length2 << 10) | (length1 >> 1),
+								(vg->length2 << 10) | (vg->length1 >> 1),
 								TOKEN_STARTING_TAG,
 								vg->depth);
 						}
-						length2 = 0;
+
+						if (vg->ns == TRUE) {
+							if (vg->length2!=0){
+								vg->length2 += vg->increment;
+								vg->currentElementRecord = (((Long)((vg->length2<<16)|vg->length1))<<32) 
+								| vg->temp_offset;
+							} else
+								vg->currentElementRecord = 0;
+						
+							if (vg->depth <= vg->nsBuffer1->size - 1) {
+								int t;
+								resizeFIB(vg->nsBuffer1,vg->depth);
+								t= intAt(vg->nsBuffer1,vg->depth-1)+1;
+								resizeFLB(vg->nsBuffer2,t);
+								resizeFLB(vg->nsBuffer3,t);
+							}
+						}
+						vg->length2 = 0;
 						if (XMLChar_isSpaceChar(vg->ch)) {
 							vg->ch = getCharAfterS(vg);
 							if (XMLChar_isNameStartChar(vg->ch)) {
@@ -1568,6 +1641,10 @@ void parse(VTDGen *vg, Boolean ns){
 							vg->ch = getChar(vg);
 						}
 						if (vg->ch == '>') {
+							if (vg->ns == TRUE){
+								appendInt(vg->nsBuffer1,vg->nsBuffer3->size-1);
+								qualifyElement(vg);
+							}
 							if (vg->depth != -1) {
 								vg->temp_offset = vg->offset;
 								vg->ch = getCharAfterSe(vg); // consume WSs
@@ -1577,7 +1654,7 @@ void parse(VTDGen *vg, Boolean ns){
 									parser_state = STATE_LT_SEEN;
 									if (skipChar(vg,'/')) {
 										if (helper == TRUE){
-											length1 =
+											vg->length1 =
 												vg->offset
 												- vg->temp_offset
 												- (vg->increment<<1);
@@ -1585,18 +1662,18 @@ void parse(VTDGen *vg, Boolean ns){
 											if (vg->encoding < FORMAT_UTF_16BE)
 												writeVTD(vg,
 												(vg->temp_offset),
-												length1,
+												vg->length1,
 												TOKEN_CHARACTER_DATA,
 												vg->depth);
 											else
 												writeVTD(vg,
 												(vg->temp_offset) >> 1,
-												(length1 >> 1),
+												(vg->length1 >> 1),
 												TOKEN_CHARACTER_DATA,
 												vg->depth);
 
 										}
-										//offset += length1;
+										//offset += vg->length1;
 										parser_state = STATE_END_TAG;
 										break;
 									}
@@ -1696,7 +1773,8 @@ void parse(VTDGen *vg, Boolean ns){
 						} else
 							parser_state = STATE_DOC_END;
 						break;
-											case STATE_ATTR_NAME :
+						
+					case STATE_ATTR_NAME :
 
 						if (vg->ch == 'x') {
 							if (skipChar(vg,'m')
@@ -1705,78 +1783,94 @@ void parse(VTDGen *vg, Boolean ns){
 								&& skipChar(vg,'s')) {
 									vg->ch = getChar(vg);
 									if (vg->ch == '='
-										|| XMLChar_isSpaceChar(vg->ch)
-										|| vg->ch == ':') {
-											is_ns = TRUE; //break;
-									}
+										|| XMLChar_isSpaceChar(vg->ch)) {
+									vg->is_ns = TRUE;
+									default_ns = TRUE;
+								}else if( vg->ch == ':') {
+									vg->is_ns = TRUE; //break;
+									default_ns = FALSE;
+								}
 							}
 						}
 						while (TRUE) {
 							if (XMLChar_isNameChar(vg->ch)) {
 								if (vg->ch == ':') {
-									length2 = vg->offset - vg->temp_offset - vg->increment;
+									vg->length2 = vg->offset - vg->temp_offset - vg->increment;
 								}
 								vg->ch = getChar(vg);
 							} else
 								break;
 						}
-						length1 = getPrevOffset(vg) - vg->temp_offset;
-						
-						unique = TRUE;
-						for (i = 0; i < attr_count; i++) {
-							int prevLen;
-							unequal = FALSE;
-							prevLen = (int) vg->attr_name_array[i];
-							if (length1 == prevLen) {
-								int prevOffset =
-									(int) (vg->attr_name_array[i] >> 32);
-								for (j = 0; j < prevLen; j++) {
-									if (vg->XMLDoc[prevOffset + j]
-									!= vg->XMLDoc[vg->temp_offset + j]) {
-										unequal = TRUE;
-										break;
-									}
-								}
-							} else
-								unequal = TRUE;
-							unique = unique && unequal;
-						}
-						if (!unique && attr_count != 0){		
-							throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in attr: Attr name not unique");
-						}
-						unique = TRUE;
-						if (attr_count < vg->anaLen) {
-							vg->attr_name_array[attr_count] =
-								((Long) (vg->temp_offset) << 32) + length1;
-							attr_count++;
-						} else 
-						{
-							Long* temp_array = vg->attr_name_array;
-							vg->attr_name_array = 
-								(Long *)malloc(sizeof(Long)*
-								(attr_count + ATTR_NAME_ARRAY_SIZE));
-							
-							if (vg->attr_name_array == NULL){
-								throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"alloc mem for attr_name_array_failed");
+						vg->length1 = getPrevOffset(vg) - vg->temp_offset;
+						if (vg->is_ns && vg->ns){
+							// make sure postfix isn't xmlns
+							if (!default_ns){
+								if (vg->increment==1 && (vg->length1-vg->length2-1 == 5)
+										|| (vg->increment==2 && (vg->length1-vg->length2-2==10)))
+									disallow_xmlns(vg,vg->temp_offset+vg->length2+vg->increment);
+							    
+							// if the post fix is xml, signal it
+							    if (vg->increment==1 && (vg->length1-vg->length2-1 == 3)
+										|| (vg->increment==2 && (vg->length1-vg->length2-2==6)))
+							    	isXML = matchXML(vg,vg->temp_offset+vg->length2+vg->increment);
 							}
-							vg->anaLen = attr_count + ATTR_NAME_ARRAY_SIZE;
+						}
+						checkAttributeUniqueness(vg);
+						//unique = TRUE;
+						//for (i = 0; i < vg->attr_count; i++) {
+						//	int prevLen;
+						//	unequal = FALSE;
+						//	prevLen = (int) vg->attr_name_array[i];
+						//	if (vg->length1 == prevLen) {
+						//		int prevOffset =
+						//			(int) (vg->attr_name_array[i] >> 32);
+						//		for (j = 0; j < prevLen; j++) {
+						//			if (vg->XMLDoc[prevOffset + j]
+						//			!= vg->XMLDoc[vg->temp_offset + j]) {
+						//				unequal = TRUE;
+						//				break;
+						//			}
+						//		}
+						//	} else
+						//		unequal = TRUE;
+						//	unique = unique && unequal;
+						//}
+						//if (!unique && vg->attr_count != 0){		
+						//	throwException(parse_exception,0,
+						//						"Parse exception in parse()",
+						//						"Error in attr: Attr name not unique");
+						//}
+						//unique = TRUE;
+						//if (vg->attr_count < vg->anaLen) {
+						//	vg->attr_name_array[vg->attr_count] =
+						//		((Long) (vg->temp_offset) << 32) + vg->length1;
+						//	vg->attr_count++;
+						//} else 
+						//{
+						//	Long* temp_array = vg->attr_name_array;
+						//	vg->attr_name_array = 
+						//		(Long *)malloc(sizeof(Long)*
+						//		(vg->attr_count + ATTR_NAME_ARRAY_SIZE));
+						//	
+						//	if (vg->attr_name_array == NULL){
+						//		throwException(parse_exception,0,
+						//						"Parse exception in parse()",
+						//						"alloc mem for attr_name_array_failed");
+						//	}
+						//	vg->anaLen = vg->attr_count + ATTR_NAME_ARRAY_SIZE;
 
-							for (i = 0; i < attr_count; i++) {
-								vg->attr_name_array[i] = temp_array[i];
-							}
-							vg->attr_name_array[attr_count] =
-								((Long) (vg->temp_offset) << 32) + length1;
-							attr_count++;
-						}
+						//	for (i = 0; i < vg->attr_count; i++) {
+						//		vg->attr_name_array[i] = temp_array[i];
+						//	}
+						//	vg->attr_name_array[vg->attr_count] =
+						//		((Long) (vg->temp_offset) << 32) + vg->length1;
+						//	vg->attr_count++;
+						//}
 						
-						if (is_ns) {
+						if (vg->is_ns) {//if the prefix is xmlns: or xmlns
 							if (vg->encoding < FORMAT_UTF_16BE){
-								if (length2>MAX_PREFIX_LENGTH 
-									|| length1 > MAX_QNAME_LENGTH){
+								if (vg->length2>MAX_PREFIX_LENGTH 
+									|| vg->length1 > MAX_QNAME_LENGTH){
 										throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: Attr NS prefix or qname length too long");
@@ -1784,14 +1878,14 @@ void parse(VTDGen *vg, Boolean ns){
 
 								writeVTD(vg,
 									vg->temp_offset,
-									(length2 << 11) | length1,
+									(vg->length2 << 11) | vg->length1,
 									TOKEN_ATTR_NS,
 									vg->depth);
 
 							}
 							else{
-								if (length2>(MAX_PREFIX_LENGTH<<1) 
-									|| length1 >(MAX_QNAME_LENGTH<<1)){
+								if (vg->length2>(MAX_PREFIX_LENGTH<<1) 
+									|| vg->length1 >(MAX_QNAME_LENGTH<<1)){
 										throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: Attr NS prefix or qname length too long");
@@ -1799,30 +1893,40 @@ void parse(VTDGen *vg, Boolean ns){
 
 								writeVTD(vg,
 									vg->temp_offset >> 1,
-									(length2 << 10) | (length1 >> 1),
+									(vg->length2 << 10) | (vg->length1 >> 1),
 									TOKEN_ATTR_NS,
 									vg->depth);
 
 							}
-							is_ns = FALSE;
+							if (vg->ns) {								
+								//unprefixed xmlns are not recorded
+								if (vg->length2 != 0 && !isXML) {
+									//nsBuffer2.append(VTDBuffer.size() - 1);
+									Long l = ((Long) ((vg->length2 << 16) | vg->length1)) << 32
+										| vg->temp_offset;
+									appendLong(vg->nsBuffer3,l); // byte offset and byte
+									// length
+								}
+							}
+							//vg->is_ns = FALSE;
 						} else {
 							if (vg->encoding < FORMAT_UTF_16BE){
-								if (length2>MAX_PREFIX_LENGTH 
-									|| length1 > MAX_QNAME_LENGTH){
+								if (vg->length2>MAX_PREFIX_LENGTH 
+									|| vg->length1 > MAX_QNAME_LENGTH){
 										throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: Attr name prefix or qname length too long");
 								}
 								writeVTD(vg,
 									vg->temp_offset,
-									(length2 << 11) | length1,
+									(vg->length2 << 11) | vg->length1,
 									TOKEN_ATTR_NAME,
 									vg->depth);
 
 							}
 							else {
-								if (length2> (MAX_PREFIX_LENGTH <<1)
-									|| length1 > (MAX_QNAME_LENGTH<<1)){
+								if (vg->length2> (MAX_PREFIX_LENGTH <<1)
+									|| vg->length1 > (MAX_QNAME_LENGTH<<1)){
 										throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: Attr name prefix or qname length too long");
@@ -1830,13 +1934,16 @@ void parse(VTDGen *vg, Boolean ns){
 
 								writeVTD(vg,
 									vg->temp_offset >> 1,
-									(length2 << 10) | (length1 >> 1),
+									(vg->length2 << 10) | (vg->length1 >> 1),
 									TOKEN_ATTR_NAME,
 									vg->depth);
 
 							}
+							// append to nsBuffer2
+							
+							
 						}
-						length2 = 0;
+						vg->length2 = 0;
 						if (XMLChar_isSpaceChar(vg->ch)) {
 							vg->ch = getCharAfterS(vg);
 						}
@@ -1876,31 +1983,69 @@ void parse(VTDGen *vg, Boolean ns){
 							}
 						}
 
-						length1 = vg->offset - vg->temp_offset - vg->increment;
+						vg->length1 = vg->offset - vg->temp_offset - vg->increment;
+						if (vg->ns && vg->is_ns){
+							int t;
+							if (!default_ns && vg->length1==0){
+								throwException2(parse_exception," non-default ns URL can't be empty");
+									//+formatLineNumber());								
+							}
+							//identify nsURL return 0,1,2
+							t= identifyNsURL(vg,vg->temp_offset, vg->length1);
+							if (isXML){//xmlns:xml
+								if (t!=1)
+									//URL points to "http://www.w3.org/XML/1998/namespace"
+									throwException2(parse_exception,"xmlns:xml can only point to"\
+									"\"http://www.w3.org/XML/1998/namespace\"" );
+									//+ formatLineNumber());
+
+							} else {
+								if (!default_ns)
+									appendLong(vg->nsBuffer2,((Long)vg->temp_offset<<32) | vg->length1);
+								if (t!=0){		
+									if (t==1)
+										throwException2(parse_exception,"namespace declaration can't point to"\
+										" \"http://www.w3.org/XML/1998/namespace\"" );
+										//+ formatLineNumber());
+									throwException2(parse_exception,"namespace declaration can't point to"\
+										" \"http://www.w3.org/2000/xmlns/\"" );
+										//+ formatLineNumber());	
+								}
+							}							
+							// no ns URL points to 
+							//"http://www.w3.org/2000/xmlns/"
+
+							// no ns URL points to  
+							//"http://www.w3.org/XML/1998/namespace"
+						}
+						
+						
 						if (vg->encoding < FORMAT_UTF_16BE){
-							if (length1 > MAX_TOKEN_LENGTH){
+							if (vg->length1 > MAX_TOKEN_LENGTH){
 								throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: ATTR_VAL length too long");
 							}
 							writeVTD(vg,
 								vg->temp_offset,
-								length1,
+								vg->length1,
 								TOKEN_ATTR_VAL,
 								vg->depth);
 						}
 						else{
-							if (length1 > (MAX_TOKEN_LENGTH << 1)){
+							if (vg->length1 > (MAX_TOKEN_LENGTH << 1)){
 								throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: ATTR_VAL length too long");
 							}
 							writeVTD(vg,
 								vg->temp_offset >> 1,
-								length1 >> 1,
+								vg->length1 >> 1,
 								TOKEN_ATTR_VAL,
 								vg->depth);
 						}
+						isXML = FALSE;
+						vg->is_ns = FALSE;
 						vg->ch = getChar(vg);
 						if (XMLChar_isSpaceChar(vg->ch)) {
 							vg->ch = getCharAfterS(vg);
@@ -1919,7 +2064,14 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 
 						if (vg->ch == '>') {
-							attr_count = 0;
+							if (vg->ns == TRUE){
+								appendInt(vg->nsBuffer1,vg->nsBuffer3->size-1);
+								qualifyAttributes(vg);
+								checkQualifiedAttributeUniqueness(vg);
+								qualifyElement(vg);
+								vg->prefixed_attr_count=0;
+							}
+							vg->attr_count = 0;
 							if (vg->depth != -1) {
 								vg->temp_offset = vg->offset;
 								vg->ch = getCharAfterSe(vg);
@@ -1929,7 +2081,7 @@ void parse(VTDGen *vg, Boolean ns){
 									parser_state = STATE_LT_SEEN;
 									if (skipChar(vg,'/')) {
 										if (helper == TRUE){
-											length1 =
+											vg->length1 =
 												vg->offset
 												- vg->temp_offset
 												- (vg->increment<<1);
@@ -1937,18 +2089,18 @@ void parse(VTDGen *vg, Boolean ns){
 											if (vg->encoding < FORMAT_UTF_16BE)
 												writeVTD(vg,
 												(vg->temp_offset),
-												length1,
+												vg->length1,
 												TOKEN_CHARACTER_DATA,
 												vg->depth);
 											else
 												writeVTD(vg,
 												(vg->temp_offset) >> 1,
-												(length1 >> 1),
+												(vg->length1 >> 1),
 												TOKEN_CHARACTER_DATA,
 												vg->depth);
 
 										}
-										//offset += length1;
+										//offset += vg->length1;
 										parser_state = STATE_END_TAG;
 										break;
 									}
@@ -2016,18 +2168,18 @@ void parse(VTDGen *vg, Boolean ns){
 												"Error in text content: Invalid char in text content");
 							}
 						}
-						length1 = vg->offset - vg->increment - vg->temp_offset;						
+						vg->length1 = vg->offset - vg->increment - vg->temp_offset;						
 						if (vg->encoding < FORMAT_UTF_16BE){
 							writeVTD(vg,
 								vg->temp_offset,
-								length1,
+								vg->length1,
 								TOKEN_CHARACTER_DATA,
 								vg->depth);
 						}
 						else{
 							writeVTD(vg,
 								vg->temp_offset >> 1,
-								length1 >> 1,
+								vg->length1 >> 1,
 								TOKEN_CHARACTER_DATA,
 								vg->depth);
 						}
@@ -2163,6 +2315,10 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->bufLen = len;
 	vg->endOffset = os + docLen;
 	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
+	vg->currentElementRecord = 0;
+	clearFastIntBuffer(vg->nsBuffer1);
+	clearFastLongBuffer(vg->nsBuffer2);
+	clearFastLongBuffer(vg->nsBuffer3);
 	if (vg->VTDBuffer == NULL){
 		if (vg->docLen <= 1024) {
 			a = 6; i1=5; i2=5;i3=5;
@@ -2216,6 +2372,10 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->bufLen =len;
 	vg->endOffset = os + docLen;
 	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
+	vg->currentElementRecord = 0;
+	clearFastIntBuffer(vg->nsBuffer1);
+	clearFastLongBuffer(vg->nsBuffer2);
+	clearFastLongBuffer(vg->nsBuffer3);
 	if (vg->docLen <= 1024) {		
 		a = 6; i1=5; i2=5;i3=5;
 	} else if (vg->docLen <= 4096 * 2){
@@ -2488,7 +2648,7 @@ void decide_encoding(VTDGen *vg){
 	}
 }
 int process_end_pi(VTDGen *vg){
-	int length1,parser_state=0;
+	int parser_state=0;
 	vg->ch = getChar(vg);
 	if (XMLChar_isNameStartChar(vg->ch)) {
 		if ((vg->ch == 'x' || vg->ch == 'X')
@@ -2511,32 +2671,32 @@ int process_end_pi(VTDGen *vg){
 			vg->ch = getChar(vg);
 		}
 
-		length1 = vg->offset - vg->temp_offset - vg->increment;
+		vg->length1 = vg->offset - vg->temp_offset - vg->increment;
 		if (vg->encoding < FORMAT_UTF_16BE){
-			if (length1 > MAX_TOKEN_LENGTH){
+			if (vg->length1 > MAX_TOKEN_LENGTH){
 				throwException(parse_exception,0,	
 					"Parse exception in parse()",
 					"Token Length Error: PI_NAME length too long");
 			}
 			writeVTD(vg,
 				vg->temp_offset,
-				length1,
+				vg->length1,
 				TOKEN_PI_NAME,
 				vg->depth);
 		}
 		else{
-			if (length1 > (MAX_TOKEN_LENGTH<<1)){
+			if (vg->length1 > (MAX_TOKEN_LENGTH<<1)){
 				throwException(parse_exception,0,	
 					"Parse exception in parse()",
 					"Token Length Error: PI_NAME length too long");
 			}
 			writeVTD(vg,
 				vg->temp_offset >> 1,
-				length1 >> 1,
+				vg->length1 >> 1,
 				TOKEN_PI_NAME,
 				vg->depth);
 		}
-		//length1 = 0;
+		//vg->length1 = 0;
 		vg->temp_offset = vg->offset;
 		if (XMLChar_isSpaceChar(vg->ch)) {
 			vg->ch = getCharAfterS(vg);
@@ -2560,28 +2720,28 @@ int process_end_pi(VTDGen *vg){
 				}
 				vg->ch = getChar(vg);
 			}
-			length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
+			vg->length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
 			if (vg->encoding < FORMAT_UTF_16BE){
-				if (length1 > MAX_TOKEN_LENGTH){
+				if (vg->length1 > MAX_TOKEN_LENGTH){
 					throwException(parse_exception,0,	
 						"Parse exception in parse()",
 						"Token Length Error: PI_VAL length too long");
 				}
 				writeVTD(vg,
 					vg->temp_offset,
-					length1,
+					vg->length1,
 					TOKEN_PI_VAL,
 					vg->depth);
 			}
 			else{
-				if (length1 > (MAX_TOKEN_LENGTH << 1)){
+				if (vg->length1 > (MAX_TOKEN_LENGTH << 1)){
 					throwException(parse_exception,0,	
 						"Parse exception in parse()",
 						"Token Length Error: PI_VAL length too long");
 				}
 				writeVTD(vg,
 					vg->temp_offset >> 1,
-					length1 >> 1,
+					vg->length1 >> 1,
 					TOKEN_PI_VAL,
 					vg->depth);
 			}
@@ -2602,12 +2762,12 @@ int process_end_pi(VTDGen *vg){
 	return parser_state;
 }
 int process_end_comment(VTDGen *vg){
-	int length1,parser_state=0;
+	int parser_state=0;
 	while (TRUE) {
 		vg->ch = getChar(vg);
 		if (XMLChar_isValidChar(vg->ch)) {
 			if (vg->ch == '-' && skipChar(vg,'-')) {
-				length1 =
+				vg->length1 =
 					vg->offset - vg->temp_offset - (vg->increment<<1);
 				break;
 			}
@@ -2621,11 +2781,11 @@ int process_end_comment(VTDGen *vg){
 		+ formatLineNumber());*/
 	}
 	if (getChar(vg) == '>') {
-		//System.out.println(" " + vg->temp_offset + " " + length1 + " comment " + vg->depth);
+		//System.out.println(" " + vg->temp_offset + " " + vg->length1 + " comment " + vg->depth);
 		if (vg->encoding < FORMAT_UTF_16BE){
 			writeVTD(vg,
 				vg->temp_offset,
-				length1,
+				vg->length1,
 				TOKEN_COMMENT,
 				vg->depth);
 		}
@@ -2633,11 +2793,11 @@ int process_end_comment(VTDGen *vg){
 		{
 			writeVTD(vg,
 				vg->temp_offset >> 1,
-				length1 >> 1,
+				vg->length1 >> 1,
 				TOKEN_COMMENT,
 				vg->depth);
 		}
-		//length1 = 0;
+		//vg->length1 = 0;
 		parser_state = STATE_DOC_END;
 		return parser_state;
 	}		
@@ -2648,12 +2808,12 @@ int process_end_comment(VTDGen *vg){
 
 }
 int process_comment(VTDGen *vg){
-	int length1,parser_state=0;
+	int parser_state=0;
 	while (TRUE) {
 		vg->ch = getChar(vg);
 		if (XMLChar_isValidChar(vg->ch)) {
 			if (vg->ch == '-' && skipChar(vg,'-')) {
-				length1 =
+				vg->length1 =
 					vg->offset - vg->temp_offset - (vg->increment<<1);
 				break;
 			}
@@ -2667,14 +2827,14 @@ int process_comment(VTDGen *vg){
 		if (vg->encoding < FORMAT_UTF_16BE){
 			writeVTD(vg,
 				vg->temp_offset,
-				length1,
+				vg->length1,
 				TOKEN_COMMENT,
 				vg->depth);
 		}
 		else{
 			writeVTD(vg,
 				vg->temp_offset >> 1,
-				length1 >> 1,
+				vg->length1 >> 1,
 				TOKEN_COMMENT,
 				vg->depth);
 		}
@@ -2715,7 +2875,7 @@ int process_comment(VTDGen *vg){
 	}
 }
 int process_doc_type(VTDGen *vg){
-	int length1,parser_state=0;
+	int parser_state=0;
 	int	z = 1;
 
 	while (TRUE) {
@@ -2733,28 +2893,28 @@ int process_doc_type(VTDGen *vg){
 				"Error in DOCTYPE: Invalid char");
 		}
 	}
-	length1 = vg->offset - vg->temp_offset - vg->increment;
+	vg->length1 = vg->offset - vg->temp_offset - vg->increment;
 	if (vg->encoding < FORMAT_UTF_16BE){
-		if (length1 > MAX_TOKEN_LENGTH){
+		if (vg->length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: DTD_VAL length too long");
 		}
 		writeVTD(vg,
 			vg->temp_offset,
-			length1,
+			vg->length1,
 			TOKEN_DTD_VAL,
 			vg->depth);
 	}
 	else{
-		if (length1 > (MAX_TOKEN_LENGTH<<1)){
+		if (vg->length1 > (MAX_TOKEN_LENGTH<<1)){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: DTD_VAL length too long");
 		}
 		writeVTD(vg,
 			vg->temp_offset >> 1,
-			length1 >> 1,
+			vg->length1 >> 1,
 			TOKEN_DTD_VAL,
 			vg->depth);
 	}
@@ -2770,7 +2930,7 @@ int process_doc_type(VTDGen *vg){
 }
 
 static int process_cdata(VTDGen *vg){
-	int length1,parser_state=0;
+	int parser_state=0;
 	while (TRUE) {
 		vg->ch = getChar(vg);
 		if (XMLChar_isValidChar(vg->ch)) {
@@ -2786,18 +2946,18 @@ static int process_cdata(VTDGen *vg){
 				"Error in CDATA: Invalid Char");
 		}
 	}
-	length1 = vg->offset - vg->temp_offset - vg->increment - (vg->increment<<1);
+	vg->length1 = vg->offset - vg->temp_offset - vg->increment - (vg->increment<<1);
 	if (vg->encoding < FORMAT_UTF_16BE){
 		writeVTD(vg,
 			vg->temp_offset,
-			length1,
+			vg->length1,
 			TOKEN_CDATA_VAL,
 			vg->depth);
 	}
 	else{
 		writeVTD(vg,
 			vg->temp_offset >> 1,
-			length1 >> 1,
+			vg->length1 >> 1,
 			TOKEN_CDATA_VAL,
 			vg->depth);
 	}
@@ -2835,7 +2995,7 @@ static int process_cdata(VTDGen *vg){
 	return parser_state;
 }
 static int process_pi_val(VTDGen *vg){
-int length1,parser_state;
+	int parser_state;
 	while (TRUE) {
 		if (XMLChar_isValidChar(vg->ch)) {
 			if (vg->ch == '?'){
@@ -2854,24 +3014,24 @@ int length1,parser_state;
 		}
 		vg->ch = getChar(vg);
 	}
-	length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
+	vg->length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
 	if (vg->encoding < FORMAT_UTF_16BE){
-		if (length1 > MAX_TOKEN_LENGTH){
+		if (vg->length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: PI_VAL length too long");
 		}
-		writeVTD(vg,vg->temp_offset, length1, TOKEN_PI_VAL, vg->depth);
+		writeVTD(vg,vg->temp_offset, vg->length1, TOKEN_PI_VAL, vg->depth);
 	}
 	else{
-		if (length1 > (MAX_TOKEN_LENGTH << 1)){
+		if (vg->length1 > (MAX_TOKEN_LENGTH << 1)){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: PI_VAL length too long");
 		}
 		writeVTD(vg,
 			vg->temp_offset >> 1,
-			length1 >> 1,
+			vg->length1 >> 1,
 			TOKEN_PI_VAL,
 			vg->depth);
 	}
@@ -2906,35 +3066,35 @@ int length1,parser_state;
 	return parser_state;
 }
 int process_pi_tag(VTDGen *vg){
-	int length1,parser_state=0;
+	int parser_state=0;
 	while (TRUE) {
 		vg->ch = getChar(vg);
 		if (!XMLChar_isNameChar(vg->ch))
 			break;
 	}
 
-	length1 = vg->offset - vg->temp_offset - vg->increment;
+	vg->length1 = vg->offset - vg->temp_offset - vg->increment;
 	if (vg->encoding < FORMAT_UTF_16BE){
-		if (length1 > MAX_TOKEN_LENGTH){
+		if (vg->length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: PI_TAG length too long");
 		}
 		writeVTD(vg,
 			(vg->temp_offset),
-			length1,
+			vg->length1,
 			TOKEN_PI_NAME,
 			vg->depth);
 	}
 	else{													
-		if (length1 > (MAX_TOKEN_LENGTH << 1)){
+		if (vg->length1 > (MAX_TOKEN_LENGTH << 1)){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: PI_TAG length too long");
 		}
 		writeVTD(vg,
 			(vg->temp_offset) >> 1,
-			(length1 >> 1),
+			(vg->length1 >> 1),
 			TOKEN_PI_NAME,
 			vg->depth);
 	}
@@ -3466,13 +3626,13 @@ static int process_ex_seen(VTDGen *vg){
 
 static void addWhiteSpaceRecord(VTDGen *vg){
 	if (vg->depth > -1) {
-			int length1 = vg->offset - vg->increment - vg->temp_offset;
-			if (length1 != 0)
+			vg->length1 = vg->offset - vg->increment - vg->temp_offset;
+			if (vg->length1 != 0)
 				if (vg->encoding < FORMAT_UTF_16BE)
-					writeVTD(vg,vg->temp_offset, length1, 
+					writeVTD(vg,vg->temp_offset, vg->length1, 
 							TOKEN_CHARACTER_DATA, vg->depth);
 				else
-					writeVTD(vg, vg->temp_offset >> 1,length1 >> 1,
+					writeVTD(vg, vg->temp_offset >> 1,vg->length1 >> 1,
 							TOKEN_CHARACTER_DATA, vg->depth);
 		}
 }
@@ -3615,5 +3775,745 @@ VTDNav* loadSeparateIndex(VTDGen *vg, char *XMLFile, char *VTDIndexFile){
 /* configure the VTDGen to enable or disable (disabled by default) white space nodes */
 void enableIgnoredWhiteSpace(VTDGen *vg, Boolean b){
 	vg->ws = b;
+}
 
+
+
+static void qualifyAttributes(VTDGen *vg){
+	int i1= vg->nsBuffer3->size-1;
+		int j= 0,i=0;
+		// two cases:
+		// 1. the current element has no prefix, look for xmlns
+		// 2. the current element has prefix, look for xmlns:something
+		while(j<vg->prefixed_attr_count){		
+			int preLen = (int)((vg->prefixed_attr_name_array[j] & 0xffff0000LL)>>16);
+			int preOs = (int) (vg->prefixed_attr_name_array[j]>>32);
+			//System.out.println(new String(XMLDoc, preOs, preLen)+"===");
+			i = i1;
+			while(i>=0){
+				int t = upper32At(vg->nsBuffer3,i);
+				// with prefix, get full length and prefix length
+				if ( (t&0xffff) - (t>>16) == preLen+vg->increment){
+					// doing byte comparison here
+					int os =lower32At( vg->nsBuffer3,i)+(t>>16)+vg->increment;
+					//System.out.println(new String(XMLDoc, os, preLen)+"");
+					int k=0;
+					for (;k<preLen;k++){
+						//System.out.println(i+" "+(char)(XMLDoc[os+k])+"<===>"+(char)(XMLDoc[preOs+k]));
+						if (vg->XMLDoc[os+k]!=vg->XMLDoc[preOs+k])
+							break;
+					}
+					if (k==preLen){
+						break; // found the match
+					}
+				}
+				/*if ( (nsBuffer3.upper32At(i) & 0xffff0000) == 0){
+					return;
+				}*/
+				i--;
+			}
+			if (i<0)
+				throwException2(parse_exception,"Name space qualification Exception: prefixed attribute not qualified\n");
+						//+formatLineNumber(preOs));
+			else
+				vg->prefix_URL_array[j] = i;
+			j++;
+			// no need to check if xml is the prefix
+		}
+}
+
+static void qualifyElement(VTDGen *vg){
+		int i= vg->nsBuffer3->size-1;
+		// two cases:
+		// 1. the current element has no prefix, look for xmlns
+		// 2. the current element has prefix, look for xmlns:something
+		if ((vg->currentElementRecord & 0xffff000000000000LL)==0){
+			return; //no check unprefixed element 
+		} else {			
+			int preLen = (int)((vg->currentElementRecord & 0xffff000000000000LL)>>48);
+			int preOs = (int)vg->currentElementRecord;
+			while(i>=0){
+				int t = upper32At(vg->nsBuffer3,i);
+				// with prefix, get full length and prefix length
+				if ( (t&0xffff) - (t>>16) == preLen){
+					// doing byte comparison here
+					int os = lower32At(vg->nsBuffer3,i)+(t>>16)+vg->increment;
+					int k=0;
+					for (;k<preLen-vg->increment;k++){
+						if (vg->XMLDoc[os+k]!=vg->XMLDoc[preOs+k])
+							break;
+					}
+					if (k==preLen-vg->increment)
+						return; // found the match
+				}
+				/*if ( (nsBuffer3.upper32At(i) & 0xffff0000) == 0){
+					return;
+				}*/
+				i--;
+			}
+			// no need to check if xml is the prefix
+			if (checkPrefix(vg,preOs, preLen))
+				return;
+		}
+		
+	
+		// print line # column# and full element name
+		throwException2(parse_exception,
+			"Name space qualification Exception: Element not qualified\n");
+			//	+formatLineNumber((int)currentElementRecord));
+}
+
+static Boolean matchXML(VTDGen *vg, int byte_offset){
+			// TODO Auto-generated method stub
+		if (vg->encoding<FORMAT_UTF_16BE){
+			 if (vg->XMLDoc[byte_offset]=='x'
+					&& vg->XMLDoc[byte_offset+1]=='m'
+					&& vg->XMLDoc[byte_offset+2]=='l')
+					return TRUE;		
+		}else{
+			 if (vg->encoding==FORMAT_UTF_16LE){
+				if (vg->XMLDoc[byte_offset]=='x' && vg->XMLDoc[byte_offset+1]==0
+					&& vg->XMLDoc[byte_offset+2]=='m' && vg->XMLDoc[byte_offset+3]==0
+					&& vg->XMLDoc[byte_offset+4]=='l' && vg->XMLDoc[byte_offset+5]==0)
+					return TRUE;
+			} else {
+				if (vg->XMLDoc[byte_offset]== 0 && vg->XMLDoc[byte_offset+1]=='x'
+						&& vg->XMLDoc[byte_offset+2]==0 && vg->XMLDoc[byte_offset+3]=='m'
+						&& vg->XMLDoc[byte_offset+4]==0 && vg->XMLDoc[byte_offset+5]=='l')
+						return TRUE;
+			}
+		}		
+		return FALSE;
+}
+
+static Boolean matchURL(VTDGen *vg, int bos1, int len1, int bos2, int len2){
+		Long l1,l2;
+		int i1=bos1, i2=bos2, i3=bos1+len1,i4=bos2+len2;
+		//System.out.println("--->"+new String(XMLDoc, bos1, len1)+" "+new String(XMLDoc,bos2,len2));
+		while(i1<i3 && i2<i4){
+			l1 = _getCharResolved(vg,i1);
+			l2 = _getCharResolved(vg,i2);
+			if ((int)l1!=(int)l2)
+				return FALSE;
+			i1 += (int)(l1>>32);
+			i2 += (int)(l2>>32);
+		}
+		if (i1==i3 && i2==i4)
+			return TRUE;
+		return FALSE;
+}
+
+static Boolean identifyNsURL(VTDGen *vg, int byte_offset, int length){
+		UCSChar* URL1 = L"2000/xmlns/";
+		UCSChar* URL2 = L"http://www.w3.org/XML/1998/namespace";
+		Long l;
+		int i,t,g=byte_offset+length;
+		int os=byte_offset;
+		if (length <29
+				|| (vg->increment==2 && length<58) )
+			return 0;
+		
+		for (i=0; i<18 && os<g; i++){
+			l = _getCharResolved(vg,os);
+			//System.out.println("char ==>"+(char)l);
+			if (URL2[i]!= (int)l)
+				return 0;
+			os += (int)(l>>32);
+		}
+		
+		//store offset value 
+		t = os;
+		
+		for (i=0;i<11 && os<g;i++){
+			l = _getCharResolved(vg,os);
+			if (URL1[i]!= (int)l)
+				break;
+			os += (int)(l>>32);
+		}
+		if (os == g)
+			return 2;
+		
+		//so far a match
+		os = t;
+		for (i=18;i<36 && os<g;i++){
+			l = _getCharResolved(vg,os);
+			if (URL2[i]!= (int)l)
+				return 0;
+			os += (int)(l>>32);
+		}
+		if (os==g)
+			return 1;
+			
+		return 0;
+}
+
+static int getCharUnit(VTDGen *vg, int byte_offset){
+	return (vg->encoding <= 2)
+		? vg->XMLDoc[byte_offset] & 0xff
+		: (vg->encoding < FORMAT_UTF_16BE)
+		? decode(vg,byte_offset):(vg->encoding == FORMAT_UTF_16BE)
+		? (((int)vg->XMLDoc[byte_offset])
+		<< 8 | vg->XMLDoc[byte_offset+1])
+		: (((int)vg->XMLDoc[byte_offset + 1])
+		<< 8 | vg->XMLDoc[byte_offset]);
+}
+
+static void disallow_xmlns(VTDGen *vg, int byte_offset){
+			// TODO Auto-generated method stub
+		if (vg->encoding<FORMAT_UTF_16BE){
+			 if (vg->XMLDoc[byte_offset]=='x'
+					&& vg->XMLDoc[byte_offset+1]=='m'
+					&& vg->XMLDoc[byte_offset+2]=='l'
+					&& vg->XMLDoc[byte_offset+3]=='n'
+					&& vg->XMLDoc[byte_offset+4]=='s')
+					throwException2(parse_exception,
+							"xmlns as a ns prefix can't be re-declared");
+					//formatLineNumber(byte_offset));
+			
+		}else{
+			 if (vg->encoding==FORMAT_UTF_16LE){
+				if (vg->XMLDoc[byte_offset]=='x' && vg->XMLDoc[byte_offset+1]==0
+					&& vg->XMLDoc[byte_offset+2]=='m' && vg->XMLDoc[byte_offset+3]==0
+					&& vg->XMLDoc[byte_offset+4]=='l' && vg->XMLDoc[byte_offset+5]==0
+					&& vg->XMLDoc[byte_offset+6]=='n' && vg->XMLDoc[byte_offset+7]==0
+					&& vg->XMLDoc[byte_offset+8]=='s' && vg->XMLDoc[byte_offset+9]==0)
+					throwException2(parse_exception,
+							"xmlns as a ns prefix can't be re-declared");
+			} else {
+				if (vg->XMLDoc[byte_offset]== 0 && vg->XMLDoc[byte_offset+1]=='x'
+						&& vg->XMLDoc[byte_offset+2]==0 && vg->XMLDoc[byte_offset+3]=='m'
+						&& vg->XMLDoc[byte_offset+4]==0 && vg->XMLDoc[byte_offset+5]=='l'
+						&& vg->XMLDoc[byte_offset+6]==0 && vg->XMLDoc[byte_offset+7]=='n'
+						&& vg->XMLDoc[byte_offset+8]==0 && vg->XMLDoc[byte_offset+9]=='s')
+						throwException2(parse_exception,"xmlns as a ns prefix can't be re-declared");
+								//+formatLineNumber(offset));
+			}
+		}		
+}
+
+static void checkQualifiedAttributeUniqueness(VTDGen *vg){
+			// TODO Auto-generated method stub
+		int  preLen1,os1,postLen1,URLLen1,URLOs1, 
+			 preLen2, os2,postLen2, URLLen2, URLOs2,k,i,j;
+		for (i=0;i<vg->prefixed_attr_count;i++){
+			preLen1 = (int)((vg->prefixed_attr_name_array[i] & 0xffff0000LL)>>16);
+			postLen1 = (int) ((vg->prefixed_attr_name_array[i] & 0xffffLL))-preLen1-vg->increment;
+			os1 = (int) (vg->prefixed_attr_name_array[i]>>32) + preLen1+vg->increment;
+			URLLen1 = lower32At(vg->nsBuffer2,vg->prefix_URL_array[i]);
+			URLOs1 =  upper32At(vg->nsBuffer2,vg->prefix_URL_array[i]);
+			for (j=i+1;j<vg->prefixed_attr_count;j++){
+				// prefix of i matches that of j
+				preLen2 = (int)((vg->prefixed_attr_name_array[j] & 0xffff0000LL)>>16);
+				postLen2 = (int) ((vg->prefixed_attr_name_array[j] & 0xffffL))-preLen2-vg->increment;
+				os2 = (int)(vg->prefixed_attr_name_array[j]>>32) + preLen2 + vg->increment;
+				//System.out.println(new String(XMLDoc,os1, postLen1)
+				//	+" "+ new String(XMLDoc, os2, postLen2));
+				if (postLen1 == postLen2){
+					k=0;
+					for (;k<postLen1;k++){
+					//System.out.println(i+" "+(char)(XMLDoc[os+k])+"<===>"+(char)(XMLDoc[preOs+k]));
+					if (vg->XMLDoc[os1+k]!=vg->XMLDoc[os2+k])
+						break;
+					}
+					if (k==postLen1){
+					 // found the match
+						URLLen2 = lower32At(vg->nsBuffer2,vg->prefix_URL_array[j]);
+						URLOs2 =  upper32At(vg->nsBuffer2,vg->prefix_URL_array[j]);
+						//System.out.println(" URLOs1 ===>" + URLOs1);
+						//System.out.println("nsBuffer2 ===>"+nsBuffer2.longAt(i)+" i==>"+i);
+						//System.out.println("URLLen2 "+ URLLen2+" URLLen1 "+ URLLen1+" ");
+						if (matchURL(vg,URLOs1, URLLen1, URLOs2, URLLen2))
+							throwException2(parse_exception," qualified attribute names collide ");
+								//	+ formatLineNumber(os2));
+					}
+				}				
+			}
+			//System.out.println("======");
+		}
+}
+
+static Boolean checkPrefix(VTDGen *vg, int os, int len){
+			//int i=0;
+		if (vg->encoding < FORMAT_UTF_16BE){
+			if (len==4	&&	vg->XMLDoc[os]=='x'
+				&& vg->XMLDoc[os+1]=='m' && vg->XMLDoc[os+2]=='l'){
+				return TRUE;
+			}
+		}else if (vg->encoding == FORMAT_UTF_16BE){
+			if (len==8	&&	vg->XMLDoc[os]==0 && vg->XMLDoc[os+1]=='x'
+				&& vg->XMLDoc[os+2]==0 && vg->XMLDoc[os+3]=='m' 
+				&& vg->XMLDoc[os+4]==0 && vg->XMLDoc[os+5]=='l'){
+				return TRUE;
+			}
+		}else {
+			if (len==8	&&	vg->XMLDoc[os]=='x' && vg->XMLDoc[os+1]==0
+				&& vg->XMLDoc[os+2]=='m' && vg->XMLDoc[os+3]==0 
+				&& vg->XMLDoc[os+4]=='l' && vg->XMLDoc[os+5]==0){
+				return TRUE;
+			}
+		}
+		return FALSE;
+}
+
+static Boolean checkPrefix2(VTDGen *vg, int os, int len){
+			//int i=0;
+		if (vg->encoding < FORMAT_UTF_16BE){
+			if ( len==5 && vg->XMLDoc[os]=='x'
+				&& vg->XMLDoc[os+1]=='m' && vg->XMLDoc[os+2]=='l'
+				&& vg->XMLDoc[os+3]=='n' && vg->XMLDoc[os+4]=='s'){
+				return TRUE;
+			}
+		}else if (vg->encoding == FORMAT_UTF_16BE){
+			if ( len==10 && vg->XMLDoc[os]==0 && vg->XMLDoc[os+1]=='x'
+				&& vg->XMLDoc[os+2]==0 && vg->XMLDoc[os+3]=='m' 
+				&& vg->XMLDoc[os+4]==0 && vg->XMLDoc[os+5]=='l'
+				&& vg->XMLDoc[os+6]==0 && vg->XMLDoc[os+7]=='n' 
+				&& vg->XMLDoc[os+8]==0 && vg->XMLDoc[os+9]=='s'		
+			){
+				return TRUE;
+			}
+		}else {
+			if ( len==10 && vg->XMLDoc[os]=='x' && vg->XMLDoc[os+1]==0
+				&& vg->XMLDoc[os+2]=='m' && vg->XMLDoc[os+3]==0 
+				&& vg->XMLDoc[os+4]=='l' && vg->XMLDoc[os+5]==0
+				&& vg->XMLDoc[os+6]=='n' && vg->XMLDoc[os+3]==0 
+				&& vg->XMLDoc[os+8]=='s' && vg->XMLDoc[os+5]==0				
+			){
+				return TRUE;
+			}
+		}
+		return FALSE;
+}
+
+static void checkAttributeUniqueness(VTDGen *vg){
+	Boolean unique = TRUE;
+	Boolean unequal;
+	//int prevLen;
+	int i,j;
+	for (i = 0; i < vg->attr_count; i++) {
+		int prevLen = (int) vg->attr_name_array[i];
+		unequal = FALSE;	
+		if (vg->length1 == prevLen) {
+			int prevOffset =
+				(int) (vg->attr_name_array[i] >> 32);
+			for (j = 0; j < prevLen; j++) {
+				if (vg->XMLDoc[prevOffset + j]
+				!= vg->XMLDoc[vg->temp_offset + j]) {
+					unequal = TRUE;
+					break;
+				}
+			}
+		} else
+			unequal = TRUE;
+		unique = unique && unequal;
+	}
+	if (!unique && vg->attr_count != 0){		
+		throwException(parse_exception,0,
+			"Parse exception in parse()",
+			"Error in attr: Attr name not unique");
+	}
+	unique = TRUE;
+	if (vg->attr_count < vg->anaLen) {
+		vg->attr_name_array[vg->attr_count] =
+			((Long) (vg->temp_offset) << 32) + vg->length1;
+		vg->attr_count++;
+	} else 
+	{
+		Long* temp_array = vg->attr_name_array;
+		vg->attr_name_array = 
+			(Long *)malloc(sizeof(Long)*
+			(vg->attr_count + ATTR_NAME_ARRAY_SIZE));
+
+		if (vg->attr_name_array == NULL){
+			throwException(parse_exception,0,
+				"Parse exception in parse()",
+				"alloc mem for attr_name_array_failed");
+		}
+		vg->anaLen = vg->attr_count + ATTR_NAME_ARRAY_SIZE;
+
+		for (i = 0; i < vg->attr_count; i++) {
+			vg->attr_name_array[i] = temp_array[i];
+		}
+		vg->attr_name_array[vg->attr_count] =
+			((Long) (vg->temp_offset) << 32) + vg->length1;
+		vg->attr_count++;
+	}
+		// insert prefix attr node into the prefixed_attr_name array
+		// xml:something will not be inserted
+		//System.out.println(" prefixed attr count ===>"+prefixed_attr_count);
+		//System.out.println(" length2 ===>"+length2);
+		if (vg->ns && !vg->is_ns && vg->length2!=0 ){
+			if ((vg->increment==1 && vg->length2 ==3 && matchXML(vg,vg->temp_offset))
+					|| (vg->increment==2 &&vg->length2 ==6 &&  matchXML(vg,vg->temp_offset))){
+				return;
+			}
+			else if (vg->prefixed_attr_count < vg->panaLen){
+				vg->prefixed_attr_name_array[vg->prefixed_attr_count] =
+					((Long) (vg->temp_offset) << 32) | (vg->length2<<16)| vg->length1;
+				vg->prefixed_attr_count++;
+			}else {
+				Long* temp_array1 = vg->prefixed_attr_name_array;
+				vg->prefixed_attr_name_array =(Long *)malloc(sizeof(Long)*(vg->prefixed_attr_count + ATTR_NAME_ARRAY_SIZE));
+				vg->panaLen = vg->prefixed_attr_count+ATTR_NAME_ARRAY_SIZE;
+					//new long[vg->prefixed_attr_count + ATTR_NAME_ARRAY_SIZE];
+				vg->prefix_URL_array = (int *)malloc(sizeof(int)*(vg->prefixed_attr_count + ATTR_NAME_ARRAY_SIZE));
+					//new int[vg->prefixed_attr_count + ATTR_NAME_ARRAY_SIZE];
+				memcpy(vg->prefixed_attr_name_array,temp_array1,vg->prefixed_attr_count);
+				//System.arraycopy(temp_array1, 0, vg->prefixed_attr_name_array, 0, vg->prefixed_attr_count);
+				//System.arraycopy(temp_array1, 0, prefixed_attr_val_array, 0, prefixed_attr_count)
+				/*for (int i = 0; i < attr_count; i++) {
+					attr_name_array[i] = temp_array[i];
+				}*/
+				vg->prefixed_attr_name_array[vg->prefixed_attr_count] =
+					((Long) (vg->temp_offset) << 32) | (vg->length2<<16)| vg->length1;
+				vg->prefixed_attr_count++;
+			}
+		}
+}
+
+static Long _getCharResolved(VTDGen *vg,int byte_offset){
+
+	int ch = 0;
+	int val = 0;
+	Long inc = 2<<(vg->increment-1);
+	Long l = _getChar(vg,byte_offset);
+
+	ch = (int)l;
+
+	if (ch != '&')
+		return l;
+
+	// let us handle references here
+	//currentOffset++;
+	byte_offset+=vg->increment;
+	ch = getCharUnit(vg,byte_offset);
+	byte_offset+=vg->increment;
+	switch (ch) {
+				case '#' :
+
+					ch = getCharUnit(vg,byte_offset);
+
+					if (ch == 'x') {
+						while (TRUE) {
+							byte_offset+=vg->increment;
+							inc+=vg->increment;
+							ch = getCharUnit(vg,byte_offset);
+
+							if (ch >= '0' && ch <= '9') {
+								val = (val << 4) + (ch - '0');
+							} else if (ch >= 'a' && ch <= 'f') {
+								val = (val << 4) + (ch - 'a' + 10);
+							} else if (ch >= 'A' && ch <= 'F') {
+								val = (val << 4) + (ch - 'A' + 10);
+							} else if (ch == ';') {
+								inc+=vg->increment;
+								break;
+							} 
+						}
+					} else {
+						while (TRUE) {
+							ch = getCharUnit(vg,byte_offset);
+							byte_offset+=vg->increment;
+							inc+=vg->increment;
+							if (ch >= '0' && ch <= '9') {
+								val = val * 10 + (ch - '0');
+							} else if (ch == ';') {
+								break;
+							} 						
+						}
+					}
+					break;
+
+				case 'a' :
+					ch = getCharUnit(vg,byte_offset);
+					if (vg->encoding<FORMAT_UTF_16BE){
+						if (ch == 'm') {
+							if (getCharUnit(vg,byte_offset + 1) == 'p'
+								&& getCharUnit(vg,byte_offset + 2) == ';') {
+									inc = 5;
+									val = '&';
+							} 
+						} else if (ch == 'p') {
+							if (getCharUnit(vg,byte_offset + 1) == 'o'
+								&& getCharUnit(vg,byte_offset + 2) == 's'
+								&& getCharUnit(vg,byte_offset + 3) == ';') {
+									inc = 6;
+									val = '\'';
+							} 
+						} 
+					}else{
+						if (ch == 'm') {
+							if (getCharUnit(vg,byte_offset + 2) == 'p'
+								&& getCharUnit(vg,byte_offset + 4) == ';') {
+									inc = 10;
+									val = '&';
+							} 
+						} else if (ch == 'p') {
+							if (getCharUnit(vg,byte_offset + 2) == 'o'
+								&& getCharUnit(vg,byte_offset + 4) == 's'
+								&& getCharUnit(vg,byte_offset + 6) == ';') {
+									inc = 12;
+									val = '\'';
+							} 
+						} 
+					}
+					break;
+
+				case 'q' :
+
+					if (vg->encoding<FORMAT_UTF_16BE){
+						if (getCharUnit(vg,byte_offset) == 'u'
+							&& getCharUnit(vg,byte_offset + 1) == 'o'
+							&& getCharUnit(vg,byte_offset + 2) == 't'
+							&& getCharUnit(vg,byte_offset + 3) ==';') {
+								inc = 6;
+								val = '\"';
+						} }
+					else{
+						if (getCharUnit(vg,byte_offset) == 'u'
+							&& getCharUnit(vg,byte_offset + 2) == 'o'
+							&& getCharUnit(vg,byte_offset + 4) == 't'
+							&& getCharUnit(vg,byte_offset + 6) ==';') {
+								inc = 12;
+								val = '\"';
+						}
+					}
+					break;
+				case 'l' :
+					if (vg->encoding<FORMAT_UTF_16BE){
+						if (getCharUnit(vg,byte_offset) == 't'
+							&& getCharUnit(vg,byte_offset + 1) == ';') {
+								//offset += 2;
+								inc = 4;
+								val = '<';
+						} 
+					}else{
+						if (getCharUnit(vg,byte_offset) == 't'
+							&& getCharUnit(vg,byte_offset + 2) == ';') {
+								//offset += 2;
+								inc = 8;
+								val = '<';
+						} 
+					}
+					break;
+				case 'g' :
+					if (vg->encoding<FORMAT_UTF_16BE){
+						if (getCharUnit(vg,byte_offset) == 't'
+							&& getCharUnit(vg,byte_offset + 1) == ';') {
+								inc = 4;
+								val = '>';
+						} 
+					}else {
+						if (getCharUnit(vg,byte_offset) == 't'
+							&& getCharUnit(vg,byte_offset + 2) == ';') {
+								inc = 8;
+								val = '>';
+						} 
+					}
+					break;
+	}
+
+	//currentOffset++;
+	return val | (inc << 32);
+}
+
+static Long _getChar(VTDGen *vg, int offset){
+	int c;
+	switch (vg->encoding) {
+			case FORMAT_ASCII :
+				c =  vg->XMLDoc[offset];
+				if (c=='\r' && vg->XMLDoc[offset+1]=='\n')
+					return (2LL<<32)|'\n';
+				return (1LL<<32)|c;
+			case FORMAT_ISO_8859_1 :
+				c = vg->XMLDoc[offset];
+				if (c=='\r' && vg->XMLDoc[offset+1]=='\n')
+					return (2LL<<32)|'\n';
+				return (1LL<<32)|c;
+			case FORMAT_UTF8 :
+				c = vg->XMLDoc[offset];
+			   if (c>=0){
+				if (c == '\r') {
+					if (vg->XMLDoc[offset + 1] == '\n') {
+						return '\n'|(2LL<<32);
+					} else {
+						return '\n'|(1LL<<32);
+					}
+				}
+				//currentOffset++;
+				return c|(1LL<<32);
+			}				
+			return _handle_utf8(vg,c,offset);
+
+			case FORMAT_UTF_16BE :
+				// implement UTF-16BE to UCS4 conversion
+				return _handle_16be(vg, offset);
+
+			case FORMAT_UTF_16LE :
+				return _handle_16le(vg, offset);
+
+			default :
+				return _handleOtherEncoding(vg,offset);
+
+	}
+}
+
+static int decode(VTDGen *vg, int byte_offset){
+	    int b = vg->XMLDoc[byte_offset];
+	switch(vg->encoding){
+		case FORMAT_ISO_8859_2: return iso_8859_2_decode(b);
+		case FORMAT_ISO_8859_3: return iso_8859_3_decode(b);
+		case FORMAT_ISO_8859_4: return iso_8859_4_decode(b);
+		case FORMAT_ISO_8859_5: return iso_8859_5_decode(b);
+		case FORMAT_ISO_8859_6: return iso_8859_6_decode(b);
+		case FORMAT_ISO_8859_7: return iso_8859_7_decode(b);
+		case FORMAT_ISO_8859_8: return iso_8859_8_decode(b);
+		case FORMAT_ISO_8859_9: return iso_8859_9_decode(b);
+		case FORMAT_ISO_8859_10: return iso_8859_10_decode(b);
+		case FORMAT_ISO_8859_11: return iso_8859_11_decode(b);
+		case FORMAT_ISO_8859_13: return iso_8859_13_decode(b);
+		case FORMAT_ISO_8859_14: return iso_8859_14_decode(b);
+		case FORMAT_ISO_8859_15: return iso_8859_15_decode(b);
+		
+		case FORMAT_WIN_1250: return windows_1250_decode( b);
+		case FORMAT_WIN_1251: return windows_1251_decode( b);
+		case FORMAT_WIN_1252: return windows_1252_decode( b);
+		case FORMAT_WIN_1253: return windows_1253_decode( b);
+		case FORMAT_WIN_1254: return windows_1254_decode( b);
+		case FORMAT_WIN_1255: return windows_1255_decode( b);
+		case FORMAT_WIN_1256: return windows_1256_decode( b);
+		case FORMAT_WIN_1257: return windows_1257_decode( b);
+		case FORMAT_WIN_1258: return windows_1258_decode( b);   
+	}
+	return 0;
+}
+
+static Long _handle_16be(VTDGen *vg, int offset){
+	Long val; 
+
+	int temp =
+		((vg->XMLDoc[offset ] & 0xff)	<< 8) 
+		|(vg->XMLDoc[offset + 1]& 0xff);
+	if ((temp < 0xd800)
+		|| (temp > 0xdfff)) { // not a high surrogate
+			if (temp == '\r') {
+				if (vg->XMLDoc[offset  + 3] == '\n'
+					&& vg->XMLDoc[offset + 2] == 0) {
+
+						return '\n'|(4LL<<32);
+				} else {
+					return '\n'|(2LL<<32);
+				}
+			}
+			//currentOffset++;
+			return temp| (2LL<<32);
+	} else {
+		val = temp;
+		temp =
+			((vg->XMLDoc[offset + 2] & 0xff)
+			<< 8) | (vg->XMLDoc[offset+ 3] & 0xff);
+		val = ((temp - 0xd800) << 10) + (val - 0xdc00) + 0x10000;
+		//currentOffset += 2;
+		return val | (4LL<<32);
+	}
+}
+
+static Long _handle_16le(VTDGen *vg, int offset){
+	// implement UTF-16LE to UCS4 conversion
+	int val, temp =
+		(vg->XMLDoc[offset + 1 ] & 0xff)
+		<< 8 | (vg->XMLDoc[offset] & 0xff);
+	if (temp < 0xdc00 || temp > 0xdfff) { // check for low surrogate
+		if (temp == '\r') {
+			if (vg->XMLDoc[offset + 2] == '\n'
+				&& vg->XMLDoc[offset + 3] == 0) {
+					return '\n' | (4LL<<32) ;
+			} else {
+				return '\n' | (2LL<<32);
+			}
+		}
+		return temp | (2LL<<32);
+	} else {
+		val = temp;
+		temp =
+			(vg->XMLDoc[offset + 3]&0xff)
+			<< 8 | (vg->XMLDoc[offset + 2] & 0xff);
+		val = ((temp - 0xd800)<<10) + (val - 0xdc00) + 0x10000;
+
+		return val | (4LL<<32);
+	}
+}
+
+static Long _handle_utf8(VTDGen *vg, int temp,int offset){
+	int c=0, d=0, a=0,i; 
+	Long val;
+	switch (UTF8Char_byteCount((int)temp & 0xff)) {
+			case 2:
+				c = 0x1f;
+				d = 6;
+				a = 1;
+				break;
+			case 3:
+				c = 0x0f;
+				d = 12;
+				a = 2;
+				break;
+			case 4:
+				c = 0x07;
+				d = 18;
+				a = 3;
+				break;
+			case 5:
+				c = 0x03;
+				d = 24;
+				a = 4;
+				break;
+			case 6:
+				c = 0x01;
+				d = 30;
+				a = 5;
+				break;
+	}
+
+	val = (temp & c) << d;
+	i = a - 1;
+	while (i >= 0) {
+		temp = vg->XMLDoc[offset + a - i];
+		val = val | ((temp & 0x3f) << ((i << 2) + (i << 1)));
+		i--;
+	}
+	//currentOffset += a + 1;
+	return val | (((Long)(a+1))<<32);
+}
+
+static Long _handleOtherEncoding(VTDGen *vg,int byte_offset){
+	    int b = vg->XMLDoc[byte_offset];
+		if (b=='\r' && vg->XMLDoc[byte_offset+1]=='\n')
+				return (2LL<<32)|'\n';
+	switch(vg->encoding){
+		case FORMAT_ISO_8859_2: return iso_8859_2_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_3: return iso_8859_3_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_4: return iso_8859_4_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_5: return iso_8859_5_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_6: return iso_8859_6_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_7: return iso_8859_7_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_8: return iso_8859_8_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_9: return iso_8859_9_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_10: return iso_8859_10_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_11: return iso_8859_11_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_13: return iso_8859_13_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_14: return iso_8859_14_decode(b)|(1LL<<32);
+		case FORMAT_ISO_8859_15: return iso_8859_15_decode(b)|(1LL<<32);
+		
+		case FORMAT_WIN_1250: return windows_1250_decode( b)|(1LL<<32);
+		case FORMAT_WIN_1251: return windows_1251_decode( b)|(1LL<<32);
+		case FORMAT_WIN_1252: return windows_1252_decode( b)|(1LL<<32);
+		case FORMAT_WIN_1253: return windows_1253_decode( b)|(1LL<<32);
+		case FORMAT_WIN_1254: return windows_1254_decode( b)|(1LL<<32);
+		case FORMAT_WIN_1255: return windows_1255_decode( b)|(1LL<<32);
+		case FORMAT_WIN_1256: return windows_1256_decode( b)|(1LL<<32);
+		case FORMAT_WIN_1257: return windows_1257_decode( b)|(1LL<<32);
+		case FORMAT_WIN_1258: return windows_1258_decode( b)|(1LL<<32);   
+	}
+	return 0LL;
 }

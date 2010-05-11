@@ -42,7 +42,7 @@
 #define MAX_QNAME_LENGTH ((1<<11)-1)
 
 typedef struct vTDGen {
-	int ns;
+	int ns,is_ns;
 	int VTDDepth;
 	encoding_t encoding;
 	int last_depth;
@@ -55,9 +55,11 @@ typedef struct vTDGen {
 	Boolean must_utf_8;
 	int ch;
 	int ch_temp;
+	
 	int offset;
 	Boolean ws;
 	int temp_offset;
+	int length1,length2;
 	int depth;
 
 	int prev_offset;
@@ -71,6 +73,11 @@ typedef struct vTDGen {
 	FastLongBuffer *l1Buffer;
 	FastLongBuffer *l2Buffer;
 	FastIntBuffer *l3Buffer;
+	
+	FastIntBuffer  *nsBuffer1;
+	FastLongBuffer *nsBuffer2;
+    FastLongBuffer *nsBuffer3;
+	Long currentElementRecord;
 
 	Boolean br;//buffer reuse flag
 	Boolean stateTransfered; // indicate whether VTDNav has received all LC and VTD buffers
@@ -78,7 +85,12 @@ typedef struct vTDGen {
 	int endOffset;
 	Long* tag_stack;
 	Long* attr_name_array;
+	int attr_count;
+	Long* prefixed_attr_name_array;
+	int* prefix_URL_array;
+	int  prefixed_attr_count;
 	int anaLen;
+	int panaLen;
 	int docOffset;
 } VTDGen;
 

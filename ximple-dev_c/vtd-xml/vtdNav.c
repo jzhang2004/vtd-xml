@@ -20,6 +20,7 @@
 #include "indexHandler.h"
 #include "elementFragmentNs.h"
 #include "fastIntBuffer.h"
+#include "bookMark.h"
 
 static Long getChar(VTDNav *vn,int offset);
 static Long getCharResolved(VTDNav *vn,int offset);
@@ -57,7 +58,7 @@ static void resolveLC_l3(VTDNav *vn);
 static void recoverNode_l1(VTDNav *vn,int index);
 static void recoverNode_l2(VTDNav *vn,int index);
 static void recoverNode_l3(VTDNav *vn,int index);
-
+Boolean compareNormalizedTokenString2(VTDNav *vn,int offset, int len, UCSChar *s); 
 /*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, Long temp, int offset){
 	int c,d,a,i;
@@ -325,6 +326,7 @@ int getAttrVal(VTDNav *vn, UCSChar *an){
 	tokenType type;
 	if (vn->context[0] ==-1)
 		return -1;
+
 	index = (vn->context[0] != 0) ? vn->context[vn->context[0]] + 1 : vn->rootIndex + 1;
 
 
@@ -370,6 +372,8 @@ int getAttrValNS(VTDNav *vn, UCSChar* URL, UCSChar *ln){
 	tokenType type;
 	if (vn->context[0]==-1)
 		return -1;
+	if (URL!=NULL && wcslen(URL)==0)
+        	URL = NULL;
 	if (vn->ns == FALSE)
 		return -1;
 	if (URL == NULL)
@@ -396,7 +400,12 @@ int getAttrValNS(VTDNav *vn, UCSChar* URL, UCSChar *ln){
 			ln)
 			&& resolveNS2(vn, URL, offset, preLen)) {
 				return index + 1;
-		}
+		}else if (	preLen==3 
+    				&& matchRawTokenString1(vn,offset, 3,L"xml")
+    				&& wcscmp(URL,L"http://www.w3.org/XML/1998/namespace")){
+    			// prefix matches "xml"
+    			return index+1;
+    		}
 		index += 2;
 		if (index >=vn->vtdSize)
 			return -1;
@@ -1313,7 +1322,8 @@ Boolean matchElementNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 			getTokenOffset(vn, (vn->context[0] != 0) ? vn->context[vn->context[0]] : vn->rootIndex);
 		int preLen = (i >> 16) & 0xffff;
 		int fullLen = i & 0xffff;
-
+		if (URL!=NULL && wcslen(URL)==0)
+        	URL = NULL;
 		if (wcscmp(ln, L"*")== 0
 			|| ((preLen != 0)
 			? matchRawTokenString1(vn,
@@ -1327,6 +1337,11 @@ Boolean matchElementNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 				if (((URL != NULL) ? wcscmp(URL,L"*")==0 : FALSE)
 					|| (resolveNS2(vn, URL, offset, preLen) == TRUE))
 					return TRUE;
+
+				if ( preLen==3 
+    			&& matchRawTokenString1(vn,offset, preLen,L"xml")
+    			&& wcscmp(URL,L"http://www.w3.org/XML/1998/namespace"))
+    			return TRUE;   
 		}
 		return FALSE;
 	}
@@ -2110,6 +2125,7 @@ static Boolean resolveNS(VTDNav *vn, UCSChar *URL){
 	i = lookupNS2(vn, offset, preLen);
 	switch(i){
 							 case 0: if (URL== NULL){
+								 if (getTokenLength(vn,i)==0)
 								 return TRUE;
 									 } else {
 										 return FALSE;
@@ -2119,7 +2135,7 @@ static Boolean resolveNS(VTDNav *vn, UCSChar *URL){
 									 return FALSE;
 								 }
 								 else {
-									 return matchTokenString(vn,i,URL);
+									 return matchTokenString2(vn,i,URL);
 								 }
 	}
 }
@@ -2745,7 +2761,7 @@ UCSChar *toNormalizedString(VTDNav *vn, int index){
 		if (s == NULL)
 		{
 			throwException2(out_of_mem,
-				" string allocation failed in toString ");
+				" string allocation failed in toNormalizedString ");
 		}
 
 		offset = getTokenOffset(vn ,index);
@@ -2821,7 +2837,7 @@ UCSChar *toRawString2(VTDNav *vn, int os, int len){
 	if (s == NULL)
 	{
 		throwException2(out_of_mem,
-			" string allocation failed in toString ");
+			" string allocation failed in toRawString2 ");
 	}
 	/*if (vn->encoding > FORMAT_WIN_1258){
 		offset = offset>>1;
@@ -2864,7 +2880,7 @@ UCSChar *toString2(VTDNav *vn, int os, int len){
 	if (s == NULL)
 	{
 		throwException2(out_of_mem,
-			" string allocation failed in toString ");
+			" string allocation failed in toString2 ");
 	}
 	/*if (vn->encoding > FORMAT_WIN_1258){
 		offset = offset>>1;
@@ -4440,4 +4456,157 @@ int i = lower32At(vn->l2Buffer,vn->l2index),k,t1,t2;
 		//System.out.println(" i ===> "+i);
 		vn->context[3] = intAt(vn->l3Buffer,i);
 		vn->l3index = i;
+}
+
+/**
+	 * Match the string against the token at the given index value. The token will be
+     * interpreted as if it is normalized (i.e. all white space char (\r\n\a ) is replaced
+     * by a white space, char entities and entity references will be replaced by their correspondin
+     * char see xml 1.0 spec interpretation of attribute value normalization) */
+
+Boolean matchNormalizedTokenString2(VTDNav *vn,int index, UCSChar *s){
+		tokenType type = getTokenType(vn,index);
+		int len =
+			(type == TOKEN_STARTING_TAG
+				|| type == TOKEN_ATTR_NAME
+				|| type == TOKEN_ATTR_NS)
+				? getTokenLength(vn,index) & 0xffff
+				: getTokenLength(vn,index);
+
+		return compareNormalizedTokenString2(vn,getTokenOffset(vn,index), len, s)==0;
+}
+
+Boolean compareNormalizedTokenString2(VTDNav *vn,int offset, int len,
+			UCSChar *s) {
+		int i,i1, l, temp;
+		Long l1,l2;
+		//boolean b = false;
+		// this.currentOffset = offset;
+		int endOffset = offset + len;
+
+		// System.out.print("currentOffset :" + currentOffset);
+		l = wcslen(s);
+		// System.out.println(s);
+		for (i = 0; i < l && offset < endOffset;) {
+			l1 = getCharResolved(vn,offset);
+			temp = (int) l1;
+			l2 = (l1>>32);
+			if (l2<=2 && isWS(temp))
+				temp = ' ';
+			i1 = s[i];
+			if (i1 < temp)
+				return 1;
+			if (i1 > temp)
+				return -1;
+			i++;			
+			offset += (int) (l1 >> 32);
+		}
+
+		if (i == l && offset < endOffset)
+			return 1;
+		if (i < l && offset == endOffset)
+			return -1;
+		return 0;
+		// return -1;
+	}
+
+/**
+	 * Return the byte offset and length of up to i sibling fragments. If 
+	 * there is a i+1 sibling element, the cursor element would 
+	 * move to it; otherwise, there is no cursor movement. If the cursor isn't 
+	 * positioned at an element (due to XPath evaluation), then -1 will be 
+	 * returned
+	 * @param i number of silbing elements including the cursor element
+	 * @return a long encoding byte offset (bit 31 to bit 0), length (bit 62 
+	 * to bit 32) of those fragments 
+	 * @throws NavException
+	 */
+
+Long getSiblingElementFragments(VTDNav *vn,int i){
+	int so, len;
+	Long l;
+	BookMark *bm;
+		if (i<=0)
+			throwException2(invalid_argument," # of sibling can be less or equal to 0");
+		// get starting char offset
+		if(vn->atTerminal==TRUE)
+			return -1L;
+		// so is the char offset
+		so = getTokenOffset(vn,getCurrentIndex(vn))-1;
+		// char offset to byte offset conversion
+		if (vn->encoding>=FORMAT_UTF_16BE)
+			so = so<<1;
+		bm = createBookMark(vn);
+		recordCursorPosition(bm,vn);
+		while(i>1 && toElement(vn,NEXT_SIBLING)){
+			i--;
+		}
+		l= getElementFragment(vn);
+		len = (int)l+(int)(l>>32)-so;
+		if (i==1 && toElement(vn,NEXT_SIBLING)){
+		}else
+			setCursorPosition(bm,vn);
+		freeBookMark(bm);
+		return (((Long)len)<<32)|so;
+}
+
+/**
+	 * Match the string against the token at the given index value. The token will be
+     * interpreted as if it is normalized (i.e. all white space char (\r\n\a ) is replaced
+     * by a white space, char entities and entity references will be replaced by their correspondin
+     * char see xml 1.0 spec interpretation of attribute value normalization) 
+	 */
+//Boolean matchNormalizedTokenString2(VTDNav *vn, int index, UCSChar *s){
+
+//}
+
+/**
+	 * (New since version 2.9)
+	 * Shallow Normalization follows the rules below to normalize a token into
+	 * a string
+	 * *#xD#xA gets converted to #xA
+	 * *For a character reference, append the referenced character to the normalized value.
+	 * *For an entity reference, recursively apply step 3 of this algorithm to the replacement text of the entity.
+	 * *For a white space character (#x20, #xD, #xA, #x9), append a space character (#x20) to the normalized value.
+	 * *For another character, append the character to the normalized value.*/
+UCSChar* toNormalizedString2(VTDNav *vn, int index){
+		tokenType type = getTokenType(vn,index);
+		Long l;
+		UCSChar *s;int ch,k;
+		int len,offset, endOffset;
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			return toRawString(vn,index); 
+		
+		len = getTokenLength(vn,index);
+		if (len == 0)
+			return wcsdup(L"");
+		offset = getTokenOffset(vn,index);
+		endOffset = len + offset - 1; // point to the last character
+
+		s = (UCSChar *)malloc(sizeof(UCSChar)*(len+1));
+		if (s == NULL)
+		{
+			throwException2(out_of_mem,
+				" string allocation failed in toNormalizedString2 ");
+		}
+		
+		
+		
+
+		//boolean d = false;
+		while (offset <= endOffset) {
+			l = getCharResolved(vn,offset);
+			ch = (int)l;
+			offset += (int)(l>>32);
+			if (isWS(ch) && (l>>32)<=2) {
+				//d = true;
+				s[k++] = (UCSChar)' ';
+				//sb.append(' ');
+			} else{
+				s[k++] = (UCSChar)ch;
+				//sb.append((char) ch);
+			}
+		}
+		return s;
 }
