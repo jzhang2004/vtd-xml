@@ -2752,8 +2752,8 @@ namespace com.ximpleware
 
                                 if (depth <= nsBuffer1.size() - 1)
                                 {
-                                    nsBuffer1.resize(depth + 1);
-                                    int t = nsBuffer1.intAt(depth) + 1;
+                                    nsBuffer1.resize(depth );
+                                    int t = nsBuffer1.intAt(depth-1) + 1;
                                     nsBuffer2.resize(t);
                                     nsBuffer3.resize(t);
                                 }
