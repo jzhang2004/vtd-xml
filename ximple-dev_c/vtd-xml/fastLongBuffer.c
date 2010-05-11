@@ -368,3 +368,13 @@ void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
 void clearFastLongBuffer (FastLongBuffer *flb){
 	flb->size = 0;
 }
+
+// resize
+Boolean resizeFLB(FastLongBuffer *flb, int newSz){
+	if (newSz <= flb->capacity && newSz >=0){	
+		flb->size = newSz;
+		return TRUE; 
+	}
+	else	
+		return FALSE;  
+}

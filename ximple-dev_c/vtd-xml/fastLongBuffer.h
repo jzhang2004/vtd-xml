@@ -82,4 +82,8 @@ Long* toLongArray(FastLongBuffer *flb);
 // set the buffer size to zero, capacity untouched,
 void clearFastLongBuffer (FastLongBuffer *flb);
 
+// resize
+
+Boolean resizeFLB(FastLongBuffer *flb, int i);
+
 #endif
