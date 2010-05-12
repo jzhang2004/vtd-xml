@@ -1643,7 +1643,8 @@ void parse(VTDGen *vg, Boolean ns){
 						if (vg->ch == '>') {
 							if (vg->ns == TRUE){
 								appendInt(vg->nsBuffer1,vg->nsBuffer3->size-1);
-								qualifyElement(vg);
+								if (vg->currentElementRecord !=0)
+									qualifyElement(vg);
 							}
 							if (vg->depth != -1) {
 								vg->temp_offset = vg->offset;
@@ -2067,8 +2068,10 @@ void parse(VTDGen *vg, Boolean ns){
 							if (vg->ns == TRUE){
 								appendInt(vg->nsBuffer1,vg->nsBuffer3->size-1);
 								qualifyAttributes(vg);
-								checkQualifiedAttributeUniqueness(vg);
-								qualifyElement(vg);
+								if (vg->prefixed_attr_count > 0)
+									checkQualifiedAttributeUniqueness(vg);
+								if (vg->currentElementRecord!=0)
+									qualifyElement(vg);
 								vg->prefixed_attr_count=0;
 							}
 							vg->attr_count = 0;
@@ -3823,42 +3826,39 @@ static void qualifyAttributes(VTDGen *vg){
 }
 
 static void qualifyElement(VTDGen *vg){
-		int i= vg->nsBuffer3->size-1;
-		// two cases:
-		// 1. the current element has no prefix, look for xmlns
-		// 2. the current element has prefix, look for xmlns:something
-		if ((vg->currentElementRecord & 0xffff000000000000LL)==0){
-			return; //no check unprefixed element 
-		} else {			
-			int preLen = (int)((vg->currentElementRecord & 0xffff000000000000LL)>>48);
-			int preOs = (int)vg->currentElementRecord;
-			while(i>=0){
-				int t = upper32At(vg->nsBuffer3,i);
-				// with prefix, get full length and prefix length
-				if ( (t&0xffff) - (t>>16) == preLen){
-					// doing byte comparison here
-					int os = lower32At(vg->nsBuffer3,i)+(t>>16)+vg->increment;
-					int k=0;
-					for (;k<preLen-vg->increment;k++){
-						if (vg->XMLDoc[os+k]!=vg->XMLDoc[preOs+k])
-							break;
-					}
-					if (k==preLen-vg->increment)
-						return; // found the match
-				}
-				/*if ( (nsBuffer3.upper32At(i) & 0xffff0000) == 0){
-					return;
-				}*/
-				i--;
+	int i= vg->nsBuffer3->size-1;
+	// two cases:
+	// 1. the current element has no prefix, look for xmlns
+	// 2. the current element has prefix, look for xmlns:something
+
+	int preLen = (int)((vg->currentElementRecord & 0xffff000000000000LL)>>48);
+	int preOs = (int)vg->currentElementRecord;
+	while(i>=0){
+		int t = upper32At(vg->nsBuffer3,i);
+		// with prefix, get full length and prefix length
+		if ( (t&0xffff) - (t>>16) == preLen){
+			// doing byte comparison here
+			int os = lower32At(vg->nsBuffer3,i)+(t>>16)+vg->increment;
+			int k=0;
+			for (;k<preLen-vg->increment;k++){
+				if (vg->XMLDoc[os+k]!=vg->XMLDoc[preOs+k])
+					break;
 			}
-			// no need to check if xml is the prefix
-			if (checkPrefix(vg,preOs, preLen))
-				return;
+			if (k==preLen-vg->increment)
+				return; // found the match
 		}
-		
-	
-		// print line # column# and full element name
-		throwException2(parse_exception,
+		/*if ( (nsBuffer3.upper32At(i) & 0xffff0000) == 0){
+		return;
+		}*/
+		i--;
+	}
+	// no need to check if xml is the prefix
+	if (checkPrefix(vg,preOs, preLen))
+		return;
+
+
+	// print line # column# and full element name
+	throwException2(parse_exception,
 			"Name space qualification Exception: Element not qualified\n");
 			//	+formatLineNumber((int)currentElementRecord));
 }
@@ -4010,13 +4010,13 @@ static void checkQualifiedAttributeUniqueness(VTDGen *vg){
 				//	+" "+ new String(XMLDoc, os2, postLen2));
 				if (postLen1 == postLen2){
 					k=0;
-					for (;k<postLen1;k++){
+					/*for (;k<postLen1;k++){
 					//System.out.println(i+" "+(char)(XMLDoc[os+k])+"<===>"+(char)(XMLDoc[preOs+k]));
-					if (vg->XMLDoc[os1+k]!=vg->XMLDoc[os2+k])
-						break;
-					}
-					if (k==postLen1){
-					 // found the match
+						if (vg->XMLDoc[os1+k]!=vg->XMLDoc[os2+k])
+							break;
+					}*/
+					if (memcmp(vg->XMLDoc+os1, vg->XMLDoc+os2,postLen1)==0){
+							// found the match
 						URLLen2 = lower32At(vg->nsBuffer2,vg->prefix_URL_array[j]);
 						URLOs2 =  upper32At(vg->nsBuffer2,vg->prefix_URL_array[j]);
 						//System.out.println(" URLOs1 ===>" + URLOs1);
@@ -4024,8 +4024,8 @@ static void checkQualifiedAttributeUniqueness(VTDGen *vg){
 						//System.out.println("URLLen2 "+ URLLen2+" URLLen1 "+ URLLen1+" ");
 						if (matchURL(vg,URLOs1, URLLen1, URLOs2, URLLen2))
 							throwException2(parse_exception," qualified attribute names collide ");
-								//	+ formatLineNumber(os2));
-					}
+							//	+ formatLineNumber(os2));
+				    }
 				}				
 			}
 			//System.out.println("======");
@@ -4089,20 +4089,22 @@ static void checkAttributeUniqueness(VTDGen *vg){
 	Boolean unique = TRUE;
 	Boolean unequal;
 	//int prevLen;
-	int i,j;
+	int i;
 	for (i = 0; i < vg->attr_count; i++) {
 		int prevLen = (int) vg->attr_name_array[i];
 		unequal = FALSE;	
 		if (vg->length1 == prevLen) {
 			int prevOffset =
 				(int) (vg->attr_name_array[i] >> 32);
-			for (j = 0; j < prevLen; j++) {
+			if (memcmp(vg->XMLDoc+prevOffset,vg->XMLDoc+vg->temp_offset,prevLen)!=0)
+				unequal = TRUE;
+			/*for (j = 0; j < prevLen; j++) {
 				if (vg->XMLDoc[prevOffset + j]
 				!= vg->XMLDoc[vg->temp_offset + j]) {
 					unequal = TRUE;
 					break;
 				}
-			}
+			}*/
 		} else
 			unequal = TRUE;
 		unique = unique && unequal;
