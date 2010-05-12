@@ -3986,7 +3986,7 @@ UCSChar *toStringLowerCase(VTDNav *vn, int index){
 	return toStringLowerCase2(vn,offset,len);
 }
 
-static UCSChar *toRawStringUpperCase(VTDNav *vn, int index){
+UCSChar *toRawStringUpperCase(VTDNav *vn, int index){
 	int offset,len;
 	tokenType type = getTokenType(vn,index);					 
 	/*UCSChar *s = NULL;*/
@@ -4001,7 +4001,7 @@ static UCSChar *toRawStringUpperCase(VTDNav *vn, int index){
 	offset = getTokenOffset(vn,index);
 	return toRawStringUpperCase2(vn, offset, len);
 }
-static UCSChar *toRawStringLowerCase(VTDNav *vn, int index){
+UCSChar *toRawStringLowerCase(VTDNav *vn, int index){
 	int offset,len;
 	tokenType type = getTokenType(vn,index);						 
 	/*UCSChar *s = NULL;*/
