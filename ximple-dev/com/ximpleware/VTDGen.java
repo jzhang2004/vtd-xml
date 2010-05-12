@@ -2316,7 +2316,8 @@ public class VTDGen {
 					if (ch == '>') {
 						if (ns == true){
 							nsBuffer1.append(nsBuffer3.size()-1);
-							qualifyElement();
+							if (currentElementRecord !=0)
+								qualifyElement();
 						}
 						if (depth != -1) {
 							temp_offset = offset;
@@ -2709,8 +2710,11 @@ public class VTDGen {
 							if (ns == true){
 								nsBuffer1.append(nsBuffer3.size()-1);
 								qualifyAttributes();
-								checkQualifiedAttributeUniqueness();
-								qualifyElement();
+								if (prefixed_attr_count>1){
+									checkQualifiedAttributeUniqueness();
+								}
+								if (currentElementRecord !=0)
+									qualifyElement();
 								prefixed_attr_count=0;
 							}
 							attr_count = 0;
@@ -4474,36 +4478,31 @@ public class VTDGen {
 		// two cases:
 		// 1. the current element has no prefix, look for xmlns
 		// 2. the current element has prefix, look for xmlns:something
-		if ((currentElementRecord & 0xffff000000000000L)==0){
-			return; //no check unprefixed element 
-		} else {
-			
-			int preLen = (int)((currentElementRecord & 0xffff000000000000L)>>48);
-			int preOs = (int)currentElementRecord;
-			while(i>=0){
-				int t = nsBuffer3.upper32At(i);
-				// with prefix, get full length and prefix length
-				if ( (t&0xffff) - (t>>16) == preLen){
-					// doing byte comparison here
-					int os = nsBuffer3.lower32At(i)+(t>>16)+increment;
-					int k=0;
-					for (;k<preLen-increment;k++){
-						if (XMLDoc[os+k]!=XMLDoc[preOs+k])
-							break;
-					}
-					if (k==preLen-increment)
-						return; // found the match
-				}
-				/*if ( (nsBuffer3.upper32At(i) & 0xffff0000) == 0){
-					return;
-				}*/
-				i--;
-			}
-			// no need to check if xml is the prefix
-			if (checkPrefix(preOs, preLen))
-				return;
-		}
 		
+		int preLen = (int)((currentElementRecord & 0xffff000000000000L)>>48);
+		int preOs = (int)currentElementRecord;
+		while(i>=0){
+			int t = nsBuffer3.upper32At(i);
+			// with prefix, get full length and prefix length
+			if ( (t&0xffff) - (t>>16) == preLen){
+				// doing byte comparison here
+				int os = nsBuffer3.lower32At(i)+(t>>16)+increment;
+				int k=0;
+				for (;k<preLen-increment;k++){
+					if (XMLDoc[os+k]!=XMLDoc[preOs+k])
+						break;
+				}
+				if (k==preLen-increment)
+					return; // found the match
+			}
+			/*if ( (nsBuffer3.upper32At(i) & 0xffff0000) == 0){
+				return;
+			}*/
+			i--;
+		}
+			// no need to check if xml is the prefix
+		if (checkPrefix(preOs, preLen))
+			return;
 	
 		// print line # column# and full element name
 		throw new ParseException("Name space qualification Exception: Element not qualified\n"
