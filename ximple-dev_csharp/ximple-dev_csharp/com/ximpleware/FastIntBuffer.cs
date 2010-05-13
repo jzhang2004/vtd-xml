@@ -54,7 +54,7 @@ namespace com.ximpleware
 		private int pageSize;
 		
 		/// <summary> Total number of integers in the IntBuffer</summary>
-		private int size_Renamed_Field;
+		protected internal int size_Renamed_Field;
 		private int exp;
 		private int r;
 		/// <summary> FastIntBuffer constructor comment.</summary>

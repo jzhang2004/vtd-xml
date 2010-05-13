@@ -427,7 +427,7 @@ namespace com.ximpleware
             // for root element
             if (depth == 0)
             {
-                temp = vtdBuffer.size() - 1;
+                temp = vtdBuffer.size_Renamed_Field - 1;
                 bool b = false;
                 so2 = 0;
                 while (getTokenDepth(temp) == -1)
@@ -451,7 +451,7 @@ namespace com.ximpleware
             }
             // for a non-root element with no next sibling
             temp = getCurrentIndex() + 1;
-            int size = vtdBuffer.size();
+            int size = vtdBuffer.size_Renamed_Field;
             // temp is not the last entry in VTD buffer
             if (temp < size - 1)
             {
@@ -562,7 +562,7 @@ namespace com.ximpleware
                         //type = this.getTokenType(k);
                     }
                 }
-                count = fib.size();
+                count = fib.size_Renamed_Field;
                 d--;
                 while (d >= 0)
                 {
@@ -587,10 +587,10 @@ namespace com.ximpleware
                                 bool unique = true;
                                 if (type == VTDNav.TOKEN_ATTR_NS)
                                 {
-                                    for (int z = 0; z < fib.size(); z++)
+                                    for (int z = 0; z < fib.size_Renamed_Field; z++)
                                     {
-                                        //System.out.println("fib size ==> "+fib.size());
-                                        //if (fib.size() == 4) ;
+                                        //System.out.println("fib size ==> "+fib.size_Renamed_Field);
+                                        //if (fib.size_Renamed_Field == 4) ;
                                         if (matchTokens(fib.intAt(z), this, k))
                                         {
                                             unique = false;
@@ -610,7 +610,7 @@ namespace com.ximpleware
                 }
                 // System.out.println("count ===> "+count);
                 // then restore the name space node by shifting the array
-                int newSz = fib.size() - count;
+                int newSz = fib.size_Renamed_Field - count;
                 for (i = 0; i < newSz; i++)
                 {
                     fib.modifyEntry(i, fib.intAt(i + count));
@@ -958,10 +958,10 @@ namespace com.ximpleware
         protected internal int l1index;
 
         // containers
-        protected internal ILongBuffer vtdBuffer;
-        protected internal ILongBuffer l1Buffer;
-        protected internal ILongBuffer l2Buffer;
-        protected internal IIntBuffer l3Buffer;
+        protected internal FastLongBuffer vtdBuffer;
+        protected internal FastLongBuffer l1Buffer;
+        protected internal FastLongBuffer l2Buffer;
+        protected internal FastIntBuffer l3Buffer;
         protected internal IByteBuffer XMLDoc;
 
         //private int recentNS; // most recently visited NS node, experiment for now
@@ -1015,7 +1015,7 @@ namespace com.ximpleware
         /// </param>
         /// <param name="length">int length of the document (in byte)
         /// </param>
-        protected internal VTDNav(int RootIndex, int enc, bool NS, int depth, IByteBuffer x, ILongBuffer vtd, ILongBuffer l1, ILongBuffer l2, IIntBuffer l3, int so, int length)
+        protected internal VTDNav(int RootIndex, int enc, bool NS, int depth, IByteBuffer x, FastLongBuffer vtd, FastLongBuffer l1, FastLongBuffer l2, FastIntBuffer l3, int so, int length)
         {
             // initialize all buffers
             if (l1 == null || l2 == null || l3 == null || vtd == null || x == null || depth < 0 || RootIndex < 0 || so < 0 || length < 0)
@@ -1067,7 +1067,7 @@ namespace com.ximpleware
             docLen = length;
             //System.out.println("offset " + offset + "  length " + length);
             //printL2Buffer();
-            vtdSize = vtd.size();
+            vtdSize = vtd.size_Renamed_Field;
             name = null;
             nameIndex = -1;
             localName = null;
@@ -1134,7 +1134,7 @@ namespace com.ximpleware
         /// </exception>
         public int getAttrVal(System.String an)
         {
-            //int size = vtdBuffer.size();
+            //int size = vtdBuffer.size_Renamed_Field;
             if (context[0] == -1)
                 return -1;
             int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
@@ -1202,7 +1202,7 @@ namespace com.ximpleware
                 URL = null;
             if (URL == null)
                 return getAttrVal(ln);
-            int size = vtdBuffer.size();
+            int size = vtdBuffer.size_Renamed_Field;
             int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
             // point to the token next to the element tag
             int type;
@@ -1467,7 +1467,7 @@ namespace com.ximpleware
         {
             if (context[0] == -1)
                 return false;
-            int size = vtdBuffer.size();
+            int size = vtdBuffer.size_Renamed_Field;
 
             int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
             if (index >= size)
@@ -1593,7 +1593,7 @@ namespace com.ximpleware
             int index = getCurrentIndex() - 1;
             int t, d;
             //int depth = getTokenDepth(index);
-            //int size = vtdBuffer.size();
+            //int size = vtdBuffer.size_Renamed_Field;
             while (index > 0)
             {
                 if (isElementOrDocument(index))
@@ -1649,7 +1649,7 @@ namespace com.ximpleware
             int index = getCurrentIndex() - 1;
             int t, d;
             //int depth = getTokenDepth(index);
-            //int size = vtdBuffer.size();
+            //int size = vtdBuffer.size_Renamed_Field;
             while (index > 0)
             {
                 if (isElementOrDocument(index))
@@ -1706,7 +1706,7 @@ namespace com.ximpleware
         protected internal bool iterate_following(System.String en, bool special)
         {
             int index = getCurrentIndex() + 1;
-            //int size = vtdBuffer.size();
+            //int size = vtdBuffer.size_Renamed_Field;
             while (index < vtdSize)
             {
                 if (isElementOrDocument(index))
@@ -1738,7 +1738,7 @@ namespace com.ximpleware
         protected internal bool iterate_followingNS(System.String URL, System.String ln)
         {
             int index = getCurrentIndex() + 1;
-            //int size = vtdBuffer.size();
+            //int size = vtdBuffer.size_Renamed_Field;
             while (index < vtdSize)
             {
                 if (isElementOrDocument(index))
@@ -1781,7 +1781,7 @@ namespace com.ximpleware
             // the navigation doesn't rely on LC
             // get the current depth
             int index = getCurrentIndex() + 1;
-            //int size = vtdBuffer.size();
+            //int size = vtdBuffer.size_Renamed_Field;
             while (index < vtdSize)
             {
                 if (isElementOrDocument(index))
@@ -2830,11 +2830,11 @@ namespace com.ximpleware
         public void printL2Buffer()
         {
 
-            for (int i = 0; i < l1Buffer.size(); i++)
+            for (int i = 0; i < l1Buffer.size_Renamed_Field; i++)
                 System.Console.Out.WriteLine(System.Convert.ToString(l1Buffer.longAt(i), 16));
 
             System.Console.Out.WriteLine("==================");
-            for (int i = 0; i < l2Buffer.size(); i++)
+            for (int i = 0; i < l2Buffer.size_Renamed_Field; i++)
                 System.Console.Out.WriteLine(System.Convert.ToString(l2Buffer.longAt(i), 16));
             System.Console.Out.WriteLine(" l1index :" + l1index + "  l2index :" + l2index + " l3index :" + l3index);
             System.Console.Out.WriteLine("          " + "l2lower :" + l2lower + " l3lower: " + l3lower);
@@ -2956,17 +2956,17 @@ namespace com.ximpleware
 
         private void resolveLC_l1()
         {
-            if (l1index < 0 || l1index >= l1Buffer.size()
+            if (l1index < 0 || l1index >= l1Buffer.size_Renamed_Field
         || context[1] != l1Buffer.upper32At(l1index))
             {
-                if (l1index >= l1Buffer.size() || l1index < 0)
+                if (l1index >= l1Buffer.size_Renamed_Field || l1index < 0)
                 {
                     l1index = 0;
                 }
-                if (l1index + 1 < l1Buffer.size() && context[1] != l1Buffer.upper32At(l1index + 1))
+                if (l1index + 1 < l1Buffer.size_Renamed_Field && context[1] != l1Buffer.upper32At(l1index + 1))
                 {
-                    int init_guess = (int)(l1Buffer.size() * ((float)context[1] / vtdBuffer
-                            .size()));
+                    int init_guess = (int)(l1Buffer.size_Renamed_Field * ((float)context[1] / vtdBuffer
+                            .size_Renamed_Field));
                     if (l1Buffer.upper32At(init_guess) > context[1])
                     {
                         while (l1Buffer.upper32At(init_guess) != context[1])
@@ -2988,7 +2988,7 @@ namespace com.ximpleware
                     if (context[1] >= l1Buffer.upper32At(l1index))
                     {
                         while (context[1] != l1Buffer.upper32At(l1index)
-                            && l1index < l1Buffer.size())
+                            && l1index < l1Buffer.size_Renamed_Field)
                         {
                             l1index++;
                         }
@@ -3014,8 +3014,8 @@ namespace com.ximpleware
                 // l2lower shouldn't be -1 !!!! l2lower and l2upper always get
                 // resolved simultaneously
                 l2index = l2lower;
-                l2upper = l2Buffer.size() - 1;
-                for (int i = l1index + 1; i < l1Buffer.size(); i++)
+                l2upper = l2Buffer.size_Renamed_Field - 1;
+                for (int i = l1index + 1; i < l1Buffer.size_Renamed_Field; i++)
                 {
                     temp = l1Buffer.lower32At(i);
                     if (temp != -1)
@@ -3026,13 +3026,13 @@ namespace com.ximpleware
                 }
             } // intelligent guess again ??
 
-            if (l2index < 0 || l2index >= l2Buffer.size()
+            if (l2index < 0 || l2index >= l2Buffer.size_Renamed_Field
                     || context[2] != l2Buffer.upper32At(l2index))
             {
 
-                if (l2index >= l2Buffer.size() || l2index < 0)
+                if (l2index >= l2Buffer.size_Renamed_Field || l2index < 0)
                     l2index = l2lower;
-                if (l2index + 1 < l2Buffer.size() && context[2] == l2Buffer.upper32At(l2index + 1))
+                if (l2index + 1 < l2Buffer.size_Renamed_Field && context[2] == l2Buffer.upper32At(l2index + 1))
                     l2index = l2index + 1;
                 else if (l2upper - l2lower >= 16)
                 {
@@ -3079,8 +3079,8 @@ namespace com.ximpleware
                 l3lower = temp;
                 // l3lower shouldn't be -1
                 l3index = l3lower;
-                l3upper = l3Buffer.size() - 1;
-                for (int i = l2index + 1; i < l2Buffer.size(); i++)
+                l3upper = l3Buffer.size_Renamed_Field - 1;
+                for (int i = l2index + 1; i < l2Buffer.size_Renamed_Field; i++)
                 {
                     temp = l2Buffer.lower32At(i);
                     if (temp != -1)
@@ -3091,12 +3091,12 @@ namespace com.ximpleware
                 }
             }
 
-            if (l3index < 0 || l3index >= l3Buffer.size()
+            if (l3index < 0 || l3index >= l3Buffer.size_Renamed_Field
                     || context[3] != l3Buffer.intAt(l3index))
             {
-                if (l3index >= l3Buffer.size() || l3index < 0)
+                if (l3index >= l3Buffer.size_Renamed_Field || l3index < 0)
                     l3index = l3lower;
-                if (l3index + 1 < l3Buffer.size() &&
+                if (l3index + 1 < l3Buffer.size_Renamed_Field &&
                         context[3] == l3Buffer.intAt(l3index + 1))
                     l3index = l3index + 1;
                 else if (l3upper - l3lower >= 16)
@@ -3185,7 +3185,7 @@ namespace com.ximpleware
         {
             long l;
             bool hasNS = false;
-            int size = vtdBuffer.size();
+            int size = vtdBuffer.size_Renamed_Field;
             // look for a match in the current hiearchy and return true
             for (int i = context[0]; i >= 0; i--)
             {
@@ -3418,10 +3418,10 @@ namespace com.ximpleware
                             return true;
 
                         case 0:
-                            if (l1Buffer.size() > 0)
+                            if (l1Buffer.size_Renamed_Field > 0)
                             {
                                 context[0] = 1;
-                                l1index = (direction == FIRST_CHILD) ? 0 : (l1Buffer.size() - 1);
+                                l1index = (direction == FIRST_CHILD) ? 0 : (l1Buffer.size_Renamed_Field - 1);
                                 context[1] = l1Buffer.upper32At(l1index);
                                 //(int) (vtdToken >> 32);
                                 return true;
@@ -3437,8 +3437,8 @@ namespace com.ximpleware
                                 return false;
                             }
                             context[0] = 2;
-                            l2upper = l2Buffer.size() - 1;
-                            size = l1Buffer.size();
+                            l2upper = l2Buffer.size_Renamed_Field - 1;
+                            size = l1Buffer.size_Renamed_Field;
                             for (int i = l1index + 1; i < size; i++)
                             {
                                 int temp = l1Buffer.lower32At(i);
@@ -3462,8 +3462,8 @@ namespace com.ximpleware
                             }
                             context[0] = 3;
 
-                            l3upper = l3Buffer.size() - 1;
-                            size = l2Buffer.size();
+                            l3upper = l3Buffer.size_Renamed_Field - 1;
+                            size = l2Buffer.size_Renamed_Field;
                             for (int i = l2index + 1; i < size; i++)
                             {
                                 int temp = l2Buffer.lower32At(i);
@@ -3483,7 +3483,7 @@ namespace com.ximpleware
                         default:
                             if (direction == FIRST_CHILD)
                             {
-                                size = vtdBuffer.size();
+                                size = vtdBuffer.size_Renamed_Field;
                                 int index = context[context[0]] + 1;
                                 while (index < size)
                                 {
@@ -3517,7 +3517,7 @@ namespace com.ximpleware
                             {
                                 int index = context[context[0]] + 1;
                                 int last_index = -1;
-                                size = vtdBuffer.size();
+                                size = vtdBuffer.size_Renamed_Field;
                                 while (index < size)
                                 {
                                     long temp = vtdBuffer.longAt(index);
@@ -3574,7 +3574,7 @@ namespace com.ximpleware
                         case 1:
                             if (direction == NEXT_SIBLING)
                             {
-                                if (l1index + 1 >= l1Buffer.size())
+                                if (l1index + 1 >= l1Buffer.size_Renamed_Field)
                                 {
                                     return false;
                                 }
@@ -3638,7 +3638,7 @@ namespace com.ximpleware
                             if (direction == NEXT_SIBLING)
                             {
                                 int index = context[context[0]] + 1;
-                                size = vtdBuffer.size();
+                                size = vtdBuffer.size_Renamed_Field;
                                 while (index < size)
                                 {
                                     long temp = vtdBuffer.longAt(index);
@@ -4532,17 +4532,17 @@ namespace com.ximpleware
             else
                 size = ((docLen >> 3) + 1) << 3;
 
-            size += (vtdBuffer.size() << 3) +
-                    (l1Buffer.size() << 3) +
-                    (l2Buffer.size() << 3);
+            size += (vtdBuffer.size_Renamed_Field << 3) +
+                    (l1Buffer.size_Renamed_Field << 3) +
+                    (l2Buffer.size_Renamed_Field << 3);
 
-            if ((l3Buffer.size() & 1) == 0)
+            if ((l3Buffer.size_Renamed_Field & 1) == 0)
             { //even
-                size += l3Buffer.size() << 2;
+                size += l3Buffer.size_Renamed_Field << 2;
             }
             else
             {
-                size += (l3Buffer.size() + 1) << 2; //odd
+                size += (l3Buffer.size_Renamed_Field + 1) << 2; //odd
             }
             return size + 64;
         }
@@ -5166,7 +5166,7 @@ namespace com.ximpleware
             // for root element
             if (depth == 0)
             {
-                temp = vtdBuffer.size() - 1;
+                temp = vtdBuffer.size_Renamed_Field - 1;
                 bool b = false;
                 so2 = 0;
                 while (getTokenDepth(temp) == -1)
@@ -5201,7 +5201,7 @@ namespace com.ximpleware
             }
             // for a non-root element with no next sibling
             temp = getCurrentIndex() + 1;
-            int size = vtdBuffer.size();
+            int size = vtdBuffer.size_Renamed_Field;
             // temp is not the last entry in VTD buffer
             if (temp < size)
             {
@@ -5347,7 +5347,7 @@ namespace com.ximpleware
             int index = getCurrentIndex() + 1;
             int tokenType, depth, t = 0, length, i = 0;
             int dp = context[0];
-            //int size = vtdBuffer.size();
+            //int size = vtdBuffer.size_Renamed_Field;
             // store all text tokens underneath the current element node
             while (index < vtdSize)
             {
@@ -5391,7 +5391,7 @@ namespace com.ximpleware
             // calculate the total length
             System.Text.StringBuilder sb = new System.Text.StringBuilder(t);
 
-            for (t = 0; t < fib.size(); t++)
+            for (t = 0; t < fib.size_Renamed_Field; t++)
             {
                 toString(sb, t);
             }
@@ -5512,20 +5512,20 @@ namespace com.ximpleware
 
             }
             else if (context[1] > index
-                    && l1index + 1 < l1Buffer.size()
+                    && l1index + 1 < l1Buffer.size_Renamed_Field
                     && l1Buffer.upper32At(l1index + 1) < index)
             {
 
             }
             else
             {
-                i = (index / vtdSize) * l1Buffer.size();
-                if (i >= l1Buffer.size())
-                    i = l1Buffer.size() - 1;
+                i = (index / vtdSize) * l1Buffer.size_Renamed_Field;
+                if (i >= l1Buffer.size_Renamed_Field)
+                    i = l1Buffer.size_Renamed_Field - 1;
 
                 if (l1Buffer.upper32At(i) < index)
                 {
-                    while (i < l1Buffer.size() - 1 &&
+                    while (i < l1Buffer.size_Renamed_Field - 1 &&
                             l1Buffer.upper32At(i) < index)
                     {
                         i++;
@@ -5560,8 +5560,8 @@ namespace com.ximpleware
                 // l2lower shouldn't be -1 !!!! l2lower and l2upper always get
                 // resolved simultaneously
                 //l2index = l2lower;
-                l2upper = l2Buffer.size() - 1;
-                for (int k = l1index + 1; k < l1Buffer.size(); k++)
+                l2upper = l2Buffer.size_Renamed_Field - 1;
+                for (int k = l1index + 1; k < l1Buffer.size_Renamed_Field; k++)
                 {
                     i = l1Buffer.lower32At(k);
                     if (i != -1)
@@ -5577,7 +5577,7 @@ namespace com.ximpleware
             //System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
             i = System.Math.Min(l2lower + (int)(((float)(index - t1) / (t2 - t1 + 1)) * (l2upper - l2lower)), l2upper);
             //System.out.print("  i1  "+i);
-            while (i < l2Buffer.size() - 1 && l2Buffer.upper32At(i) < index)
+            while (i < l2Buffer.size_Renamed_Field - 1 && l2Buffer.upper32At(i) < index)
             {
                 i++;
             }
@@ -5604,8 +5604,8 @@ namespace com.ximpleware
                 l3lower = i;
                 // l3lower shouldn't be -1
                 //l3index = l3lower;
-                l3upper = l3Buffer.size() - 1;
-                for (int k = l2index + 1; k < l2Buffer.size(); k++)
+                l3upper = l3Buffer.size_Renamed_Field - 1;
+                for (int k = l2index + 1; k < l2Buffer.size_Renamed_Field; k++)
                 {
                     i = l2Buffer.lower32At(k);
                     if (i != -1)
@@ -5618,7 +5618,7 @@ namespace com.ximpleware
             int t1 = l3Buffer.intAt(l3lower);
             int t2 = l3Buffer.intAt(l3upper);
             i = System.Math.Min(l3lower + (int)(((float)(index - t1) / (t2 - t1 + 1)) * (l3upper - l3lower)), l3upper);
-            while (i < l3Buffer.size() - 1 && l3Buffer.intAt(i) < index)
+            while (i < l3Buffer.size_Renamed_Field - 1 && l3Buffer.intAt(i) < index)
             {
                 i++;
             }

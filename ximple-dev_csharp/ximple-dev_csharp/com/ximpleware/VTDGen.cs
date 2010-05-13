@@ -2750,7 +2750,7 @@ namespace com.ximpleware
                                 else
                                     currentElementRecord = 0;
 
-                                if (depth <= nsBuffer1.size() - 1)
+                                if (depth <= nsBuffer1.size_Renamed_Field - 1)
                                 {
                                     nsBuffer1.resize(depth );
                                     int t = nsBuffer1.intAt(depth-1) + 1;
@@ -2781,7 +2781,7 @@ namespace com.ximpleware
                             {
                                 if (ns == true)
                                 {
-                                    nsBuffer1.append(nsBuffer3.size() - 1);
+                                    nsBuffer1.append(nsBuffer3.size_Renamed_Field - 1);
                                     if (currentElementRecord!=0)
                                         qualifyElement();
                                 }
@@ -3023,7 +3023,7 @@ namespace com.ximpleware
                                     //unprefixed xmlns are not recorded
                                     if (length2 != 0 && !isXML)
                                     {
-                                        //nsBuffer2.append(VTDBuffer.size() - 1);
+                                        //nsBuffer2.append(VTDBuffer.size_Renamed_Field - 1);
                                         long l = ((long)((length2 << 16) | length1)) << 32
                                             | temp_offset;
                                         nsBuffer3.append(l); // byte offset and byte
@@ -3162,7 +3162,7 @@ namespace com.ximpleware
                             {
                                 if (ns == true)
                                 {
-                                    nsBuffer1.append(nsBuffer3.size() - 1);
+                                    nsBuffer1.append(nsBuffer3.size_Renamed_Field - 1);
                                     qualifyAttributes();
                                     if (prefixed_attr_count > 0)
                                     {
@@ -4755,7 +4755,7 @@ namespace com.ximpleware
         private void writeVTD(int offset, int length, int token_type, int depth)
         {
             //long ll;
-            //Console.WriteLine(" "+ (VTDBuffer.size())+ "===> " + offset);
+            //Console.WriteLine(" "+ (VTDBuffer.size_Renamed_Field)+ "===> " + offset);
             switch (token_type)
             {
 
@@ -4821,7 +4821,7 @@ namespace com.ximpleware
                 {
 
                     case 0:
-                        rootIndex = VTDBuffer.size() - 1;
+                        rootIndex = VTDBuffer.size_Renamed_Field - 1;
                         break;
 
                     case 1:
@@ -4833,35 +4833,35 @@ namespace com.ximpleware
                         {
                             l2Buffer.append(((long)last_l2_index << 32) | 0x00000000ffffffff);
                         }
-                        last_l1_index = VTDBuffer.size() - 1;
+                        last_l1_index = VTDBuffer.size_Renamed_Field - 1;
                         last_depth = 1;
                         break;
 
                     case 2:
                         if (last_depth == 1)
                         {
-                            l1Buffer.append(((long)last_l1_index << 32) + l2Buffer.size());
+                            l1Buffer.append(((long)last_l1_index << 32) + l2Buffer.size_Renamed_Field);
                         }
                         else if (last_depth == 2)
                         {
                             l2Buffer.append(((long)last_l2_index << 32) | 0x00000000ffffffff);
                         }
-                        last_l2_index = VTDBuffer.size() - 1;
+                        last_l2_index = VTDBuffer.size_Renamed_Field - 1;
                         last_depth = 2;
                         break;
 
 
                     case 3:
-                        l3Buffer.append(VTDBuffer.size() - 1);
+                        l3Buffer.append(VTDBuffer.size_Renamed_Field - 1);
                         if (last_depth == 2)
                         {
-                            l2Buffer.append(((long)last_l2_index << 32) + l3Buffer.size() - 1);
+                            l2Buffer.append(((long)last_l2_index << 32) + l3Buffer.size_Renamed_Field - 1);
                         }
                         last_depth = 3;
                         break;
 
                     default:
-                        //rootIndex = VTDBuffer.size() - 1;
+                        //rootIndex = VTDBuffer.size_Renamed_Field - 1;
                         break;
 
                 }
@@ -4998,17 +4998,17 @@ namespace com.ximpleware
             else
                 size = ((docLen >> 3) + 1) << 3;
 
-            size += (VTDBuffer.size() << 3) +
-                    (l1Buffer.size() << 3) +
-                    (l2Buffer.size() << 3);
+            size += (VTDBuffer.size_Renamed_Field << 3) +
+                    (l1Buffer.size_Renamed_Field << 3) +
+                    (l2Buffer.size_Renamed_Field << 3);
 
-            if ((l3Buffer.size() & 1) == 0)
+            if ((l3Buffer.size_Renamed_Field & 1) == 0)
             { //even
-                size += l3Buffer.size() << 2;
+                size += l3Buffer.size_Renamed_Field << 2;
             }
             else
             {
-                size += (l3Buffer.size() + 1) << 2; //odd
+                size += (l3Buffer.size_Renamed_Field + 1) << 2; //odd
             }
             return size + 64;
         }
@@ -5618,7 +5618,7 @@ namespace com.ximpleware
         }
         private void qualifyAttributes()
         {
-            int i1 = nsBuffer3.size() - 1;
+            int i1 = nsBuffer3.size_Renamed_Field - 1;
             int j = 0, i = 0;
             // two cases:
             // 1. the current element has no prefix, look for xmlns
@@ -5675,7 +5675,7 @@ namespace com.ximpleware
 
         private void qualifyElement()
         {
-            int i = nsBuffer3.size() - 1;
+            int i = nsBuffer3.size_Renamed_Field - 1;
             // two cases:
             // 1. the current element has no prefix, look for xmlns
             // 2. the current element has prefix, look for xmlns:something
