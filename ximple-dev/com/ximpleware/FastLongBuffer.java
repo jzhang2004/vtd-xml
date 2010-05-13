@@ -43,7 +43,7 @@ public class FastLongBuffer implements ILongBuffer {
     /**
     	 * Total number of integers in the IntBuffer
     */
-    private int size;
+    protected int size;
     private int exp;
     private int r;
 

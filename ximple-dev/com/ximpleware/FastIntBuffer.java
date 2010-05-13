@@ -47,7 +47,7 @@ public class FastIntBuffer implements IIntBuffer {
     /**
     * Total number of integers in the IntBuffer
     */
-    private int size;
+    protected int size;
     private int exp;
     private int r;
     /**

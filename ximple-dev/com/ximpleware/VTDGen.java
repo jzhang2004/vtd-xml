@@ -1329,9 +1329,9 @@ public class VTDGen {
 		BOM_detected = false;
 		must_utf_8 = false;
 		ch = ch_temp = 0;
-		nsBuffer1.clear();
-		nsBuffer2.clear();
-		nsBuffer3.clear();
+		nsBuffer1.size=0;
+		nsBuffer2.size=0;
+		nsBuffer3.size=0;
 		currentElementRecord = 0;
 	}
 	
@@ -2290,10 +2290,10 @@ public class VTDGen {
 							currentElementRecord = 0;
 						
 						if (depth <= nsBuffer1.size() - 1) {
-							nsBuffer1.resize(depth);
+							nsBuffer1.size = depth ;
 							int t= nsBuffer1.intAt(depth-1)+1;
-							nsBuffer2.resize(t);
-							nsBuffer3.resize(t);
+							nsBuffer2.size=t;
+							nsBuffer3.size=t;
 						}
 					}
 					// offset += length1;
@@ -4202,9 +4202,9 @@ public class VTDGen {
 		last_l1_index= last_l2_index = last_depth =0;
 		
 		currentElementRecord = 0;
-		nsBuffer1.clear();
-		nsBuffer2.clear();
-		nsBuffer3.clear();
+		nsBuffer1.size=0;
+		nsBuffer2.size=0;
+		nsBuffer3.size=0;
 		r = new UTF8Reader();
 		int i1=7,i2=9,i3=11;
 		if (docLen <= 1024) {
@@ -4272,9 +4272,9 @@ public class VTDGen {
 		endOffset = os + len;
 		last_l1_index= last_l2_index = last_depth =0;
 		currentElementRecord = 0;
-		nsBuffer1.clear();
-		nsBuffer2.clear();
-		nsBuffer3.clear();
+		nsBuffer1.size=0;
+		nsBuffer2.size=0;
+		nsBuffer3.size=0;
 		r = new UTF8Reader();
 		
 		int i1=7,i2=9,i3=11;
@@ -4301,10 +4301,10 @@ public class VTDGen {
 		    l2Buffer = new FastLongBuffer(i2);
 		    l3Buffer = new FastIntBuffer(i3);
 		} else {
-		    VTDBuffer.clear();
-		    l1Buffer.clear();
-		    l2Buffer.clear();
-		    l3Buffer.clear();
+		    VTDBuffer.size=0;
+		    l1Buffer.size=0;
+		    l2Buffer.size=0;
+		    l3Buffer.size=0;
 		}
 	}
 	/**
@@ -4474,7 +4474,7 @@ public class VTDGen {
 	 * @throws ParseException
 	 */
 	private void qualifyElement() throws ParseException{
-		int i= nsBuffer3.size()-1;
+		int i= nsBuffer3.size-1;
 		// two cases:
 		// 1. the current element has no prefix, look for xmlns
 		// 2. the current element has prefix, look for xmlns:something

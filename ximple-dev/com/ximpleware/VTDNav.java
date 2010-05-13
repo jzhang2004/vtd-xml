@@ -157,10 +157,10 @@ public class VTDNav {
 	protected int l1index;
 
 	// containers
-	protected ILongBuffer vtdBuffer;
-	protected ILongBuffer l1Buffer;
-	protected ILongBuffer l2Buffer;
-	protected IIntBuffer l3Buffer;
+	protected FastLongBuffer vtdBuffer;
+	protected FastLongBuffer l1Buffer;
+	protected FastLongBuffer l2Buffer;
+	protected FastIntBuffer l3Buffer;
 	protected IByteBuffer XMLDoc;
 
 	//private int recentNS; // most recently visited NS node, experiment for
@@ -227,10 +227,10 @@ public class VTDNav {
 		boolean NS,
 		int depth,
 		IByteBuffer x,
-		ILongBuffer vtd,
-		ILongBuffer l1,
-		ILongBuffer l2,
-		IIntBuffer l3,
+		FastLongBuffer vtd,
+		FastLongBuffer l1,
+		FastLongBuffer l2,
+		FastIntBuffer l3,
 		int so, // start offset of the starting offset(in byte)
 	int length) // lengnth of the XML document (in byte))
 	{
@@ -292,7 +292,7 @@ public class VTDNav {
 		docLen = length;
 		//System.out.println("offset " + offset + " length " + length);
 		//printL2Buffer();
-		vtdSize = vtd.size();
+		vtdSize = vtd.size;
 		//writeOffsetAdjustment = false;
 		//recentNS = -1;
 		name  = null;
@@ -407,7 +407,7 @@ public class VTDNav {
         	URL = null;
     	if (URL == null)
     		return getAttrVal(ln);
-    	int size = vtdBuffer.size();
+    	int size = vtdBuffer.size;
     	int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
     	// point to the token next to the element tag
     	int type;
@@ -952,7 +952,7 @@ public class VTDNav {
 	                 //type = this.getTokenType(k);
 	             }
 	         }
-	         count = fib.size();
+	         count = fib.size;
 	        d--; 
             while (d >= 0) {                
                 // then search for ns node in the vinicity of the ancestor nodes
@@ -971,10 +971,10 @@ public class VTDNav {
                                 || type == VTDNav.TOKEN_ATTR_NS) {
                             boolean unique = true;
                             if (type == VTDNav.TOKEN_ATTR_NS) {
-                                for (int z = 0; z < fib.size(); z++) {
+                                for (int z = 0; z < fib.size; z++) {
                                     //System.out.println("fib size ==>
-                                    // "+fib.size());
-                                    //if (fib.size()==4);
+                                    // "+fib.size);
+                                    //if (fib.size==4);
                                     if (matchTokens(fib.intAt(z), this, k)) {
                                         unique = false;
                                         break;
@@ -992,7 +992,7 @@ public class VTDNav {
             }
            // System.out.println("count ===> "+count);
             // then restore the name space node by shifting the array
-            int newSz= fib.size()-count;
+            int newSz= fib.size-count;
             for (i= 0; i<newSz; i++ ){
                 fib.modifyEntry(i,fib.intAt(i+count));                
             }
@@ -1011,8 +1011,7 @@ public class VTDNav {
 	 * returned
 	 * @param i number of silbing elements including the cursor element
 	 * @return a long encoding byte offset (bit 31 to bit 0), length (bit 62 
-	 * to bit 32) of those fragments as well as whether the cursor has 
-	 * moved or not (bit 63 is 1 if there is no movement) 
+	 * to bit 32) of those fragments 
 	 * @throws NavException
 	 */
 	public long getSiblingElementFragments(int i) throws NavException{
@@ -1086,7 +1085,7 @@ public class VTDNav {
 
 		// for root element
 		if (depth == 0) {
-			int temp = vtdBuffer.size() - 1;
+			int temp = vtdBuffer.size - 1;
 			boolean b = false;
 			int so2 = 0;
 			while (getTokenDepth(temp) == -1) {
@@ -1111,7 +1110,7 @@ public class VTDNav {
 		}
 		// for a non-root element with no next sibling
 		int temp = getCurrentIndex() + 1;
-		int size = vtdBuffer.size();
+		int size = vtdBuffer.size;
 		// temp is not the last entry in VTD buffer
 		if (temp < size) {
 			while (temp < size && getTokenDepth(temp) >= depth) {
@@ -1475,7 +1474,7 @@ public class VTDNav {
 		int index = getCurrentIndex() - 1;
 		int t,d;
 		//int depth = getTokenDepth(index);
-		//int size = vtdBuffer.size();
+		//int size = vtdBuffer.size;
 		while (index >  0) {
 			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
@@ -1522,7 +1521,7 @@ public class VTDNav {
 		int index = getCurrentIndex() - 1;
 		int t,d;
 		//int depth = getTokenDepth(index);
-		//int size = vtdBuffer.size();
+		//int size = vtdBuffer.size;
 		while (index > 0 ) {
 			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
@@ -1570,7 +1569,7 @@ public class VTDNav {
 	final protected boolean iterate_following(String en, boolean special) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
-		//int size = vtdBuffer.size();
+		//int size = vtdBuffer.size;
 		while (index < vtdSize) {
 			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
@@ -1599,7 +1598,7 @@ public class VTDNav {
 	final protected boolean iterate_followingNS(String URL, String ln) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
-		//int size = vtdBuffer.size();
+		//int size = vtdBuffer.size;
 		while (index < vtdSize) {
 			if (isElementOrDocument(index)) {
 				int depth = getTokenDepth(index);
@@ -1641,7 +1640,7 @@ public class VTDNav {
 		// get the current depth
 		int index = getCurrentIndex() + 1;
 		int tokenType;
-		//int size = vtdBuffer.size();
+		//int size = vtdBuffer.size;
 		while (index < vtdSize) {
 		    tokenType = getTokenType(index);
 			if (tokenType==VTDNav.TOKEN_ATTR_NAME
@@ -2947,14 +2946,14 @@ public class VTDNav {
 	 * Sync level 1 location cache
 	 */
 	private void resolveLC_l1(){
-		if (l1index < 0 || l1index >= l1Buffer.size()
+		if (l1index < 0 || l1index >= l1Buffer.size
 				|| context[1] != l1Buffer.upper32At(l1index)) {
-			if (l1index >= l1Buffer.size() || l1index < 0) {
+			if (l1index >= l1Buffer.size || l1index < 0) {
 				l1index = 0;
 			}
-			if (l1index+1<l1Buffer.size() && context[1] != l1Buffer.upper32At(l1index+1)) {
-				int init_guess = (int) (l1Buffer.size() * ((float) context[1] / vtdBuffer
-						.size()));
+			if (l1index+1<l1Buffer.size && context[1] != l1Buffer.upper32At(l1index+1)) {
+				int init_guess = (int) (l1Buffer.size * ((float) context[1] / vtdBuffer
+						.size));
 				if (l1Buffer.upper32At(init_guess) > context[1]) {
 					while (l1Buffer.upper32At(init_guess) != context[1]) {
 						init_guess--;
@@ -2968,7 +2967,7 @@ public class VTDNav {
 			} else{
 				if (context[1]>=l1Buffer.upper32At(l1index)){
 					while(context[1]!=l1Buffer.upper32At(l1index) 
-						&& l1index < l1Buffer.size()){
+						&& l1index < l1Buffer.size){
 						l1index++;
 					}
 				}
@@ -2992,8 +2991,8 @@ public class VTDNav {
 			// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
 			// resolved simultaneously
 			l2index = l2lower;
-			l2upper = l2Buffer.size() - 1;
-			for (int i = l1index + 1; i < l1Buffer.size(); i++) {
+			l2upper = l2Buffer.size - 1;
+			for (int i = l1index + 1; i < l1Buffer.size; i++) {
 				temp = l1Buffer.lower32At(i);
 				if (temp != 0xffffffff) {
 					l2upper = temp - 1;
@@ -3002,12 +3001,12 @@ public class VTDNav {
 			}
 		} // intelligent guess again ??
 
-		if (l2index < 0 || l2index >= l2Buffer.size()
+		if (l2index < 0 || l2index >= l2Buffer.size
 				|| context[2] != l2Buffer.upper32At(l2index)) {
 			
-			if (l2index >= l2Buffer.size() || l2index<0)
+			if (l2index >= l2Buffer.size || l2index<0)
 				l2index = l2lower;
-			if (l2index+1< l2Buffer.size()&& context[2] == l2Buffer.upper32At(l2index + 1))
+			if (l2index+1< l2Buffer.size&& context[2] == l2Buffer.upper32At(l2index + 1))
 				l2index = l2index + 1;
 			else if (l2upper - l2lower >= 16) {
 				int init_guess = l2lower
@@ -3047,8 +3046,8 @@ public class VTDNav {
 			l3lower = temp;
 			// l3lower shouldn't be -1
 			l3index = l3lower;
-			l3upper = l3Buffer.size() - 1;
-			for (int i = l2index + 1; i < l2Buffer.size(); i++) {
+			l3upper = l3Buffer.size - 1;
+			for (int i = l2index + 1; i < l2Buffer.size; i++) {
 				temp = l2Buffer.lower32At(i);
 				if (temp != 0xffffffff) {
 					l3upper = temp - 1;
@@ -3057,11 +3056,11 @@ public class VTDNav {
 			}
 		}
 
-		if (l3index < 0 || l3index >= l3Buffer.size()
+		if (l3index < 0 || l3index >= l3Buffer.size
 				|| context[3] != l3Buffer.intAt(l3index)) {
-			if (l3index >= l3Buffer.size() || l3index <0)
+			if (l3index >= l3Buffer.size || l3index <0)
 				l3index = l3lower;
-			if (l3index+1 < l3Buffer.size() &&
+			if (l3index+1 < l3Buffer.size &&
 					context[3] == l3Buffer.intAt(l3index + 1))
 				l3index = l3index + 1;
 			else if (l3upper - l3lower >= 16) {
@@ -3124,7 +3123,7 @@ public class VTDNav {
     protected int lookupNS(int offset, int len){
     	long l;
     	boolean hasNS = false;
-    	int size = vtdBuffer.size();
+    	int size = vtdBuffer.size;
     	// look for a match in the current hiearchy and return true
     	for (int i = context[0]; i >= 0; i--) {
     		int s = (i != 0) ? context[i] : rootIndex;
@@ -3327,12 +3326,12 @@ public class VTDNav {
 				    	context[0] = 0;
 				    	return true;
 					case 0 :
-						if (l1Buffer.size() > 0) {
+						if (l1Buffer.size > 0) {
 							context[0] = 1;
 							l1index =
 								(direction == FIRST_CHILD)
 									? 0
-									: (l1Buffer.size() - 1);
+									: (l1Buffer.size - 1);
 							context[1] = l1Buffer.upper32At(l1index);
 							//(int) (vtdToken >> 32);
 							return true;
@@ -3344,8 +3343,8 @@ public class VTDNav {
 							return false;
 						}
 						context[0] = 2;
-						l2upper = l2Buffer.size() - 1;
-						size = l1Buffer.size();
+						l2upper = l2Buffer.size - 1;
+						size = l1Buffer.size;
 						for (int i = l1index + 1; i < size; i++) {
 							int temp = l1Buffer.lower32At(i);
 							if (temp != 0xffffffff) {
@@ -3367,8 +3366,8 @@ public class VTDNav {
 						}
 						context[0] = 3;
 
-						l3upper = l3Buffer.size() - 1;
-						size = l2Buffer.size();
+						l3upper = l3Buffer.size - 1;
+						size = l2Buffer.size;
 						for (int i = l2index + 1; i < size; i++) {
 							int temp = l2Buffer.lower32At(i);
 							if (temp != 0xffffffff) {
@@ -3386,7 +3385,7 @@ public class VTDNav {
 
 					default :
 						if (direction == FIRST_CHILD) {
-							size = vtdBuffer.size();
+							size = vtdBuffer.size;
 							int index = context[context[0]] + 1;
 							while (index < size) {
 								long temp = vtdBuffer.longAt(index);
@@ -3412,7 +3411,7 @@ public class VTDNav {
 						} else {
 							int index = context[context[0]] + 1;
 							int last_index = -1;
-							size = vtdBuffer.size();
+							size = vtdBuffer.size;
 							while (index < size) {
 								long temp = vtdBuffer.longAt(index);
 								int depth =
@@ -3450,7 +3449,7 @@ public class VTDNav {
 						return false;
 					case 1 :
 						if (direction == NEXT_SIBLING) {
-							if (l1index + 1 >= l1Buffer.size()) {
+							if (l1index + 1 >= l1Buffer.size) {
 								return false;
 							}
 
@@ -3496,7 +3495,7 @@ public class VTDNav {
 
 						if (direction == NEXT_SIBLING) {
 							int index = context[context[0]] + 1;
-							size = vtdBuffer.size();
+							size = vtdBuffer.size;
 							while (index < size) {
 								long temp = vtdBuffer.longAt(index);
 								int token_type =
@@ -4686,21 +4685,21 @@ public class VTDNav {
      *  
      */
 	 
-	public long getIndexSize(){
+	public long getIndexsize(){
 	    int size;
 	    if ( (docLen & 7)==0)
 	       size = docLen;
 	    else
 	       size = ((docLen >>3)+1)<<3;
 	    
-	    size += (vtdBuffer.size()<<3)+
-	            (l1Buffer.size()<<3)+
-	            (l2Buffer.size()<<3);
+	    size += (vtdBuffer.size<<3)+
+	            (l1Buffer.size<<3)+
+	            (l2Buffer.size<<3);
 	    
-	    if ((l3Buffer.size() & 1) == 0){ //even
-	        size += l3Buffer.size()<<2;
+	    if ((l3Buffer.size & 1) == 0){ //even
+	        size += l3Buffer.size<<2;
 	    } else {
-	        size += (l3Buffer.size()+1)<<2; //odd
+	        size += (l3Buffer.size+1)<<2; //odd
 	    }
 	    return size+64;
 	}
@@ -4798,7 +4797,7 @@ public class VTDNav {
 		int index = getCurrentIndex() + 1;
 		int tokenType, depth, t=0, length,i=0;
 		int dp = context[0];
-		//int size = vtdBuffer.size();
+		//int size = vtdBuffer.size;
 		// store all text tokens underneath the current element node
 		while (index < vtdSize) {
 		    tokenType = getTokenType(index);
@@ -4834,7 +4833,7 @@ public class VTDNav {
 		// calculate the total length
 		StringBuffer sb = new StringBuffer(t);
 		
-		for(t=0;t<fib.size();t++ ){
+		for(t=0;t<fib.size;t++ ){
 			toString(sb,t);
 		}
 				
@@ -4902,7 +4901,7 @@ public class VTDNav {
 
 		// for root element
 		if (depth == 0) {
-			int temp = vtdBuffer.size() - 1;
+			int temp = vtdBuffer.size - 1;
 			boolean b = false;
 			int so2 = 0;
 			while (getTokenDepth(temp) == -1) {
@@ -4933,7 +4932,7 @@ public class VTDNav {
 		}
 		// for a non-root element with no next sibling
 		int temp = getCurrentIndex() + 1;
-		int size = vtdBuffer.size();
+		int size = vtdBuffer.size;
 		// temp is not the last entry in VTD buffer
 		if (temp < size) {
 			while (temp < size && getTokenDepth(temp) >= depth) {
@@ -5097,17 +5096,17 @@ public class VTDNav {
 			
 		}
 		else if (context[1]>index 
-				&& l1index+1<l1Buffer.size()
+				&& l1index+1<l1Buffer.size
 				&& l1Buffer.upper32At(l1index+1)<index){
 			
 		}
 		else {
-			i= (index/vtdSize)*l1Buffer.size();
-			if (i>=l1Buffer.size())
-				i=l1Buffer.size()-1;
+			i= (index/vtdSize)*l1Buffer.size;
+			if (i>=l1Buffer.size)
+				i=l1Buffer.size-1;
 
 			if (l1Buffer.upper32At(i)< index) {
-				while(i<l1Buffer.size()-1 && 
+				while(i<l1Buffer.size-1 && 
 						l1Buffer.upper32At(i)<index){
 					i++;
 				}
@@ -5131,8 +5130,8 @@ public class VTDNav {
 			// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
 			// resolved simultaneously
 			//l2index = l2lower;
-			l2upper = l2Buffer.size() - 1;
-			for (int k = l1index + 1; k < l1Buffer.size(); k++) {
+			l2upper = l2Buffer.size - 1;
+			for (int k = l1index + 1; k < l1Buffer.size; k++) {
 				i = l1Buffer.lower32At(k);
 				if (i != 0xffffffff) {
 					l2upper = i - 1;
@@ -5146,7 +5145,7 @@ public class VTDNav {
 		//System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
 		i= Math.min(l2lower+ (int)(((float)(index-t1)/(t2-t1+1))*(l2upper-l2lower)),l2upper) ;
 		//System.out.print("  i1  "+i);
-		while(i<l2Buffer.size()-1 && l2Buffer.upper32At(i)<index){
+		while(i<l2Buffer.size-1 && l2Buffer.upper32At(i)<index){
 			i++;	
 		}
 		//System.out.println(" ==== i2    "+i+"    index  ==>  "+index);
@@ -5166,8 +5165,8 @@ public class VTDNav {
 			l3lower = i;
 			// l3lower shouldn't be -1
 			//l3index = l3lower;
-			l3upper = l3Buffer.size() - 1;
-			for (int k = l2index + 1; k < l2Buffer.size(); k++) {
+			l3upper = l3Buffer.size - 1;
+			for (int k = l2index + 1; k < l2Buffer.size; k++) {
 				i = l2Buffer.lower32At(k);
 				if (i != 0xffffffff) {
 					l3upper = i - 1;
@@ -5178,7 +5177,7 @@ public class VTDNav {
 		int t1=l3Buffer.intAt(l3lower);
 		int t2=l3Buffer.intAt(l3upper);
 		i= Math.min(l3lower+ (int)(((float)(index-t1)/(t2-t1+1))*(l3upper-l3lower)),l3upper) ;
-		while(i<l3Buffer.size()-1 && l3Buffer.intAt(i)<index){
+		while(i<l3Buffer.size-1 && l3Buffer.intAt(i)<index){
 			i++;	
 		}
 		while (l3Buffer.intAt(i)>index && i>0)
@@ -5187,5 +5186,7 @@ public class VTDNav {
 		context[3] = l3Buffer.intAt(i);
 		l3index = i;
 	}
+	
+	
 	
 }
