@@ -213,7 +213,7 @@ public class NodeRecorder {
      */
     public int iterate() {
         int j,i ;
-        if (count<fib.size()) {
+        if (count<fib.size) {
             i = fib.intAt(count);
             boolean b = (i >= 0);
             if (b == false) {

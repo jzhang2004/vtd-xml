@@ -676,8 +676,8 @@ public class XMLModifier {
      *
      */
     protected void sort(){
-        if (flb.size()>0)
-            quickSort(0,flb.size()-1);        
+        if (flb.size>0)
+            quickSort(0,flb.size-1);        
     }
     
     /**
@@ -690,7 +690,7 @@ public class XMLModifier {
      */
     protected void check()  throws ModifyException{
         int os1, os2, temp;
-        int size = flb.size();
+        int size = flb.size;
         
         for (int i=0;i<size;i++){
             os1 = flb.lower32At(i);
@@ -710,7 +710,7 @@ public class XMLModifier {
      *
      */
     public int getUpdatedDocumentSize() throws TranscodeException{
-        int size = flb.size();
+        int size = flb.size;
         int docSize = md.getXML().getBytes().length;
         long l;
         for (int i=0;i<size;i++){
@@ -1491,12 +1491,12 @@ public class XMLModifier {
         int len = (t==0)?
                 md.docLen:(md.docLen-32);
                     
-        if (flb.size()==0){
+        if (flb.size==0){
             os.write(ba,start,len);
         }else{
             int offset = start;
             int inc=1;
-            for(int i=0;i<flb.size();i=i+inc){
+            for(int i=0;i<flb.size;i=i+inc){
                 if (flb.lower32At(i)==flb.lower32At(i+1)){
                     inc  = 2;
                 } else 
@@ -1622,9 +1622,9 @@ public class XMLModifier {
      */
     public void reset(){
         if (flb!=null)
-            flb.clear();
+            flb.size=0;
         if (fob!=null)
-            fob.clear();
+            fob.size=0;
         if (insertHash!=null)
             insertHash.reset();
         if (deleteHash!=null)

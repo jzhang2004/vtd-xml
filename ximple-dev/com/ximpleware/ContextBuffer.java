@@ -30,7 +30,7 @@ import java.util.ArrayList;
  * Creation date: (11/16/03 4:30:45 PM)
  */
 public class ContextBuffer{
-    private java.util.ArrayList bufferArrayList;
+    private arrayList bufferArrayList;
     private int capacity;
     private int pageSize;
     protected int size;
@@ -50,7 +50,7 @@ public ContextBuffer(int i) {
 	incSize = i;
 	if (incSize<0)
 	  throw new IllegalArgumentException();
-	bufferArrayList = new ArrayList();	
+	bufferArrayList = new arrayList();	
 }
 /**
  * ContextBuffer constructor comment.
@@ -67,7 +67,7 @@ public ContextBuffer(int p, int i) {
     incSize = i;
     if (incSize < 0)
         throw new IllegalArgumentException("context buffer's incremental size must be greater than zero");
-    bufferArrayList = new ArrayList();
+    bufferArrayList = new arrayList();
 }
 /**
  * Pop the content value back into an integer array.

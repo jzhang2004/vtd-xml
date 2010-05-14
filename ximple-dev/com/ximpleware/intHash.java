@@ -48,7 +48,7 @@ class intHash {
             return true;
         }        
         else{
-            int size = storage[temp].size();
+            int size = storage[temp].size;
             for (int j=0;j<size;j++){
                 if (i == storage[temp].intAt(j)){
                     return false;
@@ -67,7 +67,7 @@ class intHash {
     public void reset(){
         for (int i=0;i<=maxDepth;i++){
             if (storage[i]!=null){
-                storage[i].clear();
+                storage[i].size=0;
             }
         }
     }

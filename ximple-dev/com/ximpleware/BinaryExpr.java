@@ -550,7 +550,7 @@ public class BinaryExpr extends Expr {
 	          while ((i = right.evalNodeSet(vn)) != -1) {
 	              i1 = getStringVal(vn,i);
 	              if (i1 != -1){
-	                  s1 = fib1.size();
+	                  s1 = fib1.size;
 	                  for (int k = 0; k < s1; k++) { 
 		                  boolean b = compareVV(fib1.intAt(k),vn,i1,op);
 		                  if (b){
