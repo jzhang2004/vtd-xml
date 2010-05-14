@@ -32,7 +32,7 @@ public class FastIntBuffer implements IIntBuffer {
      */
 	public final static int ASCENDING = 0;
 	public final static int DESCENDING = 1;
-    private ArrayList bufferArrayList;
+    private arrayList bufferArrayList;
 
     /**
     * Total capacity of the IntBuffer
@@ -59,7 +59,7 @@ public class FastIntBuffer implements IIntBuffer {
         pageSize = 1024;
         exp = 10;
         r = 1023;
-        bufferArrayList = new ArrayList();
+        bufferArrayList = new arrayList();
     }
     /**
      * Constructor with adjustable buffer page size of the value bfz
@@ -74,28 +74,28 @@ public class FastIntBuffer implements IIntBuffer {
         pageSize = 1<<e;
         exp = e;
         r = pageSize -1;
-        bufferArrayList = new ArrayList();
+        bufferArrayList = new arrayList();
     }
 /**
  * Append an int array to the end of this buffer instance
  * @param int_array int[]
  */
 public final void append(int[] int_array) {
-    if (int_array == null) {
+    /*if (int_array == null) {
         throw new NullPointerException();
-    }
+    }*/
     // no additional buffer space needed
     int lastBufferIndex;
     int[] lastBuffer;
     
-    if (bufferArrayList.size() == 0) {
+    if (bufferArrayList.size == 0) {
         lastBuffer = new int[pageSize];
         bufferArrayList.add(lastBuffer);
         lastBufferIndex = 0;
         capacity = pageSize;
     } else {
         lastBufferIndex = Math.min((size>>exp),//+(((size&r)==0)? 0:1), 
-                bufferArrayList.size() - 1);
+                bufferArrayList.size - 1);
         lastBuffer = (int[]) bufferArrayList.get(lastBufferIndex);
     }
 
@@ -180,24 +180,24 @@ public final void append(int[] int_array) {
  */
 public final void append(int i) {
 
-    int[] lastBuffer;
-    int lastBufferIndex;
-    if (bufferArrayList.size() == 0) {
+    //int[] lastBuffer;
+    //int lastBufferIndex;
+    /*if (bufferArrayList.size == 0) {
         lastBuffer = new int[pageSize];
         bufferArrayList.add(lastBuffer);
         capacity = pageSize;
     } else {
         lastBufferIndex = Math.min((size>>exp),//+(((size&r)==0)? 0:1), 
-                bufferArrayList.size() - 1);
-        lastBuffer = (int[]) bufferArrayList.get(lastBufferIndex);
+                bufferArrayList.size - 1);
+        lastBuffer = (int[]) bufferArrayList.oa[lastBufferIndex];
         //lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
-    }
-    if ((this.size + 1) <= this.capacity) {
+    }*/
+    if (this.size < this.capacity) {
         //get the last buffer from the bufferListArray
         //obtain the starting offset in that buffer to which the data is to be copied
         //update length
         //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
-        lastBuffer[size & r] = i;
+    	((int[])bufferArrayList.oa[bufferArrayList.size-1])[size & r] = i;
 //        lastBuffer[size % pageSize] = i;
         size += 1;
     } else // new buffers needed
@@ -227,7 +227,7 @@ public int[] getIntArray(int startingOffset, int len) {
     if (size <= 0 || startingOffset < 0) {
         throw (new IllegalArgumentException());
     }
-    if ((startingOffset + len) > size()) {
+    if ((startingOffset + len) > size) {
         throw (new IndexOutOfBoundsException());
     }
     int[] result = new int[len]; // allocate result array
@@ -299,9 +299,9 @@ public final int getPageSize() {
  * @param index int
  */
 public final int intAt(int index) {
-    if (index < 0 || index > size()-1) {
+    /*if (index > size-1) {
         throw new IndexOutOfBoundsException();
-    }
+    }*/
 //    int pageNum = (int) index / pageSize;
     int pageNum = index>>exp;
     //System.out.println("page Number is "+pageNum); 
@@ -316,9 +316,9 @@ public final int intAt(int index) {
  */
 public final void modifyEntry(int index, int newValue) {
 	
-        if (index < 0 || index > size - 1) {
-            throw new IndexOutOfBoundsException();
-        }
+        /*if (index > size - 1) {
+            throw new IndexOutOfBoundsException(" index out of range");
+        }*/
 
 //        ((int[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
         ((int[]) bufferArrayList.get((index >> exp)))[index & r] =
