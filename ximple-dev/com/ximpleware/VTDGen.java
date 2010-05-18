@@ -69,7 +69,7 @@ public class VTDGen {
 			if (a<0)
 				throw new ParseException(
 				"ASCII encoding error: invalid ASCII Char");
-			return a&0x7f;
+			return a;
 		}
 		final public boolean skipChar(int ch)
 			throws ParseException, EOFException, EncodingException {
@@ -1582,15 +1582,24 @@ public class VTDGen {
 	 * @throws EncodingException 
 	 * @throws com.ximpleware.EOFException 
 	 */
-	private int getCharAfterS()
+	final private int getCharAfterS()
 		throws ParseException, EncodingException, EOFException {
 		int n;
-		while (true) {
+		
+		do {
 			n = r.getChar();
-			if (n == ' ' || n == '\t' || n == '\n' || n == '\r') {
+			if ((n == ' ' || n == '\n' || n =='\t'|| n == '\r'  ) ) {
+			//if (XMLChar.isSpaceChar(n) ) {
 			} else
 				return n;
-		}
+			n = r.getChar();
+			if ((n == ' ' || n == '\n' || n =='\t'|| n == '\r'  ) ) {
+			} else
+				return n;
+			/*if (n == ' ' || n == '\n' || n =='\t'|| n == '\r'  ) {
+			} else
+				return n;*/
+		} while(true);
 		//throw new EOFException("should never come here");
 	}
 	/**
@@ -1600,29 +1609,41 @@ public class VTDGen {
 	 * @throws EncodingException UTF/native encoding exception.
 	 * @throws com.ximpleware.EOFException End of file exception.
 	 */
-	private int getCharAfterSe()
-		throws ParseException, EncodingException, EOFException {
-		int n = 0;
-		int temp; //offset saver
-		while (true) {
-			n = r.getChar();
-			if (!XMLChar.isSpaceChar(n)) {
-				if (n != '&')
-					return n;
-				else {
-					temp = offset;
-					if (!XMLChar.isSpaceChar(entityIdentifier())) {
-						offset = temp; // rewind
-						return '&';
-					}
-				}
-			}
-		}
-	}
+//	private int getCharAfterSe()
+//		throws ParseException, EncodingException, EOFException {
+//		int n = 0;
+//		int temp; //offset saver
+//		while (true) {
+//			n = r.getChar();
+//			if (!XMLChar.isSpaceChar(n)) {
+//				if (n != '&')
+//					return n;
+//				else {
+//					temp = offset;
+//					if (!XMLChar.isSpaceChar(entityIdentifier())) {
+//						offset = temp; // rewind
+//						return '&';
+//					}
+//				}
+//			}
+//			n = r.getChar();
+//			if (!XMLChar.isSpaceChar(n)) {
+//				if (n != '&')
+//					return n;
+//				else {
+//					temp = offset;
+//					if (!XMLChar.isSpaceChar(entityIdentifier())) {
+//						offset = temp; // rewind
+//						return '&';
+//					}
+//				}
+//			}
+//		}
+//	}
 	
 	
 	/**
-	 * Precompute the size of VTD+XML index
+	 * Pre-compute the size of VTD+XML index
 	 * @return size of the index
 	 *
 	 */
@@ -1634,14 +1655,14 @@ public class VTDGen {
 	    else
 	       size = ((docLen >>3)+1)<<3;
 	    
-	    size += (VTDBuffer.size()<<3)+
-	            (l1Buffer.size()<<3)+
-	            (l2Buffer.size()<<3);
+	    size += (VTDBuffer.size <<3)+
+	            (l1Buffer.size <<3)+
+	            (l2Buffer.size <<3);
 	    
-	    if ((l3Buffer.size() & 1) == 0){ //even
-	        size += l3Buffer.size()<<2;
+	    if ((l3Buffer.size & 1) == 0){ //even
+	        size += l3Buffer.size<<2;
 	    } else {
-	        size += (l3Buffer.size()+1)<<2; //odd
+	        size += (l3Buffer.size+1)<<2; //odd
 	    }
 	    return size+64;
 	}
@@ -2234,7 +2255,7 @@ public class VTDGen {
 						break;
 
 					case STATE_START_TAG : //name space is handled by
-						while (true) {
+						 do {
 							ch = r.getChar();
 							if (XMLChar.isNameChar(ch)) {
 								if (ch == ':') {
@@ -2246,7 +2267,7 @@ public class VTDGen {
 								}
 							} else
 								break;
-						}
+						}while (true);
 						length1 = offset - temp_offset - increment;
 						if (depth > MAX_DEPTH) {
 							throw new ParseException(
@@ -2289,7 +2310,7 @@ public class VTDGen {
 						} else
 							currentElementRecord = 0;
 						
-						if (depth <= nsBuffer1.size() - 1) {
+						if (depth <= nsBuffer1.size - 1) {
 							nsBuffer1.size = depth ;
 							int t= nsBuffer1.intAt(depth-1)+1;
 							nsBuffer2.size=t;
@@ -2315,13 +2336,16 @@ public class VTDGen {
 					}
 					if (ch == '>') {
 						if (ns == true){
-							nsBuffer1.append(nsBuffer3.size()-1);
+							nsBuffer1.append(nsBuffer3.size-1);
 							if (currentElementRecord !=0)
 								qualifyElement();
 						}
+						
+						//parser_state = processElementTail(helper);
 						if (depth != -1) {
 							temp_offset = offset;
-							ch = getCharAfterSe(); // consume WSs
+							//ch = getCharAfterSe(); // consume WSs
+							ch = getCharAfterS(); // consume WSs
 							if (ch == '<') {
 								if (ws) 
 									addWhiteSpaceRecord();
@@ -2349,25 +2373,10 @@ public class VTDGen {
 							} else if (XMLChar.isContentChar(ch)) {
 								//temp_offset = offset;
 								parser_state = STATE_TEXT;
-							} else if (ch == '&') {
-								//has_amp = true;
-								//temp_offset = offset;
-								entityIdentifier();
+							} else{
 								parser_state = STATE_TEXT;
-							} else if (ch == ']') {
-								if (r.skipChar(']')) {
-									while (r.skipChar(']')) {
-									}
-									if (r.skipChar('>'))
-										throw new ParseException(
-												"Error in text content: ]]> in text content"
-														+ formatLineNumber());
-								}
-								parser_state = STATE_TEXT;
-							} else
-								throw new ParseException(
-										"Error in text content: Invalid char"
-												+ formatLineNumber());
+								handleOtherTextChar2(ch);
+							} 
 						} else {
 							parser_state = STATE_DOC_END;
 						}
@@ -2410,25 +2419,10 @@ public class VTDGen {
 							else if (XMLChar.isContentChar(ch)) {
 								parser_state = STATE_TEXT;
 							} 
-							else if (ch == '&') {
-								//has_amp = true;
-								entityIdentifier();
+							else {
+								handleOtherTextChar2(ch);
 								parser_state = STATE_TEXT;
-							} 
-							else if (ch == ']') {
-								if (r.skipChar(']')) {
-									while (r.skipChar(']')) {
-									}
-									if (r.skipChar('>'))
-										throw new ParseException(
-										"Error in text content: ]]> in text content"
-										+ formatLineNumber());
-								}
-									parser_state = STATE_TEXT;
-							}else
-								throw new ParseException(
-									"Other Error: Invalid char in xml"
-									+ formatLineNumber());
+							}
 						} else
 							parser_state = STATE_DOC_END;
 						break;
@@ -2451,15 +2445,15 @@ public class VTDGen {
 								}
 							}
 						}
-						while (true) {
+						do {
 							if (XMLChar.isNameChar(ch)) {
 								if (ch == ':') {
 									length2 = offset - temp_offset - increment;
-								}
-								ch = r.getChar();
+								}				
 							} else
 								break;
-						}
+							ch = r.getChar();
+						}while (true);
 						length1 = getPrevOffset() - temp_offset;
 						if (is_ns && ns){
 							// make sure postfix isn't xmlns
@@ -2514,9 +2508,10 @@ public class VTDGen {
 //									+ (attr_count + 16));*/
 //							attr_name_array =
 //								new long[attr_count + ATTR_NAME_ARRAY_SIZE];
-//							for (int i = 0; i < attr_count; i++) {
+//							System.arraycopy(temp_array, 0,attr_name_array, 0, attr_count);
+//							/*for (int i = 0; i < attr_count; i++) {
 //								attr_name_array[i] = temp_array[i];
-//							}
+//							}*/
 //							attr_name_array[attr_count] =
 //								((long) (temp_offset) << 32) + length1;
 //							attr_count++;
@@ -2606,7 +2601,7 @@ public class VTDGen {
 						break;
 						
 					case STATE_ATTR_VAL :
-						while (true) {
+						 do{
 							ch = r.getChar();
 							if (XMLChar.isValidChar(ch) && ch != '<') {
 								if (ch == ch_temp)
@@ -2624,7 +2619,7 @@ public class VTDGen {
 								throw new ParseException(
 									"Error in attr: Invalid XML char"
 										+ formatLineNumber());
-						}
+						}while (true);
 
 						length1 = offset - temp_offset - increment;
 						if (ns && is_ns){
@@ -2708,8 +2703,9 @@ public class VTDGen {
 
 						if (ch == '>') {
 							if (ns == true){
-								nsBuffer1.append(nsBuffer3.size()-1);
-								qualifyAttributes();
+								nsBuffer1.append(nsBuffer3.size-1);
+								if (prefixed_attr_count>0)
+									qualifyAttributes();
 								if (prefixed_attr_count>1){
 									checkQualifiedAttributeUniqueness();
 								}
@@ -2718,9 +2714,12 @@ public class VTDGen {
 								prefixed_attr_count=0;
 							}
 							attr_count = 0;
+							//parser_state = processElementTail(helper);
 							if (depth != -1) {
 								temp_offset = offset;
-								ch = getCharAfterSe();
+								//ch = getCharAfterSe();
+								ch = getCharAfterS();
+
 								if (ch == '<') {
 									if (ws) 
 								    	addWhiteSpaceRecord();
@@ -2748,25 +2747,10 @@ public class VTDGen {
 								} else if (XMLChar.isContentChar(ch)) {
 									//temp_offset = offset;
 									parser_state = STATE_TEXT;
-								} else if (ch == '&') {
-									//has_amp = true;
-									//temp_offset = offset;
-									entityIdentifier();
+								} else {
+									handleOtherTextChar2(ch);
 									parser_state = STATE_TEXT;
-								} else if (ch == ']') {
-									if (r.skipChar(']')) {
-										while (r.skipChar(']')) {
-										}
-										if (r.skipChar('>'))
-											throw new ParseException(
-												"Error in text content: ]]> in text content"
-													+ formatLineNumber());
-									}
-									parser_state = STATE_TEXT;
-								}else
-									throw new ParseException(
-										"Error in text content: Invalid char"
-											+ formatLineNumber());
+								}
 							} else {
 								parser_state = STATE_DOC_END;
 							}
@@ -2782,32 +2766,21 @@ public class VTDGen {
 							throw new ParseException(
 								"Error in text content: Char data at the wrong place"
 									+ formatLineNumber());
-						while (true) {
+						do {
 							ch = r.getChar();
 							if (XMLChar.isContentChar(ch)) {
-							} else if (ch == '&') {
-								//has_amp = true;
-								if (!XMLChar.isValidChar(entityIdentifier()))
-									throw new ParseException(
-										"Error in text content: Invalid char in text content "
-											+ formatLineNumber());
-								//parser_state = STATE_TEXT;
 							} else if (ch == '<') {
 								break;
-							} else if (ch == ']') {
-								if (r.skipChar(']')) {
-									while (r.skipChar(']')) {
-									}
-									if (r.skipChar('>'))
-										throw new ParseException(
-											"Error in text content: ]]> in text content"
-												+ formatLineNumber());
-								}
-							} else
-								throw new ParseException(
-									"Error in text content: Invalid char in text content "
-										+ formatLineNumber());
-						}
+							}else 
+								handleOtherTextChar(ch);
+							ch = r.getChar();
+							if (XMLChar.isContentChar(ch)) {
+							} else if (ch == '<') {
+								break;
+							}else 
+								handleOtherTextChar(ch);
+						}while(true);
+						
 						length1 = offset - increment - temp_offset;
 
 						if (encoding < FORMAT_UTF_16BE)
@@ -2920,7 +2893,7 @@ public class VTDGen {
 	}
 	
 	private void qualifyAttributes() throws ParseException{
-		int i1= nsBuffer3.size()-1;
+		int i1= nsBuffer3.size-1;
 		int j= 0,i=0;
 		// two cases:
 		// 1. the current element has no prefix, look for xmlns
@@ -3219,7 +3192,9 @@ public class VTDGen {
 		}
 		//System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
 		temp_offset = offset;
-		ch = getCharAfterSe();
+		//ch = getCharAfterSe();
+		ch = getCharAfterS();
+
 		if (ch == '<') {
 			if (ws) 
 		    	addWhiteSpaceRecord();
@@ -3288,7 +3263,8 @@ public class VTDGen {
 					depth);
 			//length1 = 0;
 			temp_offset = offset;
-			ch = getCharAfterSe();
+			//ch = getCharAfterSe();
+			ch = getCharAfterS();
 			if (ch == '<') {
 				if (ws) 
 			    	addWhiteSpaceRecord();
@@ -3986,7 +3962,8 @@ public class VTDGen {
 		if (ch == '?') {
 			if (r.skipChar('>')) {
 				temp_offset = offset;
-				ch = getCharAfterSe();
+				//ch = getCharAfterSe();
+				ch = getCharAfterS();
 				if (ch == '<') {
 					if (ws) 
 				    	addWhiteSpaceRecord();
@@ -4078,8 +4055,8 @@ public class VTDGen {
 		}
 		//length1 = 0;
 		temp_offset = offset;
-		ch = getCharAfterSe();
-		
+		//ch = getCharAfterSe();
+		ch = getCharAfterS();
 		if (ch == '<') {
 		    if (ws) 
 		    	addWhiteSpaceRecord();
@@ -4427,7 +4404,7 @@ public class VTDGen {
 		if (token_type == TOKEN_STARTING_TAG) {
 			switch (depth) {
 			case 0:
-				rootIndex = VTDBuffer.size() - 1;
+				rootIndex = VTDBuffer.size - 1;
 				break;
 			case 1:
 				if (last_depth == 1) {
@@ -4435,25 +4412,25 @@ public class VTDGen {
 				} else if (last_depth == 2) {
 					l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
 				}
-				last_l1_index = VTDBuffer.size() - 1;
+				last_l1_index = VTDBuffer.size - 1;
 				last_depth = 1;
 				break;
 			case 2:
 				if (last_depth == 1) {
 					l1Buffer.append(((long) last_l1_index << 32)
-							+ l2Buffer.size());
+							+ l2Buffer.size);
 				} else if (last_depth == 2) {
 					l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
 				}
-				last_l2_index = VTDBuffer.size() - 1;
+				last_l2_index = VTDBuffer.size - 1;
 				last_depth = 2;
 				break;
 
 			case 3:
-				l3Buffer.append(VTDBuffer.size() - 1);
+				l3Buffer.append(VTDBuffer.size - 1);
 				if (last_depth == 2) {
 					l2Buffer.append(((long) last_l2_index << 32)
-							+ l3Buffer.size() - 1);
+							+ l3Buffer.size - 1);
 				}
 				last_depth = 3;
 				break;
@@ -4818,4 +4795,172 @@ public class VTDGen {
 			}
 		}
 	}
-}
+		
+	private void handleOtherTextChar(int ch) throws ParseException{
+		 if (ch == '&') {
+			//has_amp = true;	
+			 if (!XMLChar.isValidChar(entityIdentifier()))
+					throw new ParseException(
+						"Error in text content: Invalid char in text content "
+						+ formatLineNumber());
+				//parser_state = STATE_TEXT;
+		}  else if (ch == ']') {
+			if (r.skipChar(']')) {
+				while (r.skipChar(']')) {
+				}
+				if (r.skipChar('>'))
+					throw new ParseException(
+						"Error in text content: ]]> in text content"
+						+ formatLineNumber());
+			}	
+		} else
+			throw new ParseException(
+				"Error in text content: Invalid char in text content "
+				+ formatLineNumber());		
+	}
+	
+	private void handleOtherTextChar2(int ch) throws ParseException{
+		if (ch == '&') {
+			//has_amp = true;
+			//temp_offset = offset;
+			entityIdentifier();
+			//parser_state = STATE_TEXT;
+		} else if (ch == ']') {
+			if (r.skipChar(']')) {
+				while (r.skipChar(']')) {
+				}
+				if (r.skipChar('>'))
+					throw new ParseException(
+						"Error in text content: ]]> in text content"
+							+ formatLineNumber());
+			}
+			//parser_state = STATE_TEXT;
+		}else
+			throw new ParseException(
+				"Error in text content: Invalid char"
+					+ formatLineNumber());
+	}
+	
+	public static void main(String[] sv) throws Exception{
+		VTDGen vg = new VTDGen();
+		FileInputStream fis = null;
+	    File f = null;
+	    f = new File(sv[0]);
+	    System.out.println("ok");
+	    fis =  new FileInputStream(f);
+	    byte[] ba = new byte[(int) f.length()];
+	    //long l = System.nanoTime();
+	    int ch,j=0,k1=0;
+	    System.out.println("ok");
+	    fis.read(ba);
+	    vg.setDoc(ba);
+	    int k= 130000;
+	    long l = System.nanoTime();
+		//System.out.println(" latency in nano-seconds  "+(l2-l));
+		for (int i=0;i<k;i++){			
+			vg.offset = 0;
+			j=0;
+			do{
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch)){
+					if (ch==':'){
+						j++;
+						k1++;
+					}
+					}
+
+			}while(true);
+		}
+		
+		
+		l = System.nanoTime();
+		for (int i=0;i<k;i++){
+			vg.offset = 0;
+			j=0;
+			do{
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch)){
+					if (ch==':'){
+						j++;
+						k1++;
+					}
+					}
+
+			}while(true);
+		}
+		long l2 = System.nanoTime();
+		System.out.println(" latency in nano-seconds  "+(l2-l)/k);
+		l = System.nanoTime();
+		//vg.offset = 0;
+		//j=0;
+		for (int i=0;i<k;i++){
+			vg.offset = 0;
+			j=0;
+			do{
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch)){
+					if (ch==':'){
+						j++;
+						k1++;
+					}
+					}
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch)){
+					if (ch==':')
+					{j++;
+					k1++;}
+				}
+				/*ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch)){
+					if (ch==':'){
+						j++;
+						k1++;
+					}
+				}
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch)){
+					if (ch==':'){
+						j++;
+						k1++;
+					}
+				}
+				/*ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch))
+					j++;
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch))
+					j++;
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch))
+					j++;
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch))
+					j++;*/
+			}while(true);
+		}
+		l2 = System.nanoTime();
+		System.out.println(" latency in nano-seconds  "+(l2-l)/k);
+
+	}
+	 
+}	
