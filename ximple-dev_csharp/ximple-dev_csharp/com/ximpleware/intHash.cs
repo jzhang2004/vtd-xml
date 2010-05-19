@@ -53,7 +53,7 @@ namespace com.ximpleware
 			}
 			else
 			{
-				int size = storage[temp].size();
+				int size = storage[temp].size_Renamed_Field;
 				for (int j = 0; j < size; j++)
 				{
 					if (i == storage[temp].intAt(j))
@@ -76,7 +76,7 @@ namespace com.ximpleware
 			{
 				if (storage[i] != null)
 				{
-					storage[i].clear();
+					storage[i].size_Renamed_Field=0;
 				}
 			}
 		}

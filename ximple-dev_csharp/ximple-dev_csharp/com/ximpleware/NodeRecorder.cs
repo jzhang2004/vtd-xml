@@ -246,7 +246,7 @@ namespace com.ximpleware
         public void clear()
         {
             size = position = count = 0;
-            fib.clear();
+            fib.size_Renamed_Field=0;
         }
 
 
@@ -262,7 +262,7 @@ namespace com.ximpleware
         public int iterate()
         {
             int j, i;
-            if (count < fib.size())
+            if (count < fib.size_Renamed_Field)
             {
                 i = fib.intAt(count);
                 bool b = (i >= 0);

@@ -67,7 +67,7 @@ namespace com.ximpleware
             {
                 throw new System.ArgumentException("Invalid argument for writeIndex ");
             }
-            if (vtdBuffer.size() == 0)
+            if (vtdBuffer.size_Renamed_Field == 0)
             {
                 throw new IndexWriteException("VTDBuffer can't be zero length");
             }
@@ -109,41 +109,41 @@ namespace com.ximpleware
             }
             // write VTD
 
-            dos.Write((long)vtdBuffer.size());
+            dos.Write((long)vtdBuffer.size_Renamed_Field);
             if (docOffset != 0)
             {
-                for (i = 0; i < vtdBuffer.size(); i++)
+                for (i = 0; i < vtdBuffer.size_Renamed_Field; i++)
                 {
                     dos.Write(adjust(vtdBuffer.longAt(i), -docOffset));
                 }
             }
             else
             {
-                for (i = 0; i < vtdBuffer.size(); i++)
+                for (i = 0; i < vtdBuffer.size_Renamed_Field; i++)
                 {
                     dos.Write(vtdBuffer.longAt(i));
                 }
             }
             // write L1 
-            dos.Write((long)l1Buffer.size());
-            for (i = 0; i < l1Buffer.size(); i++)
+            dos.Write((long)l1Buffer.size_Renamed_Field);
+            for (i = 0; i < l1Buffer.size_Renamed_Field; i++)
             {
                 dos.Write(l1Buffer.longAt(i));
             }
             // write L2
-            dos.Write((long)l2Buffer.size());
-            for (i = 0; i < l2Buffer.size(); i++)
+            dos.Write((long)l2Buffer.size_Renamed_Field);
+            for (i = 0; i < l2Buffer.size_Renamed_Field; i++)
             {
                 dos.Write(l2Buffer.longAt(i));
             }
             // write L3
-            dos.Write((long)l3Buffer.size());
-            for (i = 0; i < l3Buffer.size(); i++)
+            dos.Write((long)l3Buffer.size_Renamed_Field);
+            for (i = 0; i < l3Buffer.size_Renamed_Field; i++)
             {
                 dos.Write(l3Buffer.intAt(i));
             }
             // pad zero if # of l3 entry is odd
-            if ((l3Buffer.size() & 1) != 0)
+            if ((l3Buffer.size_Renamed_Field & 1) != 0)
                 dos.Write(0);
             dos.Close();
         }
@@ -723,7 +723,7 @@ namespace com.ximpleware
             {
                 throw new System.ArgumentException("Invalid argument for writeIndex ");
             }
-            if (vtdBuffer.size() == 0)
+            if (vtdBuffer.size_Renamed_Field == 0)
             {
                 throw new IndexWriteException("VTDBuffer can't be zero length");
             }
@@ -768,41 +768,41 @@ namespace com.ximpleware
             }*/
             // write VTD
 
-            dos.Write((long)vtdBuffer.size());
+            dos.Write((long)vtdBuffer.size_Renamed_Field);
             if (docOffset != 0)
             {
-                for (i = 0; i < vtdBuffer.size(); i++)
+                for (i = 0; i < vtdBuffer.size_Renamed_Field; i++)
                 {
                     dos.Write(adjust(vtdBuffer.longAt(i), -docOffset));
                 }
             }
             else
             {
-                for (i = 0; i < vtdBuffer.size(); i++)
+                for (i = 0; i < vtdBuffer.size_Renamed_Field; i++)
                 {
                     dos.Write(vtdBuffer.longAt(i));
                 }
             }
             // write L1 
-            dos.Write((long)l1Buffer.size());
-            for (i = 0; i < l1Buffer.size(); i++)
+            dos.Write((long)l1Buffer.size_Renamed_Field);
+            for (i = 0; i < l1Buffer.size_Renamed_Field; i++)
             {
                 dos.Write(l1Buffer.longAt(i));
             }
             // write L2
-            dos.Write((long)l2Buffer.size());
-            for (i = 0; i < l2Buffer.size(); i++)
+            dos.Write((long)l2Buffer.size_Renamed_Field);
+            for (i = 0; i < l2Buffer.size_Renamed_Field; i++)
             {
                 dos.Write(l2Buffer.longAt(i));
             }
             // write L3
-            dos.Write((long)l3Buffer.size());
-            for (i = 0; i < l3Buffer.size(); i++)
+            dos.Write((long)l3Buffer.size_Renamed_Field);
+            for (i = 0; i < l3Buffer.size_Renamed_Field; i++)
             {
                 dos.Write(l3Buffer.intAt(i));
             }
             // pad zero if # of l3 entry is odd
-            if ((l3Buffer.size() & 1) != 0)
+            if ((l3Buffer.size_Renamed_Field & 1) != 0)
                 dos.Write(0);
             dos.Close();
         }

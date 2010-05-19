@@ -94,7 +94,7 @@ namespace com.ximpleware
 		internal intHash ih;
 		
 		//public int getPositon(){
-		//	return fib.size();
+		//	return fib.size_Renamed_Field;
 		//}
 		
 		public PathExpr(Expr f, LocationPathExpr l)
@@ -238,7 +238,7 @@ namespace com.ximpleware
 			
 			fe.reset(vn);
 			lpe.reset(vn);
-			//fib.clear();
+			//fib.size_Renamed_Field=0;
 			ih.reset();
 			evalState = 0;
 		}

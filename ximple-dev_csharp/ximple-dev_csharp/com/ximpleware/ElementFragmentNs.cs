@@ -36,7 +36,7 @@ namespace com.ximpleware
                 //int encoding = vn.encoding;
                 int len = (int)(l >> 32);
                 if (stLen != 0)
-                    for (int i = 0; i < fib.size(); i++)
+                    for (int i = 0; i < fib.size_Renamed_Field; i++)
                     {
                         int k = fib.intAt(i);
                         if (vn.encoding < VTDNav.FORMAT_UTF_16BE)
@@ -102,7 +102,7 @@ namespace com.ximpleware
             os1 += temp;
 
             int tos = 0, tlen = 0;
-            for (int i = 0; i < fib.size(); i++)
+            for (int i = 0; i < fib.size_Renamed_Field; i++)
             {
                 //System.out.println("i ==>"+fib.intAt(i));
                 switch (enc)
@@ -212,7 +212,7 @@ namespace com.ximpleware
             int len = Transcoder.getOutLength(ba, (int)l, (int)(l >> 32), vn.encoding, dest_encoding);
 
             if (stLen != 0)
-                for (int i = 0; i < fib.size(); i++)
+                for (int i = 0; i < fib.size_Renamed_Field; i++)
                 {
                     int k = fib.intAt(i);
                     if (vn.encoding < VTDNav.FORMAT_UTF_16BE)
@@ -303,7 +303,7 @@ namespace com.ximpleware
             os1 += temp;
 
             int tos = 0, tlen = 0;
-            for (int i = 0; i < fib.size(); i++)
+            for (int i = 0; i < fib.size_Renamed_Field; i++)
             {
                 //System.out.println("i ==>"+fib.intAt(i));
                 switch (enc)
@@ -410,7 +410,7 @@ namespace com.ximpleware
             }
             ost.Write(xml, os, temp);
             int tos = 0, tlen = 0;
-            for (int i = 0; i < fib.size(); i++)
+            for (int i = 0; i < fib.size_Renamed_Field; i++)
             {
                 switch (enc)
                 {
@@ -517,7 +517,7 @@ namespace com.ximpleware
             //os1 += temp;
 
             int tos = 0, tlen = 0;
-            for (int i = 0; i < fib.size(); i++)
+            for (int i = 0; i < fib.size_Renamed_Field; i++)
             {
                 //System.out.println("i ==>"+fib.intAt(i));
                 switch (enc)

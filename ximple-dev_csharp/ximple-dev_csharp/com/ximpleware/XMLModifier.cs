@@ -621,8 +621,8 @@ namespace com.ximpleware
         /// </summary>
         protected internal void sort()
         {
-            if (flb.size() > 0)
-                quickSort(0, flb.size() - 1);
+            if (flb.size_Renamed_Field > 0)
+                quickSort(0, flb.size_Renamed_Field - 1);
         }
 
         /// <summary> 
@@ -635,7 +635,7 @@ namespace com.ximpleware
         protected internal void check()
         {
             int os1, os2, temp;
-            int size = flb.size();
+            int size = flb.size_Renamed_Field;
 
             for (int i = 0; i < size; i++)
             {
@@ -1076,7 +1076,7 @@ namespace com.ximpleware
             check();
             long l;
             byte[] ba = md.getXML().getBytes();
-            //for (int i = 0; i < flb.size(); i++)
+            //for (int i = 0; i < flb.size_Renamed_Field; i++)
             //{
             //	System.Console.Out.WriteLine(" offset value is ==>" + flb.lower32At(i));
             //}
@@ -1085,7 +1085,7 @@ namespace com.ximpleware
                     md.docOffset : 32;
             int len = (t == 0) ?
                     md.docLen : (md.docLen - 32);
-            if (flb.size() == 0)
+            if (flb.size_Renamed_Field == 0)
             {
                 os.Write(ba, start, len);
             }
@@ -1093,7 +1093,7 @@ namespace com.ximpleware
             {
                 int offset = start;
                 int inc = 1;
-                for (int i = 0; i < flb.size(); i = i + inc)
+                for (int i = 0; i < flb.size_Renamed_Field; i = i + inc)
                 {
                     if (flb.lower32At(i) == flb.lower32At(i + 1))
                     {
@@ -1238,9 +1238,9 @@ namespace com.ximpleware
         public void reset()
         {
             if (flb != null)
-                flb.clear();
+                flb.size_Renamed_Field=0;
             if (fob != null)
-                fob.clear();
+                fob.size_Renamed_Field=0;
             if (insertHash != null)
                 insertHash.reset();
             if (deleteHash != null)
@@ -1291,7 +1291,7 @@ namespace com.ximpleware
         /// <returns></returns>
         public int getUpdatedDocumentSize()
         {
-            int size = flb.size();
+            int size = flb.size_Renamed_Field;
             int docSize = md.getXML().getBytes().Length;
             long l;
             for (int i = 0; i < size; i++)

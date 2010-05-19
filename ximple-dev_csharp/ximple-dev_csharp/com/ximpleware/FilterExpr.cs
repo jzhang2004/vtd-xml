@@ -51,7 +51,7 @@ namespace com.ximpleware
 		override public bool String
 		{
 			/*public boolean isUnique(int i){
-			int size = fib.size();
+			int size = fib.size_Renamed_Field;
 			for (int j=0; j<size;j++){
 			if (i == fib.intAt(j))
 			return false;
@@ -109,7 +109,7 @@ namespace com.ximpleware
 			first_time = true;
 		}
 		/*public int getPositon(){
-		return fib.size();
+		return fib.size_Renamed_Field;
 		}*/
 		public override bool evalBoolean(VTDNav vn)
 		{
@@ -213,7 +213,7 @@ namespace com.ximpleware
 		{
 			e.reset(vn);
 			p.reset(vn);
-			//fib.clear();
+			//fib.size_Renamed_Field=0;
 		}
 		
 		

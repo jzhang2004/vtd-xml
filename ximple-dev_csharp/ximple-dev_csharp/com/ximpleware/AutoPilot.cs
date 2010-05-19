@@ -348,7 +348,7 @@ namespace com.ximpleware
             if (fib == null)
                 fib = new FastIntBuffer(4);
             else
-                fib.clear();
+                fib.size_Renamed_Field=0;
         }
     /// <summary>
     /// 
@@ -393,7 +393,7 @@ namespace com.ximpleware
 	}
 
     protected internal bool checkNsUniqueness(int i){
-		for (int j=0;j<fib.size();j++){
+		for (int j=0;j<fib.size_Renamed_Field;j++){
 			if (vn.compareTokens(fib.intAt(j), vn, i)==0)
 				return false;
 		}

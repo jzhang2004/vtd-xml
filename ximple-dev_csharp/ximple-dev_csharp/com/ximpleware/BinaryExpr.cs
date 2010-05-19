@@ -405,13 +405,13 @@ namespace com.ximpleware
                     i1 = getStringVal(vn, i);
                     if (i1 != -1)
                     {
-                        s1 = fib1.size();
+                        s1 = fib1.size_Renamed_Field;
                         for (int k = 0; k < s1; k++)
                         {
                             bool b = compareVV(fib1.intAt(k), vn, i1, op);
                             if (b)
                             {
-                                fib1.clear();
+                                fib1.size_Renamed_Field=0;
                                 vn.contextStack2.size = stackSize;
                                 vn.pop2();
                                 right.reset(vn);
@@ -423,12 +423,12 @@ namespace com.ximpleware
                 vn.contextStack2.size = stackSize;
                 vn.pop2();
                 right.reset(vn);
-                fib1.clear();
+                fib1.size_Renamed_Field=0;
                 return false;
             }
             catch (Exception e)
             {
-                fib1.clear();
+                fib1.size_Renamed_Field=0;
                 throw new System.SystemException("Undefined behavior");
             }
         }
