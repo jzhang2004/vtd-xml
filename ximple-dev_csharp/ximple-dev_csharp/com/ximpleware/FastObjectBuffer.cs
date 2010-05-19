@@ -51,7 +51,7 @@ namespace com.ximpleware
 		/* bufferArrayList is a resizable array list of int buffers
 		*
 		*/
-		private System.Collections.ArrayList bufferArrayList;
+		private com.ximpleware.ArrayList bufferArrayList;
 		
 		/// <summary> Total capacity of the ObjectBuffer</summary>
 		private int capacity;
@@ -60,7 +60,7 @@ namespace com.ximpleware
 		private int pageSize;
 		
 		/// <summary> Total number of objects in the IntBuffer</summary>
-		private int size_Renamed_Field;
+		protected internal int size_Renamed_Field;
 		private int exp;
 		private int r;
 		/// <summary> FastIntBuffer constructor comment.</summary>
@@ -71,7 +71,7 @@ namespace com.ximpleware
 			pageSize = 1024;
 			exp = 10;
 			r = 1023;
-			bufferArrayList = new System.Collections.ArrayList();
+			bufferArrayList = new com.ximpleware.ArrayList();
 		}
 		/// <summary> Constructor with adjustable buffer page size of the value bfz</summary>
 		/// <param name="bfz">int  is the size of the internal buffer
@@ -86,7 +86,7 @@ namespace com.ximpleware
 			pageSize = 1 << e;
 			exp = e;
 			r = pageSize - 1;
-			bufferArrayList = new System.Collections.ArrayList();
+			bufferArrayList = new com.ximpleware.ArrayList();
 		}
 		/// <summary> Append an object array to the end of this buffer instance</summary>
 		/// <param name="obj_array">Object[]
@@ -101,7 +101,7 @@ namespace com.ximpleware
 			int lastBufferIndex;
 			System.Object[] lastBuffer;
 			
-			if (bufferArrayList.Count == 0)
+			if (bufferArrayList.size == 0)
 			{
 				lastBuffer = new System.Object[pageSize];
 				bufferArrayList.Add(lastBuffer);
@@ -110,8 +110,8 @@ namespace com.ximpleware
 			}
 			else
 			{
-				lastBufferIndex = System.Math.Min((size_Renamed_Field >> exp), bufferArrayList.Count - 1);
-				lastBuffer = (System.Object[]) bufferArrayList[lastBufferIndex];
+				lastBufferIndex = System.Math.Min((size_Renamed_Field >> exp), bufferArrayList.size - 1);
+				lastBuffer = (System.Object[]) bufferArrayList.oa[lastBufferIndex];
 			}
 			
 			if ((this.size_Renamed_Field + obj_array.Length) < this.capacity)
@@ -137,11 +137,11 @@ namespace com.ximpleware
 					int z;
 					for (z = 1; z <= k; z++)
 					{
-						Array.Copy(obj_array, offset, (Object[])bufferArrayList[lastBufferIndex + z], 0, pageSize);
+						Array.Copy(obj_array, offset, (Object[])bufferArrayList.oa[lastBufferIndex + z], 0, pageSize);
 						offset += pageSize;
 					}
 					// copy the last part
-					Array.Copy(obj_array, offset, (Object[])bufferArrayList[lastBufferIndex + z], 0, l & r);
+					Array.Copy(obj_array, offset, (Object[])bufferArrayList.oa[lastBufferIndex + z], 0, l & r);
 				}
 				size_Renamed_Field += obj_array.Length;
 				return ;
@@ -189,40 +189,25 @@ namespace com.ximpleware
 		/// </param>
 		public virtual void  append(System.Object obj)
 		{
-			
-			System.Object[] lastBuffer;
-			int lastBufferIndex;
-			if (bufferArrayList.Count == 0)
-			{
-				lastBuffer = new System.Object[pageSize];
-				bufferArrayList.Add(lastBuffer);
-				capacity = pageSize;
-			}
-			else
-			{
-				lastBufferIndex = System.Math.Min((size_Renamed_Field >> exp), bufferArrayList.Count - 1);
-				lastBuffer = (System.Object[]) bufferArrayList[lastBufferIndex];
-				//lastBuffer = (int[]) bufferArrayList.get(bufferArrayList.size() - 1);
-			}
-			if ((this.size_Renamed_Field + 1) <= this.capacity)
-			{
-				//get the last buffer from the bufferListArray
-				//obtain the starting offset in that buffer to which the data is to be copied
-				//update length
-				//System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
-				lastBuffer[size_Renamed_Field & r] = obj;
-				//       lastBuffer[size % pageSize] = i;
-				size_Renamed_Field += 1;
-			}
-			// new buffers needed
-			else
-			{
-				System.Object[] newBuffer = new System.Object[pageSize];
-				size_Renamed_Field++;
-				capacity += pageSize;
-				bufferArrayList.Add(newBuffer);
-				newBuffer[0] = obj;
-			}
+
+            if (this.size_Renamed_Field < this.capacity)
+            {
+                //get the last buffer from the bufferListArray
+                //obtain the starting offset in that buffer to which the data is to be copied
+                //update length
+                //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
+                ((Object[])bufferArrayList.oa[bufferArrayList.size - 1])[size_Renamed_Field & r] = obj;
+                //       lastBuffer[size % pageSize] = i;
+                size_Renamed_Field += 1;
+            }
+            else // new buffers needed
+            {
+                Object[] newBuffer = new Object[pageSize];
+                size_Renamed_Field++;
+                capacity += pageSize;
+                bufferArrayList.Add(newBuffer);
+                newBuffer[0] = obj;
+            }
 		}
 		/// <summary> Returns a single object array representing every object in this buffer instance</summary>
 		/// <returns> Object[]  (null if there isn't anything left in the buffer   
@@ -237,7 +222,7 @@ namespace com.ximpleware
 			{
 				throw (new System.ArgumentException());
 			}
-			if ((startingOffset + len) > size())
+			if ((startingOffset + len) > this.size_Renamed_Field)
 			{
 				throw (new System.IndexOutOfRangeException());
 			}
@@ -258,14 +243,14 @@ namespace com.ximpleware
 			if (first_index == last_index)
 			{
 				// to see if there is a need to go across buffer boundry
-				Array.Copy((Object[])(bufferArrayList[first_index]), startingOffset & r, result, 0, len);
+				Array.Copy((Object[])(bufferArrayList.oa[first_index]), startingOffset & r, result, 0, len);
 			}
 			else
 			{
 				int obj_array_offset = 0;
 				for (int i = first_index; i <= last_index; i++)
 				{
-					System.Object[] currentChunk = (System.Object[]) bufferArrayList[i];
+					System.Object[] currentChunk = (System.Object[]) bufferArrayList.oa[i];
 					if (i == first_index)
 					// first section
 					{
@@ -303,7 +288,7 @@ namespace com.ximpleware
 			//System.out.println("page Number is "+pageNum); 
 			//   int offset = index % pageSize;
 			int offset = index & r;
-			return ((System.Object[]) bufferArrayList[pageNum])[offset];
+			return ((System.Object[]) bufferArrayList.oa[pageNum])[offset];
 		}
 		/// <summary> Assigns a new int value to location index of the buffer instance.</summary>
 		/// <param name="index">int
@@ -321,7 +306,7 @@ namespace com.ximpleware
 			
 			//       ((int[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
 			//UPGRADE_TODO: Method 'java.util.ArrayList.get' was not converted. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1095'"
-			((System.Object[]) bufferArrayList[(index >> exp)])[index & r] = newValue;
+			((System.Object[]) bufferArrayList.oa[(index >> exp)])[index & r] = newValue;
 		}
 		/// <summary> Returns the total number of objects in the buffer instance</summary>
 		/// <returns> int
@@ -343,8 +328,8 @@ namespace com.ximpleware
 				int array_offset = 0;
 				for (int i = 0; s > 0; i++)
 				{
-					Array.Copy((Object[])bufferArrayList[i], 0, resultArray, array_offset, (s < pageSize)?s:pageSize);
-					//           (i == (bufferArrayList.size() - 1)) ? size() % pageSize : pageSize);
+					Array.Copy((Object[])bufferArrayList.oa[i], 0, resultArray, array_offset, (s < pageSize)?s:pageSize);
+					//           (i == (bufferArrayList.size_Renamed_Field - 1)) ? size() % pageSize : pageSize);
 					s = s - pageSize;
 					array_offset += pageSize;
 				}

@@ -45,7 +45,7 @@ namespace com.ximpleware
 		*/
        	public const int ASCENDING = 0;
 	    public const int DESCENDING = 1;
-		private System.Collections.ArrayList bufferArrayList;
+		private com.ximpleware.ArrayList bufferArrayList;
 		
 		/// <summary> Total capacity of the IntBuffer</summary>
 		private int capacity;
@@ -65,7 +65,7 @@ namespace com.ximpleware
 			pageSize = 1024;
 			exp = 10;
 			r = 1023;
-			bufferArrayList = new System.Collections.ArrayList();
+			bufferArrayList = new ArrayList();
 		}
 		/// <summary> Constructor with adjustable buffer page size of the value bfz</summary>
 		/// <param name="bfz">int  is the size of the internal buffer
@@ -80,22 +80,22 @@ namespace com.ximpleware
 			pageSize = 1 << e;
 			exp = e;
 			r = pageSize - 1;
-			bufferArrayList = new System.Collections.ArrayList();
+			bufferArrayList = new ArrayList();
 		}
 		/// <summary> Append an int array to the end of this buffer instance</summary>
 		/// <param name="int_array">int[]
 		/// </param>
 		public void  append(int[] int_array)
 		{
-			if (int_array == null)
+			/*if (int_array == null)
 			{
 				throw new System.NullReferenceException();
-			}
+			}*/
 			// no additional buffer space needed
-			int lastBufferIndex;
-			int[] lastBuffer;
+			int lastBufferIndex = 0;
+			int[] lastBuffer = null;
 			
-			if (bufferArrayList.Count == 0)
+			if (bufferArrayList.size == 0)
 			{
 				lastBuffer = new int[pageSize];
 				bufferArrayList.Add(lastBuffer);
@@ -104,8 +104,8 @@ namespace com.ximpleware
 			}
 			else
 			{
-				lastBufferIndex = System.Math.Min((size_Renamed_Field >> exp), bufferArrayList.Count - 1);
-				lastBuffer = (int[]) bufferArrayList[lastBufferIndex];
+				lastBufferIndex = System.Math.Min((size_Renamed_Field >> exp), bufferArrayList.size - 1);
+				lastBuffer = (int[]) bufferArrayList.Get(lastBufferIndex);
 			}
 			
 			if ((this.size_Renamed_Field + int_array.Length) < this.capacity)
@@ -131,11 +131,11 @@ namespace com.ximpleware
 					int z;
 					for (z = 1; z <= k; z++)
 					{
-						Array.Copy(int_array, offset, (int[])bufferArrayList[lastBufferIndex + z], 0, pageSize);
+						Array.Copy(int_array, offset, (int[])bufferArrayList.oa[lastBufferIndex + z], 0, pageSize);
 						offset += pageSize;
 					}
 					// copy the last part
-					Array.Copy(int_array, offset, (int[])bufferArrayList[lastBufferIndex + z], 0, l & r);
+                    Array.Copy(int_array, offset, (int[])bufferArrayList.oa[lastBufferIndex + z], 0, l & r);
 				}
 				size_Renamed_Field += int_array.Length;
 				return ;
@@ -183,39 +183,25 @@ namespace com.ximpleware
 		/// </param>
 		public void  append(int i)
 		{
-			
-			int[] lastBuffer;
-            int lastBufferIndex;
-			if (bufferArrayList.Count == 0)
-			{
-				lastBuffer = new int[pageSize];
-				bufferArrayList.Add(lastBuffer);
-				capacity = pageSize;
-			}
-			else
-			{
-                lastBufferIndex = System.Math.Min((size_Renamed_Field >> exp), bufferArrayList.Count - 1);
-                lastBuffer = (int[])bufferArrayList[lastBufferIndex];
-			}
-			if ((this.size_Renamed_Field + 1) <= this.capacity)
-			{
-				//get the last buffer from the bufferListArray
-				//obtain the starting offset in that buffer to which the data is to be copied
-				//update length
-				//System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
-				lastBuffer[size_Renamed_Field & r] = i;
-				//        lastBuffer[size % pageSize] = i;
-				size_Renamed_Field += 1;
-			}
-			// new buffers needed
-			else
-			{
-				int[] newBuffer = new int[pageSize];
-				size_Renamed_Field++;
-				capacity += pageSize;
-				bufferArrayList.Add(newBuffer);
-				newBuffer[0] = i;
-			}
+
+            if (this.size_Renamed_Field < this.capacity)
+            {
+                //get the last buffer from the bufferListArray
+                //obtain the starting offset in that buffer to which the data is to be copied
+                //update length
+                //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
+                ((int[])bufferArrayList.oa[bufferArrayList.size - 1])[size_Renamed_Field & r] = i;
+                //        lastBuffer[size % pageSize] = i;
+                size_Renamed_Field += 1;
+            }
+            else // new buffers needed
+            {
+                int[] newBuffer = new int[pageSize];
+                size_Renamed_Field++;
+                capacity += pageSize;
+                bufferArrayList.Add(newBuffer);
+                newBuffer[0] = i;
+            }
 		}
 		/// <summary> Returns a single int array representing every int in this buffer instance</summary>
 		/// <returns> int[]  (null if there isn't anything left in the buffer   
@@ -230,7 +216,7 @@ namespace com.ximpleware
 			{
 				throw (new System.ArgumentException());
 			}
-			if ((startingOffset + len) > size())
+			if ((startingOffset + len) > size_Renamed_Field)
 			{
 				throw (new System.IndexOutOfRangeException());
 			}
@@ -251,14 +237,14 @@ namespace com.ximpleware
 			if (first_index == last_index)
 			{
 				// to see if there is a need to go across buffer boundry
-				Array.Copy(((int[])bufferArrayList[first_index]), startingOffset & r, result, 0, len);
+				Array.Copy(((int[])bufferArrayList.oa[first_index]), startingOffset & r, result, 0, len);
 			}
 			else
 			{
 				int int_array_offset = 0;
 				for (int i = first_index; i <= last_index; i++)
 				{
-					int[] currentChunk = (int[]) bufferArrayList[i];
+					int[] currentChunk = (int[]) bufferArrayList.oa[i];
 					if (i == first_index)
 					// first section
 					{
@@ -287,16 +273,16 @@ namespace com.ximpleware
 		/// </param>
 		public int intAt(int index)
 		{
-			if (index < 0 || index > size() - 1)
+			/*if (index < 0 || index > size() - 1)
 			{
 				throw new System.IndexOutOfRangeException();
-			}
+			}*/
 			//    int pageNum = (int) index / pageSize;
 			int pageNum = index >> exp;
 			//System.out.println("page Number is "+pageNum); 
 			//    int offset = index % pageSize;
 			int offset = index & r;
-			return ((int[]) bufferArrayList[pageNum])[offset];
+			return ((int[]) bufferArrayList.oa[pageNum])[offset];
 		}
 		/// <summary> Assigns a new int value to location index of the buffer instance.</summary>
 		/// <param name="index">int
@@ -314,7 +300,7 @@ namespace com.ximpleware
 			
 			//        ((int[]) bufferArrayList.get((int) (index / pageSize)))[index % pageSize] =
 			//UPGRADE_TODO: Method 'java.util.ArrayList.get' was not converted. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1095'"
-			((int[]) bufferArrayList[(index >> exp)])[index & r] = newValue;
+			((int[]) bufferArrayList.oa[(index >> exp)])[index & r] = newValue;
 		}
 		/// <summary> Returns the total number of int values in the buffer instance</summary>
 		/// <returns> int
@@ -336,7 +322,7 @@ namespace com.ximpleware
 				int array_offset = 0;
 				for (int i = 0; s > 0; i++)
 				{
-					Array.Copy((int[])bufferArrayList[i], 0, resultArray, array_offset, (s < pageSize)?s:pageSize);
+					Array.Copy((int[])bufferArrayList.oa[i], 0, resultArray, array_offset, (s < pageSize)?s:pageSize);
 					//            (i == (bufferArrayList.size() - 1)) ? size() % pageSize : pageSize);
 					s = s - pageSize;
 					array_offset += pageSize;
