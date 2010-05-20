@@ -39,15 +39,21 @@ namespace com.ximpleware
             get
             {
                 int n;
-                while (true)
+                do
                 {
                     n = r.Char;
-                    if (n == ' ' || n == '\t' || n == '\n' || n == '\r')
+                    if (n == ' ' ||  n == '\n' ||n == '\t'|| n == '\r' )
                     {
                     }
                     else
                         return n;
-                }
+                    n = r.Char;
+                    if (n == ' ' || n == '\n' || n == '\t' || n == '\r')
+                    {
+                    }
+                    else
+                        return n;
+                } while (true) ;
                 //throw new EOFException("should never come here");
             }
 
@@ -58,33 +64,33 @@ namespace com.ximpleware
         /// <throws>  ParseException Super class for any exception during parsing. </throws>
         /// <throws>  EncodingException UTF/native encoding exception. </throws>
         /// <throws>  com.ximpleware.EOFException End of file exception. </throws>
-        private int CharAfterSe
-        {
-            get
-            {
-                int n = 0;
-                int temp; //offset saver
-                while (true)
-                {
-                    n = r.Char;
-                    if (!XMLChar.isSpaceChar(n))
-                    {
-                        if (n != '&')
-                            return n;
-                        else
-                        {
-                            temp = offset;
-                            if (!XMLChar.isSpaceChar(entityIdentifier()))
-                            {
-                                offset = temp; // rewind
-                                return '&';
-                            }
-                        }
-                    }
-                }
-            }
+        //private int CharAfterSe
+        //{
+        //    get
+        //    {
+        //        int n = 0;
+        //        int temp; //offset saver
+        //        while (true)
+        //        {
+        //            n = r.Char;
+        //            if (!XMLChar.isSpaceChar(n))
+        //            {
+        //                if (n != '&')
+        //                    return n;
+        //                else
+        //                {
+        //                    temp = offset;
+        //                    if (!XMLChar.isSpaceChar(entityIdentifier()))
+        //                    {
+        //                        offset = temp; // rewind
+        //                        return '&';
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
 
-        }
+        //}
         /// <summary> This method returns the VTDNav object after parsing, it also cleans 
         /// internal state so VTDGen can process the next file.
         /// </summary>
@@ -2240,9 +2246,9 @@ namespace com.ximpleware
             must_utf_8 = false;
             ch = ch_temp = 0;
             r = new UTF8Reader(this);
-            nsBuffer1.clear();
-            nsBuffer2.clear();
-            nsBuffer3.clear();
+            nsBuffer1.size_Renamed_Field = 0;
+            nsBuffer2.size_Renamed_Field = 0;
+            nsBuffer3.size_Renamed_Field = 0;
             currentElementRecord = 0;
         }
         /// <summary> This method will detect whether the entity is valid or not and increment offset.</summary>
@@ -2696,7 +2702,8 @@ namespace com.ximpleware
 
 
                         case STATE_START_TAG:  //name space is handled by
-                            while (true)
+
+                            do
                             {
                                 ch = r.Char;
                                 if (XMLChar.isNameChar(ch))
@@ -2712,7 +2719,7 @@ namespace com.ximpleware
                                 }
                                 else
                                     break;
-                            }
+                            } while (true);
                             length1 = offset - temp_offset - increment;
                             if (depth > MAX_DEPTH)
                             {
@@ -2752,10 +2759,10 @@ namespace com.ximpleware
 
                                 if (depth <= nsBuffer1.size_Renamed_Field - 1)
                                 {
-                                    nsBuffer1.resize(depth );
-                                    int t = nsBuffer1.intAt(depth-1) + 1;
-                                    nsBuffer2.resize(t);
-                                    nsBuffer3.resize(t);
+                                    nsBuffer1.size_Renamed_Field = depth;
+                                    int t = nsBuffer1.intAt(depth - 1) + 1;
+                                    nsBuffer2.size_Renamed_Field = t;
+                                    nsBuffer3.size_Renamed_Field = t;
                                 }
                             }
                             length2 = 0;
@@ -2782,13 +2789,14 @@ namespace com.ximpleware
                                 if (ns == true)
                                 {
                                     nsBuffer1.append(nsBuffer3.size_Renamed_Field - 1);
-                                    if (currentElementRecord!=0)
+                                    if (currentElementRecord != 0)
                                         qualifyElement();
                                 }
                                 if (depth != -1)
                                 {
                                     temp_offset = offset;
-                                    ch = CharAfterSe; // consume WSs
+                                    //ch = CharAfterSe; // consume WSs
+                                    ch = CharAfterS;
                                     if (ch == '<')
                                     {
                                         if (ws)
@@ -2814,27 +2822,11 @@ namespace com.ximpleware
                                         //temp_offset = offset;
                                         parser_state = STATE_TEXT;
                                     }
-                                    else if (ch == '&')
-                                    {
-                                        //has_amp = true;
-                                        //temp_offset = offset;
-                                        entityIdentifier();
-                                        parser_state = STATE_TEXT;
-                                    }
-                                    else if (ch == ']')
-                                    {
-                                        if (r.skipChar(']'))
-                                        {
-                                            while (r.skipChar(']'))
-                                            {
-                                            }
-                                            if (r.skipChar('>'))
-                                                throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-                                        }
-                                        parser_state = STATE_TEXT;
-                                    }
                                     else
-                                        throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
+                                    {
+                                        parser_state = STATE_TEXT;
+                                        handleOtherTextChar2(ch);
+                                    } 
                                 }
                                 else
                                 {
@@ -2878,26 +2870,11 @@ namespace com.ximpleware
                                 {
                                     parser_state = STATE_TEXT;
                                 }
-                                else if (ch == '&')
-                                {
-                                    //has_amp = true;
-                                    entityIdentifier();
-                                    parser_state = STATE_TEXT;
-                                }
-                                else if (ch == ']')
-                                {
-                                    if (r.skipChar(']'))
-                                    {
-                                        while (r.skipChar(']'))
-                                        {
-                                        }
-                                        if (r.skipChar('>'))
-                                            throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-                                    }
-                                    parser_state = STATE_TEXT;
-                                }
                                 else
-                                    throw new ParseException("Other Error: Invalid char in xml" + formatLineNumber());
+                                {
+                                    handleOtherTextChar2(ch);
+                                    parser_state = STATE_TEXT;
+                                }
                             }
                             else
                                 parser_state = STATE_DOC_END;
@@ -2922,8 +2899,8 @@ namespace com.ximpleware
                                     }
                                 }
                             }
-                            while (true)
-                            {
+                            
+                            do {
                                 if (XMLChar.isNameChar(ch))
                                 {
                                     if (ch == ':')
@@ -2934,7 +2911,7 @@ namespace com.ximpleware
                                 }
                                 else
                                     break;
-                            }
+                            } while (true) ;
                             length1 = PrevOffset - temp_offset;
                             if (is_ns && ns)
                             {
@@ -3063,7 +3040,7 @@ namespace com.ximpleware
                             break;
 
                         case STATE_ATTR_VAL:
-                            while (true)
+                            do
                             {
                                 ch = r.Char;
                                 if (XMLChar.isValidChar(ch) && ch != '<')
@@ -3081,7 +3058,7 @@ namespace com.ximpleware
                                 }
                                 else
                                     throw new ParseException("Error in attr: Invalid XML char" + formatLineNumber());
-                            }
+                            } while (true) ;
 
                             length1 = offset - temp_offset - increment;
                             if (ns && is_ns)
@@ -3163,21 +3140,23 @@ namespace com.ximpleware
                                 if (ns == true)
                                 {
                                     nsBuffer1.append(nsBuffer3.size_Renamed_Field - 1);
-                                    qualifyAttributes();
-                                    if (prefixed_attr_count > 0)
+                                    if (prefixed_attr_count > 0) 
+                                        qualifyAttributes();
+                                    if (prefixed_attr_count > 1)
                                     {
                                         checkQualifiedAttributeUniqueness();
                                         prefixed_attr_count = 0;
                                     }
-                                    if (currentElementRecord!=0)
+                                    if (currentElementRecord != 0)
                                         qualifyElement();
-                                    
+
                                 }
                                 attr_count = 0;
                                 if (depth != -1)
                                 {
                                     temp_offset = offset;
-                                    ch = CharAfterSe;
+                                    //ch = CharAfterSe;
+                                    ch = CharAfterS;
                                     if (ch == '<')
                                     {
                                         if (ws)
@@ -3203,27 +3182,11 @@ namespace com.ximpleware
                                         //temp_offset = offset;
                                         parser_state = STATE_TEXT;
                                     }
-                                    else if (ch == '&')
+                                    else 
                                     {
-                                        //has_amp = true;
-                                        //temp_offset = offset;
-                                        entityIdentifier();
-                                        parser_state = STATE_TEXT;
-                                    }
-                                    else if (ch == ']')
-                                    {
-                                        if (r.skipChar(']'))
-                                        {
-                                            while (r.skipChar(']'))
-                                            {
-                                            }
-                                            if (r.skipChar('>'))
-                                                throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-                                        }
-                                        parser_state = STATE_TEXT;
-                                    }
-                                    else
-                                        throw new ParseException("Error in text content: Invalid char" + formatLineNumber());
+									    handleOtherTextChar2(ch);
+									    parser_state = STATE_TEXT;
+								    }
                                 }
                                 else
                                 {
@@ -3238,37 +3201,29 @@ namespace com.ximpleware
                         case STATE_TEXT:
                             if (depth == -1)
                                 throw new ParseException("Error in text content: Char data at the wrong place" + formatLineNumber());
-                            while (true)
+                            do
                             {
                                 ch = r.Char;
                                 if (XMLChar.isContentChar(ch))
                                 {
                                 }
-                                else if (ch == '&')
+                                else if (ch == '<')
                                 {
-                                    //has_amp = true;
-                                    if (!XMLChar.isValidChar(entityIdentifier()))
-                                        throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
-                                    //parser_state = STATE_TEXT;
+                                    break;
+                                }
+                                else
+                                    handleOtherTextChar(ch);
+                                ch = r.Char;
+                                if (XMLChar.isContentChar(ch))
+                                {
                                 }
                                 else if (ch == '<')
                                 {
                                     break;
                                 }
-                                else if (ch == ']')
-                                {
-                                    if (r.skipChar(']'))
-                                    {
-                                        while (r.skipChar(']'))
-                                        {
-                                        }
-                                        if (r.skipChar('>'))
-                                            throw new ParseException("Error in text content: ]]> in text content" + formatLineNumber());
-                                    }
-                                }
                                 else
-                                    throw new ParseException("Error in text content: Invalid char in text content " + formatLineNumber());
-                            }
+                                    handleOtherTextChar(ch);
+                            } while (true) ;
                             length1 = offset - increment - temp_offset;
 
                             if (encoding < FORMAT_UTF_16BE)
@@ -3950,7 +3905,8 @@ namespace com.ximpleware
                 if (r.skipChar('>'))
                 {
                     temp_offset = offset;
-                    ch = CharAfterSe;
+                    //ch = CharAfterSe;
+                    ch = CharAfterS;
                     if (ch == '<')
                     {
                         if (ws)
@@ -4039,7 +3995,8 @@ namespace com.ximpleware
             }
             //length1 = 0;
             temp_offset = offset;
-            ch = CharAfterSe;
+            ch = CharAfterS;
+            //ch = CharAfterSe;
 
             if (ch == '<')
             {
@@ -4107,7 +4064,8 @@ namespace com.ximpleware
                     writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
                 //length1 = 0;
                 temp_offset = offset;
-                ch = CharAfterSe;
+                //ch = CharAfterSe;
+                ch = CharAfterS;
                 if (ch == '<')
                 {
                     if (ws)
@@ -4355,7 +4313,8 @@ namespace com.ximpleware
             }
             //System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
             temp_offset = offset;
-            ch = CharAfterSe;
+            //ch = CharAfterSe;
+            ch = CharAfterS;
             if (ch == '<')
             {
                 if (ws)
@@ -4622,9 +4581,9 @@ namespace com.ximpleware
             last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
             int i1 = 7, i2 = 9, i3 = 11;
             currentElementRecord = 0;
-            nsBuffer1.clear();
-            nsBuffer2.clear();
-            nsBuffer3.clear();
+            nsBuffer1.size_Renamed_Field = 0;
+            nsBuffer2.size_Renamed_Field = 0;
+            nsBuffer3.size_Renamed_Field = 0;
             r = new UTF8Reader(this);
             if (docLen <= 1024)
             {
@@ -4663,10 +4622,10 @@ namespace com.ximpleware
             }
             else
             {
-                VTDBuffer.clear();
-                l1Buffer.clear();
-                l2Buffer.clear();
-                l3Buffer.clear();
+                VTDBuffer.size_Renamed_Field = 0;
+                l1Buffer.size_Renamed_Field = 0;
+                l2Buffer.size_Renamed_Field = 0;
+                l3Buffer.size_Renamed_Field = 0;
             }
         }
 
@@ -4703,9 +4662,9 @@ namespace com.ximpleware
             last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
             int i1 = 7, i2 = 9, i3 = 11;
             currentElementRecord = 0;
-            nsBuffer1.clear();
-            nsBuffer2.clear();
-            nsBuffer3.clear();
+            nsBuffer1.size_Renamed_Field = 0;
+            nsBuffer2.size_Renamed_Field = 0;
+            nsBuffer3.size_Renamed_Field = 0;
             //r = new UTF8Reader();
             r = new UTF8Reader(this);
             if (docLen <= 1024)
@@ -5761,6 +5720,65 @@ namespace com.ximpleware
                 }
                 //System.out.println("======");
             }
+        }
+
+        private void handleOtherTextChar(int ch)
+        {
+            if (ch == '&')
+            {
+                //has_amp = true;	
+                if (!XMLChar.isValidChar(entityIdentifier()))
+                    throw new ParseException(
+                        "Error in text content: Invalid char in text content "
+                        + formatLineNumber());
+                //parser_state = STATE_TEXT;
+            }
+            else if (ch == ']')
+            {
+                if (r.skipChar(']'))
+                {
+                    while (r.skipChar(']'))
+                    {
+                    }
+                    if (r.skipChar('>'))
+                        throw new ParseException(
+                            "Error in text content: ]]> in text content"
+                            + formatLineNumber());
+                }
+            }
+            else
+                throw new ParseException(
+                    "Error in text content: Invalid char in text content "
+                    + formatLineNumber());
+        }
+
+        private void handleOtherTextChar2(int ch)
+        {
+            if (ch == '&')
+            {
+                //has_amp = true;
+                //temp_offset = offset;
+                entityIdentifier();
+                //parser_state = STATE_TEXT;
+            }
+            else if (ch == ']')
+            {
+                if (r.skipChar(']'))
+                {
+                    while (r.skipChar(']'))
+                    {
+                    }
+                    if (r.skipChar('>'))
+                        throw new ParseException(
+                            "Error in text content: ]]> in text content"
+                                + formatLineNumber());
+                }
+                //parser_state = STATE_TEXT;
+            }
+            else
+                throw new ParseException(
+                    "Error in text content: Invalid char"
+                        + formatLineNumber());
         }
 
     }
