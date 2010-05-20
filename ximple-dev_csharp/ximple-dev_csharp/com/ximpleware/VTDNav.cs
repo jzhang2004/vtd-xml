@@ -1919,13 +1919,13 @@ namespace com.ximpleware
             if (ln.Equals("*") || ((preLen != 0) ? matchRawTokenString(offset + preLen + 1, fullLen - preLen - 1, ln) : matchRawTokenString(offset, fullLen, ln)))
             {
                 // no prefix, search for xmlns
-                if (((URL != null) ? URL.Equals("*") : false) 
+                if (((URL != null) ? URL.Equals("*") : false)
                     || (resolveNS(URL, offset, preLen) == true))
                     return true;
                 if (preLen == 3
                 && matchRawTokenString(offset, preLen, "xml")
                 && URL.Equals("http://www.w3.org/XML/1998/namespace"))
-                    return true; 
+                    return true;
             }
             return false;
         }
@@ -2922,7 +2922,7 @@ namespace com.ximpleware
         /// </summary>
         protected internal void clearStack2()
         {
-            contextStack2.size=0;
+            contextStack2.size = 0;
         }
 
 
@@ -5783,6 +5783,31 @@ namespace com.ximpleware
             else
                 bm.setCursorPosition();
             return (((long)len) << 32) | so;
+        }
+
+        /// <summary>
+        /// Return the prefix of a token as a string if the token 
+        /// is of the type of starting tag, attribute name, if the 
+        /// the prefix doesn't exist, a null string is returned;
+        /// otherwise a null string is returned
+        ///
+        /// </summary>
+        /// <param name="i">VTD index of a token</param>
+        /// <returns> prefix string</returns>
+
+        public String getPrefixString(int i)
+        {
+            if (ns == false)
+                return null;
+            int type = getTokenType(i);
+            if (type != TOKEN_ATTR_NAME && type != TOKEN_STARTING_TAG)
+                return null;
+            int offset = getTokenOffset(i);
+            int preLen = getTokenLength(i) >> 16;
+            if (preLen != 0)
+                return toRawString(offset, preLen);
+
+            return null;
         }
     }
 }
