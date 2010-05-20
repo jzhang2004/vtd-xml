@@ -2917,7 +2917,7 @@ public class VTDNav {
      *  
      */
 	final protected void clearStack2(){
-		contextStack2.clear();
+		contextStack2.size = 0;
 	}
 	
 	
@@ -5187,6 +5187,27 @@ public class VTDNav {
 		l3index = i;
 	}
 	
-	
+	/**
+	 * Return the prefix of a token as a string if the token 
+	 * is of the type of starting tag, attribute name, if the 
+	 * the prefix doesn't exist, a null string is returned;
+	 * otherwise a null string is returned
+	 * 
+	 * @param i  VTD index of a token
+	 * @return
+	 */
+	public String getPrefixString(int i) throws NavException{
+		if (ns == false)
+			return null;
+		int type = getTokenType(i);
+		if (type != TOKEN_ATTR_NAME && type != TOKEN_STARTING_TAG)
+			return null;
+		int offset = getTokenOffset(i);
+		int preLen = getTokenLength(i) >> 16;
+		if (preLen !=0)
+			return toRawString(offset,preLen);
+
+		return null;
+	}
 	
 }
