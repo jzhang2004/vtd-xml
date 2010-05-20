@@ -53,7 +53,7 @@ static void matchUTFEncoding(VTDGen *vg);
 static Boolean skipUTF8(VTDGen *vg,int temp,int ch);
 static Boolean skip_16be(VTDGen *vg, int ch);
 static Boolean skip_16le(VTDGen *vg, int ch);
-static int getCharAfterSe(VTDGen *vg);
+//static int getCharAfterSe(VTDGen *vg);
 static inline int getCharAfterS(VTDGen *vg);
 static inline Boolean skipChar(VTDGen *vg, int ch);
 static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth);
@@ -92,6 +92,9 @@ static Long _handle_16be(VTDGen *vg, int byte_offset);
 static Long _handle_16le(VTDGen *vg, int byte_offset);
 static Long _handle_utf8(VTDGen *vg,int c,int offset);
 static Long _handleOtherEncoding(VTDGen *vg,int byte_offset);
+static void handleOtherTextChar2(VTDGen *vg,int ch);
+static void handleOtherTextChar(VTDGen *vg, int ch);
+
 
 /* create VTDGen */
 VTDGen *createVTDGen(){
@@ -383,8 +386,12 @@ static int getChar(VTDGen *vg){
 	switch (vg->encoding) {
 			case FORMAT_ASCII :
 				temp = vg->XMLDoc[vg->offset];
-				vg->offset++;
-				return temp;
+				if (temp <128) {
+					vg->offset++;
+					return temp;
+				}else
+				    throwException( parse_exception,0,
+								"Parse exception in getChar", "invalid ASCII char detected");
 			case FORMAT_ISO_8859_1 :
 				temp = vg->XMLDoc[vg->offset];
 				vg->offset++;
@@ -1386,35 +1393,39 @@ static Boolean skip_16le(VTDGen *vg, int ch){
 }
 
 // The entity aware version of getCharAfterS
-static int getCharAfterSe(VTDGen *vg){
-	int n = 0;
-	int temp; //offset saver
-	while (TRUE) {
-		n = getChar(vg);
-		if (!XMLChar_isSpaceChar(n)) {
-			if (n != '&')
-				return n;
-			else {
-				temp = vg->offset;
-				if (!XMLChar_isSpaceChar(entityIdentifier(vg))) {
-					vg->offset = temp; // rewind
-					return '&';
-				}
-			}
-		}
-	}
-}
+//static int getCharAfterSe(VTDGen *vg){
+//	int n = 0;
+//	int temp; //offset saver
+//	while (TRUE) {
+//		n = getChar(vg);
+//		if (!XMLChar_isSpaceChar(n)) {
+//			if (n != '&')
+//				return n;
+//			else {
+//				temp = vg->offset;
+//				if (!XMLChar_isSpaceChar(entityIdentifier(vg))) {
+//					vg->offset = temp; // rewind
+//					return '&';
+//				}
+//			}
+//		}
+//	}
+//}
 
 // The entity ignorant version of getCharAfterS
 static int getCharAfterS(VTDGen *vg){
 	int n, k;
 	n = k = 0;
-	while (TRUE) {
+	 do {
 		n = getChar(vg);
-		if (n == ' ' || n == '\t' || n == '\n' || n == '\r') {
+		if ((n == ' ' || n == '\n' || n =='\t'|| n == '\r'  )) {
 		} else
 			return n;
-	}
+		n = getChar(vg);
+		if ((n == ' ' || n == '\n' || n =='\t'|| n == '\r'  )) {
+		} else
+			return n;
+	}while (TRUE);
 }
 
 // Returns the VTDNav object after parsing, it also cleans 
@@ -1557,7 +1568,7 @@ void parse(VTDGen *vg, Boolean ns){
 						break;
 
 					case STATE_START_TAG : 
-						while (TRUE) {
+						do{
 							vg->ch = getChar(vg);
 							if (XMLChar_isNameChar(vg->ch)) {
 								if (vg->ch == ':') {
@@ -1569,7 +1580,7 @@ void parse(VTDGen *vg, Boolean ns){
 								}
 							} else
 								break;
-						}
+						}while (TRUE);
 						vg->length1 = vg->offset - vg->temp_offset - vg->increment;
 						x = ((Long) vg->length1 << 32) + vg->temp_offset;
 						vg->tag_stack[vg->depth] = x;
@@ -1648,7 +1659,8 @@ void parse(VTDGen *vg, Boolean ns){
 							}
 							if (vg->depth != -1) {
 								vg->temp_offset = vg->offset;
-								vg->ch = getCharAfterSe(vg); // consume WSs
+								//vg->ch = getCharAfterSe(vg); // consume WSs
+								vg->ch = getCharAfterS(vg);
 								if (vg->ch == '<') {
 									if (vg->ws) 
 										addWhiteSpaceRecord(vg);
@@ -1681,24 +1693,10 @@ void parse(VTDGen *vg, Boolean ns){
 								} else if (XMLChar_isContentChar(vg->ch)) {
 								
 									parser_state = STATE_TEXT;
-								} else if (vg->ch == '&') {
-									entityIdentifier(vg);
+								}else {
 									parser_state = STATE_TEXT;
-								} else if (vg->ch == ']') {
-									if (skipChar(vg,']')) {
-										while (skipChar(vg,']')) {
-										}
-										if (skipChar(vg,'>')){		
-											throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in text content: ]]> in text content");
-										}
-									}
-									parser_state = STATE_TEXT;
-								} else{	throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in text content: Invalid char");
-								}
+									handleOtherTextChar2(vg,vg->ch);
+								} 
 							} else {
 								parser_state = STATE_DOC_END;
 							}
@@ -1748,29 +1746,10 @@ void parse(VTDGen *vg, Boolean ns){
 							}
 							else if (XMLChar_isContentChar(vg->ch)) {
 								parser_state = STATE_TEXT;
-							} else if (vg->ch == '&') {
-								//has_amp = true;
-								entityIdentifier(vg);
-								parser_state = STATE_TEXT;
-							} else if (vg->ch == ']') {
-								if (skipChar(vg,']')) {
-									while (skipChar(vg,']')) {
-									}
-									if (skipChar(vg,'>')){		
-										throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in text content: ]]> in text content");
-									}
-
-								}
+							} else {
+								handleOtherTextChar2(vg, vg->ch);
 								parser_state = STATE_TEXT;
 							}
-							else
-							{	throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Other Error: Invalid char in xml");
-							}
-
 						} else
 							parser_state = STATE_DOC_END;
 						break;
@@ -1793,7 +1772,7 @@ void parse(VTDGen *vg, Boolean ns){
 								}
 							}
 						}
-						while (TRUE) {
+						 do{
 							if (XMLChar_isNameChar(vg->ch)) {
 								if (vg->ch == ':') {
 									vg->length2 = vg->offset - vg->temp_offset - vg->increment;
@@ -1801,7 +1780,7 @@ void parse(VTDGen *vg, Boolean ns){
 								vg->ch = getChar(vg);
 							} else
 								break;
-						}
+						}while (TRUE);
 						vg->length1 = getPrevOffset(vg) - vg->temp_offset;
 						if (vg->is_ns && vg->ns){
 							// make sure postfix isn't xmlns
@@ -1964,7 +1943,7 @@ void parse(VTDGen *vg, Boolean ns){
 						break;
 
 					case STATE_ATTR_VAL :
-						while (TRUE) {
+						 do {
 							vg->ch = getChar(vg);
 							if (XMLChar_isValidChar(vg->ch) && vg->ch != '<') {
 								if (vg->ch == vg->ch_temp)
@@ -1982,7 +1961,7 @@ void parse(VTDGen *vg, Boolean ns){
 												"Parse exception in parse()",
 												"Error in attr: Invalid XML char");
 							}
-						}
+						}while (TRUE);
 
 						vg->length1 = vg->offset - vg->temp_offset - vg->increment;
 						if (vg->ns && vg->is_ns){
@@ -2067,8 +2046,9 @@ void parse(VTDGen *vg, Boolean ns){
 						if (vg->ch == '>') {
 							if (vg->ns == TRUE){
 								appendInt(vg->nsBuffer1,vg->nsBuffer3->size-1);
-								qualifyAttributes(vg);
-								if (vg->prefixed_attr_count > 0)
+								if (vg->prefixed_attr_count>0)
+									qualifyAttributes(vg);
+								if (vg->prefixed_attr_count > 1)
 									checkQualifiedAttributeUniqueness(vg);
 								if (vg->currentElementRecord!=0)
 									qualifyElement(vg);
@@ -2077,7 +2057,8 @@ void parse(VTDGen *vg, Boolean ns){
 							vg->attr_count = 0;
 							if (vg->depth != -1) {
 								vg->temp_offset = vg->offset;
-								vg->ch = getCharAfterSe(vg);
+								//vg->ch = getCharAfterSe(vg);
+								vg->ch = getCharAfterS(vg);
 								if (vg->ch == '<') {
 									if (vg->ws) 
 								    	addWhiteSpaceRecord(vg);
@@ -2109,25 +2090,9 @@ void parse(VTDGen *vg, Boolean ns){
 									}
 								} else if (XMLChar_isContentChar(vg->ch)) {
 									parser_state = STATE_TEXT;
-								} else if (vg->ch == '&') {
-									entityIdentifier(vg);
+								}  else {
+									handleOtherTextChar2(vg, vg->ch);
 									parser_state = STATE_TEXT;
-								} else if (vg->ch == ']') {
-									if (skipChar(vg,']')) {
-										while (skipChar(vg,']')) {
-										}
-										if (skipChar(vg,'>')){		
-											throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in text content: ]]> in text content");
-										}
-									}
-									parser_state = STATE_TEXT;
-								}
-								else{		
-									throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in text content: Invalid char");
 								}
 							} else {
 								parser_state = STATE_DOC_END;
@@ -2144,33 +2109,20 @@ void parse(VTDGen *vg, Boolean ns){
 												"Parse exception in parse()",
 												"Error in text: Char data at the wrong place");
 						}
-						while (TRUE) {
+						 do {
 							vg->ch = getChar(vg);
 							if (XMLChar_isContentChar(vg->ch)) {
-							} else if (vg->ch == '&') {
-								if (!XMLChar_isValidChar(entityIdentifier(vg))){		
-									throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in text content: Invalid char in text content");
-								}
 							} else if (vg->ch == '<') {
 								break;
-							} else if (vg->ch == ']') {
-								if (skipChar(vg,']')) {
-									while (skipChar(vg,']')) {
-									}
-									if (skipChar(vg,'>')){		
-										throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in text content: ]]> in text content");
-									}
-								}
-							} else{		
-								throwException(parse_exception,0,
-												"Parse exception in parse()",
-												"Error in text content: Invalid char in text content");
-							}
-						}
+							} else 
+								handleOtherTextChar(vg,vg->ch);
+							vg->ch = getChar(vg);
+							if (XMLChar_isContentChar(vg->ch)) {
+							} else if (vg->ch == '<') {
+								break;
+							} else 
+								handleOtherTextChar(vg,vg->ch);
+						}while (TRUE);
 						vg->length1 = vg->offset - vg->increment - vg->temp_offset;						
 						if (vg->encoding < FORMAT_UTF_16BE){
 							writeVTD(vg,
@@ -2842,7 +2794,8 @@ int process_comment(VTDGen *vg){
 				vg->depth);
 		}
 		vg->temp_offset = vg->offset;
-		vg->ch = getCharAfterSe(vg);
+		//vg->ch = getCharAfterSe(vg);
+		vg->ch = getCharAfterS(vg);
 		if (vg->ch == '<') {
 			if (vg->ws)
 				addWhiteSpaceRecord(vg);
@@ -2965,7 +2918,8 @@ static int process_cdata(VTDGen *vg){
 			vg->depth);
 	}
 	vg->temp_offset = vg->offset;
-	vg->ch = getCharAfterSe(vg);
+	//vg->ch = getCharAfterSe(vg);
+	vg->ch = getCharAfterS(vg);
 	if (vg->ch == '<') {
 		if (vg->ws) 
 		    addWhiteSpaceRecord(vg);
@@ -3039,7 +2993,8 @@ static int process_pi_val(VTDGen *vg){
 			vg->depth);
 	}
 	vg->temp_offset = vg->offset;
-	vg->ch = getCharAfterSe(vg);
+	//vg->ch = getCharAfterSe(vg);
+	vg->ch = getCharAfterS(vg);
 	if (vg->ch == '<') {
 		if (vg->ws) 
 		    addWhiteSpaceRecord(vg);
@@ -3108,7 +3063,8 @@ int process_pi_tag(VTDGen *vg){
 	if (vg->ch == '?') {
 		if (skipChar(vg,'>')) {
 			vg->temp_offset = vg->offset;
-			vg->ch = getCharAfterSe(vg);
+			//vg->ch = getCharAfterSe(vg);
+			vg->ch = getCharAfterS(vg);
 			if (vg->ch == '<') {
 				if (vg->ws) 
 				    addWhiteSpaceRecord(vg);
@@ -4518,4 +4474,50 @@ static Long _handleOtherEncoding(VTDGen *vg,int byte_offset){
 		case FORMAT_WIN_1258: return windows_1258_decode( b)|(1LL<<32);   
 	}
 	return 0LL;
+}
+
+
+static void handleOtherTextChar(VTDGen *vg, int ch){
+	if (ch == '&') {
+		//has_amp = true;	
+		if (!XMLChar_isValidChar(entityIdentifier(vg)))
+			throwException2(parse_exception,
+			"Error in text content: Invalid char in text content ");
+		//+ formatLineNumber());
+		//parser_state = STATE_TEXT;
+	}  else if (ch == ']') {
+		if (skipChar(vg,']')) {
+			while (skipChar(vg,']')) {
+			}
+			if (skipChar(vg,'>'))
+				throwException2(parse_exception,
+				"Error in text content: ]]> in text content");
+			//+ formatLineNumber());
+		}	
+	} else
+		throwException2(parse_exception,
+		"Error in text content: Invalid char in text content ");
+	//+ formatLineNumber());		
+}
+
+static void handleOtherTextChar2(VTDGen *vg,int ch){
+	if (ch == '&') {
+		//has_amp = true;
+		//temp_offset = offset;
+		entityIdentifier(vg);
+		//parser_state = STATE_TEXT;
+	} else if (ch == ']') {
+		if (skipChar(vg,']')) {
+			while (skipChar(vg,']')) {
+			}
+			if (skipChar(vg,'>'))
+				throwException2(parse_exception,
+				"Error in text content: ]]> in text content");
+			//+ formatLineNumber());
+		}
+		//parser_state = STATE_TEXT;
+	}else
+		throwException2(parse_exception,
+		"Error in text content: Invalid char");
+		//+ formatLineNumber());
 }
