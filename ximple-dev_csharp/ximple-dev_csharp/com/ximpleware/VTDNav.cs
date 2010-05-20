@@ -615,7 +615,7 @@ namespace com.ximpleware
                 {
                     fib.modifyEntry(i, fib.intAt(i + count));
                 }
-                fib.resize(newSz);
+                fib.size_Renamed_Field = newSz;
             }
 
             long l = getElementFragment();
@@ -2922,7 +2922,7 @@ namespace com.ximpleware
         /// </summary>
         protected internal void clearStack2()
         {
-            contextStack2.clear();
+            contextStack2.size=0;
         }
 
 
