@@ -4610,3 +4610,21 @@ UCSChar* toNormalizedString2(VTDNav *vn, int index){
 		}
 		return s;
 }
+
+
+UCSChar *getPrefixString(VTDNav *vn, int i){
+	if (vn->ns == FALSE)
+			return NULL;
+	{
+		tokenType type = getTokenType(vn,i);
+		if (type != TOKEN_ATTR_NAME && type != TOKEN_STARTING_TAG)
+			return NULL;
+		else {
+			int offset = getTokenOffset(vn,i);
+			int preLen = getTokenLength(vn,i) >> 16;
+			if (preLen !=0)
+				return toRawString2(vn,offset,preLen);
+		}
+		return NULL;
+	}
+}

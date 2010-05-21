@@ -465,4 +465,13 @@ Boolean matchNormalizedTokenString2(VTDNav *vn, int index, UCSChar *s);
 	 * *For a white space character (#x20, #xD, #xA, #x9), append a space character (#x20) to the normalized value.
 	 * *For another character, append the character to the normalized value.*/
 UCSChar* toNormalizedString2(VTDNav *vn, int index);
+
+
+/** new since 2.9
+	Return the prefix of a token as a string if the token 
+    is of the type of starting tag, attribute name, if the 
+    the prefix doesn't exist, a null string is returned;
+    otherwise a null string is returned
+*/
+UCSChar *getPrefixString(VTDNav *vn, int index);
 #endif
