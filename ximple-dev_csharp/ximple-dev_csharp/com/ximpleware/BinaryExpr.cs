@@ -625,13 +625,10 @@ namespace com.ximpleware
                 if (i1 != -1 )
                 {
                     bool b = compareVString1(i1, vn, s, op);
-                    if (b)
-                    {
-                        left.reset(vn);
-                        vn.contextStack2.size = stackSize;
-                        vn.pop2();
-                        return b;
-                    }
+                    left.reset(vn);
+                    vn.contextStack2.size = stackSize;
+                    vn.pop2();
+                    return b;
                 }
             }
             vn.contextStack2.size = stackSize;
@@ -680,13 +677,10 @@ namespace com.ximpleware
                 if (i1 != -1)
                 {
                     bool b = compareVString2(i1, vn, s, op);
-                    if (b)
-                    {
-                        right.reset(vn);
-                        vn.contextStack2.size = stackSize;
-                        vn.pop2();
-                        return b;
-                    }
+                    right.reset(vn);
+                    vn.contextStack2.size = stackSize;
+                    vn.pop2();
+                    return b;
                 }
             }
             vn.contextStack2.size = stackSize;
