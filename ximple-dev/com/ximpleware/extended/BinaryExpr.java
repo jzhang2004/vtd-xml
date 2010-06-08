@@ -296,12 +296,12 @@ public class BinaryExpr extends Expr {
                //return true;
                if (i1 != -1) {
                    boolean b = compareVString1(i1,vn,s,op);
-                   if (b){
-                       left.reset(vn);
-                       vn.contextStack2.size = stackSize;
-                       vn.pop2();
-                       return b;
-                   }
+                   //if (b){
+                   left.reset(vn);
+                   vn.contextStack2.size = stackSize;
+                   vn.pop2();
+                   return b;
+                   //}
                }
            }           
            vn.contextStack2.size = stackSize;
@@ -337,12 +337,12 @@ public class BinaryExpr extends Expr {
                 i1 = getStringVal(vn,i); 
                 if (i1 != -1){
                     boolean b = compareVString2(i1,vn,s,op);
-                    if (b){
-                      right.reset(vn);
-                      vn.contextStack2.size = stackSize;
-                      vn.pop2();
-                      return b;
-                    }
+                    //if (b){
+                    right.reset(vn);
+                    vn.contextStack2.size = stackSize;
+                    vn.pop2();
+                    return b;
+                    //}
                 }
             }    
             vn.contextStack2.size = stackSize;
