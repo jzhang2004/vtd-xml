@@ -3864,7 +3864,7 @@ namespace com.ximpleware
         /// <throws>  EOFException </throws>
         private int process_pi_tag()
         {
-            int length1;
+            //int length1;
             int parser_state;
             while (true)
             {
@@ -3895,11 +3895,11 @@ namespace com.ximpleware
                 writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_PI_NAME, depth);
             }
             //length1 = 0;
-            temp_offset = offset;
+            /*temp_offset = offset;
             if (XMLChar.isSpaceChar(ch))
             {
                 ch = r.Char;
-            }
+            }*/
             if (ch == '?')
             {
                 if (r.skipChar('>'))
@@ -3954,7 +3954,13 @@ namespace com.ximpleware
         private int process_pi_val()
         {
             int parser_state;
-            int length1;
+            //int length1;
+            if (!XMLChar.isSpaceChar(ch))
+                throw new ParseException(
+                        "Error in PI: invalid termination sequence"
+                            + formatLineNumber());
+            temp_offset = offset;
+            ch = r.Char;
             while (true)
             {
                 if (XMLChar.isValidChar(ch))
@@ -3965,8 +3971,8 @@ namespace com.ximpleware
                         {
                             break;
                         }
-                        else
-                            throw new ParseException("Error in PI: invalid termination sequence for PI" + formatLineNumber());
+                        /*else
+                            throw new ParseException("Error in PI: invalid termination sequence for PI" + formatLineNumber());*/
                 }
                 else
                     throw new ParseException("Errors in PI: Invalid char in PI val" + formatLineNumber());
@@ -4514,7 +4520,7 @@ namespace com.ximpleware
         private int process_end_comment()
         {
             int parser_state;
-            int length1;
+            //int length1;
             while (true)
             {
                 ch = r.Char;
