@@ -2267,6 +2267,17 @@ public class VTDGen {
 								}
 							} else
 								break;
+							ch = r.getChar();
+							if (XMLChar.isNameChar(ch)) {
+								if (ch == ':') {
+									length2 = offset - temp_offset - increment;
+									if (ns==true && checkPrefix2(temp_offset,length2))
+										throw new ParseException(
+												"xmlns can't be an element prefix "
+												+ formatLineNumber(offset));
+								}
+							} else
+								break;
 						}while (true);
 						length1 = offset - temp_offset - increment;
 						if (depth > MAX_DEPTH) {
@@ -3155,7 +3166,7 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_cdata() throws ParseException, EncodingException, EOFException{
-		int parser_state, length1;
+		int parser_state;
 		while (true) {
 			ch = r.getChar();
 			if (XMLChar.isValidChar(ch)) {
@@ -3233,7 +3244,7 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_comment() throws ParseException, EncodingException, EOFException{
-		int parser_state,length1;
+		int parser_state;
 		while (true) {
 			ch = r.getChar();
 			if (XMLChar.isValidChar(ch)) {
@@ -3598,7 +3609,7 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_doc_type() throws ParseException,EncodingException, EOFException{
-		int z = 1, length1, parser_state;
+		int z = 1,parser_state;
 		while (true) {
 			ch = r.getChar();
 			if (XMLChar.isValidChar(ch)) {
@@ -3654,7 +3665,6 @@ public class VTDGen {
 	 */
 	private int process_end_comment()throws ParseException {
 		int parser_state;
-		int length1;
 		while (true) {
 			ch = r.getChar();
 			if (XMLChar.isValidChar(ch)) {
@@ -3724,7 +3734,7 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_end_pi() throws ParseException,EncodingException, EOFException{
-		int length1, parser_state;
+		int parser_state;
 		ch = r.getChar();
 		if (XMLChar.isNameStartChar(ch)) {
 			if ((ch == 'x' || ch == 'X')
@@ -3915,14 +3925,14 @@ public class VTDGen {
 	 * @throws EOFException
 	 */
 	private int process_pi_tag() throws ParseException, EncodingException, EOFException{
-		int length1;
 		int parser_state;
 		while (true) {
-			ch = r.getChar();
+			ch = r.getChar();	
 			if (!XMLChar.isNameChar(ch))
 				break;
+			//System.out.println(" ch ==> "+(char)ch);
 		}
-
+	
 		length1 = offset - temp_offset - increment;
 		/*System.out.println(
 		    ((char) XMLDoc[temp_offset])
@@ -3955,10 +3965,11 @@ public class VTDGen {
 				depth);
 		}
 		//length1 = 0;
-		temp_offset = offset;
-		if (XMLChar.isSpaceChar(ch)) {
+		//temp_offset = offset;
+		/*if (XMLChar.isSpaceChar(ch)) {
 			ch = r.getChar();
-		}
+		}*/
+		//ch = r.getChar();
 		if (ch == '?') {
 			if (r.skipChar('>')) {
 				temp_offset = offset;
@@ -4006,17 +4017,22 @@ public class VTDGen {
 	 */
 	private int process_pi_val() throws ParseException, EncodingException, EOFException{
 		int parser_state;
-		int length1;
+		if (!XMLChar.isSpaceChar(ch)) 
+			throw new ParseException(
+					"Error in PI: invalid termination sequence"
+						+ formatLineNumber());
+		temp_offset = offset;
+		ch = r.getChar();
 		while (true) {
 			if (XMLChar.isValidChar(ch)) {
 				//System.out.println(""+(char)ch);
 				if (ch == '?')
 					if (r.skipChar('>')) {
 						break;
-					} else
+					} /*else
 						throw new ParseException(
 							"Error in PI: invalid termination sequence for PI"
-								+ formatLineNumber());
+								+ formatLineNumber());*/
 			} else
 				throw new ParseException(
 					"Errors in PI: Invalid char in PI val"
@@ -4032,6 +4048,7 @@ public class VTDGen {
 		        + length1
 		        + " PI val "
 		        + depth);*/
+		if (length1 !=0)
 		if (encoding < FORMAT_UTF_16BE){
 			if (length1 > MAX_TOKEN_LENGTH)
 				  throw new ParseException("Token Length Error:"
@@ -4841,7 +4858,7 @@ public class VTDGen {
 					+ formatLineNumber());
 	}
 	
-	public static void main(String[] sv) throws Exception{
+	/*public static void main(String[] sv) throws Exception{
 		VTDGen vg = new VTDGen();
 		FileInputStream fis = null;
 	    File f = null;
@@ -4864,7 +4881,8 @@ public class VTDGen {
 				ch = vg.r.getChar();
 				if (vg.offset >= vg.XMLDoc.length)
 					break;
-				else if (XMLChar.isNameChar(ch)){
+				//else if (ch < 0x10000 && (XMLChar.UNI_CHARS[ch] & XMLChar.XML_SPACE) != 0){
+				else if ((XMLChar.UNI_CHARS[ch] & XMLChar.XML_SPACE) != 0){
 					if (ch==':'){
 						j++;
 						k1++;
@@ -4883,7 +4901,8 @@ public class VTDGen {
 				ch = vg.r.getChar();
 				if (vg.offset >= vg.XMLDoc.length)
 					break;
-				else if (XMLChar.isNameChar(ch)){
+//				else if (ch < 0x10000 && (XMLChar.UNI_CHARS[ch] & XMLChar.XML_SPACE) != 0){
+				else if ((XMLChar.UNI_CHARS[ch] & XMLChar.XML_SPACE) != 0){
 					if (ch==':'){
 						j++;
 						k1++;
@@ -4904,7 +4923,8 @@ public class VTDGen {
 				ch = vg.r.getChar();
 				if (vg.offset >= vg.XMLDoc.length)
 					break;
-				else if (XMLChar.isNameChar(ch)){
+				//else if (ch < 0x10000 && (XMLChar.UNI_CHARS[ch] & XMLChar.XML_SPACE) != 0){
+				else if ((XMLChar.UNI_CHARS[ch] & XMLChar.XML_SPACE) != 0){
 					if (ch==':'){
 						j++;
 						k1++;
@@ -4913,20 +4933,12 @@ public class VTDGen {
 				ch = vg.r.getChar();
 				if (vg.offset >= vg.XMLDoc.length)
 					break;
-				else if (XMLChar.isNameChar(ch)){
+				//else if (ch < 0x10000 && (XMLChar.UNI_CHARS[ch] & XMLChar.XML_SPACE) != 0){
+				else if ((XMLChar.UNI_CHARS[ch] & XMLChar.XML_SPACE) != 0){
 					if (ch==':')
 					{j++;
 					k1++;}
 				}
-				/*ch = vg.r.getChar();
-				if (vg.offset >= vg.XMLDoc.length)
-					break;
-				else if (XMLChar.isNameChar(ch)){
-					if (ch==':'){
-						j++;
-						k1++;
-					}
-				}
 				ch = vg.r.getChar();
 				if (vg.offset >= vg.XMLDoc.length)
 					break;
@@ -4936,6 +4948,15 @@ public class VTDGen {
 						k1++;
 					}
 				}
+				ch = vg.r.getChar();
+				if (vg.offset >= vg.XMLDoc.length)
+					break;
+				else if (XMLChar.isNameChar(ch)){
+					if (ch==':'){
+						j++;
+						k1++;
+					}
+				}
 				/*ch = vg.r.getChar();
 				if (vg.offset >= vg.XMLDoc.length)
 					break;
@@ -4955,12 +4976,12 @@ public class VTDGen {
 				if (vg.offset >= vg.XMLDoc.length)
 					break;
 				else if (XMLChar.isNameChar(ch))
-					j++;*/
+					j++;
 			}while(true);
 		}
 		l2 = System.nanoTime();
 		System.out.println(" latency in nano-seconds  "+(l2-l)/k);
 
 	}
-	 
+	 */
 }	
