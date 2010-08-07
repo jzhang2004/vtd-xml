@@ -2522,10 +2522,10 @@ public class VTDGenHuge {
 				depth);
 		}
 		//length1 = 0;
-		temp_offset = offset;
+		/*temp_offset = offset;
 		if (XMLChar.isSpaceChar(ch)) {
 			ch = r.getChar();
-		}
+		}*/
 		if (ch == '?') {
 			if (r.skipChar('>')) {
 				temp_offset = offset;
@@ -2571,16 +2571,22 @@ public class VTDGenHuge {
 	private int process_pi_val() throws ParseExceptionHuge, EncodingExceptionHuge, EOFExceptionHuge{
 		int parser_state;
 		long length1;
+		if (!XMLChar.isSpaceChar(ch)) 
+			throw new ParseExceptionHuge(
+					"Error in PI: invalid termination sequence"
+						+ formatLineNumber());
+		temp_offset = offset;
+		ch = r.getChar();
 		while (true) {
 			if (XMLChar.isValidChar(ch)) {
 				//System.out.println(""+(char)ch);
 				if (ch == '?')
 					if (r.skipChar('>')) {
 						break;
-					} else
+					} /*else
 						throw new ParseExceptionHuge(
 							"Error in PI: invalid termination sequence for PI"
-								+ formatLineNumber());
+								+ formatLineNumber());*/
 			} else
 				throw new ParseExceptionHuge(
 					"Errors in PI: Invalid char in PI val"
