@@ -2953,16 +2953,24 @@ static int process_cdata(VTDGen *vg){
 }
 static int process_pi_val(VTDGen *vg){
 	int parser_state;
+	
+	if (!XMLChar_isSpaceChar(vg->ch)){		
+		throwException(parse_exception,0,	
+			"Parse exception in parse()",
+			"Other Error: Invalid char in xml");
+	}
+	vg->temp_offset = vg->offset;
+	vg->ch = getChar(vg);
 	while (TRUE) {
 		if (XMLChar_isValidChar(vg->ch)) {
 			if (vg->ch == '?'){
 				if (skipChar(vg,'>')) {
 					break;
-				} else{		
+				} /*else{		
 					throwException(parse_exception,0,	
 						"Parse exception in parse()",
 						"Error in PI: invalid termination sequence for PI");
-				}
+				}*/
 			}
 		} else{		
 			throwException(parse_exception,0,	
@@ -2972,6 +2980,7 @@ static int process_pi_val(VTDGen *vg){
 		vg->ch = getChar(vg);
 	}
 	vg->length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
+	if (vg->length1 != 0)
 	if (vg->encoding < FORMAT_UTF_16BE){
 		if (vg->length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
@@ -3056,10 +3065,10 @@ int process_pi_tag(VTDGen *vg){
 			TOKEN_PI_NAME,
 			vg->depth);
 	}
-	vg->temp_offset = vg->offset;
-	if (XMLChar_isSpaceChar(vg->ch)) {
-		vg->ch = getChar(vg);
-	}
+	//vg->temp_offset = vg->offset;
+	//if (XMLChar_isSpaceChar(vg->ch)) {
+	//	vg->ch = getChar(vg);
+	//}
 	if (vg->ch == '?') {
 		if (skipChar(vg,'>')) {
 			vg->temp_offset = vg->offset;
