@@ -154,7 +154,7 @@ public int getNext() {
     private int increment(int sp){
       
       int type = vn.getTokenType(sp);
-      int vtdSize = vn.vtdBuffer.size();
+      int vtdSize = vn.vtdBuffer.size;
       int i=sp+1;
       while(i<vtdSize && 
       		depth == vn.getTokenDepth(i) && 
@@ -172,9 +172,9 @@ public int getNext() {
         // if there isn't a level-one element, jump to the end of vtd buffer and scan backward
     	
         int sp = (prevLocation != -1) ? increment(prevLocation): index + 1;
-        if (vn.l1Buffer.size() != 0) {
+        if (vn.l1Buffer.size != 0) {
             int temp1 = vn.l1Buffer.upper32At(0);
-            int temp2 = vn.l1Buffer.upper32At(vn.l1Buffer.size() - 1);
+            int temp2 = vn.l1Buffer.upper32At(vn.l1Buffer.size - 1);
             lcIndex = (lcIndex != -1) ? lcIndex : 0;
             while (sp < vn.vtdSize) {
                 if (sp >= temp1 && sp < temp2) {
@@ -204,7 +204,7 @@ public int getNext() {
                     sp++;
                 } else {
                     if (sp == temp2) { // get to the end of the document and do a rewind
-                        sp = vn.vtdBuffer.size() - 1;
+                        sp = vn.vtdBuffer.size- 1;
                         while (vn.getTokenDepth(sp) <= 0) {
                             sp--;
                         }
@@ -247,8 +247,8 @@ public int getNext() {
             // fetch lclower and lcupper
             lcLower = vn.l1Buffer.lower32At(vn.l1index);
             if (lcLower != -1) {
-                lcUpper = vn.l2Buffer.size() - 1;
-                int size = vn.l1Buffer.size();
+                lcUpper = vn.l2Buffer.size - 1;
+                int size = vn.l1Buffer.size;
                 for (int i = vn.l1index + 1; i < size ; i++) {
                     int temp = vn.l1Buffer.lower32At(i);
                     if (temp != 0xffffffff) {
@@ -336,8 +336,8 @@ public int getNext() {
             // fetch lclower and lcupper
             lcLower = vn.l2Buffer.lower32At(vn.l2index);
             if (lcLower != -1) {
-                lcUpper = vn.l3Buffer.size() - 1;
-                int size = vn.l2Buffer.size();
+                lcUpper = vn.l3Buffer.size - 1;
+                int size = vn.l2Buffer.size;
                 for (int i = vn.l2index + 1; i < size ; i++) {
                     int temp = vn.l2Buffer.lower32At(i);
                     if (temp != 0xffffffff) {
