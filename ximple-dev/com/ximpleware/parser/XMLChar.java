@@ -29,7 +29,7 @@ public class XMLChar {
     //
 
     /** Character flags. */
-    private static final byte[] UNI_CHARS = new byte[0x10000];
+    public static final byte[] UNI_CHARS = new byte[0x10000];
 
     /** Valid character mask. */
     public static final int XML_VALID = 0x01;
