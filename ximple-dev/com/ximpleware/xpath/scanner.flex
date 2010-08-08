@@ -28,7 +28,7 @@ import com.ximpleware.*;
 %unicode
 %extends sym
 %yylexthrow XPathParseException
-%cupdebug 
+
 %{
 
   private Symbol sym(int sym) {
