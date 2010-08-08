@@ -50,6 +50,7 @@ public class XMLBuffer implements IByteBuffer {
         // get file size
         File f = new File(fileName);
         long l = f.length();
+        //System.out.println("length ==>"+l);
         length = l;
         if (l>= (1L<< 38)){
             throw new ParseExceptionHuge("document too big > 256 Gbyte");
@@ -61,15 +62,33 @@ public class XMLBuffer implements IByteBuffer {
         
         //fill the buffers with doc content
         FileInputStream fis = new FileInputStream(f);
+        int byteArrayLen = 0;
         
         for (int i=0;i<pageNumber;i++){
             if (l > (1<<30)){
-                bufferArray[i] = new byte[1<<30];       
+                bufferArray[i] = new byte[1<<30];
+                byteArrayLen = 1<<30;
             }
             else{
                 bufferArray[i] = new byte[(int)l];
+                byteArrayLen = (int)l;
             }
-            fis.read(bufferArray[i]);
+            int offset = 0;
+            int numRead = 0;
+            int numOfBytes = 1048576;//I choose this value randomly, 
+            //any other (not too big) value also can be here.
+            if (byteArrayLen-offset<numOfBytes)
+            	{numOfBytes=byteArrayLen-offset;}
+            while (offset < byteArrayLen
+                   && (numRead=fis.read(bufferArray[i], offset, numOfBytes)) >= 0) 
+            {
+                offset += numRead;
+                if (byteArrayLen-offset<numOfBytes) 
+                {
+                	numOfBytes=byteArrayLen-offset;
+                }        
+            }
+            //fis.read(bufferArray[i]);
             l = l -(1<<30);
         }        
     }
