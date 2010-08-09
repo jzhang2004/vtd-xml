@@ -246,19 +246,21 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
                 i1 = getStringVal(vn,i);
                 if (i1 != -1){
 					b = compareVString2(be,i1,vn,s,op);
-					be->right->reset(be->right,vn);
-					vn->contextBuf2->size = stackSize;
-					pop2(vn);
-					free(s);
-					return b;					
+					if (b){
+						be->right->reset(be->right,vn);
+						vn->contextBuf2->size = stackSize;
+						pop2(vn);
+						free(s);
+						return b;
+					}
                 }
             }
             vn->contextBuf2->size = stackSize;
             pop2(vn);
             be->right->reset(be->right,vn);
-			b = compEmptyNodeSet(op,s);
+			//b = compEmptyNodeSet(op,s);
 			free(s);
-            return b;
+            return FALSE; //b;
 	} Catch ( e) {
 		e.et = other_exception;
 		e.msg = "undefined run time behavior in computerEQNE";
@@ -279,19 +281,21 @@ static Boolean compNodeSetString(binaryExpr *be, expr* left, expr* right, VTDNav
 				i1 = getStringVal(vn,i);
 				if (i1 != -1){
 					b = compareVString2(be,i1,vn,s,op);
-					be->left->reset(be->left,vn);
-					vn->contextBuf2->size = stackSize;
-					pop2(vn);
-					free(s);
-					return b;
+					if (b){
+						be->left->reset(be->left,vn);
+						vn->contextBuf2->size = stackSize;
+						pop2(vn);
+						free(s);
+						return b;
+					}
                 }
             }
             vn->contextBuf2->size = stackSize;
             pop2(vn);
             be->left->reset(be->left,vn);
-            b = compEmptyNodeSet(op, s);
+            //b = compEmptyNodeSet(op, s);
 			free(s);
-			return b;
+			return FALSE;//b;
 	} Catch ( e) {
 		e.et = other_exception;
 		e.msg = "undefined run time behavior in computerEQNE";

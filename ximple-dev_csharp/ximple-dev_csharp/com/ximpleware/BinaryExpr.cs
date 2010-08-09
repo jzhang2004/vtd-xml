@@ -625,16 +625,19 @@ namespace com.ximpleware
                 if (i1 != -1 )
                 {
                     bool b = compareVString1(i1, vn, s, op);
-                    left.reset(vn);
-                    vn.contextStack2.size = stackSize;
-                    vn.pop2();
-                    return b;
+                    if (b)
+                    {
+                        left.reset(vn);
+                        vn.contextStack2.size = stackSize;
+                        vn.pop2();
+                        return b;
+                    }
                 }
             }
             vn.contextStack2.size = stackSize;
             vn.pop2();
             left.reset(vn);
-            return compareEmptyNodeSet(op, s);
+            return false; // compareEmptyNodeSet(op, s);
         }
         catch (Exception e)
         {
@@ -677,16 +680,19 @@ namespace com.ximpleware
                 if (i1 != -1)
                 {
                     bool b = compareVString2(i1, vn, s, op);
-                    right.reset(vn);
-                    vn.contextStack2.size = stackSize;
-                    vn.pop2();
-                    return b;
+                    if (b)
+                    {
+                        right.reset(vn);
+                        vn.contextStack2.size = stackSize;
+                        vn.pop2();
+                        return b;
+                    }
                 }
             }
             vn.contextStack2.size = stackSize;
             vn.pop2();
             right.reset(vn);
-            return compareEmptyNodeSet(op, s);
+            return false;// compareEmptyNodeSet(op, s);
         }
         catch (Exception e)
         {
