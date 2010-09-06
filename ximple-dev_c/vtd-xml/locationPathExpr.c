@@ -2059,7 +2059,8 @@ void freeStep(Step *s){
 		freePredicate(tmp);
 	}
 	if (s->nt->testType == NT_TEXT){
-		freeTextIter((TextIter *)s->o);
+		if (s->o!=NULL)
+			freeTextIter((TextIter *)s->o);
 	}else
 		freeAutoPilot(s->o);
 	freeNodeTest(s->nt);
