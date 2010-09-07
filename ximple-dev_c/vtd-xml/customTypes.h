@@ -29,8 +29,8 @@
 #define MAXINT  0x7fffffff
 #define MININT 0x80000001
 
-#define MAXLONG 0x7fffffffffffffff
-#define MINLONG 0x8000000000000001
+#define MAXLONG 0x7fffffffffffffffLL
+#define MINLONG 0x8000000000000001LL
 
 #define inline __inline
 //#define _UNICODE
