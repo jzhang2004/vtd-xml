@@ -52,7 +52,7 @@ int determineHashWidth(int i);
 void freeIntHash(IntHash *ih);
 Boolean isUniqueIntHash(IntHash *ih,int i);
 void resetIntHash(IntHash *ih);
-
+struct Expr;
 /* define abstract functions in the base expr */
 typedef void (*free_Expr) (struct Expr *e);
 typedef int(*eval_NodeSet) (struct Expr *e, VTDNav *vn);
