@@ -1095,7 +1095,10 @@ namespace com.ximpleware
                 int inc = 1;
                 for (int i = 0; i < flb.size_Renamed_Field; i = i + inc)
                 {
-                    if (flb.lower32At(i) == flb.lower32At(i + 1))
+                    if (i+1== flb.size_Renamed_Field){
+                        inc =1;
+                    }
+                    else if (flb.lower32At(i) == flb.lower32At(i + 1))
                     {
                         inc = 2; // both insert and remove 
                     }
