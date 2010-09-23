@@ -2118,7 +2118,7 @@ Boolean eval_s2(Step *s,VTDNav *vn, Predicate *p){
 Boolean evalPredicates(Step *s,VTDNav *vn){
 	Predicate *temp = s->p;
 	while(temp!=NULL) {
-		if (eval_p(s->p,vn)== FALSE)
+		if (eval_p(temp,vn)== FALSE)
 			return FALSE;
 		temp = temp->nextP;
 	}
@@ -2127,7 +2127,7 @@ Boolean evalPredicates(Step *s,VTDNav *vn){
 Boolean evalPredicates2(Step *s,VTDNav *vn, Predicate *p){
 	Predicate *temp = s->p;
 	while(temp!=p) {
-		if (eval_p(s->p,vn)== FALSE)
+		if (eval_p(temp,vn)== FALSE)
 			return FALSE;
 		temp = temp->nextP;
 	}
