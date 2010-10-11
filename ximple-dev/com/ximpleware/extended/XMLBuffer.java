@@ -128,7 +128,7 @@ public class XMLBuffer implements IByteBuffer {
 		//ost's page #
     	int pageN = (int)(os>>30);
     	//ost's remainder
-    	int pos =  (int)(os&((1<<31)-1));
+    	int pos =  (int)(os&((1<<30)-1));
     	// only write to outputStream once
     	if (pos+len <= 1<<30){
     		ost.write(bufferArray[pageN], pos,(int) len);
