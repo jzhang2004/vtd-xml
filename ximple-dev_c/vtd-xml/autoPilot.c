@@ -575,6 +575,7 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 	}
 	if(ap->xpe!=NULL)
 		ap->xpe->freeExpr(ap->xpe);
+	XMLChar_init();
 
 	ap->xpe = xpathParse(s, nl,el);
 	ap->ft = TRUE;
