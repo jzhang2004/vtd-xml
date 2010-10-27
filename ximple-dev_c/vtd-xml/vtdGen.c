@@ -78,7 +78,7 @@ static void qualifyAttributes(VTDGen *vg);
 static void qualifyElement(VTDGen *vg);
 static Boolean matchXML(VTDGen *vg, int byte_offset);
 static Boolean matchURL(VTDGen *vg, int bos1, int len1, int bos2, int len2);
-static Boolean identifyNsURL(VTDGen *vg, int byte_offset, int length);
+static int identifyNsURL(VTDGen *vg, int byte_offset, int length);
 static int getCharUnit(VTDGen *vg, int byte_offset);
 static void disallow_xmlns(VTDGen *vg, int byte_offset);
 static void checkQualifiedAttributeUniqueness(VTDGen *vg);
@@ -3868,7 +3868,7 @@ static Boolean matchURL(VTDGen *vg, int bos1, int len1, int bos2, int len2){
 		return FALSE;
 }
 
-static Boolean identifyNsURL(VTDGen *vg, int byte_offset, int length){
+static int identifyNsURL(VTDGen *vg, int byte_offset, int length){
 		UCSChar* URL1 = L"2000/xmlns/";
 		UCSChar* URL2 = L"http://www.w3.org/XML/1998/namespace";
 		Long l;
