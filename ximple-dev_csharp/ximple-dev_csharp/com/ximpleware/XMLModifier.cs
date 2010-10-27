@@ -1014,7 +1014,7 @@ namespace com.ximpleware
                 throw new ModifyException("Token type is not a starting tag");
             int offset = md.getTokenOffset(startTagIndex);
             int len = md.getTokenLength(startTagIndex);
-            int encoding = md.getTokenType(startTagIndex)&0xffff;
+            int encoding = md.getTokenType(startTagIndex) & 0xffff;
 
             if (encoding < VTDNav.FORMAT_UTF_16BE)
             {
@@ -1048,7 +1048,7 @@ namespace com.ximpleware
                 throw new ModifyException("Token type is not a starting tag");
             int offset = md.getTokenOffset(startTagIndex);
             int len = md.getTokenLength(startTagIndex);
-            int encoding = md.getTokenType(startTagIndex)&0xffff;
+            int encoding = md.getTokenType(startTagIndex) & 0xffff;
 
             if (encoding < VTDNav.FORMAT_UTF_16BE)
             {
@@ -1060,6 +1060,31 @@ namespace com.ximpleware
                 //UPGRADE_TODO: Method 'java.lang.String.getBytes' was converted to 'System.Text.Encoding.GetEncoding(string).GetBytes(string)' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangStringgetBytes_javalangString'"
                 insertBytesAt((offset + len) << 1, eg.GetBytes(attr));
             }
+            //insertBytesAt()
+        }
+
+
+        /// <summary>
+        /// Insert the transcoded representation of a byte arry of an attribute 
+        /// after the starting tag This method will first call getCurrentIndex() 
+        /// to get the cursor index value if the index is of type "starting tag", 
+        /// then teh attribute is inserted after the starting tag
+        /// </summary>
+        /// <param name="src_encoding"></param>
+        /// <param name="b"></param>
+        public void insertAttribute(int src_encoding, byte[] b)
+        {
+            int startTagIndex = md.getCurrentIndex();
+            int type = md.getTokenType(startTagIndex);
+            if (type != VTDNav.TOKEN_STARTING_TAG)
+                throw new ModifyException("Token type is not a starting tag");
+            int offset = md.getTokenOffset(startTagIndex);
+            int len = md.getTokenLength(startTagIndex) & 0xffff;
+            byte[] bo = Transcoder.transcode(b, 0, b.Length, src_encoding, encoding);
+            if (encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt(offset + len, bo);
+            else
+                insertBytesAt((offset + len) << 1, bo);
             //insertBytesAt()
         }
         /// <summary> This method applys the modification to the XML document
@@ -1095,8 +1120,9 @@ namespace com.ximpleware
                 int inc = 1;
                 for (int i = 0; i < flb.size_Renamed_Field; i = i + inc)
                 {
-                    if (i+1== flb.size_Renamed_Field){
-                        inc =1;
+                    if (i + 1 == flb.size_Renamed_Field)
+                    {
+                        inc = 1;
                     }
                     else if (flb.lower32At(i) == flb.lower32At(i + 1))
                     {
@@ -1241,9 +1267,9 @@ namespace com.ximpleware
         public void reset()
         {
             if (flb != null)
-                flb.size_Renamed_Field=0;
+                flb.size_Renamed_Field = 0;
             if (fob != null)
-                fob.size_Renamed_Field=0;
+                fob.size_Renamed_Field = 0;
             if (insertHash != null)
                 insertHash.reset();
             if (deleteHash != null)
