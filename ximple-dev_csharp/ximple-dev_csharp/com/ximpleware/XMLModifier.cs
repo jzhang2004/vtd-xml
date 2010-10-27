@@ -1014,7 +1014,7 @@ namespace com.ximpleware
                 throw new ModifyException("Token type is not a starting tag");
             int offset = md.getTokenOffset(startTagIndex);
             int len = md.getTokenLength(startTagIndex);
-            int encoding = md.getTokenType(startTagIndex);
+            int encoding = md.getTokenType(startTagIndex)&0xffff;
 
             if (encoding < VTDNav.FORMAT_UTF_16BE)
             {
@@ -1048,7 +1048,7 @@ namespace com.ximpleware
                 throw new ModifyException("Token type is not a starting tag");
             int offset = md.getTokenOffset(startTagIndex);
             int len = md.getTokenLength(startTagIndex);
-            int encoding = md.getTokenType(startTagIndex);
+            int encoding = md.getTokenType(startTagIndex)&0xffff;
 
             if (encoding < VTDNav.FORMAT_UTF_16BE)
             {
