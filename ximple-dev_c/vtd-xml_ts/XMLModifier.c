@@ -544,7 +544,7 @@ void insertAttribute(XMLModifier *xm, UCSChar *attr){
 			"Token type is not a starting tag");
 	}
 	offset = getTokenOffset(xm->md,startTagIndex);
-	len = getTokenLength(xm->md,startTagIndex);
+	len = getTokenLength(xm->md,startTagIndex)&0xffff;
 
 	if (xm->encoding < FORMAT_UTF_16BE)
 		insertBytesAt(xm,offset+len,xm->gbytes(attr));
