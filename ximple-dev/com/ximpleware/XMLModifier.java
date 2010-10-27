@@ -1460,11 +1460,11 @@ public class XMLModifier {
             throw new ModifyException("Token type is not a starting tag");
         int offset = md.getTokenOffset(startTagIndex);
         int len = md.getTokenLength(startTagIndex)&0xffff;
-        
+        byte[] bo = Transcoder.transcode(b, 0, b.length, src_encoding, encoding);
         if (encoding < VTDNav.FORMAT_UTF_16BE)
-            insertBytesAt(offset+len,b);
+            insertBytesAt(offset+len,bo);
         else
-            insertBytesAt((offset+len)<<1,b);
+            insertBytesAt((offset+len)<<1,bo);
         //insertBytesAt()
     }
     /**
