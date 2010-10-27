@@ -683,7 +683,7 @@ public class XMLModifier {
     /**
      * 
      * This function will do the range checking and make
-     * sure there is no overlaping or invalid deletion 
+     * sure there is no overlapping or invalid deletion 
      * There can be only one deletion at one offset value
      * Delete can't overlap with, nor contains, another delete
      *
@@ -1409,7 +1409,7 @@ public class XMLModifier {
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
         int offset = md.getTokenOffset(startTagIndex);
-        int len = md.getTokenLength(startTagIndex);
+        int len = md.getTokenLength(startTagIndex)&0xffff;
         
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset+len,attr.getBytes(charSet));
@@ -1434,7 +1434,7 @@ public class XMLModifier {
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
         int offset = md.getTokenOffset(startTagIndex);
-        int len = md.getTokenLength(startTagIndex);
+        int len = md.getTokenLength(startTagIndex) & 0xffff;
         
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset+len,b);
@@ -1459,7 +1459,7 @@ public class XMLModifier {
         if (type!=VTDNav.TOKEN_STARTING_TAG)
             throw new ModifyException("Token type is not a starting tag");
         int offset = md.getTokenOffset(startTagIndex);
-        int len = md.getTokenLength(startTagIndex);
+        int len = md.getTokenLength(startTagIndex)&0xffff;
         
         if (encoding < VTDNav.FORMAT_UTF_16BE)
             insertBytesAt(offset+len,b);
