@@ -859,7 +859,7 @@ void XMLModifier::output(FILE *f){
 				    Long k = flb->longAt(i+1),temp;
 					int i1 = i,temp2,k1;
                     int i2 = i+1;
-                    if ((l & (~0x1fffffffffffffffL)) != MASK_DELETE){
+                    if ((l & (~0x1fffffffffffffffLL)) != MASK_DELETE){
                         temp = l;
                         l= k;
                         k = temp;
