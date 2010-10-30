@@ -3595,8 +3595,8 @@ bool VTDGen::matchURL(int bos1, int len1, int bos2, int len2){
 		return false;
 }
 int VTDGen::identifyNsURL(int byte_offset, int length){
-		UCSChar* URL1 = L"2000/xmlns/";
-		UCSChar* URL2 = L"http://www.w3.org/XML/1998/namespace";
+		UCSChar* URL1 = (UCSChar *)L"2000/xmlns/";
+		UCSChar* URL2 = (UCSChar *)L"http://www.w3.org/XML/1998/namespace";
 		Long l;
 		int i,t,g=byte_offset+length;
 		int os=byte_offset;
