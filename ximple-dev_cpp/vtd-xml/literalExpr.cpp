@@ -76,19 +76,19 @@ int LiteralExpr::adjust(int n){return 0;}
 char* com_ximpleware::getAxisString(axisType at){
 
 	switch(at){
-		case AXIS_CHILD : return "child::";
-		case AXIS_DESCENDANT : return "descendant::";
-		case AXIS_PARENT :	return "parent::";
-		case AXIS_ANCESTOR :	return "ancestor::";
-		case AXIS_FOLLOWING_SIBLING :	return "following-sibling::";
-		case AXIS_PRECEDING_SIBLING :	return "preceding-sibling::";
-		case AXIS_FOLLOWING :	return "following::";
-		case AXIS_PRECEDING :	return "preceding::";
-		case AXIS_ATTRIBUTE :	return "attribute::";
-		case AXIS_NAMESPACE :	return "namespace::";
-		case AXIS_SELF :	return "self::";
-		case AXIS_DESCENDANT_OR_SELF :	return "descendant-or-self::";
-		default :	return "ancestor-or-self::";
+		case AXIS_CHILD : return (char*)"child::";
+		case AXIS_DESCENDANT : return (char*)"descendant::";
+		case AXIS_PARENT :	return (char*)"parent::";
+		case AXIS_ANCESTOR :	return (char*)"ancestor::";
+		case AXIS_FOLLOWING_SIBLING :	return (char*)"following-sibling::";
+		case AXIS_PRECEDING_SIBLING :	return (char*)"preceding-sibling::";
+		case AXIS_FOLLOWING :	return (char*)"following::";
+		case AXIS_PRECEDING :	return (char*)"preceding::";
+		case AXIS_ATTRIBUTE :	return (char*)"attribute::";
+		case AXIS_NAMESPACE :	return (char*)"namespace::";
+		case AXIS_SELF :	return (char*)"self::";
+		case AXIS_DESCENDANT_OR_SELF :	return (char*)"descendant-or-self::";
+		default :	return (char*)"ancestor-or-self::";
 	}
 }
 
