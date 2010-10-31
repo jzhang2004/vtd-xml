@@ -156,8 +156,8 @@ namespace com_ximpleware {
 		const static Long MASK_TOKEN_FULL_LEN=0x000fffff00000000LL;
 		const static Long MASK_TOKEN_PRE_LEN=0x000ff80000000000LL;
 		const static Long MASK_TOKEN_QN_LEN=0x000007ff00000000LL;
-		const static Long MASK_TOKEN_OFFSET1=0x000000003fffffffL;
-		const static Long MASK_TOKEN_OFFSET2=0x000000007fffffffL;
+		const static Long MASK_TOKEN_OFFSET1=0x000000003fffffffLL;
+		const static Long MASK_TOKEN_OFFSET2=0x000000007fffffffLL;
 
 		const static Long MASK_TOKEN_TYPE=0xf000000000000000LL;
 		const static Long MASK_TOKEN_DEPTH=0x0ff0000000000000LL;
