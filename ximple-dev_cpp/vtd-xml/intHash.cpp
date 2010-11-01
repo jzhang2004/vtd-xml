@@ -24,7 +24,7 @@ IntHash::IntHash(){
 
 IntHash::IntHash(int hashWidthExpo) try:
 storage(new FastIntBuffer*[1<<hashWidthExpo]),
-m1(hw-1),
+m1(1<<hashWidthExpo-1),
 m2((~m1) & 0xffffffff),
 pse(ih_pageSizeE),
 hw(1<<hashWidthExpo),
