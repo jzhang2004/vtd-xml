@@ -138,7 +138,7 @@ namespace com_ximpleware{
 
 		//Iterate over all the selected element nodes.
 
-		bool iterateAP();
+		bool iterate();
 
 		// This method implements the attribute axis for XPath
 		int iterateAttr();
@@ -191,6 +191,7 @@ namespace com_ximpleware{
 
 		int iterateNameSpace();
 	};
+
 
 	struct ExprList {
 		UCSChar *variableName;

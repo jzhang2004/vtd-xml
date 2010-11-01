@@ -258,7 +258,7 @@ void AutoPilot::selectElementNS_P(UCSChar *URL, UCSChar *ln){
 
 //Iterate over all the selected element nodes.
 
-bool AutoPilot::iterateAP(){
+bool AutoPilot::iterate(){
 	switch (it) {
 		case SIMPLE :
 			if (vn->atTerminal)
@@ -425,7 +425,6 @@ int AutoPilot::iterateAttr(){
 */
 bool AutoPilot::selectXPath(UCSChar *s){
 	XMLChar_init();
-	int a = XMLChar_isNameStartChar('a');
 	if (s==NULL){
 		throw XPathParseException(" xpath input string can't be NULL ");
 		return false;
