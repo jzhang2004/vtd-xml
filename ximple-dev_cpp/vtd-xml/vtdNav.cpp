@@ -17,6 +17,7 @@
 */
 #include "vtdNav.h"
 //#include "decoder.h"
+#include "bookMark.h"
 
 //#include <exception>
 using namespace com_ximpleware;
@@ -463,6 +464,7 @@ bool VTDNav::resolveNS( UCSChar *URL){
 	i = lookupNS2( offset, preLen);
 	switch(i){
 							 case 0: if (URL== NULL){
+								 if (getTokenLength(i)==0)
 								 return true;
 									 } else {
 										 return false;
@@ -472,7 +474,7 @@ bool VTDNav::resolveNS( UCSChar *URL){
 									 return false;
 								 }
 								 else {
-									 return matchTokenString(i,URL);
+									 return matchTokenString2(i,URL);
 								 }
 	}
 }
@@ -1363,6 +1365,8 @@ int VTDNav::getAttrValNS(UCSChar* URL, UCSChar *ln){
 	tokenType type;
 	if (context[0]==-1)
 		return -1;
+	if (URL!=NULL && wcslen(URL)==0)
+        	URL = NULL;
 	if (ns == false)
 		return -1;
 	if (URL == NULL)
@@ -1389,7 +1393,12 @@ int VTDNav::getAttrValNS(UCSChar* URL, UCSChar *ln){
 			ln)
 			&& resolveNS2( URL, offset, preLen)) {
 				return index + 1;
-		}
+		}else if (	preLen==3 
+    				&& matchRawTokenString1(offset, 3,L"xml")
+    				&& wcscmp(URL,L"http://www.w3.org/XML/1998/namespace")){
+    			// prefix matches "xml"
+    			return index+1;
+    		}
 		index += 2;
 		if (index >=vtdSize)
 			return -1;
@@ -2202,6 +2211,11 @@ bool VTDNav::matchElementNS( UCSChar *URL, UCSChar *ln){
 				if (((URL != NULL) ? wcscmp(URL,L"*")==0 : false)
 					|| (resolveNS2( URL, offset, preLen) == true))
 					return true;
+
+				if ( preLen==3 
+    			&& matchRawTokenString1(offset, preLen,L"xml")
+    			&& wcscmp(URL,L"http://www.w3.org/XML/1998/namespace"))
+    			return true;   
 		}
 		return false;
 	}
@@ -4204,3 +4218,137 @@ bool VTDNav::isElementOrDocument( int index){
 		i= (int)(((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf);
 		return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
 	}
+
+Long VTDNav::getSiblingElementFragments(int i){
+	int so, len;
+	Long l;
+	BookMark *bm;
+	if (i<=0)
+		throw InvalidArgumentException(" # of sibling can be less or equal to 0");
+	// get starting char offset
+	if(atTerminal==true)
+		return -1L;
+	// so is the char offset
+	so = getTokenOffset(getCurrentIndex())-1;
+	// char offset to byte offset conversion
+	if (encoding>=FORMAT_UTF_16BE)
+		so = so<<1;
+	bm = new BookMark(this);
+	bm->recordCursorPosition();
+	while(i>1 && toElement(NEXT_SIBLING)){
+		i--;
+	}
+	l= getElementFragment();
+	len = (int)l+(int)(l>>32)-so;
+	if (i==1 && toElement(NEXT_SIBLING)){
+	}else
+		bm->setCursorPosition(this);
+	delete (bm);
+	return (((Long)len)<<32)|so;
+}
+
+
+int VTDNav::compareNormalizedTokenString2(int offset, int len, UCSChar *s){
+		int i,i1, l, temp;
+		Long l1,l2;
+		//boolean b = false;
+		// this.currentOffset = offset;
+		int endOffset = offset + len;
+
+		// System.out.print("currentOffset :" + currentOffset);
+		l = wcslen(s);
+		// System.out.println(s);
+		for (i = 0; i < l && offset < endOffset;) {
+			l1 = getCharResolved(offset);
+			temp = (int) l1;
+			l2 = (l1>>32);
+			if (l2<=2 && isWS(temp))
+				temp = ' ';
+			i1 = s[i];
+			if (i1 < temp)
+				return 1;
+			if (i1 > temp)
+				return -1;
+			i++;			
+			offset += (int) (l1 >> 32);
+		}
+
+		if (i == l && offset < endOffset)
+			return 1;
+		if (i < l && offset == endOffset)
+			return -1;
+		return 0;
+		// return -1;
+}
+
+
+UCSChar* VTDNav::getPrefixString( int i){
+	if (ns == false)
+		return NULL;
+
+	tokenType type = getTokenType(i);
+	if (type != TOKEN_ATTR_NAME && type != TOKEN_STARTING_TAG)
+		return NULL;
+	else {
+		int offset = getTokenOffset(i);
+		int preLen = getTokenLength(i) >> 16;
+		if (preLen !=0)
+			return toRawString2(offset,preLen);
+	}
+	return NULL;
+	
+}
+
+bool VTDNav::matchNormalizedTokenString2(int index, UCSChar *s){
+	tokenType type = getTokenType(index);
+	int len =
+		(type == TOKEN_STARTING_TAG
+		|| type == TOKEN_ATTR_NAME
+		|| type == TOKEN_ATTR_NS)
+		? getTokenLength(index) & 0xffff
+		: getTokenLength(index);
+
+	return compareNormalizedTokenString2(getTokenOffset(index), len, s)==0;
+}
+
+UCSChar* VTDNav::toNormalizedString2(int index){
+		tokenType type = getTokenType(index);
+		Long l;
+		UCSChar *s;int ch,k;
+		int len,offset, endOffset;
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			return toRawString(index); 
+		
+		len = getTokenLength(index);
+		if (len == 0)
+			return wcsdup(L"");
+		offset = getTokenOffset(index);
+		endOffset = len + offset - 1; // point to the last character
+		try{
+			s = new UCSChar[len+1];
+		}
+		catch (std::bad_alloc &)
+		{
+			throw OutOfMemException(" string allocation failed in toNormalizedString2 ");
+		}
+		
+		
+		
+
+		//boolean d = false;
+		while (offset <= endOffset) {
+			l = getCharResolved(offset);
+			ch = (int)l;
+			offset += (int)(l>>32);
+			if (isWS(ch) && (l>>32)<=2) {
+				//d = true;
+				s[k++] = (UCSChar)' ';
+				//sb.append(' ');
+			} else{
+				s[k++] = (UCSChar)ch;
+				//sb.append((char) ch);
+			}
+		}
+		return s;
+}
