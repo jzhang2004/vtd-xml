@@ -136,6 +136,7 @@ namespace com_ximpleware {
 		void recoverNode_l1(int index);
 		void recoverNode_l2(int index);
 		void recoverNode_l3(int index);
+		int compareNormalizedTokenString2(int offset, int len, UCSChar *s);
 
 	protected:
 		VTDNav(int r, 
@@ -162,7 +163,7 @@ namespace com_ximpleware {
 		const static Long MASK_TOKEN_TYPE=0xf000000000000000LL;
 		const static Long MASK_TOKEN_DEPTH=0x0ff0000000000000LL;
 		const static Long MASK_TOKEN_NS_MARK=0x00000000c0000000LL;
-
+		
 		const static int R=0;
 		const static int P=1;
 		const static int FC=2;
@@ -171,7 +172,7 @@ namespace com_ximpleware {
 		const static int PS=5;
 
 		//
-
+		bool matchNormalizedTokenString2(int index, UCSChar *s);
 		virtual ~VTDNav();
 		//Return the attribute count of the element at the cursor position.
 		int getAttrCount();
@@ -190,9 +191,22 @@ namespace com_ximpleware {
 		// Get the starting offset and length of an element
 		// encoded in a long, upper 32 bit is length; lower 32 bit is offset
 		Long getElementFragment();
+		/** 
+         * Return the byte offset and length of up to i sibling fragments. If 
+         * there is a i+1 sibling element, the cursor element would 
+         * move to it; otherwise, there is no cursor movement. If the cursor isn't 
+         * positioned at an element (due to XPath evaluation), then -1 will be 
+         * returned 
+         * @param i number of silbing elements including the cursor element 
+         * @return a long encoding byte offset (bit 31 to bit 0), length (bit 62 
+         * to bit 32) of those fragments 
+         * @throws NavException 
+         */ 
+
 		Long getContentFragment();
 		//ElementFragmentNs* getElementFragmentNs();
 		int* getElementFragmentNs();
+		Long getSiblingElementFragments(int i);
 		/**
 		* Get the encoding of the XML document.
 		* <pre>   0  ASCII       </pre>
@@ -209,7 +223,7 @@ namespace com_ximpleware {
 
 		// max depth is nestingLevel -1
 		int getNestingLevel();
-
+		UCSChar *getPrefixString( int i);
 		// Get root index value.
 		int getRootIndex();
 		// This function returns of the token index of the type character data or CDATA.
@@ -371,7 +385,17 @@ namespace com_ximpleware {
 		//The entity and character references will be resolved
 		//Multiple whitespaces char will be collapsed into one.
 		UCSChar *toNormalizedString( int index);
+		/** 
+         * (New since version 2.9) 
+         * Shallow Normalization follows the rules below to normalize a token into 
+         * a string 
+         * *#xD#xA gets converted to #xA 
+         * *For a character reference, append the referenced character to the normalized value. 
+         * *For an entity reference, recursively apply step 3 of this algorithm to the replacement text of the entity. 
+         * *For a white space character (#x20, #xD, #xA, #x9), append a space character (#x20) to the normalized value. 
+         * *For another character, append the character to the normalized value.*/ 
 
+		UCSChar* toNormalizedString2(int index);
 		//Convert a token at the given index to a String, 
 		//(built-in entity and char references not resolved)
 		//(entities and char references not expanded).
@@ -732,7 +756,7 @@ namespace com_ximpleware {
 		return val | (inc << 32);
 	}
 
-
+	
 	inline bool VTDNav::isWS(int ch){
 		return (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
 	}
