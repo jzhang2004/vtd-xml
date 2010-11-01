@@ -2527,7 +2527,7 @@ void VTDGen::parse(bool ns1){
 	Long x;
 	/*char char_temp; //holds the ' or " indicating start of attr val */
 	int sos = 0, sl = 0;
-	length1 = length2;
+	length1 = length2=0;
 	XMLChar_init();
 	ns = ns1;
 	is_ns = false;
@@ -3228,7 +3228,7 @@ void VTDGen::setDoc(UByte *ba, int len){
 	setDoc(ba, len, 0, len);
 }
 //done!
-void VTDGen::setDoc(UByte *ba, int len, int os, int docLen){
+void VTDGen::setDoc(UByte *ba, int len, int os, int docLen1){
 	int a,i1=7,i2=9,i3=11;
 	br = false;
 	depth = -1;
@@ -3239,7 +3239,7 @@ void VTDGen::setDoc(UByte *ba, int len, int os, int docLen){
 	temp_offset = 0;
 	XMLDoc = ba;
 	docOffset = offset = os;
-	docLen = docLen;
+	docLen = docLen1;
 	bufLen =len;
 	endOffset = os + docLen;
 	last_depth = last_l3_index = last_l2_index = last_l1_index;
