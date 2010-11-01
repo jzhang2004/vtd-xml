@@ -199,14 +199,25 @@ namespace com_ximpleware {
 		void setDoc(UByte *byteArray, int arrayLen);
 		// Set the XMLDoc container.Also set the offset and len of the document 
 
+		void setDoc(char *charArray, int arrayLen){
+			setDoc((UByte*) charArray, arrayLen);
+		}
 		void setDoc(UByte *byteArray, int arrayLen, int offset, int docLen);
-
+		void setDoc(char *charArray, int arrayLen, int offset, int docLen){
+			setDoc((UByte *)charArray, arrayLen, offset, docLen);
+		}
 		// set the XML Doc container and turn on buffer reuse
 
 		void setDoc_BR(UByte *byteArray, int arrayLen);
 		//Set the XMLDoc container.Also set the offset and len of the document 
+		void setDoc_BR(char *charArray, int arrayLen){
+			setDoc_BR((UByte*) charArray, arrayLen);
+		}
 
 		void setDoc_BR(UByte *byteArray, int arrayLen, int offset, int docLen);
+		void setDoc_BR(char *charArray, int arrayLen, int offset, int docLen){
+			setDoc_BR((UByte*) charArray, arrayLen, offset, docLen);
+		}
 		/* Load VTD+XML from a FILE pointer */
 		VTDNav* loadIndex(FILE *f); 
 		/* load VTD+XML from a byte array */
