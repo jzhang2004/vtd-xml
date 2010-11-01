@@ -268,7 +268,7 @@ int LocationPathExpr::computeContextSize(Predicate *p, VTDNav *vn){
 				else
 					ap->selectElement_F(helper);
 			vn->push2();
-			while(ap->iterateAP()){
+			while(ap->iterate()){
 				if (currentStep->evalPredicates2(vn,p)){
 					i++;
 				}
@@ -1325,7 +1325,7 @@ int LocationPathExpr::process_DDFP(VTDNav *vn){
 				vn->push2(); // not the most efficient. good for now
 				//System.out.println("  --++ push in //");
 				b = false;
-				while(ap->iterateAP()){
+				while(ap->iterate()){
 					if (currentStep->evalPredicates(vn)){
 						b = true;
 						break;
@@ -1365,7 +1365,7 @@ int LocationPathExpr::process_DDFP(VTDNav *vn){
 				ap = currentStep->o;
 				//vn.push();
 				b = false;
-				while(ap->iterateAP()){
+				while(ap->iterate()){
 					if (currentStep->evalPredicates(vn)){
 						b = true;
 						break;
@@ -1399,7 +1399,7 @@ int LocationPathExpr::process_DDFP(VTDNav *vn){
 			case XPATH_EVAL_TERMINAL:
 				ap = currentStep->o;
 				b = false;
-				while (ap->iterateAP()) {
+				while (ap->iterate()) {
 					if (currentStep->evalPredicates(vn)) {
 						b = true;
 						break;
