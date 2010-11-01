@@ -1831,7 +1831,12 @@ int VTDNav::getTokenCount(){
 
 //Get the depth value of a token (>=0)
 int VTDNav::getTokenDepth(int index){
-	return context[0];
+	
+	int i = (int) ((vtdBuffer->longAt(index) & MASK_TOKEN_DEPTH) >> 52);
+
+	if (i != 255)
+		return i;
+	return -1;
 }
 
 //Get the token length at the given index value
@@ -2813,14 +2818,14 @@ bool VTDNav::toElement( navDir direction){
 						int token_type;
 
 						token_type =
-							(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+							(int) ((VTDNav::MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf;
 
 
 						if (token_type == TOKEN_STARTING_TAG) {
 
 							int depth =
-								(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+								(int) ((VTDNav::MASK_TOKEN_DEPTH & temp) >> 52);
 
 							if (depth <= context[0]) {
 								return false;
@@ -2844,7 +2849,7 @@ bool VTDNav::toElement( navDir direction){
 						int depth;
 
 						depth =
-							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+							(int) ((VTDNav::MASK_TOKEN_DEPTH & temp) >> 52);
 
 
 
@@ -2956,7 +2961,7 @@ bool VTDNav::toElement( navDir direction){
 						Long temp =vtdBuffer->longAt(index);
 
 						tokenType token_type =
-							(tokenType) (((MASK_TOKEN_TYPE & temp) >> 60)
+							(tokenType) (((VTDNav::MASK_TOKEN_TYPE & temp) >> 60)
 							& 0xf);
 
 						if (token_type == TOKEN_STARTING_TAG) {
@@ -4187,15 +4192,15 @@ void VTDNav::recoverNode(int index){
 
 
 tokenType VTDNav::getTokenType(int index){
-			return (tokenType) (((vtdBuffer->longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
+			return (tokenType) (((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf);
 		}
 
 bool VTDNav::isElement(int index){
-		return (((vtdBuffer->longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
+	return (((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf)
 			== TOKEN_STARTING_TAG;
 	}
 bool VTDNav::isElementOrDocument( int index){
 		int i = 0;
-		i= (int)(((vtdBuffer->longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
+		i= (int)(((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf);
 		return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
 	}
