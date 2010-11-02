@@ -58,7 +58,7 @@ static void resolveLC_l3(VTDNav *vn);
 static void recoverNode_l1(VTDNav *vn,int index);
 static void recoverNode_l2(VTDNav *vn,int index);
 static void recoverNode_l3(VTDNav *vn,int index);
-Boolean compareNormalizedTokenString2(VTDNav *vn,int offset, int len, UCSChar *s); 
+static int compareNormalizedTokenString2(VTDNav *vn,int offset, int len, UCSChar *s); 
 /*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, Long temp, int offset){
 	int c,d,a,i;
@@ -3596,7 +3596,7 @@ ElementFragmentNs *getElementFragmentNs(VTDNav *vn){
 
 /* dump XML text into a given file name */
 void dumpXML(VTDNav *vn, char *fileName){
-	FILE *f=fopen(fileName,"bw");
+	FILE *f=fopen(fileName,"w");
 	if (f!=NULL){
 		dumpXML2(vn,f);
 		fclose(f);
@@ -4476,7 +4476,7 @@ Boolean matchNormalizedTokenString2(VTDNav *vn,int index, UCSChar *s){
 		return compareNormalizedTokenString2(vn,getTokenOffset(vn,index), len, s)==0;
 }
 
-Boolean compareNormalizedTokenString2(VTDNav *vn,int offset, int len,
+int compareNormalizedTokenString2(VTDNav *vn,int offset, int len,
 			UCSChar *s) {
 		int i,i1, l, temp;
 		Long l1,l2;
