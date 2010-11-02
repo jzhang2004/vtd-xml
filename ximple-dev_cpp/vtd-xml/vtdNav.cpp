@@ -3710,7 +3710,7 @@ Long VTDNav::getIndexSize2(){
 /* dump XML text into a given file name */
 void VTDNav::dumpXML(char *fileName){
 
-	FILE *f=fopen(fileName,"bw");
+	FILE *f=fopen(fileName,"w");
 	if (f!=NULL){
 		dumpXML2(f);
 		fclose(f);
