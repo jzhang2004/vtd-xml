@@ -21,14 +21,18 @@
 
 using namespace com_ximpleware;
 
-LocationPathExpr::LocationPathExpr():
+LocationPathExpr::LocationPathExpr() try : 
 pathType(RELATIVE_PATH),
 s(NULL),
 currentStep(NULL),
 state(XPATH_EVAL_START),
-ih(NULL)
+ih(new IntHash())
 {
 }
+catch (std::bad_alloc&){
+	throw OutOfMemException("Allocation failed for LocationPathExpr");
+}
+
 LocationPathExpr::~LocationPathExpr(){
 	Step *tmp, *tmp2;
 	if (s != NULL){

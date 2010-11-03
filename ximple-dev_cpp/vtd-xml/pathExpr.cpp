@@ -18,11 +18,15 @@
 #include "pathExpr.h"
 using namespace com_ximpleware;
 
-PathExpr::PathExpr(Expr *f, LocationPathExpr *l):
+PathExpr::PathExpr(Expr *f, LocationPathExpr *l) try :
 fe(f),
 lpe(l),
-evalState(0)
+evalState(0),
+ih( new IntHash())
 {}
+catch (std::bad_alloc&){
+	throw OutOfMemException("Allocation failed for PathExpr");
+}
 
 PathExpr::~PathExpr(){
 	delete ih;
