@@ -18,8 +18,23 @@
 #include "intHash.h"
 using namespace com_ximpleware;
 
-IntHash::IntHash(){
-	IntHash(0);
+IntHash::IntHash()try:
+storage(new FastIntBuffer*[1<<0]),
+m1(0),
+m2((~m1) & 0xffffffff),
+pse(ih_pageSizeE),
+hw(1),
+maxDepth(0)
+{
+	//IntHash(0);
+	int i=0;
+	/* initialize everything to null */
+	for (i=0;i<hw;i++){
+		storage[i]= NULL;
+	}
+}
+catch(std::bad_alloc&){
+	throw OutOfMemException("allocation failure in IntHash's constructor");
 }
 
 IntHash::IntHash(int hashWidthExpo) try:
@@ -44,9 +59,10 @@ IntHash::~IntHash(){
 	int i=0;
 
 	for (i=0;i<=maxDepth;i++){
-		delete storage[i];
+		delete (FastIntBuffer*)storage[i];
 	}
-	delete[] storage;
+	delete (FastIntBuffer**)storage;
+	storage = NULL;
 }
 
 int IntHash::determineHashWidth(int i){
