@@ -189,6 +189,8 @@ namespace com_ximpleware {
 		// Returns the VTDNav object after parsing, it also cleans 
 		// internal state so VTDGen can process the next file.
 		VTDNav *getNav();
+
+		UByte *getXML(){ return XMLDoc;}
 		// Generating VTD tokens and Location cache info.
 		// One specifies whether the parsing is namespace aware or not.
 		void parse(bool ns);

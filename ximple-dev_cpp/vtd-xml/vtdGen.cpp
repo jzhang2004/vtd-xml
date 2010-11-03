@@ -3395,6 +3395,32 @@ Long VTDGen::getIndexSize(){
 	return size+64;
 }
 void VTDGen::writeSeparateIndex(char *vtdIndexFile){
+		FILE *f = NULL;
+	//Boolean b = FALSE;
+	f = fopen(vtdIndexFile,"wb");
+	
+	if (f==NULL){
+		throw InvalidArgumentException("fileName not valid");
+		//return FALSE;
+	}
+
+	IndexHandler::_writeSeparateIndex( (Byte)2, 
+                encoding, 
+                ns, 
+                true, 
+                VTDDepth, 
+                3, 
+                rootIndex, 
+                //vg->XMLDoc, 
+                docOffset, 
+                docLen, 
+                VTDBuffer, 
+                l1Buffer, 
+                l2Buffer, 
+                l3Buffer, 
+                f);
+	
+	fclose(f);
 }
 VTDNav* VTDGen::loadSeparateIndex(char *XMLFile, char *VTDIndexFile){
 	FILE *vf = NULL, *xf=NULL;
