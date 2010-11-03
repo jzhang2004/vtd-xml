@@ -284,7 +284,7 @@ bool BinaryExpr::compNodeSetNumerical(  VTDNav *vn, opType op){
                     left->reset(vn);
                     vn->contextBuf2->size = stackSize;
                     vn->pop2();
-                    return false;
+                    return true;
                 }
             }
             vn->contextBuf2->size = stackSize;
