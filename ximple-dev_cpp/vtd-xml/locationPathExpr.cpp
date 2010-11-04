@@ -153,7 +153,16 @@ UCSChar* LocationPathExpr::evalString(VTDNav *vn){
 	return createEmptyString();
 }
 
-void LocationPathExpr::reset(VTDNav *vn){}
+void LocationPathExpr::reset(VTDNav *vn){
+	Step *temp = s;
+	state = XPATH_EVAL_START;
+	ih->reset();
+	currentStep = NULL;
+	while(temp!=NULL){
+		temp->reset_s(vn);
+		temp = temp->nextS;
+	}
+}
 void LocationPathExpr::toString(UCSChar *string){
 	Step *ts = s;
 	if (pathType == ABSOLUTE_PATH){
@@ -365,7 +374,7 @@ int LocationPathExpr::computeContextSize(Predicate *p, VTDNav *vn){
 			else
 				ap->selectAttr(currentStep->nt->nodeName);
 			i = 0;
-			while(ap->iterateAttr()!=-1){
+			while(ap->iterateAttr2()!=-1){
 				if (currentStep->evalPredicates2( vn, p)){
 					i++;
 				}
@@ -815,7 +824,7 @@ int LocationPathExpr::process_attribute(VTDNav *vn){
 				if ( state==  XPATH_EVAL_START)
 					state=  XPATH_EVAL_END;
 				vn->setAtTerminal(true);
-				while( (temp = ap->iterateAttr()) != -1){
+				while( (temp = ap->iterateAttr2()) != -1){
 					if (currentStep->evalPredicates(vn)){
 						break;
 					}
@@ -856,7 +865,7 @@ int LocationPathExpr::process_attribute(VTDNav *vn){
 		case  XPATH_EVAL_BACKWARD:
 			ap = currentStep->o;
 			//vn.push();
-			while( (temp = ap->iterateAttr()) != -1){
+			while( (temp = ap->iterateAttr2()) != -1){
 				if (currentStep->evalPredicates(vn)){
 					break;
 				}
@@ -888,7 +897,7 @@ int LocationPathExpr::process_attribute(VTDNav *vn){
 
 		case  XPATH_EVAL_TERMINAL:
 			ap = currentStep->o;
-			while( (temp = ap->iterateAttr()) != -1){
+			while( (temp = ap->iterateAttr2()) != -1){
 				if (currentStep->evalPredicates(vn)){
 					break;
 				}
