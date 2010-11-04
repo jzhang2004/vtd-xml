@@ -243,7 +243,7 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 			else
 				selectAttr(ap,lpe->currentStep->nt->nodeName);
 			i = 0;
-			while(iterateAttr(ap)!=-1){
+			while(iterateAttr2(ap)!=-1){
 				if ( evalPredicates2(lpe->currentStep, vn, p)){
 					i++;
 				}
@@ -699,7 +699,7 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 				if ( lpe->state==  XPATH_EVAL_START)
 					lpe->state=  XPATH_EVAL_END;
 				setAtTerminal(vn,TRUE);
-				while( (temp = iterateAttr(ap)) != -1){
+				while( (temp = iterateAttr2(ap)) != -1){
 					if (evalPredicates(lpe->currentStep,vn)){
 						break;
 					}
@@ -740,7 +740,7 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 		case  XPATH_EVAL_BACKWARD:
 			ap = lpe->currentStep->o;
 			//vn.push();
-			while( (temp = iterateAttr(ap)) != -1){
+			while( (temp = iterateAttr2(ap)) != -1){
 				if (evalPredicates(lpe->currentStep,vn)){
 					break;
 				}
@@ -772,7 +772,7 @@ static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 
 		case  XPATH_EVAL_TERMINAL:
 			ap = lpe->currentStep->o;
-			while( (temp = iterateAttr(ap)) != -1){
+			while( (temp = iterateAttr2(ap)) != -1){
 				if (evalPredicates(lpe->currentStep,vn)){
 					break;
 				}
@@ -2027,7 +2027,6 @@ void toString_p(Predicate *p, UCSChar *string){
 			toString_p(p->nextP,string);
 		}
 }
-
 
 Step *createStep(){
 	Step *s = malloc(sizeof(Step));
