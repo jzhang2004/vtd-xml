@@ -504,6 +504,85 @@ int iterateAttr(AutoPilot *ap){
 							tokenType type = getTokenType(ap->vn,ap->index);
 							if (type == TOKEN_ATTR_NAME
 								|| type == TOKEN_ATTR_NS){
+									//ap->vn->LN = ap->index;
+									return ap->index;
+								}else{   	    				
+									return -1;
+								}
+						}
+						return -1;
+					}else {						
+						while(ap->index<ap->size){
+							tokenType type = getTokenType(ap->vn,ap->index);
+							if (type == TOKEN_ATTR_NAME
+								|| type == TOKEN_ATTR_NS){
+									if (type == TOKEN_ATTR_NAME){
+										//ap->vn->LN = ap->index;
+										return ap->index;
+									}
+									else 
+										ap->index += 2;	    						
+								}else{   	    				
+									return -1;
+								}
+						}
+						return -1;
+					}
+				}else{
+					if (ap->ft == FALSE){
+						return -1;
+					} else {
+						ap->ft = FALSE;
+						i = getAttrVal(ap->vn,ap->elementName);
+						if(i!=-1){
+							//ap->vn->LN = i-1;
+							return i-1;
+						}
+						else 
+							return -1;
+					}   	    			
+				}
+			case ATTR_NS:
+				if (ap->ft == FALSE){
+					return -1;
+				} else {
+					ap->ft = FALSE;
+				    i = getAttrValNS(ap->vn,ap->URL,ap->localName);
+					if(i!=-1){
+						//ap->vn->LN = i-1;
+						return i-1;
+					}
+					else 
+						return -1;
+				} 
+			default:
+				throwException2(pilot_exception,
+					"unknow iteration type for iterateAP");
+				return -1;
+	}
+	
+}
+/**
+ * This method is meant to be called after calling
+ * selectAttr() or selectAttrNs(), it will return the 
+ * vtd index attribute name or -1 if there is none left
+ * @return vtd index attribute name or -1 if there is none left
+ */
+int iterateAttr2(AutoPilot *ap){
+	int i;
+	switch(ap->it){
+			case ATTR:
+				if (wcscmp(ap->elementName,L"*")==0){
+					if (ap->ft != FALSE){
+						ap->ft = FALSE;
+						ap->index = getCurrentIndex2(ap->vn)+1;
+					} else
+						ap->index +=2;
+					if (ap->vn->ns == FALSE){
+						while(ap->index<ap->size){
+							tokenType type = getTokenType(ap->vn,ap->index);
+							if (type == TOKEN_ATTR_NAME
+								|| type == TOKEN_ATTR_NS){
 									ap->vn->LN = ap->index;
 									return ap->index;
 								}else{   	    				

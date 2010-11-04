@@ -144,9 +144,10 @@ void setSpecial(AutoPilot *ap, Boolean b);
 
 Boolean iterateAP(AutoPilot *ap);
 
-// This method implements the attribute axis for XPath
+// Normal iterate Attribute nodes...
 int iterateAttr(AutoPilot *ap);
-
+// This method implements the attribute axis for XPath
+int iterateAttr2(AutoPilot *ap);
 /*
  * This function selects the string representing XPath expression
  * Usually evalXPath is called afterwards
