@@ -205,7 +205,8 @@ namespace com_ximpleware {
 
 		Long getContentFragment();
 		//ElementFragmentNs* getElementFragmentNs();
-		int* getElementFragmentNs();
+		
+		ElementFragmentNs *getElementFragmentNs();
 		Long getSiblingElementFragments(int i);
 		/**
 		* Get the encoding of the XML document.
