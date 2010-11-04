@@ -34,7 +34,7 @@ int TextIter::increment(int sp){
 }
 /* Test whether a give token type is a TEXT.*/
 bool TextIter::isText(int i){
-	tokenType type = vn->getTokenType(index);
+	tokenType type = vn->getTokenType(i);
 	if (sel_type == 0) {
 		return (type == TOKEN_CHARACTER_DATA
 			// || type == vn.TOKEN_COMMENT
