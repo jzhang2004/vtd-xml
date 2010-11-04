@@ -18,6 +18,7 @@
 #include "vtdNav.h"
 //#include "decoder.h"
 #include "bookMark.h"
+#include "elementFragmentNs.h"
 
 //#include <exception>
 using namespace com_ximpleware;
@@ -4351,4 +4352,97 @@ UCSChar* VTDNav::toNormalizedString2(int index){
 			}
 		}
 		return s;
+}
+
+ElementFragmentNs* VTDNav::getElementFragmentNs(){
+	
+	if (ns == false){  
+		throw NavException("getElementFragmentNS can only be called when ns is tured on");
+		return NULL;
+	}else {
+		//fill the fib with integer 
+		// first get the list of name space nodes 
+		FastIntBuffer *fib = NULL;
+		int i = 0;	    
+		int count=0;
+		int type;
+
+		int* ia = context;
+		int d =ia[0]; // -1 for document node, 0 for root element;
+		int c = getCurrentIndex2();
+		int len = (c == 0 || c == rootIndex )? 0: 
+			(getTokenLength(c) & 0xffff); // get the length of qualified node
+		int newSz; Long l;
+		fib = new FastIntBuffer(3); // init size 8
+
+
+		// put the neighboring ATTR_NS nodes into the array
+		// and record the total # of them	     
+
+		if (d > 0){ // depth > 0 every node except document and root element
+			int k=getCurrentIndex2()+1;
+			if (k< vtdSize){				
+				while(k<vtdSize) {
+					type = getTokenType(k);
+					if(type==TOKEN_ATTR_NAME || type==TOKEN_ATTR_NS){
+						if (type == TOKEN_ATTR_NS){    
+							fib->append(k);
+							//System.out.println(" ns name ==>" + toString(k));
+						}
+					}
+					k+=2;					
+					//type = getTokenType(vn,k);
+				}
+
+			}
+			count = fib->size;
+			d--; 
+			while (d >= 0) {                
+				// then search for ns node in the vinicity of the ancestor nodes
+				if (d > 0) {
+					// starting point
+					k = ia[d]+1;
+				} else {
+					// starting point
+					k = rootIndex+1;
+				}
+				if (k<vtdSize){
+					
+					while(k<vtdSize){ 
+						type = getTokenType(k);
+						if (type==TOKEN_ATTR_NAME || type==TOKEN_ATTR_NS){
+							bool unique = true;
+							if (type == TOKEN_ATTR_NS){
+								int z = 0;
+								for (z=0;z<fib->size;z++){
+									//System.out.println("fib size ==> "+fib.size());
+									//if (fib->size==4);
+									if (matchTokens( fib->intAt(z),this,k)){
+										unique = false;
+										break;
+									} 
+
+								}            
+								if (unique)
+									fib->append(k);
+							}
+						}
+							k+=2;
+							//type = getTokenType(vn,k);
+					}
+				}
+				d--;
+			}
+			// System.out.println("count ===> "+count);
+			// then restore the name space node by shifting the array
+			newSz= fib->size-count;
+			for (i= 0; i<newSz; i++ ){
+				fib->modifyEntry(i,fib->intAt(i+count));                
+			}
+			fib->resize(newSz);
+		}
+
+		l= getElementFragment();
+		return new ElementFragmentNs(this,l,fib,len);
+	}
 }
