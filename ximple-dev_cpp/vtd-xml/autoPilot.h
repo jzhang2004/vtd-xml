@@ -40,6 +40,7 @@ namespace com_ximpleware{
 	struct NsList;
 	struct ExprList;
 	class AutoPilot{
+		friend class LocationPathExpr;
 	private:
 		UCSChar *URL;
 		UCSChar *localName;
@@ -127,13 +128,7 @@ namespace com_ximpleware{
 		void selectElementNS_P(UCSChar *URL, UCSChar *ln);
 
 
-		/**
-		* Setspecial is used by XPath evaluator to distinguish between
-		* node() and *
-		* node() corresponding to b= true;
-		* This function is not intended to be called directly
-		*/
-		void setSpecial(bool b){special = b;}
+		
 
 
 		//Iterate over all the selected element nodes.
@@ -187,9 +182,22 @@ namespace com_ximpleware{
 		/* Declare the variable name and expression binding*/
 		void declareVariableExpr(UCSChar* varName, UCSChar* varExpr);
 
+
+	
+	protected:
+
+		int iterateAttr2();
+		/**
+		* Setspecial is used by XPath evaluator to distinguish between
+		* node() and *
+		* node() corresponding to b= true;
+		* This function is not intended to be called directly
+		*/
+		void setSpecial(bool b){special = b;}
 		void selectNameSpace(UCSChar *name);
 
 		int iterateNameSpace();
+			
 	};
 
 

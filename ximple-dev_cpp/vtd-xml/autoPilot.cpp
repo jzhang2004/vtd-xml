@@ -347,7 +347,7 @@ bool AutoPilot::iterate(){
 }
 
 // This method implements the attribute axis for XPath
-int AutoPilot::iterateAttr(){
+int AutoPilot::iterateAttr2(){
 		int i;
 	switch(it){
 			case ATTR:
@@ -408,6 +408,77 @@ int AutoPilot::iterateAttr(){
 				    i = vn->getAttrValNS(URL,localName);
 					if(i!=-1){
 						vn->LN = i-1;
+						return i-1;
+					}
+					else 
+						return -1;
+				} 
+			default:
+				throw PilotException("unknow iteration type for iterateAP");
+	}
+}
+
+int AutoPilot::iterateAttr(){
+		int i;
+	switch(it){
+			case ATTR:
+				if (wcscmp(elementName,L"*")==0){
+					if (ft != false){
+						ft = false;
+						index = vn->getCurrentIndex2()+1;
+					} else
+						index +=2;
+					if (vn->ns == false){
+						while(index<size){
+							tokenType type = vn->getTokenType(index);
+							if (type == TOKEN_ATTR_NAME
+								|| type == TOKEN_ATTR_NS){
+									//vn->LN = index;
+									return index;
+								}else{   	    				
+									return -1;
+								}
+						}
+						return -1;
+					}else {						
+						while(index<size){
+							tokenType type = vn->getTokenType(index);
+							if (type == TOKEN_ATTR_NAME
+								|| type == TOKEN_ATTR_NS){
+									if (type == TOKEN_ATTR_NAME){
+										//vn->LN = index;
+										return index;
+									}
+									else 
+										index += 2;	    						
+								}else{   	    				
+									return -1;
+								}
+						}
+						return -1;
+					}
+				}else{
+					if (ft == false){
+						return -1;
+					} else {
+						ft = false;
+						i = vn->getAttrVal(elementName);
+						if(i!=-1){
+							//vn->LN = i-1;
+							return i-1;
+						}
+						else 
+							return -1;
+					}   	    			
+				}
+			case ATTR_NS:
+				if (ft == false){
+					return -1;
+				} else {
+					ft = false;
+				    i = vn->getAttrValNS(URL,localName);
+					if(i!=-1){
+						//vn->LN = i-1;
 						return i-1;
 					}
 					else 
