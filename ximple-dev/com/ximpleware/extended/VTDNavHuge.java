@@ -1077,7 +1077,7 @@ public class VTDNavHuge {
 		//return (context[0] != 0)
 		//    ? (int) (vtdBuffer.longAt(context[context[0]]) & MASK_TOKEN_OFFSET)
 		//    : (int) (vtdBuffer.longAt(rootIndex) & MASK_TOKEN_OFFSET);
-		return (int) (vtdBuffer.longAt(index) & MASK_TOKEN_OFFSET);
+		return (vtdBuffer.longAt(index) & MASK_TOKEN_OFFSET);
 	}
 
 	/** Get the XML document 
@@ -1567,7 +1567,7 @@ public class VTDNavHuge {
         l = s.length();
         //System.out.println(s);
         for (i = 0; i < l && offset < endOffset; i++) {
-            l1 = getChar(offset);
+        	l1 = getChar(offset);
             int i1 = s.charAt(i); 
             if (i1 < (int) l1 )                 
                 return 1;
@@ -1638,7 +1638,7 @@ public class VTDNavHuge {
 		//currentOffset = getTokenOffset(index);
 		// point currentOffset to the beginning of the token
 		// for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
-		return compareRawTokenString(getTokenOffset(index), len, s)==0;
+				return compareRawTokenString(getTokenOffset(index), len, s)==0;
 	}
 	/**
 	 * Match a string with a token represented by a long (upper 32 len, lower 32 offset).
