@@ -60,14 +60,14 @@ public class XMLMemMappedBuffer implements IByteBuffer {
         input = new MappedByteBuffer[pageNumber];
         long l2 =0;
         for (int i=0;i<pageNumber;i++){
-            if (l < (pageNumber-1)){
+            if (i < (pageNumber-1)){
                 //bufferArray[i] = new byte[1<<30];
                 input[i]= fc.map(FileChannel.MapMode.READ_ONLY, l2 ,1<<30);
                 l2 = l2+(1<<30);
             }
             else{
                 //bufferArray[i] = new byte[(int)l];
-                input[i]= fc.map(FileChannel.MapMode.READ_ONLY, l2, l - (i<<30));
+                input[i]= fc.map(FileChannel.MapMode.READ_ONLY, l2, l - ((long)i<<30));
             }
             //input[i] = new RandomAccessFile(fileName, "r").getChannel()
             //.map(FileChannel.MapMode.READ_ONLY, 0,(1<<32)-1);
