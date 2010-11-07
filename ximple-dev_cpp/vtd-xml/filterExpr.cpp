@@ -99,7 +99,7 @@ void FilterExpr::reset(VTDNav *vn){
 	first_time = true;
 }
 void FilterExpr::reset2(VTDNav *vn){
-	reset(vn);
+	e->reset(vn);
 	p->reset_p(vn);
 }
 void FilterExpr::toString(UCSChar* string){
