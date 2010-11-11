@@ -19,7 +19,7 @@
 /* increment the index value to account for ultra long tokens */
 static int increment(TextIter *ti, int sp);
 /* Test whether a give token type is a TEXT.*/
-static int isText(TextIter *ti, int i);
+static Boolean isText(TextIter *ti, int i);
 static int handleDefault(TextIter *ti);
 static int handleDocumentNode(TextIter *ti);
 static int handleLevel0(TextIter *ti);
@@ -65,7 +65,7 @@ int increment(TextIter *ti, int sp){
 }
 
 /* Test whether a give token type is a TEXT.*/
-int isText(TextIter *ti, int index){
+stati Boolean isText(TextIter *ti, int index){
 	exception e;
 	int type = getTokenType(ti->vn,index);
 	if (ti->sel_type == 0) {
@@ -346,28 +346,28 @@ static int handleLevel2(TextIter *ti){
             return -1;
         }
 }
-static int handelDefault(TextIter *ti){
-         //int curDepth = vn.context[0];
-		int d, type;
-        int sp = (ti->prevLocation != -1) ? increment(ti,ti->prevLocation): ti->index + 1;
-        if (sp>=ti->vn->vtdSize) return -1;
-        d = getTokenDepth(ti->vn,sp);
-        type = getTokenType(ti->vn,sp);
-        while (d >= ti->depth
-            && !(d == ti->depth && type == TOKEN_STARTING_TAG)) {
-            if (isText(ti,sp) == TRUE && d == ti->depth) {
-                ti->prevLocation = sp;
-                return sp;
-            }
-            sp++;
-            if(sp >= ti->vn->vtdSize)
-              return -1;
-
-            d = getTokenDepth(ti->vn,sp);
-            type = getTokenType(ti->vn,sp);                
-        }
-        return -1;
-}
+//static int handelDefault(TextIter *ti){
+//         //int curDepth = vn.context[0];
+//		int d, type;
+//        int sp = (ti->prevLocation != -1) ? increment(ti,ti->prevLocation): ti->index + 1;
+//        if (sp>=ti->vn->vtdSize) return -1;
+//        d = getTokenDepth(ti->vn,sp);
+//        type = getTokenType(ti->vn,sp);
+//        while (d >= ti->depth
+//            && !(d == ti->depth && type == TOKEN_STARTING_TAG)) {
+//            if (isText(ti,sp) == TRUE && d == ti->depth) {
+//                ti->prevLocation = sp;
+//                return sp;
+//            }
+//            sp++;
+//            if(sp >= ti->vn->vtdSize)
+//              return -1;
+//
+//            d = getTokenDepth(ti->vn,sp);
+//            type = getTokenType(ti->vn,sp);                
+//        }
+//        return -1;
+//}
 
 /* Obtain the current navigation position and element info from VTDNav.
  * So one can instantiate it once and use it for many different elements */
