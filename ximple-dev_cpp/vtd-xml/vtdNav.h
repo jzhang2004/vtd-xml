@@ -39,6 +39,7 @@
 
 namespace com_ximpleware {
 	class FastLongBuffer;
+	class ElementFragmentNs;
 	class VTDNav {
 		friend class ElementFragmentNs;
 		friend class FastIntBuffer;
@@ -438,6 +439,11 @@ namespace com_ximpleware {
 
 		/* overwrite */
 		bool overWrite( int index, UByte* ba, int offset, int len);
+
+		/* overwrite */
+		bool overWrite( int index, char* ba, int offset, int len){
+			return overWrite(index,(char*) ba,offset,len);
+		}
 
 		int compareTokenString(int index, UCSChar *s);
 
