@@ -200,12 +200,15 @@ namespace com_ximpleware {
 		// Set the XMLDoc container.
 		void setDoc(UByte *byteArray, int arrayLen);
 		// Set the XMLDoc container.Also set the offset and len of the document 
-
+		// assuming byteArray is null terminated and starts from offset zero
+		void setDoc(UByte *byteArray){setDoc(byteArray,strlen((char *)byteArray));}
+		// assuming charArray is null terminated and starts from offset zero
+		void setDoc(char *charArray){setDoc(charArray,strlen(charArray));}
 		void setDoc(char *charArray, int arrayLen){
 			setDoc((UByte*) charArray, arrayLen);
 		}
 		void setDoc(UByte *byteArray, int arrayLen, int offset, int docLen);
-		void setDoc(char *charArray, int arrayLen, int offset, int docLen){
+		void setDoc(const char *charArray, int arrayLen, int offset, int docLen){
 			setDoc((UByte *)charArray, arrayLen, offset, docLen);
 		}
 		// set the XML Doc container and turn on buffer reuse
