@@ -488,7 +488,12 @@ Boolean iterateAP(AutoPilot *ap){
 	}
 }
 
-/* This method implements the attribute axis for XPath*/
+/**
+ * This method is meant to be called after calling
+ * selectAttr() or selectAttrNs(), it will return the 
+ * vtd index attribute name or -1 if there is none left
+ * @return vtd index attribute name or -1 if there is none left
+ */
 int iterateAttr(AutoPilot *ap){
 	int i;
 	switch(ap->it){
@@ -562,12 +567,9 @@ int iterateAttr(AutoPilot *ap){
 	}
 	
 }
-/**
- * This method is meant to be called after calling
- * selectAttr() or selectAttrNs(), it will return the 
- * vtd index attribute name or -1 if there is none left
- * @return vtd index attribute name or -1 if there is none left
- */
+
+
+/* This method implements the attribute axis for XPath*/
 int iterateAttr2(AutoPilot *ap){
 	int i;
 	switch(ap->it){
