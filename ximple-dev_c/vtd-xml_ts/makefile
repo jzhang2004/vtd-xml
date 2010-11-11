@@ -6,7 +6,7 @@ LDFLAGS = -O3 -fomit-frame-pointer -fforce-addr -frerun-cse-after-loop -fexpensi
 LDFLAGS2  = -ggdb -lpthread -lm
 
 #all :  vtd-xml RSSReader stats soap benchmark_vtdxml update indexWriter indexReader testNodeRecorder testOverwrite testBookMark  FragmentTest ModifyXML
-all :  vtd-xml RSSReader stats soap benchmark_vtdxml update indexWriter indexReader testNodeRecorder testOverwrite testBookMark  FragmentTest vtd-xml3 
+all :  vtd-xml RSSReader stats soap benchmark_vtdxml update indexWriter indexReader testNodeRecorder testOverwrite testBookMark  FragmentTest 
 
 benchmark_vtdxml: benchmark_vtdxml.o arrayList.o fastIntBuffer.o fastLongBuffer.o contextBuffer.o vtdNav.o vtdGen.o autoPilot.o XMLChar.o helper.o lex.yy.o l8.tab.o literalExpr.o numberExpr.o pathExpr.o filterExpr.o binaryExpr.o unaryExpr.o funcExpr.o locationPathExpr.o intHash.o unionExpr.o decoder.o XMLModifier.o nodeRecorder.o indexHandler.o bookMark.o elementFragmentNs.o transcoder.o textIter.o variableExpr.o
 
@@ -36,7 +36,7 @@ testBookMark: testBookMark.o arrayList.o fastIntBuffer.o fastLongBuffer.o contex
 
 vtd-xml: vtd-xml.o arrayList.o fastIntBuffer.o fastLongBuffer.o contextBuffer.o vtdNav.o vtdGen.o autoPilot.o XMLChar.o helper.o lex.yy.o l8.tab.o literalExpr.o numberExpr.o pathExpr.o filterExpr.o binaryExpr.o unaryExpr.o funcExpr.o locationPathExpr.o intHash.o unionExpr.o decoder.o XMLModifier.o nodeRecorder.o indexHandler.o bookMark.o elementFragmentNs.o transcoder.o textIter.o  variableExpr.o
 
-vtd-xml3: vtd-xml3.o arrayList.o fastIntBuffer.o fastLongBuffer.o contextBuffer.o vtdNav.o vtdGen.o autoPilot.o XMLChar.o helper.o lex.yy.o l8.tab.o literalExpr.o numberExpr.o pathExpr.o filterExpr.o binaryExpr.o unaryExpr.o funcExpr.o locationPathExpr.o intHash.o unionExpr.o decoder.o XMLModifier.o nodeRecorder.o indexHandler.o bookMark.o elementFragmentNs.o transcoder.o textIter.o  variableExpr.o
+#vtd-xml3: vtd-xml3.o arrayList.o fastIntBuffer.o fastLongBuffer.o contextBuffer.o vtdNav.o vtdGen.o autoPilot.o XMLChar.o helper.o lex.yy.o l8.tab.o literalExpr.o numberExpr.o pathExpr.o filterExpr.o binaryExpr.o unaryExpr.o funcExpr.o locationPathExpr.o intHash.o unionExpr.o decoder.o XMLModifier.o nodeRecorder.o indexHandler.o bookMark.o elementFragmentNs.o transcoder.o textIter.o  variableExpr.o
 
 #	${CC} ${LDFLAGS} -o vtd-xml vtd-xml.o fastIntBuffer.o arrayList.o fastLongBuffer.o contextBuffer.o vtdNav.o vtdGen.o autoPilot.o XMLChar.o helper.o lex.yy.o l8.tab.o literalExpr.o numberExpr.o pathExpr.o filterExpr.o binaryExpr.o unaryExpr.o funcExpr.o locationPathExpr.o intHash.o unionExpr.o decoder.o XMLModifier.o nodeRecorder.o indexHandler.o bookMark.o elementFragmentNs.o transcoder.o textIter.o  variableExpr.o
 
@@ -85,8 +85,8 @@ testOverwrite.o	: example/testOverwrite.c
 testBookMark.o 	: example/testBookMark.c
 	${CC} ${CFLAGS} example/testBookMark.c
 
-vtd-xml3.o : vtd-xml3.c
-	${CC} ${CFLAGS} example/vtd-xml3.c
+#vtd-xml3.o : vtd-xml3.c
+#	${CC} ${CFLAGS} example/vtd-xml3.c
 
 elementFragmentNs.o  : elementFragmentNs.c
 	${CC} ${CFLAGS} elementFragmentNs.c
