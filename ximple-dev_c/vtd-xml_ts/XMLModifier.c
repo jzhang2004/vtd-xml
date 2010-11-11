@@ -802,7 +802,10 @@ void output(XMLModifier *xm, FILE *f){
 		int inc=1;
 		size_t t;
 		for(i=0;i<xm->flb->size;i=i+inc){
-			if (lower32At(xm->flb,i)==lower32At(xm->flb,i+1)){
+			if (i+1==xm->flb->size){
+				inc = 1;
+			}
+			else if (lower32At(xm->flb,i)==lower32At(xm->flb,i+1)){
 				inc  = 2;
 			} else 
 				inc = 1;

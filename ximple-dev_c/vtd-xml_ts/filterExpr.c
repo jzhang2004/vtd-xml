@@ -42,6 +42,7 @@ filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 
 	fe->e = e1;
 	fe->p = pr;
+	fe->first_time = TRUE;
 
 	return fe;
 
