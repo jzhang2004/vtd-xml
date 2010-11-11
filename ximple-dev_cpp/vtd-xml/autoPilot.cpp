@@ -120,7 +120,7 @@ void AutoPilot::selectAttrNS(UCSChar *URL, UCSChar *ln){
 	it = ATTR_NS;
     ft = true;
     localName = ln;
-    URL = URL;
+    this->URL = URL;
 }
 
 
