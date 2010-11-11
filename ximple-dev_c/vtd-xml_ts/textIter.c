@@ -65,7 +65,7 @@ int increment(TextIter *ti, int sp){
 }
 
 /* Test whether a give token type is a TEXT.*/
-stati Boolean isText(TextIter *ti, int index){
+static Boolean isText(TextIter *ti, int index){
 	exception e;
 	int type = getTokenType(ti->vn,index);
 	if (ti->sel_type == 0) {
