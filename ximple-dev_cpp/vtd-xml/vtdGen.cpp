@@ -177,7 +177,7 @@ void VTDGen::printLineNumber(){
 		lineOffset = (offset - lineOffset) >> 1;
 	}
 	//return "\nLine Number: " + lineNumber + " Offset: " + lineOffset;
-	//printf("\nLine Number: %d  Offset: %d \n",lineNumber+1, lineOffset-1);
+	printf("\nLine Number: %d  Offset: %d \n",lineNumber+1, lineOffset-1);
 }
 //done!!
 //done!!
@@ -3169,16 +3169,17 @@ void VTDGen::parse(bool ns1){
 			}
 		}
 	} 
-	catch (EOFException& e) {
+	catch (ParseException& e) {
 		if (parser_state != STATE_DOC_END){
-				printLineNumber();
-				printf("\n Last Offset val ===> %d \n",offset);
-				throw e;
+			printf("Parsing error => %s  ",e.getMessage());
+			printLineNumber();
+			//printf("\n Last Offset val ===> %d \n",offset);
+			throw e;
 		}
 		finishUp();
 	}
-
 }
+
 bool VTDGen::parseFile(bool ns, char* fileName){
 	FILE *f = NULL;
 	//exception e;
@@ -3426,7 +3427,7 @@ VTDNav* VTDGen::loadSeparateIndex(char *XMLFile, char *VTDIndexFile){
 	FILE *vf = NULL, *xf=NULL;
 	bool b = false;
 	struct stat s;
-	unsigned int xsize;
+	unsigned int xsize; 
 
 	vf = fopen(VTDIndexFile,"rb");
 	xf = fopen(XMLFile, "rb");
