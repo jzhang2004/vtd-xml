@@ -32,6 +32,7 @@ namespace com_ximpleware{
 		{
 			return "VTD exception happened";
 		}
+		const char* getMessage() {return message;}
 	private:
 		const char *message;
 	};
