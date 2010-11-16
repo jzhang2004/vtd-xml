@@ -54,26 +54,62 @@ namespace com_ximpleware {
 		void insertAfterHead(UCSChar *attr);
 
 		void insertAfterElement(UByte* ba, int arrayLen);
+		void insertAfterElement(char* ba,int arrayLen){
+			insertAfterElement((UByte *)ba,arrayLen);
+		}
 		void insertBeforeElement(UByte* ba, int arrayLen);
+		void insertBeforeElement(char* ba,int arrayLen){
+			insertBeforeElement((UByte *)ba,arrayLen);
+		}
 		void insertAfterHead(UByte* ba, int arrayLen);
+		void insertAfterHead(char* ba,int arrayLen){
+			insertAfterHead((UByte *)ba,arrayLen);
+		}
 
 		void insertAfterElement(UByte* ba, int contentOffset, int contentLen);
+		void insertAfterElement(char* ba, int contentOffset, int contentLen){
+			insertAfterElement((UByte *)ba, contentOffset,contentLen);
+		}
 		void insertBeforeElement(UByte* ba, int contentOffset, int contentLen);
+		void insertBeforeElement(char* ba, int contentOffset, int contentLen){
+			insertBeforeElement((UByte *)ba, contentOffset,contentLen);
+		}
 		void insertAfterHead(UByte* ba, int contentOffset, int contentLen);
-
+		void insertAfterHead(char* ba, int contentOffset, int contentLen){
+			insertAfterHead((UByte *)ba, contentOffset,contentLen);
+		}
 		void insertBeforeElement(ElementFragmentNs *ef);
 		void insertAfterElement(ElementFragmentNs *ef);
 		void insertAfterHead(ElementFragmentNs *ef);
 
 
 		void insertAfterElement(encoding_t src_encoding, UByte* ba, int arrayLen);
+		void insertAfterElement(encoding_t src_encoding, char* ba, int arrayLen){
+			insertAfterElement(src_encoding, (UByte *) ba, arrayLen);
+		}
 		void insertBeforeElement(encoding_t src_encoding, UByte* ba, int arrayLen);
+		void insertBeforeElement(encoding_t src_encoding, char* ba, int arrayLen){
+			insertBeforeElement(src_encoding, (UByte *) ba, arrayLen);
+		}
 		void insertAfterHead(encoding_t src_encoding, UByte* ba, int arrayLen);
-
+		void insertAfterHead(encoding_t src_encoding, char* ba, int arrayLen){
+			insertAfterHead(src_encoding, (UByte *) ba, arrayLen);
+		}
 
 		void insertAfterElement(encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen);
 		void insertBeforeElement(encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen);
 		void insertAfterHead(encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen);
+
+		
+		void insertAfterElement(encoding_t src_encoding, char* ba, int contentOffset, int contentLen){
+			insertAfterElement(  src_encoding, (UByte*) ba, contentOffset, contentLen);
+		}
+		void insertBeforeElement(encoding_t src_encoding, char* ba, int contentOffset, int contentLen){
+			insertBeforeElement( src_encoding, (UByte*) ba, contentOffset, contentLen);
+		}
+		void insertAfterHead(encoding_t src_encoding, char* ba, int contentOffset, int contentLen){
+			insertAfterHead(  src_encoding, (UByte*) ba, contentOffset, contentLen);
+		}
 
 
 		void insertAfterElement(VTDNav *vn1, int contentOffset, int contentLen);
