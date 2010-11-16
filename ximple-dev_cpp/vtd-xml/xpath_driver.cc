@@ -6,9 +6,9 @@
      #include "autoPilot.h"
      using namespace std;
      using namespace com_ximpleware;
-     
+
      xpath_driver::xpath_driver (NsList *nl1, ExprList *el1)
-       : nl(nl1), el(el1), trace_scanning (false), trace_parsing (false)     {
+       : num_of_chars(0),nl(nl1), el(el1), trace_scanning (false), trace_parsing (false)     {
        //variables["one"] = 1;
        //variables["two"] = 2;
        //printf("yyFlexLexer allocated \n");

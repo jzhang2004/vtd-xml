@@ -25,7 +25,8 @@
      public:
        xpath_driver (NsList *nl1, ExprList *el);
        virtual ~xpath_driver ();
-     
+		
+	   int num_of_chars;
        //std::map<std::string, int> variables;
      
        com_ximpleware::Expr *result;
