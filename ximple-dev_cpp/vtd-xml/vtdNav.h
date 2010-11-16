@@ -442,7 +442,7 @@ namespace com_ximpleware {
 
 		/* overwrite */
 		bool overWrite( int index, char* ba, int offset, int len){
-			return overWrite(index,(char*) ba,offset,len);
+			return overWrite(index,(UByte*) ba,offset,len);
 		}
 
 		int compareTokenString(int index, UCSChar *s);
@@ -467,7 +467,7 @@ namespace com_ximpleware {
 		void dumpXML( char *fileName);
 
 		/* dump XML text into a given file descriptor */
-		void dumpXML2( FILE *f);
+		void dumpXML( FILE *f);
 
 		/*Get the string length as if the token is converted into a normalized UCS string */
 		int getNormalizedStringLength( int index);

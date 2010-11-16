@@ -3711,9 +3711,9 @@ Long VTDNav::getIndexSize2(){
 /* dump XML text into a given file name */
 void VTDNav::dumpXML(char *fileName){
 
-	FILE *f=fopen(fileName,"w");
+	FILE *f=fopen(fileName,"wb");
 	if (f!=NULL){
-		dumpXML2(f);
+		dumpXML(f);
 		fclose(f);
 	} else {
 		throw IOException("can't open file");
@@ -3722,7 +3722,7 @@ void VTDNav::dumpXML(char *fileName){
 }
 
 /* dump XML text into a given file descriptor */
-void VTDNav::dumpXML2( FILE *f){
+void VTDNav::dumpXML( FILE *f){
 	size_t i = fwrite(XMLDoc+docOffset,1,docLen,f);
 	if (i < (size_t) docLen){
 		throw IOException("can't complete the write");
