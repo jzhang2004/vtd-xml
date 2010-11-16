@@ -36,6 +36,7 @@ typedef com_ximpleware::FuncName fn;
 //int my_yyinput(unsigned short *buf, int s);
 //#define YY_USER_INIT  buf_state = yy_scan_string( name );
 
+#define YY_USER_ACTION  driver.num_of_chars += yyleng;
 //static YY_BUFFER_STATE buf_state;
 //wchar_t *mydup(YY_CHAR *text, int len);
 //static int i;
