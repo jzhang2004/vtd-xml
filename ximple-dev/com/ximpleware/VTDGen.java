@@ -3094,8 +3094,10 @@ public class VTDGen {
 	    	this.setDoc(b);
 	    	this.parse(ns);  // set namespace awareness to true
 	    	return true;
-	    }catch(java.io.IOException e){    
+	    }catch(java.io.IOException e){
+	    	System.out.println("IOException: "+e);
 	    }catch (ParseException e){
+	    	System.out.println("ParserException: "+e);
 	    }
 	    finally{
 	        if (fis!=null){
