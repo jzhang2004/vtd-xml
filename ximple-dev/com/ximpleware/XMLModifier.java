@@ -759,10 +759,16 @@ public class XMLModifier {
      
     public void insertAfterHead(byte[] b)
         throws ModifyException,NavException{
-        int i = md.getOffsetAfterHead();
-        if (i==-1)
-            throw new ModifyException("Insertion failed");
-        insertBytesAt(i,b);
+        long i = md.getOffsetAfterHead();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+            // handle empty element case
+        	// <a/> would become <a>b's content</a>
+        	// so there are two insertions there
+        	
+        	return;
+        }
+        insertBytesAt((int)i,b);
     }
     
     /**
@@ -781,11 +787,11 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertAfterHead(b);
         }else{
-            int i = md.getOffsetAfterHead();
+            long i = md.getOffsetAfterHead();
             if (i==-1)
                 throw new ModifyException("Insertion failed");
             byte[] bo = Transcoder.transcode(b, 0, b.length, src_encoding, encoding);
-            insertBytesAt(i,bo);            
+            insertBytesAt((int)i,bo);            
         }
     }
     /**
@@ -806,11 +812,11 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertAfterHead(b,offset,length);
         }else{
-            int i = md.getOffsetAfterHead();
+            long i = md.getOffsetAfterHead();
             if (i==-1)
                 throw new ModifyException("Insertion failed");
             byte[] bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
-            insertBytesAt(i,bo,offset, length);            
+            insertBytesAt((int)i,bo,offset, length);            
         }
     }
     /**
@@ -830,11 +836,11 @@ public class XMLModifier {
         if(src_encoding == encoding){
             insertAfterHead(b,l);
         }else{
-            int i = md.getOffsetAfterHead();
+            long i = md.getOffsetAfterHead();
             if (i==-1)
                 throw new ModifyException("Insertion failed");
             byte[] bo = Transcoder.transcode(b, (int)l, (int)l>>32, src_encoding, encoding);
-            insertBytesAt(i,bo,l);            
+            insertBytesAt((int)i,bo,l);            
         }
     }
     
@@ -851,10 +857,10 @@ public class XMLModifier {
      */
     public void insertAfterHead(String s)
     throws ModifyException, UnsupportedEncodingException, NavException{
-        int i = md.getOffsetAfterHead();
+        long i = md.getOffsetAfterHead();
         if (i==-1)
             throw new ModifyException("Insertion failed");
-        insertBytesAt(i,s.getBytes(charSet));
+        insertBytesAt((int)i,s.getBytes(charSet));
     }
     
    
@@ -885,10 +891,10 @@ public class XMLModifier {
     */
     public void insertAfterHead(byte[] b, int offset, int len)
     throws ModifyException,NavException{
-        int i = md.getOffsetAfterHead();
+        long i = md.getOffsetAfterHead();
         if (i==-1)
             throw new ModifyException("Insertion failed");
-        insertBytesAt(i,b,offset, len);
+        insertBytesAt((int)i,b,offset, len);
     }
     
    /**
@@ -901,10 +907,10 @@ public class XMLModifier {
     */
     public void insertAfterHead(byte[] b, long l)
     throws ModifyException,NavException{
-        int i = md.getOffsetAfterHead();
+        long i = md.getOffsetAfterHead();
         if (i==-1)
             throw new ModifyException("Insertion failed");
-        insertBytesAt(i,b,l);
+        insertBytesAt((int)i,b,l);
     }
     
     /**
@@ -917,10 +923,10 @@ public class XMLModifier {
      */
     public void insertAfterHead(ElementFragmentNs ef) 
     throws ModifyException, NavException{
-        int i = md.getOffsetAfterHead();
+        long i = md.getOffsetAfterHead();
         if (i==-1)
             throw new ModifyException("Insertion failed");
-        insertElementFragmentNsAt(i, ef);
+        insertElementFragmentNsAt((int)i, ef);
     }
     
 
@@ -1493,7 +1499,7 @@ public class XMLModifier {
                     
         if (flb.size==0){
             os.write(ba,start,len);
-        }else{
+        }else if (md.encoding <VTDNav.FORMAT_UTF_16BE){
             int offset = start;
             int inc=1;
             for(int i=0;i<flb.size;i=i+inc){
@@ -1571,7 +1577,85 @@ public class XMLModifier {
                 }
             }  
             os.write(ba,offset,start+len-offset);
-        } 
+        }else{
+            int offset = start;
+            int inc=1;
+            for(int i=0;i<flb.size;i=i+inc){
+            	if (i+1==flb.size){
+            		inc =1;
+            	}
+            	else if (flb.lower32At(i)==flb.lower32At(i+1)){
+                    inc  = 2;
+                } else 
+                    inc = 1;
+                
+                /*if (i==1021){
+                	System.out.println("inc ==> "+ inc);
+                	System.out.println(" i ==> "+i);
+                }*/
+                l = flb.longAt(i);
+                if (inc == 1){                    
+                    if ((l & (~0x1fffffffffffffffL)) == MASK_DELETE){
+                        os.write(ba,offset, (flb.lower32At(i)<<1)-offset);
+                        offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff))<<1;
+                    }else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE ) { // insert
+                        os.write(ba,offset, (flb.lower32At(i)<<1)-offset);
+                        os.write((byte[])fob.objectAt(i));                       
+                        offset=flb.lower32At(i)<<1;
+                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE) { 
+                        // XML_INSERT_SEGMENT_BYTE
+                        os.write(ba,offset, (flb.lower32At(i)<<1)-offset);
+                        ByteSegment bs = (ByteSegment) fob.objectAt(i);
+                        os.write(bs.ba,bs.offset,bs.len);
+                        offset=flb.lower32At(i)<<1;
+                    } else {
+                        //ElementFragmentNs
+                        os.write(ba,offset, (flb.lower32At(i)<<1)-offset);
+                        ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
+                        ef.writeToOutputStream(os,md.encoding);
+                        offset=flb.lower32At(i)<<1;
+                    }
+                } else { // share the same offset value one insert, one delete
+                    // to make sure that l's offset val is >= k's
+                    // also to make sure that the first token is a delete
+                    long k = flb.longAt(i+1),temp;
+                    int i1 = i,temp2;
+                    int i2 = i+1;
+                    if ((l & (~0x1fffffffffffffffL)) != MASK_DELETE){
+                        temp = l;
+                        l= k;
+                        k = temp;
+                        temp2 = i1;
+                        i1 = i2;
+                        i2 = temp2;
+                    }
+                    // first is definitely
+                    os.write(ba,offset, (flb.lower32At(i1)<<1)-offset);
+                    //os.write((byte[])fob.objectAt(i2));
+                    //offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                    
+                    
+                    if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE ){ // insert
+                        //os.write(ba,offset, flb.lower32At(i2)-offset);
+                        os.write((byte[])fob.objectAt(i2));
+                        offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE){
+                        // XML_INSERT_SEGMENT_BYTE
+                        //os.write(ba,offset, flb.lower32At(i2)-offset);
+                        ByteSegment bs = (ByteSegment) fob.objectAt(i2);
+                        os.write(bs.ba,bs.offset,bs.len);
+                        offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
+                    } else {
+                        //ElementFragmentNs
+                        //os.write(ba,offset, flb.lower32At(i2)-offset);
+                        ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
+                        ef.writeToOutputStream(os,md.encoding);
+                        offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
+                    }
+                }
+            }  
+            os.write(ba,offset,start+len-offset);
+        }
     }
     
     /**
