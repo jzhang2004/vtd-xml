@@ -1114,7 +1114,7 @@ namespace com.ximpleware
             {
                 os.Write(ba, start, len);
             }
-            else
+            else if (md.encoding < VTDNav.FORMAT_UTF_16BE)
             {
                 int offset = start;
                 int inc = 1;
@@ -1202,6 +1202,99 @@ namespace com.ximpleware
                             //ef.writeToOutputStream(os);
                             ef.writeToOutputStream(os, md.encoding);
                             offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                        }
+                    }
+                }
+                os.Write(ba, offset, start + len - offset);
+            }
+            else
+            {
+                int offset = start;
+                int inc = 1;
+                for (int i = 0; i < flb.size_Renamed_Field; i = i + inc)
+                {
+                    if (i + 1 == flb.size_Renamed_Field)
+                    {
+                        inc = 1;
+                    }
+                    else if (flb.lower32At(i) == flb.lower32At(i + 1))
+                    {
+                        inc = 2; // both insert and remove 
+                    }
+                    else
+                        inc = 1; // either insert or remove
+                    l = flb.longAt(i);
+                    if (inc == 1)
+                    {
+                        if ((l & (~0x1fffffffffffffffL)) == XML_DELETE)
+                        {
+                            os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+                            offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff))<<1;
+                        }
+                        else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
+                        {
+                            // insert
+                            os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+                            byte[] temp_byteArray = (byte[])fob.objectAt(i);
+                            os.Write((byte[])fob.objectAt(i), 0, temp_byteArray.Length);
+                            offset = flb.lower32At(i)<<1;
+                        }
+                        else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
+                        {
+                            os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+                            ByteSegment bs = (ByteSegment)fob.objectAt(i);
+                            os.Write(bs.ba, bs.offset, bs.len);
+                            offset = flb.lower32At(i)<<1;
+                        }
+                        else
+                        {
+                            os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
+                            //ef.writeToOutputStream(os);
+                            ef.writeToOutputStream(os, md.encoding);
+                            offset = flb.lower32At(i)<<1;
+                        }
+                    }
+                    else
+                    {
+                        long k = flb.longAt(i + 1), temp;
+                        int i1 = i, temp2;
+                        int i2 = i + 1;
+                        if ((l & (~0x1fffffffffffffffL)) != MASK_DELETE)
+                        {
+                            temp = l;
+                            l = k;
+                            k = temp;
+                            temp2 = i1;
+                            i1 = i2;
+                            i2 = temp2;
+                        }
+
+                        os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+
+                        if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
+                        {
+                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                            byte[] temp_byteArray3;
+                            temp_byteArray3 = (byte[])fob.objectAt(i2);
+                            os.Write(temp_byteArray3, 0, temp_byteArray3.Length);
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
+                        }
+                        else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
+                        {
+                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                            ByteSegment bs = (ByteSegment)fob.objectAt(i2);
+                            os.Write(bs.ba, bs.offset, bs.len);
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
+                        }
+                        else
+                        {
+                            //ElementFragmentNs
+                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
+                            //ef.writeToOutputStream(os);
+                            ef.writeToOutputStream(os, md.encoding);
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
                         }
                     }
                 }
