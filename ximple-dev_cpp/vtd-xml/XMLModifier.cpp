@@ -268,9 +268,8 @@ XMLModifier::~XMLModifier(){
 		}
 		delete (flb);
 		delete (fob);
-
-
 }
+
 void XMLModifier::bind(VTDNav *vn){
 	md = vn;
 	encoding = md->encoding;
@@ -811,7 +810,7 @@ void XMLModifier::output(FILE *f){
 		if (k!=len){
 			throw IOException("fwrite didn't complete");
 		}
-	}else{
+	}else if (md->encoding < FORMAT_UTF_16BE){
 		int offset = start;
 		int i;
 		int inc=1;
@@ -901,8 +900,100 @@ void XMLModifier::output(FILE *f){
 		t = start+len-offset;
 		k=fwrite(md->XMLDoc+offset,sizeof(UByte),t,f);
 		if (k!=t)
-			throw IOException("fwrite didn't complete"); 
+			throw IOException("fwrite didn't complete");
+	}else{
+		int offset = start;
+		int i;
+		int inc=1;
+		size_t t;
+		for(i=0;i<flb->size;i=i+inc){
+			if (i+1==flb->size){
+				inc = 1;
+			}
+			else if (flb->lower32At(i)==flb->lower32At(i+1)){
+				inc  = 2;
+			} else 
+				inc = 1;
+			l = flb->longAt(i);
+			if (inc == 1){                    
+				if ((l & (~0x1fffffffffffffffLL)) == MASK_DELETE){
+					t = flb->lower32At(i)<<1;
+					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					if (k!=t-offset)
+						throw IOException("fwrite didn't complete");
+					offset = t + ((flb->upper32At(i) & 0x1fffffff)<<1);
+				}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE
+					|| (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE){ 
+					// insert
+					t = flb->lower32At(i)<<1;
+					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					if (k!=t-offset)
+						throw IOException("fwrite didn't complete");
+					t = fob->upper32At(i);/* the length */
+					k=fwrite((void *)(fob->lower32At(i)),sizeof(UByte),t,f);
+					if (k!=t)
+						throw IOException("fwrite didn't complete");                      
+					offset= flb->lower32At(i)<<1;
+				}else {
+					t = flb->lower32At(i)<<1;
+					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					if (k!=t-offset)
+						throw IOException("fwrite didn't complete");
+					((ElementFragmentNs*)fob->lower32At(i))->writeFragmentToFile(f,encoding);
+
+					//writeFragmentToFile((ElementFragmentNs*)lower32At(xm->fob,i),f);
+
+					offset= flb->lower32At(i)<<1;
+				}
+			} else {
+				    Long k = flb->longAt(i+1),temp;
+					int i1 = i,temp2,k1;
+                    int i2 = i+1;
+                    if ((l & (~0x1fffffffffffffffLL)) != MASK_DELETE){
+                        temp = l;
+                        l= k;
+                        k = temp;
+                        temp2 = i1;
+                        i1 = i2;
+                        i2 = temp2;
+                    }									
+					
+					t = flb->lower32At(i1)<<1;
+					k1=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					if (k1!=t-offset)
+						throw IOException("fwrite didn't complete");
+					//os.write(ba,offset, flb.lower32At(i)-offset);
+					//os.write((byte[])fob.objectAt(i+1));
+					//t = upper32At(xm->fob,i+1);/* the length */
+								   
+					if ((k & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE
+						|| (k & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE){
+							/*t = lower32At(xm->flb,i+1);
+							k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+							if (k!=t-offset)
+							throwException2(io_exception,"fwrite didn't complete");*/
+							/*os.write(ba,offset, flb.lower32At(i+1)-offset);*/
+							t = fob->upper32At(i2);   /* the length */
+							k=fwrite((void *)fob->lower32At(i2),sizeof(UByte),t,f);
+							if (k!=t)
+								throw IOException("fwrite didn't complete");  
+							offset = (flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff))<<1;
+					}else {
+						/*t = lower32At(xm->flb,i+1);
+						k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+						if (k!=t-offset)
+						throwException2(io_exception,"fwrite didn't complete");*/
+						((ElementFragmentNs*)fob->lower32At(i2))->writeFragmentToFile(f,encoding);
+						offset = (flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff)<<1);
+					}
+			}
+		}  
+		t = start+len-offset;
+		k=fwrite(md->XMLDoc+offset,sizeof(UByte),t,f);
+		if (k!=t)
+			throw IOException("fwrite didn't complete");
 	}
+
 }
 	
 void XMLModifier::output(char *fileName){
