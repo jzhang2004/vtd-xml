@@ -3678,7 +3678,7 @@ public class VTDNav {
 							}
 							l5index++;
 						} else {
-							if (l5index - 1 < l3lower) {
+							if (l5index - 1 < l5lower) {
 								return false;
 							}
 							l5index--;
