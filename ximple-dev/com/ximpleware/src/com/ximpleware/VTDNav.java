@@ -3203,7 +3203,7 @@ public class VTDNav {
 				}
 			} else {
 				while (context[5] != l5Buffer.intAt(l5index)) {
-					l3index++;
+					l5index++;
 				}
 			}
 		}
@@ -4810,6 +4810,18 @@ public class VTDNav {
 		   fib.append(l3index);
 		   fib.append(l3lower);
 		   fib.append(l3upper);
+		}
+		
+		if (context[0]>=4){
+			   fib.append(l4index);
+			   fib.append(l4lower);
+			   fib.append(l4upper);	
+		}
+		
+		if (context[0]>=5){  
+			fib.append(l5index);
+			fib.append(l5lower);
+			fib.append(l5upper);			
 		}
 	}
 	
