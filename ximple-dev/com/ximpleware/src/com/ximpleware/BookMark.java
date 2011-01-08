@@ -120,12 +120,16 @@ public class BookMark {
 		vn.l2upper = ba[vn.nestingLevel + 4];
 		vn.l3lower = ba[vn.nestingLevel + 5];
 		vn.l3upper = ba[vn.nestingLevel + 6];
-		if (ba[vn.nestingLevel+7] < 0){
+		vn.l4lower = ba[vn.nestingLevel + 7];
+		vn.l4upper = ba[vn.nestingLevel + 8] ;
+		vn.l5lower = ba[vn.nestingLevel + 9] ;
+		vn.l5upper = ba[vn.nestingLevel + 10];
+		if (ba[vn.nestingLevel+11] < 0){
 		    vn.atTerminal = true;		    
 		} else
 		    vn.atTerminal = false;
 		
-		vn.LN = ba[vn.nestingLevel+7] & 0x7fffffff;
+		vn.LN = ba[vn.nestingLevel+11] & 0x7fffffff;
 		return true;
     }
     
@@ -167,8 +171,12 @@ public class BookMark {
 		ba[vn.nestingLevel + 4]= vn.l2upper ;
 		ba[vn.nestingLevel + 5]= vn.l3lower ;
 		ba[vn.nestingLevel + 6]= vn.l3upper ;
+		ba[vn.nestingLevel + 7]= vn.l4lower ;
+		ba[vn.nestingLevel + 8]= vn.l4upper ;
+		ba[vn.nestingLevel + 9]= vn.l5lower ;
+		ba[vn.nestingLevel + 10]= vn.l5upper ;
 		//ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
-		ba[vn.nestingLevel + 7]= 
+		ba[vn.nestingLevel + 11]= 
 		    (vn.atTerminal == true)? 
 		        (vn.LN | 0x80000000) : vn.LN ;
         return true;
@@ -252,7 +260,7 @@ public class BookMark {
             ba[i] = bm1.ba[i];
 		}    	
     	if (vn1.getCurrentDepth()>)*/
-    	for (int i = 0; i < vn1.nestingLevel+6; i++) {
+    	for (int i = 0; i < vn1.nestingLevel+10; i++) {
            if(ba[i] != bm1.ba[i])
         	   return false;
 		}
