@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,11 +131,11 @@ public class VTDNav {
 	
 	// masks for obtaining various fields from a VTD token
 	protected final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
-	private final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
-	private final static long MASK_TOKEN_QN_LEN = 0x000007ff00000000L;
+	protected final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
+	protected final static long MASK_TOKEN_QN_LEN = 0x000007ff00000000L;
 	long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
-	private final static long MASK_TOKEN_TYPE = 0xf000000000000000L;
-	private final static long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
+	protected final static long MASK_TOKEN_TYPE = 0xf000000000000000L;
+	protected final static long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
 
 	// tri-state variable for namespace lookup
 	private final static long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
@@ -167,7 +167,7 @@ public class VTDNav {
     // now
 	// Hierarchical representation is an array of integers addressing elements
     // tokens
-	private ContextBuffer contextStack;
+	protected ContextBuffer contextStack;
 	protected ContextBuffer contextStack2;// this is reserved for XPath
 
 	protected int LN; // record txt and attrbute for XPath eval purposes
@@ -194,6 +194,9 @@ public class VTDNav {
 	protected String localName;
 	protected int localNameIndex;
 	protected FastIntBuffer fib;//for store string value 
+	protected boolean shallowDepth;
+	
+	protected VTDNav(){}
 	
 	/**
      * Initialize the VTD navigation object.
@@ -300,6 +303,7 @@ public class VTDNav {
 		localName = null;
 		localNameIndex = -1;
 		fib = new FastIntBuffer(5); // page size is 32 ints
+		shallowDepth = true;
 	}
 	/**
      * Return the attribute count of the element at the cursor position. when ns
@@ -1194,7 +1198,7 @@ public class VTDNav {
 	 * @return
 	 *
 	 */
-	final public int getOffsetAfterHead(){
+	final public long getOffsetAfterHead(){
 	    
 	    int i = getCurrentIndex();
 	    if (getTokenType(i)!=VTDNav.TOKEN_STARTING_TAG){
@@ -1219,7 +1223,7 @@ public class VTDNav {
 	    }
 	    
 	    if (getCharUnit(offset-1)=='/')
-	        return -1;
+	        return 0xffffffff00000000L|(offset);
 	    else
 	        return offset+1;
 	}
@@ -1429,7 +1433,7 @@ public class VTDNav {
      * @param index
      *            int
      */
-	private final boolean isElement(int index) {
+	protected final boolean isElement(int index) {
 		return (((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf)
 			== TOKEN_STARTING_TAG;
 	}
@@ -1442,7 +1446,7 @@ public class VTDNav {
      * @param index
      *            int
      */
-	private final boolean isElementOrDocument(int index){
+	protected final boolean isElementOrDocument(int index){
 		long i =(((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
 		return (i==TOKEN_STARTING_TAG||i==TOKEN_DOCUMENT);
 	}
@@ -1516,7 +1520,7 @@ public class VTDNav {
      * @return boolean
      * @throws NavException
      */
-	final protected boolean iterate_precedingNS(String URL, String ln, int[] a )
+	protected boolean iterate_precedingNS(String URL, String ln, int[] a )
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int t,d;
@@ -1566,7 +1570,7 @@ public class VTDNav {
      * @throws NavException
      */
 
-	final protected boolean iterate_following(String en, boolean special) 
+	protected boolean iterate_following(String en, boolean special) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
 		//int size = vtdBuffer.size;
@@ -1595,7 +1599,7 @@ public class VTDNav {
      * @return boolean
      * @throws NavException
      */
-	final protected boolean iterate_followingNS(String URL, String ln) 
+	protected boolean iterate_followingNS(String URL, String ln) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
 		//int size = vtdBuffer.size;
@@ -1635,7 +1639,7 @@ public class VTDNav {
      *                load-balancer. null element name allowed represent
      *                node()in XPath;
      */
-	final protected boolean iterate(int dp, String en, boolean special)
+	protected boolean iterate(int dp, String en, boolean special)
 		throws NavException { // the navigation doesn't rely on LC
 		// get the current depth
 		int index = getCurrentIndex() + 1;
@@ -1693,7 +1697,7 @@ public class VTDNav {
      * "www.url.com","node_name")){ push(); // store the current position //move
      * position safely pop(); // load the position }
      */
-	final protected boolean iterateNS(int dp, String URL, String ln)
+	protected boolean iterateNS(int dp, String URL, String ln)
 		throws NavException {
 		if (ns == false)
 			return false;
@@ -2816,7 +2820,7 @@ public class VTDNav {
      * @return boolean
      *  
      */
-	final public boolean pop() {
+	public boolean pop() {
 		boolean b = contextStack.load(stackTemp);
 		if (b == false)
 			return false;
@@ -2843,7 +2847,7 @@ public class VTDNav {
      */
 	
 	
-	final protected boolean pop2(){
+	protected boolean pop2(){
 
 		boolean b = contextStack2.load(stackTemp);
 		if (b == false)
@@ -2866,7 +2870,7 @@ public class VTDNav {
      * Store the context info into the ContextBuffer. Info saved including LC
      * and current state of the context Creation date: (11/16/03 7:00:27 PM)
      */
-	final public void push() {
+	public void push() {
 		
 		for (int i = 0; i < nestingLevel; i++) {
 			stackTemp[i] = context[i];
@@ -2891,7 +2895,7 @@ public class VTDNav {
      *  
      */
 	
-	final protected void push2() {
+	protected void push2() {
 		
 		for (int i = 0; i < nestingLevel; i++) {
 			stackTemp[i] = context[i];
@@ -2945,7 +2949,7 @@ public class VTDNav {
 	/** 
 	 * Sync level 1 location cache
 	 */
-	private void resolveLC_l1(){
+	protected void resolveLC_l1(){
 		if (l1index < 0 || l1index >= l1Buffer.size
 				|| context[1] != l1Buffer.upper32At(l1index)) {
 			if (l1index >= l1Buffer.size || l1index < 0) {
@@ -2984,7 +2988,7 @@ public class VTDNav {
 	/**
 	 * Sync Level 2 location cache
 	 */
-	private void resolveLC_l2(){
+	protected void resolveLC_l2(){
 		int temp = l1Buffer.lower32At(l1index);
 		if (l2lower != temp) {
 			l2lower = temp;
@@ -3039,7 +3043,7 @@ public class VTDNav {
 	/**
 	 * Sync L3 location Cache
 	 */
-	private void resolveLC_l3(){
+	protected void resolveLC_l3(){
 		int temp = l2Buffer.lower32At(l2index);
 		if (l3lower != temp) {
 			//l3lower and l3upper are always together
@@ -4611,7 +4615,7 @@ public class VTDNav {
      *  
      */
 	public void writeIndex(OutputStream os) throws IndexWriteException, IOException{
-	    IndexHandler.writeIndex((byte)1,
+	    IndexHandler.writeIndex_L3((byte)1,
 	            this.encoding,
 	            this.ns,
 	            true,
@@ -4636,7 +4640,7 @@ public class VTDNav {
 	 *
 	 */
 	public void writeSeparateIndex(OutputStream os) throws IndexWriteException, IOException{
-	    IndexHandler.writeSeparateIndex((byte)2,
+	    IndexHandler.writeSeparateIndex_L3((byte)2,
 	            this.encoding,
 	            this.ns,
 	            true,
@@ -4711,7 +4715,7 @@ public class VTDNav {
 	 * @return a VTDNav instance
 	 *
 	 */
-	final public VTDNav duplicateNav(){
+	public VTDNav duplicateNav(){
 	    return new VTDNav(rootIndex,
 	            encoding,
 	            ns,
@@ -4731,7 +4735,7 @@ public class VTDNav {
 	 * The node position is also copied from the original instance
 	 * @return a new instance of VTDNav
 	 */
-	final public VTDNav cloneNav(){
+	public VTDNav cloneNav(){
 		VTDNav vn = new VTDNav(rootIndex,
 	            encoding,
 	            ns,
@@ -4863,10 +4867,11 @@ public class VTDNav {
 		        return ((long)(docLen-32))| 32;
 		}
 
-		
-		int so = getOffsetAfterHead();
-		if (so==-1)
+		long l = getOffsetAfterHead();
+		if (l<0)
 			return -1L;
+		int so = (int)l;
+		
 		int length = 0;
 		
 
