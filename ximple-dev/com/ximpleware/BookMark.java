@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,8 +74,14 @@ public class BookMark {
         if (vn==null)
             throw new IllegalArgumentException("vn can't be null");
         vn1 = vn;
-        if (ba == null || vn.nestingLevel+8 != ba.length)
-            ba = new int[vn.nestingLevel + 8];    
+        if (vn.shallowDepth){
+        	if (ba == null || vn.nestingLevel+8 != ba.length)
+        		ba = new int[vn.nestingLevel + 8];
+        }
+        else {
+        	if (ba == null || vn.nestingLevel+14 != ba.length)
+        		ba = new int[vn.nestingLevel + 14];
+        }
         ba[0]= -2 ; // this would never happen in a VTDNav obj's context
     }
     
@@ -112,20 +118,43 @@ public class BookMark {
         for (int i = 0; i < vn.nestingLevel; i++) {
 			vn.context[i] = ba[i];
 		}
+		if (vn.shallowDepth) {
+			vn.l1index = ba[vn.nestingLevel];
+			vn.l2index = ba[vn.nestingLevel + 1];
+			vn.l3index = ba[vn.nestingLevel + 2];
+			vn.l2lower = ba[vn.nestingLevel + 3];
+			vn.l2upper = ba[vn.nestingLevel + 4];
+			vn.l3lower = ba[vn.nestingLevel + 5];
+			vn.l3upper = ba[vn.nestingLevel + 6];
 
-		vn.l1index = ba[vn.nestingLevel];
-		vn.l2index = ba[vn.nestingLevel + 1];
-		vn.l3index = ba[vn.nestingLevel + 2];
-		vn.l2lower = ba[vn.nestingLevel + 3];
-		vn.l2upper = ba[vn.nestingLevel + 4];
-		vn.l3lower = ba[vn.nestingLevel + 5];
-		vn.l3upper = ba[vn.nestingLevel + 6];
-		if (ba[vn.nestingLevel+7] < 0){
-		    vn.atTerminal = true;		    
-		} else
-		    vn.atTerminal = false;
-		
-		vn.LN = ba[vn.nestingLevel+7] & 0x7fffffff;
+			if (ba[vn.nestingLevel + 7] < 0) {
+				vn.atTerminal = true;
+			} else
+				vn.atTerminal = false;
+
+			vn.LN = ba[vn.nestingLevel + 7] & 0x7fffffff;
+		}else{
+			VTDNav_L5 vnl = (VTDNav_L5)vn;
+			vnl.l1index = ba[vn.nestingLevel];
+			vnl.l2index = ba[vn.nestingLevel + 1];
+			vnl.l3index = ba[vn.nestingLevel + 2];
+			vnl.l4index = ba[vn.nestingLevel + 3];
+			vnl.l5index = ba[vn.nestingLevel + 4];
+			vnl.l2lower = ba[vn.nestingLevel + 5];
+			vnl.l2upper = ba[vn.nestingLevel + 6];
+			vnl.l3lower = ba[vn.nestingLevel + 7];
+			vnl.l3upper = ba[vn.nestingLevel + 8];
+			vnl.l4lower = ba[vn.nestingLevel + 9];
+			vnl.l4upper = ba[vn.nestingLevel + 10] ;
+			vnl.l5lower = ba[vn.nestingLevel + 11] ;
+			vnl.l5upper = ba[vn.nestingLevel + 12];
+			if (ba[vn.nestingLevel+13] < 0){
+			    vn.atTerminal = true;		    
+			} else
+			    vn.atTerminal = false;
+			
+			vn.LN = ba[vn.nestingLevel+13] & 0x7fffffff;
+		}
 		return true;
     }
     
@@ -159,19 +188,38 @@ public class BookMark {
         for (int i = 0; i < vn.nestingLevel; i++) {
             ba[i] = vn1.context[i];
 		}
-
-		ba[vn.nestingLevel]= vn.l1index ;
-		ba[vn.nestingLevel + 1]= vn.l2index ;
-		ba[vn.nestingLevel + 2]= vn.l3index ;
-		ba[vn.nestingLevel + 3]= vn.l2lower ;
-		ba[vn.nestingLevel + 4]= vn.l2upper ;
-		ba[vn.nestingLevel + 5]= vn.l3lower ;
-		ba[vn.nestingLevel + 6]= vn.l3upper ;
-		//ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
-		ba[vn.nestingLevel + 7]= 
-		    (vn.atTerminal == true)? 
-		        (vn.LN | 0x80000000) : vn.LN ;
-        return true;
+		if (vn.shallowDepth) {
+			ba[vn.nestingLevel] = vn.l1index;
+			ba[vn.nestingLevel + 1] = vn.l2index;
+			ba[vn.nestingLevel + 2] = vn.l3index;
+			ba[vn.nestingLevel + 3] = vn.l2lower;
+			ba[vn.nestingLevel + 4] = vn.l2upper;
+			ba[vn.nestingLevel + 5] = vn.l3lower;
+			ba[vn.nestingLevel + 6] = vn.l3upper;
+			// ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
+			ba[vn.nestingLevel + 7] = (vn.atTerminal == true) ? (vn.LN | 0x80000000)
+					: vn.LN;			
+		}else{
+			VTDNav_L5 vnl = (VTDNav_L5) vn;
+			ba[vn.nestingLevel]= vnl.l1index ;
+			ba[vn.nestingLevel + 1]= vnl.l2index ;
+			ba[vn.nestingLevel + 2]= vnl.l3index ;
+			ba[vn.nestingLevel + 3]= vnl.l4index ;
+			ba[vn.nestingLevel + 4]= vnl.l5index ;
+			ba[vn.nestingLevel + 5]= vnl.l2lower ;
+			ba[vn.nestingLevel + 6]= vnl.l2upper ;
+			ba[vn.nestingLevel + 7]= vnl.l3lower ;
+			ba[vn.nestingLevel + 8]= vnl.l3upper ;
+			ba[vn.nestingLevel + 9]= vnl.l4lower ;
+			ba[vn.nestingLevel + 10]= vnl.l4upper ;
+			ba[vn.nestingLevel + 11]= vnl.l5lower ;
+			ba[vn.nestingLevel + 12]= vnl.l5upper ;
+			//ba[vn.nestingLevel + 7]=(vn.atTerminal == true)?1:0;
+			ba[vn.nestingLevel + 13]= 
+			    (vn.atTerminal == true)? 
+			        (vn.LN | 0x80000000) : vn.LN ;
+		}
+		return true;
     }
     /**
      * Record cursor position of the VTDNav object as embedded in the
@@ -193,10 +241,18 @@ public class BookMark {
     public final boolean deepEquals(BookMark bm2) {
         if (bm2.vn1 == this.vn1){
             if (bm2.ba[bm2.ba[0]]==this.ba[this.ba[0]]){
-            	if (this.ba[this.vn1.nestingLevel+7] < 0){
-            		if (this.ba[this.vn1.nestingLevel+7]
+            	if (vn1.shallowDepth){
+            		if (this.ba[this.vn1.nestingLevel+7] < 0){
+            			if (this.ba[this.vn1.nestingLevel+7]
             		            != bm2.ba[this.vn1.nestingLevel+7])
-            			return false;
+            				return false;
+            		}
+            	}else{
+               		if (this.ba[this.vn1.nestingLevel+13] < 0){
+            			if (this.ba[this.vn1.nestingLevel+13]
+            		            != bm2.ba[this.vn1.nestingLevel+13])
+            				return false;
+            		}
             	}
                 return true;
             }
@@ -252,10 +308,18 @@ public class BookMark {
             ba[i] = bm1.ba[i];
 		}    	
     	if (vn1.getCurrentDepth()>)*/
-    	for (int i = 0; i < vn1.nestingLevel+6; i++) {
-           if(ba[i] != bm1.ba[i])
-        	   return false;
-		}
+		if (vn1.shallowDepth) {
+			for (int i = 0; i < vn1.nestingLevel + 7; i++) {
+				if (ba[i] != bm1.ba[i])
+					return false;
+			}
+			return true;
+    	}else {
+    		for (int i = 0; i < vn1.nestingLevel + 14; i++) {
+				if (ba[i] != bm1.ba[i])
+					return false;
+			}
+    	}
 		
     	return true;
     }
