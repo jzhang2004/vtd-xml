@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -885,8 +885,6 @@ public class VTDGen {
 		}
 	}
 	
-	
-	
 	class WIN1250Reader implements IReader {
 		public WIN1250Reader() {
 		}
@@ -1263,6 +1261,9 @@ public class VTDGen {
 	protected FastLongBuffer l1Buffer;
 	protected FastLongBuffer l2Buffer;
 	protected FastIntBuffer l3Buffer;
+	protected FastLongBuffer _l3Buffer;
+	protected FastLongBuffer _l4Buffer;
+	protected FastIntBuffer _l5Buffer;
 	
 	protected FastIntBuffer nsBuffer1;
 	protected FastLongBuffer nsBuffer2;
@@ -1272,7 +1273,8 @@ public class VTDGen {
 	private int last_depth;
 	private int last_l1_index;
 	private int last_l2_index;
-	//private int last_l3_index;
+	private int last_l3_index;
+	private int last_l4_index;
 	private boolean must_utf_8;
 	//namespace aware flag
 	protected boolean ns,is_ns;
@@ -1290,6 +1292,10 @@ public class VTDGen {
 	protected byte[] XMLDoc;
 	protected EOFException e;
 	
+	protected short LcDepth;
+	protected boolean singleByteEncoding;
+	protected boolean shallowDepth; // true if lc depth is 3
+	
 	/**
 	 * VTDGen constructor method.
 	 */
@@ -1300,6 +1306,7 @@ public class VTDGen {
 		tag_stack = new long[TAG_STACK_SIZE];
 		//scratch_buffer = new int[10];
 		VTDDepth = 0;
+		LcDepth = 3;
 		
 		br = false;
 		e =  new EOFException("permature EOF reached, XML document incomplete");
@@ -1308,6 +1315,8 @@ public class VTDGen {
 		nsBuffer2 = new FastLongBuffer(4);
 		nsBuffer3 = new FastLongBuffer(4);
 		currentElementRecord = 0;
+		singleByteEncoding = true;
+		shallowDepth =true;
 		//offset_adj = 1;
 	}
 	/**
@@ -1319,10 +1328,13 @@ public class VTDGen {
 	        l1Buffer = null;
 	        l2Buffer = null;
 	        l3Buffer = null;
+	        _l3Buffer = null;
+	        _l4Buffer = null;
+	        _l5Buffer = null;
 	    }
 		XMLDoc = null;
 		offset = temp_offset =0;
-		last_depth = last_l1_index = last_l2_index = 0;
+		last_depth = last_l1_index = last_l2_index = last_l3_index=last_l4_index=0;
 		rootIndex = 0;
 		depth = -1;
 		increment =1;
@@ -1345,16 +1357,26 @@ public class VTDGen {
 	}
 
 	/**
+	 * Enable VTDGen to generate Location Cache of either depth 3 or 5
+	 * @param i
+	 */
+	public void selectLcDepth(int i) throws ParseException{
+		if (i!=3 &&i!=5)
+			throw new ParseException("LcDepth can only take the value of 3 or 5");
+		if (i==5)
+			shallowDepth = false;
+	}
+	/**
 	 * Write white space records that are ignored by default 
 	 */
 	private void addWhiteSpaceRecord() {
 		if (depth > -1) {
 			int length1 = offset - increment - temp_offset;
 			if (length1 != 0)
-				if (encoding < FORMAT_UTF_16BE)
-					writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
+				if (singleByteEncoding)//if (encoding < FORMAT_UTF_16BE)
+					writeVTDText(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
 				else
-					writeVTD(temp_offset >> 1, length1 >> 1,
+					writeVTDText(temp_offset >> 1, length1 >> 1,
 							TOKEN_CHARACTER_DATA, depth);
 		}
 	}
@@ -1428,6 +1450,8 @@ public class VTDGen {
 			if ((offset+ (long)docLen) >= 1L << 31)
 				throw new ParseException("Other error: file size too large >= 2GB");
 		}
+		if (encoding >= FORMAT_UTF_16BE )
+			singleByteEncoding = false;
 	}
 	/**
 	 * This method will detect whether the entity is valid or not and increment offset.
@@ -1522,10 +1546,22 @@ public class VTDGen {
 	 *
 	 */
 	private void finishUp(){
-		if (last_depth == 1) {
-			l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
-		} else if (last_depth == 2) {
-			l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+		if (shallowDepth){
+			if (last_depth == 1) {
+				l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
+			} else if (last_depth == 2) {
+				l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+			}
+		}else{
+			if (last_depth == 1) {
+				l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
+			} else if (last_depth == 2) {
+				l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+			}else if (last_depth == 3) {
+				_l3Buffer.append(((long) last_l3_index << 32) | 0xffffffffL);
+			}else if (last_depth == 4) {
+				_l4Buffer.append(((long) last_l4_index << 32) | 0xffffffffL);
+			}
 		}
 	}
 	/**
@@ -1673,19 +1709,15 @@ public class VTDGen {
 	 */
 	public VTDNav getNav() {
 		// call VTDNav constructor
-		VTDNav vn =
-			new VTDNav(
-				rootIndex,
-				encoding,
-				ns,
-				VTDDepth,
-				new UniByteBuffer(XMLDoc),
-				VTDBuffer,
-				l1Buffer,
-				l2Buffer,
-				l3Buffer,
-				docOffset,
-				docLen);
+		VTDNav vn;
+		if (shallowDepth)
+			vn = new VTDNav(rootIndex, encoding, ns, VTDDepth,
+					new UniByteBuffer(XMLDoc), VTDBuffer, l1Buffer, l2Buffer,
+					l3Buffer, docOffset, docLen);
+		else
+			vn = new VTDNav_L5(rootIndex, encoding, ns, VTDDepth,
+					new UniByteBuffer(XMLDoc), VTDBuffer, l1Buffer, l2Buffer,
+					_l3Buffer, _l4Buffer, _l5Buffer, docOffset, docLen);
 		clear();
 		r = new UTF8Reader();
 		return vn;
@@ -1822,55 +1854,55 @@ public class VTDGen {
                 if (r.skipChar('0')){
 				    encoding = FORMAT_WIN_1250;
 				    r=new WIN1250Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('1')){
 				    encoding = FORMAT_WIN_1251;
 				    r=new WIN1251Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('2')){
 				    encoding = FORMAT_WIN_1252;
 				    r=new WIN1252Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('3')){
 				    encoding = FORMAT_WIN_1253;
 				    r=new WIN1253Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('4')){
 				    encoding = FORMAT_WIN_1254;
 				    r=new WIN1254Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else if (r.skipChar('5') ){
 				    encoding = FORMAT_WIN_1255;
 				    r=new WIN1255Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('6')){
 				    encoding = FORMAT_WIN_1256;
 				    r=new WIN1256Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('7') ){
 				    encoding = FORMAT_WIN_1257;
 				    r=new WIN1257Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('8') ){
 				    encoding = FORMAT_WIN_1258;
 				    r=new WIN1258Reader();
-				    writeVTD(temp_offset, 6,
+				    _writeVTD(temp_offset, 6,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else   
@@ -1906,38 +1938,38 @@ public class VTDGen {
 				 if (r.skipChar(ch_temp)) {
 				     encoding = FORMAT_ISO_8859_1;
 				     r = new ISO8859_1Reader();
-				     writeVTD(temp_offset, 10,
+				     _writeVTD(temp_offset, 10,
 							TOKEN_DEC_ATTR_VAL,
 							depth);
 				     return;
 				 } else if (r.skipChar('0') ){
 				     encoding = FORMAT_ISO_8859_10;
 				     r = new ISO8859_10Reader();
-				     writeVTD(temp_offset, 11,
+				     _writeVTD(temp_offset, 11,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				 } else if (r.skipChar('1') ){
 				     encoding = FORMAT_ISO_8859_11;
 				     r = new ISO8859_11Reader();
-				     writeVTD(temp_offset, 11,
+				     _writeVTD(temp_offset, 11,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				 } else if (r.skipChar('3') ){
 				     encoding = FORMAT_ISO_8859_13;
 				     r = new ISO8859_13Reader();
-				     writeVTD(temp_offset, 11,
+				     _writeVTD(temp_offset, 11,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				 } else if (r.skipChar('4') ){
 				     encoding = FORMAT_ISO_8859_14;
 				     r = new ISO8859_14Reader();
-				     writeVTD(temp_offset, 11,
+				     _writeVTD(temp_offset, 11,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				 } else if (r.skipChar('5') ){
 				     encoding = FORMAT_ISO_8859_15;
 				     r = new ISO8859_15Reader();
-				     writeVTD(temp_offset, 15,
+				     _writeVTD(temp_offset, 15,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				 } else throw new ParseException(
@@ -1946,49 +1978,49 @@ public class VTDGen {
 				}else if (r.skipChar('2') ){
 				    encoding = FORMAT_ISO_8859_2;
 				    r = new ISO8859_2Reader();
-				    writeVTD(temp_offset, 10,
+				    _writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('3')){
 				    r = new ISO8859_3Reader();
 				    encoding = FORMAT_ISO_8859_3;
-				    writeVTD(temp_offset, 10,
+				    _writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				  
 				}else if (r.skipChar('4') ){
 				    r = new ISO8859_4Reader();
 				    encoding = FORMAT_ISO_8859_4;
-				    writeVTD(temp_offset, 10,
+				    _writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				    
 				}else if (r.skipChar('5') ){
 				    encoding = FORMAT_ISO_8859_5;
 				    r = new ISO8859_5Reader();
-				    writeVTD(temp_offset, 10,
+				    _writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else if (r.skipChar('6') ){
 				    encoding = FORMAT_ISO_8859_6;
 				    r = new ISO8859_6Reader();
-				    writeVTD(temp_offset, 10,
+				    _writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('7') ){
 				    encoding = FORMAT_ISO_8859_7;
 				    r = new ISO8859_7Reader();
-				    writeVTD(temp_offset, 10,
+				    _writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else if (r.skipChar('8') ){
 				    encoding = FORMAT_ISO_8859_8;
 				    r = new ISO8859_8Reader();
-				    writeVTD(temp_offset, 10,
+				    _writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else if (r.skipChar('9')){
 				    encoding = FORMAT_ISO_8859_9;
 				    r = new ISO8859_9Reader();
-				    writeVTD(temp_offset, 10,
+				    _writeVTD(temp_offset, 10,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				} else 		
@@ -2023,7 +2055,7 @@ public class VTDGen {
 										+ formatLineNumber());
 					encoding = FORMAT_ASCII;
 					r=new ASCIIReader();					
-						writeVTD(temp_offset, 8,
+						_writeVTD(temp_offset, 8,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 					
@@ -2044,7 +2076,7 @@ public class VTDGen {
 				if (encoding != FORMAT_UTF_16LE
 						&& encoding != FORMAT_UTF_16BE) {
 					//encoding = FORMAT_UTF8;
-					writeVTD(temp_offset, 5,
+					_writeVTD(temp_offset, 5,
 								TOKEN_DEC_ATTR_VAL,
 								depth);					
 						return;
@@ -2061,7 +2093,7 @@ public class VTDGen {
 							throw new EncodingException(
 									"BOM not detected for UTF-16"
 											+ formatLineNumber());
-							writeVTD(
+							_writeVTD(
 									temp_offset >> 1,
 									6,
 									TOKEN_DEC_ATTR_VAL,
@@ -2076,7 +2108,7 @@ public class VTDGen {
 						&& r.skipChar(ch_temp)) {
 					if (encoding == FORMAT_UTF_16LE) {
 						r = new UTF16LEReader();						
-							writeVTD(
+							_writeVTD(
 									temp_offset >> 1,
 									8,
 									TOKEN_DEC_ATTR_VAL,
@@ -2090,7 +2122,7 @@ public class VTDGen {
 						&& (r.skipChar('e') || r.skipChar('E'))
 						&& r.skipChar(ch_temp)) {
 					if (encoding == FORMAT_UTF_16BE) {
-						writeVTD(
+						_writeVTD(
 									temp_offset >> 1,
 									8,
 									TOKEN_DEC_ATTR_VAL,
@@ -2128,55 +2160,55 @@ public class VTDGen {
                 if (r.skipChar('0')){
 				    encoding = FORMAT_WIN_1250;
 				    r=new WIN1250Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('1')){
 				    encoding = FORMAT_WIN_1251;
 				    r=new WIN1251Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('2')){
 				    encoding = FORMAT_WIN_1252;
 				    r=new WIN1252Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('3')){
 				    encoding = FORMAT_WIN_1253;
 				    r=new WIN1253Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('4')){
 				    encoding = FORMAT_WIN_1254;
 				    r=new WIN1254Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('5')){
 				    encoding = FORMAT_WIN_1255;
 				    r=new WIN1255Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('6')){
 				    encoding = FORMAT_WIN_1256;
 				    r=new WIN1256Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else if (r.skipChar('7')){
 				    encoding = FORMAT_WIN_1257;
 				    r=new WIN1257Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
 				}else if (r.skipChar('8')){
 				    encoding = FORMAT_WIN_1258;
 				    r=new WIN1258Reader();
-				    writeVTD(temp_offset, 12,
+				    _writeVTD(temp_offset, 12,
 								TOKEN_DEC_ATTR_VAL,
 								depth);				   
 				}else 
@@ -2225,7 +2257,7 @@ public class VTDGen {
 
 		// enter the main finite state machine
 		try {
-			writeVTD(0,0,TOKEN_DOCUMENT,depth);
+			_writeVTD(0,0,TOKEN_DOCUMENT,depth);
 			while (true) {
 				switch (parser_state) {
 					case STATE_LT_SEEN : //if (depth < -1)
@@ -2260,7 +2292,7 @@ public class VTDGen {
 							if (XMLChar.isNameChar(ch)) {
 								if (ch == ':') {
 									length2 = offset - temp_offset - increment;
-									if (ns==true && checkPrefix2(temp_offset,length2))
+									if (ns && checkPrefix2(temp_offset,length2))
 										throw new ParseException(
 												"xmlns can't be an element prefix "
 												+ formatLineNumber(offset));
@@ -2271,7 +2303,7 @@ public class VTDGen {
 							if (XMLChar.isNameChar(ch)) {
 								if (ch == ':') {
 									length2 = offset - temp_offset - increment;
-									if (ns==true && checkPrefix2(temp_offset,length2))
+									if (ns && checkPrefix2(temp_offset,length2))
 										throw new ParseException(
 												"xmlns can't be an element prefix "
 												+ formatLineNumber(offset));
@@ -2293,27 +2325,33 @@ public class VTDGen {
 						//     " " + (temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
 						if (depth > VTDDepth)
 							VTDDepth = depth;
-						if (encoding < FORMAT_UTF_16BE){
+						//if (encoding < FORMAT_UTF_16BE){
+						if (singleByteEncoding){
 							if (length2>MAX_PREFIX_LENGTH
 									|| length1 > MAX_QNAME_LENGTH)
 								throw new ParseException(
 										"Token Length Error: Starting tag prefix or qname length too long"					
 										+ formatLineNumber());
-							writeVTD(
-								(temp_offset),
-								(length2 << 11) | length1,
-								TOKEN_STARTING_TAG,
-								depth);
+						if (this.shallowDepth)
+							writeVTD((temp_offset), (length2 << 11) | length1,
+									TOKEN_STARTING_TAG, depth);
+						else
+							writeVTD_L5((temp_offset), (length2 << 11) | length1, 
+									TOKEN_STARTING_TAG, depth);
 					} else {
 						if (length2 > (MAX_PREFIX_LENGTH << 1)
 								|| length1 > (MAX_QNAME_LENGTH << 1))
 							throw new ParseException(
 									"Token Length Error: Starting tag prefix or qname length too long"
 											+ formatLineNumber());
-						writeVTD((temp_offset) >> 1, (length2 << 10)
-								| (length1 >> 1), TOKEN_STARTING_TAG, depth);
+						if (this.shallowDepth)
+							writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), 
+									TOKEN_STARTING_TAG, depth);
+						else
+							writeVTD_L5((temp_offset) >> 1, (length2 << 10)	| (length1 >> 1), 
+									TOKEN_STARTING_TAG, depth);
 					}
-					if (ns == true) {
+					if (ns) {
 						if (length2!=0){
 							length2 += increment;
 							currentElementRecord = (((long)((length2<<16)|length1))<<32) 
@@ -2346,7 +2384,7 @@ public class VTDGen {
 						ch = r.getChar();
 					}
 					if (ch == '>') {
-						if (ns == true){
+						if (ns){
 							nsBuffer1.append(nsBuffer3.size-1);
 							if (currentElementRecord !=0)
 								qualifyElement();
@@ -2366,13 +2404,14 @@ public class VTDGen {
 										length1 = offset - temp_offset
 												- (increment << 1);
 										//if (length1 > 0) {
-											if (encoding < FORMAT_UTF_16BE)
-												writeVTD((temp_offset),
+											//if (encoding < FORMAT_UTF_16BE)
+											if (singleByteEncoding)
+												writeVTDText((temp_offset),
 														length1,
 														TOKEN_CHARACTER_DATA,
 														depth);
 											else
-												writeVTD((temp_offset) >> 1,
+												writeVTDText((temp_offset) >> 1,
 														(length1 >> 1),
 														TOKEN_CHARACTER_DATA,
 														depth);
@@ -2530,13 +2569,14 @@ public class VTDGen {
 
 						// after checking, write VTD
 						if (is_ns) { //if the prefix is xmlns: or xmlns
-							if (encoding < FORMAT_UTF_16BE){
+							//if (encoding < FORMAT_UTF_16BE){
+							if (singleByteEncoding){
 								if (length2>MAX_PREFIX_LENGTH
 										|| length1 > MAX_QNAME_LENGTH)
 									throw new ParseException(
 											"Token length overflow error: Attr NS tag prefix or qname length too long"
 											+formatLineNumber());
-								writeVTD(
+								_writeVTD(
 									temp_offset,
 									(length2 << 11) | length1,
 									TOKEN_ATTR_NS,
@@ -2548,7 +2588,7 @@ public class VTDGen {
 									throw new ParseException(
 											"Token length overflow error: Attr NS prefix or qname length too long"
 											+ formatLineNumber());
-								writeVTD(
+								_writeVTD(
 									temp_offset >> 1,
 									(length2 << 10) | (length1 >> 1),
 									TOKEN_ATTR_NS,
@@ -2567,13 +2607,14 @@ public class VTDGen {
 							}
 							
 						} else {
-							if (encoding < FORMAT_UTF_16BE){
+							//if (encoding < FORMAT_UTF_16BE){
+							if (singleByteEncoding) {
 								if (length2>MAX_PREFIX_LENGTH
 										|| length1 > MAX_QNAME_LENGTH)
 									throw new ParseException(
 											"Token Length Error: Attr name prefix or qname length too long"
 											+ formatLineNumber());
-								writeVTD(
+								_writeVTD(
 									temp_offset,
 									(length2 << 11) | length1,
 									TOKEN_ATTR_NAME,
@@ -2585,7 +2626,7 @@ public class VTDGen {
 									throw new ParseException(
 											"Token Length overflow error: Attr name prefix or qname length too long" 
 											+ formatLineNumber());
-								writeVTD(
+								_writeVTD(
 									temp_offset >> 1,
 									(length2 << 10) | (length1 >> 1),
 									TOKEN_ATTR_NAME,
@@ -2667,13 +2708,13 @@ public class VTDGen {
 							//"http://www.w3.org/XML/1998/namespace"
 						}
 						
-						
-						if (encoding < FORMAT_UTF_16BE){
+						if (singleByteEncoding){
+						//if (encoding < FORMAT_UTF_16BE){
 							if (length1 > MAX_TOKEN_LENGTH)
 								  throw new ParseException("Token Length Error:"
 											  +" Attr val too long (>0xfffff)"
 											  + formatLineNumber());
-							writeVTD(
+							_writeVTD(
 								temp_offset,
 								length1,
 								TOKEN_ATTR_VAL,
@@ -2684,7 +2725,7 @@ public class VTDGen {
 								  throw new ParseException("Token Length Error:"
 											  +" Attr val too long (>0xfffff)"
 											  + formatLineNumber());
-							writeVTD(
+							_writeVTD(
 								temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_ATTR_VAL,
@@ -2713,7 +2754,7 @@ public class VTDGen {
 						}
 
 						if (ch == '>') {
-							if (ns == true){
+							if (ns){
 								nsBuffer1.append(nsBuffer3.size-1);
 								if (prefixed_attr_count>0)
 									qualifyAttributes();
@@ -2740,16 +2781,16 @@ public class VTDGen {
 											length1 = offset - temp_offset
 													- (increment << 1);
 											//if (length1 > 0) {
-												if (encoding < FORMAT_UTF_16BE)
-													writeVTD((temp_offset),
-															length1,
-															TOKEN_CHARACTER_DATA,
-															depth);
-												else
-													writeVTD((temp_offset) >> 1,
-															(length1 >> 1),
-															TOKEN_CHARACTER_DATA,
-															depth);
+											if (singleByteEncoding)//if (encoding < FORMAT_UTF_16BE)
+												writeVTDText((temp_offset),
+														length1,
+														TOKEN_CHARACTER_DATA,
+														depth);
+											else
+												writeVTDText((temp_offset) >> 1,
+														(length1 >> 1),
+														TOKEN_CHARACTER_DATA,
+														depth);
 											//}
 										}
 										parser_state = STATE_END_TAG;
@@ -2794,14 +2835,14 @@ public class VTDGen {
 						
 						length1 = offset - increment - temp_offset;
 
-						if (encoding < FORMAT_UTF_16BE)
-							writeVTD(
+						if (singleByteEncoding) //if (encoding < FORMAT_UTF_16BE)
+							writeVTDText(
 								temp_offset,
 								length1,
 								TOKEN_CHARACTER_DATA,
 								depth);
 						else
-							writeVTD(
+							writeVTDText(
 								temp_offset >> 1,
 								length1 >> 1,
 								TOKEN_CHARACTER_DATA,
@@ -3187,9 +3228,9 @@ public class VTDGen {
 						+ formatLineNumber());
 		}
 		length1 = offset - temp_offset -  (increment<<1) - increment;
-		if (encoding < FORMAT_UTF_16BE){
+		if (singleByteEncoding){//if (encoding < FORMAT_UTF_16BE){
 			
-			writeVTD(
+			writeVTDText(
 				temp_offset,
 				length1,
 				TOKEN_CDATA_VAL,
@@ -3197,7 +3238,7 @@ public class VTDGen {
 		}
 		else {
 			
-			writeVTD(
+			writeVTDText(
 				temp_offset >> 1,
 				length1 >> 1,
 				TOKEN_CDATA_VAL,
@@ -3262,14 +3303,14 @@ public class VTDGen {
 		}
 		if (r.getChar() == '>') {
 			//System.out.println(" " + (temp_offset) + " " + length1 + " comment " + depth);
-			if (encoding < FORMAT_UTF_16BE)
-				writeVTD(
+			if (singleByteEncoding)//if (encoding < FORMAT_UTF_16BE)
+				writeVTDText(
 					temp_offset,
 					length1,
 					TOKEN_COMMENT,
 					depth);
 			else
-				writeVTD(
+				writeVTDText(
 					temp_offset >> 1,
 					length1 >> 1,
 					TOKEN_COMMENT,
@@ -3331,13 +3372,13 @@ public class VTDGen {
 				/*System.out.println(
 				    " " + (temp_offset - 1) + " " + 7 + " dec attr name version " + depth);*/
 				if (encoding < FORMAT_UTF_16BE)
-					writeVTD(
+					_writeVTD(
 						temp_offset - 1,
 						7,
 						TOKEN_DEC_ATTR_NAME,
 						depth);
 				else
-					writeVTD(
+					_writeVTD(
 						(temp_offset -2) >> 1,
 						7,
 						TOKEN_DEC_ATTR_NAME,
@@ -3363,13 +3404,13 @@ public class VTDGen {
 			/*System.out.println(
 			    " " + temp_offset + " " + 3 + " dec attr val (version)" + depth);*/
 			if (encoding < FORMAT_UTF_16BE)
-				writeVTD(
+				_writeVTD(
 					temp_offset,
 					3,
 					TOKEN_DEC_ATTR_VAL,
 					depth);
 			else
-				writeVTD(
+				_writeVTD(
 					temp_offset >> 1,
 					3,
 					TOKEN_DEC_ATTR_VAL,
@@ -3402,13 +3443,13 @@ public class VTDGen {
 						/*System.out.println(
 						    " " + (temp_offset) + " " + 8 + " dec attr name (encoding) " + depth);*/
 						if (encoding < FORMAT_UTF_16BE)
-							writeVTD(
+							_writeVTD(
 								temp_offset,
 								8,
 								TOKEN_DEC_ATTR_NAME,
 								depth);
 						else
-							writeVTD(
+							_writeVTD(
 								temp_offset >> 1,
 								8,
 								TOKEN_DEC_ATTR_NAME,
@@ -3447,7 +3488,7 @@ public class VTDGen {
 									/*System.out.println(
 									    " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
 									
-										writeVTD(
+										_writeVTD(
 											temp_offset,
 											5,
 											TOKEN_DEC_ATTR_VAL,
@@ -3513,13 +3554,13 @@ public class VTDGen {
 					/*System.out.println(
 					    " " + temp_offset + " " + 3 + " dec attr name (standalone) " + depth);*/
 					if (encoding < FORMAT_UTF_16BE)
-						writeVTD(
+						_writeVTD(
 							temp_offset,
 							10,
 							TOKEN_DEC_ATTR_NAME,
 							depth);
 					else
-						writeVTD(
+						_writeVTD(
 							temp_offset >> 1,
 							10,
 							TOKEN_DEC_ATTR_NAME,
@@ -3538,13 +3579,13 @@ public class VTDGen {
 							/*System.out.println(
 							    " " + (temp_offset) + " " + 3 + " dec attr val (standalone) " + depth);*/
 							if (encoding < FORMAT_UTF_16BE)
-								writeVTD(
+								_writeVTD(
 									temp_offset,
 									3,
 									TOKEN_DEC_ATTR_VAL,
 									depth);
 							else
-								writeVTD(
+								_writeVTD(
 									temp_offset >> 1,
 									3,
 									TOKEN_DEC_ATTR_VAL,
@@ -3559,13 +3600,13 @@ public class VTDGen {
 							/*System.out.println(
 							    " " + (temp_offset) + " " + 2 + " dec attr val (standalone)" + depth);*/
 							if (encoding < FORMAT_UTF_16BE)
-								writeVTD(
+								_writeVTD(
 									temp_offset,
 									2,
 									TOKEN_DEC_ATTR_VAL,
 									depth);
 							else
-								writeVTD(
+								_writeVTD(
 									temp_offset >> 1,
 									2,
 									TOKEN_DEC_ATTR_VAL,
@@ -3629,12 +3670,12 @@ public class VTDGen {
 		length1 = offset - temp_offset - increment;
 		/*System.out.println(
 		    " " + (temp_offset) + " " + length1 + " DOCTYPE val " + depth);*/
-		if (encoding < FORMAT_UTF_16BE){
+		if (singleByteEncoding){//if (encoding < FORMAT_UTF_16BE){
 			if (length1 > MAX_TOKEN_LENGTH)
 				  throw new ParseException("Token Length Error:"
 							  +" DTD val too long (>0xfffff)"
 							  + formatLineNumber());
-			writeVTD(
+			_writeVTD(
 				temp_offset,
 				length1,
 				TOKEN_DTD_VAL,
@@ -3645,7 +3686,7 @@ public class VTDGen {
 				  throw new ParseException("Token Length Error:"
 							  +" DTD val too long (>0xfffff)"
 							  + formatLineNumber());
-			writeVTD(
+			_writeVTD(
 				temp_offset >> 1,
 				length1 >> 1,
 				TOKEN_DTD_VAL,
@@ -3682,14 +3723,14 @@ public class VTDGen {
 		}
 		if (r.getChar() == '>') {
 			//System.out.println(" " + temp_offset + " " + length1 + " comment " + depth);
-			if (encoding < FORMAT_UTF_16BE)
-				writeVTD(
+			if (singleByteEncoding) //if (encoding < FORMAT_UTF_16BE)
+				writeVTDText(
 					temp_offset,
 					length1,
 					TOKEN_COMMENT,
 					depth);
 			else
-				writeVTD(
+				writeVTDText(
 					temp_offset >> 1,
 					length1 >> 1,
 					TOKEN_COMMENT,
@@ -3769,12 +3810,12 @@ public class VTDGen {
 			        + length1
 			        + " PI Target "
 			        + depth);*/
-			if (encoding < FORMAT_UTF_16BE){
+			if (singleByteEncoding){//if (encoding < FORMAT_UTF_16BE){
 				if (length1 > MAX_TOKEN_LENGTH)
 					  throw new ParseException("Token Length Error:"
 								  +"PI name too long (>0xfffff)"
 								  + formatLineNumber());
-				writeVTD(
+				_writeVTD(
 					temp_offset,
 					length1,
 					TOKEN_PI_NAME,
@@ -3785,7 +3826,7 @@ public class VTDGen {
 				  throw new ParseException("Token Length Error:"
 						  +"PI name too long (>0xfffff)"
 						  + formatLineNumber());
-				writeVTD(
+				_writeVTD(
 					temp_offset >> 1,
 					length1 >> 1,
 					TOKEN_PI_NAME,
@@ -3818,7 +3859,7 @@ public class VTDGen {
 						  throw new ParseException("Token Length Error:"
 									  +"PI val too long (>0xfffff)"
 									  + formatLineNumber());
-					writeVTD(
+					_writeVTD(
 						temp_offset,
 						length1,
 						TOKEN_PI_VAL,
@@ -3829,7 +3870,7 @@ public class VTDGen {
 						  throw new ParseException("Token Length Error:"
 									  +"PI val too long (>0xfffff)"
 									  + formatLineNumber());
-					writeVTD(
+					_writeVTD(
 						temp_offset >> 1,
 						length1 >> 1,
 						TOKEN_PI_VAL,
@@ -3944,12 +3985,13 @@ public class VTDGen {
 		        + length1
 		        + " PI Target "
 		        + depth); */
-		if (encoding < FORMAT_UTF_16BE){
+		//if (encoding < FORMAT_UTF_16BE){
+		if (singleByteEncoding){
 			if (length1 > MAX_TOKEN_LENGTH)
 				  throw new ParseException("Token Length Error:"
 							  +" PI name too long (>0xfffff)"
 							  + formatLineNumber());
-			writeVTD(
+			_writeVTD(
 				(temp_offset),
 				length1,
 				TOKEN_PI_NAME,
@@ -3960,7 +4002,7 @@ public class VTDGen {
 				throw new ParseException("Token Length Error:"
 							+" PI name too long (>0xfffff)"
 							+ formatLineNumber());
-			writeVTD(
+			_writeVTD(
 				(temp_offset) >> 1,
 				(length1 >> 1),
 				TOKEN_PI_NAME,
@@ -4050,28 +4092,18 @@ public class VTDGen {
 		        + length1
 		        + " PI val "
 		        + depth);*/
-		if (length1 !=0)
-		if (encoding < FORMAT_UTF_16BE){
-			if (length1 > MAX_TOKEN_LENGTH)
-				  throw new ParseException("Token Length Error:"
-							  +"PI VAL too long (>0xfffff)"
-							  + formatLineNumber());
-			writeVTD(temp_offset,
-					length1, 
-					TOKEN_PI_VAL,
-					depth);
-		}
-		else{
-			if (length1 > (MAX_TOKEN_LENGTH<<1))
-				  throw new ParseException("Token Length Error:"
-							  +"PI VAL too long (>0xfffff)"
-							  + formatLineNumber());
-			writeVTD(
-				temp_offset >> 1,
-				length1 >> 1,
-				TOKEN_PI_VAL,
-				depth);
-		}
+		if (length1 != 0)
+			if (singleByteEncoding) {// if (encoding < FORMAT_UTF_16BE){
+				if (length1 > MAX_TOKEN_LENGTH)
+					throw new ParseException("Token Length Error:"
+							+ "PI VAL too long (>0xfffff)" + formatLineNumber());
+				_writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
+			} else {
+				if (length1 > (MAX_TOKEN_LENGTH << 1))
+					throw new ParseException("Token Length Error:"
+							+ "PI VAL too long (>0xfffff)" + formatLineNumber());
+				_writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
+			}
 		//length1 = 0;
 		temp_offset = offset;
 		//ch = getCharAfterSe();
@@ -4176,17 +4208,13 @@ public class VTDGen {
 	 * @param len int (in byte)
 	 */
 	public void setDoc(byte[] ba, int os, int len) {
-	    if (ba == null ||
-	            os <0 || 
-	            len ==0 || 
-	            ba.length< os+len)
-	    {
-	        throw new IllegalArgumentException("Illegal argument for setDoc");
-	    }
+		if (ba == null || os < 0 || len == 0 || ba.length < os + len) {
+			throw new IllegalArgumentException("Illegal argument for setDoc");
+		}
 		int a;
 		br = false;
 		depth = -1;
-		increment =1;
+		increment = 1;
 		BOM_detected = false;
 		must_utf_8 = false;
 		ch = ch_temp = 0;
@@ -4195,36 +4223,98 @@ public class VTDGen {
 		docOffset = offset = os;
 		docLen = len;
 		endOffset = os + len;
-		last_l1_index= last_l2_index = last_depth =0;
-		
+		last_l1_index = last_l2_index = last_l3_index = last_l4_index = last_depth = 0;
+
 		currentElementRecord = 0;
-		nsBuffer1.size=0;
-		nsBuffer2.size=0;
-		nsBuffer3.size=0;
+		nsBuffer1.size = 0;
+		nsBuffer2.size = 0;
+		nsBuffer3.size = 0;
 		r = new UTF8Reader();
-		int i1=7,i2=9,i3=11;
-		if (docLen <= 1024) {
-			//a = 1024; //set the floor
-			a = 6; i1=5; i2=5;i3=5;
-		} else if (docLen <=4096){
-		    a = 7; i1=6; i2=6; i3=6;
-		}else if (docLen <=1024*16){
-		    a =8; i1 = 7;i2=7;i3=7;
-		}else if (docLen <= 1024 * 16 * 4) {
-			//a = 2048;
-			a = 11;
-		} else if (docLen <= 1024 * 256) {
-			//a = 1024 * 4;
-			a = 12;
+		if (shallowDepth) {
+			int i1 = 7, i2 = 9, i3 = 11;
+			if (docLen <= 1024) {
+				// a = 1024; //set the floor
+				a = 6;
+				i1 = 5;
+				i2 = 5;
+				i3 = 5;
+			} else if (docLen <= 4096) {
+				a = 7;
+				i1 = 6;
+				i2 = 6;
+				i3 = 6;
+			} else if (docLen <= 1024 * 16) {
+				a = 8;
+				i1 = 7;
+				i2 = 7;
+				i3 = 7;
+			} else if (docLen <= 1024 * 16 * 4) {
+				// a = 2048;
+				a = 11;
+			} else if (docLen <= 1024 * 256) {
+				// a = 1024 * 4;
+				a = 12;
+			} else {
+				// a = 1 << 15;
+				a = 15;
+			}
+
+			VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+			l1Buffer = new FastLongBuffer(i1);
+			l2Buffer = new FastLongBuffer(i2);
+			l3Buffer = new FastIntBuffer(i3);
 		} else {
-			//a = 1 << 15;
-			a = 15;
+
+			int i1 = 7, i2 = 9, i3 = 11, i4 = 11, i5 = 11;
+			if (docLen <= 1024) {
+				// a = 1024; //set the floor
+				a = 6;
+				i1 = 5;
+				i2 = 5;
+				i3 = 5;
+				i4 = 5;
+				i5 = 5;
+			} else if (docLen <= 4096) {
+				a = 7;
+				i1 = 6;
+				i2 = 6;
+				i3 = 6;
+				i4 = 6;
+				i5 = 6;
+			} else if (docLen <= 1024 * 16) {
+				a = 8;
+				i1 = 7;
+				i2 = 7;
+				i3 = 7;
+				i4 = 7;
+				i5 = 7;
+			} else if (docLen <= 1024 * 16 * 4) {
+				// a = 2048;
+				a = 11;
+				i2 = 8;
+				i3 = 8;
+				i4 = 8;
+				i5 = 8;
+			} else if (docLen <= 1024 * 256) {
+				// a = 1024 * 4;
+				a = 12;
+				i1 = 8;
+				i2 = 9;
+				i3 = 9;
+				i4 = 9;
+				i5 = 9;
+			} else {
+				// a = 1 << 15;
+				a = 15;
+			}
+
+			VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+			l1Buffer = new FastLongBuffer(i1);
+			l2Buffer = new FastLongBuffer(i2);
+			_l3Buffer = new FastLongBuffer(i3);
+			_l4Buffer = new FastLongBuffer(i4);
+			_l5Buffer = new FastIntBuffer(i5);
 		}
-		
-		VTDBuffer = new FastLongBuffer(a, len>> (a+1));
-		l1Buffer = new FastLongBuffer(i1);
-		l2Buffer = new FastLongBuffer(i2);
-		l3Buffer = new FastIntBuffer(i3);
 	}
 	/**
 	 * The buffer-reuse version of setDoc
@@ -4246,18 +4336,14 @@ public class VTDGen {
 	 * @param len int (in byte)
 	 *
 	 */
-	public void setDoc_BR(byte[] ba, int os, int len){
-	    if (ba == null ||
-	            os <0 || 
-	            len ==0 || 
-	            ba.length< os+len)
-	    {
-	        throw new IllegalArgumentException("Illegal argument for setDoc_BR");
-	    }
+	public void setDoc_BR(byte[] ba, int os, int len) {
+		if (ba == null || os < 0 || len == 0 || ba.length < os + len) {
+			throw new IllegalArgumentException("Illegal argument for setDoc_BR");
+		}
 		int a;
 		br = true;
 		depth = -1;
-		increment =1;
+		increment = 1;
 		BOM_detected = false;
 		must_utf_8 = false;
 		ch = ch_temp = 0;
@@ -4266,41 +4352,117 @@ public class VTDGen {
 		docOffset = offset = os;
 		docLen = len;
 		endOffset = os + len;
-		last_l1_index= last_l2_index = last_depth =0;
+		last_l1_index = last_l2_index = last_depth = 0;
 		currentElementRecord = 0;
-		nsBuffer1.size=0;
-		nsBuffer2.size=0;
-		nsBuffer3.size=0;
+		nsBuffer1.size = 0;
+		nsBuffer2.size = 0;
+		nsBuffer3.size = 0;
 		r = new UTF8Reader();
-		
-		int i1=7,i2=9,i3=11;
-		if (docLen <= 1024) {
-			//a = 1024; //set the floor
-		    a = 6; i1=5; i2=5;i3=5;
-		} else if (docLen <=4096){
-		    a = 7; i1=6; i2=6; i3=6;
-		}else if (docLen <=1024*16){
-		    a =8; i1 = 7;i2=7;i3=7;
-		}else if (docLen <= 1024 * 16 * 4) {
-			//a = 2048;
-			a = 11; i2 = 8; i3 =8;
-		} else if (docLen <= 1024 * 256) {
-			//a = 1024 * 4;
-			a = 12;
+		if (shallowDepth) {
+			int i1 = 7, i2 = 9, i3 = 11;
+			if (docLen <= 1024) {
+				// a = 1024; //set the floor
+				a = 6;
+				i1 = 5;
+				i2 = 5;
+				i3 = 5;
+			} else if (docLen <= 4096) {
+				a = 7;
+				i1 = 6;
+				i2 = 6;
+				i3 = 6;
+			} else if (docLen <= 1024 * 16) {
+				a = 8;
+				i1 = 7;
+				i2 = 7;
+				i3 = 7;
+			} else if (docLen <= 1024 * 16 * 4) {
+				// a = 2048;
+				a = 11;
+				i2 = 8;
+				i3 = 8;
+			} else if (docLen <= 1024 * 256) {
+				// a = 1024 * 4;
+				a = 12;
+			} else {
+				// a = 1 << 15;
+				a = 15;
+			}
+			if (VTDBuffer == null) {
+				VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+				l1Buffer = new FastLongBuffer(i1);
+				l2Buffer = new FastLongBuffer(i2);
+				l3Buffer = new FastIntBuffer(i3);
+			} else {
+				VTDBuffer.size = 0;
+				l1Buffer.size = 0;
+				l2Buffer.size = 0;
+				l3Buffer.size = 0;
+			}
 		} else {
-			//a = 1 << 15;
-			a = 15;
-		}
-		if (VTDBuffer == null){
-		    VTDBuffer = new FastLongBuffer(a, len>> (a+1));
-		    l1Buffer = new FastLongBuffer(i1);
-		    l2Buffer = new FastLongBuffer(i2);
-		    l3Buffer = new FastIntBuffer(i3);
-		} else {
-		    VTDBuffer.size=0;
-		    l1Buffer.size=0;
-		    l2Buffer.size=0;
-		    l3Buffer.size=0;
+			int i1 = 7, i2 = 9, i3 = 11, i4 = 11, i5 = 11;
+			if (docLen <= 1024) {
+				// a = 1024; //set the floor
+				a = 6;
+				i1 = 5;
+				i2 = 5;
+				i3 = 5;
+				i4 = 5;
+				i5 = 5;
+			} else if (docLen <= 4096) {
+				a = 7;
+				i1 = 6;
+				i2 = 6;
+				i3 = 6;
+				i4 = 6;
+				i5 = 6;
+			} else if (docLen <= 1024 * 16) {
+				a = 8;
+				i1 = 7;
+				i2 = 7;
+				i3 = 7;
+			} else if (docLen <= 1024 * 16 * 4) {
+				// a = 2048;
+				a = 11;
+				i2 = 8;
+				i3 = 8;
+				i4 = 8;
+				i5 = 8;
+			} else if (docLen <= 1024 * 256) {
+				// a = 1024 * 4;
+				a = 12;
+				i1 = 8;
+				i2 = 9;
+				i3 = 9;
+				i4 = 9;
+				i5 = 9;
+			} else if (docLen <= 1024 * 1024) {
+				// a = 1024 * 4;
+				a = 12;
+				i1 = 8;
+				i3 = 10;
+				i4 = 10;
+				i5 = 10;
+			} else {
+				// a = 1 << 15;
+				a = 15;
+				i1 = 8;
+			}
+			if (VTDBuffer == null) {
+				VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+				l1Buffer = new FastLongBuffer(i1);
+				l2Buffer = new FastLongBuffer(i2);
+				_l3Buffer = new FastLongBuffer(i3);
+				_l4Buffer = new FastLongBuffer(i4);
+				_l5Buffer = new FastIntBuffer(i5);
+			} else {
+				VTDBuffer.size = 0;
+				l1Buffer.size = 0;
+				l2Buffer.size = 0;
+				_l3Buffer.size = 0;
+				_l4Buffer.size = 0;
+				_l5Buffer.size = 0;
+			}
 		}
 	}
 	/**
@@ -4311,7 +4473,8 @@ public class VTDGen {
 	 *
 	 */
 	public void writeIndex(OutputStream os) throws IOException,IndexWriteException{
-	    IndexHandler.writeIndex((byte)1,
+	    if (shallowDepth)
+	    	IndexHandler.writeIndex_L3((byte)1,
 	            this.encoding,
 	            this.ns,
 	            true,
@@ -4326,6 +4489,24 @@ public class VTDGen {
 	            this.l2Buffer,
 	            this.l3Buffer,
 	            os);
+	    else
+	    	IndexHandler.writeIndex_L5((byte)1,
+		            this.encoding,
+		            this.ns,
+		            true,
+		            this.VTDDepth,
+		            5,
+		            this.rootIndex,
+		            this.XMLDoc,
+		            this.docOffset,
+		            this.docLen,
+		            this.VTDBuffer,
+		            this.l1Buffer,
+		            this.l2Buffer,
+		            this._l3Buffer,
+		            this._l4Buffer,
+		            this._l5Buffer,
+		            os);
 	}
 	
 	/**
@@ -4336,7 +4517,8 @@ public class VTDGen {
 	 *
 	 */
 	public void writeSeparateIndex(OutputStream os) throws IOException,IndexWriteException{
-	    IndexHandler.writeSeparateIndex((byte)2,
+		if (shallowDepth)
+			IndexHandler.writeSeparateIndex_L3((byte)2,
 	            this.encoding,
 	            this.ns,
 	            true,
@@ -4351,6 +4533,24 @@ public class VTDGen {
 	            this.l2Buffer,
 	            this.l3Buffer,
 	            os);
+		else
+			IndexHandler.writeSeparateIndex_L5((byte)2,
+		            this.encoding,
+		            this.ns,
+		            true,
+		            this.VTDDepth,
+		            5,
+		            this.rootIndex,
+		            //this.XMLDoc,
+		            this.docOffset,
+		            this.docLen,
+		            this.VTDBuffer,
+		            this.l1Buffer,
+		            this.l2Buffer,
+		            this._l3Buffer,
+		            this._l4Buffer,
+		            this._l5Buffer,
+		            os);
 	}
 	
 	/**
@@ -4381,7 +4581,7 @@ public class VTDGen {
 	    fos.close();
 	}
 	/**
-	 * Write the VTD and LC into their storage container.
+	 * Write the VTD and LC into their storage container for where LC depth is 5.
 	 * @param offset int
 	 * @param length int
 	 * @param token_type int
@@ -4389,38 +4589,11 @@ public class VTDGen {
 	 */
 	private void writeVTD(int offset, int length, int token_type, int depth) {
 
-			switch (token_type) {
-			case TOKEN_CHARACTER_DATA:
-			case TOKEN_CDATA_VAL:
-			case TOKEN_COMMENT:
-
-			if (length > MAX_TOKEN_LENGTH) {
-				int k;
-				int r_offset = offset;
-				for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
-					VTDBuffer.append(((long) ((token_type << 28)
-							| ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32)
-							| r_offset);
-					r_offset += MAX_TOKEN_LENGTH;
-				}
-				VTDBuffer.append(((long) ((token_type << 28)
-						| ((depth & 0xff) << 20) | k) << 32)
-						| r_offset);
-			} else {
-				VTDBuffer.append(((long) ((token_type << 28)
-						| ((depth & 0xff) << 20) | length) << 32)
-						| offset);
-			}
-			break;
-			
-			//case TOKEN_ENDING_TAG: break;
-		default:
+		
 			VTDBuffer.append(((long) ((token_type << 28)
 					| ((depth & 0xff) << 20) | length) << 32)
 					| offset);
-		}
-		// remember VTD depth start from zero
-		if (token_type == TOKEN_STARTING_TAG) {
+		
 			switch (depth) {
 			case 0:
 				rootIndex = VTDBuffer.size - 1;
@@ -4455,15 +4628,125 @@ public class VTDGen {
 				break;
 			default:
 			//rootIndex = VTDBuffer.size() - 1;
+			}			
+	}
+	
+	private void _writeVTD(int offset, int length, int token_type, int depth) {
+		VTDBuffer.append(((long) ((token_type << 28)
+				| ((depth & 0xff) << 20) | length) << 32)
+				| offset);
+	}
+	
+	private void writeVTDText(int offset, int length, int token_type, int depth) {
+		if (length > MAX_TOKEN_LENGTH) {
+			int k;
+			int r_offset = offset;
+			for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
+				VTDBuffer.append(((long) ((token_type << 28)
+						| ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32)
+						| r_offset);
+				r_offset += MAX_TOKEN_LENGTH;
 			}
+			VTDBuffer.append(((long) ((token_type << 28)
+					| ((depth & 0xff) << 20) | k) << 32)
+					| r_offset);
+		} else {
+			VTDBuffer.append(((long) ((token_type << 28)
+					| ((depth & 0xff) << 20) | length) << 32)
+					| offset);
+		}
+	}
+	/**
+	 * Write the VTD and LC into their storage container.
+	 * @param offset int
+	 * @param length int
+	 * @param token_type int
+	 * @param depth int
+	 */
+	private void writeVTD_L5(int offset, int length, int token_type, int depth) {
 
-		} /*else if (token_type == TOKEN_ENDING_TAG && (depth == 0)) {
-			if (last_depth == 1) {
-				l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
-			} else if (last_depth == 2) {
-				l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+
+			VTDBuffer.append(((long) ((token_type << 28)
+					| ((depth & 0xff) << 20) | length) << 32)
+					| offset);
+		
+			switch (depth) {
+			case 0:
+				rootIndex = VTDBuffer.size - 1;
+				break;
+			case 1:
+				if (last_depth == 1) {
+					l1Buffer.append(((long) last_l1_index << 32) | 0xffffffffL);
+				} else if (last_depth == 2) {
+					l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+				} else if (last_depth ==3) {
+					_l3Buffer.append(((long) last_l3_index << 32) | 0xffffffffL);
+				} else if (last_depth ==4){
+					_l4Buffer.append(((long) last_l4_index << 32) | 0xffffffffL);
+				}
+				last_l1_index = VTDBuffer.size - 1;
+				last_depth = 1;
+				break;
+			case 2:
+				if (last_depth == 1) {
+					l1Buffer.append(((long) last_l1_index << 32)
+							+ l2Buffer.size);
+				} else if (last_depth == 2) {
+					l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+				} else if (last_depth ==3) {
+					_l3Buffer.append(((long) last_l3_index << 32) | 0xffffffffL);
+				} else if (last_depth ==4){
+					_l4Buffer.append(((long) last_l4_index << 32) | 0xffffffffL);
+				}
+				last_l2_index = VTDBuffer.size - 1;
+				last_depth = 2;
+				break;
+
+			case 3:
+				/*if (last_depth == 1) {
+					l1Buffer.append(((long) last_l1_index << 32)
+							+ l2Buffer.size);
+				} else*/ 
+				if (last_depth == 2) {
+					l2Buffer.append(((long) last_l2_index << 32) 
+							+ _l3Buffer.size);
+				} else if (last_depth ==3) {
+					_l3Buffer.append(((long) last_l3_index << 32) | 0xffffffffL);
+				} else if (last_depth ==4){
+					_l4Buffer.append(((long) last_l4_index << 32) | 0xffffffffL);
+				}
+				last_l3_index = VTDBuffer.size - 1;
+				last_depth = 3;
+				break;
+				
+			case 4:
+				/*if (last_depth == 1) {
+					l1Buffer.append(((long) last_l1_index << 32)
+							+ l2Buffer.size);
+				} else if (last_depth == 2) {
+					l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+				} else*/ 
+				if (last_depth ==3) {
+					_l3Buffer.append(((long) last_l3_index << 32) 
+							+ _l4Buffer.size);
+				} else if (last_depth ==4){
+					_l4Buffer.append(((long) last_l4_index << 32) | 0xffffffffL);
+				}
+				last_l4_index = VTDBuffer.size - 1;
+				last_depth = 4;
+				break;
+			case 5:
+				_l5Buffer.append(VTDBuffer.size - 1);
+				if (last_depth == 4) {
+					_l4Buffer.append(((long) last_l4_index << 32)
+							+ _l5Buffer.size - 1);
+				}
+				last_depth = 5;
+				break;
+				
+			default:
+			//rootIndex = VTDBuffer.size() - 1;
 			}
-		}*/
 	}
 	/**
 	 * 
