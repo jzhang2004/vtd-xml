@@ -90,7 +90,7 @@ class IndexHandler {
         dos.write(ba);
         // second 4 bytes
         ba[0] = 0;
-        ba[1] = 3;
+        ba[1] = 4;
         ba[2] = (byte) ((rootIndex & 0xff00)>> 8 );
         ba[3] = (byte) (rootIndex & 0xff);
         dos.write(ba);
@@ -209,7 +209,7 @@ class IndexHandler {
         dos.write(ba);
         // second 4 bytes
         ba[0] = 0;
-        ba[1] = 5;
+        ba[1] = 6;
         ba[2] = (byte) ((rootIndex & 0xff00)>> 8 );
         ba[3] = (byte) (rootIndex & 0xff);
         dos.write(ba);
@@ -337,7 +337,7 @@ class IndexHandler {
         dos.write(ba);
         // second 4 bytes
         ba[0] = 0;
-        ba[1] = 3;
+        ba[1] = 4;
         ba[2] = (byte) ((rootIndex & 0xff00)>> 8 );
         ba[3] = (byte) (rootIndex & 0xff);
         dos.write(ba);
@@ -464,7 +464,7 @@ class IndexHandler {
         dos.write(ba);
         // second 4 bytes
         ba[0] = 0;
-        ba[1] = 5;
+        ba[1] = 6;
         ba[2] = (byte) ((rootIndex & 0xff00)>> 8 );
         ba[3] = (byte) (rootIndex & 0xff);
         dos.write(ba);
@@ -579,10 +579,10 @@ class IndexHandler {
         
         // 5th and 6th byte
         int LCLevel = (((int)bb.get())<<8) | bb.get();
-        if (LCLevel != 3 &&  LCLevel !=5)
+        if (LCLevel != 4 &&  LCLevel !=6)
             throw new IndexReadException("LC levels must be at least 3");
         // 7th and 8th byte
-        if (LCLevel ==3)
+        if (LCLevel ==4)
         	vg.shallowDepth = true;
         else
         	vg.shallowDepth = false;
@@ -783,10 +783,10 @@ class IndexHandler {
         
         // 5th and 6th byte
         int LCLevel = (((int)dis.readByte())<<8) | dis.readByte();
-        if (LCLevel != 3 &&  LCLevel != 5)
+        if (LCLevel != 4 &&  LCLevel != 6)
             throw new IndexReadException("LC levels must be at least 3");
         // 7th and 8th byte
-        if (LCLevel ==3)
+        if (LCLevel ==4)
         	vg.shallowDepth = true;
         else
         	vg.shallowDepth = false;
@@ -988,10 +988,10 @@ class IndexHandler {
         
         // 5th and 6th byte
         int LCLevel = (((int)dis.readByte())<<8) | dis.readByte();
-        if (LCLevel != 3 &&  LCLevel !=5)
+        if (LCLevel != 4 &&  LCLevel !=6)
             throw new IndexReadException("LC levels must be at least 3");
         // 7th and 8th byte
-        if (LCLevel ==3)
+        if (LCLevel ==4)
         	vg.shallowDepth = true;
         else
         	vg.shallowDepth = false;
