@@ -1320,7 +1320,7 @@ namespace com.ximpleware
         /// 
         /// </summary>
         /// <returns></returns>
-        public int getOffsetAfterHead()
+        public long getOffsetAfterHead()
         {
 
             int i = getCurrentIndex();
@@ -1350,11 +1350,12 @@ namespace com.ximpleware
             {
                 offset++;
             }
-
+            
             if (getCharUnit(offset - 1) == '/')
-                return -1;
+                return (-1L<<32) | (long)offset;
             else
                 return offset + 1;
+            
         }
 
         /// <summary> Get the token length at the given index value
@@ -5124,9 +5125,10 @@ namespace com.ximpleware
             }
 
 
-            int so = getOffsetAfterHead();
-            if (so == -1)
+            long l = getOffsetAfterHead();
+            if (l < 0)
                 return -1L;
+            int so = (int)l;
             int length = 0;
 
 

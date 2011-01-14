@@ -35,11 +35,19 @@ namespace com.ximpleware
         private const long MASK_DELETE = 0x00000000000000000L; //0000
         private const long MASK_INSERT_SEGMENT_BYTE = 0x2000000000000000L; //0010
         private const long MASK_INSERT_BYTE = 0x4000000000000000L; //0100
-        private const long MASK_INSERT_SEGMENT_STRING = 0x6000000000000000L; //0110
+        private const long MASK_INSERT_SEGMENT_BYTE_ENCLOSED = 0x6000000000000000L; //0110
+        private const ulong MASK_INSERT_BYTE_ENCLOSED = 0x8000000000000000L; //1000
+        //private const long MASK_INSERT_SEGMENT_STRING = 0x6000000000000000L; //0110
 
         //UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
-        private const ulong MASK_INSERT_STRING = 0x8000000000000000L; //1000        
+        //private const ulong MASK_INSERT_STRING = 0x8000000000000000L; //1000        
         private const ulong MASK_INSERT_FRAGMENT_NS = 0xa000000000000000L; //1010
+        private const ulong MASK_INSERT_FRAGMENT_NS_ENCLOSED = 0x8000000000000000L; //1110
+        private static byte[] ba1;// = null;// = {0x3e,0};
+        private static byte[] ba2;// = null;// = {0x3c,0};
+
+        private static byte[] ba3;// = null;// = {0,0x3e};
+        private static byte[] ba4;// = null;// = {0,0x3c};
 
         protected internal FastObjectBuffer fob;
         protected internal FastLongBuffer flb;
@@ -51,6 +59,19 @@ namespace com.ximpleware
         /// <summary> Constructor for XMLModifier that takes VTDNav object as the master document</summary>
         /// <param name="masterDocument">is the document on which the modification is applied
         /// </param>
+        /// 
+        static XMLModifier()
+        {
+            ba1 = new byte[2];
+            ba1[0] = 0x3e; ba1[1] = 0;
+            ba2 = new byte[2];
+            ba2[0] = 0x3c; ba2[1] = 0;
+
+            ba3 = new byte[2];
+            ba3[0] = 0; ba3[1] = 0x3e;
+            ba4 = new byte[2];
+            ba4[0] = 0; ba3[1] = 0x3c;
+        }
         public XMLModifier(VTDNav masterDocument)
         {
             bind(masterDocument);
@@ -320,7 +341,7 @@ namespace com.ximpleware
             }
             if (contentOffset < 0
                     || contentLen < 0
-                    || contentOffset + contentLen >= content.Length)
+                    || contentOffset + contentLen > content.Length)
             {
                 throw new ModifyException("Invalid contentOffset and/or contentLen");
             }
@@ -344,7 +365,7 @@ namespace com.ximpleware
             int contentLen = (int)(l >> 32);
             if (contentOffset < 0
                     || contentLen < 0
-                    || contentOffset + contentLen >= content.Length)
+                    || contentOffset + contentLen > content.Length)
             {
                 throw new ModifyException("Invalid contentOffset and/or contentLen");
             }
@@ -636,7 +657,7 @@ namespace com.ximpleware
         {
             int os1, os2, temp;
             int size = flb.size_Renamed_Field;
-
+            int inc = (md.encoding < VTDNav.FORMAT_UTF_16BE) ? 2 : 4;
             for (int i = 0; i < size; i++)
             {
                 os1 = flb.lower32At(i);
@@ -1131,6 +1152,7 @@ namespace com.ximpleware
                     else
                         inc = 1; // either insert or remove
                     l = flb.longAt(i);
+                    
                     if (inc == 1)
                     {
                         if ((l & (~0x1fffffffffffffffL)) == XML_DELETE)
@@ -1153,14 +1175,45 @@ namespace com.ximpleware
                             os.Write(bs.ba, bs.offset, bs.len);
                             offset = flb.lower32At(i);
                         }
-                        else
+                        else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
                         {
+                            //ElementFragmentNs
                             os.Write(ba, offset, flb.lower32At(i) - offset);
                             ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
-                            //ef.writeToOutputStream(os);
                             ef.writeToOutputStream(os, md.encoding);
                             offset = flb.lower32At(i);
                         }
+                        else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
+                        { // insert
+                            os.Write(ba, offset, flb.lower32At(i) - offset);
+                            os.WriteByte(0x3e);
+                            byte[] temp = (byte[])fob.objectAt(i);
+                            os.Write(temp,0,temp.Length);                            
+                            os.WriteByte(0x3c);
+                            offset = flb.lower32At(i);
+                        }
+                        else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
+                        {
+                            // XML_INSERT_SEGMENT_BYTE
+                            os.Write(ba, offset, flb.lower32At(i) - offset);
+                            ByteSegment bs = (ByteSegment)fob.objectAt(i);
+                            os.WriteByte(0x3e);
+                            
+                            os.Write(bs.ba, bs.offset, bs.len);
+                            os.WriteByte(0x3c);
+                            offset = flb.lower32At(i);
+                        }
+                        else
+                        {
+                            //ElementFragmentNs
+                            os.Write(ba, offset, flb.lower32At(i) - offset);
+                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
+                            os.WriteByte(0x3e);
+                            ef.writeToOutputStream(os, md.encoding);
+                            os.WriteByte(0x3c);
+                            offset = flb.lower32At(i);
+                        }
+                    
                     }
                     else
                     {
@@ -1194,7 +1247,7 @@ namespace com.ximpleware
                             os.Write(bs.ba, bs.offset, bs.len);
                             offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                         }
-                        else
+                        else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
                         {
                             //ElementFragmentNs
                             //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
@@ -1203,12 +1256,45 @@ namespace com.ximpleware
                             ef.writeToOutputStream(os, md.encoding);
                             offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
                         }
+                        else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
+                        { // insert
+                            byte[] temp_byteArray3 = (byte[])fob.objectAt(i2);
+                            os.WriteByte(0x3e);
+                            os.Write(temp_byteArray3,0,temp_byteArray3.Length);
+                            os.WriteByte(0x3c);
+                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                        }
+                        else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
+                        {
+                            // XML_INSERT_SEGMENT_BYTE
+                            ByteSegment bs = (ByteSegment)fob.objectAt(i2);
+                            os.WriteByte(0x3e);
+                            os.Write(bs.ba, bs.offset, bs.len);
+                            os.WriteByte(0x3c);
+                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                        }
+                        else
+                        {
+                            //ElementFragmentNs
+                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
+                            os.WriteByte(0x3e);
+                            ef.writeToOutputStream(os, md.encoding);
+                            os.WriteByte(0x3c);
+                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                        }
                     }
                 }
                 os.Write(ba, offset, start + len - offset);
             }
             else
             {
+                byte[] b1 = ba1;
+                byte[] b2 = ba2;
+                if (md.encoding == VTDNav.FORMAT_UTF_16BE)
+                {
+                    b1 = ba3;
+                    b2 = ba4;
+                }
                 int offset = start;
                 int inc = 1;
                 for (int i = 0; i < flb.size_Renamed_Field; i = i + inc)
@@ -1228,31 +1314,61 @@ namespace com.ximpleware
                     {
                         if ((l & (~0x1fffffffffffffffL)) == XML_DELETE)
                         {
-                            os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
-                            offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff))<<1;
+                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff)) << 1;
                         }
                         else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
                         {
                             // insert
-                            os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
                             byte[] temp_byteArray = (byte[])fob.objectAt(i);
                             os.Write((byte[])fob.objectAt(i), 0, temp_byteArray.Length);
-                            offset = flb.lower32At(i)<<1;
+                            offset = flb.lower32At(i) << 1;
                         }
                         else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
                         {
-                            os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
                             ByteSegment bs = (ByteSegment)fob.objectAt(i);
                             os.Write(bs.ba, bs.offset, bs.len);
-                            offset = flb.lower32At(i)<<1;
+                            offset = flb.lower32At(i) << 1;
                         }
-                        else
+                        else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
                         {
-                            os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
                             ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
                             //ef.writeToOutputStream(os);
                             ef.writeToOutputStream(os, md.encoding);
-                            offset = flb.lower32At(i)<<1;
+                            offset = flb.lower32At(i) << 1;
+                        }
+                        else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
+                        { // insert
+                            // XML_INSERT_SEGMENT_BYTE
+                            byte[] tempBA = (byte[])fob.objectAt(i);
+                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            os.Write(b1,0,b1.Length);
+                            os.Write(tempBA,0,tempBA.Length);
+                            os.Write(b2,0,b1.Length);
+                            offset = flb.lower32At(i) << 1;
+                        }
+                        else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
+                        {
+                            // XML_INSERT_SEGMENT_BYTE
+                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            ByteSegment bs = (ByteSegment)fob.objectAt(i);
+                            os.Write(b1,0,b1.Length);
+                            os.Write(bs.ba, bs.offset, bs.len);
+                            os.Write(b2,0,b2.Length);
+                            offset = flb.lower32At(i) << 1;
+                        }
+                        else
+                        {
+                            //ElementFragmentNs
+                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
+                            os.Write(b1,0,b1.Length);
+                            ef.writeToOutputStream(os, md.encoding);
+                            os.Write(b2,0,b2.Length);
+                            offset = flb.lower32At(i) << 1;
                         }
                     }
                     else
@@ -1270,7 +1386,7 @@ namespace com.ximpleware
                             i2 = temp2;
                         }
 
-                        os.Write(ba, offset, (flb.lower32At(i)<<1) - offset);
+                        os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
 
                         if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
                         {
@@ -1278,23 +1394,52 @@ namespace com.ximpleware
                             byte[] temp_byteArray3;
                             temp_byteArray3 = (byte[])fob.objectAt(i2);
                             os.Write(temp_byteArray3, 0, temp_byteArray3.Length);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
                         }
                         else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
                         {
                             //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
                             ByteSegment bs = (ByteSegment)fob.objectAt(i2);
                             os.Write(bs.ba, bs.offset, bs.len);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
                         }
-                        else
+                        else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
                         {
                             //ElementFragmentNs
                             //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
                             ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
                             //ef.writeToOutputStream(os);
                             ef.writeToOutputStream(os, md.encoding);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+                        }
+                        else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
+                        { // insert
+                            // XML_INSERT_SEGMENT_BYTE
+                            //os.write(ba,offset, flb.lower32At(i2)-offset);
+                            byte[] tempBA = (byte[])fob.objectAt(i2);
+                            os.Write(b1,0,b1.Length);
+                            os.Write(tempBA,0,tempBA.Length);
+                            os.Write(b2,0,b2.Length);
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+                        }
+                        else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
+                        {
+                            // XML_INSERT_SEGMENT_BYTE
+                            ByteSegment bs = (ByteSegment)fob.objectAt(i2);
+                            os.Write(b1,0,b1.Length);
+                            os.Write(bs.ba, bs.offset, bs.len);
+                            os.Write(b2,0,b2.Length);
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+                        }
+                        else
+                        {
+                            //ElementFragmentNs
+                            //os.write(ba,offset, flb.lower32At(i2)-offset);
+                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
+                            os.Write(b1,0,b1.Length);
+                            ef.writeToOutputStream(os, md.encoding);
+                            os.Write(b2,0,b2.Length);
+                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
                         }
                     }
                 }
@@ -1415,6 +1560,7 @@ namespace com.ximpleware
         {
             int size = flb.size_Renamed_Field;
             int docSize = md.getXML().getBytes().Length;
+            int inc = (md.encoding < VTDNav.FORMAT_UTF_16BE) ? 2 : 4;
             long l;
             for (int i = 0; i < size; i++)
             {
@@ -1431,9 +1577,21 @@ namespace com.ximpleware
                 { // MASK_INSERT_SEGMENT_BYTE
                     docSize += ((ByteSegment)fob.objectAt(i)).len;
                 }
-                else
+                else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
                 {
-                    docSize += ((ElementFragmentNs)fob.objectAt(i)).Size;
+                    docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(md.encoding);
+                }
+                else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
+                {
+                    docSize += ((byte[])fob.objectAt(i)).Length + inc;
+                }
+                else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
+                {
+                    docSize += ((ByteSegment)fob.objectAt(i)).len + inc;
+                }
+                else /*if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)*/
+                {
+                    docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(md.encoding) + inc;
                 }
             }
             return docSize;
@@ -1567,10 +1725,18 @@ namespace com.ximpleware
         /// <param name="b"></param>
         public void insertAfterHead(byte[] b)
         {
-            int i = md.getOffsetAfterHead();
-            if (i == -1)
-                throw new ModifyException("Insertion failed");
-            insertBytesAt(i, b);
+            long i = md.getOffsetAfterHead();
+            if (i < 0)
+            {
+                //throw new ModifyException("Insertion failed");
+                // handle empty element case
+                // <a/> would become <a>b's content</a>
+                // so there are two insertions there
+                insertBytesEnclosedAt((int)i - 1, b);
+                insertEndingTag(i);
+                return;
+            }
+            insertBytesAt((int)i, b);
         }
 
         /// <summary>
@@ -1582,10 +1748,15 @@ namespace com.ximpleware
         /// <param name="len"></param>
         public void insertAfterHead(byte[] b, int offset, int len)
         {
-            int i = md.getOffsetAfterHead();
-            if (i == -1)
-                throw new ModifyException("Insertion failed");
-            insertBytesAt(i, b, offset, len);
+            long i = md.getOffsetAfterHead();
+            if (i < 0)
+            {
+                //throw new ModifyException("Insertion failed");
+                insertBytesEnclosedAt((int)i - 1, b, offset, len);
+                insertEndingTag(i);
+                return;
+            }
+            insertBytesAt((int)i, b, offset, len);
         }
 
         /// <summary>
@@ -1596,10 +1767,15 @@ namespace com.ximpleware
         /// <param name="l"></param>
         public void insertAfterHead(byte[] b, long l)
         {
-            int i = md.getOffsetAfterHead();
-            if (i == -1)
-                throw new ModifyException("Insertion failed");
-            insertBytesAt(i, b, l);
+            long i = md.getOffsetAfterHead();
+            if (i < 0)
+            {
+                //throw new ModifyException("Insertion failed");
+                insertBytesEnclosedAt((int)i - 1, b, (int)l, (int)(l << 32));
+                insertEndingTag(i);
+                return;
+            }
+            insertBytesAt((int)i, b, l);
         }
 
         /// <summary>
@@ -1609,10 +1785,15 @@ namespace com.ximpleware
         /// <param name="ef"></param>
         public void insertAfterHead(ElementFragmentNs ef)
         {
-            int i = md.getOffsetAfterHead();
-            if (i == -1)
-                throw new ModifyException("Insertion failed");
-            insertElementFragmentNsAt(i, ef);
+            long i = md.getOffsetAfterHead();
+            if (i < 0)
+            {
+                //throw new ModifyException("Insertion failed");
+                insertElementFragmentNsEnclosedAt((int)i - 1, ef);
+                insertEndingTag(i);
+                return;
+            }
+            insertElementFragmentNsAt((int)i, ef);
         }
 
 
@@ -1630,11 +1811,18 @@ namespace com.ximpleware
             }
             else
             {
-                int i = md.getOffsetAfterHead();
-                if (i == -1)
-                    throw new ModifyException("Insertion failed");
-                byte[] bo = Transcoder.transcode(b, 0, b.Length, src_encoding, encoding);
-                insertBytesAt(i, bo);
+                long i = md.getOffsetAfterHead();
+                byte[] bo = null;
+                if (i < 0)
+                {
+                    //throw new ModifyException("Insertion failed");
+                    bo = Transcoder.transcode(b, 0, b.Length, src_encoding, encoding);
+                    insertBytesEnclosedAt((int)i - 1, bo);
+                    insertEndingTag(i);
+                    return;
+                }
+                bo = Transcoder.transcode(b, 0, b.Length, src_encoding, encoding);
+                insertBytesAt((int)i, bo);
             }
         }
         /// <summary>
@@ -1653,11 +1841,18 @@ namespace com.ximpleware
             }
             else
             {
-                int i = md.getOffsetAfterHead();
-                if (i == -1)
-                    throw new ModifyException("Insertion failed");
-                byte[] bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
-                insertBytesAt(i, bo, offset, length);
+                long i = md.getOffsetAfterHead();
+                byte[] bo = null;
+                if (i < 0)
+                {
+                    //throw new ModifyException("Insertion failed");
+                    bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
+                    insertBytesEnclosedAt((int)i - 1, bo);
+                    insertEndingTag(i);
+                    return;
+                }
+                bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
+                insertBytesAt((int)i, bo, offset, length);
             }
         }
 
@@ -1676,11 +1871,18 @@ namespace com.ximpleware
             }
             else
             {
-                int i = md.getOffsetAfterHead();
-                if (i == -1)
-                    throw new ModifyException("Insertion failed");
-                byte[] bo = Transcoder.transcode(b, (int)l, (int)l >> 32, src_encoding, encoding);
-                insertBytesAt(i, bo, l);
+                long i = md.getOffsetAfterHead();
+                byte[] bo = null;
+                if (i < 0)
+                {
+                    //throw new ModifyException("Insertion failed");
+                    bo = Transcoder.transcode(b, (int)l, (int)l >> 32, src_encoding, encoding);
+                    insertBytesEnclosedAt((int)i - 1, bo, l);
+                    insertEndingTag(i);
+                    return;
+                }
+                bo = Transcoder.transcode(b, (int)l, (int)l >> 32, src_encoding, encoding);
+                insertBytesAt((int)i, bo, l);
             }
         }
 
@@ -1691,10 +1893,15 @@ namespace com.ximpleware
         /// <param name="s"></param>
         public void insertAfterHead(String s)
         {
-            int i = md.getOffsetAfterHead();
-            if (i == -1)
-                throw new ModifyException("Insertion failed");
-            insertBytesAt(i, eg.GetBytes(s));
+            long i = md.getOffsetAfterHead();
+            if (i < 0)
+            {
+                //throw new ModifyException("Insertion failed");
+                insertBytesEnclosedAt((int)i - 1, eg.GetBytes(s));
+                insertEndingTag(i);
+                return;
+            }
+            insertBytesAt((int)i, eg.GetBytes(s));
         }
 
 
@@ -1730,5 +1937,83 @@ namespace com.ximpleware
             return vg.getNav();
         }
 
+        private void insertBytesEnclosedAt(int offset, byte[] content, int contentOffset, int contentLen)
+        {
+            if (insertHash.isUnique(offset) == false)
+            {
+                throw new ModifyException("There can be only one insert per offset");
+            }
+            if (contentOffset < 0
+                    || contentLen < 0
+                    || contentOffset + contentLen > content.Length)
+            {
+                throw new ModifyException("Invalid contentOffset and/or contentLen");
+            }
+            flb.append((long)offset | MASK_INSERT_SEGMENT_BYTE_ENCLOSED);
+            ByteSegment bs = new ByteSegment();
+            bs.ba = content;
+            bs.len = contentLen;
+            bs.offset = contentOffset;
+            fob.append(bs);
+        }
+
+        private void insertBytesEnclosedAt(int offset, byte[] content, long l)
+        {
+            if (insertHash.isUnique(offset) == false)
+            {
+                throw new ModifyException("There can be only one insert per offset");
+            }
+            int contentOffset = (int)l;
+            int contentLen = (int)(l >> 32);
+            if (contentOffset < 0
+                    || contentLen < 0
+                    || contentOffset + contentLen > content.Length)
+            {
+                throw new ModifyException("Invalid contentOffset and/or contentLen");
+            }
+            flb.append((long)offset | MASK_INSERT_SEGMENT_BYTE_ENCLOSED);
+            ByteSegment bs = new ByteSegment();
+            bs.ba = content;
+            bs.len = contentLen;
+            bs.offset = contentOffset;
+            fob.append(bs);
+        }
+        private void insertBytesEnclosedAt(int offset, byte[] content)
+        {
+
+            if (insertHash.isUnique(offset) == false)
+            {
+                throw new ModifyException("There can be only one insert per offset");
+            }
+            unchecked
+            {
+                flb.append((long)offset | (long)MASK_INSERT_BYTE_ENCLOSED);
+                fob.append(content);
+            }
+        }
+        private void insertElementFragmentNsEnclosedAt(int offset, ElementFragmentNs ef)
+        {
+            if (insertHash.isUnique(offset) == false)
+            {
+                throw new ModifyException("There can be only one insert per offset");
+            }
+            unchecked
+            {
+                flb.append((long)offset | (long)MASK_INSERT_FRAGMENT_NS_ENCLOSED);
+                fob.append(ef);
+            }
+        }
+
+        private void insertEndingTag(long l)
+        {
+            int i = md.getCurrentIndex();
+            int offset = md.getTokenOffset(i);
+            int length = md.getTokenLength(i) & 0xffff;
+            byte[] xml = md.getXML().getBytes();
+            if (md.encoding < VTDNav.FORMAT_UTF_16BE)
+                insertBytesAt((int)l, xml, offset, length);
+            else
+                insertBytesAt((int)l, xml, offset << 1, length << 1);
+        }
     }
 }
