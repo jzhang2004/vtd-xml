@@ -1615,6 +1615,105 @@ public class VTDNav_L5 extends VTDNav {
 			default :
 				throw new NavException("illegal navigation options");
 		}
-
 	}
+	
+	/**
+	 * This method takes a vtd index, and recover its correspondin
+	 * node position, the index can only be of node type element,
+	 * document, attribute name, attribute value or character data,
+	 * or CDATA
+	 * @param index
+	 * @throws NavException
+	 */
+	public void recoverNode(int index) throws NavException{
+		if (index <0 || index>=vtdSize )
+			throw new NavException("Invalid VTD index");
+		
+		int type = getTokenType(index);
+		if (//type == VTDNav.TOKEN_COMMENT ||
+			//	type == VTDNav.TOKEN_PI_NAME ||
+				type == VTDNav.TOKEN_PI_VAL ||
+				type == VTDNav.TOKEN_DEC_ATTR_NAME ||
+				type == VTDNav.TOKEN_DEC_ATTR_VAL ||
+				type == VTDNav.TOKEN_ATTR_VAL)
+			throw new NavException("Token type not yet supported");
+		
+		// get depth
+		int d = getTokenDepth(index);
+		// handle document node;
+		switch (d){
+		case -1:
+			context[0]=-1;
+			if (index != 0){
+				LN = index;
+				atTerminal = true;
+			}			
+			return;
+		case 0:
+			context[0]=0;
+			if (index != rootIndex){
+				LN = index;
+				atTerminal = true;
+			}
+			return;		
+		}
+		context[0]=d;
+		if (type != VTDNav.TOKEN_STARTING_TAG){
+			LN = index;
+			atTerminal = true;
+		}
+		// search LC level 1
+		recoverNode_l1(index);
+
+		if (d==1)
+			return;
+		// search LC level 2
+		recoverNode_l2(index);
+		if (d==2){
+			//resolveLC();
+			return;
+		}
+		// search LC level 3
+		recoverNode_l3(index);
+		if (d==3){
+			//resolveLC();
+			return;
+		}
+		
+		recoverNode_l4(index);
+		if (d==4){
+			//resolveLC();
+			return;
+		}
+		
+		recoverNode_l5(index);
+		if (d==5){
+			//resolveLC();
+			return;
+		}
+		
+		// scan backward
+		if ( type == VTDNav.TOKEN_STARTING_TAG ){
+			context[d] = index;
+		} else{
+			int t = index-1;
+			while( !(getTokenType(t)==VTDNav.TOKEN_STARTING_TAG && 
+					getTokenDepth(t)==d)){
+				t--;
+			}
+			context[d] = t;
+		}
+		int t = context[d]-1;
+		d--;
+		while(d>5){
+			while( !(getTokenType(t)==VTDNav.TOKEN_STARTING_TAG && 
+					getTokenDepth(t)==d)){
+				t--;
+			}
+			context[d] = t;
+			d--;
+		}
+		//resolveLC();		
+	}
+	
 }
