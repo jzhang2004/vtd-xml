@@ -70,7 +70,7 @@ namespace com.ximpleware
             ba3 = new byte[2];
             ba3[0] = 0; ba3[1] = 0x3e;
             ba4 = new byte[2];
-            ba4[0] = 0; ba3[1] = 0x3c;
+            ba4[0] = 0; ba4[1] = 0x3c;
         }
         public XMLModifier(VTDNav masterDocument)
         {
@@ -1454,7 +1454,7 @@ namespace com.ximpleware
         /// <param name="fileName"></param>
         public void output(String fileName)
         {
-            System.IO.FileStream fs = new System.IO.FileStream(fileName, System.IO.FileMode.OpenOrCreate);
+            System.IO.FileStream fs = new System.IO.FileStream(fileName, System.IO.FileMode.Create);
             output(fs);
             fs.Close();
         }
