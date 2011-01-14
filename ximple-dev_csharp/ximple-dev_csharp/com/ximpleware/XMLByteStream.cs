@@ -37,6 +37,14 @@ namespace com.ximpleware
             offset += len;
         }
 
+        public override void WriteByte(byte value)
+        {
+            if (offset + 1 > XMLDoc.Length)
+                throw new System.IndexOutOfRangeException("XMLDoc size exceeds maximum size");
+            XMLDoc[offset + 1] = value;
+            offset++;
+        }
+
         public void Write(byte[] ba)
         {
             if (ba.Length > XMLDoc.Length)
