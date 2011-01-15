@@ -377,7 +377,7 @@ int getStringLength(VTDNav *vn, int index);
 /*Get the string length as if the token is converted into a UCS string (entity not resolved) */
 int getRawStringLength(VTDNav *vn, int index);
 /* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
-int getOffsetAfterHead(VTDNav *vn);
+Long getOffsetAfterHead(VTDNav *vn);
 
 /* Test the start of token content at index i matches the content 
 of s, notice that this is to save the string allocation cost of

@@ -754,6 +754,7 @@ Long getElementFragment(VTDNav *vn){
 // 
 Long getContentFragment(VTDNav *vn){
 	int so,length,so2,temp,size,d,i;
+	Long ll;
 		int depth = getCurrentDepth(vn);
 //		 document length and offset returned if depth == -1
 		if (depth == -1){
@@ -764,10 +765,11 @@ Long getContentFragment(VTDNav *vn){
 		        return ((Long)(vn->docLen-32))| 32;
 		}
 
-		
-		so = getOffsetAfterHead(vn);
-		if (so==-1)
+		ll= getOffsetAfterHead(vn);
+		//so = getOffsetAfterHead(vn);
+		if (ll<-1)
 			return -1L;
+		so =  (int)ll;
 		length = 0;
 		
 
@@ -3714,7 +3716,7 @@ int getRawStringLength(VTDNav *vn, int index){
 }
 
 /* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
-int getOffsetAfterHead(VTDNav *vn){
+Long getOffsetAfterHead(VTDNav *vn){
 	    int i = getCurrentIndex(vn),j,offset;
 		//encoding_t enc;
  	    if (getTokenType(vn,i)!= TOKEN_STARTING_TAG){
@@ -3738,7 +3740,7 @@ int getOffsetAfterHead(VTDNav *vn){
 	    }
  
 	    if (getCharUnit(vn,offset-1)=='/')
- 	        return -1;
+ 	        return (-1LL<<32)|offset;
 	    else
  	        return  offset+1;
 
