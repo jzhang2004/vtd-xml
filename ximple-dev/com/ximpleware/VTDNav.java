@@ -5017,7 +5017,7 @@ public class VTDNav {
 	 * @param index
 	 * @throws NavException
 	 */
-	final public void recoverNode(int index) throws NavException{
+	public void recoverNode(int index) throws NavException{
 		if (index <0 || index>=vtdSize )
 			throw new NavException("Invalid VTD index");
 		
@@ -5095,7 +5095,7 @@ public class VTDNav {
 		//resolveLC();		
 	}
 	
-	private final void recoverNode_l1(int index){
+	protected final void recoverNode_l1(int index){
 		int i;
 		if(context[1]==index){
 			
@@ -5127,7 +5127,7 @@ public class VTDNav {
 		}
 	}
 	
-	private final void recoverNode_l2(int index){
+	protected final void recoverNode_l2(int index){
 		int i = l1Buffer.lower32At(l1index);
 		
 		if (l2lower != i) {

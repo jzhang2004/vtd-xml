@@ -1,4 +1,7 @@
 package com.ximpleware;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class VTDNav_L5 extends VTDNav {
 	
@@ -1714,6 +1717,53 @@ public class VTDNav_L5 extends VTDNav {
 			d--;
 		}
 		//resolveLC();		
+	}
+	
+	public void writeIndex(OutputStream os) throws IndexWriteException, IOException{
+	    IndexHandler.writeIndex_L5((byte)1,
+	            this.encoding,
+	            this.ns,
+	            true,
+	            this.nestingLevel-1,
+	            5,
+	            this.rootIndex,
+	            this.XMLDoc.getBytes(),
+	            this.docOffset,
+	            this.docLen,
+	            (FastLongBuffer)this.vtdBuffer,
+	            (FastLongBuffer)this.l1Buffer,
+	            (FastLongBuffer)this.l2Buffer,
+	            (FastLongBuffer)this.l3Buffer,
+	            (FastLongBuffer)this.l4Buffer,
+	            (FastIntBuffer)this.l5Buffer,
+	            os);
+	}
+	
+	/**
+	 * Write VTDNav's VTD and LCs into an OutputStream (XML not written out)
+	 * @param os
+	 * @throws IndexWriteException
+	 * @throws IOException
+	 *
+	 */
+	public void writeSeparateIndex(OutputStream os) throws IndexWriteException, IOException{
+	    IndexHandler.writeSeparateIndex_L5((byte)2,
+	            this.encoding,
+	            this.ns,
+	            true,
+	            this.nestingLevel-1,
+	            5,
+	            this.rootIndex,
+	           // this.XMLDoc.getBytes(),
+	            this.docOffset,
+	            this.docLen,
+	            (FastLongBuffer)this.vtdBuffer,
+	            (FastLongBuffer)this.l1Buffer,
+	            (FastLongBuffer)this.l2Buffer,
+	            (FastLongBuffer)this.l3Buffer,
+	            (FastLongBuffer)this.l4Buffer,
+	            (FastIntBuffer)this.l5Buffer,
+	            os);
 	}
 	
 }
