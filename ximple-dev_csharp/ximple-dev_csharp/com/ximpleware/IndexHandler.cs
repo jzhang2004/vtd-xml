@@ -42,7 +42,7 @@ namespace com.ximpleware
         /// <param name="l3Buffer"></param>
         /// <param name="os"></param>
         /// <returns></returns>
-        public static void writeIndex(byte version,
+        public static void writeIndex_L3(byte version,
             int encodingType,
             bool ns,
             bool byteOrder,
@@ -63,7 +63,8 @@ namespace com.ximpleware
                 || vtdBuffer == null
                 || l1Buffer == null
                 || l2Buffer == null
-                || l3Buffer == null)
+                || l3Buffer == null
+                || LCLevel != 3)
             {
                 throw new System.ArgumentException("Invalid argument for writeIndex ");
             }
@@ -148,6 +149,147 @@ namespace com.ximpleware
             dos.Close();
         }
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="encodingType"></param>
+        /// <param name="ns"></param>
+        /// <param name="byteOrder"></param>
+        /// <param name="nestDepth"></param>
+        /// <param name="LCLevel"></param>
+        /// <param name="rootIndex"></param>
+        /// <param name="xmlDoc"></param>
+        /// <param name="docOffset"></param>
+        /// <param name="docLen"></param>
+        /// <param name="vtdBuffer"></param>
+        /// <param name="l1Buffer"></param>
+        /// <param name="l2Buffer"></param>
+        /// <param name="l3Buffer"></param>
+        /// <param name="os"></param>
+        public static void writeIndex_L5(byte version,
+    int encodingType,
+    bool ns,
+    bool byteOrder,
+    int nestDepth,
+    int LCLevel,
+    int rootIndex,
+    byte[] xmlDoc,
+    int docOffset,
+    int docLen,
+    FastLongBuffer vtdBuffer,
+    FastLongBuffer l1Buffer,
+    FastLongBuffer l2Buffer,
+    FastLongBuffer l3Buffer,
+    FastLongBuffer l4Buffer,
+    FastIntBuffer l5Buffer,
+    System.IO.Stream os)
+        {
+            if (xmlDoc == null
+                || docLen <= 0
+                || vtdBuffer == null
+                || l1Buffer == null
+                || l2Buffer == null
+                || l3Buffer == null
+                || l4Buffer == null
+                || l5Buffer == null
+                || LCLevel != 5
+                )
+            {
+                throw new System.ArgumentException("Invalid argument for writeIndex ");
+            }
+            if (vtdBuffer.size_Renamed_Field == 0)
+            {
+                throw new IndexWriteException("VTDBuffer can't be zero length");
+            }
+            int i;
+
+            System.IO.BinaryWriter dos = new System.IO.BinaryWriter(os);
+            // first 4 bytes
+            byte[] ba = new byte[4];
+            ba[0] = (byte)version; // version # is 1 
+            ba[1] = (byte)encodingType;
+            if (BitConverter.IsLittleEndian == false)
+                ba[2] = (byte)(ns ? 0xe0 : 0xa0); // big endien
+            else
+                ba[2] = (byte)(ns ? 0xc0 : 0x80);
+            ba[3] = (byte)nestDepth;
+            dos.Write(ba);
+            // second 4 bytes
+            ba[0] = 0;
+            ba[1] = 6;
+            ba[2] = (byte)((rootIndex & 0xff00) >> 8);
+            ba[3] = (byte)(rootIndex & 0xff);
+            dos.Write(ba);
+            // 2 reserved 32-bit words set to zero
+            ba[1] = ba[2] = ba[3] = 0;
+            dos.Write(ba);
+            dos.Write(ba);
+            dos.Write(ba);
+            dos.Write(ba);
+            // write XML doc in bytes
+            dos.Write((long)docLen);
+            dos.Write(xmlDoc, docOffset, docLen);
+            //dos.Write(xmlDoc, docOffset, docLen);
+            // zero padding to make it integer multiple of 64 bits
+            if ((docLen & 0x07) != 0)
+            {
+                int t = (((docLen >> 3) + 1) << 3) - docLen;
+                for (; t > 0; t--)
+                    dos.Write((System.Byte)0);
+            }
+            // write VTD
+
+            dos.Write((long)vtdBuffer.size_Renamed_Field);
+            if (docOffset != 0)
+            {
+                for (i = 0; i < vtdBuffer.size_Renamed_Field; i++)
+                {
+                    dos.Write(adjust(vtdBuffer.longAt(i), -docOffset));
+                }
+            }
+            else
+            {
+                for (i = 0; i < vtdBuffer.size_Renamed_Field; i++)
+                {
+                    dos.Write(vtdBuffer.longAt(i));
+                }
+            }
+            // write L1 
+            dos.Write((long)l1Buffer.size_Renamed_Field);
+            for (i = 0; i < l1Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l1Buffer.longAt(i));
+            }
+            // write L2
+            dos.Write((long)l2Buffer.size_Renamed_Field);
+            for (i = 0; i < l2Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l2Buffer.longAt(i));
+            }
+            // write L3
+            dos.Write((long)l3Buffer.size_Renamed_Field);
+            for (i = 0; i < l3Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l3Buffer.longAt(i));
+            }
+            // write L4
+            dos.Write((long)l4Buffer.size_Renamed_Field);
+            for (i = 0; i < l4Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l4Buffer.longAt(i));
+            }
+            // write L5
+            dos.Write((long)l5Buffer.size_Renamed_Field);
+            for (i = 0; i < l5Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l5Buffer.intAt(i));
+            }
+            // pad zero if # of l3 entry is odd
+            if ((l5Buffer.size_Renamed_Field & 1) != 0)
+                dos.Write(0);
+            dos.Close();
+        }
+        /// <summary>
         /// This function is called within VTDGen's loadIndex
         /// </summary>
         /// <param name="is_Renamed"></param>
@@ -191,11 +333,15 @@ namespace com.ximpleware
             vg.VTDDepth = dis.ReadByte();
 
             // 5th and 6th byte
-            int LCLevels = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
-            if (LCLevels < 3)
+            int LCLevel = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
+            if (LCLevel != 4 &&  LCLevel != 6)
             {
                 throw new IndexReadException("LC levels must be at least 3");
             }
+            if (LCLevel == 4)
+                vg.shallowDepth = true;
+            else
+                vg.shallowDepth = false;
             // 7th and 8th byte
             vg.rootIndex = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
 
@@ -256,13 +402,24 @@ namespace com.ximpleware
                 }
                 // read L3 LC records
                 int l3Size = (int)dis.ReadInt64();
-                if (intLongSwitch == 1)
+                if (vg.shallowDepth)
                 {
-                    //l3 uses ints
-                    while (l3Size > 0)
+                    if (intLongSwitch == 1)
                     {
-                        vg.l3Buffer.append(dis.ReadInt32());
-                        l3Size--;
+                        //l3 uses ints
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(dis.ReadInt32());
+                            l3Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
+                            l3Size--;
+                        }
                     }
                 }
                 else
@@ -271,6 +428,31 @@ namespace com.ximpleware
                     {
                         vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
                         l3Size--;
+                    }
+
+                    int l4Size = (int)dis.ReadInt64();
+                    while (l4Size > 0)
+                    {
+                        vg._l4Buffer.append((int)(dis.ReadInt64() >> 32));
+                        l4Size--;
+                    }
+
+                    int l5Size = (int)dis.ReadInt64();
+                    if (intLongSwitch == 1)
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append((int)(dis.ReadInt32() >> 32));
+                            l5Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append((int)(dis.ReadInt64() >> 32));
+                            l5Size--;
+                        }
                     }
                 }
             }
@@ -299,21 +481,57 @@ namespace com.ximpleware
                 }
                 // read L3 LC records
                 int l3Size = (int)reverseLong(dis.ReadInt64());
-                if (intLongSwitch == 1)
+                if (vg.shallowDepth)
                 {
-                    //l3 uses ints
-                    while (l3Size > 0)
+                    if (intLongSwitch == 1)
                     {
-                        vg.l3Buffer.append(reverseInt(dis.ReadInt32()));
-                        l3Size--;
+                        //l3 uses ints
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(reverseInt(dis.ReadInt32()));
+                            l3Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                            l3Size--;
+                        }
                     }
                 }
                 else
                 {
                     while (l3Size > 0)
                     {
-                        vg.l3Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                        vg._l3Buffer.append(reverseLong(dis.ReadInt64()));
                         l3Size--;
+                    }
+
+                    int l4Size = (int)reverseLong(dis.ReadInt64());
+                    {
+                        vg._l4Buffer.append(reverseLong(dis.ReadInt64()));
+                        l4Size--;
+                    }
+
+                    int l5Size = (int)reverseLong(dis.ReadInt64());
+                    if (intLongSwitch == 1)
+                    {
+                        //l3 uses ints
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append(reverseInt(dis.ReadInt32()));
+                            l5Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                            l5Size--;
+                        }
                     }
                 }
             }
@@ -368,11 +586,15 @@ namespace com.ximpleware
             vg.VTDDepth = dis.ReadByte();
 
             // 5th and 6th byte
-            int LCLevels = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
-            if (LCLevels < 3)
+            int LCLevel = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
+            if (LCLevel != 4 && LCLevel != 6)
             {
                 throw new IndexReadException("LC levels must be at least 3");
             }
+            if (LCLevel == 4)
+                vg.shallowDepth = true;
+            else
+                vg.shallowDepth = false;
             // 7th and 8th byte
             vg.rootIndex = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
 
@@ -404,8 +626,9 @@ namespace com.ximpleware
             }
 
             dis = new System.IO.BinaryReader(new System.IO.MemoryStream(ba, 32 + size + t, ba.Length - 32 - size - t));
+
             if (BitConverter.IsLittleEndian && endian == 0
-                || BitConverter.IsLittleEndian == false && endian == 1)
+    || BitConverter.IsLittleEndian == false && endian == 1)
             {
                 // read vtd records
                 int vtdSize = (int)dis.ReadInt64();
@@ -430,13 +653,24 @@ namespace com.ximpleware
                 }
                 // read L3 LC records
                 int l3Size = (int)dis.ReadInt64();
-                if (intLongSwitch == 1)
+                if (vg.shallowDepth)
                 {
-                    //l3 uses ints
-                    while (l3Size > 0)
+                    if (intLongSwitch == 1)
                     {
-                        vg.l3Buffer.append(dis.ReadInt32());
-                        l3Size--;
+                        //l3 uses ints
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(dis.ReadInt32());
+                            l3Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append((int)(dis.ReadInt64()>>32));
+                            l3Size--;
+                        }
                     }
                 }
                 else
@@ -445,6 +679,31 @@ namespace com.ximpleware
                     {
                         vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
                         l3Size--;
+                    }
+
+                    int l4Size = (int)dis.ReadInt64();
+                    while (l4Size > 0)
+                    {
+                        vg._l4Buffer.append((int)(dis.ReadInt64() >> 32));
+                        l4Size--;
+                    }
+
+                    int l5Size = (int)dis.ReadInt64();
+                    if (intLongSwitch == 1)
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append((int)(dis.ReadInt32() >> 32));
+                            l5Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append((int)(dis.ReadInt64()>>32));
+                            l5Size--;
+                        }
                     }
                 }
             }
@@ -473,23 +732,60 @@ namespace com.ximpleware
                 }
                 // read L3 LC records
                 int l3Size = (int)reverseLong(dis.ReadInt64());
-                if (intLongSwitch == 1)
+                if (vg.shallowDepth)
                 {
-                    //l3 uses ints
-                    while (l3Size > 0)
+                    if (intLongSwitch == 1)
                     {
-                        vg.l3Buffer.append(reverseInt(dis.ReadInt32()));
-                        l3Size--;
+                        //l3 uses ints
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(reverseInt(dis.ReadInt32()));
+                            l3Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                            l3Size--;
+                        }
                     }
                 }
                 else
                 {
                     while (l3Size > 0)
                     {
-                        vg.l3Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                        vg._l3Buffer.append(reverseLong(dis.ReadInt64()));
                         l3Size--;
                     }
+
+                    int l4Size = (int)reverseLong(dis.ReadInt64());
+                    {
+                        vg._l4Buffer.append(reverseLong(dis.ReadInt64()));
+                        l4Size--;
+                    }
+
+                    int l5Size = (int)reverseLong(dis.ReadInt64());
+                    if (intLongSwitch == 1)
+                    {
+                        //l3 uses ints
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append(reverseInt(dis.ReadInt32()));
+                            l5Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                            l5Size--;
+                        }
+                    }
                 }
+
             }
         }
 
@@ -564,8 +860,8 @@ namespace com.ximpleware
             vg.VTDDepth = dis.ReadByte();
 
             // 5th and 6th byte
-            int LCLevels = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
-            if (LCLevels < 3)
+            int LCLevel = (((int)dis.ReadByte()) << 8) | dis.ReadByte();
+            if (LCLevel != 4 && LCLevel != 6)
             {
                 throw new IndexReadException("LC levels must be at least 3");
             }
@@ -578,7 +874,7 @@ namespace com.ximpleware
             dis.ReadInt64();
             //Console.WriteLine(" l ==>" + l);
             long l = dis.ReadInt64();
-            
+
             int size;
             // read XML size
             if (BitConverter.IsLittleEndian && endian == 0
@@ -591,7 +887,7 @@ namespace com.ximpleware
             // read XML bytes
             byte[] XMLDoc = new byte[size];
             XMLBytes.Read(XMLDoc, 0, size);
-           
+
             //dis.Read(XMLDoc, 0, size);
             /*if ((size & 0x7) != 0)
             {
@@ -635,13 +931,24 @@ namespace com.ximpleware
                 }
                 // read L3 LC records
                 int l3Size = (int)dis.ReadInt64();
-                if (intLongSwitch == 1)
+                if (vg.shallowDepth)
                 {
-                    //l3 uses ints
-                    while (l3Size > 0)
+                    if (intLongSwitch == 1)
                     {
-                        vg.l3Buffer.append(dis.ReadInt32());
-                        l3Size--;
+                        //l3 uses ints
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(dis.ReadInt32());
+                            l3Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
+                            l3Size--;
+                        }
                     }
                 }
                 else
@@ -650,6 +957,31 @@ namespace com.ximpleware
                     {
                         vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
                         l3Size--;
+                    }
+
+                    int l4Size = (int)dis.ReadInt64();
+                    while (l4Size > 0)
+                    {
+                        vg._l4Buffer.append((int)(dis.ReadInt64() >> 32));
+                        l4Size--;
+                    }
+
+                    int l5Size = (int)dis.ReadInt64();
+                    if (intLongSwitch == 1)
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append((int)(dis.ReadInt32() >> 32));
+                            l5Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append((int)(dis.ReadInt64() >> 32));
+                            l5Size--;
+                        }
                     }
                 }
             }
@@ -678,27 +1010,63 @@ namespace com.ximpleware
                 }
                 // read L3 LC records
                 int l3Size = (int)reverseLong(dis.ReadInt64());
-                if (intLongSwitch == 1)
+                if (vg.shallowDepth)
                 {
-                    //l3 uses ints
-                    while (l3Size > 0)
+                    if (intLongSwitch == 1)
                     {
-                        vg.l3Buffer.append(reverseInt(dis.ReadInt32()));
-                        l3Size--;
+                        //l3 uses ints
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(reverseInt(dis.ReadInt32()));
+                            l3Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l3Size > 0)
+                        {
+                            vg.l3Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                            l3Size--;
+                        }
                     }
                 }
                 else
                 {
                     while (l3Size > 0)
                     {
-                        vg.l3Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                        vg._l3Buffer.append(reverseLong(dis.ReadInt64()));
                         l3Size--;
+                    }
+
+                    int l4Size = (int)reverseLong(dis.ReadInt64());
+                    {
+                        vg._l4Buffer.append(reverseLong(dis.ReadInt64()));
+                        l4Size--;
+                    }
+
+                    int l5Size = (int)reverseLong(dis.ReadInt64());
+                    if (intLongSwitch == 1)
+                    {
+                        //l3 uses ints
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append(reverseInt(dis.ReadInt32()));
+                            l5Size--;
+                        }
+                    }
+                    else
+                    {
+                        while (l5Size > 0)
+                        {
+                            vg._l5Buffer.append(reverseInt((int)(dis.ReadInt64() >> 32)));
+                            l5Size--;
+                        }
                     }
                 }
             }
         }
 
-        public static void writeSeparateIndex(byte version,
+        public static void writeSeparateIndex_L3(byte version,
             int encodingType,
             bool ns,
             bool byteOrder, // true is big endien
@@ -715,11 +1083,12 @@ namespace com.ximpleware
             System.IO.Stream os
             )
         {
-            if ( docLen <= 0
+            if (docLen <= 0
                 || vtdBuffer == null
                 || l1Buffer == null
                 || l2Buffer == null
-                || l3Buffer == null)
+                || l3Buffer == null
+                || LCLevel != 3)
             {
                 throw new System.ArgumentException("Invalid argument for writeIndex ");
             }
@@ -803,6 +1172,130 @@ namespace com.ximpleware
             }
             // pad zero if # of l3 entry is odd
             if ((l3Buffer.size_Renamed_Field & 1) != 0)
+                dos.Write(0);
+            dos.Close();
+        }
+
+        public static void writeSeparateIndex_L5(byte version,
+    int encodingType,
+    bool ns,
+    bool byteOrder, // true is big endien
+    int nestDepth,
+    int LCLevel,
+    int rootIndex,
+            //byte[] xmlDoc,
+    int docOffset,
+    int docLen,
+    FastLongBuffer vtdBuffer,
+    FastLongBuffer l1Buffer,
+    FastLongBuffer l2Buffer,
+    FastLongBuffer l3Buffer,
+    FastLongBuffer l4Buffer,
+    FastIntBuffer l5Buffer,
+    System.IO.Stream os
+    )
+        {
+            if (docLen <= 0
+                || vtdBuffer == null
+                || l1Buffer == null
+                || l2Buffer == null
+                || l3Buffer == null
+                || LCLevel != 5)
+            {
+                throw new System.ArgumentException("Invalid argument for writeIndex ");
+            }
+            if (vtdBuffer.size_Renamed_Field == 0)
+            {
+                throw new IndexWriteException("VTDBuffer can't be zero length");
+            }
+            int i;
+
+            System.IO.BinaryWriter dos = new System.IO.BinaryWriter(os);
+            // first 4 bytes
+            byte[] ba = new byte[4];
+            ba[0] = (byte)version; // version # is 1 
+            ba[1] = (byte)encodingType;
+            if (BitConverter.IsLittleEndian == false)
+                ba[2] = (byte)(ns ? 0xe0 : 0xa0); // big endien
+            else
+                ba[2] = (byte)(ns ? 0xc0 : 0x80);
+            ba[3] = (byte)nestDepth;
+            dos.Write(ba);
+            // second 4 bytes
+            ba[0] = 0;
+            ba[1] = 6;
+            ba[2] = (byte)((rootIndex & 0xff00) >> 8);
+            ba[3] = (byte)(rootIndex & 0xff);
+            dos.Write(ba);
+            // 2 reserved 32-bit words set to zero
+            ba[1] = ba[2] = ba[3] = 0;
+            dos.Write(ba);
+            dos.Write(ba);
+            dos.Write(ba);
+            dos.Write(ba);
+            // write XML doc in bytes
+            dos.Write((long)docLen);
+            dos.Write(ba);
+            dos.Write(ba);
+            dos.Write(ba);
+            dos.Write(ba);
+            //dos.Write(xmlDoc, docOffset, docLen);
+            // zero padding to make it integer multiple of 64 bits
+            /*if ((docLen & 0x07) != 0)
+            {
+                int t = (((docLen >> 3) + 1) << 3) - docLen;
+                for (; t > 0; t--)
+                    dos.Write((System.Byte)0);
+            }*/
+            // write VTD
+
+            dos.Write((long)vtdBuffer.size_Renamed_Field);
+            if (docOffset != 0)
+            {
+                for (i = 0; i < vtdBuffer.size_Renamed_Field; i++)
+                {
+                    dos.Write(adjust(vtdBuffer.longAt(i), -docOffset));
+                }
+            }
+            else
+            {
+                for (i = 0; i < vtdBuffer.size_Renamed_Field; i++)
+                {
+                    dos.Write(vtdBuffer.longAt(i));
+                }
+            }
+            // write L1 
+            dos.Write((long)l1Buffer.size_Renamed_Field);
+            for (i = 0; i < l1Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l1Buffer.longAt(i));
+            }
+            // write L2
+            dos.Write((long)l2Buffer.size_Renamed_Field);
+            for (i = 0; i < l2Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l2Buffer.longAt(i));
+            }
+            // write L3
+            dos.Write((long)l3Buffer.size_Renamed_Field);
+            for (i = 0; i < l3Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l3Buffer.longAt(i));
+            }
+            // write L4
+            dos.Write((long)l4Buffer.size_Renamed_Field);
+            for (i = 0; i < l4Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l4Buffer.longAt(i));
+            }
+            // write L5
+            dos.Write((long)l5Buffer.size_Renamed_Field);
+            for (i = 0; i < l5Buffer.size_Renamed_Field; i++)
+            {
+                dos.Write(l5Buffer.intAt(i));
+            }
+            // pad zero if # of l3 entry is odd
+            if ((l5Buffer.size_Renamed_Field & 1) != 0)
                 dos.Write(0);
             dos.Close();
         }
