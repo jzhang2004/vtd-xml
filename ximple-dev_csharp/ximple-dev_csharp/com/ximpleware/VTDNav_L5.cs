@@ -8,16 +8,16 @@ namespace com.ximpleware
     public class VTDNav_L5 : com.ximpleware.VTDNav
     {
 
-        protected int l4index;
-        protected int l5index;
-        protected int l4upper;
-        protected int l4lower;
-        protected int l5upper;
-        protected int l5lower;
+        protected internal int l4index;
+        protected internal int l5index;
+        protected internal int l4upper;
+        protected internal int l4lower;
+        protected internal int l5upper;
+        protected internal int l5lower;
 
-        protected FastLongBuffer l3Buffer;
-        protected FastLongBuffer l4Buffer;
-        protected FastIntBuffer l5Buffer;
+        protected new internal FastLongBuffer l3Buffer;
+        protected internal FastLongBuffer l4Buffer;
+        protected internal FastIntBuffer l5Buffer;
         /**
          * Initialize the VTD navigation object.
          * 
