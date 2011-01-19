@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -41,18 +41,42 @@ namespace com.ximpleware
         {
             if (vn == null)
                 throw new System.ArgumentException(" VTDNav instance can't be null");
-
-            switch (depth)
+            if (vn.shallowDepth)
             {
-                case -1: return handleDocumentNode();
-                case 0:
-                    return handleLevel0();
-                case 1:
-                    return handleLevel1();
-                case 2:
-                    return handleLevel2();
-                default:
-                    return handleDefault();
+                switch (depth)
+                {
+                    case -1: return handleDocumentNode();
+                    case 0:
+                        return handleLevel0();
+                    case 1:
+                        return handleLevel1();
+                    case 2:
+                        return handleLevel2();
+                    default:
+                        return handleDefault();
+                }
+            }
+            else
+            {
+
+                switch (depth)
+                {
+
+                    case -1:
+                        return handleDocumentNode();
+                    case 0:
+                        return handleLevel0();
+                    case 1:
+                        return handleLevel1();
+                    case 2:
+                        return _handleLevel2();
+                    case 3:
+                        return handleLevel3();
+                    case 4:
+                        return handleLevel4();
+                    default:
+                        return handleDefault();
+                }
             }
             //prevLocation = vtdSize-1;
             //return -1;
@@ -585,8 +609,350 @@ namespace com.ximpleware
                 return -1;
             }
         }
+
+        private int _handleLevel2()
+        {
+            int sp;
+            VTDNav_L5 vnl = (VTDNav_L5)vn;
+            if (prevLocation != -1)
+            {
+                sp = increment(prevLocation);
+            }
+            else
+            {
+                // fetch lclower and lcupper
+                lcLower = vnl.l2Buffer.lower32At(vnl.l2index);
+                if (lcLower != -1)
+                {
+                    lcUpper = vnl.l3Buffer.size_Renamed_Field - 1;
+                    int size = vnl.l2Buffer.size_Renamed_Field;
+                    for (int i = vnl.l2index + 1; i < size; i++)
+                    {
+                        int temp = vnl.l2Buffer.lower32At(i);
+                        if (temp != 0xffffffff)
+                        {
+                            lcUpper = temp - 1;
+                            break;
+                        }
+                    }
+                }
+                sp = index + 1;
+            } // check for l3lower and l3upper
+
+            if (lcLower != -1)
+            { // at least one child element
+                int temp1 = vnl.l3Buffer.upper32At(lcLower);
+                int temp2 = vnl.l3Buffer.upper32At(lcUpper);
+                lcIndex = (lcIndex != -1) ? lcIndex : lcLower;
+                while (sp < vnl.vtdSize)
+                {
+                    int s = vnl.l3Buffer.upper32At(lcIndex);
+                    //int s = vn.l2Buffer.upper32At(lcIndex);
+                    if (sp >= temp1 && sp < temp2)
+                    {
+                        if (sp == s)
+                        {
+                            lcIndex++;
+                            sp = vnl.l3Buffer.upper32At(lcIndex) - 1;
+                            //boolean b = false;
+                            while (vnl.getTokenDepth(sp) == 2)
+                            {
+                                sp--;
+                                //  b = true;
+                            }
+                            //if (b)
+                            sp++;
+                            //continue;
+                        }
+                        if (isText(sp) == true && vnl.getTokenDepth(sp) == 2)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        sp++;
+                    }
+                    else if (sp < temp1)
+                    {
+                        if (isText(sp) == true && vnl.getTokenDepth(sp) == 2)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        sp++;
+                    }
+                    else
+                    {
+                        //if (sp == temp2) { // last child element
+                        //} else                 
+                        if (isText(sp) == true && vnl.getTokenDepth(sp) == 2)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        else if ((vnl.getTokenType(sp) == VTDNav.TOKEN_STARTING_TAG
+                                && vnl.getTokenDepth(sp) < 3) || vnl.getTokenDepth(sp) < 2)
+                        {
+                            break;
+                        }
+                        sp++;
+                    }
+                }
+                //prevLocation = vtdSize-1;
+                return -1;
+            }
+            else
+            { // no child elements
+                if (sp >= vn.vtdSize) return -1;
+                int d = vn.getTokenDepth(sp);
+                int type = vn.getTokenType(sp);
+                while (sp < vn.vtdSize
+                    && d >= 2
+                    && !(d == 2 && type == VTDNav.TOKEN_STARTING_TAG))
+                {
+                    // the last condition indicates the start of the next sibling element
+                    if (isText(sp) == true && vn.getTokenDepth(sp) == 2)
+                    {
+                        prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                    d = vn.getTokenDepth(sp);
+                    type = vn.getTokenType(sp);
+
+                }
+                //prevLocation = vtdSize-1;
+                return -1;
+            }
+        }
+        private int handleLevel3()
+        {
+
+            int sp;
+            VTDNav_L5 vnl = (VTDNav_L5)vn;
+            if (prevLocation != -1)
+            {
+                sp = increment(prevLocation);
+            }
+            else
+            {
+                // fetch lclower and lcupper
+                lcLower = vnl.l3Buffer.lower32At(vnl.l3index);
+                if (lcLower != -1)
+                {
+                    lcUpper = vnl.l4Buffer.size_Renamed_Field - 1;
+                    int size = vnl.l3Buffer.size_Renamed_Field;
+                    for (int i = vnl.l3index + 1; i < size; i++)
+                    {
+                        int temp = vnl.l3Buffer.lower32At(i);
+                        if (temp != 0xffffffff)
+                        {
+                            lcUpper = temp - 1;
+                            break;
+                        }
+                    }
+                }
+                sp = index + 1;
+            } // check for l3lower and l3upper
+            if (lcLower != -1)
+            { // at least one child element
+                int temp1 = vnl.l4Buffer.upper32At(lcLower);
+                int temp2 = vnl.l4Buffer.upper32At(lcUpper);
+                lcIndex = (lcIndex != -1) ? lcIndex : lcLower;
+                while (sp < vn.vtdSize)
+                {
+                    int s = vnl.l4Buffer.upper32At(lcIndex);
+                    //int s = vn.l2Buffer.upper32At(lcIndex);
+                    if (sp >= temp1 && sp < temp2)
+                    {
+                        if (sp == s)
+                        {
+                            lcIndex++;
+                            sp = vnl.l4Buffer.upper32At(lcIndex) - 1;
+                            //boolean b = false;
+                            while (vn.getTokenDepth(sp) == 2)
+                            {
+                                sp--;
+                                //  b = true;
+                            }
+                            //if (b)
+                            sp++;
+                            //continue;
+                        }
+                        if (isText(sp) == true && vn.getTokenDepth(sp) == 3)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        sp++;
+                    }
+                    else if (sp < temp1)
+                    {
+                        if (isText(sp) == true && vn.getTokenDepth(sp) == 3)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        sp++;
+                    }
+                    else
+                    {
+                        //if (sp == temp2) { // last child element
+                        //} else                 
+                        if (isText(sp) == true && vn.getTokenDepth(sp) == 3)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        else if ((vn.getTokenType(sp) == VTDNav.TOKEN_STARTING_TAG
+                                && vn.getTokenDepth(sp) < 4) || vn.getTokenDepth(sp) < 3)
+                        {
+                            break;
+                        }
+                        sp++;
+                    }
+                }
+                //prevLocation = vtdSize-1;
+                return -1;
+            }
+            else
+            { // no child elements
+                if (sp >= vn.vtdSize) return -1;
+                int d = vn.getTokenDepth(sp);
+                int type = vn.getTokenType(sp);
+                while (sp < vn.vtdSize
+                    && d >= 3
+                    && !(d == 3 && type == VTDNav.TOKEN_STARTING_TAG))
+                {
+                    // the last condition indicates the start of the next sibling element
+                    if (isText(sp) == true && vn.getTokenDepth(sp) == 3)
+                    {
+                        prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                    d = vn.getTokenDepth(sp);
+                    type = vn.getTokenType(sp);
+
+                }
+                //prevLocation = vtdSize-1;
+                return -1;
+            }
+
+        }
+        private int handleLevel4()
+        { //l2
+            int sp;
+            VTDNav_L5 vnl = (VTDNav_L5)vn;
+            if (prevLocation != -1)
+            {
+                sp = increment(prevLocation);
+            }
+            else
+            {
+                // fetch lclower and lcupper
+                lcLower = vnl.l4Buffer.lower32At(vnl.l4index);
+                if (lcLower != -1)
+                {
+                    lcUpper = vnl.l5Buffer.size_Renamed_Field - 1; //5
+                    int size = vnl.l4Buffer.size_Renamed_Field; //4
+                    for (int i = vnl.l4index + 1; i < size; i++)
+                    {//4
+                        int temp = vnl.l4Buffer.lower32At(i); //4
+                        if (temp != 0xffffffff)
+                        {
+                            lcUpper = temp - 1;
+                            break;
+                        }
+                    }
+                }
+                sp = index + 1;
+            } // check for l3lower and l3upper
+
+            if (lcLower != -1)
+            { // at least one child element
+                int temp1 = vnl.l5Buffer.intAt(lcLower);
+                int temp2 = vnl.l5Buffer.intAt(lcUpper);
+                lcIndex = (lcIndex != -1) ? lcIndex : lcLower;
+                while (sp < vn.vtdSize)
+                {
+                    int s = vnl.l5Buffer.intAt(lcIndex);
+                    //int s = vn.l2Buffer.upper32At(lcIndex);
+                    if (sp >= temp1 && sp < temp2)
+                    {
+                        if (sp == s)
+                        {
+                            lcIndex++;
+                            sp = vnl.l5Buffer.intAt(lcIndex) - 1;
+                            //boolean b = false;
+                            while (vn.getTokenDepth(sp) == 4)
+                            {
+                                sp--;
+                                //  b = true;
+                            }
+                            //if (b)
+                            sp++;
+                            //continue;
+                        }
+                        if (isText(sp) == true && vn.getTokenDepth(sp) == 4)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        sp++;
+                    }
+                    else if (sp < temp1)
+                    {
+                        if (isText(sp) == true && vn.getTokenDepth(sp) == 4)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        sp++;
+                    }
+                    else
+                    {
+                        //if (sp == temp2) { // last child element
+                        //} else                 
+                        if (isText(sp) == true && vn.getTokenDepth(sp) == 4)
+                        {
+                            prevLocation = sp;
+                            return sp;
+                        }
+                        else if ((vn.getTokenType(sp) == VTDNav.TOKEN_STARTING_TAG
+                                && vn.getTokenDepth(sp) < 5) || vn.getTokenDepth(sp) < 4)
+                        {
+                            break;
+                        }
+                        sp++;
+                    }
+                }
+                //prevLocation = vtdSize-1;
+                return -1;
+            }
+            else
+            { // no child elements
+                if (sp >= vn.vtdSize) return -1;
+                int d = vn.getTokenDepth(sp);
+                int type = vn.getTokenType(sp);
+                while (sp < vn.vtdSize
+                    && d >= 4
+                    && !(d == 4 && type == VTDNav.TOKEN_STARTING_TAG))
+                {
+                    // the last condition indicates the start of the next sibling element
+                    if (isText(sp) == true && vn.getTokenDepth(sp) == 4)
+                    {
+                        prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                    d = vn.getTokenDepth(sp);
+                    type = vn.getTokenType(sp);
+
+                }
+                //prevLocation = vtdSize-1;
+                return -1;
+            }
+        }
     
-
-
     }
 }
