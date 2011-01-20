@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -426,14 +426,14 @@ namespace com.ximpleware
                 {
                     while (l3Size > 0)
                     {
-                        vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
+                        vg._l3Buffer.append(dis.ReadInt64());
                         l3Size--;
                     }
 
                     int l4Size = (int)dis.ReadInt64();
                     while (l4Size > 0)
                     {
-                        vg._l4Buffer.append((int)(dis.ReadInt64() >> 32));
+                        vg._l4Buffer.append(dis.ReadInt64());
                         l4Size--;
                     }
 
@@ -442,7 +442,7 @@ namespace com.ximpleware
                     {
                         while (l5Size > 0)
                         {
-                            vg._l5Buffer.append((int)(dis.ReadInt32() >> 32));
+                            vg._l5Buffer.append(dis.ReadInt32());
                             l5Size--;
                         }
                     }
@@ -677,14 +677,14 @@ namespace com.ximpleware
                 {
                     while (l3Size > 0)
                     {
-                        vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
+                        vg._l3Buffer.append(dis.ReadInt64());
                         l3Size--;
                     }
 
                     int l4Size = (int)dis.ReadInt64();
                     while (l4Size > 0)
                     {
-                        vg._l4Buffer.append((int)(dis.ReadInt64() >> 32));
+                        vg._l4Buffer.append(dis.ReadInt64());
                         l4Size--;
                     }
 
@@ -693,7 +693,7 @@ namespace com.ximpleware
                     {
                         while (l5Size > 0)
                         {
-                            vg._l5Buffer.append((int)(dis.ReadInt32() >> 32));
+                            vg._l5Buffer.append(dis.ReadInt32());
                             l5Size--;
                         }
                     }
@@ -955,14 +955,14 @@ namespace com.ximpleware
                 {
                     while (l3Size > 0)
                     {
-                        vg.l3Buffer.append((int)(dis.ReadInt64() >> 32));
+                        vg._l3Buffer.append(dis.ReadInt64());
                         l3Size--;
                     }
 
                     int l4Size = (int)dis.ReadInt64();
                     while (l4Size > 0)
                     {
-                        vg._l4Buffer.append((int)(dis.ReadInt64() >> 32));
+                        vg._l4Buffer.append(dis.ReadInt64());
                         l4Size--;
                     }
 
@@ -971,7 +971,7 @@ namespace com.ximpleware
                     {
                         while (l5Size > 0)
                         {
-                            vg._l5Buffer.append((int)(dis.ReadInt32() >> 32));
+                            vg._l5Buffer.append(dis.ReadInt32());
                             l5Size--;
                         }
                     }
