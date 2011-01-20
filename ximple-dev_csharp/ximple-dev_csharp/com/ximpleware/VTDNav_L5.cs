@@ -9,7 +9,7 @@ namespace com.ximpleware
     {
 
         protected internal int l4index;
-        protected internal int l5index;
+        protected internal int l5index; 
         protected internal int l4upper;
         protected internal int l4lower;
         protected internal int l5upper;
@@ -139,7 +139,7 @@ namespace com.ximpleware
          * The node position is also copied from the original instance
          * @return a new instance of VTDNav
          */
-        public VTDNav cloneNav()
+        public virtual VTDNav cloneNav()
         {
             VTDNav_L5 vn = new VTDNav_L5(rootIndex,
                     encoding,
@@ -196,7 +196,7 @@ namespace com.ximpleware
          * @return a VTDNav instance
          *
          */
-        public VTDNav duplicateNav()
+        public virtual VTDNav duplicateNav()
         {
             return new VTDNav_L5(rootIndex,
                     encoding,
@@ -239,7 +239,7 @@ namespace com.ximpleware
          * "www.url.com","node_name")){ push(); // store the current position //move
          * position safely pop(); // load the position }
          */
-        protected bool iterateNS(int dp, String URL, String ln)
+        protected internal override bool iterateNS(int dp, String URL, String ln)
         {
             if (ns == false)
                 return false;
@@ -288,7 +288,7 @@ namespace com.ximpleware
          * 
          * @return int The index of the NS URL
          */
-        protected void resolveLC()
+        protected override void resolveLC()
         {
             if (context[0] <= 0)
                 return;
@@ -310,7 +310,7 @@ namespace com.ximpleware
         /**
          * Sync L3 location Cache
          */
-        protected void resolveLC_l3()
+        protected override void resolveLC_l3()
         {
             int temp = l2Buffer.lower32At(l2index);
             if (l3lower != temp)
@@ -323,7 +323,7 @@ namespace com.ximpleware
                 for (int i = l2index + 1; i < l2Buffer.size_Renamed_Field; i++)
                 {
                     temp = l2Buffer.lower32At(i);
-                    if (temp != 0xffffffff)
+                    if (temp != -1)
                     {
                         l3upper = temp - 1;
                         break;
@@ -388,7 +388,7 @@ namespace com.ximpleware
                 for (int i = l3index + 1; i < l3Buffer.size_Renamed_Field; i++)
                 {
                     temp = l3Buffer.lower32At(i);
-                    if (temp != 0xffffffff)
+                    if (temp != -1)
                     {
                         l4upper = temp - 1;
                         break;
@@ -455,7 +455,7 @@ namespace com.ximpleware
                 for (int i = l4index + 1; i < l4Buffer.size_Renamed_Field; i++)
                 {
                     temp = l4Buffer.lower32At(i);
-                    if (temp != 0xffffffff)
+                    if (temp != -1)
                     {
                         l5upper = temp - 1;
                         break;
@@ -513,7 +513,7 @@ namespace com.ximpleware
          * @return boolean
          *  
          */
-        public bool pop()
+        public virtual bool pop()
         {
             bool b = contextStack.load(stackTemp);
             if (b == false)
@@ -549,7 +549,7 @@ namespace com.ximpleware
          */
 
 
-        protected bool pop2()
+        protected virtual bool pop2()
         {
 
             bool b = contextStack2.load(stackTemp);
@@ -581,7 +581,7 @@ namespace com.ximpleware
          * Store the context info into the ContextBuffer. Info saved including LC
          * and current state of the context Creation date: (11/16/03 7:00:27 PM)
          */
-        public void push()
+        public virtual void push()
         {
 
             for (int i = 0; i < nestingLevel; i++)
@@ -616,7 +616,7 @@ namespace com.ximpleware
          *  
          */
 
-        protected void push2()
+        protected virtual void push2()
         {
 
             for (int i = 0; i < nestingLevel; i++)
@@ -646,7 +646,7 @@ namespace com.ximpleware
         }
 
 
-        private void recoverNode_l3(int index)
+        protected override void recoverNode_l3(int index)
         {
             int i = l2Buffer.lower32At(l2index);
 
@@ -686,7 +686,7 @@ namespace com.ximpleware
             //System.out.println("l2lower ==>"+l2lower+"  l2upper==>"+l2upper+"   l2index==> "+l2index);
         }
 
-        private void recoverNode_l4(int index)
+        protected void recoverNode_l4(int index)
         {
             int i = l3Buffer.lower32At(l3index);
 
@@ -726,7 +726,7 @@ namespace com.ximpleware
             //System.out.println("l2lower ==>"+l2lower+"  l2upper==>"+l2upper+"   l2index==> "+l2index);
         }
 
-        private void recoverNode_l5(int index)
+        protected void recoverNode_l5(int index)
         { //l3
             int i = l4Buffer.lower32At(l4index);
 
@@ -767,7 +767,7 @@ namespace com.ximpleware
          * @param fib
          */
 
-        public void sampleState(FastIntBuffer fib)
+        public override void sampleState(FastIntBuffer fib)
         {
             //		for(int i=0;i<context.)
             //			context[i] = -1;
@@ -816,7 +816,7 @@ namespace com.ximpleware
          * @throws NavException
          */
 
-        protected bool iterate_following(String en, bool special)
+        protected internal override bool iterate_following(String en, bool special)
         {
             int index = getCurrentIndex() + 1;
             //int size = vtdBuffer.size;
@@ -848,7 +848,7 @@ namespace com.ximpleware
          * @return boolean
          * @throws NavException
          */
-        protected bool iterate_followingNS(String URL, String ln)
+        protected internal override bool iterate_followingNS(String URL, String ln)
         {
             int index = getCurrentIndex() + 1;
             //int size = vtdBuffer.size;
@@ -884,7 +884,7 @@ namespace com.ximpleware
          * @return boolean
          * @throws NavException
          */
-        protected bool iterate_preceding(String en, int[] a, bool special)
+        protected internal override bool iterate_preceding(String en, int[] a, bool special)
         {
             int index = getCurrentIndex() - 1;
             int t, d;
@@ -941,7 +941,7 @@ namespace com.ximpleware
          * @return boolean
          * @throws NavException
          */
-        protected bool iterate_precedingNS(String URL, String ln, int[] a)
+        protected internal override bool iterate_precedingNS(String URL, String ln, int[] a)
         {
             int index = getCurrentIndex() - 1;
             int t, d;
@@ -1010,7 +1010,7 @@ namespace com.ximpleware
          *                load-balancer. null element name allowed represent
          *                node()in XPath;
          */
-        protected bool iterate(int dp, String en, bool special)
+        protected internal override bool iterate(int dp, String en, bool special)
         { // the navigation doesn't rely on LC
             // get the current depth
             int index = getCurrentIndex() + 1;
@@ -1090,7 +1090,7 @@ namespace com.ximpleware
          * @exception IllegalArguementException
          *                if en is null
          */
-        public bool toElement(int direction, String en)
+        public override bool toElement(int direction, String en)
         {
             int temp;
             int d;
@@ -1252,7 +1252,7 @@ namespace com.ximpleware
          * @exception com.ximpleware.NavException
          *                When direction value is illegal.
          */
-        public bool toElement(int direction)
+        public override bool toElement(int direction)
         {
             int size;
             switch (direction)
@@ -1707,7 +1707,7 @@ namespace com.ximpleware
          *                When direction value is illegal. Or there are errors in
          *                underlying byte representation of the document
          */
-        public bool toElementNS(int direction, String URL, String ln)
+        public override bool toElementNS(int direction, String URL, String ln)
         {
             int temp;
             int val = 0;
@@ -1846,7 +1846,7 @@ namespace com.ximpleware
          * @param index
          * @throws NavException
          */
-        public void recoverNode(int index)
+        public override void recoverNode(int index)
         {
             if (index < 0 || index >= vtdSize)
                 throw new NavException("Invalid VTD index");
@@ -1951,7 +1951,7 @@ namespace com.ximpleware
             }
             //resolveLC();		
         }
-        public void writeIndex(System.IO.Stream os)
+        public virtual void writeIndex(System.IO.Stream os)
         {
             IndexHandler.writeIndex_L5(1,
                  this.encoding,
