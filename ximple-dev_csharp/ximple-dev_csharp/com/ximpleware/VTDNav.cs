@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> int
         /// </returns>
+        protected VTDNav() { }
         public int getAttrCount()
         {
             if (context[0] == -1)
@@ -930,13 +931,13 @@ namespace com.ximpleware
 
         // masks for obtaining various fields from a VTD token 
         protected internal const long MASK_TOKEN_FULL_LEN = 0x000fffff00000000;
-        private const long MASK_TOKEN_PRE_LEN = 0x000ff80000000000;
-        private const long MASK_TOKEN_QN_LEN = 0x000007ff00000000;
+        protected const long MASK_TOKEN_PRE_LEN = 0x000ff80000000000;
+        protected const long MASK_TOKEN_QN_LEN = 0x000007ff00000000;
         internal long MASK_TOKEN_OFFSET = 0x000000003fffffff;
         //UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
-        private const long MASK_TOKEN_TYPE = unchecked((long)0xf000000000000000);
+        protected const long MASK_TOKEN_TYPE = unchecked((long)0xf000000000000000);
         //UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
-        private const long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
+        protected const long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
 
         // tri-state variable for namespace lookup
         private const long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
@@ -966,7 +967,7 @@ namespace com.ximpleware
 
         //private int recentNS; // most recently visited NS node, experiment for now
         // Hierarchical representation is an array of integers addressing elements tokens 
-        private ContextBuffer contextStack;
+        protected ContextBuffer contextStack;
         protected internal ContextBuffer contextStack2; // this is reserved for XPath
 
         protected internal int LN; // record txt and attrbute for XPath eval purposes
@@ -980,7 +981,7 @@ namespace com.ximpleware
         protected internal bool ns;
 
         // intermediate buffer for push and pop purposes  
-        private int[] stackTemp;
+        protected internal int[] stackTemp;
         protected internal int docOffset;
         // length of the document
         protected internal int docLen;
@@ -992,6 +993,8 @@ namespace com.ximpleware
         protected internal String localName;
         protected internal int localNameIndex;
         protected internal FastIntBuffer fib;//for store string value 
+        protected internal bool shallowDepth;
+
         /// <summary> Initialize the VTD navigation object.</summary>
         /// <param name="RootIndex">int
         /// </param>
@@ -1073,6 +1076,7 @@ namespace com.ximpleware
             localName = null;
             localNameIndex = -1;
             fib = new FastIntBuffer(5);
+            shallowDepth = true;
             //recentNS = -1;
         }
         /// <summary> This method print out the current state info of the navigation object.
@@ -1352,7 +1356,7 @@ namespace com.ximpleware
             }
             
             if (getCharUnit(offset - 1) == '/')
-                return (-1L<<32) | (long)offset;
+                return (-1L <<32) | (long)offset;
             else
                 return offset + 1;
             
@@ -1549,7 +1553,7 @@ namespace com.ximpleware
         /// </returns>
         /// <param name="index">int
         /// </param>
-        private bool isElement(int index)
+        protected internal bool isElement(int index)
         {
             return (((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf) == TOKEN_STARTING_TAG;
             //return (((((int)vtdBuffer.longAt(index)) & 0xf0) >> 4) == TOKEN_STARTING_TAG);
@@ -1562,7 +1566,7 @@ namespace com.ximpleware
         /// </returns>
         /// <param name="index">int
         /// </param>
-        private bool isElementOrDocument(int index)
+        protected internal bool isElementOrDocument(int index)
         {
             long i = (((vtdBuffer.longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
             //int i = ((((int)vtdBuffer.longAt(index) & 0xf0) >> 4));
@@ -1589,7 +1593,7 @@ namespace com.ximpleware
         /// <returns> 
         /// </returns>
         /// <throws>  NavException </throws>
-        protected internal bool iterate_preceding(System.String en, int[] a, bool special)
+        protected internal virtual bool iterate_preceding(System.String en, int[] a, bool special)
         {
             int index = getCurrentIndex() - 1;
             int t, d;
@@ -1645,7 +1649,7 @@ namespace com.ximpleware
         /// <returns>
         /// </returns>
         /// <throws>  NavException </throws>
-        protected internal bool iterate_precedingNS(System.String URL, System.String ln, int[] a)
+        protected internal virtual bool iterate_precedingNS(System.String URL, System.String ln, int[] a)
         {
             int index = getCurrentIndex() - 1;
             int t, d;
@@ -1704,7 +1708,7 @@ namespace com.ximpleware
         /// </returns>
         /// <throws>  NavException </throws>
 
-        protected internal bool iterate_following(System.String en, bool special)
+        protected internal virtual bool  iterate_following(System.String en, bool special)
         {
             int index = getCurrentIndex() + 1;
             //int size = vtdBuffer.size_Renamed_Field;
@@ -1736,7 +1740,7 @@ namespace com.ximpleware
         /// <returns>
         /// </returns>
         /// <throws>  NavException </throws>
-        protected internal bool iterate_followingNS(System.String URL, System.String ln)
+        protected internal virtual bool iterate_followingNS(System.String URL, System.String ln)
         {
             int index = getCurrentIndex() + 1;
             //int size = vtdBuffer.size_Renamed_Field;
@@ -1777,7 +1781,7 @@ namespace com.ximpleware
         /// machine from a load-balancer.
         /// null element name allowed represent node()in XPath;
         /// </exception>
-        protected internal bool iterate(int dp, System.String en, bool special)
+        protected internal virtual bool iterate(int dp, System.String en, bool special)
         {
             // the navigation doesn't rely on LC
             // get the current depth
@@ -1837,7 +1841,7 @@ namespace com.ximpleware
         /// pop();  // load the position
         /// }
         /// </exception>
-        protected internal bool iterateNS(int dp, System.String URL, System.String ln)
+        protected internal virtual bool iterateNS(int dp, System.String URL, System.String ln)
         {
             if (ns == false)
                 return false;
@@ -2931,7 +2935,7 @@ namespace com.ximpleware
         /// <param name="fib">
         /// </param>
 
-        public void sampleState(FastIntBuffer fib)
+        public virtual void sampleState(FastIntBuffer fib)
         {
             //		for(int i=0;i<context.)
             //			context[i] = -1;
@@ -2955,7 +2959,7 @@ namespace com.ximpleware
             }
         }
 
-        private void resolveLC_l1()
+        protected void resolveLC_l1()
         {
             if (l1index < 0 || l1index >= l1Buffer.size_Renamed_Field
         || context[1] != l1Buffer.upper32At(l1index))
@@ -3006,7 +3010,7 @@ namespace com.ximpleware
             }
         }
 
-        private void resolveLC_l2()
+        protected void resolveLC_l2()
         {
             int temp = l1Buffer.lower32At(l1index);
             if (l2lower != temp)
@@ -3071,7 +3075,7 @@ namespace com.ximpleware
             }
         }
 
-        private void resolveLC_l3()
+        protected virtual void resolveLC_l3()
         {
             int temp = l2Buffer.lower32At(l2index);
             if (l3lower != temp)
@@ -3143,7 +3147,7 @@ namespace com.ximpleware
         /// </summary>
         /// <returns> int  The index of the NS URL
         /// </returns>
-        private void resolveLC()
+        protected virtual void resolveLC()
         {
             if (context[0] <= 0)
                 return;
@@ -3365,7 +3369,7 @@ namespace com.ximpleware
         /// </param>
         /// <exception cref="com.ximpleware.NavException"> When direction value is illegal.
         /// </exception>
-        public bool toElement(int direction)
+        public virtual bool toElement(int direction)
         {
             int size;
             switch (direction)
@@ -3732,7 +3736,7 @@ namespace com.ximpleware
         /// </exception>
         /// <exception cref="IllegalArguementException">if en is null
         /// </exception>
-        public bool toElement(int direction, System.String en)
+        public virtual bool toElement(int direction, System.String en)
         {
             //int size;
             int temp;
@@ -3925,7 +3929,7 @@ namespace com.ximpleware
         /// </exception>
         /// <exception cref="IllegalArguementException">if ln is null
         /// </exception>
-        public bool toElementNS(int direction, System.String URL, System.String ln)
+        public virtual bool toElementNS(int direction, System.String URL, System.String ln)
         {
             //int size;
             int temp;
@@ -4489,7 +4493,7 @@ namespace com.ximpleware
         /// </summary>
         public void writeIndex(System.IO.Stream os)
         {
-            IndexHandler.writeIndex(1,
+            IndexHandler.writeIndex_L3(1,
                  this.encoding,
                  this.ns,
                  true,
@@ -4754,7 +4758,7 @@ namespace com.ximpleware
         /// <param name="os"></param>
         public void writeSeparateIndex(System.IO.Stream os)
         {
-            IndexHandler.writeSeparateIndex((byte)2,
+            IndexHandler.writeSeparateIndex_L3((byte)2,
                 this.encoding,
                 this.ns,
                 true,
@@ -5409,7 +5413,7 @@ namespace com.ximpleware
         /// or CDATA
         /// </summary>
         /// <param name="index"></param>
-        public void recoverNode(int index)
+        public virtual void recoverNode(int index)
         {
             if (index < 0 || index >= vtdSize)
                 throw new NavException("Invalid VTD index");
@@ -5506,7 +5510,7 @@ namespace com.ximpleware
         /// 
         /// </summary>
         /// <param name="index"></param>
-        private void recoverNode_l1(int index)
+        protected internal void recoverNode_l1(int index)
         {
             int i;
             if (context[1] == index)
@@ -5552,7 +5556,7 @@ namespace com.ximpleware
         /// 
         /// </summary>
         /// <param name="index"></param>
-        private void recoverNode_l2(int index)
+        protected void recoverNode_l2(int index)
         {
             int i = l1Buffer.lower32At(l1index);
 
@@ -5596,7 +5600,7 @@ namespace com.ximpleware
         /// 
         /// </summary>
         /// <param name="index"></param>
-        private void recoverNode_l3(int index)
+        protected virtual void recoverNode_l3(int index)
         {
             int i = l2Buffer.lower32At(l2index);
 
