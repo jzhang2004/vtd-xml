@@ -19,6 +19,12 @@
 #include <stdlib.h>
 using namespace std;
 using namespace com_ximpleware;
+
+const static UByte ba1[] = {0x3e,0};
+const static UByte ba2[] = {0x3c,0};
+const static UByte ba3[] = {0,0x3e};
+const static UByte ba4[] = {0,0x3c};
+
 UByte* XMLModifier::doubleCapacity(UByte *b, size_t cap){
 	UByte *t = new UByte[cap];
 	memcpy(t,b,cap>>1);
@@ -546,10 +552,13 @@ void XMLModifier::insertAttribute(UCSChar *attr){
 		insertBytesAt((offset+len)<<1,(this->*gbytes)(attr));
 }
 void XMLModifier::insertAfterHead(UCSChar *s){
-	int i = md->getOffsetAfterHead();
-    if (i==-1)
-        throw ModifyException("Insertion failed");
-	insertBytesAt(i, (this->*gbytes)(s));
+	Long i = md->getOffsetAfterHead();
+	if (i<0){
+        insertBytesEnclosedAt((int)i-1,(this->*gbytes)(s));
+		insertEndingTag(i);
+		return;
+	}
+	insertBytesAt((int)i, (this->*gbytes)(s));
 }
 
 /* insert a byte array before the start of an element 
@@ -588,10 +597,13 @@ void XMLModifier::insertBeforeElement(UByte* ba, int arrayLen){
 		insertBytesAt2(offset<<1, (((Long)arrayLen)<<32)|(int)ba);
 }
 void XMLModifier::insertAfterHead(UByte* ba, int arrayLen){
-	int i =md->getOffsetAfterHead();
-    if (i==-1)
-        throw ModifyException("Insertion failed");
-	insertBytesAt2(i, (((Long)arrayLen)<<32)|(int)ba);
+	Long i =md->getOffsetAfterHead();
+	if (i < 0){
+        insertBytesEnclosedAt2((int)i-1,(((Long)arrayLen)<<32)|(int)ba);
+		insertEndingTag(i);
+		return;
+	}
+	insertBytesAt2((int)i, (((Long)arrayLen)<<32)|(int)ba);
 }
 
 void XMLModifier::insertAfterElement(UByte* ba, int contentOffset, int contentLen){
@@ -625,10 +637,14 @@ void XMLModifier::insertBeforeElement(UByte* ba, int contentOffset, int contentL
 }
 
 void XMLModifier::insertAfterHead(UByte* ba, int contentOffset, int contentLen){
-	int i =md->getOffsetAfterHead( );
-    if (i==-1)
-        throw ModifyException("Insertion failed");
-	insertBytesAt2(i,(((Long)contentLen)<<32)|((int)ba+contentOffset));
+	Long i =md->getOffsetAfterHead( );
+	if (i<0){
+        //throwException2(modify_exception,"Insertion failed");
+		insertBytesEnclosedAt2((int)i-1,(((Long)contentLen)<<32)|((int)ba+contentOffset));
+		insertEndingTag(i);
+		return;
+	}
+	insertBytesAt2((int)i,(((Long)contentLen)<<32)|((int)ba+contentOffset));
 }
 
 void XMLModifier::insertBeforeElement(ElementFragmentNs *ef){
@@ -662,10 +678,14 @@ void XMLModifier::insertAfterElement(ElementFragmentNs *ef){
 }
 
 void XMLModifier::insertAfterHead(ElementFragmentNs *ef){
-	int i =md->getOffsetAfterHead();
-    if (i==-1)
-        throw ModifyException("Insertion failed");
-	insertBytesAt( i,ef);
+	Long i =md->getOffsetAfterHead();
+	if (i < 0){
+        //throwException2(modify_exception,"Insertion failed");
+		insertBytesEnclosedAt((int)i-1,ef);
+		insertEndingTag(i);
+		return;
+	}
+	insertBytesAt((int)i,ef);
 }
 
 
@@ -711,12 +731,16 @@ void XMLModifier::insertBeforeElement(encoding_t src_encoding, UByte* ba, int ar
 }
 void XMLModifier::insertAfterHead(encoding_t src_encoding, UByte* ba, int arrayLen){
 	Long bo;
-	int i = md->getOffsetAfterHead();
-    if (i==-1)
-        throw ModifyException("Insertion failed");
+	Long i = md->getOffsetAfterHead();
+	if (i < 0){
+        bo = Transcoder_transcode(ba, 0, arrayLen, src_encoding, encoding);
+		insertBytesAt((int)i-1, bo);
+		insertEndingTag(i);
+		return;
+	}
 	bo = Transcoder_transcode(ba, 0, arrayLen, src_encoding, encoding);
 	//insertBytesAt(xm,offset+len,bo);
-	insertBytesAt(i, bo);
+	insertBytesAt((int)i, bo);
 }
 
 
@@ -762,11 +786,16 @@ void XMLModifier::insertBeforeElement(encoding_t src_encoding, UByte* ba, int co
 
 void XMLModifier::insertAfterHead(encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen){
 	Long bo;
-	int i =md->getOffsetAfterHead();
-    if (i==-1)
-        throw ModifyException("Insertion failed");
+	Long i =md->getOffsetAfterHead();
+	if (i < 0){
+        bo = Transcoder_transcode(ba, contentOffset, contentLen, src_encoding, encoding);
+		insertBytesEnclosedAt((int)i-1,bo);
+		insertEndingTag(i);
+        //throwException2(modify_exception,"Insertion failed");
+		return;
+	}
 	bo = Transcoder_transcode(ba, contentOffset, contentLen, src_encoding, encoding);
-	insertBytesAt(i, bo);
+	insertBytesAt((int)i, bo);
 }
 
 
@@ -843,7 +872,7 @@ void XMLModifier::output(FILE *f){
 					if (k!=t)
 						throw IOException("fwrite didn't complete");                      
 					offset= flb->lower32At(i);
-				}else {
+				}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
 					t = flb->lower32At(i);
 					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 					if (k!=t-offset)
@@ -853,6 +882,31 @@ void XMLModifier::output(FILE *f){
 					//writeFragmentToFile((ElementFragmentNs*)lower32At(xm->fob,i),f);
 
 					offset= flb->lower32At(i);
+				}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE_ENCLOSED
+					|| (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){
+					t = flb->lower32At(i);
+					
+					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					if (k!=t-offset)
+						throw IOException("fwrite didn't complete");
+					fwrite(">",sizeof(UByte),1,f);
+					t = fob->upper32At(i);/* the length */
+					k=fwrite((void *)fob->lower32At(i),sizeof(UByte),t,f);
+					if (k!=t)
+						throw IOException("fwrite didn't complete");   
+					fwrite("<",sizeof(UByte),1,f);
+					offset= flb->lower32At(i);
+				}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
+					
+					t = flb->lower32At(i);
+					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					if (k!=t-offset)
+						throw IOException("fwrite didn't complete");
+					fwrite(">",sizeof(UByte),1,f);
+					((ElementFragmentNs*)fob->lower32At(i))->writeFragmentToFile(f,encoding);
+					fwrite("<",sizeof(UByte),1,f);
+					//writeFragmentToFile((ElementFragmentNs*)lower32At(xm->fob,i),f);
+					offset=flb->lower32At(i);
 				}
 			} else {
 				    Long k = flb->longAt(i+1),temp;
@@ -887,12 +941,27 @@ void XMLModifier::output(FILE *f){
 							if (k!=t)
 								throw IOException("fwrite didn't complete");  
 							offset = flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff);
-					}else {
+					}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
 						/*t = lower32At(xm->flb,i+1);
 						k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 						if (k!=t-offset)
 						throwException2(io_exception,"fwrite didn't complete");*/
 						((ElementFragmentNs*)fob->lower32At(i2))->writeFragmentToFile(f,encoding);
+						offset = flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff);
+					}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE_ENCLOSED
+					|| (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){ 
+						/*os.write(ba,offset, flb.lower32At(i+1)-offset);*/
+							fwrite(">",sizeof(UByte),1,f);
+							t = fob->upper32At(i2);   /* the length */
+							k=fwrite((void *)fob->lower32At(i2),sizeof(UByte),t,f);
+							if (k!=t)
+								throw IOException("fwrite didn't complete");  
+							fwrite("<",sizeof(UByte),1,f);
+							offset = flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff);
+					}else{
+						fwrite(">",sizeof(UByte),1,f);
+						((ElementFragmentNs*)fob->lower32At(i2))->writeFragmentToFile(f,encoding);
+						fwrite("<",sizeof(UByte),1,f);
 						offset = flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff);
 					}
 			}
@@ -902,10 +971,17 @@ void XMLModifier::output(FILE *f){
 		if (k!=t)
 			throw IOException("fwrite didn't complete");
 	}else{
+		UByte* b1  = (UByte *)ba1;
+		UByte* b2  = (UByte *)ba2;
 		int offset = start;
 		int i;
 		int inc=1;
 		size_t t;
+		if (md->encoding == FORMAT_UTF_16BE){
+			b1 =  (UByte *)ba3;
+			b2 =  (UByte *)ba4;
+		}
+
 		for(i=0;i<flb->size;i=i+inc){
 			if (i+1==flb->size){
 				inc = 1;
@@ -934,16 +1010,37 @@ void XMLModifier::output(FILE *f){
 					if (k!=t)
 						throw IOException("fwrite didn't complete");                      
 					offset= flb->lower32At(i)<<1;
-				}else {
+				}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
 					t = flb->lower32At(i)<<1;
 					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 					if (k!=t-offset)
 						throw IOException("fwrite didn't complete");
 					((ElementFragmentNs*)fob->lower32At(i))->writeFragmentToFile(f,encoding);
-
 					//writeFragmentToFile((ElementFragmentNs*)lower32At(xm->fob,i),f);
 
 					offset= flb->lower32At(i)<<1;
+				} else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE_ENCLOSED
+					|| (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){
+						// insert
+					t = flb->lower32At(i)<<1;
+					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					if (k!=t-offset)
+						throw IOException("fwrite didn't complete");
+					t = fob->upper32At(i);/* the length */
+					fwrite(b1,sizeof(UByte),2,f);
+					k=fwrite((void *)fob->lower32At(i),sizeof(UByte),t,f);
+					if (k!=t)
+						throw IOException("fwrite didn't complete"); 
+					fwrite(b2,sizeof(UByte),2,f);                     
+					offset= flb->lower32At(i)<<1;
+				} else {
+					t = flb->lower32At(i)<<1;
+					fwrite(b1,sizeof(UByte),2,f);
+					k=fwrite(md->XMLDoc+offset,sizeof(UByte),t-offset,f);
+					if (k!=t-offset)
+						throw IOException("fwrite didn't complete");
+					fwrite(b2,sizeof(UByte),2,f);
+					((ElementFragmentNs*)fob->lower32At(i))->writeFragmentToFile(f,encoding);
 				}
 			} else {
 				    Long k = flb->longAt(i+1),temp;
@@ -978,13 +1075,27 @@ void XMLModifier::output(FILE *f){
 							if (k!=t)
 								throw IOException("fwrite didn't complete");  
 							offset = (flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff))<<1;
-					}else {
+					}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
 						/*t = lower32At(xm->flb,i+1);
 						k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 						if (k!=t-offset)
 						throwException2(io_exception,"fwrite didn't complete");*/
 						((ElementFragmentNs*)fob->lower32At(i2))->writeFragmentToFile(f,encoding);
 						offset = (flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff)<<1);
+					} else if ((k & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE_ENCLOSED
+						|| (k & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){
+							t = fob->upper32At(i2);   /* the length */
+							fwrite(b1,sizeof(UByte),2,f);
+							k=fwrite((void *)fob->lower32At(i2),sizeof(UByte),t,f);
+							fwrite(b2,sizeof(UByte),2,f);
+							if (k!=t)
+								throw IOException("fwrite didn't complete");  
+							offset = (flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff))<<1;
+					}else{
+						fwrite(b1,sizeof(UByte),2,f);
+						((ElementFragmentNs*)fob->lower32At(i2))->writeFragmentToFile(f,encoding);
+						fwrite(b2,sizeof(UByte),2,f);
+						offset = (flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff))<<1;
 					}
 			}
 		}  
@@ -1093,4 +1204,40 @@ void XMLModifier::reset(){
 			deleteHash->reset();
 		}
 	
+}
+
+void XMLModifier::insertBytesEnclosedAt(int offset, Long l){
+	if (insertHash->isUnique(offset)== false){
+		throw ModifyException("There can be only one insertion per offset value");
+	}
+	flb->append( offset | MASK_INSERT_SEGMENT_BYTE_ENCLOSED);
+	fob->append( l);
+}
+
+void XMLModifier::insertBytesEnclosedAt2(int offset, Long lenPlusPointer){
+	if (insertHash->isUnique(offset)==false){
+		throw ModifyException("There can be only one insertion per offset value");
+	}
+	flb->append( offset | MASK_INSERT_BYTE_ENCLOSED);
+	fob->append( lenPlusPointer);
+}
+
+void XMLModifier::insertBytesEnclosedAt( int offset, ElementFragmentNs* ef){
+	if (insertHash->isUnique(offset)==false){
+		throw ModifyException("There can be only one insertion per offset value");
+	}
+	flb->append( offset | MASK_INSERT_FRAGMENT_NS_ENCLOSED);
+	fob->append((Long) ef);
+}
+
+
+void XMLModifier::insertEndingTag(Long l){
+	int i = md->getCurrentIndex();
+	int offset = md->getTokenOffset(i);
+	int length = md->getTokenLength(i)&0xffff;
+	UByte *xml =  md->XMLDoc;
+	if (md->encoding < FORMAT_UTF_16BE)
+		insertBytesAt2((int)l, (((Long)length)<<32)|((int)xml+offset));//xml,offset,length);//(((Long)contentLen)<<32)|((int)ba+contentOffset)
+	else
+		insertBytesAt2((int)l, (((Long)length<<1)<<32)|((int)xml+(offset<<1)));//xml,
 }

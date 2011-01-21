@@ -34,6 +34,10 @@ namespace com_ximpleware {
 		const static Long MASK_INSERT_SEGMENT_STRING =0x6000000000000000LL;
 		const static Long MASK_INSERT_STRING =0x8000000000000000LL;
 		const static Long MASK_INSERT_FRAGMENT_NS  =0xa000000000000000LL;
+		const static Long MASK_INSERT_SEGMENT_BYTE_ENCLOSED = 0x6000000000000000LL;
+		const static Long MASK_INSERT_BYTE_ENCLOSED = 0x8000000000000000LL;
+		const static Long MASK_INSERT_FRAGMENT_NS_ENCLOSED = 0xe000000000000000LL;
+		
 		XMLModifier();
 		XMLModifier(VTDNav *vn);
 		~XMLModifier();
@@ -116,6 +120,8 @@ namespace com_ximpleware {
 		void insertBeforeElement(VTDNav *vn1, int contentOffset, int contentLen);
 		void insertAfterHead(VTDNav *vn1, int contentOffset, int contentLen);
 
+		
+
 		/*
 		void updateToken2(XMLModifier *xm, int index, UByte *newContentBytes, int len);
 		void insertAfterElement2(XMLModifier *xm, UByte *b, int len);
@@ -131,6 +137,7 @@ namespace com_ximpleware {
 		void reset();
 
 	private:
+		
 		typedef Long (XMLModifier::*getBytes)(UCSChar *s);
 		encoding_t encoding;
 		IntHash *deleteHash;
@@ -155,6 +162,13 @@ namespace com_ximpleware {
 		void insertBytesAt2( int offset, Long lenPlusPointer);
 		void insertBytesAt( int offset, ElementFragmentNs* ef);
 		UByte *doubleCapacity(UByte *b, size_t cap);
+
+		void insertBytesEnclosedAt(int offset, Long l);
+		void insertBytesEnclosedAt2(int offset, Long lenPlusPointer);
+		void insertBytesEnclosedAt( int offset, ElementFragmentNs* ef);
+
+		void insertEndingTag(Long l);
+		
 	};
 }
 
