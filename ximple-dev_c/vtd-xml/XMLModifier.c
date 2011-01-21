@@ -1446,9 +1446,9 @@ void insertEndingTag(XMLModifier *xm, Long l){
 	int length = getTokenLength(xm->md,i)&0xffff;
 	UByte *xml =  xm->md->XMLDoc;
 	if (xm->md->encoding < FORMAT_UTF_16BE)
-		insertBytesAt(xm,(int)l, (((Long)length)<<32)|((int)xml+offset));//xml,offset,length);//(((Long)contentLen)<<32)|((int)ba+contentOffset)
+		insertBytesAt2(xm,(int)l, (((Long)length)<<32)|((int)xml+offset));//xml,offset,length);//(((Long)contentLen)<<32)|((int)ba+contentOffset)
 	else
-		insertBytesAt(xm,(int)l, (((Long)length<<1)<<32)|((int)xml+(offset<<1)));//xml, offset<<1, length<<1);
+		insertBytesAt2(xm,(int)l, (((Long)length<<1)<<32)|((int)xml+(offset<<1)));//xml, offset<<1, length<<1);
 }
 void insertBytesEnclosedAt(XMLModifier *xm,int offset, Long lenPlusPointer){
 	if (isUniqueIntHash(xm->insertHash,offset)==FALSE){
