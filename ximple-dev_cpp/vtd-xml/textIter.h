@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,9 @@ namespace com_ximpleware{
 		int handleLevel0();
 		int handleLevel1();
 		int handleLevel2();
+		int _handleLevel2();
+		int handleLevel3();
+		int handleLevel4();
 		int handleDefault();
 
 	public:

@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,13 @@
 #ifndef INDEX_HANDLER_H
 #define INDEX_HANDLER_H
 
-//#include "customTypes.h"
+#include "customTypes.h"
 #include <stdio.h>
-#include "vtdGen.h"
+//#include "vtdGen.h"
 
 namespace com_ximpleware {
 	class VTDGen;
-        class FastLongBuffer;
+    class FastLongBuffer;
 	class FastIntBuffer;
 	class IndexHandler{
 	public:
@@ -39,7 +39,7 @@ namespace com_ximpleware {
 
 		/*writeIndex writes VTD+XML into a file
 		This function throws index_write_exception*/
-		static bool _writeIndex(Byte version, 
+		static bool _writeIndex_L3(Byte version, 
 			int encodingType, 
 			bool ns, 
 			bool byteOrder, 
@@ -54,11 +54,28 @@ namespace com_ximpleware {
 			FastLongBuffer *l2Buffer, 
 			FastIntBuffer *l3Buffer, 
 			FILE *f);
+		static bool _writeIndex_L5(Byte version, 
+			int encodingType, 
+			bool ns, 
+			bool byteOrder, 
+			int nestDepth, 
+			int LCLevel, 
+			int rootIndex, 
+			UByte* xmlDoc, 
+			int docOffset, 
+			int docLen, 
+			FastLongBuffer *vtdBuffer, 
+			FastLongBuffer *l1Buffer, 
+			FastLongBuffer *l2Buffer, 
+			FastLongBuffer *l3Buffer, 
+			FastLongBuffer *l4Buffer, 
+			FastIntBuffer *l5Buffer,
+			FILE *f);
 
 		/*writeSeparateIndex writes VTD index into a separate file from XML
 		notice that this function assumes XML document byte starts from the begining
 		This function throws index_write_exception*/
-		static bool _writeSeparateIndex(Byte version, 
+		static bool _writeSeparateIndex_L3(Byte version, 
 			int encodingType, 
 			bool ns, 
 			bool byteOrder, 
@@ -74,10 +91,28 @@ namespace com_ximpleware {
 			FastIntBuffer *l3Buffer, 
 			FILE *f);
 
+		static bool _writeSeparateIndex_L5(Byte version, 
+			int encodingType, 
+			bool ns, 
+			bool byteOrder, 
+			int nestDepth, 
+			int LCLevel, 
+			int rootIndex, 
+			//UByte* xmlDoc, 
+			int docOffset, 
+			int docLen, 
+			FastLongBuffer *vtdBuffer, 
+			FastLongBuffer *l1Buffer, 
+			FastLongBuffer *l2Buffer, 
+			FastLongBuffer *l3Buffer, 
+			FastLongBuffer *l4Buffer, 
+			FastIntBuffer *l5Buffer,
+			FILE *f);
+
 		/*readIndex loads VTD+XML into VTDGen*/
 		static bool _readIndex(FILE *f, VTDGen *vg);
 
-		static bool _readIndex2(UByte *ba, int len, VTDGen *vg);
+		static bool _readIndex(UByte *ba, int len, VTDGen *vg);
 
 		static bool _readSeparateIndex(FILE *xml, int XMLSize, FILE *vtdIndex, VTDGen *vg);
 	};
