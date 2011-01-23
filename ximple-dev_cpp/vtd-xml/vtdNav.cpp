@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1277,6 +1277,100 @@ br(br1) // buffer reuse flag
 								   //return vn;
 }
 
+VTDNav::VTDNav(int r, 
+							   encoding_t enc, 
+							   bool ns1, 
+							   int depth,
+							   UByte *x, 
+							   int xLen, 
+							   FastLongBuffer *vtd, 
+							   FastLongBuffer *l1,
+							   FastLongBuffer *l2, 
+							   //FastIntBuffer *l3, 
+							   int so, 
+							   int len,
+							   bool br1):
+
+rootIndex(r),
+nestingLevel(depth+1),
+//context (new int[nestingLevel]),
+atTerminal(false),
+l2upper(-1),
+l2lower(-1),
+l3upper(-1),
+l3lower(-1),
+l2index(-1),
+l3index(-1),
+l1index(-1),
+vtdBuffer(vtd),
+l1Buffer(l1),
+l2Buffer(l2),
+//l3Buffer(l3),
+XMLDoc(x),
+offsetMask((ns1)? MASK_TOKEN_OFFSET1:MASK_TOKEN_OFFSET2),
+LN(0),// record txt and attrbute for XPath eval purposes
+encoding(enc),
+ns(ns1),
+docOffset(so), // starting offset of the XML doc wrt XMLDoc
+docLen(len),   // size of XML document
+vtdSize(vtd->size),// # of entries in vtdBuffer equvalent 
+		// to calling size(FastLongBuffer *flb) defined in fastLongBuffer.h
+bufLen(xLen), // size of XMLDoc in bytes
+br(br1) // buffer reuse flag
+
+{
+								   //VTDNav* vn = NULL;
+								   int i;
+								   //exception e;
+
+								   if (l1 == NULL ||
+									   l2 == NULL ||
+									   vtd == NULL||
+									   x == NULL ||
+									   so<0 ||
+									   len < 0 ||
+									   xLen < 0 || // size of x
+									   r < 0 ||
+									   depth < 0 ||
+									   (enc <FORMAT_ASCII || 
+									   enc>FORMAT_UTF_16LE) 
+									   )
+								   {
+									   throw InvalidArgumentException(
+										   "Invalid argument when creating VTDGen failed ");
+								   }
+
+								   /*vn = (VTDNav *) malloc(sizeof(VTDNav));
+								   if (vn==NULL){
+								   throwException2(out_of_mem,							 
+								   "VTDNav allocation failed ");
+								   return NULL;
+								   }*/
+
+
+								   if (ns1 == true)
+									   offsetMask = MASK_TOKEN_OFFSET1;
+								   else 
+									   offsetMask = MASK_TOKEN_OFFSET2;
+
+
+
+								   //atTerminal = false;
+
+								   //context = (int *)malloc(nestingLevel*sizeof(int));
+								   context = new int[nestingLevel];
+								   /*if (context == NULL){
+								   throwException2(out_of_mem,							 
+								   "VTDNav allocation failed ");
+								   return NULL;
+								   }*/
+								   context[0] = 0;
+								   for (i=1;i<nestingLevel;i++){
+									   context[i] = -1;
+								   }
+								 
+}
+
 
 
 VTDNav::~VTDNav(){
@@ -1545,10 +1639,11 @@ Long VTDNav::getContentFragment(){
 		        return ((Long)(docLen-32))| 32;
 		}
 
+		Long l = getOffsetAfterHead();
+		if (l<0)
+			return -1LL;
+		so = (int)l;
 		
-		so = getOffsetAfterHead();
-		if (so==-1)
-			return -1L;
 		length = 0;
 		
 
@@ -3020,7 +3115,7 @@ bool VTDNav::toElement( navDir direction){
 * <br>
 * for ROOT and PARENT, element name will be ignored.
 */
-bool VTDNav::toElement2( navDir direction, UCSChar *en){
+bool VTDNav::toElement( navDir direction, UCSChar *en){
 	//int size;
 	int temp;
 	int d;
@@ -3044,7 +3139,7 @@ bool VTDNav::toElement2( navDir direction, UCSChar *en){
 					return false;
 				// check current element name
 				if (matchElement(en) == false) {
-					if (toElement2(NEXT_SIBLING, en) == true)
+					if (toElement(NEXT_SIBLING, en) == true)
 						return true;
 					else {
 						//toParentElement();
@@ -3060,7 +3155,7 @@ bool VTDNav::toElement2( navDir direction, UCSChar *en){
 				if (toElement(LAST_CHILD) == false)
 					return false;
 				if (matchElement(en) == false){
-					if (toElement2(PREV_SIBLING, en) == true)
+					if (toElement(PREV_SIBLING, en) == true)
 						return true;
 					else {
 						//context[context[0]] = 0xffffffff;
@@ -3650,7 +3745,7 @@ int VTDNav::compareTokens( int i1, VTDNav *vn2, int i2){
 
 /* Write VTD+XML into a FILE pointer */
 bool VTDNav::writeIndex(FILE *f){
-	return IndexHandler::_writeIndex(1, 
+	return IndexHandler::_writeIndex_L3(1, 
                 encoding, 
                 ns, 
                 true, 
@@ -3668,7 +3763,7 @@ bool VTDNav::writeIndex(FILE *f){
 }
 
 /* Write VTD+XML into a file of given name */
-bool VTDNav::writeIndex2(char *fileName){
+bool VTDNav::writeIndex(char *fileName){
 	FILE *f = NULL;
 	bool b = false;
 	f = fopen(fileName,"wb");
@@ -3681,15 +3776,41 @@ bool VTDNav::writeIndex2(char *fileName){
 	fclose(f);
 	return b;
 }
-
+bool VTDNav::writeSeparateIndex(char *fileName){
+	FILE *f = NULL;
+	bool b = false;
+	f = fopen(fileName,"wb");
+	
+	if (f==NULL){
+		throw InvalidArgumentException("fileName not valid");
+		//return false;
+	}
+	b = writeSeparateIndex(f);
+	fclose(f);
+	return b;
+}
 /* Write the VTDs and LCs into an file*/
-void VTDNav::writeSeparateIndex_VTDNav( char *vtdIndex){
+bool VTDNav::writeSeparateIndex( FILE *f){
 
-
+	return IndexHandler::_writeSeparateIndex_L3(1, 
+                encoding, 
+                ns, 
+                true, 
+				nestingLevel-1, 
+                3, 
+                rootIndex, 
+                //XMLDoc, 
+                docOffset, 
+                docLen, 
+				vtdBuffer, 
+                l1Buffer, 
+                l2Buffer, 
+                l3Buffer, 
+                f);
 }
 
 /* pre-calculate the VTD+XML index size without generating the actual index */
-Long VTDNav::getIndexSize2(){
+Long VTDNav::getIndexSize(){
 	int size;
 	if ( (docLen & 7)==0)
 		size = docLen;
@@ -3828,7 +3949,7 @@ int VTDNav::getRawStringLength( int index){
 	return len1;
 }
 /* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
-int VTDNav::getOffsetAfterHead(){
+Long VTDNav::getOffsetAfterHead(){
 	int i = getCurrentIndex(),j,offset;
 	//encoding_t enc;
 	if (getTokenType(i)!= TOKEN_STARTING_TAG){
@@ -3852,7 +3973,7 @@ int VTDNav::getOffsetAfterHead(){
 	}
 
 	if (getCharUnit(offset-1)=='/')
-		return -1;
+		return 0xffffffff00000000LL|(offset);
 	else
 		return  offset+1;
 }

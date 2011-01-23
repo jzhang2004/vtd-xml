@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -59,26 +59,81 @@ namespace com_ximpleware {
 		friend class NodeRecorder;
 		friend class XMLModifier;
 	private:
+		
+
+		Long getChar(int offset);
+		Long getCharResolved(int offset);
+		int getCharUnit( int offset);
+		Long handle_utf8( Long temp, int offset);
+		Long handle_utf16le( int offset);
+		Long handle_utf16be( int offset);
+		
+		
+		bool isWS(int ch);
+		bool matchRawTokenString1( int offset, int len, UCSChar *s);
+		bool matchRawTokenString2( Long l, UCSChar *s);
+		bool matchTokenString1( int offset, int len, UCSChar *s);
+		bool matchTokenString2( Long l, UCSChar *s);
+		inline int NSval( int i);
+		int parseInt2( int index, int radix);
+		Long parseLong2( int index, int radix);
+		
+		bool resolveNS( UCSChar *URL);
+		bool resolveNS2( UCSChar *URL, int offset, int len); //UCSChar *ln);
+		int lookupNS2( int offset, int len);
+		Long getChar4OtherEncoding( int offset);
+		int decode(int offset);
+		int compareRawTokenString2( int offset, int len, UCSChar *s);
+		int compareTokenString2( int offset, int len, UCSChar *s);
+		UCSChar *toStringUpperCase2( int os, int len);
+		UCSChar *toStringLowerCase2( int os, int len);
+		//UCSChar *toRawStringUpperCase( int index);
+		//UCSChar *toRawStringLowerCase( int index);
+		UCSChar *toRawStringUpperCase2( int os, int len);
+		UCSChar *toRawStringLowerCase2( int os, int len);
+		
+		virtual void resolveLC_l3();
+		void recoverNode_l1(int index);
+		void recoverNode_l2(int index);
+		void recoverNode_l3(int index);
+		int compareNormalizedTokenString2(int offset, int len, UCSChar *s);
+
+	protected:
+		VTDNav(int r, 
+			encoding_t enc, 
+			bool ns, 
+			int depth,
+			UByte *x, 
+			int xLen, 
+			FastLongBuffer *vtd, 
+			FastLongBuffer *l1,
+			FastLongBuffer *l2, 
+			FastIntBuffer *l3, 
+			int so, 
+			int len,
+			bool br);
+		VTDNav(int r, 
+			encoding_t enc, 
+			bool ns, 
+			int depth,
+			UByte *x, 
+			int xLen, 
+			FastLongBuffer *vtd, 
+			FastLongBuffer *l1,
+			FastLongBuffer *l2, 
+			//FastIntBuffer *l3, 
+			int so, 
+			int len,
+			bool br);
+		VTDNav(){};
+		bool shallowDepth;
+		int* context; // context object
+		void resolveLC_l1();
+		void resolveLC_l2();
+		bool isElementOrDocument( int index);
+		bool isElement(int index);
 		int rootIndex;
 		int nestingLevel;
-		int* context; // context object
-		bool atTerminal; // Add this model to be compatible with XPath data model, 
-		// true if attribute axis or text()
-		// location cache part
-		int l2upper;
-		int l2lower;
-		int l3upper;
-		int l3lower;
-		int l2index;
-		int l3index;
-		int l1index;
-
-		FastLongBuffer *vtdBuffer;
-		FastLongBuffer *l1Buffer;
-		FastLongBuffer *l2Buffer;
-		FastIntBuffer *l3Buffer;
-		UByte* XMLDoc;
-
 		Long offsetMask;
 		ContextBuffer *contextBuf;
 		ContextBuffer *contextBuf2;// this is reserved for XPath
@@ -100,60 +155,22 @@ namespace com_ximpleware {
 		bool br; // buffer reuse flag
 		bool master; // true if vn is obtained by calling getNav(), otherwise false
 		// useful for implementing dupliateNav() and cloneNav();
+				bool atTerminal; // Add this model to be compatible with XPath data model, 
+		// true if attribute axis or text()
+		// location cache part
+		int l2upper;
+		int l2lower;
+		int l3upper;
+		int l3lower;
+		int l2index;
+		int l3index;
+		int l1index;
 
-		Long getChar(int offset);
-		Long getCharResolved(int offset);
-		int getCharUnit( int offset);
-		Long handle_utf8( Long temp, int offset);
-		Long handle_utf16le( int offset);
-		Long handle_utf16be( int offset);
-		bool isElement(int index);
-		bool isElementOrDocument( int index);
-		bool isWS(int ch);
-		bool matchRawTokenString1( int offset, int len, UCSChar *s);
-		bool matchRawTokenString2( Long l, UCSChar *s);
-		bool matchTokenString1( int offset, int len, UCSChar *s);
-		bool matchTokenString2( Long l, UCSChar *s);
-		inline int NSval( int i);
-		int parseInt2( int index, int radix);
-		Long parseLong2( int index, int radix);
-		void resolveLC();
-		bool resolveNS( UCSChar *URL);
-		bool resolveNS2( UCSChar *URL, int offset, int len); //UCSChar *ln);
-		int lookupNS2( int offset, int len);
-		Long getChar4OtherEncoding( int offset);
-		int decode(int offset);
-		int compareRawTokenString2( int offset, int len, UCSChar *s);
-		int compareTokenString2( int offset, int len, UCSChar *s);
-		UCSChar *toStringUpperCase2( int os, int len);
-		UCSChar *toStringLowerCase2( int os, int len);
-		//UCSChar *toRawStringUpperCase( int index);
-		//UCSChar *toRawStringLowerCase( int index);
-		UCSChar *toRawStringUpperCase2( int os, int len);
-		UCSChar *toRawStringLowerCase2( int os, int len);
-		void resolveLC_l1();
-		void resolveLC_l2();
-		void resolveLC_l3();
-		void recoverNode_l1(int index);
-		void recoverNode_l2(int index);
-		void recoverNode_l3(int index);
-		int compareNormalizedTokenString2(int offset, int len, UCSChar *s);
-
-	protected:
-		VTDNav(int r, 
-			encoding_t enc, 
-			bool ns, 
-			int depth,
-			UByte *x, 
-			int xLen, 
-			FastLongBuffer *vtd, 
-			FastLongBuffer *l1,
-			FastLongBuffer *l2, 
-			FastIntBuffer *l3, 
-			int so, 
-			int len,
-			bool br);
-
+		FastLongBuffer *vtdBuffer;
+		FastLongBuffer *l1Buffer;
+		FastLongBuffer *l2Buffer;
+		FastIntBuffer *l3Buffer;
+		UByte* XMLDoc;
 	public:
 		const static Long MASK_TOKEN_FULL_LEN=0x000fffff00000000LL;
 		const static Long MASK_TOKEN_PRE_LEN=0x000ff80000000000LL;
@@ -209,6 +226,8 @@ namespace com_ximpleware {
 		
 		ElementFragmentNs *getElementFragmentNs();
 		Long getSiblingElementFragments(int i);
+
+		virtual void resolveLC();
 		/**
 		* Get the encoding of the XML document.
 		* <pre>   0  ASCII       </pre>
@@ -269,26 +288,26 @@ namespace com_ximpleware {
 
 		//This method is similar to getElementByName in DOM except it doesn't
 		//return the nodeset, instead it iterates over those nodes.
-		bool iterate(int dp, UCSChar *en, bool special);
+		virtual bool iterate(int dp, UCSChar *en, bool special);
 
 		//This method is similar to getElementByName in DOM except it doesn't
 		//return the nodeset, instead it iterates over those nodes .
 		//When URL is "*" it will match any namespace
 		//if ns is false, return false immediately
-		bool iterateNS(int dp, UCSChar *URL, UCSChar *ln);
+		virtual bool iterateNS(int dp, UCSChar *URL, UCSChar *ln);
 
 		// This function is called by selectElement_P in autoPilot
-		bool iterate_preceding(UCSChar *en, int* a, bool special);
+		virtual bool iterate_preceding(UCSChar *en, int* a, bool special);
 
 		// This function is called by selectElementNS_P in autoPilot
-		bool iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a);
+		virtual bool iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a);
 
 		// This function is called by selectElement_F in autoPilot
-		bool iterate_following(UCSChar *en, bool special);
+		virtual bool iterate_following(UCSChar *en, bool special);
 
 
 		// This function is called by selectElementNS_F in autoPilot
-		bool iterate_followingNS( UCSChar *URL, UCSChar *ln);
+		virtual bool iterate_followingNS( UCSChar *URL, UCSChar *ln);
 
 
 		//Test if the current element matches the given name.
@@ -323,13 +342,13 @@ namespace com_ximpleware {
 
 		//Load the context info from ContextBuffer.
 		//Info saved including LC and current state of the context 
-		bool pop();
-		bool pop2();
+		virtual bool pop();
+		virtual bool pop2();
 		//Store the context info into the ContextBuffer.
 		//Info saved including LC and current state of the context 
-		bool push();
-		bool push2();
-		void sampleState( FastIntBuffer *fib);
+		virtual bool push();
+		virtual bool push2();
+		virtual void sampleState( FastIntBuffer *fib);
 
 		// A generic navigation method.
 		// Move the current to the element according to the direction constants
@@ -343,7 +362,7 @@ namespace com_ximpleware {
 		* <pre>		PREV_SIBLING    5  </pre>
 		* <br>
 		*/
-		bool toElement( navDir direction);
+		virtual bool toElement( navDir direction);
 
 		/**
 		* A generic navigation method.
@@ -361,7 +380,7 @@ namespace com_ximpleware {
 		* <br>
 		* for ROOT and PARENT, element name will be ignored.
 		*/
-		bool toElement2( navDir direction, UCSChar *en);
+		virtual bool toElement( navDir direction, UCSChar *en);
 		/*	
 		* A generic navigation function with namespace support.
 		* Move the current to the element according to the direction constants and the prefix and local names
@@ -380,7 +399,7 @@ namespace com_ximpleware {
 		* for ROOT and PARENT, element name will be ignored.
 		* If not ns enabled, return false immediately with no position change.
 		*/
-		bool toElementNS( navDir direction, UCSChar *URL, UCSChar *ln);
+		virtual bool toElementNS( navDir direction, UCSChar *URL, UCSChar *ln);
 
 		//This method normalizes a token into a string in a way that resembles DOM.
 		//The leading and trailing white space characters will be stripped.
@@ -452,16 +471,16 @@ namespace com_ximpleware {
 		int compareTokens( int i1, VTDNav *vn2, int i2);
 
 		/* Write VTD+XML into a FILE pointer */
-		bool writeIndex(FILE *f);
+		virtual bool writeIndex(FILE *f);
 
 		/* Write VTD+XML into a file of given name */
-		bool writeIndex2(char *fileName);
+		virtual bool writeIndex(char *fileName);
 
 		/* Write the VTDs and LCs into an file*/
-		void writeSeparateIndex_VTDNav( char *vtdIndex);
-
+		virtual bool writeSeparateIndex( char *vtdIndexFileName);
+		virtual bool writeSeparateIndex( FILE *f);
 		/* pre-calculate the VTD+XML index size without generating the actual index */
-		Long getIndexSize2();
+		Long getIndexSize();
 
 		/* dump XML text into a given file name */
 		void dumpXML( char *fileName);
@@ -476,7 +495,7 @@ namespace com_ximpleware {
 		/*Get the string length as if the token is converted into a UCS string (entity not resolved) */
 		int getRawStringLength( int index);
 		/* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
-		int getOffsetAfterHead();
+		Long getOffsetAfterHead();
 
 		/* Test the start of token content at index i matches the content 
 		of s, notice that this is to save the string allocation cost of
@@ -523,7 +542,7 @@ namespace com_ximpleware {
 		* node position, the index can only be of node type element,
 		* document, attribute name, attribute value or character data,
 		* or CDATA  */
-		void recoverNode( int index);
+		virtual void recoverNode( int index);
 
 	};
 
