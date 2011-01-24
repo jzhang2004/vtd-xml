@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,13 @@ namespace com_ximpleware{
 		* node in the same VTDnav instance
 		*/
 		bool deepEqual(BookMark *bm2);
+
+		 /**
+		  * Compare the node positions of two bookMarks
+		  * @param bm1
+		  * @return
+		  */
+		bool compare(BookMark *bm2);
 	};
 }
 
