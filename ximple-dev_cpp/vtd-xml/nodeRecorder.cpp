@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #include "nodeRecorder.h"
+#include "vtdNav_L5.h"
 
 using namespace com_ximpleware;
 //NodeRecorder::BUF_SZ_EXPO = 7;
@@ -48,7 +49,7 @@ NodeRecorder::~NodeRecorder(){
 
 void NodeRecorder::record(){
             //add the context and
-            int i,k;
+            int i;
             switch (vn->context[0])
             {
                 case -1:
@@ -149,36 +150,132 @@ void NodeRecorder::record(){
 
                     break;
                 default:
-                    if (vn->atTerminal == false)
-                    {
-                        i = vn->context[0];
-                        fib->append(i);
-                        count += i + 8;
-                    }
-                    else
-                    {
-                        i = vn->context[0];
-                        fib->append((int)(i | 0x80000000));
-                        count += i + 9;
-                    }
-                    for (k = 1; k <= i; k++)
-                    {
-                        fib->append(vn->context[k]);
-                    }
-                    fib->append(vn->l1index);
-                    fib->append(vn->l2lower);
-                    fib->append(vn->l2upper);
-                    fib->append(vn->l2index);
-                    fib->append(vn->l3lower);
-                    fib->append(vn->l3upper);
-                    fib->append(vn->l3index);
-                    size++;
-                    position++;
+			if (vn->shallowDepth) {
+				if (vn->atTerminal == false) {
+					i = vn->context[0];
+					fib->append(i);
+					count += i + 8;
+				} else {
+					i = vn->context[0];
+					fib->append(i | 0x80000000);
+					count += i + 9;
+				}
+				for (int k = 1; k <= i; k++) {
+					fib->append(vn->context[k]);
+				}
+				fib->append(vn->l1index);
+				fib->append(vn->l2lower);
+				fib->append(vn->l2upper);
+				fib->append(vn->l2index);
+				fib->append(vn->l3lower);
+				fib->append(vn->l3upper);
+				fib->append(vn->l3index);
+				size++;
+				position++;
 
-                    if (vn->atTerminal)
-                        fib->append(vn->LN);
+				if (vn->atTerminal)
+					fib->append(vn->LN);
+			}else{
+				VTDNav_L5 *vnl = (VTDNav_L5 *)vn;
+				switch (vn->context[0]) {
+			       case 4:
+			    	   
+			        	if (vn->atTerminal == false) {
+			                fib->append(4);
+			                count += 15;
+			            } else {
+			                fib->append(0x80000004);
+			                count += 16;
+			            }
+			            fib->append(vn->context[1]);
+			            fib->append(vn->context[2]);
+			            fib->append(vn->context[3]);
+			            fib->append(vn->context[4]);
+			            fib->append(vn->l1index);
+			            fib->append(vn->l2lower);
+			            fib->append(vn->l2upper);
+			            fib->append(vn->l2index);
+			            fib->append(vn->l3lower);
+			            fib->append(vn->l3upper);
+			            fib->append(vn->l3index);
+			            fib->append(vnl->l4lower);
+			            fib->append(vnl->l4upper);
+			            fib->append(vnl->l4index);
+			            size++;
+			            position++;
+
+			            if (vn->atTerminal == true)
+			                fib->append(vn->LN);
+
+			            break;
+			        case 5:
+			            if (vn->atTerminal == false) {
+			                fib->append(5);
+			                count += 19;
+			            } else {
+			                fib->append(0x80000005);
+			                count += 20;
+			            }
+			            fib->append(vn->context[1]);
+			            fib->append(vn->context[2]);
+			            fib->append(vn->context[3]);
+			            fib->append(vn->context[4]);
+			            fib->append(vn->context[5]);
+			            fib->append(vn->l1index);
+			            fib->append(vn->l2lower);
+			            fib->append(vn->l2upper);
+			            fib->append(vn->l2index);
+			            fib->append(vn->l3lower);
+			            fib->append(vn->l3upper);
+			            fib->append(vn->l3index);
+			            fib->append(vnl->l4lower);
+			            fib->append(vnl->l4upper);
+			            fib->append(vnl->l4index);
+			            fib->append(vnl->l5lower);
+			            fib->append(vnl->l5upper);
+			            fib->append(vnl->l5index);
+			            size++;
+			            position++;
+
+			            if (vn->atTerminal == true)
+			                fib->append(vn->LN);
+
+			            break;   
+			        default:
+			            if (vn->atTerminal == false) {
+			                i = vn->context[0];
+			                fib->append(i);
+			                count += i + 14;
+			            } else {
+			                i = vn->context[0];
+			                fib->append(i | 0x80000000);
+			                count += i + 15;
+			            }
+			            for (int k = 1; k <= i; k++) {
+			                fib->append(vn->context[k]);
+			            }
+			            fib->append(vn->l1index);
+			            fib->append(vn->l2lower);
+			            fib->append(vn->l2upper);
+			            fib->append(vn->l2index);
+			            fib->append(vn->l3lower);
+			            fib->append(vn->l3upper);
+			            fib->append(vn->l3index);
+			            fib->append(vnl->l4lower);
+			            fib->append(vnl->l4upper);
+			            fib->append(vnl->l4index);
+			            fib->append(vnl->l5lower);
+			            fib->append(vnl->l5upper);
+			            fib->append(vnl->l5index);
+			            size++;
+			            position++;
+
+			            if (vn->atTerminal)
+			                fib->append(vn->LN);
+			        }
 
                     break;
+					}
             }
 }
 
@@ -294,33 +391,121 @@ int NodeRecorder::iterate(){
 			break;
 
 		default:
-			vn->context[0] = i;
-			for (j = 1; j < i; j++)
-			{
-				vn->context[j] = fib->intAt(count + j);
-			}
-			vn->l1index = fib->intAt(count + i);
-			vn->l2lower = fib->intAt(count + i + 1);
-			vn->l2upper = fib->intAt(count + i + 2);
-			vn->l2index = fib->intAt(count + i + 3);
-			vn->l3lower = fib->intAt(count + i + 4);
-			vn->l3upper = fib->intAt(count + i + 5);
-			vn->l3index = fib->intAt(count + i + 6);
-			if (b == false)
-			{
-				vn->atTerminal = true;
-				vn->LN = fib->intAt(count + 11);
-				count += i + 8;
-			}
-			else
-			{
-				vn->atTerminal = false;
-				count += i + 7;
-			}
-			break;
+				if (vn->shallowDepth) {
+					vn->context[0] = i;
+					for (j = 1; j < i; j++) {
+						vn->context[j] = fib->intAt(count + j);
+					}
+					vn->l1index = fib->intAt(count + i);
+					vn->l2lower = fib->intAt(count + i + 1);
+					vn->l2upper = fib->intAt(count + i + 2);
+					vn->l2index = fib->intAt(count + i + 3);
+					vn->l3lower = fib->intAt(count + i + 4);
+					vn->l3upper = fib->intAt(count + i + 5);
+					vn->l3index = fib->intAt(count + i + 6);
+					if (b == false) {
+						vn->atTerminal = true;
+						vn->LN = fib->intAt(count + 11);
+						count += i + 8;
+					} else {
+						vn->atTerminal = false;
+						count += i + 7;
+					}
+					break;
+				} else {
+					VTDNav_L5 *vnl = (VTDNav_L5 *) vn;
+					switch (i) {
+					case 4:
+						vn->context[0] = 4;
+						vn->context[1] = fib->intAt(count + 1);
+						vn->context[2] = fib->intAt(count + 2);
+						vn->context[3] = fib->intAt(count + 3);
+						vn->context[4] = fib->intAt(count + 4);
+						vn->l1index = fib->intAt(count + 5);
+						vn->l2lower = fib->intAt(count + 6);
+						vn->l2upper = fib->intAt(count + 7);
+						vn->l2index = fib->intAt(count + 8);
+						vn->l3lower = fib->intAt(count + 9);
+						vn->l3upper = fib->intAt(count + 10);
+						vn->l3index = fib->intAt(count + 11);
+						vnl->l4lower = fib->intAt(count + 12);
+						vnl->l4upper = fib->intAt(count + 13);
+						vnl->l4index = fib->intAt(count + 14);
+						if (b == false) {
+							vn->atTerminal = true;
+							vn->LN = fib->intAt(count + 15);
+							count += 16;
+						} else {
+							vn->atTerminal = false;
+							count += 15;
+						}
+
+						break;
+
+					case 5:
+						vn->context[0] = 5;
+						vn->context[1] = fib->intAt(count + 1);
+						vn->context[2] = fib->intAt(count + 2);
+						vn->context[3] = fib->intAt(count + 3);
+						vn->context[4] = fib->intAt(count + 4);
+						vn->context[5] = fib->intAt(count + 5);
+						vn->l1index = fib->intAt(count + 6);
+						vn->l2lower = fib->intAt(count + 7);
+						vn->l2upper = fib->intAt(count + 8);
+						vn->l2index = fib->intAt(count + 9);
+						vn->l3lower = fib->intAt(count + 10);
+						vn->l3upper = fib->intAt(count + 11);
+						vn->l3index = fib->intAt(count + 12);
+						vnl->l4lower = fib->intAt(count + 13);
+						vnl->l4upper = fib->intAt(count + 14);
+						vnl->l4index = fib->intAt(count + 15);
+						vnl->l5lower = fib->intAt(count + 16);
+						vnl->l5upper = fib->intAt(count + 17);
+						vnl->l5index = fib->intAt(count + 18);
+						if (b == false) {
+							vn->atTerminal = true;
+							vn->LN = fib->intAt(count + 19);
+							count += 20;
+						} else {
+							vn->atTerminal = false;
+							count += 19;
+						}
+
+						break;
+
+					default:
+						vn->context[0] = i;
+						for (j = 1; j < i; j++) {
+							vn->context[j] = fib->intAt(count + j);
+						}
+						vn->l1index = fib->intAt(count + i);
+						vn->l2lower = fib->intAt(count + i + 1);
+						vn->l2upper = fib->intAt(count + i + 2);
+						vn->l2index = fib->intAt(count + i + 3);
+						vn->l3lower = fib->intAt(count + i + 4);
+						vn->l3upper = fib->intAt(count + i + 5);
+						vn->l3index = fib->intAt(count + i + 6);
+						vnl->l4lower = fib->intAt(count + i + 7);
+						vnl->l4upper = fib->intAt(count + i + 8);
+						vnl->l4index = fib->intAt(count + i + 9);
+						vnl->l5lower = fib->intAt(count + i + 10);
+						vnl->l5upper = fib->intAt(count + i + 11);
+						vnl->l5index = fib->intAt(count + i + 12);
+						if (b == false) {
+							vn->atTerminal = true;
+							vn->LN = fib->intAt(count + i + 13);
+							count += i + 14;
+						} else {
+							vn->atTerminal = false;
+							count += i + 13;
+						}
+						break;
+					}
+				}
 		}
 		position++;
 		return vn->getCurrentIndex();
+		
 	}
 	return -1;
 }
