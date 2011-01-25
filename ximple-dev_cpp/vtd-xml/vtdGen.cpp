@@ -3149,7 +3149,7 @@ void VTDGen::parse(bool ns1){
 	}
 }
 
-bool VTDGen::parseFile(bool ns, char* fileName){
+bool VTDGen::parseFile(bool ns, const char* fileName){
 	FILE *f = NULL;
 	//exception e;
 	int status,len;
@@ -3450,6 +3450,7 @@ VTDNav* VTDGen::loadIndex(UByte* ba,int len){
 }
 
 bool VTDGen::writeIndex(FILE *f){
+	if (shallowDepth)
 	return IndexHandler::_writeIndex_L3(1, 
                 encoding, 
                 ns, 
@@ -3465,8 +3466,26 @@ bool VTDGen::writeIndex(FILE *f){
                 l2Buffer, 
                 l3Buffer, 
                 f);
+	else
+		return IndexHandler::_writeIndex_L5(1, 
+                encoding, 
+                ns, 
+                true, 
+                VTDDepth, 
+                5, 
+                rootIndex, 
+                XMLDoc, 
+                docOffset, 
+                docLen, 
+                VTDBuffer, 
+                l1Buffer, 
+                l2Buffer, 
+                _l3Buffer,
+				_l4Buffer,
+				_l5Buffer,
+                f);
 } 
-bool VTDGen::writeIndex(char *fileName){
+bool VTDGen::writeIndex(const char *fileName){
 	FILE *f = NULL;
 	bool b = false;
 	f = fopen(fileName,"wb");
@@ -4480,5 +4499,22 @@ void VTDGen::selectLcDepth(int i){
 		throw ParseException("LcDepth can only take the value of 3 or 5");
 	if (i==5)
 		shallowDepth = false;
+}
+
+VTDNav* VTDGen::loadIndex(const char* fileName){
+	FILE *f = NULL;
+	//exception e;
+	//int status,len;
+	UByte *ba=NULL;
+	//struct stat buffer;
+	f = fopen(fileName,"rb");
+	if (f==NULL){
+		//throwException2(invalid_argument,"fileName not valid");
+		return false;
+	}
+	VTDNav *vn=loadIndex(f);
+	fclose(f);
+	return vn;
+	
 }
 

@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,13 +25,15 @@
 #include "fastLongBuffer.h"
 #include "fastIntBuffer.h"
 #include "vtdNav.h"
+#include "vtdNav_L5.h"
 
 #include "indexHandler.h"
 namespace com_ximpleware {
 	//class VTDNav;
+	class FastLongBuffer;
 	class VTDGen {	
 		friend class IndexHandler;
-
+		friend class FastLongBuffer;
 	private:
 		typedef enum {
 			STATE_LT_SEEN,
@@ -59,6 +61,7 @@ namespace com_ximpleware {
 		int last_l1_index;
 		int last_l2_index;
 		int last_l3_index;
+		int last_l4_index;
 
 		int increment;
 		bool BOM_detected;
@@ -76,12 +79,19 @@ namespace com_ximpleware {
 		UByte* XMLDoc; // byte buffer containing
 		int docLen; // length of XML (can be a segment of XMLDoc)
 		int bufLen; // length of XMLDoc (possibly bigger than docLen)
+		short LcDepth;
+		bool singleByteEncoding;
+		bool shallowDepth;
 
 		// buffers
 		FastLongBuffer *VTDBuffer;
 		FastLongBuffer *l1Buffer;
 		FastLongBuffer *l2Buffer;
 		FastIntBuffer *l3Buffer;
+		FastLongBuffer *_l3Buffer;	
+		FastLongBuffer *_l4Buffer;
+		FastIntBuffer *_l5Buffer;
+
 		FastIntBuffer *nsBuffer1;
 		FastLongBuffer *nsBuffer2;
 		FastLongBuffer *nsBuffer3;
@@ -165,15 +175,14 @@ namespace com_ximpleware {
 			throw ParseException("Parse exception in parse()\n"\
 				"XML decl error: Invalid Encoding");
 		}
-
+		void _writeVTD(int offset, int length, tokenType token_type, int depth);
+		void writeVTDText(int offset, int length, tokenType token_type, int depth);
+		void writeVTD_L5(int offset, int length, tokenType token_type, int depth);
+		
 
 	public:
-
-
 		/*writeIndex writes VTD+XML into a file
 		This function throws index_write_exception*/
-
-
 		const static int ATTR_NAME_ARRAY_SIZE= 16;
 		const static int TAG_STACK_SIZE= 256;
 		const static int MAX_DEPTH= 254;
@@ -196,7 +205,7 @@ namespace com_ximpleware {
 		void parse(bool ns);
 		// Generating VTD tokens and Location cache info for an XML file
 
-		bool parseFile(bool ns, char* fileName);
+		bool parseFile(bool ns, const char* fileName);
 		// Set the XMLDoc container.
 		void setDoc(UByte *byteArray, int arrayLen);
 		// Set the XMLDoc container.Also set the offset and len of the document 
@@ -227,12 +236,15 @@ namespace com_ximpleware {
 		VTDNav* loadIndex(FILE *f); 
 		/* load VTD+XML from a byte array */
 		VTDNav* loadIndex(UByte* ba,int len);
+		/* load VTD+XML from a filename */
+		VTDNav* loadIndex(const char* fileName);
+
 		/* Write VTD+XML into a FILE pointer */
 
 		bool writeIndex(FILE *f); 
 		/* Write VTD+XML into a file of given name, this file will be created on hard disk */
 
-		bool writeIndex(char *fileName);
+		bool writeIndex(const char *fileName);
 		/* Pre-calculate the integrated VTD+XML index size without generating the actual index */
 
 		Long getIndexSize();
@@ -245,6 +257,7 @@ namespace com_ximpleware {
 		/* configure the VTDGen to enable or disable (disabled by default) white space nodes */
 
 		void enableIgnoredWhiteSpace(bool b);
+		void selectLcDepth(int i);
 
 	};
 
@@ -362,6 +375,8 @@ namespace com_ximpleware {
 		}
 	}
 
-}
+}	
+
+
 
 #endif
