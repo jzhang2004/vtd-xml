@@ -70,21 +70,21 @@ namespace com_ximpleware {
 		
 		
 		bool isWS(int ch);
-		bool matchRawTokenString1( int offset, int len, UCSChar *s);
-		bool matchRawTokenString2( Long l, UCSChar *s);
-		bool matchTokenString1( int offset, int len, UCSChar *s);
-		bool matchTokenString2( Long l, UCSChar *s);
+		bool matchRawTokenString1( int offset, int len, const UCSChar *s);
+		bool matchRawTokenString2( Long l, const UCSChar *s);
+		bool matchTokenString1( int offset, int len, const UCSChar *s);
+		bool matchTokenString2( Long l, const UCSChar *s);
 		inline int NSval( int i);
 		int parseInt2( int index, int radix);
 		Long parseLong2( int index, int radix);
 		
-		bool resolveNS( UCSChar *URL);
-		bool resolveNS2( UCSChar *URL, int offset, int len); //UCSChar *ln);
+		bool resolveNS( const UCSChar *URL);
+		bool resolveNS2( const UCSChar *URL, int offset, int len); //UCSChar *ln);
 		int lookupNS2( int offset, int len);
 		Long getChar4OtherEncoding( int offset);
 		int decode(int offset);
-		int compareRawTokenString2( int offset, int len, UCSChar *s);
-		int compareTokenString2( int offset, int len, UCSChar *s);
+		int compareRawTokenString2( int offset, int len, const UCSChar *s);
+		int compareTokenString2( int offset, int len, const UCSChar *s);
 		UCSChar *toStringUpperCase2( int os, int len);
 		UCSChar *toStringLowerCase2( int os, int len);
 		//UCSChar *toRawStringUpperCase( int index);
@@ -96,7 +96,7 @@ namespace com_ximpleware {
 		void recoverNode_l1(int index);
 		void recoverNode_l2(int index);
 		void recoverNode_l3(int index);
-		int compareNormalizedTokenString2(int offset, int len, UCSChar *s);
+		int compareNormalizedTokenString2(int offset, int len, const UCSChar *s);
 
 	protected:
 		VTDNav(int r, 
@@ -125,7 +125,7 @@ namespace com_ximpleware {
 			int so, 
 			int len,
 			bool br);
-		VTDNav(){};
+		//VTDNav(){};
 		bool shallowDepth;
 		int* context; // context object
 		void resolveLC_l1();
@@ -182,24 +182,24 @@ namespace com_ximpleware {
 		const static Long MASK_TOKEN_DEPTH=0x0ff0000000000000LL;
 		const static Long MASK_TOKEN_NS_MARK=0x00000000c0000000LL;
 		
-		const static int R=0;
-		const static int P=1;
-		const static int FC=2;
-		const static int LC=3;
-		const static int NS=4;
-		const static int PS=5;
+		const static navDir R=ROOT;
+		const static navDir P=PARENT;
+		const static navDir FC=FIRST_CHILD;
+		const static navDir LC=LAST_CHILD;
+		const static navDir NS=NEXT_SIBLING;
+		const static navDir PS=PREV_SIBLING;
 
 		//
-		bool matchNormalizedTokenString2(int index, UCSChar *s);
+		bool matchNormalizedTokenString2(int index, const UCSChar *s);
 		virtual ~VTDNav();
 		//Return the attribute count of the element at the cursor position.
 		int getAttrCount();
 		//Get the token index of the attribute value given an attribute name.     
-		int getAttrVal(UCSChar *attrName);
+		int getAttrVal(const UCSChar *attrName);
 		//Get the token index of the attribute value of given URL and local name.
 		//If ns is not enabled, the lookup will return -1, indicating a no-found.
 		//Also namespace nodes are invisible using this method.
-		int getAttrValNS(UCSChar* URL, UCSChar *localName);
+		int getAttrValNS(const UCSChar* URL, const UCSChar *localName);
 		//Get the depth (>=0) of the current element.
 		int getCurrentDepth();
 
@@ -280,53 +280,53 @@ namespace com_ximpleware {
 		}*/
 
 		//Test whether current element has an attribute with the matching name.
-		bool hasAttr(UCSChar *attrName);
+		bool hasAttr(const UCSChar *attrName);
 
 		//Test whether the current element has an attribute with 
 		//matching namespace URL and localname.
-		bool hasAttrNS(UCSChar *URL, UCSChar *localName);
+		bool hasAttrNS(const UCSChar *URL, const UCSChar *localName);
 
 		//This method is similar to getElementByName in DOM except it doesn't
 		//return the nodeset, instead it iterates over those nodes.
-		virtual bool iterate(int dp, UCSChar *en, bool special);
+		virtual bool iterate(int dp, const UCSChar *en, bool special);
 
 		//This method is similar to getElementByName in DOM except it doesn't
 		//return the nodeset, instead it iterates over those nodes .
 		//When URL is "*" it will match any namespace
 		//if ns is false, return false immediately
-		virtual bool iterateNS(int dp, UCSChar *URL, UCSChar *ln);
+		virtual bool iterateNS(int dp, const UCSChar *URL, const UCSChar *ln);
 
 		// This function is called by selectElement_P in autoPilot
-		virtual bool iterate_preceding(UCSChar *en, int* a, bool special);
+		virtual bool iterate_preceding(const UCSChar *en, int* a, bool special);
 
 		// This function is called by selectElementNS_P in autoPilot
-		virtual bool iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a);
+		virtual bool iterate_precedingNS(const UCSChar *URL, const UCSChar *ln, int* a);
 
 		// This function is called by selectElement_F in autoPilot
-		virtual bool iterate_following(UCSChar *en, bool special);
+		virtual bool iterate_following(const UCSChar *en, bool special);
 
 
 		// This function is called by selectElementNS_F in autoPilot
-		virtual bool iterate_followingNS( UCSChar *URL, UCSChar *ln);
+		virtual bool iterate_followingNS( const UCSChar *URL, const UCSChar *ln);
 
 
 		//Test if the current element matches the given name.
-		bool matchElement( UCSChar *en);
+		bool matchElement( const UCSChar *en);
 
 		//Test whether the current element matches the given namespace URL and localname.
 		//URL, when set to "*", matches any namespace (including null), when set to null, defines a "always-no-match"
 		//ln is the localname that, when set to *, matches any localname
-		bool matchElementNS( UCSChar *URL, UCSChar *ln);
+		bool matchElementNS( const UCSChar *URL,const UCSChar *ln);
 
 		//Match the string against the token at the given index value. When a token
 		//is an attribute name or starting tag, qualified name is what gets matched against
-		bool matchRawTokenString( int index, UCSChar *s);
+		bool matchRawTokenString( int index, const UCSChar *s);
 		//This method matches two VTD tokens of 2 VTDNavs
 		bool matchTokens( int i1, VTDNav *vn2, int i2);
 
 		//Match the string against the token at the given index value. When a token
 		//is an attribute name or starting tag, qualified name is what gets matched against
-		bool matchTokenString( int index, UCSChar *s);
+		bool matchTokenString( int index, const UCSChar *s);
 
 		//Convert a vtd token into a double.
 		double parseDouble( int index);
@@ -786,7 +786,7 @@ namespace com_ximpleware {
 	inline bool VTDNav::isWS(int ch){
 		return (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
 	}
-	inline bool VTDNav::matchRawTokenString1( int offset, int len, UCSChar *s){
+	inline bool VTDNav::matchRawTokenString1( int offset, int len,const UCSChar *s){
 		return  compareRawTokenString2(offset,len,s)==0;
 	}
 };

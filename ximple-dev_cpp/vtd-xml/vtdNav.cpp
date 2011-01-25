@@ -197,7 +197,7 @@ Long VTDNav::handle_utf16be( int offset){
 	}
 }
 
-bool VTDNav::matchRawTokenString2( Long l, UCSChar *s){
+bool VTDNav::matchRawTokenString2( Long l, const UCSChar *s){
 	int len;
 	int offset;
 	/*if (s == NULL){
@@ -210,7 +210,7 @@ bool VTDNav::matchRawTokenString2( Long l, UCSChar *s){
 	offset = (int) l;
 	return compareRawTokenString2( offset, len, s)==0;
 }
-bool VTDNav::matchTokenString1( int offset, int len, UCSChar *s){
+bool VTDNav::matchTokenString1( int offset, int len, const UCSChar *s){
 	int endOffset;
 	int l;
 	Long l1;
@@ -259,7 +259,7 @@ bool VTDNav::matchTokenString1( int offset, int len, UCSChar *s){
 			return false;
 	} //return true;
 }
-bool VTDNav::matchTokenString2( Long l, UCSChar *s){
+bool VTDNav::matchTokenString2( Long l, const UCSChar *s){
 	int len,offset;
 	if (s == NULL){
 		throw InvalidArgumentException(
@@ -451,7 +451,7 @@ void VTDNav::resolveLC(){
 		return;
 	resolveLC_l3();
 }
-bool VTDNav::resolveNS( UCSChar *URL){
+bool VTDNav::resolveNS( const UCSChar *URL){
 	int i, offset, preLen;
 
 	if (context[0]==-1)
@@ -479,7 +479,7 @@ bool VTDNav::resolveNS( UCSChar *URL){
 								 }
 	}
 }
-bool VTDNav::resolveNS2( UCSChar *URL, int offset, int len){
+bool VTDNav::resolveNS2( const UCSChar *URL, int offset, int len){
 	int i;
 	i = lookupNS2( offset, len);
 	switch(i){
@@ -689,7 +689,7 @@ int VTDNav::decode(int offset){
 		return windows_1258_decode((int)ch);
 	}
 }
-int VTDNav::compareRawTokenString2( int offset, int len, UCSChar *s){
+int VTDNav::compareRawTokenString2( int offset, int len, const UCSChar *s){
 	int endOffset;
 	int l,i;
 	Long l1;
@@ -714,7 +714,7 @@ int VTDNav::compareRawTokenString2( int offset, int len, UCSChar *s){
 		return -1;
 	return 0;
 }
-int VTDNav::compareTokenString2( int offset, int len, UCSChar *s){
+int VTDNav::compareTokenString2( int offset, int len, const UCSChar *s){
 	int endOffset;
 	int l,i;
 	Long l1;
@@ -1410,7 +1410,7 @@ int VTDNav::getAttrCount(){
 	return count;
 }
 //Get the token index of the attribute value given an attribute name.     
-int VTDNav::getAttrVal(UCSChar *an){
+int VTDNav::getAttrVal(const UCSChar *an){
 	//int size = vtdBuffer->size;
 	int index;
 	tokenType type;
@@ -1454,7 +1454,7 @@ int VTDNav::getAttrVal(UCSChar *an){
 //Get the token index of the attribute value of given URL and local name.
 //If ns is not enabled, the lookup will return -1, indicating a no-found.
 //Also namespace nodes are invisible using this method.
-int VTDNav::getAttrValNS(UCSChar* URL, UCSChar *ln){
+int VTDNav::getAttrValNS(const UCSChar* URL,const UCSChar *ln){
 
 	int size, index;
 	tokenType type;
@@ -2000,7 +2000,7 @@ return (tokenType) ((vtdBuffer->longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
 }*/
 
 //Test whether current element has an attribute with the matching name.
-bool VTDNav::hasAttr(UCSChar *an){
+bool VTDNav::hasAttr(const UCSChar *an){
 	tokenType type;
 
 	int size = vtdBuffer->size;
@@ -2059,7 +2059,7 @@ bool VTDNav::hasAttr(UCSChar *an){
 
 //Test whether the current element has an attribute with 
 //matching namespace URL and localname.
-bool VTDNav::hasAttrNS(UCSChar *URL, UCSChar *localName){
+bool VTDNav::hasAttrNS(const UCSChar *URL,const UCSChar *localName){
 	if (context[0]==-1)
 		return false;
 	return (getAttrValNS(URL, localName) != -1);
@@ -2067,7 +2067,7 @@ bool VTDNav::hasAttrNS(UCSChar *URL, UCSChar *localName){
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-bool VTDNav::iterate(int dp, UCSChar *en, bool special){
+bool VTDNav::iterate(int dp, const UCSChar *en, bool special){
 	int index = getCurrentIndex() + 1;
 	tokenType tt;
 	//int size = vtdBuffer.size();
@@ -2104,7 +2104,7 @@ bool VTDNav::iterate(int dp, UCSChar *en, bool special){
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is false, return false immediately
-bool VTDNav::iterateNS(int dp, UCSChar *URL, UCSChar *ln){
+bool VTDNav::iterateNS(int dp,const UCSChar *URL, const UCSChar *ln){
 	int index;
 	tokenType tt;
 	if (ns == false)
@@ -2140,7 +2140,7 @@ bool VTDNav::iterateNS(int dp, UCSChar *URL, UCSChar *ln){
 }
 
 // This function is called by selectElement_P in autoPilot
-bool VTDNav::iterate_preceding(UCSChar *en, int* a, bool special){
+bool VTDNav::iterate_preceding(const UCSChar *en, int* a, bool special){
 	int index = getCurrentIndex() - 1;
 	int t,d,i;
 	//int depth = getTokenDepth(index);
@@ -2180,7 +2180,7 @@ bool VTDNav::iterate_preceding(UCSChar *en, int* a, bool special){
 }
 
 // This function is called by selectElementNS_P in autoPilot
-bool VTDNav::iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a){
+bool VTDNav::iterate_precedingNS(const UCSChar *URL, const UCSChar *ln, int* a){
 	int index = getCurrentIndex() - 1;
 	int t,d,i;
 	//int depth = getTokenDepth(index);
@@ -2220,7 +2220,7 @@ bool VTDNav::iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a){
 }
 
 // This function is called by selectElement_F in autoPilot
-bool VTDNav::iterate_following(UCSChar *en, bool special){
+bool VTDNav::iterate_following(const UCSChar *en, bool special){
 	int index = getCurrentIndex() + 1;
 	//int size = vtdBuffer.size();
 	while (index < vtdSize) {
@@ -2242,7 +2242,7 @@ bool VTDNav::iterate_following(UCSChar *en, bool special){
 
 
 // This function is called by selectElementNS_F in autoPilot
-bool VTDNav::iterate_followingNS( UCSChar *URL, UCSChar *ln){
+bool VTDNav::iterate_followingNS( const UCSChar *URL, const UCSChar *ln){
 	int index = getCurrentIndex() + 1;
 	//int size = vtdBuffer.size();
 	while (index < vtdSize) {
@@ -2264,7 +2264,7 @@ bool VTDNav::iterate_followingNS( UCSChar *URL, UCSChar *ln){
 
 
 //Test if the current element matches the given name.
-bool VTDNav::matchElement( UCSChar *en){
+bool VTDNav::matchElement( const UCSChar *en){
 	/*if (en == NULL){
 	throwException2(invalid_argument,
 	"matchElement's element name can't be null");
@@ -2283,7 +2283,7 @@ bool VTDNav::matchElement( UCSChar *en){
 //Test whether the current element matches the given namespace URL and localname.
 //URL, when set to "*", matches any namespace (including null), when set to null, defines a "always-no-match"
 //ln is the localname that, when set to *, matches any localname
-bool VTDNav::matchElementNS( UCSChar *URL, UCSChar *ln){
+bool VTDNav::matchElementNS( const UCSChar *URL, const UCSChar *ln){
 	if (context[0]==-1)
 		return false;
 	else {
@@ -2319,7 +2319,7 @@ bool VTDNav::matchElementNS( UCSChar *URL, UCSChar *ln){
 
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
-bool VTDNav::matchRawTokenString( int index, UCSChar *s){
+bool VTDNav::matchRawTokenString( int index, const UCSChar *s){
 	tokenType type;
 	int len;
 	int offset;
@@ -2349,7 +2349,7 @@ bool VTDNav::matchTokens( int i1, VTDNav *vn2, int i2){
 
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
-bool VTDNav::matchTokenString( int index, UCSChar *s){
+bool VTDNav::matchTokenString( int index, const UCSChar *s){
 	tokenType type;
 	int offset;
 	int len;
@@ -4370,7 +4370,7 @@ Long VTDNav::getSiblingElementFragments(int i){
 }
 
 
-int VTDNav::compareNormalizedTokenString2(int offset, int len, UCSChar *s){
+int VTDNav::compareNormalizedTokenString2(int offset, int len, const UCSChar *s){
 		int i,i1, l, temp;
 		Long l1,l2;
 		//boolean b = false;
@@ -4421,7 +4421,7 @@ UCSChar* VTDNav::getPrefixString( int i){
 	
 }
 
-bool VTDNav::matchNormalizedTokenString2(int index, UCSChar *s){
+bool VTDNav::matchNormalizedTokenString2(int index, const UCSChar *s){
 	tokenType type = getTokenType(index);
 	int len =
 		(type == TOKEN_STARTING_TAG
