@@ -1158,7 +1158,7 @@ VTDNav::VTDNav(int r,
 							   int so, 
 							   int len,
 							   bool br1):
-
+shallowDepth(true),
 rootIndex(r),
 nestingLevel(depth+1),
 //context (new int[nestingLevel]),
@@ -1290,7 +1290,7 @@ VTDNav::VTDNav(int r,
 							   int so, 
 							   int len,
 							   bool br1):
-
+shallowDepth(false),
 rootIndex(r),
 nestingLevel(depth+1),
 //context (new int[nestingLevel]),
@@ -1305,7 +1305,7 @@ l1index(-1),
 vtdBuffer(vtd),
 l1Buffer(l1),
 l2Buffer(l2),
-//l3Buffer(l3),
+l3Buffer(NULL),
 XMLDoc(x),
 offsetMask((ns1)? MASK_TOKEN_OFFSET1:MASK_TOKEN_OFFSET2),
 LN(0),// record txt and attrbute for XPath eval purposes
