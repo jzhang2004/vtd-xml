@@ -730,10 +730,10 @@ namespace com.ximpleware
         { //l3
             int i = l4Buffer.lower32At(l4index);
 
-            if (l4lower != i)
+            if (l5lower != i)
             {
                 //l3lower and l3upper are always together
-                l4lower = i;
+                l5lower = i;
                 // l3lower shouldn't be -1
                 //l3index = l3lower;
                 l5upper = l5Buffer.size_Renamed_Field - 1;
@@ -747,8 +747,8 @@ namespace com.ximpleware
                     }
                 }
             }
-            int t1 = l5Buffer.intAt(l3lower);
-            int t2 = l5Buffer.intAt(l3upper);
+            int t1 = l5Buffer.intAt(l5lower);
+            int t2 = l5Buffer.intAt(l5upper);
             i = Math.Min(l5lower + (int)(((float)(index - t1) / (t2 - t1 + 1)) * (l5upper - l5lower)), l5upper);
             while (i < l5Buffer.size_Renamed_Field- 1 && l5Buffer.intAt(i) < index)
             {
