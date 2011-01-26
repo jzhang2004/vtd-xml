@@ -2304,6 +2304,9 @@ VTDBuffer(NULL),
 l1Buffer(NULL),
 l2Buffer(NULL),
 l3Buffer(NULL),
+_l3Buffer(NULL),
+_l4Buffer(NULL),
+_l5Buffer(NULL),
 nsBuffer1(new FastIntBuffer(4)),
 nsBuffer2(new FastLongBuffer(4)),
 nsBuffer3(new FastLongBuffer(4)),
@@ -2383,7 +2386,10 @@ VTDGen::~VTDGen(){
 		delete VTDBuffer;
 		delete l1Buffer;
 		delete l2Buffer;
-		delete l3Buffer;		
+		delete l3Buffer;
+		delete _l3Buffer;
+		delete _l4Buffer;
+		delete _l5Buffer;
 	}
 }
 //done!
