@@ -300,18 +300,18 @@ l5Buffer(l5)
 
 VTDNav_L5::~VTDNav_L5(){
 
-	delete (contextBuf);
-	delete (contextBuf2);
+	//delete (contextBuf);
+	//delete (contextBuf2);
 	if (br == false && master){
-		delete (vtdBuffer);
-		delete (l1Buffer);
-		delete (l2Buffer);
+		//delete (vtdBuffer);
+		//delete (l1Buffer);
+		//delete (l2Buffer);
 		delete (l3Buffer);
 		delete (l4Buffer);
 		delete (l5Buffer);
 	}
-	delete[] context;
-	delete[] stackTemp;
+	//delete[] context;
+	//delete[] stackTemp;
 	//free(XMLDoc);
 }
 
@@ -1253,7 +1253,7 @@ bool VTDNav_L5::writeIndex(FILE *f){
                 ns, 
                 true, 
 				nestingLevel-1, 
-                3, 
+                5, 
                 rootIndex, 
                 XMLDoc, 
                 docOffset, 
