@@ -1933,6 +1933,9 @@ bool IndexHandler::_writeIndex_L5(Byte version,
 					|| l1Buffer == NULL 
 					|| l2Buffer == NULL 
 					|| l3Buffer == NULL
+					|| l4Buffer == NULL
+					|| l5Buffer == NULL
+					|| LCLevel != 5
 					|| f == NULL)
 				{
 					throw InvalidArgumentException("writeIndex's argument invalid");
@@ -1960,7 +1963,7 @@ bool IndexHandler::_writeIndex_L5(Byte version,
 				}
 				// second 4 bytes
 				ba[0] = 0;
-				ba[1] = 4;
+				ba[1] = 6;
 				ba[2] = (Byte) ((rootIndex & 0xff00) >> 8);
 				ba[3] = (Byte) (rootIndex & 0xff);
 				if (fwrite(ba,1,4,f)!=4){
@@ -2076,7 +2079,7 @@ bool IndexHandler::_writeIndex_L5(Byte version,
 				for (i = 0; i < l4Buffer->size; i++)
 				{
 					Long s = l4Buffer->longAt(i);
-					if (fwrite((UByte*)&s, 1 , 4, f)!=4){
+					if (fwrite((UByte*)&s, 1 , 8, f)!=8){
 						throw IndexWriteException("fwrite error occurred");
 						return false;
 					}
@@ -2096,7 +2099,7 @@ bool IndexHandler::_writeIndex_L5(Byte version,
 						return false;
 					}
 				}
-				// pad zero if # of l3 entry is odd
+				// pad zero if # of l5 entry is odd
 				if ((l5Buffer->size & 1) != 0){
 					if (fwrite(ba,1,1,f)!=1){
 						throw IndexWriteException("fwrite error occurred");
