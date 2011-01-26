@@ -138,7 +138,7 @@ public class VTDNav {
 	protected final static long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
 
 	// tri-state variable for namespace lookup
-	private final static long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
+	protected final static long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
 
 	protected int rootIndex; // where the root element is at
 	protected int nestingLevel;
