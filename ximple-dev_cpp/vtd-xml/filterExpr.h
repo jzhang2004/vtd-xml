@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #include "expr.h"
 
 namespace com_ximpleware{
-	class FilterExpr: Expr{
+	class FilterExpr: public Expr{
 	public:
 		FilterExpr(Expr *e1, Predicate *pr);
 		virtual ~FilterExpr();
