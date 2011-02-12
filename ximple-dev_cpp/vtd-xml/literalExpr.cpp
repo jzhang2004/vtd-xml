@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -70,10 +70,10 @@ bool LiteralExpr::requireContextSize(){return false;}
 void LiteralExpr::setContextSize(int size){}
 
 void LiteralExpr::setPosition(int pos){}
-int LiteralExpr::adjust(int n){return 0;}
+int LiteralExpr::adjust(int n) {return 0;}
 
 
-char* com_ximpleware::getAxisString(axisType at){
+char* com_ximpleware::getAxisString(axisType at) {
 
 	switch(at){
 		case AXIS_CHILD : return (char*)"child::";
