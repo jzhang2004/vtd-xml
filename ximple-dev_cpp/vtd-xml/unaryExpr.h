@@ -27,7 +27,7 @@ namespace com_ximpleware{
 		opType op;
 	public:
 		UnaryExpr(opType op, Expr *e1);
-		~UnaryExpr();
+		virtual ~UnaryExpr();
 		bool evalBoolean(VTDNav *vn);
 		double evalNumber(VTDNav *vn);
 		int evalNodeSet(VTDNav *vn);
