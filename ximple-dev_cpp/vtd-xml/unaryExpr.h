@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@
 #include "expr.h"
 
 namespace com_ximpleware{
-	class UnaryExpr: Expr{
+	class UnaryExpr: public Expr{
 	private:
 		Expr *e;
 		opType op;
 	public:
 		UnaryExpr(opType op, Expr *e1);
-		virtual ~UnaryExpr();
+		~UnaryExpr();
 		bool evalBoolean(VTDNav *vn);
 		double evalNumber(VTDNav *vn);
 		int evalNodeSet(VTDNav *vn);
