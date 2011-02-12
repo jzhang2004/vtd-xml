@@ -2394,7 +2394,7 @@ forward_brk: ;
             {
                 i = intHash.determineHashWidth(n);
             }
-            if (ih != null && i == ih.e)
+            if (ih != null && i <= ih.e)
             { }
             else
                 ih = new intHash(i);
