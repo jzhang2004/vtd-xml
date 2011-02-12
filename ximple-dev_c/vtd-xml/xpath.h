@@ -413,6 +413,7 @@ void setContextSize_p(Predicate *p, int size);
 Boolean requireContextSize_p(Predicate *p);
 void reset_p(Predicate *p, VTDNav *vn);
 void toString_p(Predicate *p, UCSChar *string);
+int adjust_p(Predicate *p, int n);
 
 typedef struct step{
 	axisType axis_type;
@@ -443,6 +444,7 @@ Boolean evalPredicates(Step *s,VTDNav *vn);
 Boolean evalPredicates2(Step *s,VTDNav *vn, Predicate *p);
 void setAxisType(Step *s,axisType st);
 void toString_s(Step *s, UCSChar *string);
+int adjust_s(Step *s, int n);
 
 typedef enum{
 	ABSOLUTE_PATH,

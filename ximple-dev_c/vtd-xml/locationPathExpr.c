@@ -2376,6 +2376,7 @@ void setStep(locationPathExpr *lpe, Step* st){
 
 int adjust_lpe(locationPathExpr *lpe, int n){
 	int i;
+	Step *temp;
 	if (lpe->pathType == RELATIVE_PATH){
 		i= min(6,determineHashWidth(n));//hashwidth 64
 	} else {
@@ -2386,5 +2387,23 @@ int adjust_lpe(locationPathExpr *lpe, int n){
 		freeIntHash(lpe->ih);
 		lpe->ih = createIntHash2(i);
 	}
+	temp = lpe->s;
+	while(temp!=NULL){
+		adjust_s(temp,n);
+		temp = temp->nextS;
+	}
 	return i;
+}
+
+int adjust_p(Predicate *p, int n){
+	return p->e->adjust(p->e,n);
+}
+
+int adjust_s(Step *s,int n){
+	Predicate *temp = s->p;
+	while(temp!=NULL){
+		adjust_p(s->p,n);
+		temp = temp->nextP;
+	}
+	return n;
 }
