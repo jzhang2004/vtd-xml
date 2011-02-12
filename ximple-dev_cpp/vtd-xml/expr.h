@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ namespace com_ximpleware{
 		void  reset_al(VTDNav *vn);
 		void  toString_al(UCSChar* string);
 	};
-
+	//class Expr;
 	
 
 	struct NodeTest{
@@ -118,6 +118,7 @@ namespace com_ximpleware{
 		bool requireContextSize_p();
 		void reset_p(VTDNav *vn);
 		void toString_p( UCSChar *string);
+		void adjust(int n);//{e->adjust(n);};
 	};
 
 	
@@ -149,6 +150,13 @@ namespace com_ximpleware{
 		bool evalPredicates2(VTDNav *vn, Predicate *p);
 		void setAxisType(axisType st);
 		void toString_s(UCSChar *string);
+		void adjust(int n);/*{
+			Predicate* temp = p;
+			while(temp!=NULL){
+				temp->adjust(n);
+				temp = temp->nextP;
+			}
+		};*/
 	};
 
 	UCSChar *createEmptyString();/*{
@@ -180,6 +188,7 @@ namespace com_ximpleware{
 
 		virtual void setPosition(int pos)=0;
 		virtual int adjust(int n)=0;
+		virtual ~Expr(){}
 		// to support computer context size 
 		// needs to add 
 		//virtual public boolean needContextSize();
@@ -199,10 +208,7 @@ namespace com_ximpleware{
 					} else if (vn->getTokenType(a) == com_ximpleware::TOKEN_STARTING_TAG) {
 						a = vn->getText();
 					}else if (t == com_ximpleware::TOKEN_PI_NAME) {
-						if (a+1<vn->vtdSize && vn->getTokenType(a+1)== com_ximpleware::TOKEN_PI_VAL)
-							a=a+1;
-						else
-							a = -1;                    
+						a++;                
 					}
 				}
 			} catch (XPathEvalException&) {

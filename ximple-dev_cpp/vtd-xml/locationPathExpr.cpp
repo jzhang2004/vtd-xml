@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -190,11 +190,16 @@ int LocationPathExpr::adjust(int n){
 	} else {
 		i=IntHash::determineHashWidth(n);
 	}
-	if (ih!=NULL && i==ih->e)
+	if (ih!=NULL && i<=ih->e)
 	{}else {
 		delete (ih);
 		ih =  new IntHash(i);
 	}
+	Step *temp = s;
+	while(temp!=NULL){
+		temp->adjust(n);
+		temp = temp->nextS;
+	}	
 	return i;
 }
 
@@ -2067,6 +2072,8 @@ void Predicate::toString_p( UCSChar *string){
 		}
 }
 
+void Predicate::adjust(int n){e->adjust(n);};
+
 
 
 
@@ -2105,6 +2112,7 @@ Step::~Step(){
 		delete((AutoPilot *)o);
 	delete(nt);
 }
+
 void Step::reset_s(VTDNav *vn){
 	ft = true;
 	resetP_s(vn);
@@ -2205,6 +2213,15 @@ void Step::toString_s(UCSChar *string){
 		nextS->toString_s(string);
 	}
 }
+
+void Step::adjust(int n){
+			Predicate* temp = p;
+			while(temp!=NULL){
+				temp->adjust(n);
+				temp = temp->nextP;
+			}
+		};
+
 
 NodeTest::NodeTest():
 nodeName(NULL),
