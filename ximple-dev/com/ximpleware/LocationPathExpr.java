@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,9 +79,10 @@ public class LocationPathExpr extends Expr{
 			if (pathType == LocationPathExpr.ABSOLUTE_PATH){
 				st = st+"/";
 			}
+			
 			if (ts == null)
 				return st;
-			else 
+			else
 				return st + ts;
 		}
 
@@ -130,7 +131,7 @@ public class LocationPathExpr extends Expr{
 		}
 		
 		
-	private final int process_child(VTDNav vn)throws XPathEvalException,NavException{
+	protected int process_child(VTDNav vn)throws XPathEvalException,NavException{
 		    int result;
 		    boolean b = false, b1 = false;
 		    Predicate t= null;
@@ -457,7 +458,7 @@ public class LocationPathExpr extends Expr{
 		    return -2;
 		}
 		
-	private final int process_DDFP(VTDNav vn) 
+	protected int process_DDFP(VTDNav vn) 
 		throws XPathEvalException, NavException {
 		AutoPilot ap;
 		boolean b = false, b1 = false;
@@ -647,7 +648,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private final int process_parent(VTDNav vn)
+	protected int process_parent(VTDNav vn)
 	throws XPathEvalException, NavException{
 	    boolean b1 = false;
 	    Predicate t= null;
@@ -736,7 +737,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private final int process_ancestor( VTDNav vn)
+	protected int process_ancestor( VTDNav vn)
 	throws XPathEvalException, NavException{
 	    int result;
 	    boolean b = false, b1 = false;
@@ -897,7 +898,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private final int process_ancestor_or_self(VTDNav vn)
+	protected int process_ancestor_or_self(VTDNav vn)
 	throws XPathEvalException,NavException{
 	    boolean b = false, b1 = false;
 	    Predicate t= null;
@@ -1095,7 +1096,7 @@ public class LocationPathExpr extends Expr{
 		}
 	    return -2;
 	}
-	private final int process_self(VTDNav vn)
+	protected int process_self(VTDNav vn)
 		throws XPathEvalException,NavException{
 	    boolean b1 = false;
 	    Predicate t= null;
@@ -1168,7 +1169,7 @@ public class LocationPathExpr extends Expr{
 	}
 	
 	
-	private final int process_namespace(VTDNav vn)
+	protected int process_namespace(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    AutoPilot ap = null;
 	    boolean b1 = false;
@@ -1329,7 +1330,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private final int process_following_sibling(VTDNav vn)
+	protected int process_following_sibling(VTDNav vn)
 	throws XPathEvalException,NavException{
 	    boolean b = false, b1 = false;
 	    Predicate t= null;
@@ -1446,7 +1447,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private final int process_preceding_sibling(VTDNav vn)
+	protected int process_preceding_sibling(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    boolean b = false, b1 = false;
 	    Predicate t= null;
@@ -1561,7 +1562,7 @@ public class LocationPathExpr extends Expr{
 	    return -2;
 	}
 	
-	private final int process_attribute(VTDNav vn)
+	protected int process_attribute(VTDNav vn)
 	throws XPathEvalException,NavException {
 	    AutoPilot ap = null;
 	    boolean b1 = false;
@@ -1592,7 +1593,7 @@ public class LocationPathExpr extends Expr{
 	            break;
 	        }
 	        
-			if (vn.getAtTerminal()==true){
+			if (vn.atTerminal==true){
 				if (state ==START)
 					state = END;
 				else {
@@ -1724,13 +1725,13 @@ public class LocationPathExpr extends Expr{
         int result;
 		if (currentStep == null) {
 			if ( pathType ==  ABSOLUTE_PATH){
-				vn.toElement(VTDNav.ROOT);
-				vn.toElement(VTDNav.PARENT);
+				vn.context[0]=-1;
+				vn.atTerminal = false;
 			}
 			currentStep =  s;
 			if (currentStep == null){
-				if (  state ==  START){
-					 state =  END;
+				if (state ==  START){
+					state =  END;
 					return 0;
 				}
 				else{
@@ -2029,7 +2030,7 @@ public class LocationPathExpr extends Expr{
 	public int adjust(int n) {
 	    int i;
         if (pathType == RELATIVE_PATH) {
-            i = Math.min(intHash.determineHashWidth(n),6); // hash width 64 
+            i = Math.min(intHash.determineHashWidth(n),7); // hash width 64 
         } else {
             i = intHash.determineHashWidth(n);
         }
@@ -2040,7 +2041,7 @@ public class LocationPathExpr extends Expr{
         return i;
 	}
 	
-	private void selectNodeType(TextIter ti){
+	protected void selectNodeType(TextIter ti){
 		if (currentStep.nt.testType == NodeTest.TEXT )
 			ti.selectText();
 		else if (currentStep.nt.testType == NodeTest.COMMENT )
