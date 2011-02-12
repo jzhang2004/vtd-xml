@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include "locationPathExpr.h"
 
 namespace com_ximpleware{
-	class PathExpr: Expr{
+	class PathExpr: public Expr{
 	public:
 		PathExpr(Expr *f, LocationPathExpr *l);
 		virtual ~PathExpr();
