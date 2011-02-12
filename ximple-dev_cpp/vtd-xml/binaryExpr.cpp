@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -468,7 +468,7 @@ int BinaryExpr::getStringVal(VTDNav *vn, int i){
 		return i1;
 	}
 	else if (t == TOKEN_ATTR_NAME
-		|| t == TOKEN_ATTR_NS)
+		|| t == TOKEN_ATTR_NS ||t==TOKEN_PI_NAME)
 		return i+1;
 	else
 		 return i;
