@@ -1658,26 +1658,24 @@ VTDGen::pState VTDGen::process_pi_val(){
 		ch = getChar();
 	}
 	length1 = offset - temp_offset - (increment<<1);
-	if (length1 != 0) {
-		if (singleByteEncoding){
-			if (length1 > MAX_TOKEN_LENGTH){
-				throw ParseException(	
-					"Parse exception in parse() \n"\
-					"Token Length Error: PI_VAL length too long");
-			}
-			_writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
+	if (singleByteEncoding){
+		if (length1 > MAX_TOKEN_LENGTH){
+			throw ParseException(	
+				"Parse exception in parse() \n"\
+				"Token Length Error: PI_VAL length too long");
 		}
-		else{
-			if (length1 > (MAX_TOKEN_LENGTH << 1)){
-				throw ParseException(	
-					"Parse exception in parse() \n"\
-					"Token Length Error: PI_VAL length too long");
-			}
-			_writeVTD(temp_offset >> 1,
-				length1 >> 1,
-				TOKEN_PI_VAL,
-				depth);
+		_writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
+	}
+	else{
+		if (length1 > (MAX_TOKEN_LENGTH << 1)){
+			throw ParseException(	
+				"Parse exception in parse() \n"\
+				"Token Length Error: PI_VAL length too long");
 		}
+		_writeVTD(temp_offset >> 1,
+			length1 >> 1,
+			TOKEN_PI_VAL,
+			depth);
 	}
 	temp_offset = offset;
 	ch = getCharAfterS();
@@ -1749,6 +1747,20 @@ VTDGen::pState VTDGen::process_pi_tag(){
 	//	ch = getChar();
 	//}
 	if (ch == '?') {
+		if (singleByteEncoding){
+			_writeVTD(
+				(temp_offset),
+				0,
+				TOKEN_PI_NAME,
+				depth);
+		}
+		else{
+			_writeVTD(
+				(temp_offset) >> 1,
+				0,
+				TOKEN_PI_NAME,
+				depth);
+		}
 		if (skipChar('>')) {
 			temp_offset = offset;
 			ch = getCharAfterS();
