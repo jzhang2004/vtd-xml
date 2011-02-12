@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ ih(NULL)
 {
 }
 UnionExpr::~UnionExpr(){
-	UnionExpr *tmp, *tmp2;
+	/*UnionExpr *tmp, *tmp2;
 	delete(fe);
 	delete(ih);
 	tmp = next;
@@ -39,6 +39,14 @@ UnionExpr::~UnionExpr(){
 		tmp2 = tmp;
 		tmp = tmp->next;		
 		delete(tmp2);
+	}*/
+	if (next == NULL){
+		delete fe;
+		delete ih;
+	}else{
+		delete next;
+		delete fe;
+		delete ih;
 	}
 }
 
