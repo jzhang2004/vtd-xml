@@ -172,10 +172,109 @@ void VTDNav_L5::resolveLC_l5(){
 		}
 }
 
-void VTDNav_L5::recoverNode_l4(int i){}
+void VTDNav_L5::recoverNode_l4(int index){
+		int i = l3Buffer->lower32At(l3index);
+		
+		if (l4lower != i) {
+			l4lower = i;
+			// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+			// resolved simultaneously
+			//l2index = l2lower;
+			l4upper = l4Buffer->size - 1;
+			for (int k = l3index + 1; k < l3Buffer->size; k++) {
+				i = l3Buffer->lower32At(k);
+				if (i != -1) {
+					l4upper = i - 1;
+					break;
+				}
+			}
+		}
+		// guess what i would be in l2 cache
+		int t1=l4Buffer->upper32At(l4lower);
+		int t2=l4Buffer->upper32At(l4upper);
+		//System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
+		i= min(l4lower+ (int)(((float)(index-t1)/(t2-t1+1))*(l4upper-l4lower)),l4upper) ;
+		//System.out.print("  i1  "+i);
+		while(i<l4Buffer->size-1 && l4Buffer->upper32At(i)<index){
+			i++;	
+		}
+		//System.out.println(" ==== i2    "+i+"    index  ==>  "+index);
+		
+		while (l4Buffer->upper32At(i)>index && i>0)
+			i--;
+		context[4] = l4Buffer->upper32At(i);
+		l4index = i;
+		//System.out.println("l2lower ==>"+l2lower+"  l2upper==>"+l2upper+"   l2index==> "+l2index);
+}
 
-void VTDNav_L5::recoverNode_l5(int i){}
+void VTDNav_L5::recoverNode_l5(int index){
+		int i = l4Buffer->lower32At(l4index);
+		
+		if (l5lower != i) {
+			//l3lower and l3upper are always together
+			l5lower = i;
+			// l3lower shouldn't be -1
+			//l3index = l3lower;
+			l5upper = l5Buffer->size - 1;
+			for (int k = l4index + 1; k < l4Buffer->size; k++) {
+				i = l4Buffer->lower32At(k);
+				if (i != -1) {
+					l5upper = i - 1;
+					break;
+				}
+			}
+		}
+		int t1=l5Buffer->intAt(l5lower);
+		int t2=l5Buffer->intAt(l5upper);
+		i= min(l5lower+ (int)(((float)(index-t1)/(t2-t1+1))*(l5upper-l5lower)),l5upper) ;
+		while(i<l5Buffer->size-1 && l5Buffer->intAt(i)<index){
+			i++;	
+		}
+		while (l5Buffer->intAt(i)>index && i>0)
+			i--;
+		//System.out.println(" i ===> "+i);
+		context[5] = l5Buffer->intAt(i);
+		l5index = i;
+}
 
+void VTDNav_L5::recoverNode_l3(int index){
+	int i = l2Buffer->lower32At(l2index);
+
+	if (l3lower != i)
+	{
+		l3lower = i;
+		// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+		// resolved simultaneously
+		//l2index = l2lower;
+		l3upper = l3Buffer->size- 1;
+		for (int k = l2index + 1; k < l2Buffer->size; k++)
+		{
+			i = l2Buffer->lower32At(k);
+			if (i != -1)
+			{
+				l3upper = i - 1;
+				break;
+			}
+		}
+	}
+	// guess what i would be in l2 cache
+	int t1 = l3Buffer->upper32At(l3lower);
+	int t2 = l3Buffer->upper32At(l3upper);
+	//System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
+	i = min(l3lower + (int)(((float)(index - t1) / (t2 - t1 + 1)) * (l3upper - l3lower)), l3upper);
+	//System.out.print("  i1  "+i);
+	while (i < l3Buffer->size - 1 && l3Buffer->upper32At(i) < index)
+	{
+		i++;
+	}
+	//System.out.println(" ==== i2    "+i+"    index  ==>  "+index);
+
+	while (l3Buffer->upper32At(i) > index && i > 0)
+		i--;
+	context[3] = l3Buffer->upper32At(i);
+	l3index = i;
+            //System.out.println("l2lower ==>"+l2lower+"  l2upper==>"+l2upper+"   l2index==> "+l2index);
+}
 void VTDNav_L5::resolveLC(){
 
 	if (context[0]<=0)
@@ -512,7 +611,109 @@ bool VTDNav_L5::iterate_followingNS( UCSChar *URL, UCSChar *ln){
 //void resolveLC_l3();
 //void resolveLC_l4();
 //void resolveLC_l5();
-void VTDNav_L5::recoverNode_l3(int i){}
+void VTDNav_L5::recoverNode(int index){
+	if (index < 0 || index >= vtdSize)
+		throw NavException("Invalid VTD index");
+
+	int type = getTokenType(index);
+	if (//type == VTDNav.TOKEN_COMMENT ||
+		//	type == VTDNav.TOKEN_PI_NAME ||
+		type == TOKEN_PI_VAL ||
+		type == TOKEN_DEC_ATTR_NAME ||
+		type == TOKEN_DEC_ATTR_VAL ||
+		type == TOKEN_ATTR_VAL)
+		throw NavException("Token type not yet supported");
+
+	// get depth
+	int d = getTokenDepth(index);
+	// handle document node;
+	switch (d)
+	{
+	case -1:
+		context[0] = -1;
+		if (index != 0)
+		{
+			LN = index;
+			atTerminal = true;
+		}
+		return;
+	case 0:
+		context[0] = 0;
+		if (index != rootIndex)
+		{
+			LN = index;
+			atTerminal = true;
+		}
+		return;
+	}
+	context[0] = d;
+	if (type != TOKEN_STARTING_TAG)
+	{
+		LN = index;
+		atTerminal = true;
+	}
+	// search LC level 1
+	recoverNode_l1(index);
+
+	if (d == 1)
+		return;
+	// search LC level 2
+	recoverNode_l2(index);
+	if (d == 2)
+	{
+		//resolveLC();
+		return;
+	}
+	// search LC level 3
+	recoverNode_l3(index);
+	if (d == 3)
+	{
+		//resolveLC();
+		return;
+	}
+
+	recoverNode_l4(index);
+	if (d == 4)
+	{
+		//resolveLC();
+		return;
+	}
+
+	recoverNode_l5(index);
+	if (d == 5)
+	{
+		//resolveLC();
+		return;
+	}
+
+	// scan backward
+	if (type == TOKEN_STARTING_TAG)
+	{
+		context[d] = index;
+	}
+	else
+	{
+		int t = index - 1;
+		while (!(getTokenType(t) == TOKEN_STARTING_TAG &&
+			getTokenDepth(t) == d))
+		{
+			t--;
+		}
+		context[d] = t;
+	}
+	int t1 = context[d] - 1;
+	d--;
+	while (d > 5)
+	{
+		while (!(getTokenType(t1) == TOKEN_STARTING_TAG &&
+			getTokenDepth(t1) == d))
+		{
+			t1--;
+		}
+		context[d] = t1;
+		d--;
+	}
+}
 
 
 
@@ -624,7 +825,34 @@ bool VTDNav_L5::push2(){
 		contextBuf2->store(stackTemp);
 		return true;
 }
-void VTDNav_L5::sampleState( FastIntBuffer *fib){}
+void VTDNav_L5::sampleState( FastIntBuffer *fib){
+	if (context[0]>=1)
+		fib->append(l1index);		
+
+	if (context[0]>=2){
+		fib->append(l2index);
+		fib->append(l2lower);
+		fib->append(l2upper);				
+	}
+
+	if (context[0]>=3){
+		fib->append(l3index);
+		fib->append(l3lower);
+		fib->append(l3upper);
+	}
+
+	if (context[0]>=4){
+		fib->append(l4index);
+		fib->append(l4lower);
+		fib->append(l4upper);	
+	}
+
+	if (context[0]>=5){  
+		fib->append(l5index);
+		fib->append(l5lower);
+		fib->append(l5upper);			
+	}
+}
 
 // A generic navigation method.
 // Move the current to the element according to the direction constants
