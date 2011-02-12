@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 package com.ximpleware.extended.xpath;
 import com.ximpleware.extended.*;
+import com.ximpleware.extended.xpath.Predicate;
 /**
  * A step is a part of location path as defined in 
  * Xpath spec
@@ -57,6 +58,14 @@ public class Step implements LocationPathNode{
 		Predicate temp = p;
 		while(temp!=p1){
 			temp.reset(vn);
+			temp = temp.nextP;
+		}
+	}
+	
+	public void adjust(int n){
+		Predicate temp = p;
+		while(temp!=null){
+			temp.adjust(n);
 			temp = temp.nextP;
 		}
 	}
