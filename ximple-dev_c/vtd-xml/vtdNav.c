@@ -38,7 +38,7 @@ static Boolean matchTokenString2(VTDNav *vn, Long l, UCSChar *s);
 static inline int NSval(VTDNav *vn, int i);
 static int parseInt2(VTDNav *vn, int index, int radix);
 static Long parseLong2(VTDNav *vn, int index, int radix);
-static void resolveLC(VTDNav *vn);
+
 static Boolean resolveNS(VTDNav *vn, UCSChar *URL);
 static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len); //UCSChar *ln);
 static int lookupNS2(VTDNav *vn, int offset, int len);
@@ -55,9 +55,15 @@ static UCSChar *toRawStringLowerCase2(VTDNav *vn, int os, int len);
 static void resolveLC_l1(VTDNav *vn);
 static void resolveLC_l2(VTDNav *vn);
 static void resolveLC_l3(VTDNav *vn);
+static void _resolveLC_l3(VTDNav_L5 *vn);
+static void resolveLC_l4(VTDNav_L5 *vn);
+static void resolveLC_l5(VTDNav_L5 *vn);
 static void recoverNode_l1(VTDNav *vn,int index);
 static void recoverNode_l2(VTDNav *vn,int index);
 static void recoverNode_l3(VTDNav *vn,int index);
+static void _recoverNode_l3(VTDNav_L5 *vn,int index);
+static void recoverNode_l4(VTDNav_L5 *vn,int index);
+static void recoverNode_l5(VTDNav_L5 *vn,int index);
 static int compareNormalizedTokenString2(VTDNav *vn,int offset, int len, UCSChar *s); 
 /*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, Long temp, int offset){
@@ -207,6 +213,28 @@ VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 								 "VTDNav allocation failed ");
 							 return NULL;
 						 }
+						 vn->__freeVTDNav=_freeVTDNav;
+						 vn->__cloneNav=_cloneNav;
+						 vn->__duplicateNav = _duplicateNav;
+						 vn->__iterate = _iterate;
+						 vn->__iterate_following = _iterate_following;
+						 vn->__iterate_followingNS = _iterate_followingNS;
+						 vn->__iterate_preceding = _iterate_preceding;
+						 vn->__iterate_precedingNS = _iterate_precedingNS;
+						 vn->__iterateNS = _iterateNS;
+						 vn->__pop = _pop;
+						 vn->__pop2 = _pop2;
+						 vn->__push = _push;
+						 vn->__push2 = _push2;
+						 vn->__recoverNode = _recoverNode;
+						 vn->__resolveLC = _resolveLC;
+						 vn->__sampleState = _sampleState;
+						 vn->__toElement = _toElement;
+						 vn->__toElement2 = _toElement2;
+						 vn->__toElementNS = _toElementNS;
+						 vn->__writeIndex_VTDNav = _writeIndex_VTDNav;
+						 vn->__writeIndex2_VTDNav = _writeIndex2_VTDNav;
+						 vn->__writeSeparateIndex_VTDNav = _writeSeparateIndex_VTDNav;
 						 vn->l1Buffer = l1;
 						 vn->l2Buffer = l2;
 						 vn->l3Buffer = l3;
@@ -274,12 +302,13 @@ VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 						 vn->bufLen = xLen;
 						 vn->br = br;
 						 vn->LN = 0;
+						 vn->shallowDepth = TRUE;
 						 return vn;
 }
 
 //Free VTDNav object
 //it doesn't free the memory block containing XML doc
-void freeVTDNav(VTDNav *vn)
+void _freeVTDNav(VTDNav *vn)
 {	
 	if (vn!=NULL){
 		freeContextBuffer(vn->contextBuf);
@@ -1044,7 +1073,7 @@ Boolean hasAttr(VTDNav *vn, UCSChar *an){
 				&& (getTokenType(vn,index) == TOKEN_ATTR_NAME
 				|| getTokenType(vn,index) == TOKEN_ATTR_NS)) {
 					if (type == TOKEN_ATTR_NAME)
-						// TOKEN_ATTR_NS is invisible when ns == true
+						// TOKEN_ATTR_NS is invisible when ns == TRUE
 						return TRUE;
 					index += 2;
 					type = getTokenType(vn,index);
@@ -1092,7 +1121,7 @@ static inline Boolean isWS(int ch){
 }
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-int iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
+int _iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
 
 	int index = getCurrentIndex(vn) + 1;
 	tokenType tt;
@@ -1129,8 +1158,8 @@ int iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
-//if ns is false, return false immediately
-int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
+//if ns is FALSE, return FALSE immediately
+int _iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 	int index;
 	tokenType tt;
 	if (vn->ns == FALSE)
@@ -1167,7 +1196,7 @@ int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 
 
 // This function is called by selectElement_P in autoPilot
-Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
+Boolean _iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 	int index = getCurrentIndex(vn) - 1;
 	int t,d,i;
 	//int depth = getTokenDepth(index);
@@ -1207,7 +1236,7 @@ Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 }
 
 // This function is called by selectElementNS_P in autoPilot
-Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
+Boolean _iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 	int index = getCurrentIndex(vn) - 1;
 	int t,d,i;
 	//int depth = getTokenDepth(index);
@@ -1249,7 +1278,7 @@ Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 
 // This function is called by selectElement_F in autoPilot
 
-Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
+Boolean _iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
 	int index = getCurrentIndex(vn) + 1;
 	//int size = vtdBuffer.size();
 	while (index < vn->vtdSize) {
@@ -1272,7 +1301,7 @@ Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
 
 // This function is called by selectElementNS_F in autoPilot
 
-Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
+Boolean _iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 	int index = getCurrentIndex(vn) + 1;
 	//int size = vtdBuffer.size();
 	while (index < vn->vtdSize) {
@@ -2004,7 +2033,7 @@ static Long parseLong2(VTDNav *vn, int index, int radix){
 
 //Load the context info from contextBuf.
 //Info saved including LC and current state of the context 
-Boolean pop(VTDNav *vn){
+Boolean _pop(VTDNav *vn){
 	Boolean b = load(vn->contextBuf,vn->stackTemp);
 	int i;
 	if (b == FALSE)
@@ -2028,7 +2057,7 @@ Boolean pop(VTDNav *vn){
 //Load the context info from contextBuf2.
 //Info saved including LC and current state of the context 
 // this function is for XPath evaluation only
-Boolean pop2(VTDNav *vn){
+Boolean _pop2(VTDNav *vn){
 	Boolean b = load(vn->contextBuf2,vn->stackTemp);
 	int i;
 	if (b == FALSE)
@@ -2050,7 +2079,7 @@ Boolean pop2(VTDNav *vn){
 
 //Store the context info into the contextBuf.
 //Info saved including LC and current state of the context 
-Boolean push(VTDNav *vn){
+Boolean _push(VTDNav *vn){
 	int i;
 	for (i = 0; i < vn->nestingLevel; i++) {
 		vn->stackTemp[i] = vn->context[i];
@@ -2074,7 +2103,7 @@ Boolean push(VTDNav *vn){
 //Store the context info into the contextBuf2.
 //Info saved including LC and current state of the context 
 // This function is for XPath evaluation only
-Boolean push2(VTDNav *vn){
+Boolean _push2(VTDNav *vn){
 	int i;
 	for (i = 0; i < vn->nestingLevel; i++) {
 		vn->stackTemp[i] = vn->context[i];
@@ -2097,7 +2126,7 @@ Boolean push2(VTDNav *vn){
 
 
 //Sync up the current context with location cache.
-static void resolveLC(VTDNav *vn){	
+void _resolveLC(VTDNav *vn){	
 	if (vn->context[0]<=0)
 		return;
 	resolveLC_l1(vn);
@@ -2163,7 +2192,7 @@ static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len){
 	}
 }
 
-void sampleState(VTDNav *vn, FastIntBuffer *fib){
+void _sampleState(VTDNav *vn, FastIntBuffer *fib){
 	if (vn->context[0]>=1)							
 		appendInt(fib, vn->l1index);
 
@@ -2182,7 +2211,7 @@ void sampleState(VTDNav *vn, FastIntBuffer *fib){
 }
 // A generic navigation method.
 // Move the current to the element according to the direction constants
-// If no such element, no position change and return false (0).
+// If no such element, no position change and return FALSE (0).
 /* Legal direction constants are 	<br>
 * <pre>		ROOT            0  </pre>
 * <pre>		PARENT          1  </pre>
@@ -2192,7 +2221,7 @@ void sampleState(VTDNav *vn, FastIntBuffer *fib){
 * <pre>		PREV_SIBLING    5  </pre>
 * <br>
 */
-Boolean toElement(VTDNav *vn, navDir direction){
+Boolean _toElement(VTDNav *vn, navDir direction){
 	int size,i;
 	switch (direction) {
 			case ROOT :
@@ -2446,7 +2475,7 @@ Boolean toElement(VTDNav *vn, navDir direction){
 								(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
 
 							/*if (depth < vn->context[0]) {
-							return false;
+							return FALSE;
 							} else */
 							if (depth == (vn->context[0])) {
 								vn->context[vn->context[0]] = index;
@@ -2469,7 +2498,7 @@ Boolean toElement(VTDNav *vn, navDir direction){
 * A generic navigation method.
 * Move the current to the element according to the direction 
 * constants and the element name
-* If no such element, no position change and return false (0).
+* If no such element, no position change and return FALSE (0).
 * "*" matches any element
 * Legal direction constants are 	<br>
 * <pre>		ROOT            0  </pre>
@@ -2481,7 +2510,7 @@ Boolean toElement(VTDNav *vn, navDir direction){
 * <br>
 * for ROOT and PARENT, element name will be ignored.
 */
-Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
+Boolean _toElement2(VTDNav *vn, navDir direction, UCSChar *en){
 	//int size;
 	int temp;
 	int d;
@@ -2605,7 +2634,7 @@ Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
 /*	
 * A generic navigation function with namespace support.
 * Move the current to the element according to the direction constants and the prefix and local names
-* If no such element, no position change and return false(0).
+* If no such element, no position change and return FALSE(0).
 * URL * matches any namespace, including undefined namespaces
 * a null URL means hte namespace prefix is undefined for the element
 * ln *  matches any localname
@@ -2618,9 +2647,9 @@ Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
 * <pre>		PREV_SIBLING    5  </pre>
 * <br>
 * for ROOT and PARENT, element name will be ignored.
-* If not ns enabled, return false immediately with no position change.
+* If not ns enabled, return FALSE immediately with no position change.
 */
-Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln){
+Boolean _toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln){
 	//int size;
 	int temp;
 	int d;
@@ -3002,7 +3031,7 @@ static int lookupNS2(VTDNav *vn, int offset, int len){
 	tokenType type;
 	Boolean hasNS = FALSE;
 	int size = vn->vtdBuffer->size;
-	// look for a match in the current hiearchy and return true
+	// look for a match in the current hiearchy and return TRUE
 	for (i = vn->context[0]; i >= 0; i--) {
 		int s = (i != 0) ? vn->context[i] : vn->rootIndex;
 		switch (NSval(vn,s)) { // checked the ns marking
@@ -3039,7 +3068,7 @@ static int lookupNS2(VTDNav *vn, int offset, int len){
 									}
 								}
 							}
-							//return (URL != null) ? true : false;
+							//return (URL != null) ? TRUE : FALSE;
 							s += 2;
 							type = getTokenType(vn,s);
 					}
@@ -3083,7 +3112,7 @@ static int lookupNS2(VTDNav *vn, int offset, int len){
 								}
 								if (a == TRUE) {
 									l = longAt(vn->vtdBuffer,s);
-									//hasNS = false;
+									//hasNS = FALSE;
 
 									modifyEntryFLB(vn->vtdBuffer,
 										s,
@@ -3093,7 +3122,7 @@ static int lookupNS2(VTDNav *vn, int offset, int len){
 								}
 							}
 						}
-						//return (URL != null) ? true : false;
+						//return (URL != null) ? TRUE : FALSE;
 						k += 2;
 						if (k>=size)
 							break;
@@ -3451,8 +3480,8 @@ int compareTokens(VTDNav *vn1, int i1, VTDNav *vn2, int i2){
 }
 
 /* Write VTD+XML into a FILE pointer */
-Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
-	return _writeIndex(1, 
+Boolean _writeIndex_VTDNav(VTDNav *vn, FILE *f){
+	return _writeIndex_L3(1, 
                 vn->encoding, 
                 vn->ns, 
                 TRUE, 
@@ -3468,7 +3497,7 @@ Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
                 vn->l3Buffer, 
                 f);
 }
-Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName){
+Boolean _writeIndex2_VTDNav(VTDNav *vn, char *fileName){
 	FILE *f = NULL;
 	Boolean b = FALSE;
 	f = fopen(fileName,"wb");
@@ -3748,9 +3777,9 @@ Long getOffsetAfterHead(VTDNav *vn){
 
 
 /* Write the VTDs and LCs into an Separate index file*/
-void writeSeparateIndex_VTDNav(VTDNav *vn, char *VTDIndexFile){
+Boolean _writeSeparateIndex_VTDNav(VTDNav *vn, char *VTDIndexFile){
 	FILE *f = NULL;
-	//Boolean b = FALSE;
+	Boolean b = FALSE;
 	f = fopen(VTDIndexFile,"wb");
 	
 	if (f==NULL){
@@ -3758,7 +3787,7 @@ void writeSeparateIndex_VTDNav(VTDNav *vn, char *VTDIndexFile){
 		//return FALSE;
 	}
 
-	_writeSeparateIndex( (Byte)2, 
+	b=_writeSeparateIndex_L3( (Byte)2, 
                 vn->encoding, 
                 vn->ns, 
                 TRUE, 
@@ -3774,7 +3803,7 @@ void writeSeparateIndex_VTDNav(VTDNav *vn, char *VTDIndexFile){
                 f);
 	
 	fclose(f);
-	//return b;
+	return b;
 }
 
 
@@ -4115,7 +4144,7 @@ static void resolveLC_l2(VTDNav *vn){
 		k = vn->l1Buffer->size;
 		for (i = vn->l1index + 1; i < k; i++) {
 			temp = lower32At(vn->l1Buffer,i);
-			if (temp != 0xffffffff) {
+			if (temp != -1) {
 				vn->l2upper = temp - 1;
 				break;
 			}
@@ -4173,7 +4202,7 @@ static void resolveLC_l3(VTDNav *vn){
 		vn->l3upper = vn->l3Buffer->size - 1;
 		for (i = vn->l2index + 1; i < k; i++) {
 			temp = lower32At(vn->l2Buffer,i);
-			if (temp != 0xffffffff) {
+			if (temp != -1) {
 				vn->l3upper = temp - 1;
 				break;
 			}
@@ -4218,7 +4247,7 @@ static void resolveLC_l3(VTDNav *vn){
 
 
 /* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
-VTDNav* duplicateNav(VTDNav *vn){
+VTDNav* _duplicateNav(VTDNav *vn){
 	VTDNav* vn1 = createVTDNav( vn->rootIndex,
 		vn->encoding,
 		vn->ns,
@@ -4238,7 +4267,7 @@ VTDNav* duplicateNav(VTDNav *vn){
 
 
 /* ClineNav duplicates an instance of VTDNav, also copies node position over */
-VTDNav *cloneNav(VTDNav *vn){
+VTDNav *_cloneNav(VTDNav *vn){
 	VTDNav* vn1 = createVTDNav( vn->rootIndex,
 		vn->encoding,
 		vn->ns,
@@ -4278,7 +4307,7 @@ VTDNav *cloneNav(VTDNav *vn){
  * node position, the index can only be of node type element,
  * document, attribute name, attribute value or character data,
  * or CDATA  */
-void recoverNode(VTDNav *vn, int index){
+void _recoverNode(VTDNav *vn, int index){
 	int d, type,t;
 	//exception e;
 	if (index <0 || index>=vn->vtdSize ){
@@ -4430,7 +4459,7 @@ static void recoverNode_l2(VTDNav *vn,int index){
 }
 
 static void recoverNode_l3(VTDNav *vn,int index){
-int i = lower32At(vn->l2Buffer,vn->l2index),k,t1,t2;
+	int i = lower32At(vn->l2Buffer,vn->l2index),k,t1,t2;
 		
 		if (vn->l3lower != i) {
 			//l3lower and l3upper are always together
@@ -4482,7 +4511,7 @@ int compareNormalizedTokenString2(VTDNav *vn,int offset, int len,
 			UCSChar *s) {
 		int i,i1, l, temp;
 		Long l1,l2;
-		//boolean b = false;
+		//boolean b = FALSE;
 		// this.currentOffset = offset;
 		int endOffset = offset + len;
 
@@ -4596,13 +4625,13 @@ UCSChar* toNormalizedString2(VTDNav *vn, int index){
 		
 		
 
-		//boolean d = false;
+		//boolean d = FALSE;
 		while (offset <= endOffset) {
 			l = getCharResolved(vn,offset);
 			ch = (int)l;
 			offset += (int)(l>>32);
 			if (isWS(ch) && (l>>32)<=2) {
-				//d = true;
+				//d = TRUE;
 				s[k++] = (UCSChar)' ';
 				//sb.append(' ');
 			} else{
@@ -4630,3 +4659,1771 @@ UCSChar *getPrefixString(VTDNav *vn, int i){
 		return NULL;
 	}
 }
+
+void _resolveLC_L5(VTDNav_L5 *vn){
+		if(vn->context[0]<=0)
+			return;
+		resolveLC_l1((VTDNav *)vn);
+		if (vn->context[0] == 1)
+			return;
+		resolveLC_l2((VTDNav *)vn);
+		if (vn->context[0] == 2)
+			return;	
+		_resolveLC_l3(vn);
+		if (vn->context[0] == 3)
+			return;	
+		resolveLC_l4(vn);
+		if (vn->context[0] == 4)
+			return;	
+		resolveLC_l5(vn);
+}
+
+void _freeVTDNav_L5(VTDNav_L5 *vn){
+	freeContextBuffer (vn->contextBuf);
+	freeContextBuffer(vn->contextBuf2);
+	if (vn->br == FALSE && vn->master){
+		freeFastLongBuffer (vn->vtdBuffer);
+		freeFastLongBuffer(vn->l1Buffer);
+		freeFastLongBuffer(vn->l2Buffer);
+		freeFastLongBuffer(vn->_l3Buffer);
+		freeFastLongBuffer(vn->l4Buffer);
+		freeFastIntBuffer(vn->l5Buffer);
+	}
+	free( vn->context);
+	free( vn->stackTemp);
+}
+
+VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
+						   UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
+						   FastLongBuffer *l2, FastLongBuffer *l3, FastLongBuffer *l4, 
+						   FastIntBuffer *l5, int so, int len,Boolean br){
+
+							   VTDNav_L5* vn = NULL;
+							   int i;
+							   exception e;
+
+							   if (l1 == NULL ||
+								   l2 == NULL ||
+								   l3 == NULL ||
+								   l4 == NULL ||
+								   l5 == NULL ||
+								   vtd == NULL||
+								   x == NULL ||
+								   so<0 ||
+								   len < 0 ||
+								   xLen < 0 || // size of x
+								   r < 0 ||
+								   depth < 0 ||
+								   (enc <FORMAT_ASCII || 
+								   enc>FORMAT_UTF_16LE) 
+								   )
+							   {
+								   throwException2(invalid_argument,
+									   "Invalid argument when creating VTDGen failed ");
+								   return NULL;
+							   }
+
+							   vn = (VTDNav_L5 *) malloc(sizeof(VTDNav_L5));
+							   if (vn==NULL){
+								   throwException2(out_of_mem,							 
+									   "VTDNav allocation failed ");
+								   return NULL;
+							   }
+							   //temp = (int *)malloc(4*16);
+							   vn->__freeVTDNav=(freeVTDNav_) _freeVTDNav_L5;
+							   vn->__cloneNav=(cloneNav_)_cloneNav_L5;
+							   vn->__duplicateNav =(duplicateNav_) _duplicateNav_L5;
+							   vn->__iterate = (iterate_)_iterate_L5;
+							   vn->__iterate_following = (iterate_following_)_iterate_following_L5;
+							   vn->__iterate_followingNS = (iterate_followingNS_)_iterate_followingNS_L5;
+							   vn->__iterate_preceding = (iterate_preceding_)_iterate_preceding_L5;
+							   vn->__iterate_precedingNS = (iterate_precedingNS_)_iterate_precedingNS_L5;
+							   vn->__iterateNS =(iterateNS_) _iterateNS_L5;
+							   vn->__pop = (pop_)_pop_L5;
+							   vn->__pop2 = (pop2_)_pop2_L5;
+							   vn->__push = (push_)_push_L5;
+							   vn->__push2 = (push2_)_push2_L5;
+							   vn->__recoverNode = (recoverNode_)_recoverNode_L5;
+							   vn->__resolveLC = (resolveLC_)_resolveLC_L5;
+							   vn->__sampleState = (sampleState_)_sampleState_L5;
+							   vn->__toElement = (toElement_)_toElement_L5;
+							   vn->__toElement2 = (toElement2_)_toElement2_L5;
+							   vn->__toElementNS = (toElementNS_)_toElementNS_L5;
+							   vn->__writeIndex_VTDNav = (writeIndex_VTDNav_)_writeIndex_VTDNav_L5;
+							   vn->__writeIndex2_VTDNav = (writeIndex2_VTDNav_)_writeIndex2_VTDNav_L5;							
+							   vn->__writeSeparateIndex_VTDNav = (writeSeparateIndex_VTDNav_)_writeSeparateIndex_VTDNav_L5;
+							   vn->l1Buffer = l1;
+							   vn->l2Buffer = l2;
+							   vn->_l3Buffer = l3;
+							   vn->l4Buffer = l4;
+							   vn->l5Buffer = l5;
+							   vn->vtdBuffer= vtd;
+							   vn->XMLDoc = x;
+
+							   vn->encoding = enc;
+							   vn->rootIndex = r;
+							   vn->nestingLevel = depth +1;
+
+							   vn->ns = ns;
+
+							   if (ns == TRUE)
+								   vn->offsetMask = MASK_TOKEN_OFFSET1;
+							   else 
+								   vn->offsetMask = MASK_TOKEN_OFFSET2;
+
+							   vn->atTerminal = FALSE;					
+							   vn->context = (int *)malloc(vn->nestingLevel*sizeof(int));
+							   if (vn->context == NULL){
+								   throwException2(out_of_mem,							 
+									   "VTDNav allocation failed ");
+								   return NULL;
+							   }
+							   vn->context[0] = 0;
+							   for (i=1;i<vn->nestingLevel;i++){
+								   vn->context[i] = -1;
+							   }
+							   //vn->currentOffset = 0;
+							   Try{
+								   vn->contextBuf = createContextBuffer2(10, vn->nestingLevel+15);
+								   vn->contextBuf2 = createContextBuffer2(10,vn->nestingLevel+15);
+							   }Catch(e){
+								   freeContextBuffer(vn->contextBuf);
+								   freeContextBuffer(vn->contextBuf2);
+								   //free(vn->stackTemp);
+								   free(vn->context);
+								   free(vn);
+								   throwException2(out_of_mem,							 
+									   "VTDNav allocation failed ");
+								   return NULL;
+							   }
+
+							   vn->stackTemp = (int *)malloc((vn->nestingLevel+15)*sizeof(int));
+
+							   if (vn->contextBuf == NULL 
+								   || vn->stackTemp == NULL){
+									   freeContextBuffer(vn->contextBuf);
+									   freeContextBuffer(vn->contextBuf2);
+									   free(vn->stackTemp);
+									   free(vn->context);
+									   free(vn);
+									   throwException2(out_of_mem,							 
+										   "VTDNav allocation failed ");
+									   return NULL;
+							   }
+							   vn->l1index = vn->l2index = vn->l3index = vn->l4index = vn->l5index=-1;
+							   vn->l2lower = vn->l2upper = -1;
+							   vn->l3lower = vn->l3upper = -1;
+							   vn->l4lower = vn->l4upper = -1;
+							   vn->l5lower = vn->l5upper = -1;
+							   vn->docOffset = so;
+							   vn->docLen = len;
+							   vn->vtdSize = vtd->size;
+							   vn->bufLen = xLen;
+							   vn->br = br;
+							   vn->LN = 0;
+							   vn->shallowDepth = FALSE;
+							   return vn;
+
+}
+
+int _iterate_L5(VTDNav_L5 *vn, int dp, UCSChar *en, Boolean special){
+	// get the current depth
+	int index = getCurrentIndex((VTDNav *)vn) + 1;
+	tokenType tokenType;
+	//int size = vtdBuffer.size;
+	while (index < vn->vtdSize) {
+		tokenType = getTokenType((VTDNav *)vn,index);
+		if (tokenType==TOKEN_ATTR_NAME
+			|| tokenType ==TOKEN_ATTR_NS){			  
+				index = index+2;
+				continue;
+		}
+		if (isElementOrDocument((VTDNav *)vn,index)) {
+			int depth = getTokenDepth((VTDNav *) vn, index);
+			if (depth > dp) {
+				vn->context[0] = depth;
+				if (depth>0)
+					vn->context[depth] = index;
+				if (special || matchElement((VTDNav *)vn,en)) {
+					if (dp< 6)
+						resolveLC((VTDNav *)vn);
+					return TRUE;
+				}
+			} else {
+				return FALSE;
+			}
+		}
+		index++;
+
+	}
+	return FALSE;
+}
+
+/* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
+VTDNav *_duplicateNav_L5(VTDNav_L5 *vn){	
+	VTDNav_L5* vn1 = createVTDNav_L5( vn->rootIndex,
+		vn->encoding,
+		vn->ns,
+		vn->nestingLevel-1,
+		vn->XMLDoc,
+		vn->bufLen,
+		vn->vtdBuffer,
+		vn->l1Buffer,
+		vn->l2Buffer,
+		vn->_l3Buffer,
+		vn->l4Buffer,
+		vn->l5Buffer,
+		vn->docOffset,
+		vn->docLen,
+		vn->br);	
+	vn1->master = FALSE;
+	return (VTDNav *)vn1;
+}
+
+/* CloneNav duplicates an instance of VTDNav, also copies node position over */
+VTDNav *_cloneNav_L5(VTDNav_L5 *vn){
+		VTDNav_L5* vn1 = createVTDNav_L5( vn->rootIndex,
+		vn->encoding,
+		vn->ns,
+		vn->nestingLevel-1,
+		vn->XMLDoc,
+		vn->bufLen,
+		vn->vtdBuffer,
+		vn->l1Buffer,
+		vn->l2Buffer,
+		vn->_l3Buffer,
+		vn->l4Buffer,
+		vn->l5Buffer,
+		vn->docOffset,
+		vn->docLen,
+		vn->br);	
+	vn1->master = FALSE;
+	vn1->atTerminal = vn->atTerminal;
+	vn1->LN = vn->LN;
+	if (vn->context[0]!=-1)
+		memcpy(vn1->context,vn->context, vn->context[0]);
+		//System.arraycopy(vn.context, 0, vn.context, 0, this.context[0] );
+	else 
+		vn1->context[0]=-1;
+	vn1->l1index = vn->l1index; 
+	if (getCurrentDepth((VTDNav *)vn)>1){
+		vn1->l2index = vn->l2index;
+		vn1->l2upper = vn->l2upper;
+		vn1->l2lower = vn->l2lower;
+	}
+	if (getCurrentDepth((VTDNav *)vn) > 2) {
+		vn1->l3lower = vn->l3lower;
+		vn1->l3index = vn->l3index;
+		vn1->l3upper = vn->l3upper;
+	}
+	if (getCurrentDepth((VTDNav *)vn) > 3) {
+		vn1->l4lower = vn->l4lower;
+		vn1->l4index = vn->l4index;
+		vn1->l4upper = vn->l4upper;
+	}
+	if (getCurrentDepth((VTDNav *)vn) > 4) {
+		vn1->l5lower = vn->l5lower;
+		vn1->l5index = vn->l5index;
+		vn1->l5upper = vn->l5upper;
+	}
+	return (VTDNav *)vn1;
+}
+
+/* This method takes a vtd index, and recover its correspondin
+ * node position, the index can only be of node type element,
+ * document, attribute name, attribute value or character data,
+ * or CDATA  */
+void _recoverNode_L5(VTDNav_L5 *vn, int index){
+	int t,d;
+	tokenType type;
+	if (index <0 || index>=vn->vtdSize )
+		throwException2(nav_exception,"Invalid VTD index");
+
+	type = getTokenType((VTDNav *)vn,index);
+	if (//type == VTDNav.TOKEN_COMMENT ||
+		//	type == VTDNav.TOKEN_PI_NAME ||
+		type == TOKEN_PI_VAL ||
+		type == TOKEN_DEC_ATTR_NAME ||
+		type == TOKEN_DEC_ATTR_VAL ||
+		type == TOKEN_ATTR_VAL)
+		throwException2(nav_exception,"Token type not yet supported");
+
+	// get depth
+	d = getTokenDepth((VTDNav *)vn,index);
+	// handle document node;
+	switch (d){
+		case -1:
+			vn->context[0]=-1;
+			if (index != 0){
+				vn->LN = index;
+				vn->atTerminal = TRUE;
+			}			
+			return;
+		case 0:
+			vn->context[0]=0;
+			if (index != vn->rootIndex){
+				vn->LN = index;
+				vn->atTerminal = TRUE;
+			}
+			return;		
+	}
+	vn->context[0]=d;
+	if (type != TOKEN_STARTING_TAG){
+		vn->LN = index;
+		vn->atTerminal = TRUE;
+	}
+	// search LC level 1
+	recoverNode_l1((VTDNav *)vn,index);
+
+	if (d==1)
+		return;
+	// search LC level 2
+	recoverNode_l2((VTDNav *)vn,index);
+	if (d==2){
+		//resolveLC();
+		return;
+	}
+	// search LC level 3
+	_recoverNode_l3(vn,index);
+	if (d==3){
+		//resolveLC();
+		return;
+	}
+
+	recoverNode_l4(vn,index);
+	if (d==4){
+		//resolveLC();
+		return;
+	}
+
+	recoverNode_l5(vn,index);
+	if (d==5){
+		//resolveLC();
+		return;
+	}
+
+	// scan backward
+	if ( type == TOKEN_STARTING_TAG ){
+		vn->context[d] = index;
+	} else{
+		int t = index-1;
+		while( !(getTokenType((VTDNav *)vn,t)==TOKEN_STARTING_TAG && 
+			getTokenDepth((VTDNav *)vn,t)==d)){
+				t--;
+		}
+		vn->context[d] = t;
+	}
+	t = vn->context[d]-1;
+	d--;
+	while(d>5){
+		while( !(getTokenType((VTDNav *)vn,t)==TOKEN_STARTING_TAG && 
+			getTokenDepth((VTDNav *)vn,t)==d)){
+				t--;
+		}
+		vn->context[d] = t;
+		d--;
+	}
+}
+
+
+//This method is similar to getElementByName in DOM except it doesn't
+//return the nodeset, instead it iterates over those nodes .
+//When URL is "*" it will match any namespace
+//if ns is FALSE, return FALSE immediately
+int _iterateNS_L5(VTDNav_L5 *vn, int dp, UCSChar *URL, UCSChar *ln){
+	int index;
+	tokenType tokenType;
+	if (vn->ns == FALSE)
+		return FALSE;
+
+	index = getCurrentIndex((VTDNav *)vn) + 1;
+	while (index < vn->vtdSize) {
+		tokenType = getTokenType((VTDNav *)vn, index);
+		if(tokenType==TOKEN_ATTR_NAME
+			|| tokenType == TOKEN_ATTR_NS){
+				index = index+2;
+				continue;
+		}
+		if (isElementOrDocument((VTDNav *)vn,index)) {
+			int depth = getTokenDepth((VTDNav *)vn,index);
+			if (depth > dp) {
+				vn->context[0] = depth;
+				if (depth>0)
+					vn->context[depth] = index;
+				if (matchElementNS((VTDNav *)vn,URL, ln)) {
+					if (dp < 6)
+						resolveLC((VTDNav *)vn);
+					return TRUE;
+				}
+			} else {
+				return FALSE;
+			}
+		}
+		index++;
+	}
+	return FALSE;
+}
+
+
+// This function is called by selectElement_P in autoPilot
+Boolean _iterate_preceding_L5(VTDNav_L5 *vn,UCSChar *en, int* a, Boolean special){
+		int t,d,i,index = getCurrentIndex((VTDNav *)vn) - 1;
+		//int depth = getTokenDepth(index);
+		//int size = vtdBuffer.size;
+		while (index >  0) {
+			if (isElementOrDocument((VTDNav *)vn,index)) {
+				int depth = getTokenDepth((VTDNav *)vn,index);
+				vn->context[0] = depth;
+				//context[depth]=index;
+				if (depth>0){
+					vn->context[depth] = index;
+					t = index -1;
+					for (i=depth-1;i>0;i--){
+						if (vn->context[i]>index || vn->context[i] == -1){
+							while(t>0){
+								d = getTokenDepth((VTDNav *)vn,t);
+								if ( d == i && isElement((VTDNav *)vn,t)){
+									vn->context[i] = t;
+									break;
+								}
+								t--;
+							}							
+						}else
+							break;
+					}
+				}
+				//dumpContext();
+				if (index!= a[depth] && (special || matchElement((VTDNav *)vn,en))) {
+					if (depth <6)
+						resolveLC((VTDNav *)vn);
+					return TRUE;
+				}
+			} 
+			index--;
+		}
+		return FALSE;	
+}
+
+// This function is called by selectElementNS_P in autoPilot
+Boolean _iterate_precedingNS_L5(VTDNav_L5 *vn,UCSChar *URL, UCSChar *ln, int* a){
+		int t,d,i,index = getCurrentIndex((VTDNav *)vn) - 1;
+		
+		//int depth = getTokenDepth(index);
+		//int size = vtdBuffer.size;
+		while (index > 0 ) {
+			if (isElementOrDocument((VTDNav *)vn,index)) {
+				int depth = getTokenDepth((VTDNav *)vn,index);
+				vn->context[0] = depth;
+				//context[depth]=index;
+				if (depth>0){
+					vn->context[depth] = index;
+					t = index -1;
+					for (i=depth-1;i>0;i--){
+						if (vn->context[i]>index || vn->context[i]==-1){
+							while(t>0){
+								d = getTokenDepth((VTDNav *)vn,t);
+								if ( d == i && isElement((VTDNav *)vn,t)){
+									vn->context[i] = t;
+									break;
+								}
+								t--;
+							}							
+						}else
+							break;
+					}
+				}
+				//dumpContext();
+				if (index != a[depth] && matchElementNS((VTDNav *)vn,URL,ln)) {	
+					if (depth <6)
+						resolveLC((VTDNav *)vn);
+					return TRUE;
+				}
+			} 
+			index--;
+		}
+		return FALSE;	
+}
+// This function is called by selectElement_F in autoPilot
+Boolean _iterate_following_L5(VTDNav_L5 *vn,UCSChar *en, Boolean special){
+		int index = getCurrentIndex((VTDNav *)vn) + 1;
+		//int size = vtdBuffer.size;
+		while (index < vn->vtdSize) {
+			if (isElementOrDocument((VTDNav *)vn,index)) {
+				int depth = getTokenDepth((VTDNav *)vn,index);
+				vn->context[0] = depth;
+				if (depth>0)
+					vn->context[depth] = index;
+				if (special || matchElement((VTDNav *)vn,en)) {	
+					if (depth <6)
+					  resolveLC((VTDNav *)vn);
+					return TRUE;
+				}
+			} 
+			index++;
+		}
+		return FALSE;	
+}
+// This function is called by selectElementNS_F in autoPilot
+Boolean _iterate_followingNS_L5(VTDNav_L5 *vn, UCSChar *URL, UCSChar *ln){
+		int index = getCurrentIndex((VTDNav *)vn) + 1;
+		//int size = vtdBuffer.size;
+		while (index < vn->vtdSize) {
+			if (isElementOrDocument((VTDNav *)vn, index)) {
+				int depth = getTokenDepth((VTDNav *)vn,index);
+				vn->context[0] = depth;
+				if (depth>0)
+					vn->context[depth] = index;
+				if (matchElementNS((VTDNav *)vn,URL,ln)) {	
+					if (depth <6)
+						resolveLC((VTDNav *)vn);
+					return TRUE;
+				}
+			} 
+			index++;
+		}
+		return FALSE;
+}
+
+//Load the context info from ContextBuffer.
+//Info saved including LC and current state of the context 
+Boolean _pop_L5(VTDNav_L5 *vn){
+	Boolean b =load(vn->contextBuf,vn->stackTemp);
+	int i;
+	if (b == FALSE)
+		return FALSE;
+	for (i = 0; i < vn->nestingLevel; i++) {
+		vn->context[i] = vn->stackTemp[i];
+	}
+
+	vn->l1index = vn->stackTemp[vn->nestingLevel];
+	vn->l2index = vn->stackTemp[vn->nestingLevel + 1];
+	vn->l3index = vn->stackTemp[vn->nestingLevel + 2];
+	vn->l4index = vn->stackTemp[vn->nestingLevel + 3];
+	vn->l5index = vn->stackTemp[vn->nestingLevel + 4];
+	vn->l2lower = vn->stackTemp[vn->nestingLevel + 5];
+	vn->l2upper = vn->stackTemp[vn->nestingLevel + 6];
+	vn->l3lower = vn->stackTemp[vn->nestingLevel + 7];
+	vn->l3upper = vn->stackTemp[vn->nestingLevel + 8];
+	vn->l4lower = vn->stackTemp[vn->nestingLevel + 9];
+	vn->l4upper = vn->stackTemp[vn->nestingLevel + 10];
+	vn->l5lower = vn->stackTemp[vn->nestingLevel + 11];
+	vn->l5upper = vn->stackTemp[vn->nestingLevel + 12];
+	vn->atTerminal = (vn->stackTemp[vn->nestingLevel + 13] == 1);
+	vn->LN = vn->stackTemp[vn->nestingLevel+14];
+	return TRUE;
+}
+
+Boolean _pop2_L5(VTDNav_L5 *vn){
+	Boolean b =load(vn->contextBuf2,vn->stackTemp);
+	int i;
+	if (b == FALSE)
+		return FALSE;
+	for (i = 0; i < vn->nestingLevel; i++) {
+		vn->context[i] = vn->stackTemp[i];
+	}
+
+	vn->l1index = vn->stackTemp[vn->nestingLevel];
+	vn->l2index = vn->stackTemp[vn->nestingLevel + 1];
+	vn->l3index = vn->stackTemp[vn->nestingLevel + 2];
+	vn->l4index = vn->stackTemp[vn->nestingLevel + 3];
+	vn->l5index = vn->stackTemp[vn->nestingLevel + 4];
+	vn->l2lower = vn->stackTemp[vn->nestingLevel + 5];
+	vn->l2upper = vn->stackTemp[vn->nestingLevel + 6];
+	vn->l3lower = vn->stackTemp[vn->nestingLevel + 7];
+	vn->l3upper = vn->stackTemp[vn->nestingLevel + 8];
+	vn->l4lower = vn->stackTemp[vn->nestingLevel + 9];
+	vn->l4upper = vn->stackTemp[vn->nestingLevel + 10];
+	vn->l5lower = vn->stackTemp[vn->nestingLevel + 11];
+	vn->l5upper = vn->stackTemp[vn->nestingLevel + 12];
+	vn->atTerminal = (vn->stackTemp[vn->nestingLevel + 13] == 1);
+	vn->LN = vn->stackTemp[vn->nestingLevel+14];
+	return TRUE;
+}
+//Store the context info into the ContextBuffer.
+//Info saved including LC and current state of the context 
+Boolean _push_L5(VTDNav_L5 *vn){
+	int i;
+	for (i = 0; i < vn->nestingLevel; i++) {
+		vn->stackTemp[i] = vn->context[i];
+	}
+	vn->stackTemp[vn->nestingLevel] = vn->l1index;
+	vn->stackTemp[vn->nestingLevel + 1] = vn->l2index;
+	vn->stackTemp[vn->nestingLevel + 2] = vn->l3index;
+	vn->stackTemp[vn->nestingLevel + 3] = vn->l4index;
+	vn->stackTemp[vn->nestingLevel + 4] = vn->l5index;
+	vn->stackTemp[vn->nestingLevel + 5] = vn->l2lower;
+	vn->stackTemp[vn->nestingLevel + 6] = vn->l2upper;
+	vn->stackTemp[vn->nestingLevel + 7] = vn->l3lower;
+	vn->stackTemp[vn->nestingLevel + 8] = vn->l3upper;
+	vn->stackTemp[vn->nestingLevel + 9] = vn->l4lower;
+	vn->stackTemp[vn->nestingLevel + 10] = vn->l4upper;
+	vn->stackTemp[vn->nestingLevel + 11] = vn->l5lower;
+	vn->stackTemp[vn->nestingLevel + 12] = vn->l5upper;
+
+	if (vn->atTerminal)
+		vn->stackTemp[vn->nestingLevel + 13] =1;
+	else
+		vn->stackTemp[vn->nestingLevel + 13] =0;
+	vn->stackTemp[vn->nestingLevel+14] = vn->LN; 
+	store(vn->contextBuf,vn->stackTemp);
+	return TRUE;
+}
+
+Boolean _push2_L5(VTDNav_L5 *vn){
+	int i;
+	for (i = 0; i < vn->nestingLevel; i++) {
+		vn->stackTemp[i] = vn->context[i];
+	}
+	vn->stackTemp[vn->nestingLevel] = vn->l1index;
+	vn->stackTemp[vn->nestingLevel + 1] = vn->l2index;
+	vn->stackTemp[vn->nestingLevel + 2] = vn->l3index;
+	vn->stackTemp[vn->nestingLevel + 3] = vn->l4index;
+	vn->stackTemp[vn->nestingLevel + 4] = vn->l5index;
+	vn->stackTemp[vn->nestingLevel + 5] = vn->l2lower;
+	vn->stackTemp[vn->nestingLevel + 6] = vn->l2upper;
+	vn->stackTemp[vn->nestingLevel + 7] = vn->l3lower;
+	vn->stackTemp[vn->nestingLevel + 8] = vn->l3upper;
+	vn->stackTemp[vn->nestingLevel + 9] = vn->l4lower;
+	vn->stackTemp[vn->nestingLevel + 10] = vn->l4upper;
+	vn->stackTemp[vn->nestingLevel + 11] = vn->l5lower;
+	vn->stackTemp[vn->nestingLevel + 12] = vn->l5upper;
+
+	if (vn->atTerminal)
+		vn->stackTemp[vn->nestingLevel + 13] =1;
+	else
+		vn->stackTemp[vn->nestingLevel + 13] =0;
+	vn->stackTemp[vn->nestingLevel+14] = vn->LN; 
+	store(vn->contextBuf2,vn->stackTemp);
+	return TRUE;
+}
+void _sampleState_L5(VTDNav_L5 *vn, FastIntBuffer *fib){
+		if (vn->context[0]>=1)
+			appendInt(fib,vn->l1index);
+		
+		
+		if (vn->context[0]>=2){
+			appendInt(fib,vn->l2index);
+			appendInt(fib,vn->l2lower);
+			appendInt(fib,vn->l2upper);				
+		}
+		
+		if (vn->context[0]>=3){
+		   appendInt(fib,vn->l3index);
+		   appendInt(fib,vn->l3lower);
+		   appendInt(fib,vn->l3upper);
+		}
+		
+		if (vn->context[0]>=4){
+			   appendInt(fib,vn->l4index);
+			   appendInt(fib,vn->l4lower);
+			   appendInt(fib,vn->l4upper);	
+		}
+		
+		if (vn->context[0]>=5){  
+			appendInt(fib,vn->l5index);
+			appendInt(fib,vn->l5lower);
+			appendInt(fib,vn->l5upper);			
+		}
+}
+
+Boolean _toElement_L5(VTDNav_L5 *vn, navDir direction){
+		int size,i;
+		switch (direction) {
+			case ROOT : // to document element!
+				if (vn->context[0] != 0) {
+					/*
+                     * for (int i = 1; i <= context[0]; i++) { context[i] =
+                     * 0xffffffff; }
+                     */
+					vn->context[0] = 0;
+				}
+				vn->atTerminal = FALSE;
+				vn->l1index = vn->l2index = vn->l3index = -1;
+				return TRUE;
+			case PARENT :
+				if (vn->atTerminal == TRUE){
+					vn->atTerminal = FALSE;
+					return TRUE;
+				}
+				if (vn->context[0] > 0) {
+					//context[context[0]] = context[context[0] + 1] =
+                    // 0xffffffff;
+					vn->context[vn->context[0]] = -1;
+					vn->context[0]--;
+					return TRUE;
+				}else if (vn->context[0]==0){
+					vn->context[0]=-1; //to be compatible with XPath Data model
+					return TRUE;
+ 				}
+				else {
+					return FALSE;
+				}
+			case FIRST_CHILD :
+			case LAST_CHILD :
+				if (vn->atTerminal) return FALSE;
+				switch (vn->context[0]) {
+				    case -1:
+				    	vn->context[0] = 0;
+				    	return TRUE;
+					case 0 :
+						if (vn->l1Buffer->size > 0) {
+							vn->context[0] = 1;
+							vn->l1index =
+								(direction == FIRST_CHILD)
+									? 0
+									: (vn->l1Buffer->size - 1);
+							vn->context[1] = upper32At(vn->l1Buffer,vn->l1index);
+							//(int) (vtdToken >> 32);
+							return TRUE;
+						} else
+							return FALSE;
+					case 1 :
+						vn->l2lower = lower32At(vn->l1Buffer,vn->l1index);
+						if (vn->l2lower == -1) {
+							return FALSE;
+						}
+						vn->context[0] = 2;
+						vn->l2upper = vn->l2Buffer->size - 1;
+						size = vn->l1Buffer->size;
+						for (i = vn->l1index + 1; i < size; i++) {
+							int temp = lower32At(vn->l1Buffer,i);
+							if (temp != -1) {
+								vn->l2upper = temp - 1;
+								break;
+							}
+						}
+						//System.out.println(" l2 upper: " + l2upper + " l2
+                        // lower : " + l2lower);
+						vn->l2index =
+							(direction == FIRST_CHILD) ? vn->l2lower : vn->l2upper;
+						vn->context[2] = upper32At(vn->l2Buffer,vn->l2index);
+						return TRUE;
+						
+					case 2 :
+						vn->l3lower = lower32At(vn->l2Buffer,vn->l2index);
+						if (vn->l3lower == -1) {
+							return FALSE;
+						}
+						vn->context[0] = 3;
+						vn->l3upper = vn->_l3Buffer->size - 1;
+						size = vn->l2Buffer->size;
+						for (i = vn->l2index + 1; i < size; i++) {
+							int temp = lower32At(vn->l2Buffer,i);
+							if (temp != -1) {
+								vn->l3upper = temp - 1;
+								break;
+							}
+						}
+						//System.out.println(" l2 upper: " + l2upper + " l2
+                        // lower : " + l2lower);
+						vn->l3index =
+							(direction == FIRST_CHILD) ? vn->l3lower : vn->l3upper;
+						vn->context[3] = upper32At(vn->_l3Buffer,vn->l3index);
+						return TRUE;
+						
+					case 3 :
+						vn->l4lower = lower32At(vn->_l3Buffer,vn->l3index);
+						if (vn->l4lower == -1) {
+							return FALSE;
+						}
+						vn->context[0] = 4;
+						vn->l4upper = vn->l4Buffer->size - 1;
+						size = vn->_l3Buffer->size;
+						for (i = vn->l3index + 1; i < size; i++) {
+							int temp = lower32At(vn->_l3Buffer,i);
+							if (temp != -1) {
+								vn->l4upper = temp - 1;
+								break;
+							}
+						}
+						//System.out.println(" l2 upper: " + l2upper + " l2
+                        // lower : " + l2lower);
+						vn->l4index =
+							(direction == FIRST_CHILD) ? vn->l4lower : vn->l4upper;
+						vn->context[4] = upper32At(vn->l4Buffer,vn->l4index);
+						return TRUE;
+
+					case 4 :
+						vn->l5lower = lower32At(vn->l4Buffer,vn->l4index);
+						if (vn->l5lower == -1) {
+							return FALSE;
+						}
+						vn->context[0] = 5;
+
+						vn->l5upper = vn->l5Buffer->size - 1;
+						size = vn->l4Buffer->size;
+						for (i = vn->l4index + 1; i < size; i++) {
+							int temp = lower32At(vn->l4Buffer,i);
+							if (temp != -1) {
+								vn->l5upper = temp - 1;
+								break;
+							}
+						}
+						//System.out.println(" l3 upper : " + l3upper + " l3
+                        // lower : " + l3lower);
+						vn->l5index =
+							(direction == FIRST_CHILD) ? vn->l5lower : vn->l5upper;
+						vn->context[5] = intAt(vn->l5Buffer,vn->l5index);
+
+						return TRUE;
+
+					default :
+						if (direction == FIRST_CHILD) {
+							int index;
+							size = vn->vtdBuffer->size;
+							index = vn->context[vn->context[0]] + 1;
+							while (index < size) {
+								Long temp = longAt(vn->vtdBuffer,index);
+								int token_type =
+									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+										& 0xf;
+
+								if (token_type == TOKEN_STARTING_TAG) {
+									int depth =
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+									if (depth <= vn->context[0]) {
+										return FALSE;
+									} else if (depth == (vn->context[0] + 1)) {
+										vn->context[0] += 1;
+										vn->context[vn->context[0]] = index;
+										return TRUE;
+									}
+								}
+
+								index++;
+							} // what condition
+							return FALSE;
+						} else {
+							int index = vn->context[vn->context[0]] + 1;
+							int last_index = -1;
+							size = vn->vtdBuffer->size;
+							while (index < size) {
+								Long temp = longAt(vn->vtdBuffer,index);
+								int depth =
+									(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+								int token_type =
+									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+										& 0xf;
+								
+								if (token_type == TOKEN_STARTING_TAG) {
+									if (depth <= vn->context[0]) {
+										break;
+									} else if (depth == (vn->context[0] + 1)) {
+										last_index = index;
+									}
+								}
+
+								index++;
+							}
+							if (last_index == -1) {
+								return FALSE;
+							} else {
+								vn->context[0] += 1;
+								vn->context[vn->context[0]] = last_index;
+								return TRUE;
+							}
+						}
+				}
+
+			case NEXT_SIBLING :
+			case PREV_SIBLING :
+				if(vn->atTerminal)return FALSE;
+				switch (vn->context[0]) {
+					case -1:
+					case 0 :
+						return FALSE;
+					case 1 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l1index + 1 >= vn->l1Buffer->size) {
+								return FALSE;
+							}
+
+							vn->l1index++; // global incremental
+						} else {
+							if (vn->l1index - 1 < 0) {
+								return FALSE;
+							}
+							vn->l1index--; // global incremental
+						}
+						vn->context[1] = upper32At(vn->l1Buffer,vn->l1index);
+						return TRUE;
+					case 2 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l2index + 1 > vn->l2upper) {
+								return FALSE;
+							}
+							vn->l2index++;
+						} else {
+							if (vn->l2index - 1 < vn->l2lower) {
+								return FALSE;
+							}
+							vn->l2index--;
+						}
+						vn->context[2] = upper32At(vn->l2Buffer,vn->l2index);
+						return TRUE;
+						
+					case 3 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l3index + 1 > vn->l3upper) {
+								return FALSE;
+							}
+							vn->l3index++;
+						} else {
+							if (vn->l3index - 1 < vn->l3lower) {
+								return FALSE;
+							}
+							vn->l3index--;
+						}
+						vn->context[3] = upper32At(vn->_l3Buffer,vn->l3index);
+						return TRUE;
+						
+					case 4 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l4index + 1 > vn->l4upper) {
+								return FALSE;
+							}
+							vn->l4index++;
+						} else {
+							if (vn->l4index - 1 < vn->l4lower) {
+								return FALSE;
+							}
+							vn->l4index--;
+						}
+						vn->context[4] = upper32At(vn->l4Buffer,vn->l4index);
+						return TRUE;
+					case 5 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l5index + 1 > vn->l5upper) {
+								return FALSE;
+							}
+							vn->l5index++;
+						} else {
+							if (vn->l5index - 1 < vn->l5lower) {
+								return FALSE;
+							}
+							vn->l5index--;
+						}
+						vn->context[5] = intAt(vn->l5Buffer,vn->l5index);
+						return TRUE;
+					default :
+						//int index = context[context[0]] + 1;
+
+						if (direction == NEXT_SIBLING) {
+							int index = vn->context[vn->context[0]] + 1;
+							size = vn->vtdBuffer->size;
+							while (index < size) {
+								Long temp = longAt(vn->vtdBuffer,index);
+								int token_type =
+									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+										& 0xf;
+
+								if (token_type == TOKEN_STARTING_TAG) {
+									int depth =
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+									if (depth < vn->context[0]) {
+										return FALSE;
+									} else if (depth == (vn->context[0])) {
+										vn->context[vn->context[0]] = index;
+										return TRUE;
+									}
+								}
+								index++;
+							}
+							return FALSE;
+						} else {
+							int index = vn->context[vn->context[0]] - 1;
+							while (index > vn->context[vn->context[0] - 1]) {
+								// scan backforward
+								Long temp = longAt(vn->vtdBuffer,index);
+								int token_type =
+									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+										& 0xf;
+
+								if (token_type == TOKEN_STARTING_TAG) {
+									int depth =
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+									/*
+                                     * if (depth < context[0]) { return FALSE; }
+                                     * else
+                                     */
+									if (depth == (vn->context[0])) {
+										vn->context[vn->context[0]] = index;
+										return TRUE;
+									}
+								}
+								index--;
+							} // what condition
+							return FALSE;
+						}
+				}
+
+			default :
+				throwException2(nav_exception,"illegal navigation options");
+				return FALSE;
+		}
+}
+Boolean _toElement2_L5(VTDNav_L5 *vn, navDir direction, UCSChar *en){
+		int temp;
+		int d;
+		int val=0;
+		if (en == NULL)
+			throwException2( invalid_argument, " Element name can't be null ");
+		if (wcscmp(en,L"*"))
+			return _toElement_L5(vn,direction);
+		switch (direction) {
+			case ROOT :
+				return _toElement_L5(vn, ROOT);
+
+			case PARENT :
+				return _toElement_L5(vn, PARENT);
+
+			case FIRST_CHILD :
+				if (vn->atTerminal)return FALSE;
+				if (_toElement_L5(vn, FIRST_CHILD) == FALSE)
+					return FALSE;
+				// check current element name
+				if (matchElement((VTDNav *)vn, en) == FALSE) {
+					if (_toElement2_L5(vn, NEXT_SIBLING, en) == TRUE)
+						return TRUE;
+					else {
+						//toParentElement();
+						//context[context[0]] = 0xffffffff;
+						vn->context[0]--;
+						return FALSE;
+					}
+				} else
+					return TRUE;
+
+			case LAST_CHILD :
+				if (vn->atTerminal)return FALSE;
+				if (_toElement_L5(vn,LAST_CHILD) == FALSE)
+					return FALSE;
+				if (matchElement((VTDNav *)vn, en) == FALSE) {
+					if (_toElement2_L5(vn,PREV_SIBLING, en) == TRUE)
+						return TRUE;
+					else {
+						//context[context[0]] = 0xffffffff;
+						vn->context[0]--;
+						//toParentElement();
+						return FALSE;
+					}
+				} else
+					return TRUE;
+
+			case NEXT_SIBLING :
+				if (vn->atTerminal)return FALSE;
+				d = vn->context[0];
+				
+				switch(d)
+				{
+				  case -1:
+				  case 0: return FALSE;
+				  case 1: val = vn->l1index; break;
+				  case 2: val = vn->l2index; break;
+				  case 3: val = vn->l3index; break;
+				  case 4: val = vn->l4index; break;
+				  case 5: val = vn->l5index; break;
+				  	//default:
+				}
+				temp = vn->context[d]; // store the current position
+				
+				while (_toElement_L5(vn,NEXT_SIBLING)) {
+					if (matchElement((VTDNav *)vn,en)) {
+						return TRUE;
+					}
+				}
+				switch(d)
+				{
+				  case 1: vn->l1index = val; break;
+				  case 2: vn->l2index = val; break;
+				  case 3: vn->l3index = val; break;
+				  case 4: vn->l4index = val; break;
+				  case 5: vn->l5index = val; break;
+				  	//default:
+				}
+				vn->context[d] = temp;
+				return FALSE;
+
+			case PREV_SIBLING :
+				if (vn->atTerminal) return FALSE;
+				d = vn->context[0];
+				switch(d)
+				{
+				  case -1:
+				  case 0: return FALSE;
+				  case 1: val = vn->l1index; break;
+				  case 2: val = vn->l2index; break;
+				  case 3: val = vn->l3index; break;
+				  case 4: val = vn->l4index; break;
+				  case 5: val = vn->l5index; break;
+				  	//default:
+				}
+				temp = vn->context[d]; // store the current position
+				
+				while (_toElement_L5(vn,PREV_SIBLING)) {
+					if (matchElement((VTDNav *)vn,en)) {
+						return TRUE;
+					}
+				}
+				switch(d)
+				{
+				  case 1: vn->l1index = val; break;
+				  case 2: vn->l2index = val; break;
+				  case 3: vn->l3index = val; break;
+				  case 4: vn->l4index = val; break;
+				  case 5: vn->l5index = val; break;
+				  	//default:
+				}
+				vn->context[d] = temp;
+				return FALSE;
+
+			default :
+				throwException2( nav_exception,"illegal navigation options");
+				return FALSE;
+		}
+}
+Boolean _toElementNS_L5(VTDNav_L5 *vn, navDir direction, UCSChar *URL, UCSChar *ln){
+		int size,i;
+		switch (direction) {
+			case ROOT : // to document element!
+				if (vn->context[0] != 0) {
+					/*
+                     * for (int i = 1; i <= context[0]; i++) { context[i] =
+                     * 0xffffffff; }
+                     */
+					vn->context[0] = 0;
+				}
+				vn->atTerminal = FALSE;
+				vn->l1index = vn->l2index = vn->l3index = -1;
+				return TRUE;
+			case PARENT :
+				if (vn->atTerminal == TRUE){
+					vn->atTerminal = FALSE;
+					return TRUE;
+				}
+				if (vn->context[0] > 0) {
+					//context[context[0]] = context[context[0] + 1] =
+                    // 0xffffffff;
+					vn->context[vn->context[0]] = -1;
+					vn->context[0]--;
+					return TRUE;
+				}else if (vn->context[0]==0){
+					vn->context[0]=-1; //to be compatible with XPath Data model
+					return TRUE;
+ 				}
+				else {
+					return FALSE;
+				}
+			case FIRST_CHILD :
+			case LAST_CHILD :
+				if (vn->atTerminal) return FALSE;
+				switch (vn->context[0]) {
+				    case -1:
+				    	vn->context[0] = 0;
+				    	return TRUE;
+					case 0 :
+						if (vn->l1Buffer->size > 0) {
+							vn->context[0] = 1;
+							vn->l1index =
+								(direction == FIRST_CHILD)
+									? 0
+									: (vn->l1Buffer->size - 1);
+							vn->context[1] = upper32At(vn->l1Buffer,vn->l1index);
+							//(int) (vtdToken >> 32);
+							return TRUE;
+						} else
+							return FALSE;
+					case 1 :
+						vn->l2lower = lower32At(vn->l1Buffer,vn->l1index);
+						if (vn->l2lower == -1) {
+							return FALSE;
+						}
+						vn->context[0] = 2;
+						vn->l2upper = vn->l2Buffer->size - 1;
+						size = vn->l1Buffer->size;
+						for (i = vn->l1index + 1; i < size; i++) {
+							int temp = lower32At(vn->l1Buffer,i);
+							if (temp != -1) {
+								vn->l2upper = temp - 1;
+								break;
+							}
+						}
+						//System.out.println(" l2 upper: " + l2upper + " l2
+                        // lower : " + l2lower);
+						vn->l2index =
+							(direction == FIRST_CHILD) ? vn->l2lower : vn->l2upper;
+						vn->context[2] = upper32At(vn->l2Buffer,vn->l2index);
+						return TRUE;
+						
+					case 2 :
+						vn->l3lower = lower32At(vn->l2Buffer,vn->l2index);
+						if (vn->l3lower == -1) {
+							return FALSE;
+						}
+						vn->context[0] = 3;
+						vn->l3upper = vn->l3Buffer->size - 1;
+						size = vn->l2Buffer->size;
+						for (i = vn->l2index + 1; i < size; i++) {
+							int temp = lower32At(vn->l2Buffer,i);
+							if (temp != -1) {
+								vn->l3upper = temp - 1;
+								break;
+							}
+						}
+						//System.out.println(" l2 upper: " + l2upper + " l2
+                        // lower : " + l2lower);
+						vn->l3index =
+							(direction == FIRST_CHILD) ? vn->l3lower : vn->l3upper;
+						vn->context[3] = upper32At(vn->_l3Buffer,vn->l3index);
+						return TRUE;
+						
+					case 3 :
+						vn->l4lower = lower32At(vn->_l3Buffer,vn->l3index);
+						if (vn->l4lower == -1) {
+							return FALSE;
+						}
+						vn->context[0] = 4;
+						vn->l4upper = vn->l4Buffer->size - 1;
+						size = vn->l3Buffer->size;
+						for (i = vn->l3index + 1; i < size; i++) {
+							int temp = lower32At(vn->_l3Buffer,i);
+							if (temp != -1) {
+								vn->l4upper = temp - 1;
+								break;
+							}
+						}
+						//System.out.println(" l2 upper: " + l2upper + " l2
+                        // lower : " + l2lower);
+						vn->l4index =
+							(direction == FIRST_CHILD) ? vn->l4lower : vn->l4upper;
+						vn->context[4] = upper32At(vn->l4Buffer,vn->l4index);
+						return TRUE;
+
+					case 4 :
+						vn->l5lower = lower32At(vn->l4Buffer,vn->l4index);
+						if (vn->l5lower == -1) {
+							return FALSE;
+						}
+						vn->context[0] = 5;
+
+						vn->l5upper = vn->l5Buffer->size - 1;
+						size = vn->l4Buffer->size;
+						for (i = vn->l4index + 1; i < size; i++) {
+							int temp = lower32At(vn->l4Buffer,i);
+							if (temp != -1) {
+								vn->l5upper = temp - 1;
+								break;
+							}
+						}
+						//System.out.println(" l3 upper : " + l3upper + " l3
+                        // lower : " + l3lower);
+						vn->l5index =
+							(direction == FIRST_CHILD) ? vn->l5lower : vn->l5upper;
+						vn->context[5] = intAt(vn->l5Buffer,vn->l5index);
+
+						return TRUE;
+
+					default :
+						if (direction == FIRST_CHILD) {
+							int index;
+							size = vn->vtdBuffer->size;
+							index = vn->context[vn->context[0]] + 1;
+							while (index < size) {
+								Long temp = longAt(vn->vtdBuffer,index);
+								int token_type =
+									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+										& 0xf;
+
+								if (token_type == TOKEN_STARTING_TAG) {
+									int depth =
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+									if (depth <= vn->context[0]) {
+										return FALSE;
+									} else if (depth == (vn->context[0] + 1)) {
+										vn->context[0] += 1;
+										vn->context[vn->context[0]] = index;
+										return TRUE;
+									}
+								}
+
+								index++;
+							} // what condition
+							return FALSE;
+						} else {
+							int index = vn->context[vn->context[0]] + 1;
+							int last_index = -1;
+							size = vn->vtdBuffer->size;
+							while (index < size) {
+								Long temp = longAt(vn->vtdBuffer,index);
+								int depth =
+									(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+								int token_type =
+									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+										& 0xf;
+								
+								if (token_type == TOKEN_STARTING_TAG) {
+									if (depth <= vn->context[0]) {
+										break;
+									} else if (depth == (vn->context[0] + 1)) {
+										last_index = index;
+									}
+								}
+
+								index++;
+							}
+							if (last_index == -1) {
+								return FALSE;
+							} else {
+								vn->context[0] += 1;
+								vn->context[vn->context[0]] = last_index;
+								return TRUE;
+							}
+						}
+				}
+
+			case NEXT_SIBLING :
+			case PREV_SIBLING :
+				if(vn->atTerminal)return FALSE;
+				switch (vn->context[0]) {
+					case -1:
+					case 0 :
+						return FALSE;
+					case 1 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l1index + 1 >= vn->l1Buffer->size) {
+								return FALSE;
+							}
+
+							vn->l1index++; // global incremental
+						} else {
+							if (vn->l1index - 1 < 0) {
+								return FALSE;
+							}
+							vn->l1index--; // global incremental
+						}
+						vn->context[1] = upper32At(vn->l1Buffer,vn->l1index);
+						return TRUE;
+					case 2 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l2index + 1 > vn->l2upper) {
+								return FALSE;
+							}
+							vn->l2index++;
+						} else {
+							if (vn->l2index - 1 < vn->l2lower) {
+								return FALSE;
+							}
+							vn->l2index--;
+						}
+						vn->context[2] = upper32At(vn->l2Buffer, vn->l2index);
+						return TRUE;
+						
+					case 3 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l3index + 1 > vn->l3upper) {
+								return FALSE;
+							}
+							vn->l3index++;
+						} else {
+							if (vn->l3index - 1 < vn->l3lower) {
+								return FALSE;
+							}
+							vn->l3index--;
+						}
+						vn->context[3] = upper32At(vn->_l3Buffer,vn->l3index);
+						return TRUE;
+						
+					case 4 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l4index + 1 > vn->l4upper) {
+								return FALSE;
+							}
+							vn->l4index++;
+						} else {
+							if (vn->l4index - 1 < vn->l4lower) {
+								return FALSE;
+							}
+							vn->l4index--;
+						}
+						vn->context[4] = upper32At(vn->l4Buffer,vn->l4index);
+						return TRUE;
+					case 5 :
+						if (direction == NEXT_SIBLING) {
+							if (vn->l5index + 1 > vn->l5upper) {
+								return FALSE;
+							}
+							vn->l5index++;
+						} else {
+							if (vn->l5index - 1 < vn->l5lower) {
+								return FALSE;
+							}
+							vn->l5index--;
+						}
+						vn->context[5] = intAt(vn->l5Buffer,vn->l5index);
+						return TRUE;
+					default :
+						//int index = context[context[0]] + 1;
+
+						if (direction == NEXT_SIBLING) {
+							int index = vn->context[vn->context[0]] + 1;
+							size = vn->vtdBuffer->size;
+							while (index < size) {
+								Long temp = longAt(vn->vtdBuffer,index);
+								int token_type =
+									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+										& 0xf;
+
+								if (token_type == TOKEN_STARTING_TAG) {
+									int depth =
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+									if (depth < vn->context[0]) {
+										return FALSE;
+									} else if (depth == (vn->context[0])) {
+										vn->context[vn->context[0]] = index;
+										return TRUE;
+									}
+								}
+								index++;
+							}
+							return FALSE;
+						} else {
+							int index = vn->context[vn->context[0]] - 1;
+							while (index > vn->context[vn->context[0] - 1]) {
+								// scan backforward
+								Long temp = longAt(vn->vtdBuffer,index);
+								int token_type =
+									(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+										& 0xf;
+
+								if (token_type == TOKEN_STARTING_TAG) {
+									int depth =
+										(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+									/*
+                                     * if (depth < context[0]) { return FALSE; }
+                                     * else
+                                     */
+									if (depth == (vn->context[0])) {
+										vn->context[vn->context[0]] = index;
+										return TRUE;
+									}
+								}
+								index--;
+							} // what condition
+							return FALSE;
+						}
+				}
+
+			default :
+				throwException2( nav_exception,"illegal navigation options");
+				return FALSE;
+		}
+}
+
+
+void _resolveLC_l3(VTDNav_L5 *vn){
+	int i,temp = lower32At(vn->l2Buffer,vn->l2index);
+	if (vn->l3lower != temp) {
+		vn->l3lower = temp;
+		// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+		// resolved simultaneously
+		vn->l3index = vn->l3lower;
+		vn->l3upper = vn->_l3Buffer->size - 1;
+		for (i = vn->l2index + 1; i < vn->l2Buffer->size; i++) {
+			temp = lower32At(vn->l2Buffer,i);
+			if (temp != -1) {
+				vn->l3upper = temp - 1;
+				break;
+			}
+		}
+	} // intelligent guess again ??
+
+	if (vn->l3index < 0 || vn->l3index >= vn->_l3Buffer->size
+		|| vn->context[3] != upper32At(vn->_l3Buffer, vn->l3index)) {
+
+			if (vn->l3index >= vn->_l3Buffer->size || vn->l3index<0)
+				vn->l3index = vn->l3lower;
+			if (vn->l3index+1< vn->_l3Buffer->size&& vn->context[3] == upper32At(vn->_l3Buffer,vn->l3index + 1))
+				vn->l3index = vn->l3index + 1;
+			else if (vn->l3upper - vn->l3lower >= 16) {
+				int init_guess = vn->l3lower
+					+ (int) ((vn->l3upper - vn->l3lower)
+					* ((float) vn->context[3] - upper32At(vn->_l3Buffer,vn->l3lower)) / (upper32At(vn->_l3Buffer,vn->l3upper) - upper32At(vn->_l3Buffer,vn->l3lower)));
+				if (upper32At(vn->_l3Buffer,init_guess) > vn->context[3]) {
+					while (vn->context[3] != upper32At(vn->_l3Buffer,init_guess))
+						init_guess--;
+				} else if (upper32At(vn->_l3Buffer,init_guess) < vn->context[3]) {
+					while (vn->context[3] != upper32At(vn->_l3Buffer,init_guess))
+						init_guess++;
+				}
+				vn->l3index = init_guess;
+			} else if (vn->context[3]<upper32At(vn->_l3Buffer,vn->l3index)){
+
+				while ( vn->context[3] != upper32At(vn->_l3Buffer,vn->l3index)) {
+					vn->l3index--;
+				}
+			}
+			else { 
+				while(vn->context[3]!=upper32At(vn->_l3Buffer,vn->l3index))
+					vn->l3index++;
+			}	
+	}
+}
+void resolveLC_l4(VTDNav_L5 *vn){
+	int i,temp = lower32At(vn->_l3Buffer,vn->l3index);
+	if (vn->l4lower != temp) {
+		vn->l4lower = temp;
+		// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+		// resolved simultaneously
+		vn->l4index = vn->l4lower;
+		vn->l4upper = vn->l4Buffer->size - 1;
+		for (i = vn->l3index + 1; i < vn->_l3Buffer->size; i++) {
+			temp =lower32At(vn->_l3Buffer,i);
+			if (temp != -1) {
+				vn->l4upper = temp - 1;
+				break;
+			}
+		}
+	} // intelligent guess again ??
+
+	if (vn->l4index < 0 || vn->l4index >= vn->l4Buffer->size
+		|| vn->context[4] != upper32At(vn->l4Buffer,vn->l4index)) {
+
+			if (vn->l4index >= vn->l4Buffer->size || vn->l4index<0)
+				vn->l4index = vn->l4lower;
+			if (vn->l4index+1< vn->l4Buffer->size&& vn->context[4] ==upper32At( vn->l4Buffer,vn->l4index + 1))
+				vn->l4index = vn->l4index + 1;
+			else if (vn->l4upper - vn->l4lower >= 16) {
+				int init_guess = vn->l4lower
+					+ (int) ((vn->l4upper - vn->l4lower)
+					* ((float) vn->context[4] - upper32At(vn->l4Buffer,vn->l4lower)) / 
+					(upper32At(vn->l4Buffer, vn->l4upper) - upper32At(vn->l4Buffer,vn->l4lower)));
+				if (upper32At(vn->l4Buffer,init_guess) > vn->context[4]) {
+					while (vn->context[4] != upper32At(vn->l4Buffer,init_guess))
+						init_guess--;
+				} else if (upper32At(vn->l4Buffer,init_guess) < vn->context[4]) {
+					while (vn->context[4] != upper32At(vn->l4Buffer,init_guess))
+						init_guess++;
+				}
+				vn->l4index = init_guess;
+			} else if (vn->context[4]<upper32At(vn->l4Buffer,vn->l4index)){
+
+				while ( vn->context[4] != upper32At(vn->l4Buffer,vn->l4index)) {
+					vn->l4index--;
+				}
+			}
+			else { 
+				while(vn->context[4]!=upper32At(vn->l4Buffer,vn->l4index))
+					vn->l4index++;
+			}	
+	}
+}
+void resolveLC_l5(VTDNav_L5 *vn){
+	int i,temp = lower32At(vn->l4Buffer,vn->l4index);
+	if (vn->l5lower != temp) {
+		//l3lower and l3upper are always together
+		vn->l5lower = temp;
+		// l3lower shouldn't be -1
+		vn->l5index = vn->l5lower;
+		vn->l5upper = vn->l5Buffer->size - 1;
+		for (i = vn->l4index + 1; i < vn->l4Buffer->size; i++) {
+			temp = lower32At(vn->l4Buffer,i);
+			if (temp != -1) {
+				vn->l5upper = temp - 1;
+				break;
+			}
+		}
+	}
+
+	if (vn->l5index < 0 || vn->l5index >= vn->l5Buffer->size
+		|| vn->context[5] != intAt(vn->l5Buffer,vn->l5index)) {
+			if (vn->l5index >= vn->l5Buffer->size || vn->l5index <0)
+				vn->l5index = vn->l5lower;
+			if (vn->l5index+1 < vn->l5Buffer->size &&
+				vn->context[5] == intAt(vn->l5Buffer,vn->l5index + 1))
+				vn->l5index = vn->l5index + 1;
+			else if (vn->l5upper - vn->l5lower >= 16) {
+				int init_guess = vn->l5lower
+					+ (int) ((vn->l5upper - vn->l5lower) * ((float) (vn->context[5] - intAt(vn->l5Buffer
+					,vn->l5lower)) / (intAt(vn->l5Buffer,vn->l5upper) - intAt(vn->l5Buffer,vn->l5lower))));
+				if (intAt(vn->l5Buffer,init_guess) > vn->context[5]) {
+					while (vn->context[5] != intAt(vn->l5Buffer,init_guess))
+						init_guess--;
+				} else if (intAt(vn->l5Buffer,init_guess) < vn->context[5]) {
+					while (vn->context[5] != intAt(vn->l5Buffer,init_guess))
+						init_guess++;
+				}
+				vn->l5index = init_guess;
+			} else if (vn->context[5]<intAt(vn->l5Buffer,vn->l5index)){
+				while (vn->context[5] != intAt(vn->l5Buffer,vn->l5index)) {
+					vn->l5index--;
+				}
+			} else {
+				while (vn->context[5] != intAt(vn->l5Buffer,vn->l5index)) {
+					vn->l5index++;
+				}
+			}
+	}
+}
+
+void _recoverNode_l3(VTDNav_L5 *vn,int index){
+		int k,t1,t2,i = lower32At(vn->l2Buffer,vn->l2index);
+		
+		if (vn->l3lower != i) {
+			vn->l3lower = i;
+			// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+			// resolved simultaneously
+			//l2index = l2lower;
+			vn->l3upper = vn->_l3Buffer->size - 1;
+			for (k = vn->l2index + 1; k < vn->l2Buffer->size; k++) {
+				i = lower32At(vn->l2Buffer,k);
+				if (i != -1) {
+					vn->l3upper = i - 1;
+					break;
+				}
+			}
+		}
+		// guess what i would be in l2 cache
+		t1=upper32At(vn->_l3Buffer,vn->l3lower);
+		t2=upper32At(vn->_l3Buffer,vn->l3upper);
+		//System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
+		i= min(vn->l3lower+ (int)(((float)(index-t1)/(t2-t1+1))*(vn->l3upper-vn->l3lower)),vn->l3upper) ;
+		//System.out.print("  i1  "+i);
+		while(i<vn->_l3Buffer->size-1 && upper32At(vn->_l3Buffer,i)<index){
+			i++;	
+		}
+		//System.out.println(" ==== i2    "+i+"    index  ==>  "+index);
+		
+		while (upper32At(vn->_l3Buffer,i)>index && i>0)
+			i--;
+		vn->context[3] = upper32At(vn->_l3Buffer,i);
+		vn->l3index = i;
+}
+
+void recoverNode_l4(VTDNav_L5 *vn,int index){
+	
+	int t1,t2,k,i = lower32At(vn->_l3Buffer,vn->l3index);
+
+	if (vn->l4lower != i) {
+		vn->l4lower = i;
+		// l2lower shouldn't be -1 !!!! l2lower and l2upper always get
+		// resolved simultaneously
+		//l2index = l2lower;
+		vn->l4upper = vn->l4Buffer->size - 1;
+		for (k = vn->l3index + 1; k < vn->_l3Buffer->size; k++) {
+			i = lower32At(vn->_l3Buffer,k);
+			if (i != -1) {
+				vn->l4upper = i - 1;
+				break;
+			}
+		}
+	}
+	// guess what i would be in l2 cache
+	t1=upper32At(vn->l4Buffer,vn->l4lower);
+	t2=upper32At(vn->l4Buffer,vn->l4upper);
+	//System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
+	i= min(vn->l4lower+ (int)(((float)(index-t1)/(t2-t1+1))*(vn->l4upper-vn->l4lower)),vn->l4upper) ;
+	//System.out.print("  i1  "+i);
+	while(i<vn->l4Buffer->size-1 && upper32At(vn->l4Buffer,i)<index){
+		i++;	
+	}
+	//System.out.println(" ==== i2    "+i+"    index  ==>  "+index);
+
+	while (upper32At(vn->l4Buffer,i)>index && i>0)
+		i--;
+	vn->context[4] = upper32At(vn->l4Buffer,i);
+	vn->l4index = i;
+}
+
+void recoverNode_l5(VTDNav_L5 *vn,int index){
+			int t1,t2,k,i = lower32At(vn->l4Buffer,vn->l4index);
+		
+		if (vn->l5lower != i) {
+			//l3lower and l3upper are always together
+			vn->l5lower = i;
+			// l3lower shouldn't be -1
+			//l3index = l3lower;
+			vn->l5upper = vn->l5Buffer->size - 1;
+			for (k = vn->l4index + 1; k < vn->l4Buffer->size; k++) {
+				i = lower32At(vn->l4Buffer,k);
+				if (i != 0xffffffff) {
+					vn->l5upper = i - 1;
+					break;
+				}
+			}
+		}
+		t1=intAt(vn->l5Buffer,vn->l5lower);
+		t2=intAt(vn->l5Buffer,vn->l5upper);
+		i= min(vn->l5lower+ (int)(((float)(index-t1)/(t2-t1+1))*(vn->l5upper-vn->l5lower)),vn->l5upper) ;
+		while(i<vn->l5Buffer->size-1 && intAt(vn->l5Buffer,i)<index){
+			i++;	
+		}
+		while (intAt(vn->l5Buffer,i)>index && i>0)
+			i--;
+		//System.out.println(" i ===> "+i);
+		vn->context[5] = intAt( vn->l5Buffer,i);
+		vn->l5index = i;
+}
+
+Boolean _writeIndex_VTDNav_L5(VTDNav_L5 *vn, FILE *f){
+	return _writeIndex_L5(1, 
+                vn->encoding, 
+                vn->ns, 
+                TRUE, 
+				vn->nestingLevel-1, 
+                3, 
+                vn->rootIndex, 
+                vn->XMLDoc, 
+                vn->docOffset, 
+                vn->docLen, 
+				vn->vtdBuffer, 
+                vn->l1Buffer, 
+                vn->l2Buffer, 
+                vn->_l3Buffer, 
+				vn->l4Buffer,
+				vn->l5Buffer,
+                f);
+}
+Boolean _writeIndex2_VTDNav_L5(VTDNav_L5 *vn, char *fileName){
+	FILE *f = NULL;
+	Boolean b = FALSE;
+	f = fopen(fileName,"wb");
+	
+	if (f==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		return FALSE;
+	}
+	b = _writeIndex_VTDNav_L5(vn,f);
+	fclose(f);
+	return b;
+}
+Boolean _writeSeparateIndex_VTDNav_L5(VTDNav_L5 *vn, char *VTDIndexFile){
+	FILE *f = NULL;
+	Boolean b = FALSE;
+	f = fopen(VTDIndexFile,"wb");
+	
+	if (f==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		//return FALSE;
+	}
+
+	b=_writeSeparateIndex_L5( (Byte)2, 
+                vn->encoding, 
+                vn->ns, 
+                TRUE, 
+				vn->nestingLevel-1, 
+                3, 
+                vn->rootIndex, 
+                vn->docOffset, 
+                vn->docLen, 
+				vn->vtdBuffer, 
+                vn->l1Buffer, 
+                vn->l2Buffer, 
+                vn->_l3Buffer, 
+				vn->l4Buffer,
+				vn->l5Buffer,
+                f);
+	
+	fclose(f);
+	return b;
+}
+
