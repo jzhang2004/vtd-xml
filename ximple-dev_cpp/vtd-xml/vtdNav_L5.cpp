@@ -394,6 +394,7 @@ l5Buffer(l5)
 											   "VTDNav allocation failed ");
 										   //return NULL;
 								   }
+								   maxLCDepthPlusOne = 6;
 
 }
 
@@ -416,7 +417,7 @@ VTDNav_L5::~VTDNav_L5(){
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-bool VTDNav_L5::iterate(int dp, UCSChar *en, bool special){
+/*bool VTDNav_L5::iterate(int dp, UCSChar *en, bool special){
 // get the current depth
 		int index = getCurrentIndex() + 1;
 		int tokenType;
@@ -447,13 +448,13 @@ bool VTDNav_L5::iterate(int dp, UCSChar *en, bool special){
 
 		}
 		return false;
-}
+}*/
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is false, return false immediately
-bool VTDNav_L5::iterateNS(int dp, UCSChar *URL, UCSChar *ln){
+/*bool VTDNav_L5::iterateNS(int dp, UCSChar *URL, UCSChar *ln){
 		if (ns == false)
 			return false;
 		int tokenType;
@@ -483,10 +484,10 @@ bool VTDNav_L5::iterateNS(int dp, UCSChar *URL, UCSChar *ln){
 			index++;
 		}
 		return false;
-}
+}*/
 
 // This function is called by selectElement_P in autoPilot
-bool VTDNav_L5::iterate_preceding(UCSChar *en, int* a, bool special){
+/*bool VTDNav_L5::iterate_preceding(UCSChar *en, int* a, bool special){
 		int index = getCurrentIndex() - 1;
 		int t,d;
 		//int depth = getTokenDepth(index);
@@ -523,10 +524,10 @@ bool VTDNav_L5::iterate_preceding(UCSChar *en, int* a, bool special){
 			index--;
 		}
 		return false;	
-}
+}*/
 
 // This function is called by selectElementNS_P in autoPilot
-bool VTDNav_L5::iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a){
+/*bool VTDNav_L5::iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a){
 		int index = getCurrentIndex() - 1;
 		int t,d;
 		//int depth = getTokenDepth(index);
@@ -563,10 +564,10 @@ bool VTDNav_L5::iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a){
 			index--;
 		}
 		return false;
-}
+}*/
 
 // This function is called by selectElement_F in autoPilot
-bool VTDNav_L5::iterate_following(UCSChar *en, bool special){
+/*bool VTDNav_L5::iterate_following(UCSChar *en, bool special){
 		int index = getCurrentIndex() + 1;
 		//int size = vtdBuffer.size;
 		while (index < vtdSize) {
@@ -584,11 +585,11 @@ bool VTDNav_L5::iterate_following(UCSChar *en, bool special){
 			index++;
 		}
 		return false;	
-}
+}*/
 
 
 // This function is called by selectElementNS_F in autoPilot
-bool VTDNav_L5::iterate_followingNS( UCSChar *URL, UCSChar *ln){
+/*bool VTDNav_L5::iterate_followingNS( UCSChar *URL, UCSChar *ln){
 		int index = getCurrentIndex() + 1;
 		//int size = vtdBuffer.size;
 		while (index < vtdSize) {
@@ -606,7 +607,7 @@ bool VTDNav_L5::iterate_followingNS( UCSChar *URL, UCSChar *ln){
 			index++;
 		}
 		return false;
-}
+}*/
 
 //void resolveLC_l3();
 //void resolveLC_l4();
