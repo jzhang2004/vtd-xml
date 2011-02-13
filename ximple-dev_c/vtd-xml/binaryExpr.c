@@ -151,7 +151,7 @@ static int getStringVal(VTDNav *vn, int i){
 		return i1;
 	}
 	else if (t == TOKEN_ATTR_NAME
-		|| t == TOKEN_ATTR_NS)
+		|| t == TOKEN_ATTR_NS || t==TOKEN_PI_NAME)
 		return i+1;
 	else
 		 return i;
@@ -657,10 +657,7 @@ int getStringIndex(expr *exp, VTDNav *vn){
 			}
 			else if (t == TOKEN_PI_NAME)
 			{
-				if (a + 1 < vn->vtdSize && getTokenType(vn,a + 1) == TOKEN_PI_VAL)
-					a = a + 1;
-				else
-					a = -1;
+				a++;
 			}
 		}
 	}
