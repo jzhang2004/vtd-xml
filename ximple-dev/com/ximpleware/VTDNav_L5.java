@@ -16,7 +16,7 @@ public class VTDNav_L5 extends VTDNav {
 	protected FastLongBuffer l4Buffer;
 	protected FastIntBuffer l5Buffer;
 	
-	//protected short maxLCDepth =5;
+	//protected static short maxLCDepth =5;
 	/**
      * Initialize the VTD navigation object.
      * 
@@ -128,7 +128,7 @@ public class VTDNav_L5 extends VTDNav {
 		localNameIndex = -1;
 		fib = new FastIntBuffer(5); // page size is 32 ints
 		shallowDepth = false;
-		maxLCDepth =5;
+		maxLCDepthPlusOne =6;
 		
 	}
 	
