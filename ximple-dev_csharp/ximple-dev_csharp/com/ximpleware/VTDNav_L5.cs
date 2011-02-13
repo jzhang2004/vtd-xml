@@ -131,6 +131,7 @@ namespace com.ximpleware
             localNameIndex = -1;
             fib = new FastIntBuffer(5); // page size is 32 ints
             shallowDepth = false;
+            maxLCDepth = 5;
 
         }
 
@@ -139,7 +140,7 @@ namespace com.ximpleware
          * The node position is also copied from the original instance
          * @return a new instance of VTDNav
          */
-        public virtual VTDNav cloneNav()
+        public override VTDNav cloneNav()
         {
             VTDNav_L5 vn = new VTDNav_L5(rootIndex,
                     encoding,
@@ -196,7 +197,7 @@ namespace com.ximpleware
          * @return a VTDNav instance
          *
          */
-        public virtual VTDNav duplicateNav()
+        public override VTDNav duplicateNav()
         {
             return new VTDNav_L5(rootIndex,
                     encoding,
@@ -513,7 +514,7 @@ namespace com.ximpleware
          * @return boolean
          *  
          */
-        public virtual bool pop()
+        public override bool pop()
         {
             bool b = contextStack.load(stackTemp);
             if (b == false)
@@ -549,7 +550,7 @@ namespace com.ximpleware
          */
 
 
-        protected virtual bool pop2()
+        protected internal override bool pop2()
         {
 
             bool b = contextStack2.load(stackTemp);
@@ -581,7 +582,7 @@ namespace com.ximpleware
          * Store the context info into the ContextBuffer. Info saved including LC
          * and current state of the context Creation date: (11/16/03 7:00:27 PM)
          */
-        public virtual void push()
+        public override void push()
         {
 
             for (int i = 0; i < nestingLevel; i++)
@@ -616,7 +617,7 @@ namespace com.ximpleware
          *  
          */
 
-        protected virtual void push2()
+        protected internal override void push2()
         {
 
             for (int i = 0; i < nestingLevel; i++)
@@ -816,7 +817,7 @@ namespace com.ximpleware
          * @throws NavException
          */
 
-        protected internal override bool iterate_following(String en, bool special)
+        /*protected internal override bool iterate_following(String en, bool special)
         {
             int index = getCurrentIndex() + 1;
             //int size = vtdBuffer.size;
@@ -838,7 +839,7 @@ namespace com.ximpleware
                 index++;
             }
             return false;
-        }
+        }*/
 
         /**
          * This function is called by selectElementNS_F in autoPilot
@@ -848,7 +849,7 @@ namespace com.ximpleware
          * @return boolean
          * @throws NavException
          */
-        protected internal override bool iterate_followingNS(String URL, String ln)
+        /*protected internal override bool iterate_followingNS(String URL, String ln)
         {
             int index = getCurrentIndex() + 1;
             //int size = vtdBuffer.size;
@@ -870,7 +871,7 @@ namespace com.ximpleware
                 index++;
             }
             return false;
-        }
+        }*/
 
         /**
          * This function is called by selectElement_P in autoPilot
@@ -884,7 +885,7 @@ namespace com.ximpleware
          * @return boolean
          * @throws NavException
          */
-        protected internal override bool iterate_preceding(String en, int[] a, bool special)
+        /*protected internal override bool iterate_preceding(String en, int[] a, bool special)
         {
             int index = getCurrentIndex() - 1;
             int t, d;
@@ -931,7 +932,7 @@ namespace com.ximpleware
                 index--;
             }
             return false;
-        }
+        }*/
 
         /**
          * This function is called by selectElementNS_P in autoPilot
@@ -941,7 +942,7 @@ namespace com.ximpleware
          * @return boolean
          * @throws NavException
          */
-        protected internal override bool iterate_precedingNS(String URL, String ln, int[] a)
+        /*protected internal override bool iterate_precedingNS(String URL, String ln, int[] a)
         {
             int index = getCurrentIndex() - 1;
             int t, d;
@@ -988,7 +989,7 @@ namespace com.ximpleware
                 index--;
             }
             return false;
-        }
+        }*/
 
         /**
          * This method is similar to getElementByName in DOM except it doesn't
@@ -1010,7 +1011,7 @@ namespace com.ximpleware
          *                load-balancer. null element name allowed represent
          *                node()in XPath;
          */
-        protected internal override bool iterate(int dp, String en, bool special)
+        /*protected internal override bool iterate(int dp, String en, bool special)
         { // the navigation doesn't rely on LC
             // get the current depth
             int index = getCurrentIndex() + 1;
@@ -1049,7 +1050,7 @@ namespace com.ximpleware
 
             }
             return false;
-        }
+        }*/
 
         /**
          * A generic navigation method. Move the cursor to the element according to
@@ -1951,7 +1952,7 @@ namespace com.ximpleware
             }
             //resolveLC();		
         }
-        public virtual void writeIndex(System.IO.Stream os)
+        public override void writeIndex(System.IO.Stream os)
         {
             IndexHandler.writeIndex_L5(1,
                  this.encoding,
@@ -1972,7 +1973,7 @@ namespace com.ximpleware
                  os);
         }
 
-        public void writeSeparateIndex(System.IO.Stream os)
+        public override void writeSeparateIndex(System.IO.Stream os)
         {
             IndexHandler.writeSeparateIndex_L5(1,
                  this.encoding,
