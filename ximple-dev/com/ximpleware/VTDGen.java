@@ -16,14 +16,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import com.ximpleware.parser.ISO8859_10;
 import com.ximpleware.parser.ISO8859_11;
@@ -1348,8 +1353,8 @@ public class VTDGen {
 	}
 	
 	/**
-	 * Enable the parser to collect all white spaces, including the ignored white spaces
-	 * By default, ignore white spaces are ignored
+	 * Enable the parser to collect all white spaces, including the trivial white spaces
+	 * By default, trivial white spaces are ignored
 	 * @param b
 	 */
 	public void enableIgnoredWhiteSpace(boolean b){
@@ -1358,6 +1363,7 @@ public class VTDGen {
 
 	/**
 	 * Enable VTDGen to generate Location Cache of either depth 3 or 5
+	 * This method is meant to called before setDoc() or parseFile()
 	 * @param i
 	 */
 	public void selectLcDepth(int i) throws ParseException{
@@ -2047,8 +2053,7 @@ public class VTDGen {
 					&& (r.skipChar('i') || r.skipChar('I'))
 					&& (r.skipChar('i') || r.skipChar('I'))
 					&& r.skipChar(ch_temp)) {
-				if (encoding != FORMAT_UTF_16LE
-						&& encoding != FORMAT_UTF_16BE) {
+				if (singleByteEncoding) {
 					if (must_utf_8)
 						throw new EncodingException(
 								"Can't switch from UTF-8"
@@ -2073,8 +2078,7 @@ public class VTDGen {
 				&& (r.skipChar('f') || r.skipChar('F'))
 				&& r.skipChar('-')) {
 			if (r.skipChar('8') && r.skipChar(ch_temp)) {
-				if (encoding != FORMAT_UTF_16LE
-						&& encoding != FORMAT_UTF_16BE) {
+				if (singleByteEncoding) {
 					//encoding = FORMAT_UTF8;
 					_writeVTD(temp_offset, 5,
 								TOKEN_DEC_ATTR_VAL,
@@ -2087,17 +2091,16 @@ public class VTDGen {
 			}
 			if (r.skipChar('1') && r.skipChar('6')) {
 				if (r.skipChar(ch_temp)) {
-					if (encoding == FORMAT_UTF_16LE
-							|| encoding == FORMAT_UTF_16BE) {
+					if (!singleByteEncoding) {
 						if (!BOM_detected)
 							throw new EncodingException(
 									"BOM not detected for UTF-16"
 											+ formatLineNumber());
-							_writeVTD(
-									temp_offset >> 1,
-									6,
-									TOKEN_DEC_ATTR_VAL,
-									depth);
+						_writeVTD(
+								temp_offset >> 1,
+								6,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
 						return;
 					}
 					throw new ParseException(
@@ -2400,7 +2403,7 @@ public class VTDGen {
 									addWhiteSpaceRecord();
 								parser_state = STATE_LT_SEEN;
 								if (r.skipChar('/')) {
-									if (helper == true) {
+									if (helper) {
 										length1 = offset - temp_offset
 												- (increment << 1);
 										//if (length1 > 0) {
@@ -2777,7 +2780,7 @@ public class VTDGen {
 								    	addWhiteSpaceRecord();
 									parser_state = STATE_LT_SEEN;
 									if (r.skipChar('/')) {
-										if (helper == true) {
+										if (helper) {
 											length1 = offset - temp_offset
 													- (increment << 1);
 											//if (length1 > 0) {
@@ -2820,6 +2823,7 @@ public class VTDGen {
 									+ formatLineNumber());
 						do {
 							ch = r.getChar();
+							//System.out.println(""+(char)ch);
 							if (XMLChar.isContentChar(ch)) {
 							} else if (ch == '<') {
 								break;
@@ -3151,6 +3155,94 @@ public class VTDGen {
 	    return false;	    
 	}
 	
+	/**
+	 * This method inflates then parses GZIP'ed XML file and returns a boolean indicating 
+	 * if it is successful or not.When set to true,
+	 * VTDGen conforms to XML namespace 1.0 spec
+	 * @param fileName
+	 * @param ns
+	 * @return
+	 */
+	public boolean parseGZIPFile(String GZIPfileName, boolean ns){
+		FileInputStream fis = null;    
+		//File f = null;
+	    try {	    	
+	    	fis = new FileInputStream(GZIPfileName);
+			InputStream in = new GZIPInputStream(fis);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			byte[] ba = new byte[65536];
+			int noRead;
+			while ((noRead = in.read(ba)) != -1) {
+				baos.write(ba, 0, noRead);   
+			}
+			this.setDoc(baos.toByteArray());
+			this.parse(ns);
+			return true;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch (ParseException e){
+	    	System.out.println("ParserException: "+e);
+	    }
+	    finally{
+	        if (fis!=null){
+	            try{
+	                fis.close();
+	            }catch (Exception e){
+	            }
+	        }
+	    }	
+	    return false;	   
+	}
+	
+	/**
+	 * This method inflates then parses ZIP'ed XML file and returns a boolean indicating 
+	 * if it is successful or not.When set to true,
+	 * VTDGen conforms to XML namespace 1.0 spec
+	 * @param ZIPfileName
+	 * @param XMLName
+	 * @param ns
+	 * @return
+	 */
+	public boolean parseZIPFile(String ZIPfileName,String XMLName, boolean ns){
+		InputStream is = null;    
+		ZipFile zf = null; 
+
+	    try {	    	
+	    	zf = new ZipFile(ZIPfileName);
+	    	is = zf.getInputStream(zf.getEntry(XMLName));
+			//InputStream in = new ZipInputStream(fis);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			byte[] ba = new byte[65536];
+			int noRead;
+			while ((noRead = is.read(ba)) != -1) {
+				baos.write(ba, 0, noRead);   
+			}
+			this.setDoc(baos.toByteArray());
+			this.parse(ns);
+			return true;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch (ParseException e){
+	    	System.out.println("ParserException: "+e);
+	    }
+	    finally{
+	        if (zf!=null){
+	            try{
+	                zf.close();
+	            }catch (Exception e){
+	            }
+	        }
+	    }	
+	    return false;	   
+	}
 	
 	/**
 	 * This method retrieves an XML document from the net using HTTP request
@@ -3179,10 +3271,25 @@ public class VTDGen {
                     //System.out.println("len  ===> " + len + "  "
                     //        + urlConnection.getContentType());
                     byte[] ba = new byte[len];
-                    in.read(ba);
+                    int k=len,offset=0;
+                    while(offset<len & k>0){
+                    	k=in.read(ba,offset,len-offset);
+                    	offset+=k;
+                    }
                     this.setDoc(ba);
                     this.parse(ns);
                     return true;
+                } else {
+                	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                	byte[] ba = new byte[4096];
+                	int k=-1;
+                	while((k=in.read(ba))>0){
+                		baos.write(ba, 0, k);
+                	}
+                	this.setDoc(baos.toByteArray());
+                	this.parse(ns);
+                	return true;
+                	//baos.w
                 }
             }
 	    }catch(IOException e){
@@ -3200,6 +3307,8 @@ public class VTDGen {
 	    }	 
 	    return false;
 	}
+	
+	//private 
 	
 	/**
 	 * This private method processes CDATA section
@@ -3371,7 +3480,7 @@ public class VTDGen {
 			if (ch == '=') {
 				/*System.out.println(
 				    " " + (temp_offset - 1) + " " + 7 + " dec attr name version " + depth);*/
-				if (encoding < FORMAT_UTF_16BE)
+				if (singleByteEncoding)
 					_writeVTD(
 						temp_offset - 1,
 						7,
@@ -3403,7 +3512,7 @@ public class VTDGen {
 			&& (r.skipChar('0') || r.skipChar('1'))) {
 			/*System.out.println(
 			    " " + temp_offset + " " + 3 + " dec attr val (version)" + depth);*/
-			if (encoding < FORMAT_UTF_16BE)
+			if (singleByteEncoding)
 				_writeVTD(
 					temp_offset,
 					3,
@@ -3442,7 +3551,7 @@ public class VTDGen {
 					if (ch == '=') {
 						/*System.out.println(
 						    " " + (temp_offset) + " " + 8 + " dec attr name (encoding) " + depth);*/
-						if (encoding < FORMAT_UTF_16BE)
+						if (singleByteEncoding)
 							_writeVTD(
 								temp_offset,
 								8,
@@ -3553,7 +3662,7 @@ public class VTDGen {
 								+ formatLineNumber());
 					/*System.out.println(
 					    " " + temp_offset + " " + 3 + " dec attr name (standalone) " + depth);*/
-					if (encoding < FORMAT_UTF_16BE)
+					if (singleByteEncoding)
 						_writeVTD(
 							temp_offset,
 							10,
@@ -3578,7 +3687,7 @@ public class VTDGen {
 							&& r.skipChar(ch_temp)) {
 							/*System.out.println(
 							    " " + (temp_offset) + " " + 3 + " dec attr val (standalone) " + depth);*/
-							if (encoding < FORMAT_UTF_16BE)
+							if (singleByteEncoding)
 								_writeVTD(
 									temp_offset,
 									3,
@@ -3599,7 +3708,7 @@ public class VTDGen {
 							&& r.skipChar(ch_temp)) {
 							/*System.out.println(
 							    " " + (temp_offset) + " " + 2 + " dec attr val (standalone)" + depth);*/
-							if (encoding < FORMAT_UTF_16BE)
+							if (singleByteEncoding)
 								_writeVTD(
 									temp_offset,
 									2,
@@ -3839,7 +3948,7 @@ public class VTDGen {
 
 				while (true) {
 					if (XMLChar.isValidChar(ch)) {
-						if (ch == '?')
+						if (ch == '?'){
 							if (r.skipChar('>')) {
 								parser_state = STATE_DOC_END;
 								break;
@@ -3847,6 +3956,7 @@ public class VTDGen {
 								throw new ParseException(
 									"Error in PI: invalid termination sequence"
 										+ formatLineNumber());
+						}
 					} else
 						throw new ParseException(
 							"Error in PI: Invalid char in PI val"
@@ -3854,7 +3964,7 @@ public class VTDGen {
 					ch = r.getChar();
 				}
 				length1 = offset - temp_offset - (increment<<1);
-				if (encoding < FORMAT_UTF_16BE){
+				if (singleByteEncoding){
 					if (length1 > MAX_TOKEN_LENGTH)
 						  throw new ParseException("Token Length Error:"
 									  +"PI val too long (>0xfffff)"
@@ -3878,6 +3988,20 @@ public class VTDGen {
 				}
 				//System.out.println(" " + temp_offset + " " + length1 + " PI val " + depth);
 			} else {
+				if (singleByteEncoding){
+					_writeVTD(
+						(temp_offset),
+						0,
+						TOKEN_PI_VAL,
+						depth);
+				}
+				else{				
+					_writeVTD(
+						(temp_offset) >> 1,
+						0,
+						TOKEN_PI_VAL,
+						depth);
+				}
 				if ((ch == '?') && r.skipChar('>')) {
 					parser_state = STATE_DOC_END;
 				} else
@@ -4015,6 +4139,21 @@ public class VTDGen {
 		}*/
 		//ch = r.getChar();
 		if (ch == '?') {
+			// insert zero length pi name tag
+			if (singleByteEncoding){
+				_writeVTD(
+					(temp_offset),
+					0,
+					TOKEN_PI_VAL,
+					depth);
+			}
+			else{				
+				_writeVTD(
+					(temp_offset) >> 1,
+					(0),
+					TOKEN_PI_VAL,
+					depth);
+			}
 			if (r.skipChar('>')) {
 				temp_offset = offset;
 				//ch = getCharAfterSe();
@@ -4092,7 +4231,7 @@ public class VTDGen {
 		        + length1
 		        + " PI val "
 		        + depth);*/
-		if (length1 != 0)
+		//if (length1 != 0)
 			if (singleByteEncoding) {// if (encoding < FORMAT_UTF_16BE){
 				if (length1 > MAX_TOKEN_LENGTH)
 					throw new ParseException("Token Length Error:"
@@ -4231,7 +4370,7 @@ public class VTDGen {
 		nsBuffer3.size = 0;
 		r = new UTF8Reader();
 		if (shallowDepth) {
-			int i1 = 7, i2 = 9, i3 = 11;
+			int i1 = 8, i2 = 9, i3 = 11;
 			if (docLen <= 1024) {
 				// a = 1024; //set the floor
 				a = 6;
@@ -4352,14 +4491,14 @@ public class VTDGen {
 		docOffset = offset = os;
 		docLen = len;
 		endOffset = os + len;
-		last_l1_index = last_l2_index = last_depth = 0;
+		last_l1_index = last_l2_index = last_depth = last_l3_index = last_l4_index= 0;
 		currentElementRecord = 0;
 		nsBuffer1.size = 0;
 		nsBuffer2.size = 0;
 		nsBuffer3.size = 0;
 		r = new UTF8Reader();
 		if (shallowDepth) {
-			int i1 = 7, i2 = 9, i3 = 11;
+			int i1 = 8, i2 = 9, i3 = 11;
 			if (docLen <= 1024) {
 				// a = 1024; //set the floor
 				a = 6;
@@ -4400,7 +4539,7 @@ public class VTDGen {
 				l3Buffer.size = 0;
 			}
 		} else {
-			int i1 = 7, i2 = 9, i3 = 11, i4 = 11, i5 = 11;
+			int i1 = 8, i2 = 9, i3 = 11, i4 = 11, i5 = 11;
 			if (docLen <= 1024) {
 				// a = 1024; //set the floor
 				a = 6;
@@ -4744,7 +4883,7 @@ public class VTDGen {
 				last_depth = 5;
 				break;
 				
-			default:
+			//default:
 			//rootIndex = VTDBuffer.size() - 1;
 			}
 	}
