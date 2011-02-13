@@ -941,7 +941,7 @@ namespace com.ximpleware
 
         // tri-state variable for namespace lookup
         protected const long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
-        protected static short maxLCDepth = 3;
+        protected short maxLCDepthPlusOne = 3;
         protected internal int rootIndex; // where the root element is at
         protected internal int nestingLevel;
         protected internal int[] context; // main navigation tracker aka context object
@@ -1632,7 +1632,7 @@ namespace com.ximpleware
                     //dumpContext();
                     if (index != a[depth] && (special || matchElement(en)))
                     {
-                        if (depth < maxLCDepth+1)
+                        if (depth < maxLCDepthPlusOne)
                             resolveLC();
                         return true;
                     }
@@ -1688,7 +1688,7 @@ namespace com.ximpleware
                     //dumpContext();
                     if (index != a[depth] && matchElementNS(URL, ln))
                     {
-                        if (depth < maxLCDepth+1)
+                        if (depth < maxLCDepthPlusOne)
                             resolveLC();
                         return true;
                     }
@@ -1722,7 +1722,7 @@ namespace com.ximpleware
                         context[depth] = index;
                     if (special || matchElement(en))
                     {
-                        if (depth < maxLCDepth+1)
+                        if (depth < maxLCDepthPlusOne)
                             resolveLC();
                         return true;
                     }
@@ -1754,7 +1754,7 @@ namespace com.ximpleware
                         context[depth] = index;
                     if (matchElementNS(URL, ln))
                     {
-                        if (depth < maxLCDepth+1)
+                        if (depth < maxLCDepthPlusOne)
                             resolveLC();
                         return true;
                     }
@@ -1799,7 +1799,7 @@ namespace com.ximpleware
                             context[depth] = index;
                         if (special || matchElement(en))
                         {
-                            if (dp < maxLCDepth+1)
+                            if (dp < maxLCDepthPlusOne)
                                 resolveLC();
                             return true;
                         }
@@ -1859,7 +1859,7 @@ namespace com.ximpleware
                             context[depth] = index;
                         if (matchElementNS(URL, ln))
                         {
-                            if (dp < maxLCDepth)
+                            if (dp < maxLCDepthPlusOne)
                                 resolveLC();
                             return true;
                         }
