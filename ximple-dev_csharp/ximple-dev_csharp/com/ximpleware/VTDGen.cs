@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ namespace com.ximpleware
                 do
                 {
                     n = r.Char;
-                    if (n == ' ' ||  n == '\n' ||n == '\t'|| n == '\r' )
+                    if (n == ' ' || n == '\n' || n == '\t' || n == '\r')
                     {
                     }
                     else
@@ -53,7 +53,7 @@ namespace com.ximpleware
                     }
                     else
                         return n;
-                } while (true) ;
+                } while (true);
                 //throw new EOFException("should never come here");
             }
 
@@ -99,7 +99,15 @@ namespace com.ximpleware
         public VTDNav getNav()
         {
             // call VTDNav constructor
-            VTDNav vn = new VTDNav(rootIndex, encoding, ns, VTDDepth, new UniByteBuffer(XMLDoc), VTDBuffer, l1Buffer, l2Buffer, l3Buffer, docOffset, docLen);
+            VTDNav vn;
+            if (shallowDepth)
+                vn = new VTDNav(rootIndex, encoding, ns, VTDDepth,
+                        new UniByteBuffer(XMLDoc), VTDBuffer, l1Buffer, l2Buffer,
+                        l3Buffer, docOffset, docLen);
+            else
+                vn = new VTDNav_L5(rootIndex, encoding, ns, VTDDepth,
+                        new UniByteBuffer(XMLDoc), VTDBuffer, l1Buffer, l2Buffer,
+                        _l3Buffer, _l4Buffer, _l5Buffer, docOffset, docLen);
             clear();
             return vn;
 
@@ -195,7 +203,7 @@ namespace com.ximpleware
         private const int STATE_END_COMMENT = 14;
         // comment appear after the last ending tag
         private const int STATE_END_PI = 15;
-        //private final static int STATE_END_PI_VAL = 17;
+        //private  static int STATE_END_PI_VAL = 17;
 
         // token type
         public const int TOKEN_STARTING_TAG = 0;
@@ -258,6 +266,8 @@ namespace com.ximpleware
         private int last_l1_index;
         private int last_l2_index;
         private int last_l3_index;
+        //private int last_l3_index;
+        private int last_l4_index;
         private int increment;
         private bool BOM_detected;
         private bool must_utf_8;
@@ -278,6 +288,10 @@ namespace com.ximpleware
         protected internal FastLongBuffer l1Buffer;
         protected internal FastLongBuffer l2Buffer;
         protected internal FastIntBuffer l3Buffer;
+        protected internal FastLongBuffer _l3Buffer;
+        protected internal FastLongBuffer _l4Buffer;
+        protected internal FastIntBuffer _l5Buffer;
+
 
         protected FastIntBuffer nsBuffer1;
         protected FastLongBuffer nsBuffer2;
@@ -312,6 +326,11 @@ namespace com.ximpleware
         public const int MAX_TOKEN_LENGTH = (1 << 20) - 1;
 
         public EOFException e = null;
+
+        protected short LcDepth;
+        protected bool singleByteEncoding;
+        protected internal bool shallowDepth; // true if lc depth is 3
+
 
         //UPGRADE_NOTE: Field 'EnclosingInstance' was added to class 'ISO8859_2Reader' to access its enclosing instance. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1019'"
         internal class ISO8859_2Reader : IReader
@@ -2217,7 +2236,7 @@ namespace com.ximpleware
             tag_stack = new long[TAG_STACK_SIZE];
             //scratch_buffer = new int[10];
             VTDDepth = 0;
-
+            LcDepth = 3;
             br = false;
             e = new EOFException("permature EOF reached, XML document incomplete");
             ws = false;
@@ -2225,6 +2244,8 @@ namespace com.ximpleware
             nsBuffer2 = new FastLongBuffer(4);
             nsBuffer3 = new FastLongBuffer(4);
             currentElementRecord = 0;
+            singleByteEncoding = true;
+            shallowDepth = true;
         }
         /// <summary> Clear internal states so VTDGEn can process the next file.</summary>
         public void clear()
@@ -2235,10 +2256,13 @@ namespace com.ximpleware
                 l1Buffer = null;
                 l2Buffer = null;
                 l3Buffer = null;
+                _l3Buffer = null;
+                _l4Buffer = null;
+                _l5Buffer = null;
             }
             XMLDoc = null;
             offset = temp_offset = 0;
-            last_depth = last_l1_index = last_l2_index = 0;
+            last_depth = last_l1_index = last_l2_index = last_l3_index = last_l4_index = 0;
             rootIndex = 0;
             depth = -1;
             increment = 1;
@@ -2392,13 +2416,35 @@ namespace com.ximpleware
         /// </summary>
         private void finishUp()
         {
-            if (last_depth == 1)
+            if (shallowDepth)
             {
-                l1Buffer.append(((long)last_l1_index << 32) | 0x00000000ffffffff);
+                if (last_depth == 1)
+                {
+                    l1Buffer.append(((long)last_l1_index << 32) | 0xffffffffL);
+                }
+                else if (last_depth == 2)
+                {
+                    l2Buffer.append(((long)last_l2_index << 32) | 0xffffffffL);
+                }
             }
-            else if (last_depth == 2)
+            else
             {
-                l2Buffer.append(((long)last_l2_index << 32) | 0x00000000ffffffff);
+                if (last_depth == 1)
+                {
+                    l1Buffer.append(((long)last_l1_index << 32) | 0xffffffffL);
+                }
+                else if (last_depth == 2)
+                {
+                    l2Buffer.append(((long)last_l2_index << 32) | 0xffffffffL);
+                }
+                else if (last_depth == 3)
+                {
+                    _l3Buffer.append(((long)last_l3_index << 32) | 0xffffffffL);
+                }
+                else if (last_depth == 4)
+                {
+                    _l4Buffer.append(((long)last_l4_index << 32) | 0xffffffffL);
+                }
             }
         }
 
@@ -2485,6 +2531,8 @@ namespace com.ximpleware
                 if ((offset + (long)docLen) >= 1L << 31)
                     throw new ParseException("Other error: file size too large >= 2GB");
             }
+            if (encoding >= FORMAT_UTF_16BE)
+                singleByteEncoding = false;
         }
         /// <summary>
         /// parse a file directly
@@ -2657,7 +2705,7 @@ namespace com.ximpleware
             // enter the main finite state machine
             try
             {
-                writeVTD(0, 0, TOKEN_DOCUMENT, depth);
+                _writeVTD(0, 0, TOKEN_DOCUMENT, depth);
                 while (true)
                 {
                     switch (parser_state)
@@ -2711,7 +2759,7 @@ namespace com.ximpleware
                                     if (ch == ':')
                                     {
                                         length2 = offset - temp_offset - increment;
-                                        if (ns == true && checkPrefix2(temp_offset, length2))
+                                        if (ns && checkPrefix2(temp_offset, length2))
                                             throw new ParseException(
                                                     "xmlns can't be an element prefix "
                                                     + formatLineNumber(offset));
@@ -2733,20 +2781,27 @@ namespace com.ximpleware
                             //     " " + (temp_offset) + " " + length2 + ":" + length1 + " startingTag " + depth);
                             if (depth > VTDDepth)
                                 VTDDepth = depth;
-                            if (encoding < FORMAT_UTF_16BE)
+                            if (singleByteEncoding)
                             {
                                 if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
                                     throw new ParseException("Token Length Error: Starting tag prefix or qname length too long" + formatLineNumber());
-                                writeVTD((temp_offset), (length2 << 11) | length1, TOKEN_STARTING_TAG, depth);
+                                if (shallowDepth)
+                                    writeVTD((temp_offset), (length2 << 11) | length1, TOKEN_STARTING_TAG, depth);
+                                else
+                                    writeVTD_L5((temp_offset), (length2 << 11) | length1, TOKEN_STARTING_TAG, depth);
                             }
                             else
                             {
                                 if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
                                     throw new ParseException("Token Length Error: Starting tag prefix or qname length too long" + formatLineNumber());
-                                writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG, depth);
+                                //writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG, depth);
+                                if (shallowDepth)
+                                    writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG, depth);
+                                else
+                                    writeVTD_L5((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG, depth);
                             }
                             //offset += length1;
-                            if (ns == true)
+                            if (ns)
                             {
                                 if (length2 != 0)
                                 {
@@ -2786,7 +2841,7 @@ namespace com.ximpleware
                             }
                             if (ch == '>')
                             {
-                                if (ns == true)
+                                if (ns)
                                 {
                                     nsBuffer1.append(nsBuffer3.size_Renamed_Field - 1);
                                     if (currentElementRecord != 0)
@@ -2804,14 +2859,14 @@ namespace com.ximpleware
                                         parser_state = STATE_LT_SEEN;
                                         if (r.skipChar('/'))
                                         {
-                                            if (helper == true)
+                                            if (helper)
                                             {
                                                 length1 = offset - temp_offset - (increment << 1);
 
-                                                if (encoding < FORMAT_UTF_16BE)
-                                                    writeVTD((temp_offset), length1, TOKEN_CHARACTER_DATA, depth);
+                                                if (singleByteEncoding)
+                                                    writeVTDText((temp_offset), length1, TOKEN_CHARACTER_DATA, depth);
                                                 else
-                                                    writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_CHARACTER_DATA, depth);
+                                                    writeVTDText((temp_offset) >> 1, (length1 >> 1), TOKEN_CHARACTER_DATA, depth);
                                             }
                                             parser_state = STATE_END_TAG;
                                             break;
@@ -2826,7 +2881,7 @@ namespace com.ximpleware
                                     {
                                         parser_state = STATE_TEXT;
                                         handleOtherTextChar2(ch);
-                                    } 
+                                    }
                                 }
                                 else
                                 {
@@ -2899,8 +2954,9 @@ namespace com.ximpleware
                                     }
                                 }
                             }
-                            
-                            do {
+
+                            do
+                            {
                                 if (XMLChar.isNameChar(ch))
                                 {
                                     if (ch == ':')
@@ -2911,7 +2967,7 @@ namespace com.ximpleware
                                 }
                                 else
                                     break;
-                            } while (true) ;
+                            } while (true);
                             length1 = PrevOffset - temp_offset;
                             if (is_ns && ns)
                             {
@@ -2982,17 +3038,17 @@ namespace com.ximpleware
                             // after checking, write VTD
                             if (is_ns)
                             {
-                                if (encoding < FORMAT_UTF_16BE)
+                                if (singleByteEncoding)
                                 {
                                     if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
                                         throw new ParseException("Token length overflow error: Attr NS tag prefix or qname length too long" + formatLineNumber());
-                                    writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NS, depth);
+                                    _writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NS, depth);
                                 }
                                 else
                                 {
                                     if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
                                         throw new ParseException("Token length overflow error: Attr NS prefix or qname length too long" + formatLineNumber());
-                                    writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NS, depth);
+                                    _writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NS, depth);
                                 }
                                 // append to nsBuffer2
                                 if (ns)
@@ -3010,17 +3066,17 @@ namespace com.ximpleware
                             }
                             else
                             {
-                                if (encoding < FORMAT_UTF_16BE)
+                                if (singleByteEncoding)
                                 {
                                     if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
                                         throw new ParseException("Token Length Error: Attr name prefix or qname length too long" + formatLineNumber());
-                                    writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NAME, depth);
+                                    _writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NAME, depth);
                                 }
                                 else
                                 {
                                     if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
                                         throw new ParseException("Token Length overflow error: Attr name prefix or qname length too long" + formatLineNumber());
-                                    writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NAME, depth);
+                                    _writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NAME, depth);
                                 }
                             }
                             /*System.out.println(
@@ -3058,7 +3114,7 @@ namespace com.ximpleware
                                 }
                                 else
                                     throw new ParseException("Error in attr: Invalid XML char" + formatLineNumber());
-                            } while (true) ;
+                            } while (true);
 
                             length1 = offset - temp_offset - increment;
                             if (ns && is_ns)
@@ -3100,17 +3156,17 @@ namespace com.ximpleware
                                 // no ns URL points to  
                                 //"http://www.w3.org/XML/1998/namespace"
                             }
-                            if (encoding < FORMAT_UTF_16BE)
+                            if (singleByteEncoding)
                             {
                                 if (length1 > MAX_TOKEN_LENGTH)
                                     throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
-                                writeVTD(temp_offset, length1, TOKEN_ATTR_VAL, depth);
+                                _writeVTD(temp_offset, length1, TOKEN_ATTR_VAL, depth);
                             }
                             else
                             {
                                 if (length1 > (MAX_TOKEN_LENGTH << 1))
                                     throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
-                                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_ATTR_VAL, depth);
+                                _writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_ATTR_VAL, depth);
                             }
 
                             isXML = false;
@@ -3137,10 +3193,10 @@ namespace com.ximpleware
 
                             if (ch == '>')
                             {
-                                if (ns == true)
+                                if (ns)
                                 {
                                     nsBuffer1.append(nsBuffer3.size_Renamed_Field - 1);
-                                    if (prefixed_attr_count > 0) 
+                                    if (prefixed_attr_count > 0)
                                         qualifyAttributes();
                                     if (prefixed_attr_count > 1)
                                     {
@@ -3164,14 +3220,14 @@ namespace com.ximpleware
                                         parser_state = STATE_LT_SEEN;
                                         if (r.skipChar('/'))
                                         {
-                                            if (helper == true)
+                                            if (helper)
                                             {
                                                 length1 = offset - temp_offset - (increment << 1);
 
                                                 if (encoding < FORMAT_UTF_16BE)
-                                                    writeVTD((temp_offset), length1, TOKEN_CHARACTER_DATA, depth);
+                                                    writeVTDText((temp_offset), length1, TOKEN_CHARACTER_DATA, depth);
                                                 else
-                                                    writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_CHARACTER_DATA, depth);
+                                                    writeVTDText((temp_offset) >> 1, (length1 >> 1), TOKEN_CHARACTER_DATA, depth);
                                             }
                                             parser_state = STATE_END_TAG;
                                             break;
@@ -3182,11 +3238,11 @@ namespace com.ximpleware
                                         //temp_offset = offset;
                                         parser_state = STATE_TEXT;
                                     }
-                                    else 
+                                    else
                                     {
-									    handleOtherTextChar2(ch);
-									    parser_state = STATE_TEXT;
-								    }
+                                        handleOtherTextChar2(ch);
+                                        parser_state = STATE_TEXT;
+                                    }
                                 }
                                 else
                                 {
@@ -3223,13 +3279,13 @@ namespace com.ximpleware
                                 }
                                 else
                                     handleOtherTextChar(ch);
-                            } while (true) ;
+                            } while (true);
                             length1 = offset - increment - temp_offset;
 
-                            if (encoding < FORMAT_UTF_16BE)
-                                writeVTD(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
+                            if (singleByteEncoding)
+                                writeVTDText(temp_offset, length1, TOKEN_CHARACTER_DATA, depth);
                             else
-                                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA, depth);
+                                writeVTDText(temp_offset >> 1, length1 >> 1, TOKEN_CHARACTER_DATA, depth);
 
                             //has_amp = true;
                             parser_state = STATE_LT_SEEN;
@@ -3312,63 +3368,63 @@ namespace com.ximpleware
                     {
                         encoding = FORMAT_WIN_1250;
                         r = new WIN1250Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('1') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1251;
                         r = new WIN1251Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('2') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1252;
                         r = new WIN1252Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('3') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1253;
                         r = new WIN1253Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('4') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1254;
                         r = new WIN1254Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('5') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1255;
                         r = new WIN1255Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('6') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1256;
                         r = new WIN1256Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('7') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1257;
                         r = new WIN1257Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('8') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1258;
                         r = new WIN1258Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                 }
@@ -3389,63 +3445,63 @@ namespace com.ximpleware
                     {
                         encoding = FORMAT_WIN_1250;
                         r = new WIN1250Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('1') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1251;
                         r = new WIN1251Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('2') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1252;
                         r = new WIN1252Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('3') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1253;
                         r = new WIN1253Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('4') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1254;
                         r = new WIN1254Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('5') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1255;
                         r = new WIN1255Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('6') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1256;
                         r = new WIN1256Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('7') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1257;
                         r = new WIN1257Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('8') && r.skipChar(ch_temp))
                     {
                         encoding = FORMAT_WIN_1258;
                         r = new WIN1258Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                 }
@@ -3465,7 +3521,7 @@ namespace com.ximpleware
                             throw new EncodingException("Can't switch from UTF-8" + formatLineNumber());
                         encoding = FORMAT_ASCII;
                         r = new ASCIIReader(this);
-                        writeVTD(temp_offset, 8, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 8, TOKEN_DEC_ATTR_VAL, depth);
 
                         return;
                     }
@@ -3482,7 +3538,7 @@ namespace com.ximpleware
                     if (encoding != FORMAT_UTF_16LE && encoding != FORMAT_UTF_16BE)
                     {
                         //encoding = FORMAT_UTF8;
-                        writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
 
                         return;
                     }
@@ -3497,7 +3553,7 @@ namespace com.ximpleware
                         {
                             if (!BOM_detected)
                                 throw new EncodingException("BOM not detected for UTF-16" + formatLineNumber());
-                            writeVTD(temp_offset >> 1, 6, TOKEN_DEC_ATTR_VAL, depth);
+                            _writeVTD(temp_offset >> 1, 6, TOKEN_DEC_ATTR_VAL, depth);
                             return;
                         }
                         throw new ParseException("XML decl error: Can't switch encoding to UTF-16" + formatLineNumber());
@@ -3507,7 +3563,7 @@ namespace com.ximpleware
                         if (encoding == FORMAT_UTF_16LE)
                         {
                             r = new UTF16LEReader(this);
-                            writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_VAL, depth);
+                            _writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_VAL, depth);
                             return;
                         }
                         throw new ParseException("XML del error: Can't switch encoding to UTF-16LE" + formatLineNumber());
@@ -3516,7 +3572,7 @@ namespace com.ximpleware
                     {
                         if (encoding == FORMAT_UTF_16BE)
                         {
-                            writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_VAL, depth);
+                            _writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_VAL, depth);
                             return;
                         }
                         throw new ParseException("XML del error: Can't swtich encoding to UTF-16BE" + formatLineNumber());
@@ -3541,14 +3597,14 @@ namespace com.ximpleware
                         {
                             encoding = FORMAT_ISO_8859_1;
                             r = new ISO8859_1Reader(this);
-                            writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                            _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                             return;
                         }
                         else if (r.skipChar('0'))
                         {
                             encoding = FORMAT_ISO_8859_10;
                             r = new ISO8859_10Reader(this);
-                            writeVTD(temp_offset, 11,
+                            _writeVTD(temp_offset, 11,
                                        TOKEN_DEC_ATTR_VAL,
                                        depth);
                         }
@@ -3556,7 +3612,7 @@ namespace com.ximpleware
                         {
                             encoding = FORMAT_ISO_8859_11;
                             r = new ISO8859_11Reader(this);
-                            writeVTD(temp_offset, 11,
+                            _writeVTD(temp_offset, 11,
                                        TOKEN_DEC_ATTR_VAL,
                                        depth);
                         }
@@ -3564,7 +3620,7 @@ namespace com.ximpleware
                         {
                             encoding = FORMAT_ISO_8859_13;
                             r = new ISO8859_13Reader(this);
-                            writeVTD(temp_offset, 11,
+                            _writeVTD(temp_offset, 11,
                                        TOKEN_DEC_ATTR_VAL,
                                        depth);
                         }
@@ -3572,7 +3628,7 @@ namespace com.ximpleware
                         {
                             encoding = FORMAT_ISO_8859_14;
                             r = new ISO8859_14Reader(this);
-                            writeVTD(temp_offset, 11,
+                            _writeVTD(temp_offset, 11,
                                        TOKEN_DEC_ATTR_VAL,
                                        depth);
                         }
@@ -3580,7 +3636,7 @@ namespace com.ximpleware
                         {
                             encoding = FORMAT_ISO_8859_15;
                             r = new ISO8859_15Reader(this);
-                            writeVTD(temp_offset, 15,
+                            _writeVTD(temp_offset, 15,
                                        TOKEN_DEC_ATTR_VAL,
                                        depth);
                         }
@@ -3591,56 +3647,56 @@ namespace com.ximpleware
                     {
                         encoding = FORMAT_ISO_8859_2;
                         r = new ISO8859_2Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('3'))
                     {
                         r = new ISO8859_3Reader(this);
                         encoding = FORMAT_ISO_8859_3;
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         // break;
                     }
                     else if (r.skipChar('4'))
                     {
                         r = new ISO8859_4Reader(this);
                         encoding = FORMAT_ISO_8859_4;
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('5'))
                     {
                         encoding = FORMAT_ISO_8859_5;
                         r = new ISO8859_5Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('6'))
                     {
                         encoding = FORMAT_ISO_8859_6;
                         r = new ISO8859_6Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('7'))
                     {
                         encoding = FORMAT_ISO_8859_7;
                         r = new ISO8859_7Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('8'))
                     {
                         encoding = FORMAT_ISO_8859_8;
                         r = new ISO8859_8Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                     else if (r.skipChar('9'))
                     {
                         encoding = FORMAT_ISO_8859_9;
                         r = new ISO8859_9Reader(this);
-                        writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
+                        _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_VAL, depth);
                         return;
                     }
                 }
@@ -3667,10 +3723,10 @@ namespace com.ximpleware
                 {
                     /*System.out.println(
                     " " + (temp_offset - 1) + " " + 7 + " dec attr name version " + depth);*/
-                    if (encoding < FORMAT_UTF_16BE)
-                        writeVTD(temp_offset - 1, 7, TOKEN_DEC_ATTR_NAME, depth);
+                    if (singleByteEncoding)
+                        _writeVTD(temp_offset - 1, 7, TOKEN_DEC_ATTR_NAME, depth);
                     else
-                        writeVTD((temp_offset - 2) >> 1, 7, TOKEN_DEC_ATTR_NAME, depth);
+                        _writeVTD((temp_offset - 2) >> 1, 7, TOKEN_DEC_ATTR_NAME, depth);
                 }
                 else
                     throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
@@ -3686,10 +3742,10 @@ namespace com.ximpleware
             {
                 /*System.out.println(
                 " " + temp_offset + " " + 3 + " dec attr val (version)" + depth);*/
-                if (encoding < FORMAT_UTF_16BE)
-                    writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
+                if (singleByteEncoding)
+                    _writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
                 else
-                    writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL, depth);
+                    _writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL, depth);
             }
             else
                 throw new ParseException("XML decl error: Invalid version(other than 1.0 or 1.1) detected" + formatLineNumber());
@@ -3712,10 +3768,10 @@ namespace com.ximpleware
                         {
                             /*System.out.println(
                             " " + (temp_offset) + " " + 8 + " dec attr name (encoding) " + depth);*/
-                            if (encoding < FORMAT_UTF_16BE)
-                                writeVTD(temp_offset, 8, TOKEN_DEC_ATTR_NAME, depth);
+                            if (singleByteEncoding)
+                                _writeVTD(temp_offset, 8, TOKEN_DEC_ATTR_NAME, depth);
                             else
-                                writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_NAME, depth);
+                                _writeVTD(temp_offset >> 1, 8, TOKEN_DEC_ATTR_NAME, depth);
                         }
                         else
                             throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
@@ -3740,7 +3796,7 @@ namespace com.ximpleware
                                         /*System.out.println(
                                         " " + (temp_offset) + " " + 5 + " dec attr val (encoding) " + depth);*/
 
-                                        writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
+                                        _writeVTD(temp_offset, 5, TOKEN_DEC_ATTR_VAL, depth);
 
                                         break;
                                     }
@@ -3793,10 +3849,10 @@ namespace com.ximpleware
                             throw new ParseException("XML decl error: Invalid char" + formatLineNumber());
                         /*System.out.println(
                         " " + temp_offset + " " + 3 + " dec attr name (standalone) " + depth);*/
-                        if (encoding < FORMAT_UTF_16BE)
-                            writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_NAME, depth);
+                        if (singleByteEncoding)
+                            _writeVTD(temp_offset, 10, TOKEN_DEC_ATTR_NAME, depth);
                         else
-                            writeVTD(temp_offset >> 1, 10, TOKEN_DEC_ATTR_NAME, depth);
+                            _writeVTD(temp_offset >> 1, 10, TOKEN_DEC_ATTR_NAME, depth);
                         ch_temp = CharAfterS;
                         temp_offset = offset;
                         if (ch_temp != '"' && ch_temp != '\'')
@@ -3808,10 +3864,10 @@ namespace com.ximpleware
                             {
                                 /*System.out.println(
                                 " " + (temp_offset) + " " + 3 + " dec attr val (standalone) " + depth);*/
-                                if (encoding < FORMAT_UTF_16BE)
-                                    writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
+                                if (singleByteEncoding)
+                                    _writeVTD(temp_offset, 3, TOKEN_DEC_ATTR_VAL, depth);
                                 else
-                                    writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL, depth);
+                                    _writeVTD(temp_offset >> 1, 3, TOKEN_DEC_ATTR_VAL, depth);
                             }
                             else
                                 throw new ParseException("XML decl error: invalid val for standalone" + formatLineNumber());
@@ -3822,10 +3878,10 @@ namespace com.ximpleware
                             {
                                 /*System.out.println(
                                 " " + (temp_offset) + " " + 2 + " dec attr val (standalone)" + depth);*/
-                                if (encoding < FORMAT_UTF_16BE)
-                                    writeVTD(temp_offset, 2, TOKEN_DEC_ATTR_VAL, depth);
+                                if (singleByteEncoding)
+                                    _writeVTD(temp_offset, 2, TOKEN_DEC_ATTR_VAL, depth);
                                 else
-                                    writeVTD(temp_offset >> 1, 2, TOKEN_DEC_ATTR_VAL, depth);
+                                    _writeVTD(temp_offset >> 1, 2, TOKEN_DEC_ATTR_VAL, depth);
                             }
                             else
                                 throw new ParseException("XML decl error: invalid val for standalone" + formatLineNumber());
@@ -3882,17 +3938,17 @@ namespace com.ximpleware
             + length1
             + " PI Target "
             + depth); */
-            if (encoding < FORMAT_UTF_16BE)
+            if (singleByteEncoding)
             {
                 if (length1 > MAX_TOKEN_LENGTH)
                     throw new ParseException("Token Length Error:" + " PI name too long (>0xfffff)" + formatLineNumber());
-                writeVTD((temp_offset), length1, TOKEN_PI_NAME, depth);
+                _writeVTD((temp_offset), length1, TOKEN_PI_NAME, depth);
             }
             else
             {
                 if (length1 > (MAX_TOKEN_LENGTH << 1))
                     throw new ParseException("Token Length Error:" + " PI name too long (>0xfffff)" + formatLineNumber());
-                writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_PI_NAME, depth);
+                _writeVTD((temp_offset) >> 1, (length1 >> 1), TOKEN_PI_NAME, depth);
             }
             //length1 = 0;
             /*temp_offset = offset;
@@ -3902,6 +3958,14 @@ namespace com.ximpleware
             }*/
             if (ch == '?')
             {
+                if (singleByteEncoding)
+                {                    
+                    _writeVTD((temp_offset), 0, TOKEN_PI_VAL, depth);
+                }
+                else
+                {                    
+                    _writeVTD((temp_offset) >> 1, 0, TOKEN_PI_VAL, depth);
+                }
                 if (r.skipChar('>'))
                 {
                     temp_offset = offset;
@@ -3971,8 +4035,8 @@ namespace com.ximpleware
                         {
                             break;
                         }
-                        /*else
-                            throw new ParseException("Error in PI: invalid termination sequence for PI" + formatLineNumber());*/
+                    /*else
+                        throw new ParseException("Error in PI: invalid termination sequence for PI" + formatLineNumber());*/
                 }
                 else
                     throw new ParseException("Errors in PI: Invalid char in PI val" + formatLineNumber());
@@ -3987,17 +4051,17 @@ namespace com.ximpleware
             + length1
             + " PI val "
             + depth);*/
-            if (encoding < FORMAT_UTF_16BE)
+            if (singleByteEncoding)
             {
                 if (length1 > MAX_TOKEN_LENGTH)
                     throw new ParseException("Token Length Error:" + "PI VAL too long (>0xfffff)" + formatLineNumber());
-                writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
+                _writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
             }
             else
             {
                 if (length1 > (MAX_TOKEN_LENGTH << 1))
                     throw new ParseException("Token Length Error:" + "PI VAL too long (>0xfffff)" + formatLineNumber());
-                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
+                _writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
             }
             //length1 = 0;
             temp_offset = offset;
@@ -4064,10 +4128,10 @@ namespace com.ximpleware
             if (r.Char == '>')
             {
                 //System.out.println(" " + (temp_offset) + " " + length1 + " comment " + depth);
-                if (encoding < FORMAT_UTF_16BE)
-                    writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
+                if (singleByteEncoding)
+                    writeVTDText(temp_offset, length1, TOKEN_COMMENT, depth);
                 else
-                    writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
+                    writeVTDText(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
                 //length1 = 0;
                 temp_offset = offset;
                 //ch = CharAfterSe;
@@ -4307,15 +4371,15 @@ namespace com.ximpleware
                     throw new ParseException("Error in CDATA: Invalid Char" + formatLineNumber());
             }
             length1 = offset - temp_offset - (increment << 1) - increment;
-            if (encoding < FORMAT_UTF_16BE)
+            if (singleByteEncoding)
             {
 
-                writeVTD(temp_offset, length1, TOKEN_CDATA_VAL, depth);
+                writeVTDText(temp_offset, length1, TOKEN_CDATA_VAL, depth);
             }
             else
             {
 
-                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_CDATA_VAL, depth);
+                writeVTDText(temp_offset >> 1, length1 >> 1, TOKEN_CDATA_VAL, depth);
             }
             //System.out.println(" " + (temp_offset) + " " + length1 + " CDATA " + depth);
             temp_offset = offset;
@@ -4385,17 +4449,17 @@ namespace com.ximpleware
             length1 = offset - temp_offset - increment;
             /*System.out.println(
             " " + (temp_offset) + " " + length1 + " DOCTYPE val " + depth);*/
-            if (encoding < FORMAT_UTF_16BE)
+            if (singleByteEncoding)
             {
                 if (length1 > MAX_TOKEN_LENGTH)
                     throw new ParseException("Token Length Error:" + " DTD val too long (>0xfffff)" + formatLineNumber());
-                writeVTD(temp_offset, length1, TOKEN_DTD_VAL, depth);
+                _writeVTD(temp_offset, length1, TOKEN_DTD_VAL, depth);
             }
             else
             {
                 if (length1 > (MAX_TOKEN_LENGTH << 1))
                     throw new ParseException("Token Length Error:" + " DTD val too long (>0xfffff)" + formatLineNumber());
-                writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_DTD_VAL, depth);
+                _writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_DTD_VAL, depth);
             }
             ch = CharAfterS;
             if (ch == '<')
@@ -4448,17 +4512,17 @@ namespace com.ximpleware
                 + length1
                 + " PI Target "
                 + depth);*/
-                if (encoding < FORMAT_UTF_16BE)
+                if (singleByteEncoding)
                 {
                     if (length1 > MAX_TOKEN_LENGTH)
                         throw new ParseException("Token Length Error:" + "PI name too long (>0xfffff)" + formatLineNumber());
-                    writeVTD(temp_offset, length1, TOKEN_PI_NAME, depth);
+                    _writeVTD(temp_offset, length1, TOKEN_PI_NAME, depth);
                 }
                 else
                 {
                     if (length1 > (MAX_TOKEN_LENGTH << 1))
                         throw new ParseException("Token Length Error:" + "PI name too long (>0xfffff)" + formatLineNumber());
-                    writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_NAME, depth);
+                    _writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_NAME, depth);
                 }
                 //length1 = 0;
                 temp_offset = offset;
@@ -4484,22 +4548,30 @@ namespace com.ximpleware
                         ch = r.Char;
                     }
                     length1 = offset - temp_offset - (increment << 1);
-                    if (encoding < FORMAT_UTF_16BE)
+                    if (singleByteEncoding)
                     {
                         if (length1 > MAX_TOKEN_LENGTH)
                             throw new ParseException("Token Length Error:" + "PI val too long (>0xfffff)" + formatLineNumber());
-                        writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
+                        _writeVTD(temp_offset, length1, TOKEN_PI_VAL, depth);
                     }
                     else
                     {
                         if (length1 > (MAX_TOKEN_LENGTH << 1))
                             throw new ParseException("Token Length Error:" + "PI val too long (>0xfffff)" + formatLineNumber());
-                        writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
+                        _writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_PI_VAL, depth);
                     }
                     //System.out.println(" " + temp_offset + " " + length1 + " PI val " + depth);
                 }
                 else
                 {
+                    if (singleByteEncoding)
+                    {
+                        _writeVTD((temp_offset), 0, TOKEN_PI_VAL, depth);
+                    }
+                    else
+                    {
+                        _writeVTD((temp_offset) >> 1, 0, TOKEN_PI_VAL, depth);
+                    }
                     if ((ch == '?') && r.skipChar('>'))
                     {
                         parser_state = STATE_DOC_END;
@@ -4538,10 +4610,10 @@ namespace com.ximpleware
             if (r.Char == '>')
             {
                 //System.out.println(" " + temp_offset + " " + length1 + " comment " + depth);
-                if (encoding < FORMAT_UTF_16BE)
-                    writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
+                if (singleByteEncoding)
+                    _writeVTD(temp_offset, length1, TOKEN_COMMENT, depth);
                 else
-                    writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
+                    _writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_COMMENT, depth);
                 //length1 = 0;
                 parser_state = STATE_DOC_END;
                 return parser_state;
@@ -4585,42 +4657,53 @@ namespace com.ximpleware
             docLen = len;
             endOffset = os + len;
             last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
-            int i1 = 7, i2 = 9, i3 = 11;
+            //int i1 = 7, i2 = 9, i3 = 11;
             currentElementRecord = 0;
             nsBuffer1.size_Renamed_Field = 0;
             nsBuffer2.size_Renamed_Field = 0;
             nsBuffer3.size_Renamed_Field = 0;
             r = new UTF8Reader(this);
-            if (docLen <= 1024)
+            if (shallowDepth)
             {
-                //a = 1024; //set the floor
-                a = 6; i1 = 5; i2 = 5; i3 = 5;
-            }
-            else if (docLen <= 4096)
-            {
-                a = 7; i1 = 6; i2 = 6; i3 = 6;
-            }
-            else if (docLen <= 1024 * 16)
-            {
-                a = 8; i1 = 7; i2 = 7; i3 = 7;
-            }
-            else if (docLen <= 1024 * 16 * 4)
-            {
-                //a = 2048;
-                a = 11;
-            }
-            else if (docLen <= 1024 * 256)
-            {
-                //a = 1024 * 4;
-                a = 12;
-            }
-            else
-            {
-                //a = 1 << 15;
-                a = 15;
-            }
-            if (VTDBuffer == null)
-            {
+                int i1 = 7, i2 = 9, i3 = 11;
+                if (docLen <= 1024)
+                {
+                    // a = 1024; //set the floor
+                    a = 6;
+                    i1 = 5;
+                    i2 = 5;
+                    i3 = 5;
+                }
+                else if (docLen <= 4096)
+                {
+                    a = 7;
+                    i1 = 6;
+                    i2 = 6;
+                    i3 = 6;
+                }
+                else if (docLen <= 1024 * 16)
+                {
+                    a = 8;
+                    i1 = 7;
+                    i2 = 7;
+                    i3 = 7;
+                }
+                else if (docLen <= 1024 * 16 * 4)
+                {
+                    // a = 2048;
+                    a = 11;
+                }
+                else if (docLen <= 1024 * 256)
+                {
+                    // a = 1024 * 4;
+                    a = 12;
+                }
+                else
+                {
+                    // a = 1 << 15;
+                    a = 15;
+                }
+
                 VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
                 l1Buffer = new FastLongBuffer(i1);
                 l2Buffer = new FastLongBuffer(i2);
@@ -4628,10 +4711,67 @@ namespace com.ximpleware
             }
             else
             {
-                VTDBuffer.size_Renamed_Field = 0;
-                l1Buffer.size_Renamed_Field = 0;
-                l2Buffer.size_Renamed_Field = 0;
-                l3Buffer.size_Renamed_Field = 0;
+
+                int i1 = 7, i2 = 9, i3 = 11, i4 = 11, i5 = 11;
+                if (docLen <= 1024)
+                {
+                    // a = 1024; //set the floor
+                    a = 6;
+                    i1 = 5;
+                    i2 = 5;
+                    i3 = 5;
+                    i4 = 5;
+                    i5 = 5;
+                }
+                else if (docLen <= 4096)
+                {
+                    a = 7;
+                    i1 = 6;
+                    i2 = 6;
+                    i3 = 6;
+                    i4 = 6;
+                    i5 = 6;
+                }
+                else if (docLen <= 1024 * 16)
+                {
+                    a = 8;
+                    i1 = 7;
+                    i2 = 7;
+                    i3 = 7;
+                    i4 = 7;
+                    i5 = 7;
+                }
+                else if (docLen <= 1024 * 16 * 4)
+                {
+                    // a = 2048;
+                    a = 11;
+                    i2 = 8;
+                    i3 = 8;
+                    i4 = 8;
+                    i5 = 8;
+                }
+                else if (docLen <= 1024 * 256)
+                {
+                    // a = 1024 * 4;
+                    a = 12;
+                    i1 = 8;
+                    i2 = 9;
+                    i3 = 9;
+                    i4 = 9;
+                    i5 = 9;
+                }
+                else
+                {
+                    // a = 1 << 15;
+                    a = 15;
+                }
+
+                VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+                l1Buffer = new FastLongBuffer(i1);
+                l2Buffer = new FastLongBuffer(i2);
+                _l3Buffer = new FastLongBuffer(i3);
+                _l4Buffer = new FastLongBuffer(i4);
+                _l5Buffer = new FastIntBuffer(i5);
             }
         }
 
@@ -4666,47 +4806,152 @@ namespace com.ximpleware
             docLen = len;
             endOffset = os + len;
             last_l1_index = last_l2_index = last_l3_index = last_depth = 0;
-            int i1 = 7, i2 = 9, i3 = 11;
+            //int i1 = 7, i2 = 9, i3 = 11,i4,i5;
             currentElementRecord = 0;
             nsBuffer1.size_Renamed_Field = 0;
             nsBuffer2.size_Renamed_Field = 0;
             nsBuffer3.size_Renamed_Field = 0;
             //r = new UTF8Reader();
             r = new UTF8Reader(this);
-            if (docLen <= 1024)
+            if (shallowDepth)
             {
-                //a = 1024; //set the floor
-                a = 6; i1 = 5; i2 = 5; i3 = 5;
-            }
-            else if (docLen <= 4096)
-            {
-                a = 7; i1 = 6; i2 = 6; i3 = 6;
-            }
-            else if (docLen <= 1024 * 16)
-            {
-                a = 8; i1 = 7; i2 = 7; i3 = 7;
-            }
-            else if (docLen <= 1024 * 16 * 4)
-            {
-                //a = 2048;
-                a = 11;
-            }
-            else if (docLen <= 1024 * 256)
-            {
-                //a = 1024 * 4;
-                a = 12;
+                int i1 = 7, i2 = 9,  i3 = 11;
+                if (docLen <= 1024)
+                {
+                    // a = 1024; //set the floor
+                    a = 6;
+                    i1 = 5;
+                    i2 = 5;
+                    i3 = 5;
+                }
+                else if (docLen <= 4096)
+                {
+                    a = 7;
+                    i1 = 6;
+                    i2 = 6;
+                    i3 = 6;
+                }
+                else if (docLen <= 1024 * 16)
+                {
+                    a = 8;
+                    i1 = 7;
+                    i2 = 7;
+                    i3 = 7;
+                }
+                else if (docLen <= 1024 * 16 * 4)
+                {
+                    // a = 2048;
+                    a = 11;
+                    i2 = 8;
+                    i3 = 8;
+                }
+                else if (docLen <= 1024 * 256)
+                {
+                    // a = 1024 * 4;
+                    a = 12;
+                }
+                else
+                {
+                    // a = 1 << 15;
+                    a = 15;
+                }
+                if (VTDBuffer == null)
+                {
+                    VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+                    l1Buffer = new FastLongBuffer(i1);
+                    l2Buffer = new FastLongBuffer(i2);
+                    l3Buffer = new FastIntBuffer(i3);
+                }
+                else
+                {
+                    VTDBuffer.size_Renamed_Field = 0;
+                    l1Buffer.size_Renamed_Field = 0;
+                    l2Buffer.size_Renamed_Field = 0;
+                    l3Buffer.size_Renamed_Field = 0;
+                }
             }
             else
             {
-                //a = 1 << 15;
-                a = 15;
+                int i1 = 7, i2 = 9, i3 = 11, i4 = 11, i5 = 11;
+                if (docLen <= 1024)
+                {
+                    // a = 1024; //set the floor
+                    a = 6;
+                    i1 = 5;
+                    i2 = 5;
+                    i3 = 5;
+                    i4 = 5;
+                    i5 = 5;
+                }
+                else if (docLen <= 4096)
+                {
+                    a = 7;
+                    i1 = 6;
+                    i2 = 6;
+                    i3 = 6;
+                    i4 = 6;
+                    i5 = 6;
+                }
+                else if (docLen <= 1024 * 16)
+                {
+                    a = 8;
+                    i1 = 7;
+                    i2 = 7;
+                    i3 = 7;
+                }
+                else if (docLen <= 1024 * 16 * 4)
+                {
+                    // a = 2048;
+                    a = 11;
+                    i2 = 8;
+                    i3 = 8;
+                    i4 = 8;
+                    i5 = 8;
+                }
+                else if (docLen <= 1024 * 256)
+                {
+                    // a = 1024 * 4;
+                    a = 12;
+                    i1 = 8;
+                    i2 = 9;
+                    i3 = 9;
+                    i4 = 9;
+                    i5 = 9;
+                }
+                else if (docLen <= 1024 * 1024)
+                {
+                    // a = 1024 * 4;
+                    a = 12;
+                    i1 = 8;
+                    i3 = 10;
+                    i4 = 10;
+                    i5 = 10;
+                }
+                else
+                {
+                    // a = 1 << 15;
+                    a = 15;
+                    i1 = 8;
+                }
+                if (VTDBuffer == null)
+                {
+                    VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
+                    l1Buffer = new FastLongBuffer(i1);
+                    l2Buffer = new FastLongBuffer(i2);
+                    _l3Buffer = new FastLongBuffer(i3);
+                    _l4Buffer = new FastLongBuffer(i4);
+                    _l5Buffer = new FastIntBuffer(i5);
+                }
+                else
+                {
+                    VTDBuffer.size_Renamed_Field = 0;
+                    l1Buffer.size_Renamed_Field = 0;
+                    l2Buffer.size_Renamed_Field = 0;
+                    _l3Buffer.size_Renamed_Field = 0;
+                    _l4Buffer.size_Renamed_Field = 0;
+                    _l5Buffer.size_Renamed_Field = 0;
+                }
             }
-
-            VTDBuffer = new FastLongBuffer(a, len >> (a + 1));
-            l1Buffer = new FastLongBuffer(i1);
-            l2Buffer = new FastLongBuffer(i2);
-            l3Buffer = new FastIntBuffer(i3);
-            ;
         }
         /// <summary> Write the VTD and LC into their storage container.</summary>
         /// <param name="offset">int
@@ -4719,66 +4964,7 @@ namespace com.ximpleware
         /// </param>
         private void writeVTD(int offset, int length, int token_type, int depth)
         {
-            //long ll;
-            //Console.WriteLine(" "+ (VTDBuffer.size_Renamed_Field)+ "===> " + offset);
-            switch (token_type)
-            {
-
-                case TOKEN_CHARACTER_DATA:
-                case TOKEN_CDATA_VAL:
-                case TOKEN_COMMENT:
-
-                    if (length > MAX_TOKEN_LENGTH)
-                    {
-                        int k;
-                        int r_offset = offset;
-                        for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH)
-                        {
-                            //long l = ((long)(token_type << 4)
-                            //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                            //    | 0xffff0f00);
-
-                            VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32) | r_offset);
-                            //VTDBuffer.append(l & 0x00000000ffffffff | (((long)VTDNav.swap_bytes(r_offset)) << 32));
-                            r_offset += MAX_TOKEN_LENGTH;
-                        }
-                        VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | k) << 32) | r_offset);
-                        //VTDBuffer.append((((long)((token_type << 4)
-                        //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                        //    | VTDNav.swap_bytes(k))) & 0x00000000ffffffff
-                        //    | (((long)VTDNav.swap_bytes(r_offset)) << 32)));
-
-                    }
-                    else
-                    {
-                        VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
-                        //ll = (((long)((token_type << 4) | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)| VTDNav.swap_bytes(length))) & 0x00000000ffffffff
-                        //    | (((long)VTDNav.swap_bytes(offset)) << 32));
-                        //VTDBuffer.append((((long)((token_type << 4)
-                        //     | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                        //    | VTDNav.swap_bytes(length))) & 0x00000000ffffffff
-                        //   | (((long)VTDNav.swap_bytes(offset)) << 32)));
-                    }
-                    break;
-
-                //case TOKEN_ENDING_TAG: break;
-
-                default:
-                    VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
-                    //ll = ((long)((token_type << 4)
-                    //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                    //        | VTDNav.swap_bytes(length))
-                    //        | (((long)VTDNav.swap_bytes(offset)) << 32));
-                    //Console.WriteLine(" VTDToken ==> "+ ll.ToString("x"));
-
-                    //VTDBuffer.append((((long)((token_type << 4)
-                    //    | (((depth & 0x0f) << 12) | (depth & 0xf0) >> 4)
-                    //        | VTDNav.swap_bytes(length))) & 0x00000000ffffffff
-                    //        | (((long)VTDNav.swap_bytes(offset)) << 32)));
-
-                    break;
-
-            }
+            VTDBuffer.append(((long)((token_type << 28) | ((depth & 0xff) << 20) | length) << 32) | offset);
             // remember VTD depth start from zero
             if (token_type == TOKEN_STARTING_TAG)
             {
@@ -4919,7 +5105,8 @@ namespace com.ximpleware
         /// </summary>
         public void writeIndex(System.IO.Stream os)
         {
-            IndexHandler.writeIndex(1,
+            if (shallowDepth)
+            IndexHandler.writeIndex_L3(1,
                  this.encoding,
                  this.ns,
                  true,
@@ -4933,6 +5120,24 @@ namespace com.ximpleware
                  this.l1Buffer,
                  this.l2Buffer,
                  this.l3Buffer,
+                 os);
+            else
+                IndexHandler.writeIndex_L5(1,
+                 this.encoding,
+                 this.ns,
+                 true,
+                 this.VTDDepth,
+                 5,
+                 this.rootIndex,
+                 this.XMLDoc,
+                 this.docOffset,
+                 this.docLen,
+                 this.VTDBuffer,
+                 this.l1Buffer,
+                 this.l2Buffer,
+                 this._l3Buffer,
+                 this._l4Buffer,
+                 this._l5Buffer,
                  os);
         }
 
@@ -4988,7 +5193,8 @@ namespace com.ximpleware
 
         public void writeSeparateIndex(System.IO.Stream os)
         {
-            IndexHandler.writeSeparateIndex((byte)2,
+            if (shallowDepth)
+            IndexHandler.writeSeparateIndex_L3((byte)2,
                 this.encoding,
                 this.ns,
                 true,
@@ -5002,6 +5208,24 @@ namespace com.ximpleware
                 (FastLongBuffer)this.l1Buffer,
                 (FastLongBuffer)this.l2Buffer,
                 (FastIntBuffer)this.l3Buffer,
+                os);
+            else
+                IndexHandler.writeSeparateIndex_L5(1,
+                this.encoding,
+                this.ns,
+                true,
+                this.VTDDepth,
+                5,
+                this.rootIndex,
+                //this.XMLDoc,
+                this.docOffset,
+                this.docLen,
+                (FastLongBuffer)this.VTDBuffer,
+                (FastLongBuffer)this.l1Buffer,
+                (FastLongBuffer)this.l2Buffer,
+                (FastLongBuffer)this._l3Buffer,
+                (FastLongBuffer)this._l4Buffer,
+                (FastIntBuffer)this._l5Buffer,
                 os);
         }
         /// <summary>
@@ -5786,6 +6010,159 @@ namespace com.ximpleware
                     "Error in text content: Invalid char"
                         + formatLineNumber());
         }
+        private void _writeVTD(int offset, int length, int token_type, int depth)
+        {
+            VTDBuffer.append(((long)((token_type << 28)
+                    | ((depth & 0xff) << 20) | length) << 32)
+                    | offset);
+        }
 
+        private void writeVTDText(int offset, int length, int token_type, int depth)
+        {
+            if (length > MAX_TOKEN_LENGTH)
+            {
+                int k;
+                int r_offset = offset;
+                for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH)
+                {
+                    VTDBuffer.append(((long)((token_type << 28)
+                            | ((depth & 0xff) << 20) | MAX_TOKEN_LENGTH) << 32)
+                            | r_offset);
+                    r_offset += MAX_TOKEN_LENGTH;
+                }
+                VTDBuffer.append(((long)((token_type << 28)
+                        | ((depth & 0xff) << 20) | k) << 32)
+                        | r_offset);
+            }
+            else
+            {
+                VTDBuffer.append(((long)((token_type << 28)
+                        | ((depth & 0xff) << 20) | length) << 32)
+                        | offset);
+            }
+        }
+
+        private void writeVTD_L5(int offset, int length, int token_type, int depth)
+        {
+
+
+            VTDBuffer.append(((long)((token_type << 28)
+                    | ((depth & 0xff) << 20) | length) << 32)
+                    | offset);
+
+            switch (depth)
+            {
+                case 0:
+                    rootIndex = VTDBuffer.size_Renamed_Field - 1;
+                    break;
+                case 1:
+                    if (last_depth == 1)
+                    {
+                        l1Buffer.append(((long)last_l1_index << 32) | 0xffffffffL);
+                    }
+                    else if (last_depth == 2)
+                    {
+                        l2Buffer.append(((long)last_l2_index << 32) | 0xffffffffL);
+                    }
+                    else if (last_depth == 3)
+                    {
+                        _l3Buffer.append(((long)last_l3_index << 32) | 0xffffffffL);
+                    }
+                    else if (last_depth == 4)
+                    {
+                        _l4Buffer.append(((long)last_l4_index << 32) | 0xffffffffL);
+                    }
+                    last_l1_index = VTDBuffer.size_Renamed_Field - 1;
+                    last_depth = 1;
+                    break;
+                case 2:
+                    if (last_depth == 1)
+                    {
+                        l1Buffer.append(((long)last_l1_index << 32)
+                                + l2Buffer.size_Renamed_Field);
+                    }
+                    else if (last_depth == 2)
+                    {
+                        l2Buffer.append(((long)last_l2_index << 32) | 0xffffffffL);
+                    }
+                    else if (last_depth == 3)
+                    {
+                        _l3Buffer.append(((long)last_l3_index << 32) | 0xffffffffL);
+                    }
+                    else if (last_depth == 4)
+                    {
+                        _l4Buffer.append(((long)last_l4_index << 32) | 0xffffffffL);
+                    }
+                    last_l2_index = VTDBuffer.size_Renamed_Field - 1;
+                    last_depth = 2;
+                    break;
+
+                case 3:
+                    /*if (last_depth == 1) {
+                        l1Buffer.append(((long) last_l1_index << 32)
+                                + l2Buffer.size);
+                    } else*/
+                    if (last_depth == 2)
+                    {
+                        l2Buffer.append(((long)last_l2_index << 32)
+                                + _l3Buffer.size_Renamed_Field);
+                    }
+                    else if (last_depth == 3)
+                    {
+                        _l3Buffer.append(((long)last_l3_index << 32) | 0xffffffffL);
+                    }
+                    else if (last_depth == 4)
+                    {
+                        _l4Buffer.append(((long)last_l4_index << 32) | 0xffffffffL);
+                    }
+                    last_l3_index = VTDBuffer.size_Renamed_Field - 1;
+                    last_depth = 3;
+                    break;
+
+                case 4:
+                    /*if (last_depth == 1) {
+                        l1Buffer.append(((long) last_l1_index << 32)
+                                + l2Buffer.size);
+                    } else if (last_depth == 2) {
+                        l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffL);
+                    } else*/
+                    if (last_depth == 3)
+                    {
+                        _l3Buffer.append(((long)last_l3_index << 32)
+                                + _l4Buffer.size_Renamed_Field);
+                    }
+                    else if (last_depth == 4)
+                    {
+                        _l4Buffer.append(((long)last_l4_index << 32) | 0xffffffffL);
+                    }
+                    last_l4_index = VTDBuffer.size_Renamed_Field - 1;
+                    last_depth = 4;
+                    break;
+                case 5:
+                    _l5Buffer.append(VTDBuffer.size_Renamed_Field - 1);
+                    if (last_depth == 4)
+                    {
+                        _l4Buffer.append(((long)last_l4_index << 32)
+                                + _l5Buffer.size_Renamed_Field - 1);
+                    }
+                    last_depth = 5;
+                    break;
+
+                /*default:
+                    break;*/
+                //rootIndex = VTDBuffer.size() - 1;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="i"></param>
+        public void selectLcDepth(int i)
+        {
+            if (i != 3 && i != 5)
+                throw new ParseException("LcDepth can only take the value of 3 or 5");
+            if (i == 5)
+                shallowDepth = false;
+        }
     }
 }
