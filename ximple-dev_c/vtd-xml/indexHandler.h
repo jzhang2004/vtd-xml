@@ -27,7 +27,7 @@ Boolean isLittleEndian();
 
 /*writeIndex writes VTD+XML into a file
   This function throws index_write_exception*/
-Boolean _writeIndex(Byte version, 
+Boolean _writeIndex_L3(Byte version, 
 				int encodingType, 
 				Boolean ns, 
 				Boolean byteOrder, 
@@ -43,10 +43,28 @@ Boolean _writeIndex(Byte version,
 				FastIntBuffer *l3Buffer, 
 				FILE *f);
 
+Boolean _writeIndex_L5(Byte version, 
+				int encodingType, 
+				Boolean ns, 
+				Boolean byteOrder, 
+				int nestDepth, 
+				int LCLevel, 
+				int rootIndex, 
+				UByte* xmlDoc, 
+				int docOffset, 
+				int docLen, 
+				FastLongBuffer *vtdBuffer, 
+				FastLongBuffer *l1Buffer, 
+				FastLongBuffer *l2Buffer, 
+				FastLongBuffer *l3Buffer, 
+				FastLongBuffer *l4Buffer,
+				FastIntBuffer *l5Buffer,
+				FILE *f);
+
 /*writeSeparateIndex writes VTD index into a separate file from XML
   notice that this function assumes XML document byte starts from the begining
   This function throws index_write_exception*/
-Boolean _writeSeparateIndex(Byte version, 
+Boolean _writeSeparateIndex_L3(Byte version, 
 				int encodingType, 
 				Boolean ns, 
 				Boolean byteOrder, 
@@ -60,6 +78,25 @@ Boolean _writeSeparateIndex(Byte version,
 				FastLongBuffer *l1Buffer, 
 				FastLongBuffer *l2Buffer, 
 				FastIntBuffer *l3Buffer, 
+				
+				FILE *f);
+
+Boolean _writeSeparateIndex_L5(Byte version, 
+				int encodingType, 
+				Boolean ns, 
+				Boolean byteOrder, 
+				int nestDepth, 
+				int LCLevel, 
+				int rootIndex, 
+				//UByte* xmlDoc, 
+				int docOffset, 
+				int docLen, 
+				FastLongBuffer *vtdBuffer, 
+				FastLongBuffer *l1Buffer, 
+				FastLongBuffer *l2Buffer, 
+				FastLongBuffer *l3Buffer, 
+				FastLongBuffer *l4Buffer,
+				FastIntBuffer *l5Buffer,
 				FILE *f);
 
 /*readIndex loads VTD+XML into VTDGen*/
