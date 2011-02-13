@@ -110,34 +110,34 @@ class IndexHandler {
                 dos.write(0);
         }
         // write VTD offset adjusted if the start offset is not zero
-        dos.writeLong(vtdBuffer.size());
+        dos.writeLong(vtdBuffer.size);
         if (docOffset == 0)
-            for (i = 0; i < vtdBuffer.size(); i++) {
+            for (i = 0; i < vtdBuffer.size; i++) {
                 dos.writeLong(vtdBuffer.longAt(i));
             }
         else
-            for (i = 0; i < vtdBuffer.size(); i++) {
+            for (i = 0; i < vtdBuffer.size; i++) {
                 dos.writeLong(adjust(vtdBuffer.longAt(i), 
                         -docOffset));
             }
           
         // write L1 
-        dos.writeLong(l1Buffer.size());
-        for(i=0;i< l1Buffer.size();i++){
+        dos.writeLong(l1Buffer.size);
+        for(i=0;i< l1Buffer.size;i++){
             dos.writeLong(l1Buffer.longAt(i));
         }
         // write L2
-        dos.writeLong(l2Buffer.size());
-        for(i=0;i< l2Buffer.size();i++){
+        dos.writeLong(l2Buffer.size);
+        for(i=0;i< l2Buffer.size;i++){
             dos.writeLong(l2Buffer.longAt(i));
         }
         // write L3
-        dos.writeLong(l3Buffer.size());
-        for(i=0;i< l3Buffer.size();i++){
+        dos.writeLong(l3Buffer.size);
+        for(i=0;i< l3Buffer.size;i++){
             dos.writeInt(l3Buffer.intAt(i));
         }
         // pad zero if # of l3 entry is odd
-        if ( (l3Buffer.size() & 1) !=0)
+        if ( (l3Buffer.size & 1) !=0)
             dos.writeInt(0);
         dos.close();
     }
@@ -195,7 +195,7 @@ class IndexHandler {
                 ){
             throw new IndexWriteException("Invalid VTD index ");
         }
-        if (vtdBuffer.size()==0)
+        if (vtdBuffer.size==0)
             throw new IndexWriteException("VTDBuffer can't be zero length");
         
         int i;
@@ -229,44 +229,44 @@ class IndexHandler {
                 dos.write(0);
         }
         // write VTD offset adjusted if the start offset is not zero
-        dos.writeLong(vtdBuffer.size());
+        dos.writeLong(vtdBuffer.size);
         if (docOffset == 0)
-            for (i = 0; i < vtdBuffer.size(); i++) {
+            for (i = 0; i < vtdBuffer.size; i++) {
                 dos.writeLong(vtdBuffer.longAt(i));
             }
         else
-            for (i = 0; i < vtdBuffer.size(); i++) {
+            for (i = 0; i < vtdBuffer.size; i++) {
                 dos.writeLong(adjust(vtdBuffer.longAt(i), 
                         -docOffset));
             }
           
         // write L1 
-        dos.writeLong(l1Buffer.size());
-        for(i=0;i< l1Buffer.size();i++){
+        dos.writeLong(l1Buffer.size);
+        for(i=0;i< l1Buffer.size;i++){
             dos.writeLong(l1Buffer.longAt(i));
         }
         // write L2
-        dos.writeLong(l2Buffer.size());
-        for(i=0;i< l2Buffer.size();i++){
+        dos.writeLong(l2Buffer.size);
+        for(i=0;i< l2Buffer.size;i++){
             dos.writeLong(l2Buffer.longAt(i));
         }
         // write L3
-        dos.writeLong(l3Buffer.size());
-        for(i=0;i< l3Buffer.size();i++){
+        dos.writeLong(l3Buffer.size);
+        for(i=0;i< l3Buffer.size;i++){
             dos.writeLong(l3Buffer.longAt(i));
         }
         // write L4
-        dos.writeLong(l4Buffer.size());
-        for(i=0;i< l4Buffer.size();i++){
+        dos.writeLong(l4Buffer.size);
+        for(i=0;i< l4Buffer.size;i++){
             dos.writeLong(l4Buffer.longAt(i));
         }
         // write L5
-        dos.writeLong(l5Buffer.size());
-        for(i=0;i< l5Buffer.size();i++){
+        dos.writeLong(l5Buffer.size);
+        for(i=0;i< l5Buffer.size;i++){
             dos.writeInt(l5Buffer.intAt(i));
         }
         // pad zero if # of l3 entry is odd
-        if ( (l5Buffer.size() & 1) !=0)
+        if ( (l5Buffer.size & 1) !=0)
             dos.writeInt(0);
         dos.close();
     }
@@ -323,7 +323,7 @@ class IndexHandler {
                 ){
             throw new IndexWriteException("Invalid VTD index ");
         }
-        if (vtdBuffer.size()==0)
+        if (vtdBuffer.size==0)
             throw new IndexWriteException("VTDBuffer can't be zero length");
         
         int i;
@@ -362,34 +362,34 @@ class IndexHandler {
         //        dos.write(0);
         //}
         // write VTD
-        dos.writeLong(vtdBuffer.size());
+        dos.writeLong(vtdBuffer.size);
         if (docOffset == 0)
-            for (i = 0; i < vtdBuffer.size(); i++) {
+            for (i = 0; i < vtdBuffer.size; i++) {
                 dos.writeLong(vtdBuffer.longAt(i));
             }
         else
-            for (i = 0; i < vtdBuffer.size(); i++) {
+            for (i = 0; i < vtdBuffer.size; i++) {
                 dos.writeLong(adjust(vtdBuffer.longAt(i), 
                         -docOffset));
             }
           
         // write L1 
-        dos.writeLong(l1Buffer.size());
-        for(i=0;i< l1Buffer.size();i++){
+        dos.writeLong(l1Buffer.size);
+        for(i=0;i< l1Buffer.size;i++){
             dos.writeLong(l1Buffer.longAt(i));
         }
         // write L2
-        dos.writeLong(l2Buffer.size());
+        dos.writeLong(l2Buffer.size);
         for(i=0;i< l2Buffer.size();i++){
             dos.writeLong(l2Buffer.longAt(i));
         }
         // write L3
-        dos.writeLong(l3Buffer.size());
-        for(i=0;i< l3Buffer.size();i++){
+        dos.writeLong(l3Buffer.size);
+        for(i=0;i< l3Buffer.size;i++){
             dos.writeInt(l3Buffer.intAt(i));
         }
         // pad zero if # of l3 entry is odd
-        if ( (l3Buffer.size() & 1) !=0)
+        if ( (l3Buffer.size & 1) !=0)
             dos.writeInt(0);
         dos.close();
     }
@@ -450,7 +450,7 @@ class IndexHandler {
                 ){
             throw new IndexWriteException("Invalid VTD index ");
         }
-        if (vtdBuffer.size()==0)
+        if (vtdBuffer.size==0)
             throw new IndexWriteException("VTDBuffer can't be zero length");
         
         int i;
@@ -489,45 +489,45 @@ class IndexHandler {
         //        dos.write(0);
         //}
         // write VTD
-        dos.writeLong(vtdBuffer.size());
+        dos.writeLong(vtdBuffer.size);
         if (docOffset == 0)
-            for (i = 0; i < vtdBuffer.size(); i++) {
+            for (i = 0; i < vtdBuffer.size; i++) {
                 dos.writeLong(vtdBuffer.longAt(i));
             }
         else
-            for (i = 0; i < vtdBuffer.size(); i++) {
+            for (i = 0; i < vtdBuffer.size; i++) {
                 dos.writeLong(adjust(vtdBuffer.longAt(i), 
                         -docOffset));
             }
           
         // write L1 
-        dos.writeLong(l1Buffer.size());
-        for(i=0;i< l1Buffer.size();i++){
+        dos.writeLong(l1Buffer.size);
+        for(i=0;i< l1Buffer.size;i++){
             dos.writeLong(l1Buffer.longAt(i));
         }
         // write L2
-        dos.writeLong(l2Buffer.size());
+        dos.writeLong(l2Buffer.size);
         for(i=0;i< l2Buffer.size();i++){
             dos.writeLong(l2Buffer.longAt(i));
         }
         // write L3
-        dos.writeLong(l3Buffer.size());
-        for(i=0;i< l3Buffer.size();i++){
+        dos.writeLong(l3Buffer.size);
+        for(i=0;i< l3Buffer.size;i++){
             dos.writeLong(l3Buffer.longAt(i));
         }
         
         // write L4
-        dos.writeLong(l4Buffer.size());
-        for(i=0;i< l4Buffer.size();i++){
+        dos.writeLong(l4Buffer.size);
+        for(i=0;i< l4Buffer.size;i++){
             dos.writeLong(l4Buffer.longAt(i));
         }
         // write L5
-        dos.writeLong(l5Buffer.size());
-        for(i=0;i< l5Buffer.size();i++){
+        dos.writeLong(l5Buffer.size);
+        for(i=0;i< l5Buffer.size;i++){
             dos.writeInt(l5Buffer.intAt(i));
         }
         // pad zero if # of l3 entry is odd
-        if ( (l5Buffer.size() & 1) !=0)
+        if ( (l5Buffer.size & 1) !=0)
             dos.writeInt(0);
         dos.close();
     }
