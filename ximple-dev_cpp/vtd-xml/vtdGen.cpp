@@ -1369,6 +1369,20 @@ VTDGen::pState VTDGen::process_end_pi(){
 					depth);
 			}
 		} else {
+			if (singleByteEncoding){
+				_writeVTD(
+					(temp_offset),
+					0,
+					TOKEN_PI_NAME,
+					depth);
+			}
+			else{
+				_writeVTD(
+					(temp_offset) >> 1,
+					0,
+					TOKEN_PI_NAME,
+					depth);
+			}
 			if ((ch == '?') && skipChar('>')) {
 				parser_state = STATE_DOC_END;
 			} else{		
