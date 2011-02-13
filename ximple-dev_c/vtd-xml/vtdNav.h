@@ -52,8 +52,55 @@
 #define NS 4
 #define PS 5
 
+struct vTDNav;
+
+typedef void (*freeVTDNav_) (struct vTDNav *vn);
+typedef void (*recoverNode_)(struct vTDNav *vn, int index);
+typedef Boolean (*toElement_)(struct vTDNav *vn, navDir d);
+typedef Boolean (*toElement2_)(struct vTDNav *vn, navDir d, UCSChar *s);
+typedef Boolean (*toElementNS_)(struct vTDNav *vn, navDir d, UCSChar *URL, UCSChar *ln);
+typedef int (*iterate_)(struct vTDNav *vn, int dp, UCSChar *en, Boolean special);
+typedef int (*iterateNS_)(struct vTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
+typedef Boolean (*iterate_preceding_)(struct vTDNav *vn,UCSChar *en, int* a, Boolean special);
+typedef Boolean (*iterate_precedingNS_)(struct vTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
+typedef Boolean (*iterate_following_)(struct vTDNav *vn,UCSChar *en, Boolean special);
+typedef Boolean (*iterate_followingNS_)(struct vTDNav *vn, UCSChar *URL, UCSChar *ln);
+typedef struct vTDNav* (*duplicateNav_)(struct vTDNav *vn);
+typedef struct vTDNav* (*cloneNav_)(struct vTDNav *vn);
+typedef void (*resolveLC_)(struct vTDNav *vn);
+typedef Boolean (*pop_)(struct vTDNav *vn);
+typedef Boolean (*pop2_)(struct vTDNav *vn);
+typedef Boolean (*push_)(struct vTDNav *vn);
+typedef Boolean (*push2_)(struct vTDNav *vn);
+typedef void (*sampleState_)(struct vTDNav *vn, FastIntBuffer *fib);
+typedef Boolean (*writeIndex_VTDNav_)(struct vTDNav *vn, FILE *f);
+typedef Boolean (*writeIndex2_VTDNav_)(struct vTDNav *vn, char *fileName);
+typedef Boolean (*writeSeparateIndex_VTDNav_)(struct vTDNav *vn, char *vtdIndex);
 
 typedef struct vTDNav{
+	freeVTDNav_ __freeVTDNav;
+	recoverNode_ __recoverNode;
+	toElement_ __toElement;
+	toElement2_ __toElement2;
+	toElementNS_ __toElementNS;
+	iterate_  __iterate;
+	iterateNS_  __iterateNS;
+	iterate_preceding_ __iterate_preceding;
+	iterate_precedingNS_ __iterate_precedingNS;
+	iterate_following_ __iterate_following;
+	iterate_followingNS_ __iterate_followingNS;
+	duplicateNav_ __duplicateNav;
+	cloneNav_ __cloneNav;
+	resolveLC_  __resolveLC;
+	pop_ __pop;
+	pop2_ __pop2;
+	push_ __push;
+	push2_ __push2;
+	sampleState_ __sampleState;
+	writeIndex_VTDNav_ __writeIndex_VTDNav;
+	writeIndex2_VTDNav_ __writeIndex2_VTDNav;
+	writeSeparateIndex_VTDNav_ __writeSeparateIndex_VTDNav;
+
 	int rootIndex;
 	int nestingLevel;
 	int* context; // context object
@@ -67,6 +114,7 @@ typedef struct vTDNav{
 	int l2index;
 	int l3index;
 	int l1index;
+	Boolean shallowDepth;
     
 	FastLongBuffer *vtdBuffer;
 	FastLongBuffer *l1Buffer;
@@ -98,6 +146,89 @@ typedef struct vTDNav{
 } VTDNav;
 
 
+
+
+
+typedef struct vTDNav_L5{
+	freeVTDNav_ __freeVTDNav;
+	recoverNode_ __recoverNode;
+	toElement_ __toElement;
+	toElement2_ __toElement2;
+	toElementNS_ __toElementNS;
+	iterate_  __iterate;
+	iterateNS_  __iterateNS;
+	iterate_preceding_ __iterate_preceding;
+	iterate_precedingNS_ __iterate_precedingNS;
+	iterate_following_ __iterate_following;
+	iterate_followingNS_ __iterate_followingNS;
+	duplicateNav_ __duplicateNav;
+	cloneNav_ __cloneNav;
+	resolveLC_  __resolveLC;
+	pop_ __pop;
+	pop2_ __pop2;
+	push_ __push;
+	push2_ __push2;
+	sampleState_ __sampleState;
+	writeIndex_VTDNav_ __writeIndex_VTDNav;
+	writeIndex2_VTDNav_ __writeIndex2_VTDNav;
+	writeSeparateIndex_VTDNav_ __writeSeparateIndex_VTDNav;
+
+	int rootIndex;
+	int nestingLevel;
+	int* context; // context object
+	Boolean atTerminal; // Add this model to be compatible with XPath data model, 
+						// true if attribute axis or text()
+// location cache part
+	int l2upper;
+	int l2lower;
+	int l3upper;
+	int l3lower;
+	int l2index;
+	int l3index;
+	int l1index;
+	Boolean shallowDepth;
+
+    
+	FastLongBuffer *vtdBuffer;
+	FastLongBuffer *l1Buffer;
+	FastLongBuffer *l2Buffer;
+	FastIntBuffer *l3Buffer;
+	UByte* XMLDoc;
+    
+	Long offsetMask;
+	ContextBuffer *contextBuf;
+	ContextBuffer *contextBuf2;// this is reserved for XPath
+	
+	int LN;// record txt and attrbute for XPath eval purposes
+
+	encoding_t encoding;
+
+	//int currentOffset;
+	//int currentOffset2;
+
+	Boolean ns;
+	int* stackTemp;
+	int docOffset;	 // starting offset of the XML doc wrt XMLDoc
+	int docLen;  // size of XML document
+	int vtdSize; // # of entries in vtdBuffer equvalent 
+	             // to calling size(FastLongBuffer *flb) defined in fastLongBuffer.h
+	int bufLen; // size of XMLDoc in bytes
+	Boolean br; // buffer reuse flag
+	Boolean master; // true if vn is obtained by calling getNav(), otherwise false
+	                // useful for implementing dupliateNav() and cloneNav();
+	int l4index;
+	int l5index;
+	int l4upper;
+	int l4lower;
+	int l5upper;
+	int l5lower;
+	FastLongBuffer *_l3Buffer;
+	FastLongBuffer *l4Buffer;
+	FastIntBuffer *l5Buffer;
+
+} VTDNav_L5;
+
+
 //functions
 //Create VTDNav object
 
@@ -106,7 +237,10 @@ VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len,Boolean br);
 
 //Free VTDNav object
-void freeVTDNav(VTDNav *vn);
+void _freeVTDNav(VTDNav *vn);
+inline void freeVTDNav(VTDNav *vn){
+	vn->__freeVTDNav(vn);
+}
 
 //Return the attribute count of the element at the cursor position.
 int getAttrCount(VTDNav *vn);
@@ -185,26 +319,48 @@ Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName);
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special);
+int _iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special);
+
+inline int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special){
+	return vn->__iterate(vn,dp,en,special);
+}
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is false, return false immediately
-int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
+int _iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
+
+inline int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
+	return vn->__iterateNS(vn,dp,URL,ln);
+}
 
 // This function is called by selectElement_P in autoPilot
-Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special);
+Boolean _iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special);
+
+inline Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
+	return vn->__iterate_preceding(vn,en,a,special);
+}
 
 // This function is called by selectElementNS_P in autoPilot
-Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
+Boolean _iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
+inline Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
+	return vn->__iterate_precedingNS(vn,URL,ln,a);
+}
 
 // This function is called by selectElement_F in autoPilot
-Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special);
-
+Boolean _iterate_following(VTDNav *vn,UCSChar *en, Boolean special);
+inline Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
+	return vn->__iterate_following(vn,en,special);
+}
 
 // This function is called by selectElementNS_F in autoPilot
-Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
+Boolean _iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
+
+inline Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
+	return vn->__iterate_followingNS(vn,URL,ln);
+}
+
 
 
 //Test if the current element matches the given name.
@@ -239,13 +395,21 @@ Long parseLong(VTDNav *vn, int index);
 
 //Load the context info from ContextBuffer.
 //Info saved including LC and current state of the context 
-Boolean pop(VTDNav *vn);
-Boolean pop2(VTDNav *vn);
+Boolean _pop(VTDNav *vn);
+inline Boolean pop(VTDNav *vn){return vn->__pop(vn);}
+
+Boolean _pop2(VTDNav *vn);
+inline Boolean pop2(VTDNav *vn){return vn->__pop2(vn);}
 //Store the context info into the ContextBuffer.
 //Info saved including LC and current state of the context 
-Boolean push(VTDNav *vn);
-Boolean push2(VTDNav *vn);
-void sampleState(VTDNav *vn, FastIntBuffer *fib);
+Boolean _push(VTDNav *vn);
+inline Boolean push(VTDNav *vn){return vn->__push(vn);}
+Boolean _push2(VTDNav *vn);
+inline Boolean push2(VTDNav *vn){return vn->__push2(vn);}
+void _sampleState(VTDNav *vn, FastIntBuffer *fib);
+inline void sampleState(VTDNav *vn, FastIntBuffer *fib){
+	vn->__sampleState(vn,fib);
+}
 
 // A generic navigation method.
 // Move the current to the element according to the direction constants
@@ -259,7 +423,11 @@ void sampleState(VTDNav *vn, FastIntBuffer *fib);
 	 * <pre>		PREV_SIBLING    5  </pre>
 	 * <br>
 	 */
-Boolean toElement(VTDNav *vn, navDir direction);
+Boolean _toElement(VTDNav *vn, navDir direction);
+
+inline Boolean toElement(VTDNav *vn, navDir direction){
+	return vn->__toElement(vn,direction);
+}
 
 /**
  * A generic navigation method.
@@ -277,7 +445,10 @@ Boolean toElement(VTDNav *vn, navDir direction);
  * <br>
  * for ROOT and PARENT, element name will be ignored.
  */
-Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en);
+Boolean _toElement2(VTDNav *vn, navDir direction, UCSChar *en);
+inline Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
+	return vn->__toElement2(vn,direction,en);
+}
 /*	
  * A generic navigation function with namespace support.
  * Move the current to the element according to the direction constants and the prefix and local names
@@ -296,7 +467,11 @@ Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en);
  * for ROOT and PARENT, element name will be ignored.
  * If not ns enabled, return false immediately with no position change.
  */
-Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
+Boolean _toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
+inline Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln){
+	return vn->__toElementNS(vn,direction,URL, ln);
+}
+
 
 //This method normalizes a token into a string in a way that resembles DOM.
 //The leading and trailing white space characters will be stripped.
@@ -352,14 +527,29 @@ int compareRawTokenString(VTDNav *vn, int index, UCSChar *s);
 
 int compareTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
 
+
 /* Write VTD+XML into a FILE pointer */
-Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f);
+Boolean _writeIndex_VTDNav(VTDNav *vn, FILE *f);
+/* Write VTD+XML into a FILE pointer */
+inline Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
+	return vn->__writeIndex_VTDNav(vn,f);
+}
+
+
 
 /* Write VTD+XML into a file of given name */
-Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName);
+Boolean _writeIndex2_VTDNav(VTDNav *vn, char *fileName);
+/* Write VTD+XML into a file of given name */
+inline Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName){
+	return vn->__writeIndex2_VTDNav(vn,fileName);
+}
+/* Write the VTDs and LCs into an file*/
 
 /* Write the VTDs and LCs into an file*/
-void writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex);
+Boolean _writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex);
+inline Boolean writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex){
+	return vn->__writeSeparateIndex_VTDNav(vn,vtdIndex);
+}
 
 /* pre-calculate the VTD+XML index size without generating the actual index */
 Long getIndexSize2(VTDNav *vn);
@@ -416,15 +606,18 @@ UCSChar *toRawStringUpperCase(VTDNav *vn, int index);
 UCSChar *toRawStringLowerCase(VTDNav *vn, int index);
 
 /* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
-VTDNav *duplicateNav(VTDNav *vn);
+VTDNav *_duplicateNav(VTDNav *vn);
+inline VTDNav* duplicateNav(VTDNav *vn){return vn->__duplicateNav(vn);}
 /* ClineNav duplicates an instance of VTDNav, also copies node position over */
-VTDNav *cloneNav(VTDNav *vn);
+VTDNav *_cloneNav(VTDNav *vn);
+inline VTDNav* cloneNav(VTDNav *vn){return vn->__cloneNav(vn);}
 
 /* This method takes a vtd index, and recover its correspondin
  * node position, the index can only be of node type element,
  * document, attribute name, attribute value or character data,
  * or CDATA  */
-void recoverNode(VTDNav *vn, int index);
+inline void recoverNode(VTDNav *vn, int index){vn->__recoverNode(vn,index);}
+void _recoverNode(VTDNav *vn, int index);
 /**
 	 * Match the string against the token at the given index value. The token will be
      * interpreted as if it is normalized (i.e. all white space char (\r\n\a ) is replaced
@@ -474,4 +667,74 @@ UCSChar* toNormalizedString2(VTDNav *vn, int index);
     otherwise a null string is returned
 */
 UCSChar *getPrefixString(VTDNav *vn, int index);
+void _resolveLC(VTDNav *vn);
+inline void resolveLC(VTDNav *vn){
+	vn->__resolveLC(vn);
+}
+
+void _resolveLC_L5(VTDNav_L5 *vn);
+
+void _freeVTDNav_L5(VTDNav_L5 *vn);
+
+VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
+					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
+					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len,Boolean br);
+
+VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
+					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
+					 FastLongBuffer *l2, FastLongBuffer *l3, FastLongBuffer *l4, 
+					 FastIntBuffer *l5, int so, int len,Boolean br);
+
+//Free VTDNav object
+void _freeVTDNav(VTDNav *vn);
+
+
+int _iterate_L5(VTDNav_L5 *vn, int dp, UCSChar *en, Boolean special);
+
+/* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
+VTDNav *_duplicateNav_L5(VTDNav_L5 *vn);
+
+/* ClineNav duplicates an instance of VTDNav, also copies node position over */
+VTDNav *_cloneNav_L5(VTDNav_L5 *vn);
+
+/* This method takes a vtd index, and recover its correspondin
+ * node position, the index can only be of node type element,
+ * document, attribute name, attribute value or character data,
+ * or CDATA  */
+void _recoverNode_L5(VTDNav_L5 *vn, int index);
+
+
+//This method is similar to getElementByName in DOM except it doesn't
+//return the nodeset, instead it iterates over those nodes .
+//When URL is "*" it will match any namespace
+//if ns is false, return false immediately
+int _iterateNS_L5(VTDNav_L5 *vn, int dp, UCSChar *URL, UCSChar *ln);
+
+// This function is called by selectElement_P in autoPilot
+Boolean _iterate_preceding_L5(VTDNav_L5 *vn,UCSChar *en, int* a, Boolean special);
+
+// This function is called by selectElementNS_P in autoPilot
+Boolean _iterate_precedingNS_L5(VTDNav_L5 *vn,UCSChar *URL, UCSChar *ln, int* a);
+// This function is called by selectElement_F in autoPilot
+Boolean _iterate_following_L5(VTDNav_L5 *vn,UCSChar *en, Boolean special);
+// This function is called by selectElementNS_F in autoPilot
+Boolean _iterate_followingNS_L5(VTDNav_L5 *vn, UCSChar *URL, UCSChar *ln);
+
+//Load the context info from ContextBuffer.
+//Info saved including LC and current state of the context 
+Boolean _pop_L5(VTDNav_L5 *vn);
+
+Boolean _pop2_L5(VTDNav_L5 *vn);
+//Store the context info into the ContextBuffer.
+//Info saved including LC and current state of the context 
+Boolean _push_L5(VTDNav_L5 *vn);
+Boolean _push2_L5(VTDNav_L5 *vn);
+void _sampleState_L5(VTDNav_L5 *vn, FastIntBuffer *fib);
+Boolean _toElement_L5(VTDNav_L5 *vn, navDir direction);
+Boolean _toElement2_L5(VTDNav_L5 *vn, navDir direction, UCSChar *en);
+Boolean _toElementNS_L5(VTDNav_L5 *vn, navDir direction, UCSChar *URL, UCSChar *ln);
+
+Boolean _writeIndex_VTDNav_L5(VTDNav_L5 *vn, FILE *f);
+Boolean _writeIndex2_VTDNav_L5(VTDNav_L5 *vn, char *fileName);
+Boolean _writeSeparateIndex_VTDNav_L5(VTDNav_L5 *vn, char *fileName);
 #endif
