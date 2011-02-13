@@ -92,10 +92,7 @@ namespace com_ximpleware {
 		UCSChar *toRawStringUpperCase2( int os, int len);
 		UCSChar *toRawStringLowerCase2( int os, int len);
 		
-		virtual void resolveLC_l3();
-		void recoverNode_l1(int index);
-		void recoverNode_l2(int index);
-		void recoverNode_l3(int index);
+		
 		int compareNormalizedTokenString2(int offset, int len, const UCSChar *s);
 
 	protected:
@@ -125,6 +122,10 @@ namespace com_ximpleware {
 			int so, 
 			int len,
 			bool br);
+		virtual void resolveLC_l3();
+		void recoverNode_l1(int index);
+		void recoverNode_l2(int index);
+		void recoverNode_l3(int index);
 		//VTDNav(){};
 		bool shallowDepth;
 		int* context; // context object
@@ -155,7 +156,7 @@ namespace com_ximpleware {
 		bool br; // buffer reuse flag
 		bool master; // true if vn is obtained by calling getNav(), otherwise false
 		// useful for implementing dupliateNav() and cloneNav();
-				bool atTerminal; // Add this model to be compatible with XPath data model, 
+		bool atTerminal; // Add this model to be compatible with XPath data model, 
 		// true if attribute axis or text()
 		// location cache part
 		int l2upper;
@@ -171,6 +172,8 @@ namespace com_ximpleware {
 		FastLongBuffer *l2Buffer;
 		FastIntBuffer *l3Buffer;
 		UByte* XMLDoc;
+		short maxLCDepthPlusOne;
+
 	public:
 		const static Long MASK_TOKEN_FULL_LEN=0x000fffff00000000LL;
 		const static Long MASK_TOKEN_PRE_LEN=0x000ff80000000000LL;
