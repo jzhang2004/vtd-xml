@@ -933,15 +933,15 @@ namespace com.ximpleware
         protected internal const long MASK_TOKEN_FULL_LEN = 0x000fffff00000000;
         protected const long MASK_TOKEN_PRE_LEN = 0x000ff80000000000;
         protected const long MASK_TOKEN_QN_LEN = 0x000007ff00000000;
-        internal long MASK_TOKEN_OFFSET = 0x000000003fffffff;
+        internal static long MASK_TOKEN_OFFSET = 0x000000003fffffff;
         //UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
         protected const long MASK_TOKEN_TYPE = unchecked((long)0xf000000000000000);
         //UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
         protected const long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
 
         // tri-state variable for namespace lookup
-        private const long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
-
+        protected const long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
+        protected static short maxLCDepth = 3;
         protected internal int rootIndex; // where the root element is at
         protected internal int nestingLevel;
         protected internal int[] context; // main navigation tracker aka context object
@@ -1632,7 +1632,7 @@ namespace com.ximpleware
                     //dumpContext();
                     if (index != a[depth] && (special || matchElement(en)))
                     {
-                        if (depth < 4)
+                        if (depth < maxLCDepth+1)
                             resolveLC();
                         return true;
                     }
@@ -1688,7 +1688,7 @@ namespace com.ximpleware
                     //dumpContext();
                     if (index != a[depth] && matchElementNS(URL, ln))
                     {
-                        if (depth < 4)
+                        if (depth < maxLCDepth+1)
                             resolveLC();
                         return true;
                     }
@@ -1722,7 +1722,7 @@ namespace com.ximpleware
                         context[depth] = index;
                     if (special || matchElement(en))
                     {
-                        if (depth < 4)
+                        if (depth < maxLCDepth+1)
                             resolveLC();
                         return true;
                     }
@@ -1754,7 +1754,7 @@ namespace com.ximpleware
                         context[depth] = index;
                     if (matchElementNS(URL, ln))
                     {
-                        if (depth < 4)
+                        if (depth < maxLCDepth+1)
                             resolveLC();
                         return true;
                     }
@@ -1799,7 +1799,7 @@ namespace com.ximpleware
                             context[depth] = index;
                         if (special || matchElement(en))
                         {
-                            if (dp < 4)
+                            if (dp < maxLCDepth+1)
                                 resolveLC();
                             return true;
                         }
@@ -1859,7 +1859,7 @@ namespace com.ximpleware
                             context[depth] = index;
                         if (matchElementNS(URL, ln))
                         {
-                            if (dp < 4)
+                            if (dp < maxLCDepth)
                                 resolveLC();
                             return true;
                         }
@@ -2779,7 +2779,7 @@ namespace com.ximpleware
         /// Creation date: (11/16/03 6:59:20 PM)
         /// </summary>
         /// <ret>  boolean </ret>
-        public bool pop()
+        public virtual bool pop()
         {
             bool b = contextStack.load(stackTemp);
             if (b == false)
@@ -2807,7 +2807,7 @@ namespace com.ximpleware
         /// <returns>
         /// </returns>
 
-        protected internal bool pop2()
+        protected internal virtual bool pop2()
         {
 
             bool b = contextStack2.load(stackTemp);
@@ -2873,7 +2873,7 @@ namespace com.ximpleware
         /// Info saved including LC and current state of the context 
         /// Creation date: (11/16/03 7:00:27 PM)
         /// </summary>
-        public void push()
+        public virtual void push()
         {
 
             for (int i = 0; i < nestingLevel; i++)
@@ -2899,7 +2899,7 @@ namespace com.ximpleware
         /// 
         /// </summary>
 
-        protected internal void push2()
+        protected internal virtual void push2()
         {
 
             for (int i = 0; i < nestingLevel; i++)
@@ -4491,7 +4491,7 @@ namespace com.ximpleware
         /// <throws>  IndexWriteException </throws>
         /// <summary> 
         /// </summary>
-        public void writeIndex(System.IO.Stream os)
+        public virtual void writeIndex(System.IO.Stream os)
         {
             IndexHandler.writeIndex_L3(1,
                  this.encoding,
@@ -4524,7 +4524,6 @@ namespace com.ximpleware
             writeIndex(fos);
             fos.Close();
         }
-
         /// <summary>
         /// Precompute the size of VTD+XML index without actully generating it
         /// </summary>
@@ -4551,9 +4550,6 @@ namespace com.ximpleware
             }
             return size + 64;
         }
-
-
-
         /// <summary>
         /// Get the string length as if the token is converted into a UCS string 
         /// (entity not resolved)
@@ -4586,7 +4582,6 @@ namespace com.ximpleware
             }
             return len1;
         }
-
         /// <summary>
         /// getStringLength return the string length of a token as if the token is converted into 
         /// a string (entity resolved)
@@ -4612,7 +4607,6 @@ namespace com.ximpleware
             }
             return len1;
         }
-
         /// <summary>
         /// Get the string length of a token as if it is converted into a normalized 
         /// UCS string
@@ -4676,14 +4670,13 @@ namespace com.ximpleware
 
             return len1;
         }
-
         /// <summary>
         /// Duplicate the VTDNav instance with shared XML, VTD and LC buffers
         /// This method may be useful for parallel XPath evaluation
         /// The node Position is at root element
         /// </summary>
         /// <returns>an instance of VTDNav</returns>
-        public VTDNav duplicateNav()
+        public virtual VTDNav duplicateNav()
         {
             return new VTDNav(rootIndex,
                 encoding,
@@ -4704,7 +4697,7 @@ namespace com.ximpleware
         /// The node Position is copied over.
         /// </summary>
         /// <returns>an instance of VTDNav</returns>
-        public VTDNav cloneNav()
+        public virtual VTDNav cloneNav()
         {
             VTDNav vn = new VTDNav(rootIndex,
                     encoding,
@@ -4739,7 +4732,6 @@ namespace com.ximpleware
             }
             return vn;
         }
-
         /// <summary>
         /// Write VTDNav's internal structure into an OutputStream (XML not written out)
         /// </summary>
@@ -4751,12 +4743,11 @@ namespace com.ximpleware
             fos.Close();
 
         }
-
         /// <summary>
         /// Write VTDNav's VTD and LCs into an OutputStream (XML not written out)
         /// </summary>
         /// <param name="os"></param>
-        public void writeSeparateIndex(System.IO.Stream os)
+        public virtual void writeSeparateIndex(System.IO.Stream os)
         {
             IndexHandler.writeSeparateIndex_L3((byte)2,
                 this.encoding,
