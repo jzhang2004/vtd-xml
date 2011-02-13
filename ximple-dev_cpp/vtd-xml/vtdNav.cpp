@@ -24,6 +24,7 @@
 using namespace com_ximpleware;
 using namespace std;
 
+
 //using namespace com_ximpleware_char;
 //using namespace com_ximpleware;
 
@@ -1205,6 +1206,7 @@ br(br1) // buffer reuse flag
 											   "VTDNav allocation failed ");
 										   //return NULL;
 								   }
+								   maxLCDepthPlusOne = 4;
 								   /*l1index = l2index = l3index = -1;
 								   l2lower = l2upper = -1;
 								   l3lower = l3upper = -1;
@@ -1308,6 +1310,8 @@ br(br1) // buffer reuse flag
 								   for (i=1;i<nestingLevel;i++){
 									   context[i] = -1;
 								   }
+
+								   maxLCDepthPlusOne = 4;
 								 
 }
 
@@ -2027,7 +2031,7 @@ bool VTDNav::iterate(int dp, const UCSChar *en, bool special){
 					context[depth] = index;
 
 				if (special || matchElement( en)) {
-					if (dp < 4)
+					if (dp < maxLCDepthPlusOne)
 						resolveLC();
 					return true;
 				}
@@ -2065,7 +2069,7 @@ bool VTDNav::iterateNS(int dp,const UCSChar *URL, const UCSChar *ln){
 				if (depth>0)
 					context[depth] = index;
 				if (matchElementNS(URL, ln)) {
-					if (dp < 4)
+					if (dp <maxLCDepthPlusOne)
 						resolveLC();
 					return true;
 				}
@@ -2109,7 +2113,7 @@ bool VTDNav::iterate_preceding(const UCSChar *en, int* a, bool special){
 			}
 			//dumpContext();
 			if (index!= a[depth] && (special || matchElement(en))) {					
-				if (depth <4)				
+				if (depth <maxLCDepthPlusOne)				
 					resolveLC();
 				return true;
 			}
@@ -2149,7 +2153,7 @@ bool VTDNav::iterate_precedingNS(const UCSChar *URL, const UCSChar *ln, int* a){
 			}
 			//dumpContext();
 			if (index != a[depth] && matchElementNS(URL,ln)) {					
-				if (depth <4)
+				if (depth <maxLCDepthPlusOne)
 					resolveLC();
 				return true;
 			}
@@ -2170,7 +2174,7 @@ bool VTDNav::iterate_following(const UCSChar *en, bool special){
 			if (depth>0)
 				context[depth] = index;
 			if (special || matchElement(en)) {					
-				if (depth <4)
+				if (depth <maxLCDepthPlusOne)
 					resolveLC();
 				return true;
 			}
@@ -2192,7 +2196,7 @@ bool VTDNav::iterate_followingNS( const UCSChar *URL, const UCSChar *ln){
 			if (depth>0)
 				context[depth] = index;
 			if (matchElementNS(URL,ln)) {					
-				if (depth <4)
+				if (depth <maxLCDepthPlusOne)
 					resolveLC();
 				return true;
 			}
