@@ -15,6 +15,8 @@ public class VTDNav_L5 extends VTDNav {
 	protected FastLongBuffer l3Buffer;
 	protected FastLongBuffer l4Buffer;
 	protected FastIntBuffer l5Buffer;
+	
+	//protected short maxLCDepth =5;
 	/**
      * Initialize the VTD navigation object.
      * 
@@ -126,6 +128,7 @@ public class VTDNav_L5 extends VTDNav {
 		localNameIndex = -1;
 		fib = new FastIntBuffer(5); // page size is 32 ints
 		shallowDepth = false;
+		maxLCDepth =5;
 		
 	}
 	
@@ -270,7 +273,7 @@ public class VTDNav_L5 extends VTDNav {
      * 
      * @return int The index of the NS URL
      */
-	private void resolveLC() {
+	protected void resolveLC() {
 		if (context[0]<=0)
 			return;
 		resolveLC_l1();
@@ -651,9 +654,9 @@ public class VTDNav_L5 extends VTDNav {
 	private final void recoverNode_l5(int index){ //l3
 		int i = l4Buffer.lower32At(l4index);
 		
-		if (l4lower != i) {
+		if (l5lower != i) {
 			//l3lower and l3upper are always together
-			l4lower = i;
+			l5lower = i;
 			// l3lower shouldn't be -1
 			//l3index = l3lower;
 			l5upper = l5Buffer.size - 1;
@@ -665,8 +668,8 @@ public class VTDNav_L5 extends VTDNav {
 				}
 			}
 		}
-		int t1=l5Buffer.intAt(l3lower);
-		int t2=l5Buffer.intAt(l3upper);
+		int t1=l5Buffer.intAt(l5lower);
+		int t2=l5Buffer.intAt(l5upper);
 		i= Math.min(l5lower+ (int)(((float)(index-t1)/(t2-t1+1))*(l5upper-l5lower)),l5upper) ;
 		while(i<l5Buffer.size-1 && l5Buffer.intAt(i)<index){
 			i++;	
@@ -728,7 +731,7 @@ public class VTDNav_L5 extends VTDNav {
      * @throws NavException
      */
 
-	final protected boolean iterate_following(String en, boolean special) 
+	/*final protected boolean iterate_following(String en, boolean special) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
 		//int size = vtdBuffer.size;
@@ -747,7 +750,7 @@ public class VTDNav_L5 extends VTDNav {
 			index++;
 		}
 		return false;		
-	}
+	}*/
 	
 	/**
      * This function is called by selectElementNS_F in autoPilot
@@ -757,7 +760,7 @@ public class VTDNav_L5 extends VTDNav {
      * @return boolean
      * @throws NavException
      */
-	final protected boolean iterate_followingNS(String URL, String ln) 
+	/*final protected boolean iterate_followingNS(String URL, String ln) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
 		//int size = vtdBuffer.size;
@@ -776,7 +779,7 @@ public class VTDNav_L5 extends VTDNav {
 			index++;
 		}
 		return false;
-	}
+	}*/
 	
 	/**
      * This function is called by selectElement_P in autoPilot
@@ -790,7 +793,7 @@ public class VTDNav_L5 extends VTDNav {
      * @return boolean
      * @throws NavException
      */
-	protected boolean iterate_preceding(String en, int[] a, boolean special)
+	/*protected boolean iterate_preceding(String en, int[] a, boolean special)
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int t,d;
@@ -828,7 +831,7 @@ public class VTDNav_L5 extends VTDNav {
 			index--;
 		}
 		return false;	
-	}
+	}*/
 	
 	/**
      * This function is called by selectElementNS_P in autoPilot
@@ -838,7 +841,7 @@ public class VTDNav_L5 extends VTDNav {
      * @return boolean
      * @throws NavException
      */
-	final protected boolean iterate_precedingNS(String URL, String ln, int[] a )
+	/*final protected boolean iterate_precedingNS(String URL, String ln, int[] a )
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int t,d;
@@ -876,7 +879,7 @@ public class VTDNav_L5 extends VTDNav {
 			index--;
 		}
 		return false;	
-	}
+	}*/
 	
 	/**
      * This method is similar to getElementByName in DOM except it doesn't
@@ -898,7 +901,7 @@ public class VTDNav_L5 extends VTDNav {
      *                load-balancer. null element name allowed represent
      *                node()in XPath;
      */
-	final protected boolean iterate(int dp, String en, boolean special)
+	/*final protected boolean iterate(int dp, String en, boolean special)
 		throws NavException { // the navigation doesn't rely on LC
 		// get the current depth
 		int index = getCurrentIndex() + 1;
@@ -930,7 +933,46 @@ public class VTDNav_L5 extends VTDNav {
 
 		}
 		return false;
-	}
+	}*/
+	
+	/*protected int iterateNode(int dp)throws NavException{
+		int index = getCurrentIndex() + 1;
+		int tokenType;
+		//int size = vtdBuffer.size;
+		while (index < vtdSize) {
+			tokenType = getTokenType(index);
+			if (tokenType == VTDNav.TOKEN_ATTR_NAME
+					|| tokenType == VTDNav.TOKEN_ATTR_NS) {
+				index = index + 2;
+				continue;
+			}
+			if (isElementOrDocument(index)) {
+				int depth = getTokenDepth(index);
+				if (depth > dp) {
+					context[0] = depth;
+					if (depth > 0)
+						context[depth] = index;
+					if (dp < 6)
+						resolveLC();
+					return index;
+
+				} else {
+					return -1;
+				}
+			}else{
+				int depth = getTokenDepth(index);
+				if (depth >= dp) {
+					context[0] = depth;
+					atTerminal = true;
+					LN = index;
+					return index;
+				}else
+					return -1;
+			}
+			//index++;
+		}
+		return -1;
+	}*/
 	
 	/**
      * A generic navigation method. Move the cursor to the element according to
