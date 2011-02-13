@@ -66,7 +66,7 @@ namespace com_ximpleware {
 		void resolveLC_l5();
 		void recoverNode_l4(int i);
 		void recoverNode_l5(int i);
-		void recoverNode(int i);
+		
 	protected: 
 		int l4index;
 		int l5index;
@@ -97,26 +97,26 @@ namespace com_ximpleware {
 
 		//This method is similar to getElementByName in DOM except it doesn't
 		//return the nodeset, instead it iterates over those nodes.
-		bool iterate(int dp, UCSChar *en, bool special);
+		//bool iterate(int dp, UCSChar *en, bool special);
 
 		//This method is similar to getElementByName in DOM except it doesn't
 		//return the nodeset, instead it iterates over those nodes .
 		//When URL is "*" it will match any namespace
 		//if ns is false, return false immediately
-		bool iterateNS(int dp, UCSChar *URL, UCSChar *ln);
+		//bool iterateNS(int dp, UCSChar *URL, UCSChar *ln);
 
 		// This function is called by selectElement_P in autoPilot
-		bool iterate_preceding(UCSChar *en, int* a, bool special);
+		//bool iterate_preceding(UCSChar *en, int* a, bool special);
 
 		// This function is called by selectElementNS_P in autoPilot
-		bool iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a);
+		//bool iterate_precedingNS(UCSChar *URL, UCSChar *ln, int* a);
 
 		// This function is called by selectElement_F in autoPilot
-		bool iterate_following(UCSChar *en, bool special);
+		//bool iterate_following(UCSChar *en, bool special);
 
 
 		// This function is called by selectElementNS_F in autoPilot
-		bool iterate_followingNS( UCSChar *URL, UCSChar *ln);
+		//bool iterate_followingNS( UCSChar *URL, UCSChar *ln);
 		void resolveLC();
 		//void resolveLC_l3();
 		//void resolveLC_l4();
@@ -196,6 +196,7 @@ namespace com_ximpleware {
 		/* Write the VTDs and LCs into an file*/
 		bool writeSeparateIndex( char *vtdIndexFileName);
 		bool writeSeparateIndex( FILE *f);
+		void recoverNode(int i);
 	};
 };
 
