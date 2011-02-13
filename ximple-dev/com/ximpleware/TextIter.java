@@ -77,6 +77,10 @@ public class TextIter {
     	sel_type =3;
     	piName = s;
     }
+    
+    public void selectNode(){
+    	sel_type =4;
+    }
 /**
  * Get the index vals for the text, PI name, or comment node in document order.
  * Creation date: (12/5/03 6:11:50 PM)
@@ -128,7 +132,7 @@ public int getNext() {
  */
 	final private boolean isText(int index) {
 		int type = vn.getTokenType(index);
-		if (sel_type == 0) {
+		/*if (sel_type == 0) {
 			return (type == VTDNav.TOKEN_CHARACTER_DATA
 			// || type == vn.TOKEN_COMMENT
 			|| type == VTDNav.TOKEN_CDATA_VAL);
@@ -140,10 +144,26 @@ public int getNext() {
 
 		if (sel_type == 2)
 			return (type == VTDNav.TOKEN_PI_NAME);
+		if (sel_type == 3)
 		try {
 			return (vn.matchRawTokenString(index, piName));
 		} catch(NavException e){
 			return false;
+		}
+		return true;*/
+		switch(sel_type){
+		case 0:return (type == VTDNav.TOKEN_CHARACTER_DATA
+				// || type == vn.TOKEN_COMMENT
+				|| type == VTDNav.TOKEN_CDATA_VAL);
+		case 1: return (type == VTDNav.TOKEN_COMMENT);
+		case 2: return (type == VTDNav.TOKEN_PI_NAME);
+		case 3:	try {
+				return (vn.matchRawTokenString(index, piName));
+			} catch(NavException e){
+				return false;
+			}
+		case 4: return type!=VTDNav.TOKEN_PI_VAL;
+		default: return false;
 		}
 		
 		   
