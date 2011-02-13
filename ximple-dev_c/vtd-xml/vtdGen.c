@@ -50,13 +50,16 @@ static void matchISOEncoding(VTDGen *vg);
 static void matchCPEncoding(VTDGen *vg);
 static void matchWindowsEncoding(VTDGen *vg);
 static void matchUTFEncoding(VTDGen *vg);
-static Boolean skipUTF8(VTDGen *vg,int temp,int ch);
-static Boolean skip_16be(VTDGen *vg, int ch);
-static Boolean skip_16le(VTDGen *vg, int ch);
+static inline Boolean skipUTF8(VTDGen *vg,int temp,int ch);
+static inline Boolean skip_16be(VTDGen *vg, int ch);
+static inline Boolean skip_16le(VTDGen *vg, int ch);
 //static int getCharAfterSe(VTDGen *vg);
 static inline int getCharAfterS(VTDGen *vg);
 static inline Boolean skipChar(VTDGen *vg, int ch);
-static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth);
+static inline void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth);
+static inline void _writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth);
+static inline void writeVTDText(VTDGen *vg, int offset, int length, tokenType token_type, int depth);
+static inline void writeVTD_L5(VTDGen *vg, int offset, int length, tokenType token_type, int depth);
 static void finishUp(VTDGen *vg);
 
 static void decide_encoding(VTDGen *vg);
@@ -140,6 +143,8 @@ VTDGen *createVTDGen(){
 	vg->nsBuffer2 = createFastLongBuffer(4);
 	vg->nsBuffer3 = createFastLongBuffer(4);
 	vg->currentElementRecord = 0;
+	vg->singleByteEncoding = TRUE;
+	vg->shallowDepth = TRUE;
 
 	vg->anaLen = ATTR_NAME_ARRAY_SIZE;
 	vg->panaLen = ATTR_NAME_ARRAY_SIZE;
@@ -149,11 +154,12 @@ VTDGen *createVTDGen(){
 	vg->tag_stack = ts;
 
 	vg->VTDDepth = 0;
+	vg->LcDepth = 3;
 
 	vg->VTDBuffer =	vg->l1Buffer = 	vg->l2Buffer = NULL;
 	vg->l3Buffer = NULL;
 	vg->bufLen = vg->docLen = vg->docLen = vg->last_depth = 0;
-	vg->last_i3_index = vg->last_l2_index = vg->last_l1_index = 0;
+	vg->last_l4_index = vg->last_l3_index = vg->last_l2_index = vg->last_l1_index = 0;
 	vg->XMLDoc = NULL;
 	vg->rootIndex = vg->endOffset= 0;
 	vg->ns = vg->offset = vg->prev_offset =0;
@@ -191,15 +197,22 @@ void clear(VTDGen *vg){
 	if (vg->br == FALSE){
 		if (vg->stateTransfered == FALSE){
 			//free(vg->XMLDoc);
-			freeFastIntBuffer(vg->l3Buffer);
+			freeFastLongBuffer(vg->VTDBuffer);			
 			freeFastLongBuffer(vg->l1Buffer);
 			freeFastLongBuffer(vg->l2Buffer);
-			freeFastLongBuffer(vg->VTDBuffer);
+			freeFastIntBuffer(vg->l3Buffer);
+			freeFastLongBuffer(vg->_l3Buffer);
+			freeFastLongBuffer(vg->_l4Buffer);
+			freeFastIntBuffer(vg->_l5Buffer);
+			
 		}
 		vg->VTDBuffer = NULL;
 		vg->l1Buffer = NULL;
 		vg->l2Buffer = NULL;
 		vg->l3Buffer = NULL;
+		vg->_l3Buffer = NULL;
+		vg->_l4Buffer = NULL;
+		vg->_l5Buffer = NULL;
 		vg->XMLDoc = NULL;
 	}
 	
@@ -208,7 +221,7 @@ void clear(VTDGen *vg){
 	clearFastLongBuffer(vg->nsBuffer2);
 	clearFastLongBuffer(vg->nsBuffer3);
 	vg->last_depth = vg->last_l1_index = 
-		vg->last_l2_index = vg->last_i3_index =0;
+		vg->last_l2_index = vg->last_l3_index =0;
 	vg->offset = vg->temp_offset = 0;
 	vg->rootIndex = 0;
 
@@ -739,7 +752,7 @@ static void matchISOEncoding(VTDGen *vg){
 					if(skipChar(vg,'1')){
 						if (skipChar(vg,vg->ch_temp)){
 							vg->encoding = FORMAT_ISO_8859_1;
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset,
 								10,
 								TOKEN_DEC_ATTR_VAL,
@@ -748,7 +761,7 @@ static void matchISOEncoding(VTDGen *vg){
 						} else if (skipChar(vg,'0')){
 							vg->encoding = FORMAT_ISO_8859_10;
 							iso_8859_10_chars_init();
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset,
 								11,
 								TOKEN_DEC_ATTR_VAL,
@@ -756,7 +769,7 @@ static void matchISOEncoding(VTDGen *vg){
 						}else if (skipChar(vg,'1')){
 							vg->encoding = FORMAT_ISO_8859_11;
 							iso_8859_11_chars_init();
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset,
 								11,
 								TOKEN_DEC_ATTR_VAL,
@@ -764,7 +777,7 @@ static void matchISOEncoding(VTDGen *vg){
 						}else if (skipChar(vg,'3')){
 							vg->encoding = FORMAT_ISO_8859_13;
 							iso_8859_13_chars_init();
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset,
 								11,
 								TOKEN_DEC_ATTR_VAL,
@@ -772,7 +785,7 @@ static void matchISOEncoding(VTDGen *vg){
 						}else if (skipChar(vg,'4')){
 							vg->encoding = FORMAT_ISO_8859_14;
 							iso_8859_14_chars_init();
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset,
 								11,
 								TOKEN_DEC_ATTR_VAL,
@@ -780,7 +793,7 @@ static void matchISOEncoding(VTDGen *vg){
 						}else if (skipChar(vg,'5')){
 							vg->encoding = FORMAT_ISO_8859_15;
 							iso_8859_15_chars_init();
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset,
 								11,
 								TOKEN_DEC_ATTR_VAL,
@@ -791,7 +804,7 @@ static void matchISOEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'2')){						
 						vg->encoding = FORMAT_ISO_8859_2;
 						iso_8859_2_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_VAL,
@@ -799,7 +812,7 @@ static void matchISOEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'3')){						
 						vg->encoding = FORMAT_ISO_8859_3;
 						iso_8859_3_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_VAL,
@@ -807,7 +820,7 @@ static void matchISOEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'4')){						
 						vg->encoding = FORMAT_ISO_8859_4;
 						iso_8859_4_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_VAL,
@@ -815,7 +828,7 @@ static void matchISOEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'5')){						
 						vg->encoding = FORMAT_ISO_8859_5;
 						iso_8859_5_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_VAL,
@@ -823,7 +836,7 @@ static void matchISOEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'6')){							
 						vg->encoding = FORMAT_ISO_8859_6;
 						iso_8859_6_chars_init();							
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_VAL,
@@ -831,7 +844,7 @@ static void matchISOEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'7')){						
 						vg->encoding = FORMAT_ISO_8859_7;
 						iso_8859_7_chars_init();								
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_VAL,
@@ -839,7 +852,7 @@ static void matchISOEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'8')){						
 						vg->encoding = FORMAT_ISO_8859_8;
 						iso_8859_8_chars_init();								
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_VAL,
@@ -847,7 +860,7 @@ static void matchISOEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'9')){						
 						vg->encoding = FORMAT_ISO_8859_9;
 						iso_8859_9_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_VAL,
@@ -884,7 +897,7 @@ static void matchCPEncoding(VTDGen *vg){
 					if(skipChar(vg,'0')){						
 						vg->encoding = FORMAT_WIN_1250;
 						windows_1250_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -892,7 +905,7 @@ static void matchCPEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'1')){						
 						vg->encoding = FORMAT_WIN_1251;
 						windows_1251_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -900,7 +913,7 @@ static void matchCPEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'2')){						
 						vg->encoding = FORMAT_WIN_1252;
 						windows_1252_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -908,7 +921,7 @@ static void matchCPEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'3')){						
 						vg->encoding = FORMAT_WIN_1253;
 						windows_1253_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -916,7 +929,7 @@ static void matchCPEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'4')){						
 						vg->encoding = FORMAT_WIN_1250;
 						windows_1250_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -924,7 +937,7 @@ static void matchCPEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'5')){						
 						vg->encoding = FORMAT_WIN_1255;
 						windows_1255_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -932,7 +945,7 @@ static void matchCPEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'6')){							
 						vg->encoding = FORMAT_WIN_1256;
 						windows_1256_chars_init();							
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -941,7 +954,7 @@ static void matchCPEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'7')){						
 						vg->encoding = FORMAT_WIN_1257;
 						windows_1257_chars_init();								
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -949,7 +962,7 @@ static void matchCPEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'8')){						
 						vg->encoding = FORMAT_WIN_1258;
 						windows_1258_chars_init();							
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							6,
 							TOKEN_DEC_ATTR_VAL,
@@ -997,7 +1010,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					if(skipChar(vg,'0')){						
 						vg->encoding = FORMAT_WIN_1250;
 						windows_1250_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1005,7 +1018,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'1')){						
 						vg->encoding = FORMAT_WIN_1251;
 						windows_1251_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1013,7 +1026,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'2')){						
 						vg->encoding = FORMAT_WIN_1252;
 						windows_1252_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1021,7 +1034,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'3')){						
 						vg->encoding = FORMAT_WIN_1253;
 						windows_1253_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1029,7 +1042,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'4')){						
 						vg->encoding = FORMAT_WIN_1250;
 						windows_1250_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1037,7 +1050,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'5')){						
 						vg->encoding = FORMAT_WIN_1255;
 						windows_1255_chars_init();
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1045,7 +1058,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'6')){							
 						vg->encoding = FORMAT_WIN_1256;
 						windows_1256_chars_init();							
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1054,7 +1067,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'7')){						
 						vg->encoding = FORMAT_WIN_1257;
 						windows_1257_chars_init();								
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1062,7 +1075,7 @@ static void matchWindowsEncoding(VTDGen *vg){
 					}else if(skipChar(vg,'8')){						
 						vg->encoding = FORMAT_WIN_1258;
 						windows_1258_chars_init();							
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset,
 							12,
 							TOKEN_DEC_ATTR_VAL,
@@ -1431,7 +1444,9 @@ static int getCharAfterS(VTDGen *vg){
 // Returns the VTDNav object after parsing, it also cleans 
 // internal state so VTDGen can process the next file.
 VTDNav *getNav(VTDGen *vg){
-	VTDNav *vn = createVTDNav( vg->rootIndex,
+	VTDNav *vn; 
+	if (vg->shallowDepth)
+	    vn = createVTDNav( vg->rootIndex,
 		vg->encoding,
 		vg->ns,
 		vg->VTDDepth,
@@ -1444,6 +1459,25 @@ VTDNav *getNav(VTDGen *vg){
 		vg->docOffset,
 		vg->docLen,
 		vg->br);
+	else
+		vn= (VTDNav *)createVTDNav_L5(vg->rootIndex,
+		vg->encoding,
+		vg->ns,
+		vg->VTDDepth,
+		vg->XMLDoc,
+		vg->bufLen,
+		vg->VTDBuffer,
+		vg->l1Buffer,
+		vg->l2Buffer,
+		vg->_l3Buffer,
+		vg->_l4Buffer,
+		vg->_l5Buffer,
+		vg->docOffset,
+		vg->docLen,
+		vg->br);
+
+	/*vg->l1Buffer  = vg->l2Buffer=vg->VTDBuffer = NULL;
+	vg->l3Buffer = NULL;*/
 	vg->stateTransfered = TRUE;
 	vn->master = TRUE;
 	clear(vg);
@@ -1539,7 +1573,7 @@ void parse(VTDGen *vg, Boolean ns){
 
 	/* enter the main finite state machine */
 	Try {
-		writeVTD(vg,0,0,TOKEN_DOCUMENT,vg->depth);
+		_writeVTD(vg,0,0,TOKEN_DOCUMENT,vg->depth);
 		while (TRUE) {
 			switch (parser_state) {
 
@@ -1573,7 +1607,7 @@ void parse(VTDGen *vg, Boolean ns){
 							if (XMLChar_isNameChar(vg->ch)) {
 								if (vg->ch == ':') {
 									vg->length2 = vg->offset - vg->temp_offset - vg->increment;
-									if (vg->ns==TRUE && checkPrefix2(vg,vg->temp_offset,vg->length2))
+									if (vg->ns && checkPrefix2(vg,vg->temp_offset,vg->length2))
 										throwException2(parse_exception,
 												"xmlns can't be an element prefix ");
 												//+ formatLineNumber(offset));
@@ -1591,19 +1625,26 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 						if (vg->depth > vg->VTDDepth)
 							vg->VTDDepth = vg->depth;
-						if (vg->encoding < FORMAT_UTF_16BE){
+						if (vg->singleByteEncoding){
 							if (vg->length2>MAX_PREFIX_LENGTH 
 								|| vg->length1 > MAX_QNAME_LENGTH){
 									throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: Starting tag prefix or qname length too long");
 							}
-
-							writeVTD(vg,
+							if (vg->shallowDepth)
+								writeVTD(vg,
 								(vg->temp_offset),
 								(vg->length2 << 11) | vg->length1,
 								TOKEN_STARTING_TAG,
 								vg->depth);
+							else
+								writeVTD_L5(vg,
+								(vg->temp_offset),
+								(vg->length2 << 11) | vg->length1,
+								TOKEN_STARTING_TAG,
+								vg->depth);
+
 						}
 						else{
 							if ((vg->length2>(MAX_PREFIX_LENGTH<<1)) 
@@ -1612,15 +1653,21 @@ void parse(VTDGen *vg, Boolean ns){
 												"Parse exception in parse()",
 												"Token Length Error: Starting tag prefix or qname length too long");
 							}
-
-							writeVTD(vg,
+							if (vg->shallowDepth)
+								writeVTD(vg,
+								(vg->temp_offset) >> 1,
+								(vg->length2 << 10) | (vg->length1 >> 1),
+								TOKEN_STARTING_TAG,
+								vg->depth);
+							else
+								writeVTD_L5(vg,
 								(vg->temp_offset) >> 1,
 								(vg->length2 << 10) | (vg->length1 >> 1),
 								TOKEN_STARTING_TAG,
 								vg->depth);
 						}
 
-						if (vg->ns == TRUE) {
+						if (vg->ns) {
 							if (vg->length2!=0){
 								vg->length2 += vg->increment;
 								vg->currentElementRecord = (((Long)((vg->length2<<16)|vg->length1))<<32) 
@@ -1652,7 +1699,7 @@ void parse(VTDGen *vg, Boolean ns){
 							vg->ch = getChar(vg);
 						}
 						if (vg->ch == '>') {
-							if (vg->ns == TRUE){
+							if (vg->ns){
 								appendInt(vg->nsBuffer1,vg->nsBuffer3->size-1);
 								if (vg->currentElementRecord !=0)
 									qualifyElement(vg);
@@ -1666,20 +1713,20 @@ void parse(VTDGen *vg, Boolean ns){
 										addWhiteSpaceRecord(vg);
 									parser_state = STATE_LT_SEEN;
 									if (skipChar(vg,'/')) {
-										if (helper == TRUE){
+										if (helper){
 											vg->length1 =
 												vg->offset
 												- vg->temp_offset
 												- (vg->increment<<1);
 
-											if (vg->encoding < FORMAT_UTF_16BE)
-												writeVTD(vg,
+											if (vg->singleByteEncoding)
+												writeVTDText(vg,
 												(vg->temp_offset),
 												vg->length1,
 												TOKEN_CHARACTER_DATA,
 												vg->depth);
 											else
-												writeVTD(vg,
+												writeVTDText(vg,
 												(vg->temp_offset) >> 1,
 												(vg->length1 >> 1),
 												TOKEN_CHARACTER_DATA,
@@ -1848,7 +1895,7 @@ void parse(VTDGen *vg, Boolean ns){
 						//}
 						
 						if (vg->is_ns) {//if the prefix is xmlns: or xmlns
-							if (vg->encoding < FORMAT_UTF_16BE){
+							if (vg->singleByteEncoding){
 								if (vg->length2>MAX_PREFIX_LENGTH 
 									|| vg->length1 > MAX_QNAME_LENGTH){
 										throwException(parse_exception,0,
@@ -1856,7 +1903,7 @@ void parse(VTDGen *vg, Boolean ns){
 												"Token Length Error: Attr NS prefix or qname length too long");
 								}
 
-								writeVTD(vg,
+								_writeVTD(vg,
 									vg->temp_offset,
 									(vg->length2 << 11) | vg->length1,
 									TOKEN_ATTR_NS,
@@ -1871,7 +1918,7 @@ void parse(VTDGen *vg, Boolean ns){
 												"Token Length Error: Attr NS prefix or qname length too long");
 								}
 
-								writeVTD(vg,
+								_writeVTD(vg,
 									vg->temp_offset >> 1,
 									(vg->length2 << 10) | (vg->length1 >> 1),
 									TOKEN_ATTR_NS,
@@ -1890,14 +1937,14 @@ void parse(VTDGen *vg, Boolean ns){
 							}
 							//vg->is_ns = FALSE;
 						} else {
-							if (vg->encoding < FORMAT_UTF_16BE){
+							if (vg->singleByteEncoding){
 								if (vg->length2>MAX_PREFIX_LENGTH 
 									|| vg->length1 > MAX_QNAME_LENGTH){
 										throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: Attr name prefix or qname length too long");
 								}
-								writeVTD(vg,
+								_writeVTD(vg,
 									vg->temp_offset,
 									(vg->length2 << 11) | vg->length1,
 									TOKEN_ATTR_NAME,
@@ -1912,7 +1959,7 @@ void parse(VTDGen *vg, Boolean ns){
 												"Token Length Error: Attr name prefix or qname length too long");
 								}
 
-								writeVTD(vg,
+								_writeVTD(vg,
 									vg->temp_offset >> 1,
 									(vg->length2 << 10) | (vg->length1 >> 1),
 									TOKEN_ATTR_NAME,
@@ -2000,13 +2047,13 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 						
 						
-						if (vg->encoding < FORMAT_UTF_16BE){
+						if (vg->singleByteEncoding){
 							if (vg->length1 > MAX_TOKEN_LENGTH){
 								throwException(parse_exception,0,
 												"Parse exception in parse()",
 												"Token Length Error: ATTR_VAL length too long");
 							}
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset,
 								vg->length1,
 								TOKEN_ATTR_VAL,
@@ -2018,7 +2065,7 @@ void parse(VTDGen *vg, Boolean ns){
 												"Parse exception in parse()",
 												"Token Length Error: ATTR_VAL length too long");
 							}
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset >> 1,
 								vg->length1 >> 1,
 								TOKEN_ATTR_VAL,
@@ -2044,7 +2091,7 @@ void parse(VTDGen *vg, Boolean ns){
 						}
 
 						if (vg->ch == '>') {
-							if (vg->ns == TRUE){
+							if (vg->ns ){
 								appendInt(vg->nsBuffer1,vg->nsBuffer3->size-1);
 								if (vg->prefixed_attr_count>0)
 									qualifyAttributes(vg);
@@ -2064,20 +2111,20 @@ void parse(VTDGen *vg, Boolean ns){
 								    	addWhiteSpaceRecord(vg);
 									parser_state = STATE_LT_SEEN;
 									if (skipChar(vg,'/')) {
-										if (helper == TRUE){
+										if (helper){
 											vg->length1 =
 												vg->offset
 												- vg->temp_offset
 												- (vg->increment<<1);
 
-											if (vg->encoding < FORMAT_UTF_16BE)
-												writeVTD(vg,
+											if (vg->singleByteEncoding)
+												writeVTDText(vg,
 												(vg->temp_offset),
 												vg->length1,
 												TOKEN_CHARACTER_DATA,
 												vg->depth);
 											else
-												writeVTD(vg,
+												writeVTDText(vg,
 												(vg->temp_offset) >> 1,
 												(vg->length1 >> 1),
 												TOKEN_CHARACTER_DATA,
@@ -2124,15 +2171,15 @@ void parse(VTDGen *vg, Boolean ns){
 								handleOtherTextChar(vg,vg->ch);
 						}while (TRUE);
 						vg->length1 = vg->offset - vg->increment - vg->temp_offset;						
-						if (vg->encoding < FORMAT_UTF_16BE){
-							writeVTD(vg,
+						if (vg->singleByteEncoding){
+							writeVTDText(vg,
 								vg->temp_offset,
 								vg->length1,
 								TOKEN_CHARACTER_DATA,
 								vg->depth);
 						}
 						else{
-							writeVTD(vg,
+							writeVTDText(vg,
 								vg->temp_offset >> 1,
 								vg->length1 >> 1,
 								TOKEN_CHARACTER_DATA,
@@ -2257,7 +2304,7 @@ void setDoc_BR(VTDGen *vg, UByte *ba, int len){
 
 //Set the XMLDoc container.Also set the offset and len of the document 
 void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
-	int a,i1=7,i2=9,i3=11;
+	int a,i1=8,i2=9,i3=11;
 	vg->br = TRUE;
 	vg->depth = -1;
 	vg->increment = 1;
@@ -2270,37 +2317,104 @@ void setDoc_BR2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->docLen = docLen;
 	vg->bufLen = len;
 	vg->endOffset = os + docLen;
-	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
+	vg->last_depth = vg->last_l3_index = vg->last_l2_index = vg->last_l1_index;
 	vg->currentElementRecord = 0;
 	clearFastIntBuffer(vg->nsBuffer1);
 	clearFastLongBuffer(vg->nsBuffer2);
 	clearFastLongBuffer(vg->nsBuffer3);
-	if (vg->VTDBuffer == NULL){
-		if (vg->docLen <= 1024) {
-			a = 6; i1=5; i2=5;i3=5;
-		} else if (vg->docLen <= 4096 * 2){
-			a = 7; i1=6; i2=6; i3=6;
+	if (vg->shallowDepth){
+		if (vg->VTDBuffer == NULL){
+			if (vg->docLen <= 1024) {
+				a = 6; i1=5; i2=5;i3=5;
+			} else if (vg->docLen <= 4096 * 2){
+				a = 7; i1=6; i2=6; i3=6;
+			}
+			else if (vg->docLen <=1024*16){
+				a =8; i1 = 7;i2=7;i3=7;
+			}
+			else if (vg->docLen <= 1024 * 16 * 4) {
+				a = 10;
+			} else if (vg->docLen <= 1024 * 256) {
+				a = 12;
+			} else {
+				a = 15;
+			}
+			vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
+			vg->l1Buffer = createFastLongBuffer2(i1); 
+			vg->l2Buffer = createFastLongBuffer2(i2);
+			vg->l3Buffer = createFastIntBuffer2(i3); 
 		}
-		else if (vg->docLen <=1024*16){
-		    a =8; i1 = 7;i2=7;i3=7;
+		else {
+			vg->VTDBuffer->size = 0;
+			vg->l1Buffer->size = 0;
+			vg->l2Buffer->size = 0;
+			vg->l3Buffer->size = 0;
 		}
-		else if (vg->docLen <= 1024 * 16 * 4) {
-			a = 10;
-		} else if (vg->docLen <= 1024 * 256) {
+	}else{
+		int i1 = 8, i2 = 9, i3 = 11, i4 = 11, i5 = 11;
+		if (docLen <= 1024) {
+			// a = 1024; //set the floor
+			a = 6;
+			i1 = 5;
+			i2 = 5;
+			i3 = 5;
+			i4 = 5;
+			i5 = 5;
+		} else if (docLen <= 4096) {
+			a = 7;
+			i1 = 6;
+			i2 = 6;
+			i3 = 6;
+			i4 = 6;
+			i5 = 6;
+		} else if (docLen <= 1024 * 16) {
+			a = 8;
+			i1 = 7;
+			i2 = 7;
+			i3 = 7;
+		} else if (docLen <= 1024 * 16 * 4) {
+			// a = 2048;
+			a = 11;
+			i2 = 8;
+			i3 = 8;
+			i4 = 8;
+			i5 = 8;
+		} else if (docLen <= 1024 * 256) {
+			// a = 1024 * 4;
 			a = 12;
+			i1 = 8;
+			i2 = 9;
+			i3 = 9;
+			i4 = 9;
+			i5 = 9;
+		} else if (docLen <= 1024 * 1024) {
+			// a = 1024 * 4;
+			a = 12;
+			i1 = 8;
+			i3 = 10;
+			i4 = 10;
+			i5 = 10;
 		} else {
+			// a = 1 << 15;
 			a = 15;
+			i1 = 8;
 		}
-		vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
-		vg->l1Buffer = createFastLongBuffer2(i1); 
-		vg->l2Buffer = createFastLongBuffer2(i2);
-		vg->l3Buffer = createFastIntBuffer2(i3); 
-	}
-	else {
-		clearFastLongBuffer(vg->VTDBuffer);
-		clearFastLongBuffer(vg->l1Buffer);
-		clearFastLongBuffer(vg->l2Buffer);
-		clearFastIntBuffer(vg->l3Buffer);
+		if (vg->VTDBuffer == NULL){
+			vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
+			vg->l1Buffer = createFastLongBuffer2(i1); 
+			vg->l2Buffer = createFastLongBuffer2(i2);
+			vg->_l3Buffer = createFastLongBuffer2(i3); 
+			vg->_l4Buffer = createFastLongBuffer2(i4); 
+			vg->_l5Buffer = createFastIntBuffer2(i5); 
+		}else{
+			vg->VTDBuffer->size = 0;
+			vg->l1Buffer->size = 0;
+			vg->l2Buffer->size = 0;
+			vg->_l3Buffer->size = 0;
+			vg->_l4Buffer->size = 0;
+			vg->_l5Buffer->size = 0;
+		}
+
 	}
 	vg->stateTransfered = FALSE;
 }
@@ -2314,7 +2428,7 @@ void setDoc(VTDGen *vg, UByte *ba, int len){
    len is the size of the byte buffer
    docLen is the length of the XML content in byte */
 void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
-	int a,i1=7,i2=9,i3=11;
+	int a,i1=8,i2=9,i3=11;
 	vg->br = FALSE;
 	vg->depth = -1;
 	vg->increment = 1;
@@ -2327,36 +2441,102 @@ void setDoc2(VTDGen *vg, UByte *ba, int len, int os, int docLen){
 	vg->docLen = docLen;
 	vg->bufLen =len;
 	vg->endOffset = os + docLen;
-	vg->last_depth = vg->last_i3_index = vg->last_l2_index = vg->last_l1_index;
+	vg->last_depth = vg->last_l3_index = vg->last_l2_index = vg->last_l1_index;
 	vg->currentElementRecord = 0;
 	clearFastIntBuffer(vg->nsBuffer1);
 	clearFastLongBuffer(vg->nsBuffer2);
 	clearFastLongBuffer(vg->nsBuffer3);
-	if (vg->docLen <= 1024) {		
-		a = 6; i1=5; i2=5;i3=5;
-	} else if (vg->docLen <= 4096 * 2){
-		a = 7; i1=6; i2=6; i3=6;
-	}else if (vg->docLen <=1024*16){
-		    a =8; i1 = 7;i2=7;i3=7;
+	if (vg->shallowDepth){
+		if (vg->docLen <= 1024) {		
+			a = 6; i1=5; i2=5;i3=5;
+		} else if (vg->docLen <= 4096 * 2){
+			a = 7; i1=6; i2=6; i3=6;
+		}else if (vg->docLen <=1024*16){
+			a =8; i1 = 7;i2=7;i3=7;
+		}
+		else if (vg->docLen <= 1024 * 16 * 4) {
+			a = 11; i2= 8; i3=8;
+		} else if (vg->docLen <= 1024 * 256) {		
+			a = 12;
+		} else {	
+			a = 15;
+		}
+
+		if (vg->stateTransfered == FALSE && vg->VTDBuffer != NULL){
+			freeFastLongBuffer(vg->VTDBuffer);
+			freeFastLongBuffer(vg->l1Buffer);
+			freeFastLongBuffer(vg->l2Buffer);
+			freeFastIntBuffer(vg->l3Buffer);		
+		}
+		vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
+		vg->l1Buffer = createFastLongBuffer2(i1);
+		vg->l2Buffer = createFastLongBuffer2(i2); 
+		vg->l3Buffer = createFastIntBuffer2(i3);
+	}else{
+		int i1 = 7, i2 = 9, i3 = 11, i4 = 11, i5 = 11;
+			if (vg->docLen <= 1024) {
+				// a = 1024; //set the floor
+				a = 6;
+				i1 = 5;
+				i2 = 5;
+				i3 = 5;
+				i4 = 5;
+				i5 = 5;
+			} else if (vg->docLen <= 4096) {
+				a = 7;
+				i1 = 6;
+				i2 = 6;
+				i3 = 6;
+				i4 = 6;
+				i5 = 6;
+			} else if (vg->docLen <= 1024 * 16) {
+				a = 8;
+				i1 = 7;
+				i2 = 7;
+				i3 = 7;
+			} else if (vg->docLen <= 1024 * 16 * 4) {
+				// a = 2048;
+				a = 11;
+				i2 = 8;
+				i3 = 8;
+				i4 = 8;
+				i5 = 8;
+			} else if (vg->docLen <= 1024 * 256) {
+				// a = 1024 * 4;
+				a = 12;
+				i1 = 8;
+				i2 = 9;
+				i3 = 9;
+				i4 = 9;
+				i5 = 9;
+			} else if (vg->docLen <= 1024 * 1024) {
+				// a = 1024 * 4;
+				a = 12;
+				i1 = 8;
+				i3 = 10;
+				i4 = 10;
+				i5 = 10;
+			} else {
+				// a = 1 << 15;
+				a = 15;
+				i1 = 8;
+			}
+			if (vg->stateTransfered == FALSE && vg->VTDBuffer != NULL){
+			freeFastLongBuffer(vg->VTDBuffer);
+			freeFastLongBuffer(vg->l1Buffer);
+			freeFastLongBuffer(vg->l2Buffer);
+			freeFastLongBuffer(vg->_l3Buffer);
+			freeFastLongBuffer(vg->_l4Buffer);
+			freeFastIntBuffer(vg->_l5Buffer);
+		}
+		vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
+		vg->l1Buffer = createFastLongBuffer2(i1);
+		vg->l2Buffer = createFastLongBuffer2(i2); 
+		vg->_l3Buffer = createFastLongBuffer2(i3);
+		vg->_l4Buffer = createFastLongBuffer2(i4);
+		vg->_l5Buffer = createFastIntBuffer2(i5);
+
 	}
-	else if (vg->docLen <= 1024 * 16 * 4) {
-		a = 10;
-	} else if (vg->docLen <= 1024 * 256) {		
-		a = 12;
-	} else {	
-		a = 15;
-	}
-	
-	if (vg->stateTransfered == FALSE && vg->VTDBuffer != NULL){
-		freeFastLongBuffer(vg->VTDBuffer);
-		freeFastLongBuffer(vg->l1Buffer);
-		freeFastLongBuffer(vg->l2Buffer);
-		freeFastIntBuffer(vg->l3Buffer);		
-	}
-	vg->VTDBuffer = createFastLongBuffer3(a, len>>(a+1)); 
-	vg->l1Buffer = createFastLongBuffer2(i1);
-	vg->l2Buffer = createFastLongBuffer2(i2); 
-	vg->l3Buffer = createFastIntBuffer2(i3);
 
 	vg->stateTransfered = FALSE;
 }
@@ -2420,51 +2600,13 @@ static Boolean skipChar(VTDGen *vg, int ch){
    LCs are not swapped, so when they got persisted, byte swap may be needed*/
 
 static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth){
-	switch (token_type) {
-			case TOKEN_CHARACTER_DATA:
-			case TOKEN_CDATA_VAL:
-			case TOKEN_COMMENT:
-
-				if (length > MAX_TOKEN_LENGTH) {
-					int k;
-					int r_offset = offset;
-					Long l = ((Long)((token_type << 28)
-						| ((depth & 0xff) << 20) 
-						| MAX_TOKEN_LENGTH) << 32);
-
-					for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
-
-						appendLong(vg->VTDBuffer, l | r_offset);
-
-						r_offset += MAX_TOKEN_LENGTH;
-					}
-
-
-					appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
-						| ((depth & 0xff) << 20) | k) << 32)
-						| r_offset);
-
-				} else {
-
-					appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
-						| ((depth & 0xff) << 20) | length) << 32)
-						| offset);
-
-				}
-				break;
-			default:
-
-				appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
-					| ((depth & 0xff) << 20) | length) << 32)
-					| offset);
-
-				break;
-	}
-
+	appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
+		| ((depth & 0xff) << 20) | length) << 32)
+		| offset);
 
 	// remember VTD depth start from zero
-	if (token_type == TOKEN_STARTING_TAG) {
-		switch (depth) {
+
+	switch (depth) {
 				case 0 :
 					//rootIndex = VTDBuffer.size() - 1;
 					vg->rootIndex = vg->VTDBuffer->size - 1;
@@ -2473,12 +2615,12 @@ static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, i
 					if (vg->last_depth == 1) {
 
 						appendLong(vg->l1Buffer,
-							((Long) vg->last_l1_index << 32) | 0xffffffffL);
+							((Long) vg->last_l1_index << 32) | 0xffffffffLL);
 
 					} else if (vg->last_depth == 2) {
 
 						appendLong(vg->l2Buffer,
-							((Long) vg->last_l2_index << 32) | 0xffffffffL);
+							((Long) vg->last_l2_index << 32) | 0xffffffffLL);
 
 					}
 					vg->last_l1_index = vg->VTDBuffer->size - 1;
@@ -2491,7 +2633,7 @@ static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, i
 
 					} else if (vg->last_depth == 2) {
 						appendLong(vg->l2Buffer,
-							((Long) vg->last_l2_index << 32) | 0xffffffffL);
+							((Long) vg->last_l2_index << 32) | 0xffffffffLL);
 
 					}
 					vg->last_l2_index = vg->VTDBuffer->size - 1;
@@ -2509,18 +2651,28 @@ static void writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, i
 					break;
 				default :					
 					break;
-		}
-
-	} 
+	}
 }
 
 
 /* finishing up */
 void finishUp(VTDGen *vg){
-	if (vg->last_depth == 1) {
-		appendLong(vg->l1Buffer,((Long) vg->last_l1_index << 32) | 0xffffffffL);
-	} else if (vg->last_depth == 2) {
-		appendLong(vg->l2Buffer,((Long) vg->last_l2_index << 32) | 0xffffffffL);
+	if (vg->shallowDepth){
+		if (vg->last_depth == 1) {
+			appendLong(vg->l1Buffer,((Long) vg->last_l1_index << 32) | 0xffffffffLL);
+		} else if (vg->last_depth == 2) {
+			appendLong(vg->l2Buffer,((Long) vg->last_l2_index << 32) | 0xffffffffLL);
+		}
+	}else{
+		if (vg->last_depth == 1) {
+			appendLong(vg->l1Buffer,((Long) vg->last_l1_index << 32) | 0xffffffffLL);
+		} else if (vg->last_depth == 2) {
+			appendLong(vg->l2Buffer,((Long) vg->last_l2_index << 32) | 0xffffffffLL);
+		}else if (vg->last_depth == 3) {
+			appendLong(vg->_l3Buffer,((Long) vg->last_l3_index << 32) | 0xffffffffLL);
+		}else if (vg->last_depth == 4) {
+			appendLong(vg->_l4Buffer,((Long) vg->last_l4_index << 32) | 0xffffffffLL);
+		}
 	}
 }
 
@@ -2601,6 +2753,9 @@ void decide_encoding(VTDGen *vg){
 				"Parse exception in parse()",
 				"Other error: file size too large");
 		}
+	}
+	if (vg->encoding >= FORMAT_UTF_16BE){
+		vg->singleByteEncoding = FALSE;
 	}
 }
 int process_end_pi(VTDGen *vg){
@@ -2702,6 +2857,20 @@ int process_end_pi(VTDGen *vg){
 					vg->depth);
 			}
 		} else {
+			if (vg->singleByteEncoding){
+				_writeVTD(vg,
+					(vg->temp_offset),
+					0,
+					TOKEN_PI_NAME,
+					vg->depth);
+			}
+			else{
+				_writeVTD(vg,
+					(vg->temp_offset) >> 1,
+					0,
+					TOKEN_PI_NAME,
+					vg->depth);
+			}
 			if ((vg->ch == '?') && skipChar(vg,'>')) {
 				parser_state = STATE_DOC_END;
 			} else{		
@@ -2738,8 +2907,8 @@ int process_end_comment(VTDGen *vg){
 	}
 	if (getChar(vg) == '>') {
 		//System.out.println(" " + vg->temp_offset + " " + vg->length1 + " comment " + vg->depth);
-		if (vg->encoding < FORMAT_UTF_16BE){
-			writeVTD(vg,
+		if (vg->singleByteEncoding){
+			writeVTDText(vg,
 				vg->temp_offset,
 				vg->length1,
 				TOKEN_COMMENT,
@@ -2747,7 +2916,7 @@ int process_end_comment(VTDGen *vg){
 		}
 		else
 		{
-			writeVTD(vg,
+			writeVTDText(vg,
 				vg->temp_offset >> 1,
 				vg->length1 >> 1,
 				TOKEN_COMMENT,
@@ -2780,15 +2949,15 @@ int process_comment(VTDGen *vg){
 		}
 	}
 	if (getChar(vg) == '>') {
-		if (vg->encoding < FORMAT_UTF_16BE){
-			writeVTD(vg,
+		if (vg->singleByteEncoding){
+			writeVTDText(vg,
 				vg->temp_offset,
 				vg->length1,
 				TOKEN_COMMENT,
 				vg->depth);
 		}
 		else{
-			writeVTD(vg,
+			writeVTDText(vg,
 				vg->temp_offset >> 1,
 				vg->length1 >> 1,
 				TOKEN_COMMENT,
@@ -2851,13 +3020,13 @@ int process_doc_type(VTDGen *vg){
 		}
 	}
 	vg->length1 = vg->offset - vg->temp_offset - vg->increment;
-	if (vg->encoding < FORMAT_UTF_16BE){
+	if (vg->singleByteEncoding){
 		if (vg->length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: DTD_VAL length too long");
 		}
-		writeVTD(vg,
+		_writeVTD(vg,
 			vg->temp_offset,
 			vg->length1,
 			TOKEN_DTD_VAL,
@@ -2869,7 +3038,7 @@ int process_doc_type(VTDGen *vg){
 				"Parse exception in parse()",
 				"Token Length Error: DTD_VAL length too long");
 		}
-		writeVTD(vg,
+		_writeVTD(vg,
 			vg->temp_offset >> 1,
 			vg->length1 >> 1,
 			TOKEN_DTD_VAL,
@@ -2904,15 +3073,15 @@ static int process_cdata(VTDGen *vg){
 		}
 	}
 	vg->length1 = vg->offset - vg->temp_offset - vg->increment - (vg->increment<<1);
-	if (vg->encoding < FORMAT_UTF_16BE){
-		writeVTD(vg,
+	if (vg->singleByteEncoding){
+		writeVTDText(vg,
 			vg->temp_offset,
 			vg->length1,
 			TOKEN_CDATA_VAL,
 			vg->depth);
 	}
 	else{
-		writeVTD(vg,
+		writeVTDText(vg,
 			vg->temp_offset >> 1,
 			vg->length1 >> 1,
 			TOKEN_CDATA_VAL,
@@ -2981,14 +3150,14 @@ static int process_pi_val(VTDGen *vg){
 		vg->ch = getChar(vg);
 	}
 	vg->length1 = vg->offset - vg->temp_offset - (vg->increment<<1);
-	if (vg->length1 != 0)
-	if (vg->encoding < FORMAT_UTF_16BE){
+
+	if (vg->singleByteEncoding){
 		if (vg->length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: PI_VAL length too long");
 		}
-		writeVTD(vg,vg->temp_offset, vg->length1, TOKEN_PI_VAL, vg->depth);
+		_writeVTD(vg,vg->temp_offset, vg->length1, TOKEN_PI_VAL, vg->depth);
 	}
 	else{
 		if (vg->length1 > (MAX_TOKEN_LENGTH << 1)){
@@ -2996,12 +3165,13 @@ static int process_pi_val(VTDGen *vg){
 				"Parse exception in parse()",
 				"Token Length Error: PI_VAL length too long");
 		}
-		writeVTD(vg,
+		_writeVTD(vg,
 			vg->temp_offset >> 1,
 			vg->length1 >> 1,
 			TOKEN_PI_VAL,
 			vg->depth);
 	}
+
 	vg->temp_offset = vg->offset;
 	//vg->ch = getCharAfterSe(vg);
 	vg->ch = getCharAfterS(vg);
@@ -3042,13 +3212,13 @@ int process_pi_tag(VTDGen *vg){
 	}
 
 	vg->length1 = vg->offset - vg->temp_offset - vg->increment;
-	if (vg->encoding < FORMAT_UTF_16BE){
+	if (vg->singleByteEncoding){
 		if (vg->length1 > MAX_TOKEN_LENGTH){
 			throwException(parse_exception,0,	
 				"Parse exception in parse()",
 				"Token Length Error: PI_TAG length too long");
 		}
-		writeVTD(vg,
+		_writeVTD(vg,
 			(vg->temp_offset),
 			vg->length1,
 			TOKEN_PI_NAME,
@@ -3060,7 +3230,7 @@ int process_pi_tag(VTDGen *vg){
 				"Parse exception in parse()",
 				"Token Length Error: PI_TAG length too long");
 		}
-		writeVTD(vg,
+		_writeVTD(vg,
 			(vg->temp_offset) >> 1,
 			(vg->length1 >> 1),
 			TOKEN_PI_NAME,
@@ -3071,6 +3241,20 @@ int process_pi_tag(VTDGen *vg){
 	//	vg->ch = getChar(vg);
 	//}
 	if (vg->ch == '?') {
+		if (vg->singleByteEncoding){
+			_writeVTD(vg,
+				(vg->temp_offset),
+				0,
+				TOKEN_PI_NAME,
+				vg->depth);
+		}
+		else{
+			_writeVTD(vg,
+				(vg->temp_offset) >> 1,
+				0,
+				TOKEN_PI_NAME,
+				vg->depth);
+		}
 		if (skipChar(vg,'>')) {
 			vg->temp_offset = vg->offset;
 			//vg->ch = getCharAfterSe(vg);
@@ -3124,15 +3308,15 @@ static int process_dec_attr(VTDGen *vg){
 		&& skipChar(vg,'n')) {
 			vg->ch = getCharAfterS(vg);
 			if (vg->ch == '=') {
-				if (vg->encoding < FORMAT_UTF_16BE){
-					writeVTD(vg,
+				if (vg->singleByteEncoding){
+					_writeVTD(vg,
 						vg->temp_offset - 1,
 						7,
 						TOKEN_DEC_ATTR_NAME,
 						vg->depth);
 				}
 				else{
-					writeVTD(vg,
+					_writeVTD(vg,
 						(vg->temp_offset - 2) >> 1,
 						7,
 						TOKEN_DEC_ATTR_NAME,
@@ -3162,15 +3346,15 @@ static int process_dec_attr(VTDGen *vg){
 	if (skipChar(vg,'1')
 		&& skipChar(vg,'.')
 		&& (skipChar(vg,'0') || skipChar(vg,'1'))) {
-			if (vg->encoding < FORMAT_UTF_16BE){
-				writeVTD(vg,
+			if (vg->singleByteEncoding){
+				_writeVTD(vg,
 					vg->temp_offset,
 					3,
 					TOKEN_DEC_ATTR_VAL,
 					vg->depth);
 			}
 			else{
-				writeVTD(vg,
+				_writeVTD(vg,
 					vg->temp_offset >> 1,
 					3,
 					TOKEN_DEC_ATTR_VAL,
@@ -3205,15 +3389,15 @@ static int process_dec_attr(VTDGen *vg){
 					if (XMLChar_isSpaceChar(vg->ch))
 						vg->ch = getCharAfterS(vg);
 					if (vg->ch == '=') {
-						if (vg->encoding < FORMAT_UTF_16BE){
-							writeVTD(vg,
+						if (vg->singleByteEncoding){
+							_writeVTD(vg,
 								vg->temp_offset,
 								8,
 								TOKEN_DEC_ATTR_NAME,
 								vg->depth);
 						}
 						else{
-							writeVTD(vg,
+							_writeVTD(vg,
 								vg->temp_offset >> 1,
 								8,
 								TOKEN_DEC_ATTR_NAME,
@@ -3254,22 +3438,14 @@ static int process_dec_attr(VTDGen *vg){
 												"Can't switch from UTF-8");
 										}
 										vg->encoding = FORMAT_ASCII;
-									
-										if (vg->encoding
-											< FORMAT_UTF_16BE){
-												writeVTD(vg,
-													vg->temp_offset,
-													5,
-													TOKEN_DEC_ATTR_VAL,
-													vg->depth);
-										}
-										else{
-											writeVTD(vg,
-												vg->temp_offset >> 1,
-												5,
-												TOKEN_DEC_ATTR_VAL,
-												vg->depth);
-										}
+
+
+										_writeVTD(vg,
+											vg->temp_offset >> 1,
+											5,
+											TOKEN_DEC_ATTR_VAL,
+											vg->depth);
+										
 										break;
 								} else
 								{		
@@ -3333,15 +3509,15 @@ static int process_dec_attr(VTDGen *vg){
 								"Parse exception in parse()",
 								"XML decl error: Invalid char");
 					}
-					if (vg->encoding < FORMAT_UTF_16BE){
-						writeVTD(vg,
+					if (vg->singleByteEncoding){
+						_writeVTD(vg,
 							vg->temp_offset,
 							10,
 							TOKEN_DEC_ATTR_NAME,
 							vg->depth);
 					}
 					else{
-						writeVTD(vg,
+						_writeVTD(vg,
 							vg->temp_offset >> 1,
 							10,
 							TOKEN_DEC_ATTR_NAME,
@@ -3359,14 +3535,14 @@ static int process_dec_attr(VTDGen *vg){
 						if (skipChar(vg,'e')
 							&& skipChar(vg,'s')
 							&& skipChar(vg,vg->ch_temp)) {
-								if (vg->encoding < FORMAT_UTF_16BE)
-									writeVTD(vg,
+								if (vg->singleByteEncoding)
+									_writeVTD(vg,
 									vg->temp_offset,
 									3,
 									TOKEN_DEC_ATTR_VAL,
 									vg->depth);
 								else
-									writeVTD(vg,
+									_writeVTD(vg,
 									vg->temp_offset >> 1,
 									3,
 									TOKEN_DEC_ATTR_VAL,
@@ -3379,14 +3555,14 @@ static int process_dec_attr(VTDGen *vg){
 					} else if (vg->ch == 'n') {
 						if (skipChar(vg,'o')
 							&& skipChar(vg,vg->ch_temp)) {
-								if (vg->encoding < FORMAT_UTF_16BE)
-									writeVTD(vg,
+								if (vg->singleByteEncoding)
+									_writeVTD(vg,
 									vg->temp_offset,
 									2,
 									TOKEN_DEC_ATTR_VAL,
 									vg->depth);
 								else
-									writeVTD(vg,
+									_writeVTD(vg,
 									vg->temp_offset >> 1,
 									2,
 									TOKEN_DEC_ATTR_VAL,
@@ -3484,9 +3660,9 @@ static int process_end_doc(VTDGen *vg){
 				return STATE_END_COMMENT;
 		}
 	}
-	printf("**********************\n");
+	/*printf("**********************\n");
 	printf(" char is %i \n", vg->ch);
-	printf("**********************\n");
+	printf("**********************\n");*/
 	throwException(parse_exception,-1,
 		"Parse exception in parse()",
 		"Other Error: XML not terminated properly");
@@ -3607,7 +3783,7 @@ static void addWhiteSpaceRecord(VTDGen *vg){
 }
 
 /* Load VTD+XML from a FILE pointer */
-VTDNav* loadIndex(VTDGen *vg, FILE *f){
+VTDNav* loadIndex2(VTDGen *vg, FILE *f){
 	clear(vg);
 	free(vg->XMLDoc);
 	if (_readIndex(f,vg))
@@ -3617,7 +3793,7 @@ VTDNav* loadIndex(VTDGen *vg, FILE *f){
 }
 
 /* load VTD+XML from a byte array */
-VTDNav* loadIndex2(VTDGen *vg, UByte* ba,int len){
+VTDNav* loadIndex3(VTDGen *vg, UByte* ba,int len){
 	clear(vg);
 	free(vg->XMLDoc);
 	if (_readIndex2(ba,len,vg))
@@ -3627,7 +3803,8 @@ VTDNav* loadIndex2(VTDGen *vg, UByte* ba,int len){
 
 /* Write VTD+XML into a FILE pointer */
 Boolean writeIndex(VTDGen *vg, FILE *f){
-	 return _writeIndex(1, 
+	if (vg->shallowDepth)
+	 return _writeIndex_L3(1, 
                 vg->encoding, 
                 vg->ns, 
                 TRUE, 
@@ -3642,6 +3819,25 @@ Boolean writeIndex(VTDGen *vg, FILE *f){
                 vg->l2Buffer, 
                 vg->l3Buffer, 
                 f);
+	else
+		 return _writeIndex_L5(1, 
+                vg->encoding, 
+                vg->ns, 
+                TRUE, 
+                vg->VTDDepth, 
+                5, 
+                vg->rootIndex, 
+                vg->XMLDoc, 
+                vg->docOffset, 
+                vg->docLen, 
+                vg->VTDBuffer, 
+                vg->l1Buffer, 
+                vg->l2Buffer, 
+                vg->_l3Buffer, 
+				vg->_l4Buffer,
+				vg->_l5Buffer,
+                f);
+
 }
 /* Write VTD+XML into a file */
 Boolean writeIndex2(VTDGen *vg, char *fileName){
@@ -3691,7 +3887,8 @@ void writeSeparateIndex(VTDGen *vg, char *VTDIndexFile){
 		//return FALSE;
 	}
 
-	_writeSeparateIndex( (Byte)2, 
+	if (vg->shallowDepth)
+		_writeSeparateIndex_L3( (Byte)2, 
                 vg->encoding, 
                 vg->ns, 
                 TRUE, 
@@ -3706,7 +3903,24 @@ void writeSeparateIndex(VTDGen *vg, char *VTDIndexFile){
                 vg->l2Buffer, 
                 vg->l3Buffer, 
                 f);
-	
+	else
+		_writeSeparateIndex_L5( (Byte)2, 
+                vg->encoding, 
+                vg->ns, 
+                TRUE, 
+                vg->VTDDepth, 
+                3, 
+                vg->rootIndex, 
+                //vg->XMLDoc, 
+                vg->docOffset, 
+                vg->docLen, 
+                vg->VTDBuffer, 
+                vg->l1Buffer, 
+                vg->l2Buffer, 
+                vg->_l3Buffer, 
+				vg->_l4Buffer,
+				vg->_l5Buffer,
+                f);	
 	fclose(f);
 	//return b;
 }
@@ -4326,7 +4540,7 @@ static Long _getChar(VTDGen *vg, int offset){
 	}
 }
 
-static int decode(VTDGen *vg, int byte_offset){
+int decode(VTDGen *vg, int byte_offset){
 	    int b = vg->XMLDoc[byte_offset];
 	switch(vg->encoding){
 		case FORMAT_ISO_8859_2: return iso_8859_2_decode(b);
@@ -4356,7 +4570,7 @@ static int decode(VTDGen *vg, int byte_offset){
 	return 0;
 }
 
-static Long _handle_16be(VTDGen *vg, int offset){
+Long _handle_16be(VTDGen *vg, int offset){
 	Long val; 
 
 	int temp =
@@ -4386,7 +4600,7 @@ static Long _handle_16be(VTDGen *vg, int offset){
 	}
 }
 
-static Long _handle_16le(VTDGen *vg, int offset){
+Long _handle_16le(VTDGen *vg, int offset){
 	// implement UTF-16LE to UCS4 conversion
 	int val, temp =
 		(vg->XMLDoc[offset + 1 ] & 0xff)
@@ -4412,7 +4626,7 @@ static Long _handle_16le(VTDGen *vg, int offset){
 	}
 }
 
-static Long _handle_utf8(VTDGen *vg, int temp,int offset){
+Long _handle_utf8(VTDGen *vg, int temp,int offset){
 	int c=0, d=0, a=0,i; 
 	Long val;
 	switch (UTF8Char_byteCount((int)temp & 0xff)) {
@@ -4454,7 +4668,7 @@ static Long _handle_utf8(VTDGen *vg, int temp,int offset){
 	return val | (((Long)(a+1))<<32);
 }
 
-static Long _handleOtherEncoding(VTDGen *vg,int byte_offset){
+Long _handleOtherEncoding(VTDGen *vg,int byte_offset){
 	    int b = vg->XMLDoc[byte_offset];
 		if (b=='\r' && vg->XMLDoc[byte_offset+1]=='\n')
 				return (2LL<<32)|'\n';
@@ -4487,7 +4701,7 @@ static Long _handleOtherEncoding(VTDGen *vg,int byte_offset){
 }
 
 
-static void handleOtherTextChar(VTDGen *vg, int ch){
+void handleOtherTextChar(VTDGen *vg, int ch){
 	if (ch == '&') {
 		//has_amp = true;	
 		if (!XMLChar_isValidChar(entityIdentifier(vg)))
@@ -4510,7 +4724,7 @@ static void handleOtherTextChar(VTDGen *vg, int ch){
 	//+ formatLineNumber());		
 }
 
-static void handleOtherTextChar2(VTDGen *vg,int ch){
+void handleOtherTextChar2(VTDGen *vg,int ch){
 	if (ch == '&') {
 		//has_amp = true;
 		//temp_offset = offset;
@@ -4530,4 +4744,142 @@ static void handleOtherTextChar2(VTDGen *vg,int ch){
 		throwException2(parse_exception,
 		"Error in text content: Invalid char");
 		//+ formatLineNumber());
+}
+
+void _writeVTD(VTDGen *vg, int offset, int length, tokenType token_type, int depth){
+	appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
+					| ((depth & 0xff) << 20) | length) << 32)
+					| offset);
+}
+
+void writeVTDText(VTDGen *vg, int offset, int length, tokenType token_type, int depth){
+	if (length > MAX_TOKEN_LENGTH) {
+		int k;
+		int r_offset = offset;
+		Long l = ((Long)((token_type << 28)
+			| ((depth & 0xff) << 20) 
+			| MAX_TOKEN_LENGTH) << 32);
+		for (k = length; k > MAX_TOKEN_LENGTH; k = k - MAX_TOKEN_LENGTH) {
+			appendLong(vg->VTDBuffer, l | r_offset);
+			r_offset += MAX_TOKEN_LENGTH;
+		}
+		appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
+			| ((depth & 0xff) << 20) | k) << 32)
+			| r_offset);
+	} else {
+		appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
+			| ((depth & 0xff) << 20) | length) << 32)
+			| offset);
+	}
+}
+
+void writeVTD_L5(VTDGen *vg, int offset, int length, tokenType token_type, int depth){	
+	appendLong(vg->VTDBuffer,((Long) ((token_type << 28)
+		| ((depth & 0xff) << 20) | length) << 32)
+		| offset);
+
+	// remember VTD depth start from zero
+
+	switch (depth) {
+			case 0:
+				vg->rootIndex = vg->VTDBuffer->size - 1;
+				break;
+			case 1:
+				if (vg->last_depth == 1) {
+					appendLong(vg->l1Buffer,((Long) vg->last_l1_index << 32) | 0xffffffffLL);
+				} else if (vg->last_depth == 2) {
+					appendLong(vg->l2Buffer,((Long) vg->last_l2_index << 32) | 0xffffffffLL);
+				} else if (vg->last_depth ==3) {
+					appendLong(vg->_l3Buffer,((Long) vg->last_l3_index << 32) | 0xffffffffLL);
+				} else if (vg->last_depth ==4){
+					appendLong(vg->_l4Buffer,((Long) vg->last_l4_index << 32) | 0xffffffffLL);
+				}
+				vg->last_l1_index = vg->VTDBuffer->size - 1;
+				vg->last_depth = 1;
+				break;
+			case 2:
+				if (vg->last_depth == 1) {
+					appendLong(vg->l1Buffer,((Long) vg->last_l1_index << 32)
+						+ vg->l2Buffer->size);
+				} else if (vg->last_depth == 2) {
+					appendLong(vg->l2Buffer,((Long) vg->last_l2_index << 32) | 0xffffffffLL);
+				} else if (vg->last_depth ==3) {
+					appendLong(vg->_l3Buffer,((Long) vg->last_l3_index << 32) | 0xffffffffLL);
+				} else if (vg->last_depth ==4){
+					appendLong(vg->_l4Buffer,((Long) vg->last_l4_index << 32) | 0xffffffffLL);
+				}
+				vg->last_l2_index = vg->VTDBuffer->size - 1;
+				vg->last_depth = 2;
+				break;
+
+			case 3:
+				/*if (last_depth == 1) {
+				l1Buffer.append(((long) last_l1_index << 32)
+				+ l2Buffer.size);
+				} else*/ 
+				if (vg->last_depth == 2) {
+					appendLong(vg->l2Buffer,((Long) vg->last_l2_index << 32) 
+						+ vg->_l3Buffer->size);
+				} else if (vg->last_depth ==3) {
+					appendLong(vg->_l3Buffer,((Long) vg->last_l3_index << 32) | 0xffffffffLL);
+				} else if (vg->last_depth ==4){
+					appendLong(vg->_l4Buffer,((Long) vg->last_l4_index << 32) | 0xffffffffLL);
+				}
+				vg->last_l3_index = vg->VTDBuffer->size - 1;
+				vg->last_depth = 3;
+				break;
+
+			case 4:
+				/*if (last_depth == 1) {
+				l1Buffer.append(((long) last_l1_index << 32)
+				+ l2Buffer.size);
+				} else if (last_depth == 2) {
+				l2Buffer.append(((long) last_l2_index << 32) | 0xffffffffLL);
+				} else*/ 
+				if (vg->last_depth ==3) {
+					appendLong(vg->_l3Buffer,((Long) vg->last_l3_index << 32) 
+						+ vg->_l4Buffer->size);
+				} else if (vg->last_depth ==4){
+					appendLong(vg->_l4Buffer,((Long) vg->last_l4_index << 32) | 0xffffffffLL);
+				}
+				vg->last_l4_index = vg->VTDBuffer->size - 1;
+				vg->last_depth = 4;
+				break;
+			case 5:
+				appendInt(vg->_l5Buffer,vg->VTDBuffer->size - 1);
+				if (vg->last_depth == 4) {
+					appendLong(vg->_l4Buffer,((Long) vg->last_l4_index << 32)
+						+ vg->_l5Buffer->size - 1);
+				}
+				vg->last_depth = 5;
+				break;
+
+				//default:
+				//rootIndex = VTDBuffer.size() - 1;
+	}
+}
+
+void selectLcDepth(VTDGen *vg,int i){
+	if (i!=3 &&i!=5)
+		throwException2(parse_exception,"LcDepth can only take the value of 3 or 5");
+	if (i==5)
+		vg->shallowDepth = FALSE;
+}
+
+VTDNav* loadIndex(VTDGen *vg, char *fileName){
+	FILE *f = NULL; 
+	VTDNav *vn = NULL;
+	//exception e;
+	//int status,len;
+	UByte *ba=NULL;
+	//struct stat buffer;
+	f = fopen(fileName,"rb");
+	if (f==NULL){
+		throwException2(invalid_argument,"fileName not valid");
+		return NULL;
+	}
+	vn=loadIndex2(vg,f);
+	fclose(f);
+	return vn;
+
 }
