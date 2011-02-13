@@ -25,6 +25,9 @@ static int handleDocumentNode(TextIter *ti);
 static int handleLevel0(TextIter *ti);
 static int handleLevel1(TextIter *ti);
 static int handleLevel2(TextIter *ti);
+static int _handleLevel2(TextIter *ti);
+static int handleLevel3(TextIter *ti);
+static int handleLevel4(TextIter *ti);
 static int handleDefault(TextIter *ti);
 
 
@@ -87,6 +90,7 @@ static Boolean isText(TextIter *ti, int index){
 	return FALSE;
 }
 
+
 static int handleDefault(TextIter *ti){
 	int sp = (ti->prevLocation != -1) ? increment(ti, ti->prevLocation): ti->index + 1;
 	int d,type;
@@ -108,6 +112,7 @@ static int handleDefault(TextIter *ti){
 	}
 	return -1;
 }
+
 static int handleDocumentNode(TextIter *ti){
 	int sp;
 	if (ti->sel_type == 0)
@@ -396,8 +401,10 @@ void touch(TextIter *ti, VTDNav *v){
 int getNext(TextIter *ti){
 	if (ti->vn == NULL)
 		throwException2(invalid_argument, "VTDNav instance can't be null");
-	switch (ti->depth) {
-		case -1: return handleDocumentNode(ti);
+	if (ti->vn->shallowDepth)
+		switch (ti->depth) {
+		case -1: 
+			return handleDocumentNode(ti);
 		case 0 :
 			return handleLevel0(ti);
 		case 1 :
@@ -406,6 +413,24 @@ int getNext(TextIter *ti){
 			return handleLevel2(ti);
 		default :
 			return handleDefault(ti);
+	}
+	else{
+		switch (ti->depth) {
+			case -1:
+				return handleDocumentNode(ti);
+			case 0:
+				return handleLevel0(ti);
+			case 1:
+				return handleLevel1(ti);
+			case 2:
+				return _handleLevel2(ti);
+			case 3:
+				return handleLevel3(ti);
+			case 4:
+				return handleLevel4(ti);
+			default:
+				return handleDefault(ti);
+		}
 	}
 }
 
@@ -428,4 +453,277 @@ given name */
 void selectPI1(TextIter *ti, UCSChar *s){
 	ti->sel_type =3;
 	ti->piName = s;
+}
+
+
+static int _handleLevel2(TextIter *ti){
+       	int sp,i,temp1, temp2,d,size;
+		tokenType type;
+       	VTDNav_L5* vnl = (VTDNav_L5 *)ti->vn;
+        if (ti->prevLocation != -1) {
+            sp = increment(ti,ti->prevLocation);
+        } else {
+            // fetch lclower and lcupper
+            ti->lcLower = lower32At(vnl->l2Buffer,vnl->l2index);
+            if (ti->lcLower != -1) {
+                ti->lcUpper = vnl->l3Buffer->size - 1;
+                size = vnl->l2Buffer->size;
+                for (i = vnl->l2index + 1; i < size ; i++) {
+                    int temp = lower32At(vnl->l2Buffer,i);
+                    if (temp != -1) {
+                        ti->lcUpper = temp - 1;
+                        break;
+                    }
+                }
+            }
+            sp = ti->index + 1;
+        } // check for l3lower and l3upper
+
+        if (ti->lcLower != -1) { // at least one child element
+            temp1 = upper32At(vnl->_l3Buffer,ti->lcLower);
+            temp2 = upper32At(vnl->_l3Buffer,ti->lcUpper);
+            ti->lcIndex = (ti->lcIndex != -1) ? ti->lcIndex : ti->lcLower;
+            while (sp < vnl->vtdSize) {
+                int s = upper32At(vnl->_l3Buffer,ti->lcIndex);
+                //int s = vn.l2Buffer.upper32At(lcIndex);
+                if (sp >= temp1 && sp < temp2) {
+                    if (sp == s) {
+                        ti->lcIndex++;
+                        sp = upper32At(vnl->_l3Buffer,ti->lcIndex) - 1;
+                        //boolean b = false;
+						while (getTokenDepth(ti->vn,sp) == 2) {
+                            sp--;
+                          //  b = true;
+                        }
+                        //if (b)
+                        	sp++;
+                        //continue;
+                    }
+                    if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==2) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                } else if (sp < temp1) {
+                    if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==2) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                } else {
+                    //if (sp == temp2) { // last child element
+                    //} else                 
+                    if ( isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 2) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    } else if ((getTokenType(ti->vn,sp)==TOKEN_STARTING_TAG
+                            && getTokenDepth(ti->vn,sp) < 3 ) || getTokenDepth(ti->vn,sp)<2) {
+                        break;
+                    }
+                    sp++;
+                }
+            }
+            //prevLocation = vtdSize-1;
+            return -1;
+        } else { // no child elements
+            if (sp>=vnl->vtdSize) return -1;
+            d = getTokenDepth(ti->vn,sp);
+            type = getTokenType(ti->vn,sp);
+            while (sp < vnl->vtdSize
+                && d >= 2
+                && !(d == 2 && type == TOKEN_STARTING_TAG)) {
+                // the last condition indicates the start of the next sibling element
+                if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==2) {
+                    ti->prevLocation = sp;
+                    return sp;
+                }
+                sp++;
+                d = getTokenDepth(ti->vn,sp);
+                type = getTokenType(ti->vn,sp);                
+            }
+            //prevLocation = vtdSize-1;
+            return -1;
+        }
+}
+
+static int handleLevel3(TextIter *ti){
+    	
+       	int sp,d,temp1,temp2,i,size;
+		tokenType type;
+       	VTDNav_L5* vnl = (VTDNav_L5*)ti->vn;
+        if (ti->prevLocation != -1) {
+            sp = increment(ti,ti->prevLocation);
+        } else {
+            // fetch lclower and lcupper
+            ti->lcLower = lower32At(vnl->_l3Buffer,vnl->l3index);
+            if (ti->lcLower != -1) {
+                ti->lcUpper = vnl->l4Buffer->size - 1;
+                size = vnl->_l3Buffer->size;
+                for (i = vnl->l3index + 1; i < size ; i++) {
+                    int temp = lower32At(vnl->_l3Buffer,i);
+                    if (temp != -1) {
+                        ti->lcUpper = temp - 1;
+                        break;
+                    }
+                }
+            }
+            sp = ti->index + 1;
+        } // check for l3lower and l3upper
+        if (ti->lcLower != -1) { // at least one child element
+            temp1 = upper32At(vnl->l4Buffer,ti->lcLower);
+            temp2 = upper32At(vnl->l4Buffer,ti->lcUpper);
+            ti->lcIndex = (ti->lcIndex != -1) ? ti->lcIndex : ti->lcLower;
+            while (sp < vnl->vtdSize) {
+                int s = upper32At(vnl->l4Buffer,ti->lcIndex);
+                //int s = vn.l2Buffer.upper32At(lcIndex);
+                if (sp >= temp1 && sp < temp2) {
+                    if (sp == s) {
+                        ti->lcIndex++;
+                        sp = upper32At(vnl->l4Buffer,ti->lcIndex) - 1;
+                        //boolean b = false;
+                        while (getTokenDepth(ti->vn,sp) == 2) {
+                            sp--;
+                          //  b = true;
+                        }
+                        //if (b)
+                        	sp++;
+                        //continue;
+                    }
+                    if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==3) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                } else if (sp < temp1) {
+                    if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==3) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                } else {
+                    //if (sp == temp2) { // last child element
+                    //} else                 
+                    if ( isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 3) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    } else if ((getTokenType(ti->vn,sp)==TOKEN_STARTING_TAG
+                            &&getTokenDepth(ti->vn,sp) < 4 ) ||getTokenDepth(ti->vn,sp)<3) {
+                        break;
+                    }
+                    sp++;
+                }
+            }
+            //prevLocation = vtdSize-1;
+            return -1;
+        } else { // no child elements
+            if (sp>= vnl->vtdSize) return -1;
+            d = getTokenDepth(ti->vn,sp);
+            type = getTokenType(ti->vn,sp);
+            while (sp < vnl->vtdSize
+                && d >= 3
+                && !(d == 3 && type == TOKEN_STARTING_TAG)) {
+                // the last condition indicates the start of the next sibling element
+                if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==3) {
+                    ti->prevLocation = sp;
+                    return sp;
+                }
+                sp++;
+                d = getTokenDepth(ti->vn,sp);
+                type =getTokenType( ti->vn,sp);
+                
+            }
+            //prevLocation = vtdSize-1;
+            return -1;
+        }
+}
+
+static int handleLevel4(TextIter *ti){
+   		int sp,temp1,temp2,d,i,size;
+		tokenType type;
+    	VTDNav_L5* vnl = (VTDNav_L5 *)ti->vn;
+        if (ti->prevLocation != -1) {
+            sp = increment(ti, ti->prevLocation);
+        } else {
+            // fetch lclower and lcupper
+            ti->lcLower = lower32At(vnl->l4Buffer,vnl->l4index);
+            if (ti->lcLower != -1) {
+                ti->lcUpper = vnl->l5Buffer->size - 1; //5
+                size = vnl->l4Buffer->size; //4
+                for (i = vnl->l4index + 1; i < size ; i++) {//4
+                    int temp = lower32At(vnl->l4Buffer,i); //4
+                    if (temp != -1) {
+                        ti->lcUpper = temp - 1;
+                        break;
+                    }
+                }
+            }
+            sp = ti->index + 1;
+        } // check for l3lower and l3upper
+
+        if (ti->lcLower != -1) { // at least one child element
+            temp1 = intAt(vnl->l5Buffer,ti->lcLower);
+            temp2 = intAt(vnl->l5Buffer,ti->lcUpper);
+            ti->lcIndex = (ti->lcIndex != -1) ? ti->lcIndex : ti->lcLower;
+            while (sp < ti->vn->vtdSize) {
+                int s = intAt(vnl->l5Buffer,ti->lcIndex);
+                //int s = vn.l2Buffer.upper32At(lcIndex);
+                if (sp >= temp1 && sp < temp2) {
+                    if (sp == s) {
+                        ti->lcIndex++;
+                        sp = intAt(vnl->l5Buffer,ti->lcIndex) - 1;
+                        //boolean b = false;
+                        while (getTokenDepth(ti->vn,sp) == 4) {
+                            sp--;
+                          //  b = true;
+                        }
+                        //if (b)
+                        	sp++;
+                        //continue;
+                    }
+                    if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==4) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                } else if (sp < temp1) {
+                    if (isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp)==4) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    }
+                    sp++;
+                } else {
+                    //if (sp == temp2) { // last child element
+                    //} else                 
+                    if ( isText(ti,sp) == TRUE && getTokenDepth(ti->vn,sp) == 4) {
+                        ti->prevLocation = sp;
+                        return sp;
+                    } else if ((getTokenType(ti->vn,sp)== TOKEN_STARTING_TAG
+                            && getTokenDepth(ti->vn,sp) < 5 ) || getTokenDepth(ti->vn,sp)<4) {
+                        break;
+                    }
+                    sp++;
+                }
+            }
+            //prevLocation = vtdSize-1;
+            return -1;
+        } else { // no child elements
+            if (sp>=vnl->vtdSize) return -1;
+            d = getTokenDepth(ti->vn,sp);
+            type = getTokenType(ti->vn,sp);
+            while (sp < vnl->vtdSize
+                && d >= 4
+                && !(d == 4 && type == TOKEN_STARTING_TAG)) {
+                // the last condition indicates the start of the next sibling element
+                if (isText(ti,sp) == TRUE &&getTokenDepth(ti->vn,sp)== 4) {
+                    ti->prevLocation = sp;
+                    return sp;
+                }
+                sp++;
+                d = getTokenDepth(ti->vn,sp);
+                type = getTokenType(ti->vn,sp);
+                
+            }
+            //prevLocation = vtdSize-1;
+            return -1;
+        }
 }

@@ -48,7 +48,8 @@ typedef struct vTDGen {
 	int last_depth;
 	int last_l1_index;
 	int last_l2_index;
-	int last_i3_index;
+	int last_l3_index;
+	int last_l4_index;
 
 	int increment;
 	Boolean BOM_detected;
@@ -73,6 +74,9 @@ typedef struct vTDGen {
 	FastLongBuffer *l1Buffer;
 	FastLongBuffer *l2Buffer;
 	FastIntBuffer *l3Buffer;
+	FastLongBuffer *_l3Buffer;
+	FastLongBuffer *_l4Buffer;
+	FastIntBuffer *_l5Buffer;
 	
 	FastIntBuffer  *nsBuffer1;
 	FastLongBuffer *nsBuffer2;
@@ -92,10 +96,15 @@ typedef struct vTDGen {
 	int anaLen;
 	int panaLen;
 	int docOffset;
+	short LcDepth;
+	Boolean singleByteEncoding;
+	Boolean shallowDepth;
 } VTDGen;
 
 // create VTDGen
 VTDGen *createVTDGen();
+
+void selectLcDepth(VTDGen *vg,int d);
 
 // free VTDGen
 void freeVTDGen(VTDGen *vg);
@@ -127,11 +136,13 @@ void setDoc_BR(VTDGen *vg, UByte *byteArray, int arrayLen);
 //Set the XMLDoc container.Also set the offset and len of the document 
 void setDoc_BR2(VTDGen *vg, UByte *byteArray, int arrayLen, int offset, int docLen);
 
+/* load vtd+xml file from a file */
+VTDNav* loadIndex(VTDGen *vg, char *fileName); 
 /* Load VTD+XML from a FILE pointer */
-VTDNav* loadIndex(VTDGen *vg, FILE *f); 
+VTDNav* loadIndex2(VTDGen *vg, FILE *f); 
 
 /* load VTD+XML from a byte array */
-VTDNav* loadIndex2(VTDGen *vg, UByte* ba,int len);
+VTDNav* loadIndex3(VTDGen *vg, UByte* ba,int len);
 
 /* Write VTD+XML into a FILE pointer */
 Boolean writeIndex(VTDGen *vg, FILE *f);
