@@ -83,12 +83,12 @@ typedef struct vTDNav{
 	toElement_ __toElement;
 	toElement2_ __toElement2;
 	toElementNS_ __toElementNS;
-	iterate_  __iterate;
+	/*iterate_  __iterate;
 	iterateNS_  __iterateNS;
 	iterate_preceding_ __iterate_preceding;
 	iterate_precedingNS_ __iterate_precedingNS;
 	iterate_following_ __iterate_following;
-	iterate_followingNS_ __iterate_followingNS;
+	iterate_followingNS_ __iterate_followingNS;*/
 	duplicateNav_ __duplicateNav;
 	cloneNav_ __cloneNav;
 	resolveLC_  __resolveLC;
@@ -143,6 +143,7 @@ typedef struct vTDNav{
 	Boolean br; // buffer reuse flag
 	Boolean master; // true if vn is obtained by calling getNav(), otherwise false
 	                // useful for implementing dupliateNav() and cloneNav();
+	short maxLCDepthPlusOne;
 } VTDNav;
 
 
@@ -155,12 +156,12 @@ typedef struct vTDNav_L5{
 	toElement_ __toElement;
 	toElement2_ __toElement2;
 	toElementNS_ __toElementNS;
-	iterate_  __iterate;
+	/*iterate_  __iterate;
 	iterateNS_  __iterateNS;
 	iterate_preceding_ __iterate_preceding;
 	iterate_precedingNS_ __iterate_precedingNS;
 	iterate_following_ __iterate_following;
-	iterate_followingNS_ __iterate_followingNS;
+	iterate_followingNS_ __iterate_followingNS;*/
 	duplicateNav_ __duplicateNav;
 	cloneNav_ __cloneNav;
 	resolveLC_  __resolveLC;
@@ -216,6 +217,7 @@ typedef struct vTDNav_L5{
 	Boolean br; // buffer reuse flag
 	Boolean master; // true if vn is obtained by calling getNav(), otherwise false
 	                // useful for implementing dupliateNav() and cloneNav();
+	short maxLCDepthPlusOne;
 	int l4index;
 	int l5index;
 	int l4upper;
@@ -319,47 +321,48 @@ Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName);
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-int _iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special);
+int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special);
 
-inline int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special){
+/*inline int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special){
 	return vn->__iterate(vn,dp,en,special);
-}
+}*/
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is false, return false immediately
-int _iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
+int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
 
-inline int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
+/*inline int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 	return vn->__iterateNS(vn,dp,URL,ln);
-}
+}*/
 
 // This function is called by selectElement_P in autoPilot
-Boolean _iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special);
+Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special);
 
-inline Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
+/*inline Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 	return vn->__iterate_preceding(vn,en,a,special);
-}
+}*/
 
 // This function is called by selectElementNS_P in autoPilot
-Boolean _iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
-inline Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
+Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
+
+/*inline Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 	return vn->__iterate_precedingNS(vn,URL,ln,a);
-}
+}*/
 
 // This function is called by selectElement_F in autoPilot
-Boolean _iterate_following(VTDNav *vn,UCSChar *en, Boolean special);
-inline Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
+Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special);
+/*inline Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
 	return vn->__iterate_following(vn,en,special);
-}
+}*/
 
 // This function is called by selectElementNS_F in autoPilot
-Boolean _iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
+Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
 
-inline Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
+/*inline Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 	return vn->__iterate_followingNS(vn,URL,ln);
-}
+}*/
 
 
 
