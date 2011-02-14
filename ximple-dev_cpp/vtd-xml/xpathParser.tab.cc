@@ -39,7 +39,7 @@
 #line 1 "xpathParser.yy"
 
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -116,10 +116,10 @@ using namespace com_ximpleware;
 #  define YY_(msgid) msgid
 # endif
 #endif
-
+//#define YYDEBUG 1
 /* Suppress unused-variable warnings by "using" E.  */
 #define YYUSE(e) ((void) (e))
-
+//#define YYDEBUG 1
 /* Enable debugging if requested.  */
 #if YYDEBUG
 
@@ -218,7 +218,7 @@ namespace yy {
   xpathParser::xpathParser (xpath_driver& driver_yyarg)
     :
 #if YYDEBUG
-      yydebug_ (false),
+      yydebug_ (true),
       yycdebug_ (&std::cerr),
 #endif
       driver (driver_yyarg)
