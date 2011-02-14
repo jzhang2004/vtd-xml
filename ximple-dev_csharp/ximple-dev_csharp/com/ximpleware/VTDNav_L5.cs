@@ -131,7 +131,7 @@ namespace com.ximpleware
             localNameIndex = -1;
             fib = new FastIntBuffer(5); // page size is 32 ints
             shallowDepth = false;
-            maxLCDepth = 5;
+            maxLCDepthPlusOne = 6;
 
         }
 
@@ -775,7 +775,7 @@ namespace com.ximpleware
             //		fib.append(context);
             if (context[0] >= 1)
                 fib.append(l1index);
-
+            else return;
 
             if (context[0] >= 2)
             {
@@ -783,6 +783,7 @@ namespace com.ximpleware
                 fib.append(l2lower);
                 fib.append(l2upper);
             }
+            else return;
 
             if (context[0] >= 3)
             {
@@ -790,6 +791,7 @@ namespace com.ximpleware
                 fib.append(l3lower);
                 fib.append(l3upper);
             }
+            else return;
 
             if (context[0] >= 4)
             {
@@ -797,6 +799,7 @@ namespace com.ximpleware
                 fib.append(l4lower);
                 fib.append(l4upper);
             }
+            else return;
 
             if (context[0] >= 5)
             {
