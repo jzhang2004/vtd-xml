@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -227,8 +227,6 @@ namespace com.ximpleware
                 case FuncName.IRI_TO_URI: isString_Renamed_Field = true; break;
                 case FuncName.ESCAPE_HTML_URI: isString_Renamed_Field = true; break;
                 default: isString_Renamed_Field = true; break;
-                    break;
-
             }
         }
 
