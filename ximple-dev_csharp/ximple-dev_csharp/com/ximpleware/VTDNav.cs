@@ -941,7 +941,7 @@ namespace com.ximpleware
 
         // tri-state variable for namespace lookup
         protected const long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
-        protected short maxLCDepthPlusOne = 3;
+        protected short maxLCDepthPlusOne = 4;
         protected internal int rootIndex; // where the root element is at
         protected internal int nestingLevel;
         protected internal int[] context; // main navigation tracker aka context object
