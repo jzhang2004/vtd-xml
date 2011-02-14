@@ -128,8 +128,8 @@ void	setPosition_ne(numberExpr *ne,int pos){
 }
 
 void    toString_ne(numberExpr *ne, UCSChar* string){
-	if (ne->dval == (long)ne->dval){
-		wprintf(L"%d",(long)ne->dval);
+	if (ne->dval == (Long)ne->dval){
+		wprintf(L"%d",(Long)ne->dval);
 	}else
 		wprintf(L"%f",ne->dval);
 }
