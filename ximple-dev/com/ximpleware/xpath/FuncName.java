@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,17 @@ public class FuncName{
 	public static final int     IRI_TO_URI = 39;
 	public static final int     ESCAPE_HTML_URI = 40;
 	public static final int     ENCODE_FOR_URI = 41;
-	//public static final int     
+	public static final int     MATCH_NAME = 42;
+	public static final int     MATCH_LOCAL_NAME = 43;
+	public static final int		CURRENT =44;
+	public static final int 	GENERATE_ID = 45;
+	public static final int 	FORMAT_NUMBER = 46;
+ 	public static final int     KEY = 47;
+ 	public static final int     ID =48;
+ 	public static final int     DOCUMENT =49;
+ 	public static final int     SYSTEM_PROPERTY =50;
+ 	public static final int 	ELEMENT_AVAILABLE =51;
+ 	public static final int 	FUNCTION_AVAILABLE = 52;
 	
 //	String getFuncString(){
 //	switch(i){
