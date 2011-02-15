@@ -64,7 +64,7 @@ public class LiteralExpr extends Expr {
 
 	public void reset(VTDNav vn){ }
 
-		public boolean  isNodeSet(){
+	public boolean  isNodeSet(){
 		return false;
 	}
 
