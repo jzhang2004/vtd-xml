@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -626,6 +626,90 @@ public class VTDGenHuge {
 			}
 		}
 	}
+	
+	class ISO8859_11Reader implements IReader {
+		public ISO8859_11Reader() {
+		}
+		public int getChar()
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
+
+			if (offset >= endOffset)
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
+			return ISO8859_11.decode(xb.byteAt(offset++));
+		}
+		public boolean skipChar(int ch)
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
+			if (ch == ISO8859_11.decode(xb.byteAt(offset))) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	
+	class ISO8859_13Reader implements IReader {
+		public ISO8859_13Reader() {
+		}
+		public int getChar()
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
+
+			if (offset >= endOffset)
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
+			return ISO8859_13.decode(xb.byteAt(offset++));
+		}
+		public boolean skipChar(int ch)
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
+			if (ch == ISO8859_13.decode(xb.byteAt(offset))) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	
+	class ISO8859_14Reader implements IReader {
+		public ISO8859_14Reader() {
+		}
+		public int getChar()
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
+
+			if (offset >= endOffset)
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
+			return ISO8859_14.decode(xb.byteAt(offset++));
+		}
+		public boolean skipChar(int ch)
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
+			if (ch == ISO8859_14.decode(xb.byteAt(offset))) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	
+	class ISO8859_15Reader implements IReader {
+		public ISO8859_15Reader() {
+		}
+		public int getChar()
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
+
+			if (offset >= endOffset)
+				throw new EOFExceptionHuge("permature EOF reached, XML document incomplete");
+			return ISO8859_15.decode(xb.byteAt(offset++));
+		}
+		public boolean skipChar(int ch)
+			throws EOFExceptionHuge, ParseExceptionHuge, EncodingExceptionHuge {
+			if (ch == ISO8859_15.decode(xb.byteAt(offset))) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
 	class WIN1250Reader implements IReader {
 		public WIN1250Reader() {
 		}
@@ -1179,6 +1263,7 @@ public class VTDGenHuge {
                         "Other error: file size too large >= 128GB");
         }
 	}
+	
 	/**
 	 * This method parses the XML file and returns a boolean indicating 
 	 * if it is successful or not.
@@ -2117,7 +2202,32 @@ public class VTDGenHuge {
 				     writeVTD(temp_offset, 11,
 								TOKEN_DEC_ATTR_VAL,
 								depth);
+				 } else if (r.skipChar('1') ){
+				     encoding = FORMAT_ISO_8859_11;
+				     r = new ISO8859_11Reader();
+				     writeVTD(temp_offset, 11,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				 } else if (r.skipChar('3') ){
+				     encoding = FORMAT_ISO_8859_13;
+				     r = new ISO8859_13Reader();
+				     writeVTD(temp_offset, 11,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				 }else if (r.skipChar('4') ){
+				     encoding = FORMAT_ISO_8859_14;
+				     r = new ISO8859_14Reader();
+				     writeVTD(temp_offset, 11,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
+				 }else if (r.skipChar('5') ){
+				     encoding = FORMAT_ISO_8859_15;
+				     r = new ISO8859_15Reader();
+				     writeVTD(temp_offset, 11,
+								TOKEN_DEC_ATTR_VAL,
+								depth);
 				 } 
+				 
 				}else if (r.skipChar('2') ){
 				    encoding = FORMAT_ISO_8859_2;
 				    r = new ISO8859_2Reader();
