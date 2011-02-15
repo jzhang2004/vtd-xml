@@ -313,7 +313,6 @@ public class BookMark {
 				if (ba[i] != bm1.ba[i])
 					return false;
 			}
-			return true;
     	}else {
     		for (int i = 0; i < vn1.nestingLevel + 14; i++) {
 				if (ba[i] != bm1.ba[i])
