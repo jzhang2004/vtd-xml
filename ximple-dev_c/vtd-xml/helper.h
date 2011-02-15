@@ -27,9 +27,9 @@ struct obj {
    void* object;
    struct obj *next;
 } ;
-struct obj *objList;
-struct obj *ptr1;
-struct obj *ptr2;
+/*extern _thread struct obj *objList;
+extern _thread struct obj *ptr1;
+extern _thread struct obj *ptr2;*/
 
 /* add to a global linked list during yyparse, to prevent mem leak */ 
 void addObj(void *obj); 

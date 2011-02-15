@@ -168,20 +168,19 @@
 #include "xpath.h"
 #include "helper.h"
 
-Step *tmpStep;
-Step *tmpStep2;
-NodeTest *tmpNt;
-locationPathExpr *tmpLPExpr ;
-aList *tmpAl;
-Predicate *tmpP;
+_thread Step *tmpStep;
+_thread Step *tmpStep2;
+_thread NodeTest *tmpNt;
+_thread locationPathExpr *tmpLPExpr ;
+_thread aList *tmpAl;
+_thread Predicate *tmpP;
 
-static expr *x;
-static NsList *xpathNSList = NULL;
-static ExprList *xpathExprList = NULL;
-extern int isName;
-extern int colonPosition;
-expr* ex;
-
+static _thread expr *x;
+static _thread NsList *xpathNSList = NULL;
+static _thread ExprList *xpathExprList = NULL;
+extern _thread int isName;
+extern _thread int colonPosition;
+_thread expr* ex;
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -757,7 +756,7 @@ do {					\
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */
-int yydebug;
+_thread int yydebug;
 #else /* !YYDEBUG */
 # define YYDPRINTF(Args)
 # define YYDSYMPRINT(Args)
@@ -927,13 +926,13 @@ int yyparse ();
 
 
 /* The lookahead symbol.  */
-int yychar;
+_thread int yychar;
 
 /* The semantic value of the lookahead symbol.  */
-YYSTYPE yylval;
+_thread YYSTYPE yylval;
 
 /* Number of syntax errors so far.  */
-int yynerrs;
+_thread int yynerrs;
 
 
 
@@ -2168,11 +2167,11 @@ yyreturn:
 
 #line 651 "l8.y"
 
-extern unsigned short *xpathInput;
-extern unsigned short *xpathInputPtr;
-extern unsigned short *xpathInputLimit;
-extern int num_chars;
-extern int isName;
+extern _thread unsigned short *xpathInput;
+extern _thread unsigned short *xpathInputPtr;
+extern _thread unsigned short *xpathInputLimit;
+extern _thread int num_chars;
+extern _thread int isName;
 expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el){
 	int l = wcslen(input);
 	int i = 0;

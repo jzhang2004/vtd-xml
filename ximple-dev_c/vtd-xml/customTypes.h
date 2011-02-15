@@ -32,6 +32,20 @@
 #define MAXLONG 0x7fffffffffffffffLL
 #define MINLONG 0x8000000000000001LL
 
+//check C compiler type gcc, vcc, or intel CC, digital Mars
+#ifdef _MSC_VER 
+ #define _thread __declspec(thread)
+#elif defined (__GNUC__) 
+ #define _thread __thread 
+#elif defined(__ICC) && defined(_WIN32)  
+ #define _thread __declspec(thread)
+#elif defined(__DMC__)
+ #define _thread __declspec(thread)
+#else
+ #define _thread __thread
+#endif
+
+
 #define inline __inline
 //#define _UNICODE
 typedef wchar_t UCSChar;
@@ -131,7 +145,7 @@ typedef struct vtd_exception {
 					} exception;
 					
 					define_exception_type(exception);
-					extern struct exception_context the_exception_context[1];
+					extern _thread struct exception_context the_exception_context[1];
 
 extern void throwException(enum exception_type et1, int sub_type, char* msg, char* submsg);
 extern void throwException2(enum exception_type et1, char *msg);
