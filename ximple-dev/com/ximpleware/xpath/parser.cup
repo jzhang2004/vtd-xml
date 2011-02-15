@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -225,7 +225,12 @@ PrimaryExpr     ::=  VariableReference:ve
 		;
 
 FunctionCall    ::=    FunctionName:fn LP ArgumentList:al RP
-		{: RESULT = new FuncExpr(fn.i, al); :} 
+		{: //RESULT = new FuncExpr(fn.i, al); 
+		   FuncExpr tfe = new FuncExpr(fn.i, al); 
+		   if (!tfe.checkArgumentCount())
+		    	throw new XPathParseException(" argument input for function "+tfe.fname()+" incorrect");
+		   RESULT = tfe;
+		:} 
 		;
 
 ArgumentList	::=    
@@ -293,8 +298,7 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
       	          throw new XPathParseException(as.getAxisString()+" axis can't operate on"+
       	                 " comment(), pi(), or text()",
       	         	scanner.getOffset());
-      	         	}
-      	   
+      	         	}	   
       	   RESULT.setNodeTest(nt);
 		   RESULT.setPredicate(pl);
 		   	

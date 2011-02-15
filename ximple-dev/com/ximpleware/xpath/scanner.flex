@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -506,6 +506,31 @@ round{ws}*"("		{  	isName = 1;
 				//yyparser.yylval.fname.i = FuncName.ROUND;
 				fname = new FuncName();
 				fname.i = FuncName.ROUND;
+				return sym(FNAME,fname);	
+			}
+			
+						
+generate-id{ws}*"("  {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ROUND;
+				fname = new FuncName();
+				fname.i = FuncName.GENERATE_ID;
+				return sym(FNAME,fname);	
+			}
+			
+match-name{ws}*"("  {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ROUND;
+				fname = new FuncName();
+				fname.i = FuncName.MATCH_NAME;
+				return sym(FNAME,fname);	
+			}
+			
+match-local-name{ws}*"("  {  	isName = 1; 
+			 	yypushback(1);
+				//yyparser.yylval.fname.i = FuncName.ROUND;
+				fname = new FuncName();
+				fname.i = FuncName.MATCH_LOCAL_NAME;
 				return sym(FNAME,fname);	
 			}
 
