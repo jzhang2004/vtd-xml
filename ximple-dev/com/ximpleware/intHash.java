@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +55,35 @@ class intHash {
                 }
             }
             storage[temp].append(i);
+            return true;            
+        }
+    }
+    
+    
+    /**
+     * This function differs from isUnique(int i) in that it doesn't insert i into
+     * intHash if it is unique, use to implement intersection or difference of nodesets
+     * @param i
+     * @return
+     */
+    public boolean _isUnique(int i){
+        int temp = i & mask1;
+        if (temp>maxDepth){
+            maxDepth = temp;
+        }
+        if (storage[temp]==null) {
+            //storage[temp]= new FastIntBuffer(pageSizeE);
+            //storage[temp].append(i);
+            return true;
+        }        
+        else{
+            int size = storage[temp].size;
+            for (int j=0;j<size;j++){
+                if (i == storage[temp].intAt(j)){
+                    return false;
+                }
+            }
+            //storage[temp].append(i);
             return true;            
         }
     }
