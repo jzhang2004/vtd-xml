@@ -53,7 +53,7 @@ parser code {:
   }
   
   public void setStrictScanner(boolean b){
-	((XSLScanner)getScanner()).setStrict(true);
+	((XSLScanner)getScanner()).setStrict(b);
   }
  
   public void report_error(String message, Object info) {
