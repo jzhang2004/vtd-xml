@@ -216,12 +216,12 @@ VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 						 vn->__freeVTDNav=_freeVTDNav;
 						 vn->__cloneNav=_cloneNav;
 						 vn->__duplicateNav = _duplicateNav;
-						 vn->__iterate = _iterate;
+						 /*vn->__iterate = _iterate;
 						 vn->__iterate_following = _iterate_following;
 						 vn->__iterate_followingNS = _iterate_followingNS;
 						 vn->__iterate_preceding = _iterate_preceding;
 						 vn->__iterate_precedingNS = _iterate_precedingNS;
-						 vn->__iterateNS = _iterateNS;
+						 vn->__iterateNS = _iterateNS;*/
 						 vn->__pop = _pop;
 						 vn->__pop2 = _pop2;
 						 vn->__push = _push;
@@ -303,6 +303,7 @@ VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 						 vn->br = br;
 						 vn->LN = 0;
 						 vn->shallowDepth = TRUE;
+						 vn->maxLCDepthPlusOne = 4;
 						 return vn;
 }
 
@@ -1121,7 +1122,7 @@ static inline Boolean isWS(int ch){
 }
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-int _iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
+int iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
 
 	int index = getCurrentIndex(vn) + 1;
 	tokenType tt;
@@ -1142,7 +1143,7 @@ int _iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
 					vn->context[depth] = index;
 
 				if (special || matchElement(vn, en)) {
-					if (dp < 4)
+					if (dp < vn->maxLCDepthPlusOne)
 						resolveLC(vn);
 					return TRUE;
 				}
@@ -1159,7 +1160,7 @@ int _iterate(VTDNav *vn, int dp, UCSChar *en,Boolean special){
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is FALSE, return FALSE immediately
-int _iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
+int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 	int index;
 	tokenType tt;
 	if (vn->ns == FALSE)
@@ -1180,7 +1181,7 @@ int _iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 				if (depth>0)
 					vn->context[depth] = index;
 				if (matchElementNS(vn,URL, ln)) {
-					if (dp < 4)
+					if (dp < vn->maxLCDepthPlusOne)
 						resolveLC(vn);
 					return TRUE;
 				}
@@ -1196,7 +1197,7 @@ int _iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 
 
 // This function is called by selectElement_P in autoPilot
-Boolean _iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
+Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 	int index = getCurrentIndex(vn) - 1;
 	int t,d,i;
 	//int depth = getTokenDepth(index);
@@ -1225,7 +1226,7 @@ Boolean _iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 			}
 			//dumpContext();
 			if (index!= a[depth] && (special || matchElement(vn,en))) {					
-				if (depth <4)				
+				if (depth <vn->maxLCDepthPlusOne)				
 					resolveLC(vn);
 				return TRUE;
 			}
@@ -1236,7 +1237,7 @@ Boolean _iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 }
 
 // This function is called by selectElementNS_P in autoPilot
-Boolean _iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
+Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 	int index = getCurrentIndex(vn) - 1;
 	int t,d,i;
 	//int depth = getTokenDepth(index);
@@ -1265,7 +1266,7 @@ Boolean _iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 			}
 			//dumpContext();
 			if (index != a[depth] && matchElementNS(vn,URL,ln)) {					
-				if (depth <4)
+				if (depth <vn->maxLCDepthPlusOne)
 					resolveLC(vn);
 				return TRUE;
 			}
@@ -1278,7 +1279,7 @@ Boolean _iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 
 // This function is called by selectElement_F in autoPilot
 
-Boolean _iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
+Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
 	int index = getCurrentIndex(vn) + 1;
 	//int size = vtdBuffer.size();
 	while (index < vn->vtdSize) {
@@ -1288,7 +1289,7 @@ Boolean _iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
 			if (depth>0)
 				vn->context[depth] = index;
 			if (special || matchElement(vn,en)) {					
-				if (depth <4)
+				if (depth <vn->maxLCDepthPlusOne)
 					resolveLC(vn);
 				return TRUE;
 			}
@@ -1301,7 +1302,7 @@ Boolean _iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
 
 // This function is called by selectElementNS_F in autoPilot
 
-Boolean _iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
+Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 	int index = getCurrentIndex(vn) + 1;
 	//int size = vtdBuffer.size();
 	while (index < vn->vtdSize) {
@@ -1311,7 +1312,7 @@ Boolean _iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 			if (depth>0)
 				vn->context[depth] = index;
 			if (matchElementNS(vn,URL,ln)) {					
-				if (depth <4)
+				if (depth <vn->maxLCDepthPlusOne)
 					resolveLC(vn);
 				return TRUE;
 			}
@@ -2195,18 +2196,21 @@ static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len){
 void _sampleState(VTDNav *vn, FastIntBuffer *fib){
 	if (vn->context[0]>=1)							
 		appendInt(fib, vn->l1index);
+	else return;
 
 	if (vn->context[0]>=2){
 		appendInt(fib,vn->l2index);
 		appendInt(fib,vn->l2upper);
 		appendInt(fib,vn->l2lower);
 	}
+	else return;
 
 	if (vn->context[0]>=3){
 		appendInt(fib,vn->l3index);
 		appendInt(fib,vn->l3upper);
 		appendInt(fib,vn->l3lower);
 	}
+	else return;
 
 }
 // A generic navigation method.
@@ -4733,12 +4737,12 @@ VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
 							   vn->__freeVTDNav=(freeVTDNav_) _freeVTDNav_L5;
 							   vn->__cloneNav=(cloneNav_)_cloneNav_L5;
 							   vn->__duplicateNav =(duplicateNav_) _duplicateNav_L5;
-							   vn->__iterate = (iterate_)_iterate_L5;
-							   vn->__iterate_following = (iterate_following_)_iterate_following_L5;
-							   vn->__iterate_followingNS = (iterate_followingNS_)_iterate_followingNS_L5;
-							   vn->__iterate_preceding = (iterate_preceding_)_iterate_preceding_L5;
-							   vn->__iterate_precedingNS = (iterate_precedingNS_)_iterate_precedingNS_L5;
-							   vn->__iterateNS =(iterateNS_) _iterateNS_L5;
+							   /*vn->__iterate = (iterate_)_iterate;
+							   vn->__iterate_following = (iterate_following_)_iterate_following;
+							   vn->__iterate_followingNS = (iterate_followingNS_)_iterate_followingNS;
+							   vn->__iterate_preceding = (iterate_preceding_)_iterate_preceding;
+							   vn->__iterate_precedingNS = (iterate_precedingNS_)_iterate_precedingNS;
+							   vn->__iterateNS =(iterateNS_) _iterateNS;*/
 							   vn->__pop = (pop_)_pop_L5;
 							   vn->__pop2 = (pop2_)_pop2_L5;
 							   vn->__push = (push_)_push_L5;
@@ -4822,11 +4826,12 @@ VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
 							   vn->br = br;
 							   vn->LN = 0;
 							   vn->shallowDepth = FALSE;
+							   vn->maxLCDepthPlusOne = 6;
 							   return vn;
 
 }
 
-int _iterate_L5(VTDNav_L5 *vn, int dp, UCSChar *en, Boolean special){
+/*int _iterate_L5(VTDNav_L5 *vn, int dp, UCSChar *en, Boolean special){
 	// get the current depth
 	int index = getCurrentIndex((VTDNav *)vn) + 1;
 	tokenType tokenType;
@@ -4857,7 +4862,7 @@ int _iterate_L5(VTDNav_L5 *vn, int dp, UCSChar *en, Boolean special){
 
 	}
 	return FALSE;
-}
+}*/
 
 /* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
 VTDNav *_duplicateNav_L5(VTDNav_L5 *vn){	
@@ -5030,7 +5035,7 @@ void _recoverNode_L5(VTDNav_L5 *vn, int index){
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is FALSE, return FALSE immediately
-int _iterateNS_L5(VTDNav_L5 *vn, int dp, UCSChar *URL, UCSChar *ln){
+/*int _iterateNS_L5(VTDNav_L5 *vn, int dp, UCSChar *URL, UCSChar *ln){
 	int index;
 	tokenType tokenType;
 	if (vn->ns == FALSE)
@@ -5062,11 +5067,11 @@ int _iterateNS_L5(VTDNav_L5 *vn, int dp, UCSChar *URL, UCSChar *ln){
 		index++;
 	}
 	return FALSE;
-}
+}*/
 
 
 // This function is called by selectElement_P in autoPilot
-Boolean _iterate_preceding_L5(VTDNav_L5 *vn,UCSChar *en, int* a, Boolean special){
+/*Boolean _iterate_preceding_L5(VTDNav_L5 *vn,UCSChar *en, int* a, Boolean special){
 		int t,d,i,index = getCurrentIndex((VTDNav *)vn) - 1;
 		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size;
@@ -5102,10 +5107,10 @@ Boolean _iterate_preceding_L5(VTDNav_L5 *vn,UCSChar *en, int* a, Boolean special
 			index--;
 		}
 		return FALSE;	
-}
+}*/
 
 // This function is called by selectElementNS_P in autoPilot
-Boolean _iterate_precedingNS_L5(VTDNav_L5 *vn,UCSChar *URL, UCSChar *ln, int* a){
+/*Boolean _iterate_precedingNS_L5(VTDNav_L5 *vn,UCSChar *URL, UCSChar *ln, int* a){
 		int t,d,i,index = getCurrentIndex((VTDNav *)vn) - 1;
 		
 		//int depth = getTokenDepth(index);
@@ -5142,9 +5147,9 @@ Boolean _iterate_precedingNS_L5(VTDNav_L5 *vn,UCSChar *URL, UCSChar *ln, int* a)
 			index--;
 		}
 		return FALSE;	
-}
+}*/
 // This function is called by selectElement_F in autoPilot
-Boolean _iterate_following_L5(VTDNav_L5 *vn,UCSChar *en, Boolean special){
+/*Boolean _iterate_following_L5(VTDNav_L5 *vn,UCSChar *en, Boolean special){
 		int index = getCurrentIndex((VTDNav *)vn) + 1;
 		//int size = vtdBuffer.size;
 		while (index < vn->vtdSize) {
@@ -5162,9 +5167,9 @@ Boolean _iterate_following_L5(VTDNav_L5 *vn,UCSChar *en, Boolean special){
 			index++;
 		}
 		return FALSE;	
-}
+}*/
 // This function is called by selectElementNS_F in autoPilot
-Boolean _iterate_followingNS_L5(VTDNav_L5 *vn, UCSChar *URL, UCSChar *ln){
+/*Boolean _iterate_followingNS_L5(VTDNav_L5 *vn, UCSChar *URL, UCSChar *ln){
 		int index = getCurrentIndex((VTDNav *)vn) + 1;
 		//int size = vtdBuffer.size;
 		while (index < vn->vtdSize) {
@@ -5182,7 +5187,7 @@ Boolean _iterate_followingNS_L5(VTDNav_L5 *vn, UCSChar *URL, UCSChar *ln){
 			index++;
 		}
 		return FALSE;
-}
+}*/
 
 //Load the context info from ContextBuffer.
 //Info saved including LC and current state of the context 
@@ -5299,31 +5304,35 @@ Boolean _push2_L5(VTDNav_L5 *vn){
 void _sampleState_L5(VTDNav_L5 *vn, FastIntBuffer *fib){
 		if (vn->context[0]>=1)
 			appendInt(fib,vn->l1index);
-		
+		else return;
 		
 		if (vn->context[0]>=2){
 			appendInt(fib,vn->l2index);
 			appendInt(fib,vn->l2lower);
 			appendInt(fib,vn->l2upper);				
 		}
+		else return;
 		
 		if (vn->context[0]>=3){
 		   appendInt(fib,vn->l3index);
 		   appendInt(fib,vn->l3lower);
 		   appendInt(fib,vn->l3upper);
 		}
+		else return;
 		
 		if (vn->context[0]>=4){
 			   appendInt(fib,vn->l4index);
 			   appendInt(fib,vn->l4lower);
 			   appendInt(fib,vn->l4upper);	
 		}
+		else return;
 		
 		if (vn->context[0]>=5){  
 			appendInt(fib,vn->l5index);
 			appendInt(fib,vn->l5lower);
 			appendInt(fib,vn->l5upper);			
 		}
+		else return;
 }
 
 Boolean _toElement_L5(VTDNav_L5 *vn, navDir direction){
