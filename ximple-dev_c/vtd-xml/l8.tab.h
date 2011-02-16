@@ -151,7 +151,7 @@ typedef union YYSTYPE {
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
 
-extern YYSTYPE yylval;
+extern _thread YYSTYPE yylval;
 
 
 
