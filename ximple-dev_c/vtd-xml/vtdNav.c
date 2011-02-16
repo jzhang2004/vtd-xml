@@ -65,6 +65,57 @@ static void _recoverNode_l3(VTDNav_L5 *vn,int index);
 static void recoverNode_l4(VTDNav_L5 *vn,int index);
 static void recoverNode_l5(VTDNav_L5 *vn,int index);
 static int compareNormalizedTokenString2(VTDNav *vn,int offset, int len, UCSChar *s); 
+static void _freeVTDNav(VTDNav *vn);
+static Boolean _toElement(VTDNav *vn, navDir direction);
+static Boolean _toElement2(VTDNav *vn, navDir direction, UCSChar *en);
+static Boolean _toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
+static Boolean _writeIndex_VTDNav(VTDNav *vn, FILE *f);
+static Boolean _writeIndex2_VTDNav(VTDNav *vn, char *fileName);
+static Boolean _writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex);
+static VTDNav *_duplicateNav(VTDNav *vn);
+static VTDNav *_cloneNav(VTDNav *vn);
+static void _recoverNode(VTDNav *vn, int index);
+static void _resolveLC(VTDNav *vn);
+static void _resolveLC_L5(VTDNav_L5 *vn);
+//static void _freeVTDNav_L5(VTDNav_L5 *vn);
+//Free VTDNav object
+static void _freeVTDNav(VTDNav *vn);
+static int _iterate_L5(VTDNav_L5 *vn, int dp, UCSChar *en, Boolean special);
+/* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
+static VTDNav *_duplicateNav_L5(VTDNav_L5 *vn);
+/* ClineNav duplicates an instance of VTDNav, also copies node position over */
+static VTDNav *_cloneNav_L5(VTDNav_L5 *vn);
+static void _recoverNode_L5(VTDNav_L5 *vn, int index);
+//if ns is false, return false immediately
+static int _iterateNS_L5(VTDNav_L5 *vn, int dp, UCSChar *URL, UCSChar *ln);
+
+// This function is called by selectElement_P in autoPilot
+static Boolean _iterate_preceding_L5(VTDNav_L5 *vn,UCSChar *en, int* a, Boolean special);
+
+// This function is called by selectElementNS_P in autoPilot
+static Boolean _iterate_precedingNS_L5(VTDNav_L5 *vn,UCSChar *URL, UCSChar *ln, int* a);
+// This function is called by selectElement_F in autoPilot
+static Boolean _iterate_following_L5(VTDNav_L5 *vn,UCSChar *en, Boolean special);
+// This function is called by selectElementNS_F in autoPilot
+static Boolean _iterate_followingNS_L5(VTDNav_L5 *vn, UCSChar *URL, UCSChar *ln);
+
+//Load the context info from ContextBuffer.
+//Info saved including LC and current state of the context 
+static Boolean _pop_L5(VTDNav_L5 *vn);
+
+static Boolean _pop2_L5(VTDNav_L5 *vn);
+//Store the context info into the ContextBuffer.
+//Info saved including LC and current state of the context 
+static Boolean _push_L5(VTDNav_L5 *vn);
+static Boolean _push2_L5(VTDNav_L5 *vn);
+static void _sampleState_L5(VTDNav_L5 *vn, FastIntBuffer *fib);
+static Boolean _toElement_L5(VTDNav_L5 *vn, navDir direction);
+static Boolean _toElement2_L5(VTDNav_L5 *vn, navDir direction, UCSChar *en);
+static Boolean _toElementNS_L5(VTDNav_L5 *vn, navDir direction, UCSChar *URL, UCSChar *ln);
+
+static Boolean _writeIndex_VTDNav_L5(VTDNav_L5 *vn, FILE *f);
+static Boolean _writeIndex2_VTDNav_L5(VTDNav_L5 *vn, char *fileName);
+static Boolean _writeSeparateIndex_VTDNav_L5(VTDNav_L5 *vn, char *fileName);
 /*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, Long temp, int offset){
 	int c,d,a,i;
@@ -6434,5 +6485,59 @@ Boolean _writeSeparateIndex_VTDNav_L5(VTDNav_L5 *vn, char *VTDIndexFile){
 	
 	fclose(f);
 	return b;
+}
+
+Boolean writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex){
+	return vn->__writeSeparateIndex_VTDNav(vn,vtdIndex);
+}
+
+/* Write VTD+XML into a file of given name */
+Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName){
+	return vn->__writeIndex2_VTDNav(vn,fileName);
+}
+
+/* Write VTD+XML into a FILE pointer */
+Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
+	return vn->__writeIndex_VTDNav(vn,f);
+}
+
+Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln){
+	return vn->__toElementNS(vn,direction,URL, ln);
+}
+
+VTDNav* duplicateNav(VTDNav *vn){return vn->__duplicateNav(vn);}
+
+VTDNav* cloneNav(VTDNav *vn){return vn->__cloneNav(vn);}
+
+void recoverNode(VTDNav *vn, int index){vn->__recoverNode(vn,index);}
+
+void resolveLC(VTDNav *vn){
+	vn->__resolveLC(vn);
+}
+
+Boolean pop(VTDNav *vn){return vn->__pop(vn);}
+
+Boolean pop2(VTDNav *vn){return vn->__pop2(vn);}
+
+Boolean push(VTDNav *vn){return vn->__push(vn);}
+
+Boolean push2(VTDNav *vn){return vn->__push2(vn);}
+
+void sampleState(VTDNav *vn, FastIntBuffer *fib){
+	vn->__sampleState(vn,fib);
+}
+
+void freeVTDNav(VTDNav *vn){
+	vn->__freeVTDNav(vn);
+}
+
+
+Boolean toElement(VTDNav *vn, navDir direction){
+	return vn->__toElement(vn,direction);
+}
+
+
+Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
+	return vn->__toElement2(vn,direction,en);
 }
 

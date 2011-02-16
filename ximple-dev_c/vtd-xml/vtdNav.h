@@ -239,10 +239,8 @@ VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len,Boolean br);
 
 //Free VTDNav object
-void _freeVTDNav(VTDNav *vn);
-inline void freeVTDNav(VTDNav *vn){
-	vn->__freeVTDNav(vn);
-}
+
+void freeVTDNav(VTDNav *vn);
 
 //Return the attribute count of the element at the cursor position.
 int getAttrCount(VTDNav *vn);
@@ -399,20 +397,19 @@ Long parseLong(VTDNav *vn, int index);
 //Load the context info from ContextBuffer.
 //Info saved including LC and current state of the context 
 Boolean _pop(VTDNav *vn);
-inline Boolean pop(VTDNav *vn){return vn->__pop(vn);}
+Boolean pop(VTDNav *vn);
 
 Boolean _pop2(VTDNav *vn);
-inline Boolean pop2(VTDNav *vn){return vn->__pop2(vn);}
+Boolean pop2(VTDNav *vn);
 //Store the context info into the ContextBuffer.
 //Info saved including LC and current state of the context 
 Boolean _push(VTDNav *vn);
-inline Boolean push(VTDNav *vn){return vn->__push(vn);}
+Boolean push(VTDNav *vn);
 Boolean _push2(VTDNav *vn);
-inline Boolean push2(VTDNav *vn){return vn->__push2(vn);}
+Boolean push2(VTDNav *vn);
+
 void _sampleState(VTDNav *vn, FastIntBuffer *fib);
-inline void sampleState(VTDNav *vn, FastIntBuffer *fib){
-	vn->__sampleState(vn,fib);
-}
+void sampleState(VTDNav *vn, FastIntBuffer *fib);
 
 // A generic navigation method.
 // Move the current to the element according to the direction constants
@@ -426,11 +423,8 @@ inline void sampleState(VTDNav *vn, FastIntBuffer *fib){
 	 * <pre>		PREV_SIBLING    5  </pre>
 	 * <br>
 	 */
-Boolean _toElement(VTDNav *vn, navDir direction);
 
-inline Boolean toElement(VTDNav *vn, navDir direction){
-	return vn->__toElement(vn,direction);
-}
+extern Boolean toElement(VTDNav *vn, navDir direction);
 
 /**
  * A generic navigation method.
@@ -448,10 +442,7 @@ inline Boolean toElement(VTDNav *vn, navDir direction){
  * <br>
  * for ROOT and PARENT, element name will be ignored.
  */
-Boolean _toElement2(VTDNav *vn, navDir direction, UCSChar *en);
-inline Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
-	return vn->__toElement2(vn,direction,en);
-}
+extern Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en);
 /*	
  * A generic navigation function with namespace support.
  * Move the current to the element according to the direction constants and the prefix and local names
@@ -470,10 +461,8 @@ inline Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
  * for ROOT and PARENT, element name will be ignored.
  * If not ns enabled, return false immediately with no position change.
  */
-Boolean _toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
-inline Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln){
-	return vn->__toElementNS(vn,direction,URL, ln);
-}
+
+Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
 
 
 //This method normalizes a token into a string in a way that resembles DOM.
@@ -516,118 +505,110 @@ extern inline Boolean getAtTerminal(VTDNav *vn);/*{
 }*/
 
 extern inline int swap_bytes(int i);
-int lookupNS(VTDNav *vn);
+extern int lookupNS(VTDNav *vn);
 
 /* Write VTD+XML into a FILE pointer */
 //Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f);
 
 /* overwrite */
-Boolean overWrite(VTDNav *vn, int index, UByte* ba, int offset, int len);
+extern Boolean overWrite(VTDNav *vn, int index, UByte* ba, int offset, int len);
 
-int compareTokenString(VTDNav *vn,int index, UCSChar *s);
+extern int compareTokenString(VTDNav *vn,int index, UCSChar *s);
 
-int compareRawTokenString(VTDNav *vn, int index, UCSChar *s);
+extern int compareRawTokenString(VTDNav *vn, int index, UCSChar *s);
 
-int compareTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
+extern int compareTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
 
 
 /* Write VTD+XML into a FILE pointer */
-Boolean _writeIndex_VTDNav(VTDNav *vn, FILE *f);
-/* Write VTD+XML into a FILE pointer */
-inline Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
-	return vn->__writeIndex_VTDNav(vn,f);
-}
-
+extern Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f);
 
 
 /* Write VTD+XML into a file of given name */
-Boolean _writeIndex2_VTDNav(VTDNav *vn, char *fileName);
-/* Write VTD+XML into a file of given name */
-inline Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName){
-	return vn->__writeIndex2_VTDNav(vn,fileName);
-}
-/* Write the VTDs and LCs into an file*/
+extern Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName);
+
 
 /* Write the VTDs and LCs into an file*/
-Boolean _writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex);
-inline Boolean writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex){
-	return vn->__writeSeparateIndex_VTDNav(vn,vtdIndex);
-}
+extern Boolean writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex);
+
+/* Write the VTDs and LCs into an file*/
+
 
 /* pre-calculate the VTD+XML index size without generating the actual index */
-Long getIndexSize2(VTDNav *vn);
+extern Long getIndexSize2(VTDNav *vn);
 
 /* dump XML text into a given file name */
 void dumpXML(VTDNav *vn, char *fileName);
 
 /* dump XML text into a given file descriptor */
-void dumpXML2(VTDNav *vn, FILE *f);
+extern void dumpXML2(VTDNav *vn, FILE *f);
 
 /*Get the string length as if the token is converted into a normalized UCS string */
-int getNormalizedStringLength(VTDNav *vn, int index);
+extern int getNormalizedStringLength(VTDNav *vn, int index);
 /*Get the string length as if the token is converted into a UCS string (entity resolved) */
-int getStringLength(VTDNav *vn, int index);
+extern int getStringLength(VTDNav *vn, int index);
 /*Get the string length as if the token is converted into a UCS string (entity not resolved) */
-int getRawStringLength(VTDNav *vn, int index);
+extern int getRawStringLength(VTDNav *vn, int index);
 /* Get the offset value right after head (e.g. <a b='b' c='c'> ) */
-Long getOffsetAfterHead(VTDNav *vn);
+extern Long getOffsetAfterHead(VTDNav *vn);
 
 /* Test the start of token content at index i matches the content 
 of s, notice that this is to save the string allocation cost of
 using String's built-in startsWidth */
-Boolean startsWith(VTDNav *vn, int index, UCSChar *s);
+extern Boolean startsWith(VTDNav *vn, int index, UCSChar *s);
 
 /*Test the end of token content at index i matches the content 
 of s, notice that this is to save the string allocation cost of
 using String's built-in endsWidth */
 
-Boolean endsWith(VTDNav *vn, int index, UCSChar *s);
+extern Boolean endsWith(VTDNav *vn, int index, UCSChar *s);
 
 /*Test whether a given token contains s. notie that this function
 directly operates on the byte content of the token to avoid string creation */
 
-Boolean contains(VTDNav *vn, int index, UCSChar *s);
+extern Boolean contains(VTDNav *vn, int index, UCSChar *s);
 
 /* Convert a token at the given index to a String and any lower case
    character will be converted to upper case, (entities and char
    references resolved).*/
-UCSChar *toStringUpperCase(VTDNav *vn, int index);
+extern UCSChar *toStringUpperCase(VTDNav *vn, int index);
 
 /* Convert a token at the given index to a String and any upper case
    character will be converted to lower case, (entities and char
    references resolved).*/
-UCSChar *toStringLowerCase(VTDNav *vn, int index);
+extern UCSChar *toStringLowerCase(VTDNav *vn, int index);
 
 /* Convert a token at the given index to a String and any lower case
    character will be converted to upper case, (entities and char
    references resolved for character data and attr val).*/
-UCSChar *toRawStringUpperCase(VTDNav *vn, int index);
+extern UCSChar *toRawStringUpperCase(VTDNav *vn, int index);
 
 /* Convert a token at the given index to a String and any upper case
    character will be converted to lower case, (entities and char
    references resolved for character data and attr val).*/
-UCSChar *toRawStringLowerCase(VTDNav *vn, int index);
+extern UCSChar *toRawStringLowerCase(VTDNav *vn, int index);
 
 /* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
-VTDNav *_duplicateNav(VTDNav *vn);
-inline VTDNav* duplicateNav(VTDNav *vn){return vn->__duplicateNav(vn);}
+
+extern VTDNav* duplicateNav(VTDNav *vn);
+
 /* ClineNav duplicates an instance of VTDNav, also copies node position over */
-VTDNav *_cloneNav(VTDNav *vn);
-inline VTDNav* cloneNav(VTDNav *vn){return vn->__cloneNav(vn);}
+
+extern VTDNav* cloneNav(VTDNav *vn);
 
 /* This method takes a vtd index, and recover its correspondin
  * node position, the index can only be of node type element,
  * document, attribute name, attribute value or character data,
  * or CDATA  */
-inline void recoverNode(VTDNav *vn, int index){vn->__recoverNode(vn,index);}
-void _recoverNode(VTDNav *vn, int index);
+extern void recoverNode(VTDNav *vn, int index);
+
 /**
 	 * Match the string against the token at the given index value. The token will be
      * interpreted as if it is normalized (i.e. all white space char (\r\n\a ) is replaced
      * by a white space, char entities and entity references will be replaced by their correspondin
      * char see xml 1.0 spec interpretation of attribute value normalization) */
 
-Boolean matchNormalizedTokenString2(VTDNav *vn,int index, UCSChar *s);
+extern Boolean matchNormalizedTokenString2(VTDNav *vn,int index, UCSChar *s);
 
 /**
 	 * Return the byte offset and length of up to i sibling fragments. If 
@@ -641,7 +622,7 @@ Boolean matchNormalizedTokenString2(VTDNav *vn,int index, UCSChar *s);
 	 * @throws NavException
 	 */
 
-Long getSiblingElementFragments(VTDNav *vn,int i);
+extern Long getSiblingElementFragments(VTDNav *vn,int i);
 
 /**
 	 * Match the string against the token at the given index value. The token will be
@@ -649,7 +630,7 @@ Long getSiblingElementFragments(VTDNav *vn,int i);
      * by a white space, char entities and entity references will be replaced by their correspondin
      * char see xml 1.0 spec interpretation of attribute value normalization) 
 	 */
-Boolean matchNormalizedTokenString2(VTDNav *vn, int index, UCSChar *s);
+extern Boolean matchNormalizedTokenString2(VTDNav *vn, int index, UCSChar *s);
 
 /**
 	 * (New since version 2.9)
@@ -660,7 +641,7 @@ Boolean matchNormalizedTokenString2(VTDNav *vn, int index, UCSChar *s);
 	 * *For an entity reference, recursively apply step 3 of this algorithm to the replacement text of the entity.
 	 * *For a white space character (#x20, #xD, #xA, #x9), append a space character (#x20) to the normalized value.
 	 * *For another character, append the character to the normalized value.*/
-UCSChar* toNormalizedString2(VTDNav *vn, int index);
+extern UCSChar* toNormalizedString2(VTDNav *vn, int index);
 
 
 /** new since 2.9
@@ -669,75 +650,31 @@ UCSChar* toNormalizedString2(VTDNav *vn, int index);
     the prefix doesn't exist, a null string is returned;
     otherwise a null string is returned
 */
-UCSChar *getPrefixString(VTDNav *vn, int index);
-void _resolveLC(VTDNav *vn);
-inline void resolveLC(VTDNav *vn){
-	vn->__resolveLC(vn);
-}
+extern UCSChar *getPrefixString(VTDNav *vn, int index);
 
-void _resolveLC_L5(VTDNav_L5 *vn);
+extern void resolveLC(VTDNav *vn);
 
-void _freeVTDNav_L5(VTDNav_L5 *vn);
 
-VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
+
+extern VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len,Boolean br);
 
-VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
+extern VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastLongBuffer *l3, FastLongBuffer *l4, 
 					 FastIntBuffer *l5, int so, int len,Boolean br);
 
-//Free VTDNav object
-void _freeVTDNav(VTDNav *vn);
-
-
-int _iterate_L5(VTDNav_L5 *vn, int dp, UCSChar *en, Boolean special);
-
-/* DupliateNav duplicates an instance of VTDNav but doesn't retain the original node position*/
-VTDNav *_duplicateNav_L5(VTDNav_L5 *vn);
-
-/* ClineNav duplicates an instance of VTDNav, also copies node position over */
-VTDNav *_cloneNav_L5(VTDNav_L5 *vn);
 
 /* This method takes a vtd index, and recover its correspondin
  * node position, the index can only be of node type element,
  * document, attribute name, attribute value or character data,
  * or CDATA  */
-void _recoverNode_L5(VTDNav_L5 *vn, int index);
+
 
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
-//if ns is false, return false immediately
-int _iterateNS_L5(VTDNav_L5 *vn, int dp, UCSChar *URL, UCSChar *ln);
 
-// This function is called by selectElement_P in autoPilot
-Boolean _iterate_preceding_L5(VTDNav_L5 *vn,UCSChar *en, int* a, Boolean special);
-
-// This function is called by selectElementNS_P in autoPilot
-Boolean _iterate_precedingNS_L5(VTDNav_L5 *vn,UCSChar *URL, UCSChar *ln, int* a);
-// This function is called by selectElement_F in autoPilot
-Boolean _iterate_following_L5(VTDNav_L5 *vn,UCSChar *en, Boolean special);
-// This function is called by selectElementNS_F in autoPilot
-Boolean _iterate_followingNS_L5(VTDNav_L5 *vn, UCSChar *URL, UCSChar *ln);
-
-//Load the context info from ContextBuffer.
-//Info saved including LC and current state of the context 
-Boolean _pop_L5(VTDNav_L5 *vn);
-
-Boolean _pop2_L5(VTDNav_L5 *vn);
-//Store the context info into the ContextBuffer.
-//Info saved including LC and current state of the context 
-Boolean _push_L5(VTDNav_L5 *vn);
-Boolean _push2_L5(VTDNav_L5 *vn);
-void _sampleState_L5(VTDNav_L5 *vn, FastIntBuffer *fib);
-Boolean _toElement_L5(VTDNav_L5 *vn, navDir direction);
-Boolean _toElement2_L5(VTDNav_L5 *vn, navDir direction, UCSChar *en);
-Boolean _toElementNS_L5(VTDNav_L5 *vn, navDir direction, UCSChar *URL, UCSChar *ln);
-
-Boolean _writeIndex_VTDNav_L5(VTDNav_L5 *vn, FILE *f);
-Boolean _writeIndex2_VTDNav_L5(VTDNav_L5 *vn, char *fileName);
-Boolean _writeSeparateIndex_VTDNav_L5(VTDNav_L5 *vn, char *fileName);
 #endif
