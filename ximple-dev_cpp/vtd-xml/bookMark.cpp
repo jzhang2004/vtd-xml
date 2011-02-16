@@ -16,7 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 #include "bookMark.h"
-#include "VTDNav_L5.h"
+#include "vtdNav_L5.h"
 using namespace com_ximpleware;
 
 BookMark::BookMark():
