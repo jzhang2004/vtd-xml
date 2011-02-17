@@ -102,8 +102,12 @@ static Boolean _iterate_followingNS_L5(VTDNav_L5 *vn, UCSChar *URL, UCSChar *ln)
 //Load the context info from ContextBuffer.
 //Info saved including LC and current state of the context 
 static Boolean _pop_L5(VTDNav_L5 *vn);
-
+static Boolean _pop(VTDNav *vn);
+static Boolean _pop2(VTDNav *vn);
+static Boolean _push(VTDNav *vn);
+static Boolean _push2(VTDNav *vn);
 static Boolean _pop2_L5(VTDNav_L5 *vn);
+static void _sampleState(VTDNav *vn, FastIntBuffer *fib);
 //Store the context info into the ContextBuffer.
 //Info saved including LC and current state of the context 
 static Boolean _push_L5(VTDNav_L5 *vn);

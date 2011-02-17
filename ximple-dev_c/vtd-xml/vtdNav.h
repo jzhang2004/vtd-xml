@@ -311,15 +311,15 @@ extern inline UByte* getXML(VTDNav *vn);
 extern inline	tokenType getTokenType(VTDNav *vn, int index);
 
 //Test whether current element has an attribute with the matching name.
-Boolean hasAttr(VTDNav *vn, UCSChar *attrName);
+extern inline Boolean hasAttr(VTDNav *vn, UCSChar *attrName);
 
 //Test whether the current element has an attribute with 
 //matching namespace URL and localname.
-Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName);
+extern inline Boolean hasAttrNS(VTDNav *vn, UCSChar *URL, UCSChar *localName);
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
-int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special);
+extern int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special);
 
 /*inline int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special){
 	return vn->__iterate(vn,dp,en,special);
@@ -329,34 +329,34 @@ int iterate(VTDNav *vn, int dp, UCSChar *en, Boolean special);
 //return the nodeset, instead it iterates over those nodes .
 //When URL is "*" it will match any namespace
 //if ns is false, return false immediately
-int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
+extern int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
 
 /*inline int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln){
 	return vn->__iterateNS(vn,dp,URL,ln);
 }*/
 
 // This function is called by selectElement_P in autoPilot
-Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special);
+extern Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special);
 
 /*inline Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 	return vn->__iterate_preceding(vn,en,a,special);
 }*/
 
 // This function is called by selectElementNS_P in autoPilot
-Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
+extern Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
 
 /*inline Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 	return vn->__iterate_precedingNS(vn,URL,ln,a);
 }*/
 
 // This function is called by selectElement_F in autoPilot
-Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special);
+extern Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special);
 /*inline Boolean iterate_following(VTDNav *vn,UCSChar *en, Boolean special){
 	return vn->__iterate_following(vn,en,special);
 }*/
 
 // This function is called by selectElementNS_F in autoPilot
-Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
+extern Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
 
 /*inline Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 	return vn->__iterate_followingNS(vn,URL,ln);
@@ -365,51 +365,49 @@ Boolean iterate_followingNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
 
 
 //Test if the current element matches the given name.
-Boolean matchElement(VTDNav *vn, UCSChar *en);
+extern Boolean matchElement(VTDNav *vn, UCSChar *en);
 
 //Test whether the current element matches the given namespace URL and localname.
 //URL, when set to "*", matches any namespace (including null), when set to null, defines a "always-no-match"
 //ln is the localname that, when set to *, matches any localname
-Boolean matchElementNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
+extern Boolean matchElementNS(VTDNav *vn, UCSChar *URL, UCSChar *ln);
 
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
-Boolean matchRawTokenString(VTDNav *vn, int index, UCSChar *s);
+extern Boolean matchRawTokenString(VTDNav *vn, int index, UCSChar *s);
 //This method matches two VTD tokens of 2 VTDNavs
-Boolean matchTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
+extern Boolean matchTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
 
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
-Boolean matchTokenString(VTDNav *vn, int index, UCSChar *s);
+extern Boolean matchTokenString(VTDNav *vn, int index, UCSChar *s);
 
 //Convert a vtd token into a double.
-double parseDouble(VTDNav *vn, int index);
+extern double parseDouble(VTDNav *vn, int index);
 
 //Convert a vtd token into a float.
-float parseFloat(VTDNav *vn, int index);
+extern float parseFloat(VTDNav *vn, int index);
 
 //Convert a vtd token into an int
-int parseInt(VTDNav *vn, int index);
+extern int parseInt(VTDNav *vn, int index);
 
 //Convert a vtd token into a long
-Long parseLong(VTDNav *vn, int index);
+extern Long parseLong(VTDNav *vn, int index);
 
 //Load the context info from ContextBuffer.
 //Info saved including LC and current state of the context 
-Boolean _pop(VTDNav *vn);
-Boolean pop(VTDNav *vn);
+extern Boolean pop(VTDNav *vn);
 
-Boolean _pop2(VTDNav *vn);
-Boolean pop2(VTDNav *vn);
+extern Boolean pop2(VTDNav *vn);
 //Store the context info into the ContextBuffer.
 //Info saved including LC and current state of the context 
-Boolean _push(VTDNav *vn);
-Boolean push(VTDNav *vn);
-Boolean _push2(VTDNav *vn);
-Boolean push2(VTDNav *vn);
 
-void _sampleState(VTDNav *vn, FastIntBuffer *fib);
-void sampleState(VTDNav *vn, FastIntBuffer *fib);
+extern Boolean push(VTDNav *vn);
+
+extern Boolean push2(VTDNav *vn);
+
+
+extern void sampleState(VTDNav *vn, FastIntBuffer *fib);
 
 // A generic navigation method.
 // Move the current to the element according to the direction constants
@@ -462,28 +460,28 @@ extern Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en);
  * If not ns enabled, return false immediately with no position change.
  */
 
-Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
+extern Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
 
 
 //This method normalizes a token into a string in a way that resembles DOM.
 //The leading and trailing white space characters will be stripped.
 //The entity and character references will be resolved
 //Multiple whitespaces char will be collapsed into one.
-UCSChar *toNormalizedString(VTDNav *vn, int index);
+extern UCSChar *toNormalizedString(VTDNav *vn, int index);
 
 //Convert a token at the given index to a String, 
 //(built-in entity and char references not resolved)
 //(entities and char references not expanded).
 //os and len are in bytes
-UCSChar *toRawString(VTDNav *vn, int index);
-UCSChar *toRawString2(VTDNav *vn, int os, int len);
+extern UCSChar *toRawString(VTDNav *vn, int index);
+extern UCSChar *toRawString2(VTDNav *vn, int os, int len);
 
 //Convert a token at the given index to a String, (entities and char 
 //references resolved).
 // An attribute name or an element name will get the UCS2 string of qualified name 
 //os and len are in bytes
-UCSChar *toString(VTDNav *vn, int index);
-UCSChar *toString2(VTDNav *vn, int os, int len);
+extern UCSChar *toString(VTDNav *vn, int index);
+extern UCSChar *toString2(VTDNav *vn, int os, int len);
 
 /**
  * Set the value of atTerminal
@@ -538,7 +536,7 @@ extern Boolean writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex);
 extern Long getIndexSize2(VTDNav *vn);
 
 /* dump XML text into a given file name */
-void dumpXML(VTDNav *vn, char *fileName);
+extern void dumpXML(VTDNav *vn, char *fileName);
 
 /* dump XML text into a given file descriptor */
 extern void dumpXML2(VTDNav *vn, FILE *f);
@@ -592,7 +590,7 @@ extern UCSChar *toRawStringLowerCase(VTDNav *vn, int index);
 
 extern VTDNav* duplicateNav(VTDNav *vn);
 
-/* ClineNav duplicates an instance of VTDNav, also copies node position over */
+/* CloneNav duplicates an instance of VTDNav, also copies node position over */
 
 extern VTDNav* cloneNav(VTDNav *vn);
 
