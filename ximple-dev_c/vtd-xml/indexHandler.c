@@ -1261,7 +1261,7 @@ Boolean _readSeparateIndex(FILE *xml, int XMLSize, FILE *f, VTDGen *vg){
 	int LCLevel;
 	Long l;
 	int size;
-	Byte *XMLDoc;
+	UByte *XMLDoc;
 	Boolean littleEndian = isLittleEndian();
 	if (f == NULL || vg == NULL)
 	{
