@@ -35,18 +35,23 @@
 //check C compiler type gcc, vcc, or intel CC, digital Mars
 #ifdef _MSC_VER 
  #define _thread __declspec(thread)
+#define inline __inline
 #elif defined (__GNUC__) 
- #define _thread __thread 
+ #define _thread __thread
+#define inline inline
 #elif defined(__ICC) && defined(_WIN32)  
  #define _thread __declspec(thread)
+#define inline inline
 #elif defined(__DMC__)
  #define _thread __declspec(thread)
+#define inline __inline
 #else
  #define _thread __thread
+#define inline __inline
 #endif
 
 
-#define inline __inline
+//#define inline __inline
 //#define _UNICODE
 typedef wchar_t UCSChar;
 typedef long long Long;
