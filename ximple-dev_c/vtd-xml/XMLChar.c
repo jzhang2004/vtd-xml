@@ -429,29 +429,29 @@ int Character_digit(int ch, int radix){
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isValidChar(int c) {
+    /*Boolean XMLChar_isValidChar(int c) {
         return (c < 0x10000 && (CHARS[c] & MASK_VALID) != 0) ||
                (0x10000 <= c && c <= 0x10FFFF);
-    } // isValid(int):boolean
+    }*/ // isValid(int):boolean
 
     /**
      * Returns true if the specified character is invalid.
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isInvalidChar(int c) {
+    /*Boolean XMLChar_isInvalidChar(int c) {
         return !XMLChar_isValidChar(c);
-    } // isInvalid(int):boolean
+    } */// isInvalid(int):boolean
 
     /**
      * Returns true if the specified character can be considered content.
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isContentChar(int c) {
+    /*Boolean XMLChar_isContentChar(int c) {
         return (c < 0x10000 && (CHARS[c] & MASK_CONTENT) != 0) ||
                (0x10000 <= c && c <= 0x10FFFF);
-    } // isContent(int):boolean
+    } */// isContent(int):boolean
 
     /**
      * Returns true if the specified character can be considered markup.
@@ -459,9 +459,9 @@ int Character_digit(int ch, int radix){
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isMarkupChar(int c) {
+    /*Boolean XMLChar_isMarkupChar(int c) {
         return c == '<' || c == '&' || c == '%';
-    } // isMarkup(int):boolean
+    }*/ // isMarkup(int):boolean
 
     /**
      * Returns true if the specified character is a space character
@@ -469,9 +469,9 @@ int Character_digit(int ch, int radix){
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isSpaceChar(int c) {
+    /*Boolean XMLChar_isSpaceChar(int c) {
         return c < 0x10000 && (CHARS[c] & MASK_SPACE) != 0;
-    } // isSpace(int):boolean
+    }*/ // isSpace(int):boolean
 
     /**
      * Returns true if the specified character is a valid name start
@@ -480,9 +480,9 @@ int Character_digit(int ch, int radix){
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isNameStartChar(int c) {
+    /*Boolean XMLChar_isNameStartChar(int c) {
         return c < 0x10000 && (CHARS[c] & MASK_NAME_START) != 0;
-    } // isNameStart(int):boolean
+    }*/ // isNameStart(int):boolean
 
     /**
      * Returns true if the specified character is a valid name
@@ -491,9 +491,9 @@ int Character_digit(int ch, int radix){
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isNameChar(int c) {
+    /*Boolean XMLChar_isNameChar(int c) {
         return c < 0x10000 && (CHARS[c] & MASK_NAME) != 0;
-    } // isName(int):boolean
+    }*/ // isName(int):boolean
 
     /**
      * Returns true if the specified character is a valid NCName start
@@ -502,9 +502,9 @@ int Character_digit(int ch, int radix){
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isNCNameStart(int c) {
+    /*Boolean XMLChar_isNCNameStart(int c) {
         return c < 0x10000 && (CHARS[c] & MASK_NCNAME_START) != 0;
-    } // isNCNameStart(int):boolean
+    }*/ // isNCNameStart(int):boolean
 
     /**
      * Returns true if the specified character is a valid NCName

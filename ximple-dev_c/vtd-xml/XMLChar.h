@@ -95,38 +95,47 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    extern inline Boolean XMLChar_isValidChar(int c);
-
+    extern inline Boolean XMLChar_isValidChar(int c){
+        return (c < 0x10000 && (CHARS[c] & MASK_VALID) != 0) ||
+               (0x10000 <= c && c <= 0x10FFFF);
+    } 
     /**
      * Returns true if the specified character is invalid.
      *
      * @param c The character to check.
      */
-    extern inline  Boolean XMLChar_isInvalidChar(int c);
-
+    extern inline  Boolean XMLChar_isInvalidChar(int c){
+        return !XMLChar_isValidChar(c);
+    } 
     /**
      * Returns true if the specified character can be considered content.
      *
      * @param c The character to check.
      */
-    extern inline  Boolean XMLChar_isContentChar(int c);
-
+    extern inline  Boolean XMLChar_isContentChar(int c){
+        return (c < 0x10000 && (CHARS[c] & MASK_CONTENT) != 0) ||
+               (0x10000 <= c && c <= 0x10FFFF);
+    }
     /**
      * Returns true if the specified character can be considered markup.
      * Markup characters include '&lt;', '&amp;', and '%'.
      *
      * @param c The character to check.
      */
-    extern inline  Boolean XMLChar_isMarkupChar(int c) ;
-
+    //extern inline  Boolean XMLChar_isMarkupChar(int c) ;
+	extern inline Boolean XMLChar_isMarkupChar(int c) {
+        return c == '<' || c == '&' || c == '%';
+    }
     /**
      * Returns true if the specified character is a space character
      * as defined by production [3] in the XML 1.0 specification.
      *
      * @param c The character to check.
      */
-    extern inline  Boolean XMLChar_isSpaceChar(int c);
-
+    //extern inline Boolean XMLChar_isSpaceChar(int c);
+	extern inline Boolean XMLChar_isSpaceChar(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_SPACE) != 0;
+    }
     /**
      * Returns true if the specified character is a valid name start
      * character as defined by production [5] in the XML 1.0
@@ -134,8 +143,10 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    extern inline  Boolean XMLChar_isNameStartChar(int c) ;
-
+    //extern inline  Boolean XMLChar_isNameStartChar(int c) ;
+	extern inline Boolean XMLChar_isNameStartChar(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_NAME_START) != 0;
+    } 
     /**
      * Returns true if the specified character is a valid name
      * character as defined by production [4] in the XML 1.0
@@ -143,8 +154,10 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    extern inline  Boolean XMLChar_isNameChar(int c) ;
-
+    //extern inline Boolean XMLChar_isNameChar(int c) ;
+	extern inline Boolean XMLChar_isNameChar(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_NAME) != 0;
+    } 
     /**
      * Returns true if the specified character is a valid NCName start
      * character as defined by production [4] in Namespaces in XML
@@ -152,8 +165,10 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    extern inline  Boolean XMLChar_isNCNameStart(int c);
-
+    //extern inline Boolean XMLChar_isNCNameStart(int c);
+	extern inline Boolean XMLChar_isNCNameStart(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_NCNAME_START) != 0;
+    } 
     /**
      * Returns true if the specified character is a valid NCName
      * character as defined by production [5] in Namespaces in XML
