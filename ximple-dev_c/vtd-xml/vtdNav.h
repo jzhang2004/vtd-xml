@@ -431,14 +431,14 @@ extern float parseFloat(VTDNav *vn, int index);
 
 //Convert a vtd token into an int
 //extern int parseInt(VTDNav *vn, int index);
-extern inline int parseInt(VTDNav *vn, int index){
+extern int parseInt(VTDNav *vn, int index);/*{
 	return parseInt2(vn,index,10);
-}
+}*/
 //Convert a vtd token into a long
 //extern Long parseLong(VTDNav *vn, int index);
-extern inline Long parseLong(VTDNav *vn, int index){
+extern Long parseLong(VTDNav *vn, int index);/*{
 	return parseLong2(vn, index, 10);
-}
+}*/
 
 //Load the context info from ContextBuffer.
 //Info saved including LC and current state of the context 

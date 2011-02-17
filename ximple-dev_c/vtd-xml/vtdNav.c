@@ -1917,9 +1917,9 @@ float parseFloat(VTDNav *vn, int index){
 }
 
 /*Convert a vtd token into an int*/
-/*int parseInt(VTDNav *vn, int index){
+int parseInt(VTDNav *vn, int index){
 	return parseInt2(vn,index,10);
-}*/
+}
 
 /*Convert a vtd token into an Int according to given radix.*/
 static int parseInt2(VTDNav *vn, int index, int radix){
