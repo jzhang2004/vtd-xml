@@ -513,9 +513,9 @@ int Character_digit(int ch, int radix){
      *
      * @param c The character to check.
      */
-    Boolean XMLChar_isNCName(int c) {
+    /*Boolean XMLChar_isNCName(int c) {
         return c < 0x10000 && (CHARS[c] & MASK_NCNAME) != 0;
-    } // isNCName(int):boolean
+    }*/ // isNCName(int):boolean
 
     /**
      * Returns true if the specified character is a valid Pubid

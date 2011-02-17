@@ -176,8 +176,10 @@ void XMLChar_init();
      *
      * @param c The character to check.
      */
-    extern inline  Boolean XMLChar_isNCName(int c) ;
-
+    //extern inline Boolean XMLChar_isNCName(int c) ;
+	extern inline Boolean XMLChar_isNCName(int c) {
+        return c < 0x10000 && (CHARS[c] & MASK_NCNAME) != 0;
+    } 
     /**
      * Returns true if the specified character is a valid Pubid
      * character as defined by production [13] in the XML 1.0
