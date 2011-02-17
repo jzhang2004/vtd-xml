@@ -1,6 +1,6 @@
 CC=gcc
  
-CFLAGS= -c -O3 -Wall -Winline -fgnu89-inline -fomit-frame-pointer -fforce-addr -frerun-cse-after-loop -fexpensive-optimizations -fregmove -frerun-loop-opt -fmerge-all-constants -fno-branch-count-reg -funroll-loops -fpeephole -march=core2 -falign-functions -falign-loops -falign-jumps -freorder-blocks -reorder-functions -prefetch-loop-arrays --param inline-unit-growth=250 --param max-inline-recursive-depth=2 --param large-function-growth=600
+CFLAGS= -c -O3 -Wall -Winline -fgnu89-inline -fomit-frame-pointer -fforce-addr -frerun-cse-after-loop -fexpensive-optimizations -fregmove -frerun-loop-opt -fmerge-all-constants -fno-branch-count-reg -funroll-loops -fpeephole -march=core2 -falign-functions -falign-loops -falign-jumps -freorder-blocks -freorder-functions -fprefetch-loop-arrays --param inline-unit-growth=250 --param max-inline-recursive-depth=2 --param large-function-growth=600
 
 CFLAGS2 = -c -ggdb
 LDFLAGS = -O3 -fomit-frame-pointer -fforce-addr -frerun-cse-after-loop -fexpensive-optimizations -fregmove -frerun-loop-opt -march=core2 -lm 
