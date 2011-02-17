@@ -255,11 +255,31 @@ int getAttrValNS(VTDNav *vn, UCSChar* URL, UCSChar *localName);
 
 
 //Get the depth (>=0) of the current element.
-extern inline int getCurrentDepth(VTDNav *vn);
-
+extern inline int getCurrentDepth(VTDNav *vn){
+	return vn->context[0];
+}
 // Get the index value of the current element.
-extern inline int getCurrentIndex(VTDNav *vn);
-extern inline int getCurrentIndex2(VTDNav *vn);
+//extern inline int getCurrentIndex(VTDNav *vn);
+extern inline int getCurrentIndex(VTDNav *vn){
+	if (vn->atTerminal)
+		return vn->LN;
+	switch(vn->context[0]){
+		case -1: return 0;
+		case 0: return vn->rootIndex;
+		default: return vn->context[vn->context[0]];
+	}
+	//return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
+}
+
+//extern inline int getCurrentIndex2(VTDNav *vn);
+extern inline int getCurrentIndex2(VTDNav *vn){
+	switch(vn->context[0]){
+		case -1: return 0;
+		case 0: return vn->rootIndex;
+		default: return vn->context[vn->context[0]];
+	}
+	//return (vn->context[0] == 0) ? vn->rootIndex : vn->context[vn->context[0]];
+}
 // Get the starting offset and length of an element
 // encoded in a long, upper 32 bit is length; lower 32 bit is offset
 Long getElementFragment(VTDNav *vn);
@@ -276,40 +296,61 @@ struct elementFragmentNs *getElementFragmentNs(VTDNav *vn);
  * <pre>   3  UTF-16BE    </pre>
  * <pre>   4  UTF-16LE    </pre>
  */
-extern inline encoding_t getEncoding(VTDNav *vn);
-
+extern inline encoding_t getEncoding(VTDNav *vn){
+	return vn->encoding;
+}
 // Get the maximum nesting depth of the XML document (>0).
 // max depth is nestingLevel -1
 
 // max depth is nestingLevel -1
-extern inline int getNestingLevel(VTDNav *vn);
-
+//extern inline int getNestingLevel(VTDNav *vn);
+extern inline int getNestingLevel(VTDNav *vn){
+	return vn->nestingLevel;
+}
 // Get root index value.
-extern inline int getRootIndex(VTDNav *vn);
-
+//extern inline int getRootIndex(VTDNav *vn);
+extern inline int getRootIndex(VTDNav *vn){
+	return vn->rootIndex;
+}
 // This function returns of the token index of the type character data or CDATA.
 // Notice that it is intended to support data orient XML (not mixed-content XML).
 int getText(VTDNav *vn);
 
 //Get total number of VTD tokens for the current XML document.
-extern inline int getTokenCount(VTDNav *vn);
+//extern inline int getTokenCount(VTDNav *vn);
+extern inline int getTokenCount(VTDNav *vn){
+	return vn->vtdSize;
+}
 
 //Get the depth value of a token (>=0)
-int getTokenDepth(VTDNav *vn, int index);
+//int getTokenDepth(VTDNav *vn, int index);
+extern inline int getTokenDepth(VTDNav *vn, int index){
+	int i;
+	i = (int) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_DEPTH) >> 52);
 
+	if (i != 255)
+		return i;
+	return -1;
+}
 //Get the token length at the given index value
 //please refer to VTD spec for more details
 int getTokenLength(VTDNav *vn, int index);
 
 //Get the starting offset of the token at the given index.
-extern inline int getTokenOffset(VTDNav *vn, int index);
-
+//extern inline int getTokenOffset(VTDNav *vn, int index);
+extern inline int getTokenOffset(VTDNav *vn, int index){
+	return (int) (longAt(vn->vtdBuffer,index) & vn->offsetMask);
+}
 // Get the XML document 
-extern inline UByte* getXML(VTDNav *vn);
-
+//extern inline UByte* getXML(VTDNav *vn);
+extern inline UByte* getXML(VTDNav *vn){
+	return vn->XMLDoc;
+}
 //Get the token type of the token at the given index value.
-extern inline	tokenType getTokenType(VTDNav *vn, int index);
-
+//extern inline	tokenType getTokenType(VTDNav *vn, int index);
+extern inline tokenType getTokenType(VTDNav *vn, int index){
+	return (tokenType) ((longAt(vn->vtdBuffer,index) & MASK_TOKEN_TYPE) >> 60) & 0xf;
+}
 //Test whether current element has an attribute with the matching name.
 extern inline Boolean hasAttr(VTDNav *vn, UCSChar *attrName);
 
@@ -389,25 +430,64 @@ extern double parseDouble(VTDNav *vn, int index);
 extern float parseFloat(VTDNav *vn, int index);
 
 //Convert a vtd token into an int
-extern int parseInt(VTDNav *vn, int index);
-
+//extern int parseInt(VTDNav *vn, int index);
+extern inline int parseInt(VTDNav *vn, int index){
+	return parseInt2(vn,index,10);
+}
 //Convert a vtd token into a long
-extern Long parseLong(VTDNav *vn, int index);
+//extern Long parseLong(VTDNav *vn, int index);
+extern inline Long parseLong(VTDNav *vn, int index){
+	return parseLong2(vn, index, 10);
+}
 
 //Load the context info from ContextBuffer.
 //Info saved including LC and current state of the context 
-extern Boolean pop(VTDNav *vn);
+extern inline Boolean pop(VTDNav *vn){return vn->__pop(vn);}
 
-extern Boolean pop2(VTDNav *vn);
+extern inline Boolean pop2(VTDNav *vn){return vn->__pop2(vn);}
 //Store the context info into the ContextBuffer.
 //Info saved including LC and current state of the context 
 
-extern Boolean push(VTDNav *vn);
+extern inline Boolean push(VTDNav *vn){return vn->__push(vn);}
 
-extern Boolean push2(VTDNav *vn);
+extern inline Boolean push2(VTDNav *vn){return vn->__push2(vn);}
 
 
-extern void sampleState(VTDNav *vn, FastIntBuffer *fib);
+//extern void sampleState(VTDNav *vn, FastIntBuffer *fib);
+extern inline Boolean writeSeparateIndex_VTDNav(VTDNav *vn, char *vtdIndex){
+	return vn->__writeSeparateIndex_VTDNav(vn,vtdIndex);
+}
+
+/* Write VTD+XML into a file of given name */
+extern inline Boolean writeIndex2_VTDNav(VTDNav *vn, char *fileName){
+	return vn->__writeIndex2_VTDNav(vn,fileName);
+}
+
+/* Write VTD+XML into a FILE pointer */
+extern inline Boolean writeIndex_VTDNav(VTDNav *vn, FILE *f){
+	return vn->__writeIndex_VTDNav(vn,f);
+}
+
+
+extern inline VTDNav* duplicateNav(VTDNav *vn){return vn->__duplicateNav(vn);}
+
+extern inline VTDNav* cloneNav(VTDNav *vn){return vn->__cloneNav(vn);}
+
+extern inline void recoverNode(VTDNav *vn, int index){vn->__recoverNode(vn,index);}
+
+extern inline void resolveLC(VTDNav *vn){
+	vn->__resolveLC(vn);
+}
+
+extern inline void sampleState(VTDNav *vn, FastIntBuffer *fib){
+	vn->__sampleState(vn,fib);
+}
+
+extern inline void freeVTDNav(VTDNav *vn){
+	vn->__freeVTDNav(vn);
+}
+
+
 
 // A generic navigation method.
 // Move the current to the element according to the direction constants
@@ -422,7 +502,9 @@ extern void sampleState(VTDNav *vn, FastIntBuffer *fib);
 	 * <br>
 	 */
 
-extern Boolean toElement(VTDNav *vn, navDir direction);
+extern inline Boolean toElement(VTDNav *vn, navDir direction){
+	return vn->__toElement(vn,direction);
+}
 
 /**
  * A generic navigation method.
@@ -440,8 +522,9 @@ extern Boolean toElement(VTDNav *vn, navDir direction);
  * <br>
  * for ROOT and PARENT, element name will be ignored.
  */
-extern Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en);
-/*	
+extern inline Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en){
+	return vn->__toElement2(vn,direction,en);
+}/*	
  * A generic navigation function with namespace support.
  * Move the current to the element according to the direction constants and the prefix and local names
  * If no such element, no position change and return false(0).
@@ -460,8 +543,9 @@ extern Boolean toElement2(VTDNav *vn, navDir direction, UCSChar *en);
  * If not ns enabled, return false immediately with no position change.
  */
 
-extern Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln);
-
+extern inline Boolean toElementNS(VTDNav *vn, navDir direction, UCSChar *URL, UCSChar *ln){
+	return vn->__toElementNS(vn,direction,URL, ln);
+}
 
 //This method normalizes a token into a string in a way that resembles DOM.
 //The leading and trailing white space characters will be stripped.
@@ -490,19 +574,34 @@ extern UCSChar *toString2(VTDNav *vn, int os, int len);
  */
 
 //inline void setAtTerminal(VTDNav* vn, Boolean b);
-extern inline void setAtTerminal(VTDNav* vn, Boolean b);/*{
+//extern inline void setAtTerminal(VTDNav* vn, Boolean b);
+/*{
 	vn->atTerminal = b;
 }*/
+extern inline void setAtTerminal(VTDNav* vn, Boolean b){
+	vn->atTerminal = b;
+}
 /**
  * Get the value of atTerminal
  * This function only gets called in XPath eval
  */
 //inline Boolean getAtTerminal(VTDNav *vn);
-extern inline Boolean getAtTerminal(VTDNav *vn);/*{
+//extern inline Boolean getAtTerminal(VTDNav *vn);
+/*{
 	return vn->atTerminal;
 }*/
+extern inline Boolean getAtTerminal(VTDNav *vn){
+	return vn->atTerminal;
+}
 
-extern inline int swap_bytes(int i);
+//extern inline int swap_bytes(int i);
+extern inline int swap_bytes(int i){
+	return (((i & 0xff) << 24) |
+		((i & 0xff00) <<8) |
+		((i & 0xff0000) >> 8) |
+		((i & 0xff000000) >> 24)&0xff);
+}
+
 extern int lookupNS(VTDNav *vn);
 
 /* Write VTD+XML into a FILE pointer */

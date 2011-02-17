@@ -275,28 +275,28 @@ int* toIntArray(FastIntBuffer *fib){
 }
 
 /* Get the int at the index position of FastIntBuffer */
-int intAt(FastIntBuffer *fib, int index){    
+/*int intAt(FastIntBuffer *fib, int index){    
 	if (index < 0 || index > fib->size - 1) {
 		throwException2(invalid_argument,
 			"invalid index range");
     }
 	return ((int *) get(fib->al,index>>fib->exp))[index & fib->r];
-}
+}*/
 
 /* Replace the value at the index position of FastIntBuffer 
    with newVal */
-void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){    
+/*void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){    
 	if (index < 0 || index > fib->size - 1) {
 		throwException2(invalid_argument,
 			"invalid index range");
     }
 	((int *) get(fib->al,index>>fib->exp))[index & fib->r] = newVal;
-}
+}*/
 
 // set the buffer size to zero, capacity untouched,
-void clearFastIntBuffer (FastIntBuffer *fib){
+/*void clearFastIntBuffer (FastIntBuffer *fib){
 	fib->size = 0;
-}
+}*/
 
 /* Resize the fastIntBuffer, return true if resized successfully, otherwise,
   the size doesn't change, return false*/

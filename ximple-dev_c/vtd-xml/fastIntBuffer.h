@@ -58,12 +58,23 @@ int *getIntArray(FastIntBuffer *fib, int offset, int len);
 #define getPageSizeFIB(fib) fib->pageSize
 
 // Get the int at the index position of FastIntBuffer
-extern inline int intAt(FastIntBuffer *fib, int index);
-
+//extern int intAt(FastIntBuffer *fib, int index);
+extern inline int intAt(FastIntBuffer *fib, int index){    
+	if (index < 0 || index > fib->size - 1) {
+		throwException2(invalid_argument,
+			"invalid index range");
+    }
+	return ((int *) get(fib->al,index>>fib->exp))[index & fib->r];
+}
 // Replace the value at the index position of FastIntBuffer 
 // with newVal
-extern inline void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal);
-
+extern inline void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal){    
+	if (index < 0 || index > fib->size - 1) {
+		throwException2(invalid_argument,
+			"invalid index range");
+    }
+	((int *) get(fib->al,index>>fib->exp))[index & fib->r] = newVal;
+}
  // Get the size of the FastIntBuffer
 //int sizeFIB(FastIntBuffer *fib);
 //#define sizeFIB(fib) fib->size
@@ -72,8 +83,10 @@ extern inline void modifyEntryFIB(FastIntBuffer *fib, int index, int newVal);
 int* toIntArray(FastIntBuffer *fib);
 
 // set the buffer size to zero, capacity untouched,
-void clearFastIntBuffer (FastIntBuffer *fib);
-
+//void clearFastIntBuffer (FastIntBuffer *fib);
+extern inline void clearFastIntBuffer (FastIntBuffer *fib){
+	fib->size = 0;
+}
 // reset the size of fastIntBuffer
 Boolean resizeFIB(FastIntBuffer *fib, int newSz);
 

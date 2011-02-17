@@ -389,7 +389,7 @@ static void printLineNumber(VTDGen *vg){
 /* This method automatically converts the underlying byte 
  representation character into the right UCS character format.*/
 
-static int getChar(VTDGen *vg){
+static inline int getChar(VTDGen *vg){
 	int temp = 0;
 	if (vg->offset >= vg->endOffset){
 		throwException(parse_exception,0,
@@ -4499,7 +4499,7 @@ static Long _getCharResolved(VTDGen *vg,int byte_offset){
 	return val | (inc << 32);
 }
 
-static Long _getChar(VTDGen *vg, int offset){
+static inline Long _getChar(VTDGen *vg, int offset){
 	int c;
 	switch (vg->encoding) {
 			case FORMAT_ASCII :

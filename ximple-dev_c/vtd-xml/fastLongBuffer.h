@@ -64,24 +64,57 @@ Long *getLongArray(FastLongBuffer *flb, int offset, int len);
 
 // get the long at the index position from FastLongBuffer
 //Long longAt(FastLongBuffer *flb, int index);
-extern inline Long longAt(FastLongBuffer *flb, int index);
-
+//extern Long longAt(FastLongBuffer *flb, int index);
+extern inline Long longAt(FastLongBuffer *flb, int index){
+	int pageNum,offset;
+	if (index < 0 || index > flb->size - 1) {
+		throwException2(invalid_argument,
+			"invalid index range");
+    }
+	pageNum = (index >>flb->exp);
+    offset = index & flb->r;
+	return ((Long *)get(flb->al,pageNum))[offset];
+}
 // get the lower 32 bits from the index position from FastLongBuffer
-extern inline int lower32At(FastLongBuffer *flb, int index);
+extern inline int lower32At(FastLongBuffer *flb, int index){
+	int pageNum,offset;
+    if (index < 0 || index > flb->size) {
+		throwException2(invalid_argument,
+			" invalid index range");
+    }
+    pageNum =  (index >> flb->exp);
+    offset = index & flb->r;
+	return (int)((Long *)get(flb->al,pageNum))[offset];
+}
 
 
 // get the upper 32 bits from the index position from FastLongBuffer 
-extern inline int upper32At(FastLongBuffer *flb, int index);
-
+extern inline int upper32At(FastLongBuffer *flb, int index){
+	int pageNum, offset;
+    if (index < 0 || index > flb->size) {
+		throwException2(invalid_argument,
+			" invalid index range");
+    }
+    pageNum = (index >>flb->exp);
+    offset = index & flb->r;
+ 	return (int) ((((Long *)get(flb->al,pageNum))[offset] & (((Long)0xffffffffL)<<32))>>32);
+}
 // replace the entry at the index position of FastLongBuffer with l
-extern inline void modifyEntryFLB(FastLongBuffer *flb, int index, Long l);
-
+extern inline void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
+    if (index < 0 || index > flb->size) {
+		throwException2(invalid_argument,
+			" invalid index range");
+    }
+	((Long *)get(flb->al,index>>flb->exp))[index & flb->r] = l;
+}
 // convert FastLongBuffer into a Long array 
 Long* toLongArray(FastLongBuffer *flb);
 
 // set the buffer size to zero, capacity untouched,
-void clearFastLongBuffer (FastLongBuffer *flb);
-
+//void clearFastLongBuffer (FastLongBuffer *flb);
+extern inline void clearFastLongBuffer (FastLongBuffer *flb){
+	flb->size = 0;
+}
 // resize
 
 Boolean resizeFLB(FastLongBuffer *flb, int i);

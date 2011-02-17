@@ -319,7 +319,7 @@ Long* toLongArray(FastLongBuffer *flb){
 }
 // get the long at the index position from FastLongBuffer
 //Long longAt(FastLongBuffer *flb, int index);
-Long longAt(FastLongBuffer *flb, int index){
+/*Long longAt(FastLongBuffer *flb, int index){
 	int pageNum,offset;
 	if (index < 0 || index > flb->size - 1) {
 		throwException2(invalid_argument,
@@ -328,10 +328,10 @@ Long longAt(FastLongBuffer *flb, int index){
 	pageNum = (index >>flb->exp);
     offset = index & flb->r;
 	return ((Long *)get(flb->al,pageNum))[offset];
-}
+}*/
 
 // get the lower 32 bits from the index position from FastLongBuffer
-int lower32At(FastLongBuffer *flb, int index){
+/*int lower32At(FastLongBuffer *flb, int index){
 	int pageNum,offset;
     if (index < 0 || index > flb->size) {
 		throwException2(invalid_argument,
@@ -340,11 +340,11 @@ int lower32At(FastLongBuffer *flb, int index){
     pageNum =  (index >> flb->exp);
     offset = index & flb->r;
 	return (int)((Long *)get(flb->al,pageNum))[offset];
-}
+}*/
 
 
 // get the upper 32 bits from the index position from FastLongBuffer 
-int upper32At(FastLongBuffer *flb, int index){
+/*int upper32At(FastLongBuffer *flb, int index){
 	int pageNum, offset;
     if (index < 0 || index > flb->size) {
 		throwException2(invalid_argument,
@@ -353,21 +353,21 @@ int upper32At(FastLongBuffer *flb, int index){
     pageNum = (index >>flb->exp);
     offset = index & flb->r;
  	return (int) ((((Long *)get(flb->al,pageNum))[offset] & (((Long)0xffffffffL)<<32))>>32);
-}
+}*/
 
 // replace the entry at the index position of FastLongBuffer with l
-void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
+/*void modifyEntryFLB(FastLongBuffer *flb, int index, Long l){
     if (index < 0 || index > flb->size) {
 		throwException2(invalid_argument,
 			" invalid index range");
     }
 	((Long *)get(flb->al,index>>flb->exp))[index & flb->r] = l;
-}
+}*/
 
 // set the buffer size to zero, capacity untouched,
-void clearFastLongBuffer (FastLongBuffer *flb){
+/*void clearFastLongBuffer (FastLongBuffer *flb){
 	flb->size = 0;
-}
+}*/
 
 // resize
 Boolean resizeFLB(FastLongBuffer *flb, int newSz){
