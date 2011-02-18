@@ -2254,7 +2254,7 @@ public class VTDGen {
 		boolean helper=false;
 		boolean default_ns = false; //true xmlns='abc'
 		boolean isXML = false;      //true only for xmlns:xml
-
+		singleByteEncoding = true;
 		// first check first several bytes to figure out the encoding
 		decide_encoding();
 

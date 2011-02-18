@@ -1566,7 +1566,7 @@ void parse(VTDGen *vg, Boolean ns){
 	vg->is_ns = FALSE;
 	vg->encoding = FORMAT_UTF8;
 	vg->attr_count =vg->prefixed_attr_count=0; /*, ch = 0, ch_temp = 0*/
-	
+	vg->singleByteEncoding= TRUE;
 
 	/* first check first 2 bytes BOM to determine if encoding is UTF16*/
 	decide_encoding(vg);

@@ -2689,7 +2689,7 @@ namespace com.ximpleware
             bool helper = false;
             bool default_ns = false; //true xmlns='abc'
             bool isXML = false;      //true only for xmlns:xml
-
+            singleByteEncoding = true;
             //char char_temp; //holds the ' or " indicating start of attr val
             //boolean must_utf_8 = false;
             //boolean BOM_detected = false;
