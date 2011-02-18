@@ -843,10 +843,7 @@ void VTDGen::matchUTFEncoding(){
 				&& (skipChar('i')
 				|| skipChar('I'))
 				&& skipChar(ch_temp)) {
-					if (encoding
-						!= FORMAT_UTF_16LE
-						&& encoding
-						!= FORMAT_UTF_16BE) {
+					if (singleByteEncoding) {
 							if (must_utf_8){
 								throw ParseException(
 			"Parse exception in parse() \n"\
@@ -2326,6 +2323,8 @@ XMLDoc(NULL),
 docLen(0),
 bufLen(0),
 LcDepth(3),
+//singleByteEncoding(true),
+shallowDepth(true),
 VTDBuffer(NULL),
 l1Buffer(NULL),
 l2Buffer(NULL),
@@ -2516,6 +2515,7 @@ void VTDGen::parse(bool ns1){
 	ns = ns1;
 	is_ns = false;
 	encoding = FORMAT_UTF8;
+	singleByteEncoding = true;
 	attr_count = prefixed_attr_count = 0;
 
 	/* first check first 2 bytes BOM to determine if encoding is UTF16*/
