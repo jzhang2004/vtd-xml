@@ -220,21 +220,21 @@ int* FastIntBuffer::getIntArray(int offset, int len){
 	return result;
 }
 // Get the int at the index position of FastIntBuffer
-int FastIntBuffer::intAt(int index){
+/*int FastIntBuffer::intAt(int index){
 	if (index < 0 || index > size - 1) {
 		throw InvalidArgumentException("invalid index range in FastIntBuffer's intAt()");
     }
 	return ((int *) al->get(index>>exp))[index & r];
-}
+}*/
 // Replace the value at the index position of FastIntBuffer 
 // with newVal
-void FastIntBuffer::modifyEntry(int index,int newVal){
+/*void FastIntBuffer::modifyEntry(int index,int newVal){
 	if (index < 0 || index > size - 1) {
 		throw InvalidArgumentException("invalid index range in FastIntBuffer's modifyEntry()");
 		
     }
 	((int *) al->get(index>>exp))[index & r] = newVal;
-}
+}*/
 // convert the content of FastIntBuffer to int *
 int* FastIntBuffer::toIntArray(){
 	if (size > 0) {

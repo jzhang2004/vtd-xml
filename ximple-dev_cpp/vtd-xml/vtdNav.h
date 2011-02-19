@@ -549,6 +549,52 @@ namespace com_ximpleware {
 
 	};
 
+	inline bool VTDNav::matchElement( const UCSChar *en){
+		/*if (en == NULL){
+		throwException2(invalid_argument,
+		"matchElement's element name can't be null");
+		}*/
+
+		// throw new IllegalArgumentException(" Element name can't be null ");
+		if (wcscmp(en,L"*") == 0 && context[0] !=-1)
+			return true;
+		if (context[0]==-1)
+			return false;
+		return matchRawTokenString(
+			(context[0] == 0) ? rootIndex : context[context[0]],
+			en);		
+	}
+	inline tokenType VTDNav::getTokenType(int index){	
+		return (tokenType) (((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf);
+	}
+
+	inline bool VTDNav::isElement(int index){
+	return (((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf)
+			== TOKEN_STARTING_TAG;
+	}
+	inline bool VTDNav::isElementOrDocument( int index){
+		int i = 0;
+		i= (int)(((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf);
+		return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
+	}
+	inline bool VTDNav::matchTokens( int i1, VTDNav *vn2, int i2){
+		return compareTokens(i1,vn2,i2)==0;
+	}
+	inline bool VTDNav::hasAttrNS(const UCSChar *URL,const UCSChar *localName){
+	if (context[0]==-1)
+		return false;
+	return (getAttrValNS(URL, localName) != -1);
+}
+	inline int VTDNav::getTokenDepth(int index){
+		int i = (int) ((vtdBuffer->longAt(index) & MASK_TOKEN_DEPTH) >> 52);
+		if (i != 255)
+			return i;
+		return -1;
+	}
+
+	inline int VTDNav::getTokenCount(){
+		return vtdSize;
+	}
 	inline int VTDNav::getCurrentDepth(){
 		return context[0];
 	}

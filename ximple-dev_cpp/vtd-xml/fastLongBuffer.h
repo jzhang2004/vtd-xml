@@ -85,6 +85,43 @@ namespace com_ximpleware {
 				return false;  
 		}
 	};
+
+	inline	Long FastLongBuffer::longAt(int index){
+		int pageNum,offset;
+		if (index < 0 || index > size - 1) {
+			throw InvalidArgumentException("invalid index range");
+		}
+		pageNum = (index >> exp);
+		offset = index & r;
+		return ((Long *)al->get(pageNum))[offset];
+	}
+
+	inline int FastLongBuffer::lower32At(int index){
+		int pageNum,offset;
+		if (index < 0 || index > size) {
+			throw InvalidArgumentException(" invalid index range");
+		}
+		pageNum =  (index >> exp);
+		offset = index & r;
+		return (int)((Long *)al->get(pageNum))[offset];
+	}
+
+	inline int FastLongBuffer::upper32At(int index){
+		int pageNum, offset;
+		if (index < 0 || index > size) {
+			throw InvalidArgumentException(" invalid index range");
+		}
+		pageNum = (index >> exp);
+		offset = index & r;
+		return (int) ((((Long *)al->get(pageNum))[offset] & (((Long)0xffffffffL)<<32))>>32);
+	}
+
+	inline void FastLongBuffer::modifyEntry(int index, Long l){
+		if (index < 0 || index > size) {
+			throw InvalidArgumentException("invalid index range");
+		}
+		((Long *)al->get(index>>exp))[index & r] = l;
+	}
 }
 
 #endif

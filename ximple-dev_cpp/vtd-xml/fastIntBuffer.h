@@ -79,6 +79,19 @@ namespace com_ximpleware {
 		bool resize(int newSz);
 		
 	};
+	inline void FastIntBuffer::modifyEntry(int index,int newVal){
+		if (index < 0 || index > size - 1) {
+			throw InvalidArgumentException("invalid index range in FastIntBuffer's modifyEntry()");
+		}
+		((int *) al->get(index>>exp))[index & r] = newVal;
+	}
+	// Get the int at the index position of FastIntBuffer
+	inline int FastIntBuffer::intAt(int index){
+	if (index < 0 || index > size - 1) {
+		throw InvalidArgumentException("invalid index range in FastIntBuffer's intAt()");
+    }
+	return ((int *) al->get(index>>exp))[index & r];
+}
 };
 
 #endif 

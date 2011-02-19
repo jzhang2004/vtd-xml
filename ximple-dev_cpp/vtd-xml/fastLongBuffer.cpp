@@ -253,7 +253,7 @@ Long* FastLongBuffer::getLongArray(int offset, int len){
 }
 
 // get the long at the index position from FastLongBuffer
-Long FastLongBuffer::longAt(int index){
+/*Long FastLongBuffer::longAt(int index){
 	int pageNum,offset;
 	if (index < 0 || index > size - 1) {
 		throw InvalidArgumentException("invalid index range");
@@ -261,10 +261,10 @@ Long FastLongBuffer::longAt(int index){
 	pageNum = (index >> exp);
     offset = index & r;
 	return ((Long *)al->get(pageNum))[offset];
-}
+}*/
 
 // get the lower 32 bits from the index position from FastLongBuffer
-int FastLongBuffer::lower32At(int index){
+/*int FastLongBuffer::lower32At(int index){
 	int pageNum,offset;
     if (index < 0 || index > size) {
 		throw InvalidArgumentException(" invalid index range");
@@ -272,10 +272,10 @@ int FastLongBuffer::lower32At(int index){
     pageNum =  (index >> exp);
     offset = index & r;
 	return (int)((Long *)al->get(pageNum))[offset];
-}
+}*/
 
 // get the upper 32 bits from the index position from FastLongBuffer 
-int FastLongBuffer::upper32At(int index){
+/*int FastLongBuffer::upper32At(int index){
 		int pageNum, offset;
     if (index < 0 || index > size) {
 		throw InvalidArgumentException(" invalid index range");
@@ -283,15 +283,15 @@ int FastLongBuffer::upper32At(int index){
     pageNum = (index >> exp);
     offset = index & r;
  	return (int) ((((Long *)al->get(pageNum))[offset] & (((Long)0xffffffffL)<<32))>>32);
-}
+}*/
 
 // replace the entry at the index position of FastLongBuffer with l
-void FastLongBuffer::modifyEntry(int index, Long l){
+/*void FastLongBuffer::modifyEntry(int index, Long l){
     if (index < 0 || index > size) {
 		throw InvalidArgumentException("invalid index range");
     }
 	((Long *)al->get(index>>exp))[index & r] = l;
-}
+}*/
 
 // convert FastLongBuffer into a Long array 
 Long* FastLongBuffer::toLongArray(){

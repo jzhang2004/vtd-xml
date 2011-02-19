@@ -1874,19 +1874,19 @@ int VTDNav::getText(){
 }
 
 //Get total number of VTD tokens for the current XML document.
-int VTDNav::getTokenCount(){
+/*int VTDNav::getTokenCount(){
 	return vtdSize;
-}
+}*/
 
 //Get the depth value of a token (>=0)
-int VTDNav::getTokenDepth(int index){
+/*int VTDNav::getTokenDepth(int index){
 	
 	int i = (int) ((vtdBuffer->longAt(index) & MASK_TOKEN_DEPTH) >> 52);
 
 	if (i != 255)
 		return i;
 	return -1;
-}
+}*/
 
 //Get the token length at the given index value
 //please refer to VTD spec for more details
@@ -2003,11 +2003,11 @@ bool VTDNav::hasAttr(const UCSChar *an){
 
 //Test whether the current element has an attribute with 
 //matching namespace URL and localname.
-bool VTDNav::hasAttrNS(const UCSChar *URL,const UCSChar *localName){
+/*bool VTDNav::hasAttrNS(const UCSChar *URL,const UCSChar *localName){
 	if (context[0]==-1)
 		return false;
 	return (getAttrValNS(URL, localName) != -1);
-}
+}*/
 
 //This method is similar to getElementByName in DOM except it doesn't
 //return the nodeset, instead it iterates over those nodes.
@@ -2208,11 +2208,11 @@ bool VTDNav::iterate_followingNS( const UCSChar *URL, const UCSChar *ln){
 
 
 //Test if the current element matches the given name.
-bool VTDNav::matchElement( const UCSChar *en){
+/*bool VTDNav::matchElement( const UCSChar *en){
 	/*if (en == NULL){
 	throwException2(invalid_argument,
 	"matchElement's element name can't be null");
-	}*/
+	}
 
 	// throw new IllegalArgumentException(" Element name can't be null ");
 	if (wcscmp(en,L"*") == 0 && context[0] !=-1)
@@ -2222,7 +2222,7 @@ bool VTDNav::matchElement( const UCSChar *en){
 	return matchRawTokenString(
 		(context[0] == 0) ? rootIndex : context[context[0]],
 		en);		
-}
+}*/
 
 //Test whether the current element matches the given namespace URL and localname.
 //URL, when set to "*", matches any namespace (including null), when set to null, defines a "always-no-match"
@@ -2286,10 +2286,10 @@ bool VTDNav::matchRawTokenString( int index, const UCSChar *s){
 	return compareRawTokenString2( offset, len, s)==0;
 }
 //This method matches two VTD tokens of 2 VTDNavs
-bool VTDNav::matchTokens( int i1, VTDNav *vn2, int i2){
+/*bool VTDNav::matchTokens( int i1, VTDNav *vn2, int i2){
 	return compareTokens(i1,vn2,i2)==0;
 
-}
+}*/
 
 //Match the string against the token at the given index value. When a token
 //is an attribute name or starting tag, qualified name is what gets matched against
@@ -4271,7 +4271,7 @@ void VTDNav::recoverNode(int index){
 }
 
 
-tokenType VTDNav::getTokenType(int index){
+/*tokenType VTDNav::getTokenType(int index){
 			return (tokenType) (((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf);
 		}
 
@@ -4283,7 +4283,7 @@ bool VTDNav::isElementOrDocument( int index){
 		int i = 0;
 		i= (int)(((vtdBuffer->longAt(index) & VTDNav::MASK_TOKEN_TYPE) >> 60) & 0xf);
 		return (i == TOKEN_STARTING_TAG || i == TOKEN_DOCUMENT); 
-	}
+	}*/
 
 Long VTDNav::getSiblingElementFragments(int i){
 	int so, len;
