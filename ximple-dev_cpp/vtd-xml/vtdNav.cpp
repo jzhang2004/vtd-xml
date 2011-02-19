@@ -995,7 +995,7 @@ void VTDNav::recoverNode_l1(int index){
 		if(context[1]==index){
 			
 		}
-		else if (context[1]>index 
+		else if (l1index !=-1 && context[1]>index 
 				&& l1index+1<l1Buffer->size
 				&& l1Buffer->upper32At(l1index+1)<index){
 			

@@ -5508,7 +5508,7 @@ namespace com.ximpleware
             {
 
             }
-            else if (context[1] > index
+            else if (l1index !=-1 && context[1] > index
                     && l1index + 1 < l1Buffer.size_Renamed_Field
                     && l1Buffer.upper32At(l1index + 1) < index)
             {

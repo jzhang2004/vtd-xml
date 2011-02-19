@@ -4454,7 +4454,7 @@ static void recoverNode_l1(VTDNav *vn,int index){
 	if(vn->context[1]==index){
 
 	}
-	else if (vn->context[1]>index 
+	else if (vn->l1index!=-1 && vn->context[1]>index 
 		&& vn->l1index+1<vn->l1Buffer->size
 		&& upper32At(vn->l1Buffer,vn->l1index+1) < index){
 
