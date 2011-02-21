@@ -165,7 +165,7 @@ public class LocationPathExpr extends Expr{
 		    	        
 						 b=vn.toElement(VTDNav.FIRST_CHILD);
 						 state =  END;
-						 if (b == true){
+						 if (b ){
 						 do {
 							if (currentStep.eval(vn)) {
 								if (currentStep.getNextStep() != null){
@@ -304,7 +304,7 @@ public class LocationPathExpr extends Expr{
 						}
 			    	}else {
 			    	    // predicate at an attribute is not evaled
-						if (vn.getAtTerminal() == true){
+						if (vn.getAtTerminal() ){
 							state = BACKWARD;
 							currentStep = currentStep.getPrevStep();
 						}else {
@@ -384,7 +384,7 @@ public class LocationPathExpr extends Expr{
 								break;
 							}
 						}
-						if (b == true) {
+						if (b ) {
 							 state =  FORWARD;
 							currentStep = currentStep.getNextStep();
 						} else if (currentStep.getPrevStep() == null){
@@ -517,7 +517,7 @@ public class LocationPathExpr extends Expr{
     				ap = (AutoPilot) currentStep.o;
     				ap.bind(vn);
     			}
-    			if (currentStep.get_ft() == true) {
+    			if (currentStep.get_ft() ) {
 
     				if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF )
     					if (currentStep.nt.testType == NodeTest.NODE)
@@ -621,7 +621,7 @@ public class LocationPathExpr extends Expr{
 			            break;
 			        }
 			    }
-			    if (b == true) {
+			    if (b ) {
 			        if (currentStep.evalPredicates(vn)) {
 			            result = vn.getCurrentIndex();
 			            if (isUnique(result))
@@ -924,7 +924,7 @@ public class LocationPathExpr extends Expr{
 				state =  END;
 				vn.push2();
 				
-				if (currentStep.get_ft()== true){						
+				if (currentStep.get_ft()){						
 					currentStep.set_ft(false);
 					if (currentStep.eval(vn)) {
 						if (currentStep.getNextStep() != null) {
@@ -987,7 +987,7 @@ public class LocationPathExpr extends Expr{
 	    	    }
 				 state =  BACKWARD;
 					vn.push2();
-					if (currentStep.get_ft() == true) {
+					if (currentStep.get_ft() ) {
 						currentStep.set_ft(false);
 						
 						if (currentStep.eval(vn)) {
@@ -1131,7 +1131,7 @@ public class LocationPathExpr extends Expr{
 		  		}
 		  		else{
 		  			 state =  TERMINAL;
-		  			 if (vn.atTerminal == true)
+		  			 if (vn.atTerminal )
 		  			     result = vn.LN;
 		  			 else 
 		  			     result = vn.getCurrentIndex();
@@ -1209,7 +1209,7 @@ public class LocationPathExpr extends Expr{
 				}
 			} else {
 				
-                if (currentStep.get_ft() == true) {
+                if (currentStep.get_ft() ) {
                     if (currentStep.o == null)
                         currentStep.o = ap = new AutoPilot(vn);
                     else {
@@ -1593,7 +1593,7 @@ public class LocationPathExpr extends Expr{
 	            break;
 	        }
 	        
-			if (vn.atTerminal==true){
+			if (vn.atTerminal){
 				if (state ==START)
 					state = END;
 				else {
@@ -1601,7 +1601,7 @@ public class LocationPathExpr extends Expr{
 					currentStep  = currentStep.getPrevStep();
 				}
 			} else {
-                if (currentStep.get_ft() == true) {
+                if (currentStep.get_ft()) {
                     if (currentStep.o == null)
                         currentStep.o = ap = new AutoPilot(vn);
                     else {
