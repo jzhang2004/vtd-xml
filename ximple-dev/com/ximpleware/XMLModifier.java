@@ -807,7 +807,7 @@ public class XMLModifier {
             	docSize += ((byte[])fob.objectAt(i)).length+inc;
             } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){
             	docSize += ((ByteSegment)fob.objectAt(i)).len+inc;
-            } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED) { 
+            } else /*if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)*/ { 
             	docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(md.encoding)+inc;
             }
         }
