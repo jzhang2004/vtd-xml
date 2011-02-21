@@ -133,12 +133,13 @@ public class VTDNav {
 	protected final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
 	protected final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
 	protected final static long MASK_TOKEN_QN_LEN = 0x000007ff00000000L;
-	long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
+	protected static long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
 	protected final static long MASK_TOKEN_TYPE = 0xf000000000000000L;
 	protected final static long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
 
 	// tri-state variable for namespace lookup
 	protected final static long MASK_TOKEN_NS_MARK = 0x00000000c0000000L;
+	protected short maxLCDepthPlusOne =4;
 
 	protected int rootIndex; // where the root element is at
 	protected int nestingLevel;
@@ -195,6 +196,8 @@ public class VTDNav {
 	protected int localNameIndex;
 	protected FastIntBuffer fib;//for store string value 
 	protected boolean shallowDepth;
+	protected BookMark currentNode;
+	protected String URIName;
 	
 	protected VTDNav(){}
 	
@@ -348,7 +351,7 @@ public class VTDNav {
      */
 	public int getAttrVal(String an) throws NavException {
 		//int size = vtdBuffer.size();
-		if (context[0]==-1)
+		if (context[0]==-1 || atTerminal)
 			return -1;
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		
@@ -405,7 +408,7 @@ public class VTDNav {
      *                if s is null
      */
     public int getAttrValNS(String URL, String ln) throws NavException {
-    	if (ns == false)
+    	if (!ns || context[0]==-1 || atTerminal)
     		return -1;
     	if (URL!=null && URL.length()==0)
         	URL = null;
@@ -1476,11 +1479,20 @@ public class VTDNav {
 	protected boolean iterate_preceding(String en, int[] a, boolean special)
 	throws NavException {
 		int index = getCurrentIndex() - 1;
+		int tokenType;
 		int t,d;
 		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size;
 		while (index >  0) {
-			if (isElementOrDocument(index)) {
+			tokenType = getTokenType(index);
+			if (tokenType == VTDNav.TOKEN_ATTR_VAL
+					|| tokenType == VTDNav.TOKEN_PI_VAL) {
+				index = index - 2;
+				continue;
+			}
+			// if (isElementOrDocument(index)) {
+			if (tokenType == VTDNav.TOKEN_STARTING_TAG
+					|| tokenType == VTDNav.TOKEN_DOCUMENT) {
 				int depth = getTokenDepth(index);
 				context[0] = depth;
 				//context[depth]=index;
@@ -1503,7 +1515,7 @@ public class VTDNav {
 				}
 				//dumpContext();
 				if (index!= a[depth] && (special || matchElement(en))) {
-					if (depth <4)
+					if (depth < maxLCDepthPlusOne)
 						resolveLC();
 					return true;
 				}
@@ -1512,6 +1524,7 @@ public class VTDNav {
 		}
 		return false;	
 	}
+	
 	/**
      * This function is called by selectElementNS_P in autoPilot
      * 
@@ -1523,11 +1536,20 @@ public class VTDNav {
 	protected boolean iterate_precedingNS(String URL, String ln, int[] a )
 	throws NavException {
 		int index = getCurrentIndex() - 1;
+		int tokenType;
 		int t,d;
 		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size;
 		while (index > 0 ) {
-			if (isElementOrDocument(index)) {
+			tokenType = getTokenType(index);
+			if (tokenType == VTDNav.TOKEN_ATTR_VAL
+					|| tokenType == VTDNav.TOKEN_PI_VAL) {
+				index = index - 2;
+				continue;
+			}
+			// if (isElementOrDocument(index)) {
+			if (tokenType == VTDNav.TOKEN_STARTING_TAG
+					|| tokenType == VTDNav.TOKEN_DOCUMENT) {
 				int depth = getTokenDepth(index);
 				context[0] = depth;
 				//context[depth]=index;
@@ -1550,7 +1572,7 @@ public class VTDNav {
 				}
 				//dumpContext();
 				if (index != a[depth] && matchElementNS(URL,ln)) {	
-					if (depth <4)
+					if (depth <maxLCDepthPlusOne)
 						resolveLC();
 					return true;
 				}
@@ -1573,23 +1595,34 @@ public class VTDNav {
 	protected boolean iterate_following(String en, boolean special) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
+		int tokenType;
 		//int size = vtdBuffer.size;
 		while (index < vtdSize) {
-			if (isElementOrDocument(index)) {
+			tokenType = getTokenType(index);
+			if (tokenType == VTDNav.TOKEN_ATTR_NAME
+					|| tokenType == VTDNav.TOKEN_ATTR_NS
+					|| tokenType == VTDNav.TOKEN_PI_NAME) {
+				index = index + 2;
+				continue;
+			}
+			// if (isElementOrDocument(index)) {
+			if (tokenType == VTDNav.TOKEN_STARTING_TAG
+					|| tokenType == VTDNav.TOKEN_DOCUMENT) {
 				int depth = getTokenDepth(index);
 				context[0] = depth;
-				if (depth>0)
+				if (depth > 0)
 					context[depth] = index;
-				if (special || matchElement(en)) {	
-					if (depth <4)
-					  resolveLC();
+				if (special || matchElement(en)) {
+					if (depth < maxLCDepthPlusOne)
+						resolveLC();
 					return true;
 				}
-			} 
+			}
 			index++;
 		}
 		return false;		
 	}
+	
 	
 	/**
      * This function is called by selectElementNS_F in autoPilot
@@ -1602,19 +1635,29 @@ public class VTDNav {
 	protected boolean iterate_followingNS(String URL, String ln) 
 	throws NavException{
 		int index = getCurrentIndex() + 1;
+		int tokenType;
 		//int size = vtdBuffer.size;
 		while (index < vtdSize) {
-			if (isElementOrDocument(index)) {
+			tokenType = getTokenType(index);
+			if (tokenType == VTDNav.TOKEN_ATTR_NAME
+					|| tokenType == VTDNav.TOKEN_ATTR_NS
+					|| tokenType == VTDNav.TOKEN_PI_NAME) {
+				index = index + 2;
+				continue;
+			}
+			// if (isElementOrDocument(index)) {
+			if (tokenType == VTDNav.TOKEN_STARTING_TAG
+					|| tokenType == VTDNav.TOKEN_DOCUMENT) {
 				int depth = getTokenDepth(index);
 				context[0] = depth;
-				if (depth>0)
+				if (depth > 0)
 					context[depth] = index;
-				if (matchElementNS(URL,ln)) {	
-					if (depth <4)
+				if (matchElementNS(URL, ln)) {
+					if (depth < maxLCDepthPlusOne)
 						resolveLC();
 					return true;
 				}
-			} 
+			}
 			index++;
 		}
 		return false;
@@ -1648,18 +1691,19 @@ public class VTDNav {
 		while (index < vtdSize) {
 		    tokenType = getTokenType(index);
 			if (tokenType==VTDNav.TOKEN_ATTR_NAME
-			        || tokenType == VTDNav.TOKEN_ATTR_NS){			  
+			        || tokenType == VTDNav.TOKEN_ATTR_NS || tokenType ==VTDNav.TOKEN_PI_NAME){			  
 			    index = index+2;
 			    continue;
 			}
-			if (isElementOrDocument(index)) {
+			//if (isElementOrDocument(index)) {
+			if (tokenType == VTDNav.TOKEN_STARTING_TAG || tokenType == VTDNav.TOKEN_DOCUMENT){
 				int depth = getTokenDepth(index);
 				if (depth > dp) {
 					context[0] = depth;
 					if (depth>0)
 						context[depth] = index;
 					if (special || matchElement(en)) {
-						if (dp< 4)
+						if (dp< maxLCDepthPlusOne)
 						resolveLC();
 						return true;
 					}
@@ -1672,6 +1716,12 @@ public class VTDNav {
 		}
 		return false;
 	}
+	
+	//descendent::node()
+	
+	
+	
+
 	/**
      * This method is similar to getElementByName in DOM except it doesn't
      * return the nodeset, instead it iterates over those nodes . When URL is
@@ -1706,18 +1756,19 @@ public class VTDNav {
 		while (index < vtdSize) {
 		    tokenType = getTokenType(index);
 			if(tokenType==VTDNav.TOKEN_ATTR_NAME
-			        || tokenType == VTDNav.TOKEN_ATTR_NS){
+			        || tokenType == VTDNav.TOKEN_ATTR_NS || tokenType ==VTDNav.TOKEN_PI_NAME){
 			    index = index+2;
 			    continue;
 			}
-			if (isElementOrDocument(index)) {
+			//if (isElementOrDocument(index)) {
+			if (tokenType == VTDNav.TOKEN_STARTING_TAG || tokenType == VTDNav.TOKEN_DOCUMENT){
 				int depth = getTokenDepth(index);
 				if (depth > dp) {
 					context[0] = depth;
 					if (depth>0)
 						context[depth] = index;
 					if (matchElementNS(URL, ln)) {
-						if (dp < 4)
+						if (dp < maxLCDepthPlusOne)
 							resolveLC();
 						return true;
 					}
@@ -1729,6 +1780,7 @@ public class VTDNav {
 		}
 		return false;
 	}
+	
 
 	/**
      * Test if the current element matches the given name. Creation date:
@@ -2866,6 +2918,7 @@ public class VTDNav {
 		LN = stackTemp[nestingLevel+8];
 		return true;
 	}
+	
 	/**
      * Store the context info into the ContextBuffer. Info saved including LC
      * and current state of the context Creation date: (11/16/03 7:00:27 PM)
@@ -2934,7 +2987,7 @@ public class VTDNav {
      * 
      * @return int The index of the NS URL
      */
-	private void resolveLC() {
+	protected void resolveLC() {
 		if (context[0]<=0)
 			return;
 		resolveLC_l1();
@@ -4591,19 +4644,19 @@ public class VTDNav {
 //		fib.append(context);
 		if (context[0]>=1)
 			fib.append(l1index);
-		
+	
 		
 		if (context[0]>=2){
 			fib.append(l2index);
 			fib.append(l2lower);
 			fib.append(l2upper);				
-		}
+		} // else return;
 		
 		if (context[0]>=3){
 		   fib.append(l3index);
 		   fib.append(l3lower);
 		   fib.append(l3upper);
-		}
+		} //else return;
 	}
 	
 	/**
@@ -5100,7 +5153,7 @@ public class VTDNav {
 		if(context[1]==index){
 			
 		}
-		else if (context[1]>index 
+		else if (l1index !=-1 && context[1]>index  
 				&& l1index+1<l1Buffer.size
 				&& l1Buffer.upper32At(l1index+1)<index){
 			
@@ -5215,4 +5268,19 @@ public class VTDNav {
 		return null;
 	}
 	
+	
+	protected void setCurrentNode(){
+		if (currentNode == null){
+			currentNode = new BookMark(this);
+		}else {
+			currentNode.recordCursorPosition();
+		}
+	}
+	
+	protected void loadCurrentNode(){
+		currentNode.setCursorPosition();
+	}
+	
+
+
 }
