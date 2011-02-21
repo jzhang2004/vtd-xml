@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,8 @@ public class XMLByteOutputStream extends OutputStream {
 	public void write(int b) throws IOException {
 		// TODO Auto-generated method stub
 		// not yet implemented
+		XMLDoc[offset]= (byte)b;
+		offset++;
 	}
 	
 	public void write(byte[] ba) throws IOException{
