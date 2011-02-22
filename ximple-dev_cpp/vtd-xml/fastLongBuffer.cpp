@@ -159,13 +159,7 @@ void FastLongBuffer::append(Long l){
 	int al_size = al->size;
 
 	if (al_size == 0) {
-		//lastBuffer = (Long *)malloc(sizeof(Long)<<flb->exp);
 		lastBuffer = new Long[1<<exp];
-
-		/*if (lastBuffer == NULL){
-			throwException2(out_of_mem,
-				"AppendLong failed to allocate mem");
-		}*/
 		al->add((void *)lastBuffer);
 		capacity = pageSize;
 	}else{
@@ -177,14 +171,7 @@ void FastLongBuffer::append(Long l){
 		lastBuffer[size & r] = l;
 		size ++;
 	}else {
-		//Long *newBuffer = (Long *)malloc(sizeof(Long)<<flb->exp);
 		Long* newBuffer = new Long[1<<exp];
-
-		/*if (newBuffer == NULL){
-			throwException2(out_of_mem,
-				"AppendLong failed to allocate mem");
-		}*/
-		
 		size ++;
 		capacity += pageSize;
 		al->add((void *)newBuffer);
