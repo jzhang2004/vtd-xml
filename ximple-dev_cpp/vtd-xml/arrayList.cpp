@@ -18,7 +18,24 @@
 #include "arrayList.h"
 #include <cstdlib>
 using namespace com_ximpleware;
-
+int ArrayList::addNew(void *element){
+	int t = capacity + AL_GROW_INC,k=0;
+	void **v = (void **)std::malloc( sizeof(void *)*t); //new void*[t];			
+	for (k=0;k<size;k++)
+	{
+		v[k] = storage[k]; // copy content
+	}
+	for (k=size;k<capacity;k++){
+		v[k] = NULL;			// the remaining ones set to NULL
+	}
+	v[size]=element;
+	capacity = t;
+	size++;
+	//delete[] storage;
+	std::free(storage);
+	storage = v;
+	return size;
+}
 ArrayList::ArrayList():
 capacity (16), size(0)
 {	
@@ -46,31 +63,4 @@ ArrayList::~ArrayList(){
 	storage = NULL;
 }
 
-int ArrayList::add(void *element){
-	int t = 0,k=0;
-	void **v=NULL;
-	if (size < capacity){
-		storage[size] = element;
-		size++;
-		return size;
-	}
-	else{
-		t = capacity + AL_GROW_INC;
-		v = (void **)std::malloc( sizeof(void *)*t); //new void*[t];
-				
-		for (k=0;k<size;k++)
-		{
-               v[k] = storage[k]; // copy content
-		}
-		for (k=size;k<capacity;k++){
-			v[k] = NULL;			// the remaining ones set to NULL
-		}
-		v[size]=element;
-		capacity = t;
-		size++;
-		//delete[] storage;
-		std::free(storage);
-		storage = v;
-		return size;
-	}
-}
+

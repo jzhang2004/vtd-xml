@@ -34,7 +34,7 @@ namespace com_ximpleware {
 		virtual ~ArrayList();
 		static const int AL_GROW_INC =16;
 
-		int add(void *element);
+		inline int add(void *element);
 		void* get(int index){return storage[index];}
 		int getSize(){return size;}
 
@@ -42,7 +42,20 @@ namespace com_ximpleware {
 		int capacity;
 		int size;
 		void **storage;
+		int addNew(void *element);
 	};
+
+	inline int ArrayList::add(void *element){
+		int t = 0,k=0;
+		void **v=NULL;
+		if (size < capacity){
+			storage[size] = element;
+			size++;
+			return size;
+		}
+		else
+			return addNew(element);
+	}
 
 };
 
