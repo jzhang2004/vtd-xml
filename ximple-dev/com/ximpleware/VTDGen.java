@@ -1368,7 +1368,8 @@ public class VTDGen {
 	 */
 	public void selectLcDepth(int i) throws ParseException{
 		if (i!=3 &&i!=5)
-			throw new ParseException("LcDepth can only take the value of 3 or 5");
+			throw new IllegalArgumentException("LcDepth can only take the value of 3 or 5");
+		//new ParseException("LcDepth can only take the value of 3 or 5");
 		if (i==5)
 			shallowDepth = false;
 	}
