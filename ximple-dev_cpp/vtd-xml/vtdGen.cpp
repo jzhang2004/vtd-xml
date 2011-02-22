@@ -1085,7 +1085,7 @@ bool VTDGen::skip_16le(int ch){
 	}
 }
 //done
-int VTDGen::getCharAfterSe(){
+inline int VTDGen::getCharAfterSe(){
 		int n = 0;
 	int temp; //offset saver
 	while (true) {
@@ -3153,15 +3153,15 @@ void VTDGen::parse(bool ns1){
 					case STATE_DOCTYPE :
 						parser_state = process_doc_type();
 						break;
-
+					case STATE_END_COMMENT :
+						parser_state = process_end_comment();
+						break;
 					case STATE_END_PI :										  
 
 						parser_state = process_end_pi();
 						break;
 
-					case STATE_END_COMMENT :
-						parser_state = process_end_comment();
-						break;
+					
 
 					default :	
 						throw ParseException(
@@ -3817,7 +3817,7 @@ int VTDGen::identifyNsURL(int byte_offset, int length){
 			
 		return 0;
 }
-int VTDGen::getCharUnit(int byte_offset){
+inline int VTDGen::getCharUnit(int byte_offset){
 	return (encoding <= 2)
 		? XMLDoc[byte_offset] & 0xff
 		: (encoding < FORMAT_UTF_16BE)
@@ -3827,7 +3827,7 @@ int VTDGen::getCharUnit(int byte_offset){
 		: (((int)XMLDoc[byte_offset + 1])
 		<< 8 | XMLDoc[byte_offset]);
 }
-void VTDGen::disallow_xmlns(int byte_offset){
+inline void VTDGen::disallow_xmlns(int byte_offset){
 			// TODO Auto-generated method stub
 		if (encoding<FORMAT_UTF_16BE){
 			 if (XMLDoc[byte_offset]=='x'
@@ -4033,7 +4033,7 @@ void VTDGen::checkAttributeUniqueness(){
 			}
 		}
 }
-Long VTDGen::_getCharResolved(int byte_offset){
+inline Long VTDGen::_getCharResolved(int byte_offset){
 
 	int ch = 0;
 	int val = 0;
@@ -4178,7 +4178,7 @@ Long VTDGen::_getCharResolved(int byte_offset){
 	//currentOffset++;
 	return val | (inc << 32);
 }
-Long VTDGen::_getChar(int byte_offset){
+inline Long VTDGen::_getChar(int byte_offset){
 	int c;
 	switch (encoding) {
 			case FORMAT_ASCII :
@@ -4418,7 +4418,7 @@ void VTDGen::handleOtherTextChar(int ch){
 }
 
 
-void VTDGen::writeVTDText(int offset, int length, tokenType token_type, int depth){
+inline void VTDGen::writeVTDText(int offset, int length, tokenType token_type, int depth){
 	if (length > MAX_TOKEN_LENGTH) {
 		int k;
 		int r_offset = offset;
@@ -4526,12 +4526,12 @@ inline void VTDGen::_writeVTD(int offset, int length, tokenType token_type, int 
 		| offset);		
 }
 
-void VTDGen::selectLcDepth(int i){
+/*void VTDGen::selectLcDepth(int i){
 	if (i!=3 &&i!=5)
 		throw ParseException("LcDepth can only take the value of 3 or 5");
 	if (i==5)
 		shallowDepth = false;
-}
+}*/
 
 VTDNav* VTDGen::loadIndex(const char* fileName){
 	FILE *f = NULL;
@@ -4550,3 +4550,117 @@ VTDNav* VTDGen::loadIndex(const char* fileName){
 	
 }
 
+
+inline int VTDGen::getChar(){
+	int temp = 0;
+	if (offset >= endOffset){
+		throw EOFException(
+			"Parse exception in getChar \n"\
+			"Premature EOF reached, XML document incomplete");			
+	}
+	switch (encoding) {
+	case FORMAT_ASCII :
+		temp = XMLDoc[offset];
+		if (temp<128){
+			offset++;
+			return temp;
+		}else
+			throw ParseException("Parse exception in getChar \n"\
+								 "Invalid Char for ASCII encoding");
+	case FORMAT_ISO_8859_1 :
+		temp = XMLDoc[offset];
+		offset++;
+		return temp;
+	case FORMAT_UTF8 :
+
+		temp = XMLDoc[offset];
+		if (temp <128) {
+			offset++;
+			return temp;
+		}
+		//temp = temp & 0xff;
+		return handle_utf8(temp);
+
+
+	case FORMAT_UTF_16BE :
+		// implement UTF-16BE to UCS4 conversion
+		return handle_16be();
+
+	case FORMAT_UTF_16LE :
+		return handle_16le();
+
+
+	default :
+		return handleOtherEncoding();
+	}
+
+
+	//done
+
+}
+inline int VTDGen::getCharAfterS(){
+	int n, k;
+	n = k = 0;
+	do{
+		n = getChar();
+		if (n == ' ' || n == '\n' || n == '\t' || n == '\r') {
+		} else
+			return n;
+		n = getChar();
+		if (n == ' ' || n == '\n' || n == '\t' || n == '\r') {
+		} else
+			return n;
+	}while (true);
+}
+//done
+inline bool VTDGen::skipChar(int ch){
+	int temp = 0;
+	if (offset >= endOffset){
+		throw ParseException(
+			"Parse exception in parse() \n"\
+			"Premature EOF reached, XML document incomplete");
+	}	
+	switch (encoding) {
+	case FORMAT_ASCII :
+		temp = XMLDoc[offset];
+		if (temp>127){
+			throw ParseException(
+				"Parse exception in parse() \n"\
+				"Invalid char for ASCII encoding");
+		}
+		if (ch == temp) {
+			offset++;
+			return true;
+		} else {
+			return false;
+		}
+	case FORMAT_ISO_8859_1 :
+		temp = XMLDoc[offset];
+		if (temp == ch) {
+			offset++;
+			return true;
+		} else {
+			return false;
+		}
+	case FORMAT_UTF8 :
+		temp = XMLDoc[offset];
+		if (temp <128) {
+			if (ch == temp) {
+				offset++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return skipUTF8(temp,ch);
+
+	case FORMAT_UTF_16BE :
+		return skip_16be(ch);
+
+	case FORMAT_UTF_16LE :
+		return skip_16le(ch);
+
+	default :
+		return skip4OtherEncoding(ch);
+	}
+}

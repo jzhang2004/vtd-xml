@@ -261,119 +261,23 @@ namespace com_ximpleware {
 
 	};
 
+	inline void VTDGen::selectLcDepth(int i){
+		if (i!=3 &&i!=5)
+			throw ParseException("LcDepth can only take the value of 3 or 5");
+		if (i==5)
+			shallowDepth = false;
+	}
+	/*inline void VTDGen::_writeVTD(int offset, int length, tokenType token_type, int depth){
+		VTDBuffer->append(((Long) ((token_type << 28)
+			| ((depth & 0xff) << 20) | length) << 32)
+			| offset);		
+	}*/
+
 	inline void VTDGen::enableIgnoredWhiteSpace( bool b){
 		ws = b;
 	}
 
-	inline int VTDGen::getChar(){
-		int temp = 0;
-		if (offset >= endOffset){
-			throw EOFException(
-				"Parse exception in getChar \n"\
-				"Premature EOF reached, XML document incomplete");			
-		}
-		switch (encoding) {
-			case FORMAT_ASCII :
-				temp = XMLDoc[offset];
-				offset++;
-				return temp;
-			case FORMAT_ISO_8859_1 :
-				temp = XMLDoc[offset];
-				offset++;
-				return temp;
-			case FORMAT_UTF8 :
 
-				temp = XMLDoc[offset];
-				if (temp <128) {
-					offset++;
-					return temp;
-				}
-				//temp = temp & 0xff;
-				return handle_utf8(temp);
-
-
-			case FORMAT_UTF_16BE :
-				// implement UTF-16BE to UCS4 conversion
-				return handle_16be();
-
-			case FORMAT_UTF_16LE :
-				return handle_16le();
-
-
-			default :
-				return handleOtherEncoding();
-		}
-
-
-		//done
-
-	}
-	inline int VTDGen::getCharAfterS(){
-		int n, k;
-		n = k = 0;
-		do{
-			n = getChar();
-			if (n == ' ' || n == '\n' || n == '\t' || n == '\r') {
-			} else
-				return n;
-			n = getChar();
-			if (n == ' ' || n == '\n' || n == '\t' || n == '\r') {
-			} else
-				return n;
-		}while (true);
-	}
-	//done
-	inline bool VTDGen::skipChar(int ch){
-		int temp = 0;
-		if (offset >= endOffset){
-			throw ParseException(
-				"Parse exception in parse() \n"\
-				"Premature EOF reached, XML document incomplete");
-		}	
-		switch (encoding) {
-			case FORMAT_ASCII :
-				temp = XMLDoc[offset];
-				if (temp>127){
-					throw ParseException(
-						"Parse exception in parse() \n"\
-						"Invalid char for ASCII encoding");
-				}
-				if (ch == temp) {
-					offset++;
-					return true;
-				} else {
-					return false;
-				}
-			case FORMAT_ISO_8859_1 :
-				temp = XMLDoc[offset];
-				if (temp == ch) {
-					offset++;
-					return true;
-				} else {
-					return false;
-				}
-			case FORMAT_UTF8 :
-				temp = XMLDoc[offset];
-				if (temp <128) {
-					if (ch == temp) {
-						offset++;
-						return true;
-					} else {
-						return false;
-					}
-				}
-				return skipUTF8(temp,ch);
-
-			case FORMAT_UTF_16BE :
-				return skip_16be(ch);
-
-			case FORMAT_UTF_16LE :
-				return skip_16le(ch);
-
-			default :
-				return skip4OtherEncoding(ch);
-		}
-	}
 
 }	
 
