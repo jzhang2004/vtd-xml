@@ -6160,7 +6160,8 @@ namespace com.ximpleware
         public void selectLcDepth(int i)
         {
             if (i != 3 && i != 5)
-                throw new ParseException("LcDepth can only take the value of 3 or 5");
+                throw new System.ArgumentException("LcDepth can only take the value of 3 or 5"); 
+            //ParseException("LcDepth can only take the value of 3 or 5");
             if (i == 5)
                 shallowDepth = false;
         }
