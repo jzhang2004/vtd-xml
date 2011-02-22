@@ -65,7 +65,7 @@ namespace com_ximpleware {
 		// Get the int at the index position of FastIntBuffer
 		//inline int intAt(int index);
 
-		int intAt(int index);
+		inline int intAt(int index);
 		// Replace the value at the index position of FastIntBuffer 
 		// with newVal
 		void modifyEntry(int index,int newVal);
