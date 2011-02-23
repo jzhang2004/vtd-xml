@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +30,26 @@ public class FuncExpr extends Expr{
 	boolean isNumerical;
 	boolean isBoolean;
 	boolean isString;
+	boolean isNodeSet;
 	int contextSize;
-	//double d;
+	VTDNav newVN,xslVN;
+	// double d;
 	int position;
+	int argCount;
 	int a;
+	int state;
+	VTDGen vg;
+	String s;
+	//VTDNav vn;
+	public static final int START = 0, // initial state
+			END = 1, // return to begin
+			TERMINAL = 2, // no more next step
+			FORWARD = 3, //
+			BACKWARD = 4;
+
+	VTDNav getNewNav(){return newVN;}
+	
+	void setXslVn(VTDNav vn1){xslVN=vn1;}
 	int argCount(){
 		Alist temp = argumentList;
 		int count = 0;
@@ -50,8 +66,9 @@ public class FuncExpr extends Expr{
 	  isBoolean = false;
 	  isString  = false;
 	  position = 0;
-	  //isNodeSet = false;
+	  isNodeSet = false;
 	  isNumerical = false;
+	  argCount=argCount();
 	  switch(opCode){
 			case FuncName.LAST: 			isNumerical = true;break;
 			case FuncName.POSITION: 		isNumerical = true;break;
@@ -101,20 +118,112 @@ public class FuncExpr extends Expr{
 			case FuncName.RESOLVE_QNAME:	isString = true; break;
 			case FuncName.IRI_TO_URI:    	isString = true; break;
 			case FuncName.ESCAPE_HTML_URI:	isString = true; break;
-			default:						isString = true; break;
+			case FuncName.ENCODE_FOR_URI:	isString = true; break;
+			case FuncName.MATCH_NAME:		isBoolean =true; break;
+			case FuncName.MATCH_LOCAL_NAME: isBoolean=true;break;
+			case FuncName.GENERATE_ID : 	isString = true; break;
+			case FuncName.FORMAT_NUMBER:  	isString = true;break;
+			case FuncName.KEY:				isNodeSet = true; state = START; vg = new VTDGen(); break;
+			case FuncName.DOCUMENT:			isNodeSet = true; state = START; vg = new VTDGen();break;
+			case FuncName.CURRENT:			isNodeSet = true; state = START; vg = new VTDGen();break;
+			case FuncName.SYSTEM_PROPERTY: 	isString = true; break;
+			case FuncName.ELEMENT_AVAILABLE: isBoolean = true; break;
+			case FuncName.FUNCTION_AVAILABLE: isBoolean = true; break;
 			//case FuncName.
 			//default:			isNumerical = true; break;
 	  }	  
 	}
+	public boolean checkArgumentCount(){
+		switch(opCode){
+		case FuncName.LAST: 			return argCount==0;
+		case FuncName.POSITION: 		return argCount==0;
+		case FuncName.COUNT: 			return (argCount==1 && argumentList.e.isNodeSet());
+		
+		case FuncName.LOCAL_NAME: 		return (argCount==0 ||(argCount==1 && argumentList.e.isNodeSet()));
+		case FuncName.NAMESPACE_URI: 	return (argCount==0 ||(argCount==1 && argumentList.e.isNodeSet()));
+		case FuncName.NAME: 			return (argCount==0 ||(argCount==1 && argumentList.e.isNodeSet()));
+		case FuncName.STRING: 			return argCount < 2;
+		case FuncName.CONCAT: 			return argCount > 1;
+		case FuncName.STARTS_WITH:		return argCount ==2;
+		case FuncName.CONTAINS: 		return argCount ==2;
+		case FuncName.SUBSTRING_BEFORE: return argCount==2;
+		case FuncName.SUBSTRING_AFTER: 	return argCount==2;
+		case FuncName.SUBSTRING: 		return argCount==2 || argCount==3;
+		case FuncName.STRING_LENGTH: 	return argCount<2;
+		case FuncName.NORMALIZE_SPACE: 	return argCount <2;
+		case FuncName.TRANSLATE:	 	return argCount ==3;
+		case FuncName.BOOLEAN: 			return argCount ==1;
+		case FuncName.NOT: 			    return argCount ==1;
+		case FuncName.TRUE: 			return argCount ==0;
+		case FuncName.FALSE: 			return argCount ==0;
+		case FuncName.LANG: 			return (argCount==1);
+		case FuncName.NUMBER:			return argCount==1;
+		case FuncName.SUM: 			    return (argCount==1 && argumentList.e.isNodeSet());
+		case FuncName.FLOOR: 			return argCount==1;
+		case FuncName.CEILING: 			return argCount==1;
+		case FuncName.ROUND:			return argCount==1;
+		case FuncName.ABS:				return argCount==1;
+		case FuncName.ROUND_HALF_TO_EVEN :
+										return argCount==1 || argCount == 2;
+		case FuncName.ROUND_HALF_TO_ODD:
+										return argCount==1 || argCount == 2;
+		case FuncName.CODE_POINTS_TO_STRING:
+		    							break;
+		case FuncName.COMPARE:			break;
+		case FuncName.UPPER_CASE:		return argCount==1;
+		case FuncName.LOWER_CASE:		return argCount==1;
+		case FuncName.ENDS_WITH:		return argCount==2;
+		case FuncName.QNAME:			break;
+		case FuncName.LOCAL_NAME_FROM_QNAME:
+		    							break;
+		case FuncName.NAMESPACE_URI_FROM_QNAME:
+		    							break;
+		case FuncName.NAMESPACE_URI_FOR_PREFIX:
+		    							break;
+		case FuncName.RESOLVE_QNAME:	break;
+		case FuncName.IRI_TO_URI:    	break;
+		case FuncName.ESCAPE_HTML_URI:	break;
+		case FuncName.ENCODE_FOR_URI:	break;
+		case FuncName.MATCH_NAME:		return argCount==1 || argCount == 2;
+		case FuncName.MATCH_LOCAL_NAME: return argCount==1 || argCount == 2;
+		case FuncName.CURRENT:			return argCount==0;
+		case FuncName.GENERATE_ID : 	return argCount==0 || (argCount ==1 && argumentList.e.isNodeSet());
+		case FuncName.FORMAT_NUMBER:  	return argCount==2 || argCount == 3;
+		case FuncName.KEY:				return argCount==2;
+		case FuncName.DOCUMENT:			return argCount==1 || (argCount==2 && argumentList.next.e.isNodeSet());	
+		case FuncName.SYSTEM_PROPERTY: 	return argCount==1 && argumentList.e.isString() ;
+		case FuncName.ELEMENT_AVAILABLE: return argCount==1 && argumentList.e.isString();
+		case FuncName.FUNCTION_AVAILABLE: return argCount==1 && argumentList.e.isString();
+		}
+		return false;		
+	}
+	
+	private String getSystemProperty(VTDNav vn){
+		String s = argumentList.e.evalString(vn);
+		return "";
+	}
 
+	private boolean isElementAvailable(VTDNav vn){
+		String s = argumentList.e.evalString(vn);
+		return false;
+	}
+	
+	private boolean isFunctionAvailable(VTDNav vn){
+		String s = argumentList.e.evalString(vn);
+		return false;
+	}
 	public String toString(){
 	  if (argumentList == null)
 		  return fname()+" ("+")";
 	  return fname()+" ("+argumentList +")";
 	}
 	
+	private String formatNumber(VTDNav vn){
+		return "";
+	}
+	
 	private String getLocalName(VTDNav vn){
-	    if (argCount()== 0){
+	    if (argCount== 0){
 	        try{
 	            int index = vn.getCurrentIndex();
 	            int type = vn.getTokenType(index);
@@ -148,19 +257,29 @@ public class FuncExpr extends Expr{
                             return vn.localName;
                         }
                     }
-                } else
+                } else if (type == VTDNav.TOKEN_PI_NAME){
+                	//int offset = vn.getTokenOffset(index);
+                    //int length = vn.getTokenLength(index);
+                    if (vn.localNameIndex != index){
+                		vn.localNameIndex = index;
+                		vn.localName = vn.toRawString(index);
+                	}
+                    return vn.localName;
+                }else
+                
                     return "";
 	        }catch(NavException e){
 	            return ""; // this will almost never occur
 	        }
 	        
-	    } else if (argCount() == 1){
+	    } else if (argCount == 1){
 	        int a=evalFirstArgumentListNodeSet2(vn);
 			if (a == -1 || vn.ns == false)
 			    return "";
 			int type = vn.getTokenType(a);
-			if (type!=VTDNav.TOKEN_STARTING_TAG && type!= VTDNav.TOKEN_ATTR_NAME)
-			    return "";
+			/*if (type!=VTDNav.TOKEN_STARTING_TAG && type!= VTDNav.TOKEN_ATTR_NAME)
+			    return "";*/
+			if (type == VTDNav.TOKEN_STARTING_TAG && type== VTDNav.TOKEN_ATTR_NAME){
 			try {			    
 			    int offset = vn.getTokenOffset(a);
 			    int length = vn.getTokenLength(a);
@@ -178,14 +297,22 @@ public class FuncExpr extends Expr{
 			    }
 			} catch (NavException e) {
 			    return ""; // this will almost never occur
-			}							        
+			}		
+			}else if (type == VTDNav.TOKEN_PI_NAME){
+				try{
+					return vn.toRawString(a);
+				}catch(NavException e){
+					return "";
+				}
+			}else 
+				return "";
 	    } else 
 	        throw new IllegalArgumentException
 			("local-name()'s argument count is invalid");
 	}
 	
 	private String getNameSpaceURI(VTDNav vn){
-	    if (argCount()==0){
+	    if (argCount==0){
 	        try{
 	            int i = vn.getCurrentIndex();
 	            int type = vn.getTokenType(i);
@@ -202,7 +329,7 @@ public class FuncExpr extends Expr{
 	        }catch (Exception e){
 	            return "";
 	        }
-	    }else if (argCount()==1){
+	    }else if (argCount==1 && argumentList.e.isNodeSet()){
 	    	vn.push2();
 	        int size = vn.contextStack2.size;
 	        int a = -1;
@@ -235,26 +362,26 @@ public class FuncExpr extends Expr{
 	
 	private String getName(VTDNav vn){
 	    int a;
-	    if (argCount()==0){
+	    if (argCount==0){
 	        a = vn.getCurrentIndex();
 	        int type = vn.getTokenType(a);
             
             if (type == VTDNav.TOKEN_STARTING_TAG 
-                    || type == VTDNav.TOKEN_ATTR_NAME){
+                    || type == VTDNav.TOKEN_ATTR_NAME 
+                    || type == VTDNav.TOKEN_PI_NAME){
 	            try{
 	            	if (vn.nameIndex!=a){
-	            		vn.name = vn.toString(a);
+	            		vn.name = vn.toRawString(a);
 	            		vn.nameIndex = a;	
 	            	}
-            		return vn.name;
-	                
+            		return vn.name;	                
 	            }catch(Exception e){
 	                return "";
 	            }            
 	        }
 	        else 
 	            return "";
-	    } else if (argCount() == 1){
+	    } else if (argCount == 1){
 	        a = evalFirstArgumentListNodeSet2(vn);
 			try {
                 if (a == -1 || vn.ns == false)
@@ -262,9 +389,11 @@ public class FuncExpr extends Expr{
                 else {
                     int type = vn.getTokenType(a);
                     if (type == VTDNav.TOKEN_STARTING_TAG
-                            || type == VTDNav.TOKEN_ATTR_NAME)
-                        return vn.toString(a);
+                            || type == VTDNav.TOKEN_ATTR_NAME 
+                            || type == VTDNav.TOKEN_PI_NAME)
+                        return vn.toRawString(a);
                     return "";
+                    
                 }
             } catch (Exception e) {
             }			
@@ -406,13 +535,13 @@ public class FuncExpr extends Expr{
 	}
 	
 	private String subString(VTDNav vn){
-	    if (argCount()== 2){
+	    if (argCount== 2){
 	        String s = argumentList.e.evalString(vn);
 	        double d1 = Math.floor(argumentList.next.e.evalNumber(vn)+0.5d);
 	        if (d1!=d1 || d1>s.length())    
 	            return "";
 	        return s.substring(Math.max((int)(d1-1),0));
-	    } else if (argCount() == 3){
+	    } else if (argCount == 3){
 	        String s = argumentList.e.evalString(vn);
             double d1 = Math.floor(argumentList.next.e.evalNumber(vn) + 0.5d);
             double d2 = Math
@@ -429,7 +558,7 @@ public class FuncExpr extends Expr{
 		("substring()'s argument count is invalid");
 	}
 	private String subStringBefore(VTDNav vn){
-	    if (argCount()==2){
+	    if (argCount==2){
 	        String s1 = argumentList.e.evalString(vn);
 	        String s2 = argumentList.next.e.evalString(vn);
 	        int len1 = s1.length();
@@ -444,7 +573,7 @@ public class FuncExpr extends Expr{
 		("substring()'s argument count is invalid");
 	}
 	private String subStringAfter(VTDNav vn){
-	    if (argCount()==2){
+	    if (argCount==2){
 	        String s1 = argumentList.e.evalString(vn);
 	        String s2 = argumentList.next.e.evalString(vn);
 	        int len1 = s1.length();
@@ -460,9 +589,8 @@ public class FuncExpr extends Expr{
 	}
 	private String translate(VTDNav vn)
 	{
-		int numArg = argCount();
 		
-	    if (numArg == 3)
+	    if (argCount== 3)
 	    {
 	        String resultStr = argumentList.e.evalString(vn);
 	        String indexStr = argumentList.next.e.evalString(vn);
@@ -506,11 +634,11 @@ public class FuncExpr extends Expr{
 	    }
 	    else
 	    {
-	    	throw new IllegalArgumentException("Argument count for translate() is invalid. Expected: 3; Actual: " + numArg);
+	    	throw new IllegalArgumentException("Argument count for translate() is invalid. Expected: 3; Actual: " + argCount);
 	    }
 	}
 	private String normalizeSpace(VTDNav vn){
-	    if (argCount()== 0){
+	    if (argCount== 0){
 	        String s =null;
 	        try{
 	            if (vn.atTerminal){
@@ -530,7 +658,7 @@ public class FuncExpr extends Expr{
 	    	catch(NavException e){
 	    	    return ""; // this will almost never occur
 	    	}
-	    } else if (argCount() == 1){
+	    } else if (argCount == 1){
 	    	String s="";
 	    	if (argumentList.e.isNodeSet()){
 				//boolean b = false;
@@ -595,7 +723,7 @@ public class FuncExpr extends Expr{
 	
 	private String concat(VTDNav vn){
 	    StringBuffer  sb = new StringBuffer();
-	    if (argCount()>=2){
+	    if (argCount>=2){
 			Alist temp = argumentList;
 			while(temp!=null){
 				sb.append(temp.e.evalString(vn));
@@ -608,7 +736,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	private String getString(VTDNav vn){
-	    if (argCount()== 0)
+	    if (argCount== 0)
 	        try{
 	            if (vn.atTerminal){
 	                if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_CDATA_VAL )
@@ -620,7 +748,7 @@ public class FuncExpr extends Expr{
 	    	catch(NavException e){
 	    	    return ""; // this will almost never occur
 	    	}
-	    else if (argCount() == 1){
+	    else if (argCount == 1){
 	        return argumentList.e.evalString(vn);
 	    } else 
 	        throw new IllegalArgumentException
@@ -663,6 +791,9 @@ public class FuncExpr extends Expr{
 			case FuncName.ESCAPE_HTML_URI:	
 			case FuncName.ENCODE_FOR_URI:
 			    throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
+			case FuncName.GENERATE_ID: return generateID(vn);
+			case FuncName.FORMAT_NUMBER: return formatNumber(vn);
+			case FuncName.SYSTEM_PROPERTY: return getSystemProperty(vn);
 			default: if (isBoolean()){
 			    		if (evalBoolean(vn)== true)
 			    		    return "true";
@@ -673,34 +804,36 @@ public class FuncExpr extends Expr{
 					 }
 	  }
 	}	
+	
+	
 	public double evalNumber(VTDNav vn){
 	    int ac = 0;
 	  switch(opCode){
-			case FuncName.LAST:  if (argCount()!=0 )
+			case FuncName.LAST:  if (argCount!=0 )
 									throw new IllegalArgumentException
 									("floor()'s argument count is invalid");
 								 return contextSize;			
-			case FuncName.POSITION:   if (argCount()!=0 )
+			case FuncName.POSITION:   if (argCount!=0 )
 									throw new IllegalArgumentException
 									("position()'s argument count is invalid");
 								 return position;
 			case FuncName.COUNT: 	return count(vn);
-			case FuncName.NUMBER:   if (argCount()!=1)
+			case FuncName.NUMBER:   if (argCount!=1)
 										throw new IllegalArgumentException
 										("number()'s argument count is invalid");
 									return argumentList.e.evalNumber(vn);
 									
 			case FuncName.SUM:	    return sum(vn);
-			case FuncName.FLOOR: 	if (argCount()!=1 )
+			case FuncName.FLOOR: 	if (argCount!=1 )
 			    						throw new IllegalArgumentException("floor()'s argument count is invalid");
 			    					return Math.floor(argumentList.e.evalNumber(vn));
 			    					
-			case FuncName.CEILING:	if (argCount()!=1 )
+			case FuncName.CEILING:	if (argCount!=1 )
 			    						throw new IllegalArgumentException("ceiling()'s argument count is invalid");
 			    					return Math.ceil(argumentList.e.evalNumber(vn));
 			    					
 			case FuncName.STRING_LENGTH:
-			    					ac = argCount();
+			    					ac = argCount;
 			    					if (ac == 0){
 			    					    try{
 			    					        if (vn.atTerminal == true){
@@ -727,11 +860,11 @@ public class FuncExpr extends Expr{
 			    					    throw new IllegalArgumentException("string-length()'s argument count is invalid");
 			    					}
 			    
-			case FuncName.ROUND: 	if (argCount()!=1 )
+			case FuncName.ROUND: 	if (argCount!=1 )
 			    						throw new IllegalArgumentException("round()'s argument count is invalid");
 			    					return Math.floor(argumentList.e.evalNumber(vn))+0.5d;
 			    					
-			case FuncName.ABS:		if (argCount()!=1 )
+			case FuncName.ABS:		if (argCount!=1 )
 										throw new IllegalArgumentException("abs()'s argument count is invalid");
 									return Math.abs(argumentList.e.evalNumber(vn));		
 			case FuncName.ROUND_HALF_TO_EVEN :	return roundHalfToEven(vn);		    							
@@ -754,15 +887,13 @@ public class FuncExpr extends Expr{
 	  }
 	}
 
-	private double roundHalfToEven(VTDNav vn) {
-		
-		int numArg = argCount();
-	    if (numArg < 1 || numArg > 2){
-	    	throw new IllegalArgumentException("Argument count for roundHalfToEven() is invalid. Expected: 1 or 2; Actual: " + numArg);	    	
-	    }
-	    
+	private double roundHalfToEven(VTDNav vn) {	
+		//int numArg = argCount;
+	    if (argCount < 1 || argCount > 2){
+	    	throw new IllegalArgumentException("Argument count for roundHalfToEven() is invalid. Expected: 1 or 2; Actual: " + argCount);	    	
+	    }	    
 	    double value = argumentList.e.evalNumber(vn);
-	    long precision = (numArg == 2)? (long)Math.floor(argumentList.next.e.evalNumber(vn)+0.5d) : 0;
+	    long precision = (argCount == 2)? (long)Math.floor(argumentList.next.e.evalNumber(vn)+0.5d) : 0;
 	    
 	    if(value < 0) return -roundHalfToEvenPositive(-value, precision);	    
 	    else return roundHalfToEvenPositive(value, precision);
@@ -802,55 +933,142 @@ public class FuncExpr extends Expr{
 	    if(precision > 0) result /= dec;
 	    else if(precision < 0) result *= dec;
 	    
-		return result;
-		
-		
+		return result;		
 	}
 	
-	public int evalNodeSet(VTDNav vn) throws XPathEvalException{
-	  throw new XPathEvalException(" Function Expr can't eval to node set ");
+	/**
+	 * 
+	 */
+	public int evalNodeSet(VTDNav vn) throws XPathEvalException {
+		switch (opCode) {
+		case FuncName.CURRENT:
+			if (state == START) {
+				vn.loadCurrentNode();
+				state = END;
+				return vn.getCurrentIndex2();
+			} else {
+				return -1;
+			}
+			// break;
+		case FuncName.DOCUMENT:
+			if (argCount == 1) {
+				if (!argumentList.e.isNodeSet()) {
+					if (state == START) {
+						String s = argumentList.e.evalString(vn);
+						if (s.length() == 0) {
+							newVN = xslVN;
+							newVN.context[0] = -1;
+						} else if (vg.parseFile(s, true)) {
+							newVN = vg.getNav();
+							newVN.context[0] = -1;
+							newVN.URIName = s;
+						} else {
+							state = END;
+							return -1;
+						}
+						state = END;
+						return 0;
+					} else {
+						return -1;
+					}
+				} else {
+					try {
+						if (state != END) {
+							a = argumentList.e.evalNodeSet(vn);
+							if (a != -1) {
+								String s = vn.toString(getStringVal(vn,a));
+								if (s.length() == 0) {
+									newVN = xslVN;
+									newVN.context[0] = -1;
+								} else if (vg.parseFile(s, true)) {
+									newVN = vg.getNav();
+									newVN.context[0] = -1;
+									newVN.URIName = s;
+								} else {
+									state = END;
+									return -1;
+								}
+								state = END;
+								return 0;
+							} else {
+								state = END;
+								return -1;
+							}
+						} else
+							return -1;
+					} catch (NavException e) {
+
+					}
+				}
+			}
+
+			break;
+		case FuncName.KEY:
+			throw new XPathEvalException(" key() not yet implemented ");
+			// break;
+		}
+		throw new XPathEvalException(" Function Expr can't eval to node set ");
+	}
+	
+	private int getStringVal(VTDNav vn,int i){
+        int i1,t = vn.getTokenType(i);
+        if (t == VTDNav.TOKEN_STARTING_TAG){
+            i1 = vn.getText();
+            return i1;
+        }
+        else if (t == VTDNav.TOKEN_ATTR_NAME
+                || t == VTDNav.TOKEN_ATTR_NS || t==VTDNav.TOKEN_PI_NAME )
+        	return i+1;
+        else 
+            return i;
 	}
 	
 	public boolean evalBoolean(VTDNav vn){
 	  	  switch(opCode){
 			case FuncName.STARTS_WITH:
-			    if (argCount()!=2){
+			    if (argCount!=2){
 			        throw new IllegalArgumentException("starts-with()'s argument count is invalid");
 			    }
 			    return startsWith(vn);
 			case FuncName.CONTAINS:
-			    if (argCount()!=2){
+			    if (argCount!=2){
 			        throw new IllegalArgumentException("contains()'s argument count is invalid");
 				}
 			    return contains(vn);
-			case FuncName.TRUE: if (argCount()!=0){
+			case FuncName.TRUE: if (argCount!=0){
 									throw new IllegalArgumentException("true() doesn't take any argument");
 								}
 								return true;			
-			case FuncName.FALSE:if (argCount()!=0){
+			case FuncName.FALSE:if (argCount!=0){
 									throw new IllegalArgumentException("false() doesn't take any argument");
 								}
 								return false;	
-			case FuncName.BOOLEAN: if (argCount()!=1){
+			case FuncName.BOOLEAN: if (argCount!=1){
 										throw new IllegalArgumentException("boolean() doesn't take any argument");
 								   }
 									return argumentList.e.evalBoolean(vn);	
-			case FuncName.NOT:	if (argCount()!=1){
+			case FuncName.NOT:	if (argCount!=1){
 										throw new IllegalArgumentException("not() doesn't take any argument");
 			   					}
 								return !argumentList.e.evalBoolean(vn);
 		    case FuncName.LANG:
-		        				if (argCount()!=1){
+		        				if (argCount!=1){
 		        				    	throw new IllegalArgumentException("lang()'s argument count is invalid");
 		        				}
 								return lang(vn,argumentList.e.evalString(vn));
 								
 		    case FuncName.COMPARE:throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
 		    case FuncName.ENDS_WITH:
-		        if (argCount()!=2){
+		        if (argCount!=2){
 		        throw new IllegalArgumentException("ends-with()'s argument count is invalid");
 		    }
 		    return endsWith(vn);
+		    
+		    case FuncName.MATCH_NAME:return matchName(vn);
+		    case FuncName.MATCH_LOCAL_NAME: return matchLocalName(vn);
+		    
+		    case FuncName.ELEMENT_AVAILABLE: return isElementAvailable(vn);
+		    case FuncName.FUNCTION_AVAILABLE: return isElementAvailable(vn);
 		        				
 			default: if (isNumerical()){
 			    		double d = evalNumber(vn);
@@ -865,6 +1083,7 @@ public class FuncExpr extends Expr{
 	
 	public void reset(VTDNav vn){
 	    a = 0;
+	    state  = START;
 	    //contextSize = 0;
 		if (argumentList!=null)
 			argumentList.reset(vn);
@@ -920,11 +1139,20 @@ public class FuncExpr extends Expr{
 			case FuncName.RESOLVE_QNAME:	return "resolve-QName";
 			case FuncName.IRI_TO_URI:    	return "iri-to-uri";
 			case FuncName.ESCAPE_HTML_URI:	return "escape-html-uri";
-			default:						return "encode-for-uri";
+			case FuncName.ENCODE_FOR_URI:	return "encode-for-uri";
+			case FuncName.MATCH_NAME:		return "match-name";
+			case FuncName.MATCH_LOCAL_NAME:	return "match-local-name";
+			case FuncName.CURRENT:			return "current";
+			case FuncName.GENERATE_ID:		return "generate-id";
+			case FuncName.FORMAT_NUMBER:	return "format-number";
+			case FuncName.KEY:		return "key";
+			default:
+				return "document";
+				
 		}
 	}
 	public boolean  isNodeSet(){
-		return false;
+		return isNodeSet;
 	}
 
 	public boolean  isNumerical(){
@@ -941,7 +1169,7 @@ public class FuncExpr extends Expr{
 	
 	private int count(VTDNav vn){
 	    int a = -1;
-	    if (argCount()!=1 || argumentList.e.isNodeSet()==false)
+	    if (argCount!=1 || argumentList.e.isNodeSet()==false)
 			throw new IllegalArgumentException
 				("Count()'s argument count is invalid");
 		vn.push2();
@@ -962,8 +1190,8 @@ public class FuncExpr extends Expr{
 	
 	private double sum(VTDNav vn){
 	    double d=0;
-	    if (argCount() != 1 || argumentList.e.isNodeSet() == false)
-	        throw new IllegalArgumentException("sum()'s argument count is invalid");
+	    if (argCount != 1 || argumentList.e.isNodeSet() == false)
+	        throw new IllegalArgumentException("sum()'s argument count or type is invalid");
     	vn.push2();
     	int size = vn.contextStack2.size;
     	try {
@@ -1070,7 +1298,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	private String upperCase(VTDNav vn){
-		if (argCount()==1){
+		if (argCount==1){
 			if (argumentList.e.isNodeSet()){
 				int a = evalFirstArgumentListNodeSet(vn);
 		        if (a==-1)
@@ -1092,7 +1320,7 @@ public class FuncExpr extends Expr{
 	}
 	
 	private String lowerCase(VTDNav vn){
-		if (argCount()==1){
+		if (argCount==1){
 			if (argumentList.e.isNodeSet()){
 				int a = evalFirstArgumentListNodeSet(vn);
 		        if (a==-1)
@@ -1110,5 +1338,128 @@ public class FuncExpr extends Expr{
 		}else 
 			throw new IllegalArgumentException
 			("lowerCase()'s argument count is invalid");
+	}
+	
+	private boolean matchName(VTDNav vn){	    
+		int a;
+		if (argCount == 1) {
+			a = vn.getCurrentIndex();
+			int type = vn.getTokenType(a);
+			String s1 = argumentList.e.evalString(vn);
+			if (type == VTDNav.TOKEN_STARTING_TAG
+					|| type == VTDNav.TOKEN_ATTR_NAME
+					|| type == VTDNav.TOKEN_PI_NAME) {
+				try {
+					return vn.matchRawTokenString(a, s1);
+				} catch (Exception e) {
+					return false;
+				}
+			} else
+				return false;
+		} else if (argCount == 2) {
+			a = evalFirstArgumentListNodeSet2(vn);
+			String s1 = argumentList.next.e.evalString(vn);
+			try {
+				if (a == -1 || vn.ns == false)
+					return false;
+				else {
+					int type = vn.getTokenType(a);
+					if (type == VTDNav.TOKEN_STARTING_TAG
+							|| type == VTDNav.TOKEN_ATTR_NAME
+							|| type == VTDNav.TOKEN_PI_NAME)
+						return vn.matchRawTokenString(a, s1);
+					return false;
+				}
+			} catch (Exception e) {
+			}
+			return false;
+		} else
+			throw new IllegalArgumentException(
+					"name()'s argument count is invalid");
+	}
+	private boolean matchLocalName(VTDNav vn){
+	    if (argCount== 1){
+	        try{
+	            int index = vn.getCurrentIndex();
+	            int type = vn.getTokenType(index);
+	            String s1 = argumentList.e.evalString(vn);
+	            if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG 
+	                    || type == VTDNav.TOKEN_ATTR_NAME)) {
+                    int offset = vn.getTokenOffset(index);
+                    int length = vn.getTokenLength(index);
+                    if (length < 0x10000 || (length>>16)==0){
+                    	return (vn.compareRawTokenString(index, s1)==0);//vn.toRawString(index);
+                    }
+                    else {
+                        int preLen = length >> 16;
+                        int QLen = length & 0xffff;
+                        if (preLen != 0){
+                        	 return (vn.compareRawTokenString(offset + preLen+1, QLen
+                                        - preLen - 1,s1)==0);                        	
+                        }
+                    }
+                } else if (type == VTDNav.TOKEN_PI_NAME){
+                	return vn.compareRawTokenString(index, s1)==0;
+                } else 
+                    return "".equals(s1);
+	        }catch(NavException e){
+	        	 return false; // this will never occur
+	        }
+	        
+	    } else if (argCount == 2){
+	        int a=evalFirstArgumentListNodeSet2(vn);
+	        String s1 = argumentList.next.e.evalString(vn);
+			if (a == -1 || vn.ns == false)
+			    return "".equals(s1);
+			int type = vn.getTokenType(a);
+			if (type==VTDNav.TOKEN_STARTING_TAG || type== VTDNav.TOKEN_ATTR_NAME){
+			    //return "".equals(s1);
+			try {			    
+			    int offset = vn.getTokenOffset(a);
+			    int length = vn.getTokenLength(a);
+			    if (length < 0x10000 || (length>> 16)==0)
+			        return vn.compareRawTokenString(a,s1)==0;
+			    else {
+			        int preLen = length >> 16;
+			        int QLen = length & 0xffff;
+			        if (preLen != 0)
+			            return vn.compareRawTokenString(offset + preLen+1, 
+			                    QLen - preLen - 1,s1)==0;
+			        /*else {
+			            return vn.toRawString(offset, QLen);
+			        }*/
+			    }
+			} catch (NavException e) {
+				 return "".equals(s1); // this will almost never occur
+			}		
+			}else if (type == VTDNav.TOKEN_PI_NAME){
+				try{
+					return vn.compareRawTokenString(a,s1)==0;
+				}catch(NavException e){
+					 return "".equals(s1);
+				}
+			}
+			 return "".equals(s1);
+	    } else 
+	        throw new IllegalArgumentException
+			("local-name()'s argument count is invalid");
+		return false;
+	}
+	
+	/**
+	 * generate-id(nodeset?);
+	 * @param vn
+	 * @return
+	 */
+	private String generateID(VTDNav vn){
+		if (argCount== 0){
+			return "v"+vn.getCurrentIndex2();
+		}else if (argCount== 1) {
+			int i=evalFirstArgumentListNodeSet2(vn);
+			return "v"+i;
+		} else 
+	        throw new IllegalArgumentException
+			("generate-id()'s argument count is invalid");
+		
 	}
 }
