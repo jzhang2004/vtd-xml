@@ -807,7 +807,7 @@ public class XMLModifier {
             	docSize += ((byte[])fob.objectAt(i)).length+inc;
             } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){
             	docSize += ((ByteSegment)fob.objectAt(i)).len+inc;
-            } else /*if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)*/ { 
+            } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED) { 
             	docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(md.encoding)+inc;
             }
         }
@@ -1727,7 +1727,7 @@ public class XMLModifier {
                         os.write(bs.ba,bs.offset,bs.len);
                         os.write(0x3c);
                         offset=flb.lower32At(i);
-                    } else {
+                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED){
                         //ElementFragmentNs
                         os.write(ba,offset, flb.lower32At(i)-offset);
                         ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
@@ -1750,7 +1750,7 @@ public class XMLModifier {
                         i1 = i2;
                         i2 = temp2;
                     }
-                    // first is definitely
+                    // first (i1) is definitely
                     os.write(ba,offset, flb.lower32At(i1)-offset);
                     //os.write((byte[])fob.objectAt(i2));
                     //offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
@@ -1766,25 +1766,25 @@ public class XMLModifier {
                         ByteSegment bs = (ByteSegment) fob.objectAt(i2);
                         os.write(bs.ba,bs.offset,bs.len);
                         offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS){
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS){
                         //ElementFragmentNs
                         //os.write(ba,offset, flb.lower32At(i2)-offset);
                         ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
                         ef.writeToOutputStream(os,md.encoding);
                         offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED ) { // insert
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED ) { // insert
                     	os.write(0x3e);
                     	os.write((byte[])fob.objectAt(i2));
                     	os.write(0x3c);
                         offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED) { 
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED) { 
                         // XML_INSERT_SEGMENT_BYTE
                     	ByteSegment bs = (ByteSegment) fob.objectAt(i2);
                     	os.write(0x3e);
                         os.write(bs.ba,bs.offset,bs.len);
                         os.write(0x3c);
                         offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                    } else {
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED){
                         //ElementFragmentNs
                     	ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
                     	os.write(0x3e);
@@ -1853,7 +1853,7 @@ public class XMLModifier {
                         os.write(bs.ba,bs.offset,bs.len);
                         os.write(b2);
                         offset=flb.lower32At(i)<<1;
-                    } else {
+                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED){
                     	 //ElementFragmentNs
                         os.write(ba,offset, (flb.lower32At(i)<<1)-offset);
                         ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
@@ -1876,7 +1876,7 @@ public class XMLModifier {
                         i1 = i2;
                         i2 = temp2;
                     }
-                    // first is definitely
+                    // first is definitely delete
                     os.write(ba,offset, (flb.lower32At(i1)<<1)-offset);
                     //os.write((byte[])fob.objectAt(i2));
                     //offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
@@ -1893,27 +1893,27 @@ public class XMLModifier {
                         
                         os.write(bs.ba,bs.offset,bs.len);
                         offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
-                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS){
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS){
                         //ElementFragmentNs
                         //os.write(ba,offset, flb.lower32At(i2)-offset);
                         ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
                         ef.writeToOutputStream(os,md.encoding);
                         offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
-                    }else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED ) { // insert
+                    }else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED ) { // insert
                     	// XML_INSERT_SEGMENT_BYTE
                     	//os.write(ba,offset, flb.lower32At(i2)-offset);
                     	os.write(b1);
                         os.write((byte[])fob.objectAt(i2));
                         os.write(b2);
                         offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
-                    } else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED) { 
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED) { 
                     	// XML_INSERT_SEGMENT_BYTE
                     	ByteSegment bs = (ByteSegment) fob.objectAt(i2);
                     	os.write(b1);
                         os.write(bs.ba,bs.offset,bs.len);
                         os.write(b2);
                         offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff))<<1;
-                    } else {
+                    } else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED){
                     	 //ElementFragmentNs
                     	 //os.write(ba,offset, flb.lower32At(i2)-offset);
                         ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
@@ -1928,6 +1928,7 @@ public class XMLModifier {
         }
     }
     
+
     /**
      * Generate the updated output XML document and write it into 
      * a file of given name
