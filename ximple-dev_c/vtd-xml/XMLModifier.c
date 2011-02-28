@@ -918,15 +918,15 @@ void output(XMLModifier *xm, FILE *f){
 							if (k!=t)
 								throwException2(io_exception,"fwrite didn't complete");  
 							offset = lower32At(xm->flb,i1) + (upper32At(xm->flb,i1) & 0x1fffffff);
-					}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
+					}else if ((k & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS){
 						/*t = lower32At(xm->flb,i+1);
 						k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 						if (k!=t-offset)
 						throwException2(io_exception,"fwrite didn't complete");*/
 						writeFragmentToFile2((ElementFragmentNs*)lower32At(xm->fob,i2),f,xm->encoding);
 						offset = lower32At(xm->flb,i1) + (upper32At(xm->flb,i1) & 0x1fffffff);
-					}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE_ENCLOSED
-					|| (l & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){ 
+					}else if ((k & (~0x1fffffffffffffffLL)) == MASK_INSERT_BYTE_ENCLOSED
+					|| (k & (~0x1fffffffffffffffLL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED){ 
 						/*os.write(ba,offset, flb.lower32At(i+1)-offset);*/
 							fwrite(">",sizeof(UByte),1,f);
 							t = upper32At(xm->fob,i2);   /* the length */
@@ -1055,7 +1055,7 @@ void output(XMLModifier *xm, FILE *f){
 							if (k!=t)
 								throwException2(io_exception,"fwrite didn't complete");  
 							offset = (lower32At(xm->flb,i1) + (upper32At(xm->flb,i1) & 0x1fffffff))<<1;
-					}else if ((l & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS) {
+					}else if ((k & (~0x1fffffffffffffffLL)) == MASK_INSERT_FRAGMENT_NS) {
 						/*t = lower32At(xm->flb,i+1);
 						k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 						if (k!=t-offset)
