@@ -952,7 +952,201 @@ public class XMLModifier {
         }
         insertBytesAt((int)i,b);
     }
+    /**
+     * This method will insert byte array b right before the tail of cursor element, 
+     * @param b
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(byte[] b)
+    	throws ModifyException,NavException {
+    	long i = md.getOffsetBeforeTail();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+            // handle empty element case
+        	// <a/> would become <a>b's content</a>
+        	// so there are two insertions there
+        	insertAfterHead(b);
+        	return;
+        }
+        insertBytesAt((int)i,b);
+    }
+    /**
+     * This method will insert byte content of string right before the tail of cursor element, 
+     * @param s
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(String s)
+	throws ModifyException,UnsupportedEncodingException,NavException {
+    	long i = md.getOffsetBeforeTail();
+    	if (i<0){
+        //throw new ModifyException("Insertion failed");
+        // handle empty element case
+    	// <a/> would become <a>b's content</a>
+    	// so there are two insertions there
+    		insertAfterHead(s.getBytes(charSet));
+    		return;
+    	}
+    	insertBytesAt((int)i,s.getBytes());
+    }
+    /**
+     * This method will insert the transcoded representation of byte array b right before the tail of cursor element, 
+     * @param src_encoding
+     * @param b
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(int src_encoding, byte[] b)
+    throws ModifyException, NavException,TranscodeException {
+        if(src_encoding == encoding){
+            insertBeforeTail(b);
+        }else{
+            long i = md.getOffsetBeforeTail();
+            if (i<0){
+                //throw new ModifyException("Insertion failed");
+            	insertAfterHead(src_encoding,b);
+            	return;
+            }
+            byte[] bo = Transcoder.transcode(b, 0, b.length, src_encoding, encoding);
+            insertBytesAt((int)i,bo);            
+        }
+    }
+    /**
+     * This method will insert the transcoded representation of a segment of byte array b right before the tail of cursor element,
+     * @param src_encoding
+     * @param b
+     * @param offset
+     * @param length
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(int src_encoding, byte[] b, int offset, int length)
+    throws ModifyException, NavException,TranscodeException {
+        if(src_encoding == encoding){
+            insertAfterHead(b,offset,length);
+        }else{
+            long i = md.getOffsetBeforeTail();
+            if (i<0){
+                //throw new ModifyException("Insertion failed");
+            	insertAfterHead(src_encoding,b,offset, length);
+            	return;
+            }
+            byte[] bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
+            insertBytesAt((int)i,bo,offset, length);            
+        }
+    }
     
+    /**
+     * This method will insert a segment of the byte array (contained in vn, and 
+     * transcode into a byte array) before the tail of cursor element, 
+     * @param vn
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(VTDNav vn, int contentOffset, int contentLen)
+    throws ModifyException, NavException,TranscodeException {
+        insertBeforeTail(vn.encoding,vn.XMLDoc.getBytes(),contentOffset, contentLen);       
+    }
+    /**
+     * This method will insert the transcoded representation of a segment of the byte array  before the tail of cursor element, 
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param src_encoding
+     * @param b
+     * @param l
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(int src_encoding, byte[] b, long l) 
+    throws ModifyException, NavException,TranscodeException {
+        if(src_encoding == encoding){
+            insertBeforeTail(b,l);
+        }else{
+            long i = md.getOffsetBeforeTail();
+            if (i<0){
+                //throw new ModifyException("Insertion failed");
+            	insertAfterHead(src_encoding,b,l);
+            	return;
+            }
+            byte[] bo = Transcoder.transcode(b, (int)l, (int)l>>32, src_encoding, encoding);
+            insertBytesAt((int)i,bo,l);            
+        }
+    }
+    /**
+     * This method will insert  a segment of the byte array  before the tail of cursor element,
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param b
+     * @param l
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(byte[] b, long l)
+    throws ModifyException,NavException{
+        long i = md.getOffsetBeforeTail();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+        	insertAfterHead(b,l);
+        	return;
+        }
+        insertBytesAt((int)i,b,l);
+    }
+    /**
+     * This method will insert a namespace compensated fragment before the tail of cursor element, 
+     * @param ef
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(ElementFragmentNs ef) 
+    throws ModifyException, NavException{
+        long i = md.getOffsetBeforeTail();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+        	insertAfterHead(ef);
+        	return;
+        }
+        insertElementFragmentNsAt((int)i, ef);
+    }
+   
+    /**
+     * This method will insert a segment of the byte array (contained in vn, and 
+     * transcode into a byte array) before the tail of cursor element, 
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     *
+     * @param vn
+     * @param l1
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(VTDNav vn, long l1) throws ModifyException,
+    NavException, TranscodeException {
+        insertBeforeTail(vn.encoding, vn.XMLDoc.getBytes(), l1);
+    }
+    
+    /**
+     * This method will insert a segment of the byte array  before the tail of cursor element, 
+     * @param b
+     * @param offset
+     * @param len
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(byte[] b, int offset, int len)
+    throws ModifyException,NavException{
+        long i = md.getOffsetBeforeTail();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+        	insertAfterHead(b, offset, len);
+        	return;
+        }
+        insertBytesAt((int)i,b,offset, len);
+    }
     /**
      * This method will insert the transcoded representation of 
      * byte array b after the head of cursor element, 
@@ -1069,8 +1263,8 @@ public class XMLModifier {
      * This method will insert a segment of the byte array b (contained in vn, and 
      * transcode into a byte array) after the head of cursor element, 
      * @param vn
-     * @param contentOffset
-     * @param contentLen
+     * @param contentOffset in byte 
+     * @param contentLen   in byte
      * @throws ModifyException
      * @throws NavException
      * @throws TranscodeException
