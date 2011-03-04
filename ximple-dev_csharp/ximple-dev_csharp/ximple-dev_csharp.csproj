@@ -1,4 +1,5 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -13,10 +14,25 @@
     </StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <OldToolsVersion>2.0</OldToolsVersion>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,6 +58,7 @@
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
+    <DocumentationFile>bin\x86\Debug\ximple-dev_csharp.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -57,8 +74,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Class1.cs" />
     <Compile Include="com\ximpleware\BookMark.cs" />
     <Compile Include="com\ximpleware\ByteSegment.cs" />
+    <Compile Include="com\ximpleware\ArrayList.cs" />
     <Compile Include="com\ximpleware\ElementFragmentNs.cs" />
     <Compile Include="com\ximpleware\IndexReadException.cs" />
     <Compile Include="com\ximpleware\IndexWriteException.cs" />
@@ -126,10 +145,12 @@
     <Compile Include="com\ximpleware\VTDException.cs" />
     <Compile Include="com\ximpleware\VTDGen.cs" />
     <Compile Include="com\ximpleware\VTDNav.cs" />
+    <Compile Include="com\ximpleware\VTDNav_L5.cs" />
+    <Compile Include="com\ximpleware\XMLByteStream.cs" />
     <Compile Include="com\ximpleware\XMLModifier.cs" />
     <Compile Include="com\ximpleware\xpath\Alist.cs" />
     <Compile Include="com\ximpleware\xpath\AxisType.cs" />
-    <Compile Include="com\ximpleware\xpath\Expr.cs" />
+    <Compile Include="com\ximpleware\Expr.cs" />
     <Compile Include="com\ximpleware\xpath\FuncName.cs" />
     <Compile Include="com\ximpleware\IndexHandler.cs" />
     <Compile Include="com\ximpleware\xpath\LiteralExpr.cs" />
@@ -145,8 +166,8 @@
     <Compile Include="com\ximpleware\xpath\UnsupportedException.cs" />
     <Compile Include="com\ximpleware\XPathEvalException.cs" />
     <Compile Include="com\ximpleware\XPathParseException.cs" />
+    <Compile Include="com\ximpleware\xpath\VariableExpr.cs" />
     <Compile Include="com\ximpleware\xpath\Yylex.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TUVienna\CS_CUP\action_part.cs" />
     <Compile Include="TUVienna\CS_CUP\action_production.cs" />
     <Compile Include="TUVienna\CS_CUP\assoc.cs" />
@@ -182,6 +203,45 @@
     <Compile Include="TUVienna\CS_CUP\terminal.cs" />
     <Compile Include="TUVienna\CS_CUP\terminal_set.cs" />
     <Compile Include="TUVienna\CS_CUP\version.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="com\ximpleware\xpath\parser_cs.cup" />
+    <None Include="com\ximpleware\xpath\scanner_cs.flex" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
