@@ -351,7 +351,7 @@ public class VTDNav {
      */
 	public int getAttrVal(String an) throws NavException {
 		//int size = vtdBuffer.size();
-		if (context[0]==-1 || atTerminal)
+		if (context[0]==-1 /*|| atTerminal*/)
 			return -1;
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		
@@ -408,7 +408,7 @@ public class VTDNav {
      *                if s is null
      */
     public int getAttrValNS(String URL, String ln) throws NavException {
-    	if (!ns || context[0]==-1 || atTerminal)
+    	if (!ns || context[0]==-1 /*|| atTerminal*/)
     		return -1;
     	if (URL!=null && URL.length()==0)
         	URL = null;
@@ -1197,7 +1197,7 @@ public class VTDNav {
 	
 	/**
 	 * Return the charater (not byte) offset after head (the ending bracket of the starting tag, 
-	 * not including an empty element, in which case -1 is returned)
+	 * not including an empty element, in which case 0xffffffff 00000000 | len  is returned)
 	 * @return
 	 *
 	 */
@@ -1229,6 +1229,29 @@ public class VTDNav {
 	        return 0xffffffff00000000L|(offset);
 	    else
 	        return offset+1;
+	}
+	
+	final protected long getOffsetBeforeTail() throws NavException{
+		long l = getElementFragment();
+		
+		int offset = (int)l;
+		int len = (int)(l>>32);
+		// byte to char conversion
+		if (this.encoding >= VTDNav.FORMAT_UTF_16BE){
+			offset <<= 1;
+			len <<=1;
+		}
+		offset += len;
+		if (getCharUnit(offset-2)=='/')
+			return 0xffffffff00000000L | offset-1;
+		else{
+			offset -= 2;
+			while(getCharUnit(offset)!='/'){
+		        offset--;	        
+		    }
+			return offset -1;
+		}
+		//return 1;
 	}
 	/**
      * Get root index value , which is the index val of root element
@@ -5280,7 +5303,15 @@ public class VTDNav {
 	protected void loadCurrentNode(){
 		currentNode.setCursorPosition();
 	}
-	
+	// like toElement, toNode takes an integer that determines the 
+	protected boolean toNode(int dir){
+		switch(dir){
+		case ROOT:
+		case PARENT:
+
+		}
+		return false;
+	}
 
 
 }
