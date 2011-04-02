@@ -279,7 +279,7 @@ public class FuncExpr extends Expr{
 			int type = vn.getTokenType(a);
 			/*if (type!=VTDNav.TOKEN_STARTING_TAG && type!= VTDNav.TOKEN_ATTR_NAME)
 			    return "";*/
-			if (type == VTDNav.TOKEN_STARTING_TAG && type== VTDNav.TOKEN_ATTR_NAME){
+			if (type == VTDNav.TOKEN_STARTING_TAG || type== VTDNav.TOKEN_ATTR_NAME){
 			try {			    
 			    int offset = vn.getTokenOffset(a);
 			    int length = vn.getTokenLength(a);
