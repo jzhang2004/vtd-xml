@@ -5732,9 +5732,14 @@ public class VTDNav {
 							index = LN + 1;
 							if (getTokenType(LN) == TOKEN_PI_NAME)
 								index++;
-							if (index < vtdSize - 1) {
-								LN = index;
-								return true;
+							if (index < vtdSize) {
+								depth = getTokenDepth(index);
+								if (depth==1 && getTokenType(index)!= TOKEN_STARTING_TAG){
+									LN = index;
+									atTerminal = true;
+									return true;
+								}
+								return false;
 							} else
 								return false;
 						}						
@@ -5744,11 +5749,12 @@ public class VTDNav {
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
-							if (depth!=1)
-								return false;
-							LN = index;
-							atTerminal = true;
-							return true;
+							if (depth==1 && getTokenType(index)!= TOKEN_STARTING_TAG){
+								LN = index;
+								atTerminal = true;
+								return true;
+							}
+							return false;
 						}else{
 							return false;
 						}
@@ -5990,7 +5996,7 @@ public class VTDNav {
 				}
 				else{
 					index = context[context[0]] + 1;
-					tmp = context[0];
+					tmp = context[0]-1;
 				}
 				while (index < vtdBuffer.size) {
 					long temp = vtdBuffer.longAt(index);
@@ -6015,9 +6021,9 @@ public class VTDNav {
 					case TOKEN_COMMENT:
 					case TOKEN_CDATA_VAL:
 						//depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						if (depth < context[0]) {
+						if (depth < tmp) {
 							return false;
-						} else if (depth == (context[0])) {
+						} else if (depth == tmp) {
 							LN = index;
 							atTerminal = true;
 							return true;
@@ -6026,9 +6032,9 @@ public class VTDNav {
 						break;
 					case TOKEN_PI_NAME:
 						//depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						if (depth < context[0]) {
+						if (depth < tmp) {
 							return false;
-						} else if (depth == (context[0])) {
+						} else if (depth == tmp) {
 							LN = index;
 							atTerminal = true;
 							return true;

@@ -2353,8 +2353,13 @@ public class VTDNav_L5 extends VTDNav {
 							if (getTokenType(LN) == TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize - 1) {
-								LN = index;
-								return true;
+								depth = getTokenDepth(index);
+								if (depth==1 && getTokenType(index)!= TOKEN_STARTING_TAG){
+									LN = index;
+									atTerminal = true;
+									return true;
+								}
+								return false;
 							} else
 								return false;
 						}						
@@ -2364,11 +2369,12 @@ public class VTDNav_L5 extends VTDNav {
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
-							if (depth!=1)
-								return false;
-							LN = index;
-							atTerminal = true;
-							return true;
+							if (depth==1 && getTokenType(index)!= TOKEN_STARTING_TAG){
+								LN = index;
+								atTerminal = true;
+								return true;
+							}
+							return false;
 						}else{
 							return false;
 						}
@@ -2444,7 +2450,7 @@ public class VTDNav_L5 extends VTDNav {
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
-								if (depth!=2 && getTokenType(index)!=TOKEN_STARTING_TAG){									
+								if (depth==2 && getTokenType(index)!=TOKEN_STARTING_TAG){									
 									LN = index;
 									return true;
 								}
@@ -2555,7 +2561,7 @@ public class VTDNav_L5 extends VTDNav {
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
-								if (depth!=3 && getTokenType(index)!=TOKEN_STARTING_TAG){									
+								if (depth==3 && getTokenType(index)!=TOKEN_STARTING_TAG){									
 									LN = index;
 									return true;
 								}
@@ -2669,7 +2675,7 @@ public class VTDNav_L5 extends VTDNav {
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
-								if (depth!=4 && getTokenType(index)!=TOKEN_STARTING_TAG){									
+								if (depth==4 && getTokenType(index)!=TOKEN_STARTING_TAG){									
 									LN = index;
 									return true;
 								}
@@ -2850,9 +2856,9 @@ public class VTDNav_L5 extends VTDNav {
 				}
 				else{
 					index = context[context[0]] + 1;
-					tmp = context[0];
+					tmp = context[0]-1;
 				}
-				while (index < vtdBuffer.size) {
+				while (index < vtdSize) {
 					long temp = vtdBuffer.longAt(index);
 					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >>> 60);
 					depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
@@ -2861,6 +2867,7 @@ public class VTDNav_L5 extends VTDNav {
 						if (depth < tmp) {
 							return false;
 						} else if (depth == tmp) {
+							context[0]++;
 							context[context[0]] = index;
 							atTerminal = false;
 							return true;
@@ -2875,9 +2882,9 @@ public class VTDNav_L5 extends VTDNav {
 					case TOKEN_COMMENT:
 					case TOKEN_CDATA_VAL:
 						//depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						if (depth < context[0]) {
+						if (depth < tmp) {
 							return false;
-						} else if (depth == (context[0])) {
+						} else if (depth == (tmp)) {
 							LN = index;
 							atTerminal = true;
 							return true;
@@ -2886,9 +2893,9 @@ public class VTDNav_L5 extends VTDNav {
 						break;
 					case TOKEN_PI_NAME:
 						//depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						if (depth < context[0]) {
+						if (depth < tmp) {
 							return false;
-						} else if (depth == (context[0])) {
+						} else if (depth == tmp) {
 							LN = index;
 							atTerminal = true;
 							return true;
