@@ -5678,7 +5678,7 @@ public class VTDNav {
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
-							if (depth!=0)
+							if (depth!=1)
 								return false;
 							LN = index;
 							atTerminal = true;
@@ -5937,7 +5937,7 @@ public class VTDNav {
 						}
 						if (index == lastEntry){
 							context[0]=3;
-							context[2] = index+1;
+							context[3] = index+1;
 							return true;
 						}
 						context[0]=2;
@@ -6152,6 +6152,7 @@ public class VTDNav {
 							return false;
 						}
 					}
+					return false;
 				}
 				
 			}else{
@@ -6218,7 +6219,7 @@ public class VTDNav {
 					}
 				}else{
 					index= LN-1;
-					if (getTokenType(LN)==TOKEN_PI_VAL)
+					if (getTokenType(index)==TOKEN_PI_VAL)
 						index--;
 					if (index > context[1]){
 						tokenType = getTokenType(index);
@@ -6299,7 +6300,7 @@ public class VTDNav {
 					}
 				}else{
 					index= LN-1;
-					if (getTokenType(LN)==TOKEN_PI_VAL)
+					if (getTokenType(index)==TOKEN_PI_VAL)
 						index--;
 					if (index > context[2]){
 						tokenType = getTokenType(index);
