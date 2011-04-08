@@ -1274,7 +1274,7 @@ public class VTDNav {
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		int depth = getCurrentDepth();
 		int type; 
-		if (index<vtdSize)
+		if (index<vtdSize || !atTerminal)
 			type = getTokenType(index);
 		else 
 			return -1;
@@ -1741,8 +1741,137 @@ public class VTDNav {
 	}
 	
 	//descendent::node()
+	protected boolean iterate_preceding_node(int[] a, int endIndex)
+	throws NavException {
+		int index = getCurrentIndex() + 1;
+		int tokenType;
+		//int t,d;
+		//int depth = getTokenDepth(index);
+		//int size = vtdBuffer.size;
+		while (index <  endIndex) {
+			tokenType = getTokenType(index);
+			switch(tokenType){
+			case TOKEN_ATTR_NAME:
+			case TOKEN_ATTR_NS:
+				index = index + 2;
+				continue;
+			case TOKEN_STARTING_TAG:
+			//case TOKEN_DOCUMENT:
+				int depth = getTokenDepth(index);
+				if (index!=a[depth]){
+					context[0] = depth;
+					if (depth > 0)
+						context[depth] = index;
+					if (depth < maxLCDepthPlusOne)
+						resolveLC();
+					atTerminal = false;
+					return true;	
+				}else{
+					index++;
+					continue;
+				}
+				
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_CDATA_VAL:
+			case TOKEN_COMMENT:
+			case TOKEN_PI_NAME:
+				depth = getTokenDepth(index);
+				context[0]=depth;
+				LN = index;
+				atTerminal = true;
+				return true;
+			}
+			index++;
+		}
+		return false;	
+	}
 	
-	
+	protected boolean iterate_following_node()
+	throws NavException {
+		int index = getCurrentIndex() + 1;
+		int tokenType;
+		//int size = vtdBuffer.size;
+		while (index < vtdSize) {
+			tokenType = getTokenType(index);
+			switch(tokenType){
+			case TOKEN_ATTR_NAME:
+			case TOKEN_ATTR_NS:
+				index = index + 2;
+				continue;
+			case TOKEN_STARTING_TAG:
+			case TOKEN_DOCUMENT:
+				int depth = getTokenDepth(index);
+				context[0] = depth;
+				if (depth > 0)
+					context[depth] = index;
+				if (depth < maxLCDepthPlusOne)
+					resolveLC();
+				atTerminal = false;
+				return true;	
+				
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_CDATA_VAL:
+			case TOKEN_COMMENT:
+			case TOKEN_PI_NAME:
+				depth = getTokenDepth(index);
+				context[0]=depth;
+				LN = index;
+				atTerminal = true;
+				return true;
+			}
+			index++;
+		}
+		return false;		
+	}
+	/**
+	 * 
+	 */
+	protected boolean iterateNode(int dp)
+			throws NavException { // the navigation doesn't rely on LC
+		// get the current depth
+		int index = getCurrentIndex() + 1;
+		int tokenType,depth;
+		// int size = vtdBuffer.size;
+		while (index < vtdSize) {
+			tokenType = getTokenType(index);
+			switch(tokenType){
+			case TOKEN_ATTR_NAME:
+			case TOKEN_ATTR_NS:
+				index = index + 2;
+				continue;
+			case TOKEN_STARTING_TAG:
+			case TOKEN_DOCUMENT:
+				depth = getTokenDepth(index);
+				atTerminal = false;
+				if (depth > dp) {
+					context[0] = depth;
+					if (depth > 0)
+						context[depth] = index;
+					if (dp < maxLCDepthPlusOne)
+						resolveLC();
+					return true;					
+				} else {
+					return false;
+				}
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_COMMENT:
+			case TOKEN_PI_NAME:
+			case TOKEN_CDATA_VAL:
+				depth = getTokenDepth(index);
+				
+				if (depth >= dp){
+					LN= index;
+					context[0]= depth;
+					atTerminal = true;
+					return true;
+				}
+				return false;
+			default:
+				index ++;
+			}			
+		}
+		return false;
+	}
 	
 
 	/**
