@@ -66,6 +66,46 @@ public class NodeTest implements LocationPathNode{
 		}
 		return false;
 	}
+	
+	public boolean eval2(VTDNav vn)throws NavException{
+		switch(testType){
+		case NAMETEST:
+			if (vn.atTerminal == true)
+		        return false;
+			if (localName!=null)
+		        return vn.matchElementNS(URL,localName);
+		    else 
+		        return vn.matchElement(nodeName);
+		case NODE:
+			return true;
+		case TEXT:
+			if (vn.atTerminal == false)
+		        return false;
+			int t = vn.getTokenType(vn.LN);
+			if (t== VTDNav.TOKEN_CHARACTER_DATA
+					|| t == VTDNav.TOKEN_CDATA_VAL){
+				return true;
+			}
+			return false;
+			
+		case PI0:
+		case PI1:
+			if (vn.atTerminal == false)
+				return false;
+			if (vn.getTokenType(vn.LN)== VTDNav.TOKEN_PI_NAME){
+				return true;
+			}
+			return false;
+			
+		default: // comment
+			if (vn.atTerminal == false)
+				return false;
+			if (vn.getTokenType(vn.LN)== VTDNav.TOKEN_COMMENT){
+				return true;
+			}
+			return false;
+		}
+	}
 
 	public String toString(){
 		switch (testType){

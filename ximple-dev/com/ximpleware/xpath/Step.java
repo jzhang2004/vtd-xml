@@ -30,7 +30,7 @@ public class Step implements LocationPathNode{
 	public int position; // position
 	public Step prevS; // points to the prev step
 	public Object o; //AutoPilot or TextIter goes here
-	boolean ft; // first time
+	public boolean ft; // first time
 	public Step(){
 		nextS = prevS = (Step)null;
 		p  = pt = null;
@@ -116,8 +116,20 @@ public class Step implements LocationPathNode{
 		return nt.eval(vn) && evalPredicates(vn);
 	}
 	
+	public boolean eval2(VTDNav vn)throws NavException{
+		/*boolean result = this.nt.eval(vn);
+		if (result == false)
+			return false;
+		return evalPredicates(vn);*/
+		return nt.eval2(vn) && evalPredicates(vn);
+	}
+	
 	public boolean eval(VTDNav vn, Predicate p) throws NavException{
 	    return nt.eval(vn) && evalPredicates(vn,p);
+	}
+	
+	public boolean eval2(VTDNav vn, Predicate p) throws NavException{
+	    return nt.eval2(vn) && evalPredicates(vn,p);
 	}
 	
 	public boolean evalPredicates(VTDNav vn) throws NavException {
