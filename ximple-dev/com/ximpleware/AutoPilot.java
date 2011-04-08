@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2009 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,28 +27,29 @@ import java.io.*;
  * 
  */
 public class AutoPilot {
-    private int depth;
+    protected int depth;
     // the depth of the element at the starting point will determine when to stop iteration
-    private int iter_type; // see selectElement
-    private VTDNav vn; // the navigator object
-    private int index; // for iterAttr
-    private boolean ft; // a helper variable for 
-    private boolean special;   // This helps distinguish between
+    protected int iter_type; // see selectElement
+    protected VTDNav vn; // the navigator object
+    protected int index; // for iterAttr
+    protected int endIndex;
+    protected boolean ft; // a helper variable for 
+    protected boolean special;   // This helps distinguish between
     				   		   // the case of node() and * for preceding axis
     						   // of xpath evaluation
-    private String name; // Store element name after selectElement
-    private String name2; // store xmlns:+name
-    private String localName; // Store local name after selectElemntNS
-    private String URL; // Store URL name after selectElementNS
-    private int size; // for iterateAttr
+    protected String name; // Store element name after selectElement
+    protected String name2; // store xmlns:+name
+    protected String localName; // Store local name after selectElemntNS
+    protected String URL; // Store URL name after selectElementNS
+    protected int size; // for iterateAttr
     
-    private Expr xpe;	// for evalXPath
+    protected Expr xpe;	// for evalXPath
     
-    private int[] contextCopy;  //for preceding axis
-    private int stackSize;  // the stack size for xpath evaluation
+    protected int[] contextCopy;  //for preceding axis
+    protected int stackSize;  // the stack size for xpath evaluation
     private FastIntBuffer fib; // for namespace axis
     
-    static private Hashtable nsHash;
+    protected Hashtable nsHash;
     //private parser p;
     // defines the type of "iteration"
     public final static int UNDEFINED = 0;
@@ -65,6 +66,10 @@ public class AutoPilot {
     public final static int ATTR = 9;
     public final static int ATTR_NS = 10;
     public final static int NAME_SPACE = 11;
+    public final static int SIMPLE_NODE = 12;
+    public final static int DESCENDANT_NODE = 13;
+    public final static int FOLLOWING_NODE = 14;
+    public final static int PRECEDING_NODE = 15;
     
     static private Hashtable symbolHash;
     
@@ -178,6 +183,48 @@ public void clearVariableExprs(){
 public void clearXPathNameSpaces(){
 	nsHash.clear();
 }
+
+protected boolean iterate2() throws PilotException, NavException {
+	switch (iter_type) {
+		case SIMPLE_NODE:
+			if (ft && vn.atTerminal)
+				return false;
+			if (ft){
+				ft =false;
+				return true;
+			}
+			return vn.iterateNode(depth);
+			
+		case DESCENDANT_NODE:
+         	return vn.iterateNode(depth);
+         	
+		case FOLLOWING_NODE:
+			if (ft){
+				boolean b= false;
+				do{
+					b = vn.toNode(VTDNav.NEXT_SIBLING);
+					if (b){
+						ft = false;
+						return true;
+					}else{
+						b = vn.toNode(VTDNav.PARENT);
+					}
+				}while(b);
+				return false;
+			}			
+			return vn.iterate_following_node();
+			
+		case PRECEDING_NODE:
+			if(ft){
+				ft = false;
+				vn.toNode(VTDNav.ROOT);
+			}
+			return vn.iterate_preceding_node(contextCopy,endIndex);
+		//case 
+		default :
+			throw new PilotException(" iteration action type undefined");
+	}
+}
 /**
  * Iterate over all the selected element nodes in document order.
  * Null element name allowed, corresponding to node() in xpath
@@ -279,7 +326,8 @@ public boolean iterate() throws PilotException, NavException {
          	if (vn.atTerminal)
          	    return false;
          	return vn.iterate_precedingNS(URL,localName,contextCopy);
-                    	
+         	
+
         default :
             throw new PilotException(" iteration action type undefined");
     }
@@ -360,25 +408,26 @@ public boolean iterate() throws PilotException, NavException {
    	    					if (type == VTDNav.TOKEN_ATTR_NAME
    	    						|| type == VTDNav.TOKEN_ATTR_NS){
    	    					    vn.LN = index;
+   	    					    //vn.atTerminal=true;
    	    						return index;
-   	    					}else{   	    				
+   	    					}else{   	    						
    	    						return -1;
    	    					}
    	    				}
    	    				return -1;
-   	    			}else {
-   	    				
+   	    			}else {   	    				
    	    				while(index<size){
    	    				 int type = vn.getTokenType(index);
 	    					if (type == VTDNav.TOKEN_ATTR_NAME
 	    						|| type == VTDNav.TOKEN_ATTR_NS){
 	    						if (type == VTDNav.TOKEN_ATTR_NAME){
 	    						    vn.LN = index;
+	    						    //vn.atTerminal=true;
 	    							return index;
 	    						}
 	    						else 
 	    							index += 2;	    						
-	    					}else{   	    				
+	    					}else{	    						
 	    						return -1;
 	    					}
 	    					
@@ -393,10 +442,12 @@ public boolean iterate() throws PilotException, NavException {
    	    				int i = vn.getAttrVal(name);
    	    				if(i!=-1){
    	    				    vn.LN = i-1;
+   	    				    //vn.atTerminal=true;
    	    					return i-1;
    	    				}
-   	    				else 
+   	    				else {   	    					
    	    					return -1;
+   	    				}
    	    			}   	    			
    	    		}
    	        case ATTR_NS:
@@ -407,10 +458,12 @@ public boolean iterate() throws PilotException, NavException {
    	    				int i = vn.getAttrValNS(URL,localName);
    	    				if(i!=-1){
    	    				    vn.LN = i -1;
+   	    				    //vn.atTerminal=true;
    	    					return i-1;
    	    				}
-   	    				else 
+   	    				else {
    	    					return -1;
+   	    				}
    	    			} 
    	        default:
    	        	throw new PilotException("invalid iteration type");
@@ -499,6 +552,35 @@ public boolean iterate() throws PilotException, NavException {
   	    }
   	
   }
+   
+   protected void selectNode(){
+	   ft = true;
+	   depth = vn.getCurrentDepth();
+	   iter_type = SIMPLE_NODE;
+   }
+   
+   
+   protected void selectPrecedingNode(){
+	   ft = true;
+	   depth = vn.getCurrentDepth();
+	   contextCopy = (int[])vn.context.clone();
+	   iter_type = PRECEDING_NODE;
+	   endIndex = vn.getCurrentIndex();
+   }
+   
+   protected void selectFollowingNode(){
+	   ft = true;
+	   depth = vn.getCurrentDepth();
+	   iter_type = FOLLOWING_NODE;
+	  // contextCopy = (int[])vn.context.clone();
+   }
+   
+   
+   protected void selectDescendantNode(){
+	   ft = true;
+	   depth = vn.getCurrentDepth();
+	   iter_type = DESCENDANT_NODE;
+   }
 /**
  * Select the element name before iterating.
  * "*" matches every element
