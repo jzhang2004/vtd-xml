@@ -287,11 +287,6 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
 		{: RESULT = new Step();
       	   RESULT.setAxisType(as.i);
       	   if ( (as.i== AxisType.ATTRIBUTE
-	        	 || as.i == AxisType.DESCENDANT
-      	         || as.i == AxisType.PRECEDING
-      	         || as.i == AxisType.FOLLOWING
-      	         || as.i == AxisType.FOLLOWING_SIBLING
-      	         || as.i == AxisType.PRECEDING_SIBLING
       	         || as.i == AxisType.NAMESPACE) && 
       	        (nt.testType>1)){
       	          Yylex scanner = (Yylex)parser.getScanner();
