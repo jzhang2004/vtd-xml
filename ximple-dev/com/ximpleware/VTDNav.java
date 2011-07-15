@@ -2302,7 +2302,13 @@ public class VTDNav {
 		// point currentOffset to the beginning of the token
 		// for UTF 8 and ISO, the performance is a little better by avoid
         // calling getChar() everytime
-		return compareTokenString(getTokenOffset(index), len, s);
+				
+		if (type == TOKEN_CHARACTER_DATA
+				|| type == TOKEN_ATTR_VAL)		
+			return compareTokenString(getTokenOffset(index), len, s);
+		else
+			return compareRawTokenString(getTokenOffset(index), len, s);
+					
 	}
 	/**
      * Match the string against the token at the given index value. When a token
