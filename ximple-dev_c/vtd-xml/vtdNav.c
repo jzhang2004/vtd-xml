@@ -3441,7 +3441,11 @@ int compareTokenString(VTDNav *vn,int index, UCSChar *s){
 	offset = getTokenOffset(vn,index);
 	// point currentOffset to the beginning of the token
 	// for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
-	return compareTokenString2(vn,offset, len, s);
+	if (type == TOKEN_CHARACTER_DATA
+		|| type == TOKEN_ATTR_VAL)
+		return compareTokenString2(vn,offset, len, s);
+	else
+		return compareRawTokenString2(vn,offset, len,s);
 }
 
 int compareRawTokenString(VTDNav *vn, int index, UCSChar *s){

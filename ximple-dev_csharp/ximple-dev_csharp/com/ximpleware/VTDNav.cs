@@ -4481,7 +4481,12 @@ namespace com.ximpleware
             //currentOffset = getTokenOffset(index);
             // point currentOffset to the beginning of the token
             // for UTF 8 and ISO, the performance is a little better by avoid calling getChar() everytime
-            return compareTokenString(getTokenOffset(index), len, s);
+            //return compareTokenString(getTokenOffset(index), len, s);
+            if (type == TOKEN_CHARACTER_DATA
+                || type == TOKEN_ATTR_VAL)
+                return compareTokenString(getTokenOffset(index), len, s);
+            else
+                return compareRawTokenString(getTokenOffset(index), len, s);
         }
 
         /// <summary> This method writes the VTD+XML into an output streams</summary>
