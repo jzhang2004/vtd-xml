@@ -304,9 +304,14 @@ public class XMLModifier {
         }
         if (deleteHash.isUnique(offset)==false)
             throw new ModifyException("There can be only one deletion per offset value");
-            
+        while(len > (1<<29)-1){
+        	flb.append(((long)((1<<29)-1))<<32 | offset | MASK_DELETE);
+        	fob.append((Object)null);
+        	len -= (1<<29)-1;
+        	offset += (1<<29)-1;
+        }
         flb.append(((long)len)<<32 | offset | MASK_DELETE);
-        fob.append((Object)null);
+    	fob.append((Object)null);
     }
     
     /**
