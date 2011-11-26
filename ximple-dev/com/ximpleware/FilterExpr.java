@@ -65,12 +65,35 @@ public class FilterExpr extends Expr {
 
 
 	public double evalNumber(VTDNav vn) {
-		int a = getStringIndex(vn);
-		try{
-			if (a!=-1) return vn.parseDouble(a);
-		}catch (NavException e){
-		}
-		return Double.NaN;
+		//String s = "";
+		double d = Double.NaN;
+		int a = -1;
+        vn.push2();
+        int size = vn.contextStack2.size;
+        try {
+            a = evalNodeSet(vn);
+            if (a != -1) {
+            	int t = vn.getTokenType(a);
+                if (t == VTDNav.TOKEN_ATTR_NAME) {
+                	d = vn.parseDouble(a+1);
+                } else if (t == VTDNav.TOKEN_STARTING_TAG || t ==VTDNav.TOKEN_DOCUMENT) {
+                    String s = vn.getXPathStringVal();
+                    d  = Double.parseDouble(s);
+                }else if (t == VTDNav.TOKEN_PI_NAME) {
+                	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
+	                	//s = vn.toString(a+1); 	
+                	d = vn.parseDouble(a+1);               
+                }else 
+                	d = vn.parseDouble(a);
+            }
+        } catch (Exception e) {
+
+        }
+        vn.contextStack2.size = size;
+        reset(vn);
+        vn.pop2();
+        //return s;
+		return d;
 	}
 
 	public int evalNodeSet(VTDNav vn) 
@@ -111,13 +134,39 @@ public class FilterExpr extends Expr {
 	public String evalString(VTDNav vn) {
 	    //if (e.isString())
 	   //     return e.evalString(vn);
-		int a = getStringIndex(vn);
+		/*int a = getStringIndex(vn);
         try {
+        	if (a !=-2)
+        		return vn.getXPathStringVal();
             if (a != -1)
                 return vn.toString(a);
         } catch (NavException e) {
         }
-        return "";
+        return "";*/
+		String s = "";
+		int a = -1;
+        vn.push2();
+        int size = vn.contextStack2.size;
+        try {
+            a = evalNodeSet(vn);
+            if (a != -1) {
+            	int t = vn.getTokenType(a);
+                if (t == VTDNav.TOKEN_ATTR_NAME) {
+                    s = vn.toString(a+1);
+                } else if (t == VTDNav.TOKEN_STARTING_TAG || t ==VTDNav.TOKEN_DOCUMENT) {
+                    s = vn.getXPathStringVal();
+                }else if (t == VTDNav.TOKEN_PI_NAME) {
+                	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
+	                	s = vn.toString(a+1);              
+                }
+            }
+        } catch (Exception e) {
+
+        }
+        vn.contextStack2.size = size;
+        reset(vn);
+        vn.pop2();
+        return s;
 	}
 
 	public void reset(VTDNav vn) {
