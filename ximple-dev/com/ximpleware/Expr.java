@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ abstract public class Expr {
 	// needs to add 
 	//abstract public boolean needContextSize();
 	//abstract public boolean SetContextSize(int contextSize);
-    final protected int getStringIndex(VTDNav vn){
+    /*final protected int getStringIndex(VTDNav vn){
     	int a = -1;
         vn.push2();
         int size = vn.contextStack2.size;
@@ -61,12 +61,9 @@ abstract public class Expr {
                 if (t == VTDNav.TOKEN_ATTR_NAME) {
                     a++;
                 } else if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
-                    a = vn.getText();
+                    a = -2;
                 }else if (t == VTDNav.TOKEN_PI_NAME) {
-                    if (a+1<vn.vtdSize && vn.getTokenType(a+1)== VTDNav.TOKEN_PI_VAL)
-                    	a=a+1;
-                    else
-                    	a = -1;                    
+                    a++;                 
                 }
             }
         } catch (Exception e) {
@@ -76,5 +73,38 @@ abstract public class Expr {
         reset(vn);
         vn.pop2();
         return a;
-    }
+    }*/
+    
+    protected int computeDataSize(VTDNav vn){
+		int i = vn.context[0];
+		if (vn.shallowDepth)
+			switch (i) {
+			case -1:
+			case 0:
+				return vn.vtdSize;
+			case 1:
+				return vn.vtdSize / vn.l1Buffer.size;
+			case 2:
+				return vn.vtdSize / vn.l2Buffer.size;
+			default:
+				return vn.vtdSize / vn.l3Buffer.size;
+			}
+		else {
+			VTDNav_L5 vnl = (VTDNav_L5) vn;
+			switch (i) {
+			case 0:
+				return vn.vtdSize;
+			case 1:
+				return vn.vtdSize / vn.l1Buffer.size;
+			case 2:
+				return vn.vtdSize / vn.l2Buffer.size;
+			case 3:
+				return vn.vtdSize / vnl.l3Buffer.size;
+			case 4:
+				return vnl.vtdSize / vnl.l4Buffer.size;
+			default:
+				return vnl.vtdSize / vnl.l5Buffer.size;
+			}
+		}
+	}
 }
