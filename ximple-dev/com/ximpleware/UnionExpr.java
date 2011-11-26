@@ -85,13 +85,34 @@ public class UnionExpr extends Expr {
         if (e.isNodeSet()== false)
             return e.evalNumber(vn);   
         //double d;
-        int a = getStringIndex(vn);
+        double d = Double.NaN;
+		int a = -1;
+        vn.push2();
+        int size = vn.contextStack2.size;
         try {
-            if (a != -1)
-                return vn.parseDouble(a);
-        } catch (NavException e) {
+            a = evalNodeSet(vn);
+            if (a != -1) {
+            	int t = vn.getTokenType(a);
+                if (t == VTDNav.TOKEN_ATTR_NAME) {
+                	d = vn.parseDouble(a+1);
+                } else if (t == VTDNav.TOKEN_STARTING_TAG || t ==VTDNav.TOKEN_DOCUMENT) {
+                    String s = vn.getXPathStringVal();
+                    d  = Double.parseDouble(s);
+                }else if (t == VTDNav.TOKEN_PI_NAME) {
+                	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
+	                	//s = vn.toString(a+1); 	
+                		d = vn.parseDouble(a+1);               
+                }else 
+                	d = vn.parseDouble(a);
+            }
+        } catch (Exception e) {
+
         }
-        return Double.NaN;
+        vn.contextStack2.size = size;
+        reset(vn);
+        vn.pop2();
+        //return s;
+		return d;
     }
 
     /*
@@ -171,18 +192,40 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#evalString(com.ximpleware.VTDNav)
      */
-    public String evalString(VTDNav vn) {
-        if (e.isNodeSet()==false){
-            return e.evalString(vn);
-        }
-        int a = getStringIndex(vn);
-        try {
-            if (a != -1)
-                return vn.toString(a);
-        } catch (NavException e) {
-        }
-        return "";
-    }
+	public String evalString(VTDNav vn) {
+		if (e.isNodeSet() == false)
+			return e.evalString(vn);
+		else {
+			String s = "";
+			int a = -1;
+			vn.push2();
+			int size = vn.contextStack2.size;
+			try {
+				a = evalNodeSet(vn);
+				if (a != -1) {
+					int t = vn.getTokenType(a);
+					if (t == VTDNav.TOKEN_ATTR_NAME) {
+						s = vn.toString(a + 1);
+					} else if (t == VTDNav.TOKEN_STARTING_TAG
+							|| t == VTDNav.TOKEN_DOCUMENT) {
+						s = vn.getXPathStringVal();
+					} else if (t == VTDNav.TOKEN_PI_NAME) {
+						if (a + 1 < vn.vtdSize
+								|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+							s = vn.toString(a + 1);
+						// s = vn.toString(a+1);
+					} else
+						s = vn.toString(a);
+				}
+			} catch (Exception e) {
+
+			}
+			vn.contextStack2.size = size;
+			reset(vn);
+			vn.pop2();
+			return s;
+		}
+	}
 
     /*
      * (non-Javadoc)
