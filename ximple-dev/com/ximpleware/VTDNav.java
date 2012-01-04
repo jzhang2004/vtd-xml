@@ -4256,9 +4256,8 @@ public class VTDNav {
 		return toRawString(offset, len);
 	}
 	
-	final protected String toRawString(StringBuffer sb, int index) 
-		throws NavException {
-		
+	final protected String toRawString(StringBuilder sb, int index) 
+		throws NavException {		
 		int type = getTokenType(index);
 		int len;
 		if (type == TOKEN_STARTING_TAG
@@ -4347,7 +4346,7 @@ public class VTDNav {
 	    }
 	}
 	
-	final protected void toString(int os, int len, StringBuffer sb) throws NavException {
+	final protected void toString(int os, int len, StringBuilder sb) throws NavException {
 		int offset = os;
 	    int endOffset = os + len;
 	    long l;
@@ -4356,6 +4355,38 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        sb.append((char)l);	                
 	    }
+	}
+	
+	final protected void toStringUpperCase(int os, int len, StringBuilder sb) throws NavException {
+	    //StringBuilder sb = new StringBuilder(len);	    
+	    int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getCharResolved(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>96 && (int)l<123)
+	        	sb.append((char)(l-32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    //return sb.toString();
+	}
+	
+	final protected void toStringLowerCase(int os, int len, StringBuilder sb) throws NavException {
+		//StringBuilder sb = new StringBuilder(len);	    
+	    int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getCharResolved(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>64 && (int)l<91)
+	        	sb.append((char)(l+32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    //return sb.toString();
 	}
 	
 	/**
@@ -4509,9 +4540,8 @@ public class VTDNav {
 	    return sb.toString();
 	}
 	
-	final protected void toString(StringBuffer sb, int index) 
-	throws NavException {
-	
+	final protected void toString(StringBuilder sb, int index) 
+	throws NavException {	
 		int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
@@ -4521,7 +4551,33 @@ public class VTDNav {
 
 		int offset = getTokenOffset(index);
 		toString(offset, len, sb);
-}
+	}
+	
+	final protected void toStringUpperCase(StringBuilder sb, int index) 
+	throws NavException {	
+		int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			toRawString(sb, index); 
+		int len;
+		len = getTokenLength(index);
+
+		int offset = getTokenOffset(index);
+		toStringUpperCase(offset, len, sb);
+	}
+	
+	final protected void toStringLowerCase(StringBuilder sb, int index) 
+	throws NavException {	
+		int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			toRawString(sb, index); 
+		int len;
+		len = getTokenLength(index);
+
+		int offset = getTokenOffset(index);
+		toStringLowerCase(offset, len, sb);
+	}
 	
 	/**
      * Convert the byte content segment (in terms of offset and length) to
@@ -4536,7 +4592,7 @@ public class VTDNav {
      *  
      */
 	final protected String toStringUpperCase(int os, int len) throws NavException{
-	    StringBuffer sb = new StringBuffer(len);	    
+	    StringBuilder sb = new StringBuilder(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
 	    long l;
@@ -4563,7 +4619,7 @@ public class VTDNav {
      *  
      */
 	final protected String toStringLowerCase(int os, int len) throws NavException{
-	    StringBuffer sb = new StringBuffer(len);	    
+	    StringBuilder sb = new StringBuilder(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
 	    long l;
@@ -4580,7 +4636,7 @@ public class VTDNav {
 	
 	
 	final protected String toRawStringLowerCase(int os, int len) throws NavException{
-	    StringBuffer sb = new StringBuffer(len);	    
+	    StringBuilder sb = new StringBuilder(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
 	    long l;
@@ -4595,8 +4651,26 @@ public class VTDNav {
 	    return sb.toString();
 	}
 	
+	final protected void toRawStringLowerCase(int os, int len, StringBuilder sb) throws NavException{
+	    //StringBuilder sb = new StringBuilder(len);	    
+	    int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>64 && (int)l<91)
+	        	sb.append((char)(l+32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    //return sb.toString();
+	}
+	
+	
+	
 	final protected String toRawStringUpperCase(int os, int len) throws NavException{
-	    StringBuffer sb = new StringBuffer(len);	    
+	    StringBuilder sb = new StringBuilder(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
 	    long l;
@@ -4609,6 +4683,22 @@ public class VTDNav {
 	        	sb.append((char)l);	                
 	    }
 	    return sb.toString();
+	}
+	
+	final protected void toRawStringUpperCase(int os, int len, StringBuilder sb) throws NavException{
+	    //StringBuilder sb = new StringBuilder(len);	    
+	    int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        if ((int)l>96 && (int)l<123)
+	        	sb.append((char)(l-32));
+	        else
+	        	sb.append((char)l);	                
+	    }
+	    //return sb.toString();
 	}
 	
 /**
@@ -5005,7 +5095,14 @@ public class VTDNav {
 	/**
 	 * 
 	 */
+	public static final short XPATH_STRING_MODE_NORMAL = 0;
+	public static final short XPATH_STRING_MODE_UPPERCASE = 1;
+	public static final short XPATH_STRING_MODE_LOWERCASE = 2;
 	final public String getXPathStringVal() throws NavException{
+		return getXPathStringVal((short)0);
+	}
+	
+	final public String getXPathStringVal(short mode) throws NavException{
 		int index = getCurrentIndex() + 1;
 		int tokenType, depth, t=0, length,i=0;
 		int dp = context[0];
@@ -5043,15 +5140,96 @@ public class VTDNav {
 		}
 		
 		// calculate the total length
-		StringBuffer sb = new StringBuffer(t);
+		StringBuilder sb = new StringBuilder(t);
 		
 		for(t=0;t<fib.size;t++ ){
-			toString(sb,fib.intAt(t));
+			switch(mode){
+				case 0:toString(sb,fib.intAt(t)); break;
+				case 1:toStringUpperCase(sb, fib.intAt(t)); break;
+				case 2:toStringLowerCase(sb, fib.intAt(t)); break;
+				default:throw new NavException("Invaild xpath string val mode");
+			}			
+			
 		}
 				
 		// clear the fib and return a string
 		return sb.toString();
 	}
+
+	final protected String getXPathStringVal2(int j, short mode) throws NavException{
+		/*if (j>= vtdSize) throw new NavException("Invalid vtd-xml index, out of range");
+		int tokenType = getTokenType(j);
+		if (tokenType!= VTDNav.TOKEN_STARTING_TAG && tokenType != VTDNav.TOKEN_DOCUMENT)
+			throw new NavException("Node type incorrect for XPath STring val");*/
+		int tokenType;
+		int index = j + 1;
+		int depth, t=0, length,i=0;
+		int dp = getTokenDepth(j);
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+		    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+		    	length = getTokenLength(index);
+		    	t += length;
+		    	fib.append(index);
+		    	if (length > VTDGen.MAX_TOKEN_LENGTH){
+		    		while(length > VTDGen.MAX_TOKEN_LENGTH){
+		    			length -=VTDGen.MAX_TOKEN_LENGTH;
+		    			i++;
+		    		}
+		    		index += i+1;
+		    	}else
+		    		index++;
+		    	continue;
+		    	//
+		    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		
+		// calculate the total length
+		StringBuilder sb = new StringBuilder(t);
+		
+		for(t=0;t<fib.size;t++ ){
+			switch(mode){
+				case 0:toString(sb,fib.intAt(t)); break;
+				case 1:toStringUpperCase(sb, fib.intAt(t)); break;
+				case 2:toStringLowerCase(sb, fib.intAt(t)); break;
+				default:throw new NavException("Invaild xpath string val mode");
+			}			
+			
+		}
+				
+		// clear the fib and return a string
+		return sb.toString();
+	}
+	final public boolean XPathStringVal_Contains() throws NavException{
+		
+		return false;
+	}
+	
+	final public boolean XPathStringVal_StartsWith() throws NavException{
+		
+		return false;		
+	}
+	
+	final public boolean XPathStringVal_EndsWith() throws NavException{
+		
+		return false;
+	}
+	
+	
 	
 	/**
 	 * Get content fragment returns a long encoding the offset and length of the byte segment of
@@ -5611,7 +5789,7 @@ public class VTDNav {
 					tmp = l2index+1;
 					while(tmp<l2Buffer.size){
 						if (l2Buffer.lower32At(tmp)!=-1){
-							l3upper = l3Buffer.intAt(tmp)-1;
+							l3upper = l2Buffer.lower32At(tmp)-1;
 							break;
 						}else
 							tmp++;
@@ -5687,6 +5865,7 @@ public class VTDNav {
 						if (depth < context[0]){
 							return false;
 						}else if (depth == (context[0])) {
+							//System.out.println("inside to Node next sibling");
 							LN = index;
 							atTerminal = true;
 							return true;
@@ -5965,7 +6144,7 @@ public class VTDNav {
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
-								if (depth!=2 && getTokenType(index)!=TOKEN_STARTING_TAG){									
+								if (depth==2 && getTokenType(index)!=TOKEN_STARTING_TAG){									
 									LN = index;
 									return true;
 								}
@@ -5996,7 +6175,7 @@ public class VTDNav {
 						l2index++;
 						lastEntry = index = l2Buffer.upper32At(l2index)-1;
 						//rewind
-						while(index>tmp){
+						loop2: while(index>tmp){
 							if (getTokenDepth(index)==1){
 								tokenType = getTokenType(index);
 								switch(tokenType){
@@ -6007,9 +6186,10 @@ public class VTDNav {
 									break;
 								case TOKEN_PI_VAL:
 									index = index -2;
+								default: break loop2;
 								}
 							}else
-								break;
+								break loop2;
 						}
 						if (index == lastEntry){
 							context[0]=2;
@@ -6025,7 +6205,7 @@ public class VTDNav {
 						if (l1index!=l1Buffer.size-1){
 							lastEntry = index = l1Buffer.upper32At(l1index+1)-1;
 						}
-						tmp = l2Buffer.upper32At(l2index);
+						tmp = l2Buffer.upper32At(l2upper);// pointing to last level 2 element
 						
 						//rewind
 						while(index>tmp){
@@ -6034,14 +6214,18 @@ public class VTDNav {
 							else
 								break;
 						}
-						if ((lastEntry==index && getTokenDepth(index)==1)){
+						
+						if (( /*lastEntry!=index &&*/ getTokenDepth(index)==1)){
 							LN = index;
 							atTerminal = true;
 							context[0]=1;
 							return true;
 						}
 						
-						if (getTokenDepth(index+1)==1){
+						if (/*getTokenDepth(index+1)==1 
+								&& getTokenType(index+1)!= TOKEN_STARTING_TAG 
+								&&index !=tmp+1*/
+							lastEntry!=index && getTokenDepth(index+1)==1){ //index has moved							
 							LN = index+1;
 							atTerminal = true;
 							context[0]=1;
@@ -6057,11 +6241,15 @@ public class VTDNav {
 				if(!atTerminal){
 					//l2index < l2upper
 					if (l3index< l3upper){
+						//System.out.println(l3index+"  "+l3upper+" "+l3lower+" "+l3Buffer.size+" ");
 						tmp = l3Buffer.intAt(l3index);
 						l3index++;
+						//lastEntry = index = vtdSize-1;
+						//if (l3index <l3Buffer.size-1){
 						lastEntry = index = l3Buffer.intAt(l3index)-1;
+						//}
 						//rewind
-						while(index>tmp){
+						loop2:while(index>tmp){
 							if (getTokenDepth(index)==2){
 								tokenType = getTokenType(index);
 								switch(tokenType){
@@ -6072,9 +6260,11 @@ public class VTDNav {
 									break;
 								case TOKEN_PI_VAL:
 									index = index -2;
+									default:
+										break loop2;
 								}
 							}else
-								break;
+								break loop2;
 						}
 						if (index == lastEntry){
 							context[0]=3;
@@ -6105,14 +6295,14 @@ public class VTDNav {
 							else
 								break;
 						}
-						if ((lastEntry==index && getTokenDepth(index)==2)){
+						if ((/*lastEntry==index &&*/ getTokenDepth(index)==2)){
 							LN = index;
 							atTerminal = true;
 							context[0]=2;
 							return true;
 						}
 						
-						if (getTokenDepth(index+1)==2){
+						if (lastEntry!=index && getTokenDepth(index+1)==2){
 							LN = index+1;
 							atTerminal = true;
 							context[0]=2;
@@ -6131,9 +6321,9 @@ public class VTDNav {
 				}
 				else{
 					index = context[context[0]] + 1;
-					tmp = context[0]-1;
+					tmp = context[0];
 				}
-				while (index < vtdBuffer.size) {
+				while (index < vtdSize) {
 					long temp = vtdBuffer.longAt(index);
 					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >>> 60);
 					depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
@@ -6142,6 +6332,7 @@ public class VTDNav {
 						if (depth < tmp) {
 							return false;
 						} else if (depth == tmp) {
+							context[0]=tmp;
 							context[context[0]] = index;
 							atTerminal = false;
 							return true;
@@ -6156,10 +6347,11 @@ public class VTDNav {
 					case TOKEN_COMMENT:
 					case TOKEN_CDATA_VAL:
 						//depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						if (depth < tmp) {
+						if (depth < tmp-1) {
 							return false;
-						} else if (depth == tmp) {
+						} else if (depth == tmp-1) {
 							LN = index;
+							context[0]= tmp-1;
 							atTerminal = true;
 							return true;
 						} else
@@ -6167,10 +6359,11 @@ public class VTDNav {
 						break;
 					case TOKEN_PI_NAME:
 						//depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						if (depth < tmp) {
+						if (depth < tmp-1) {
 							return false;
-						} else if (depth == tmp) {
+						} else if (depth == tmp-1) {
 							LN = index;
+							context[0]= tmp-1;
 							atTerminal = true;
 							return true;
 						} else
@@ -6518,9 +6711,10 @@ public class VTDNav {
 				switch (tokenType) {
 				case TOKEN_STARTING_TAG:
 					
-					if (depth < tmp) {
+					/*if (depth < tmp) {
 						return false;
-					} else if (depth == tmp) {
+					} else*/ if (depth == tmp) {
+						context[0] = depth;
 						context[context[0]] = index;
 						atTerminal = false;
 						return true;
@@ -6535,9 +6729,10 @@ public class VTDNav {
 				case TOKEN_COMMENT:
 				case TOKEN_CDATA_VAL:
 					//depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-					if (depth < context[0]) {
+					/*if (depth < tmp-1) {
 						return false;
-					} else if (depth == (context[0])) {
+					} else*/ if (depth == tmp-1) {
+						context[0] = tmp-1;
 						LN = index;
 						atTerminal = true;
 						return true;
@@ -6546,9 +6741,11 @@ public class VTDNav {
 					break;
 				case TOKEN_PI_VAL:
 					//depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-					if (depth < context[0]) {
+					/*if (depth < context[0]) {
 						return false;
-					} else if (depth == (context[0])) {
+					} else*/
+					if (depth == (tmp-1)) {
+						context[0] = tmp-1;
 						LN = index-1;
 						atTerminal = true;
 						return true;
