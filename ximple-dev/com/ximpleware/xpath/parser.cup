@@ -152,7 +152,11 @@ MultiplicativeExpr    ::=  UnaryExpr:ue
 		;
 
 UnaryExpr    	::=    UnionExpr:ue  
-		{: RESULT = ue; :}
+		{: if (ue.next==null) 
+		      RESULT = ue.e; 
+		   else
+		      RESULT = ue;
+		:}
   		|    SUB UnaryExpr:ue   
 		{: RESULT = new UnaryExpr( BinaryExpr.SUB, ue); :}
 		 %prec UMINUS
