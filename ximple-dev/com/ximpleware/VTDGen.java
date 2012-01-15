@@ -1256,21 +1256,25 @@ public class VTDGen {
 	protected boolean helper=false;
 	protected boolean default_ns = false; //true xmlns='abc'
 	protected boolean isXML = false;  
+	protected boolean singleByteEncoding;
+	protected boolean shallowDepth; // true if lc depth is 3
+	protected boolean ns,is_ns;
+	protected boolean br; //buffer reuse
+	
 	private int temp_offset;
 	protected int endOffset;
 	protected int prev_offset;
 	private int increment;
 	protected long[] tag_stack;
 	private long[] attr_name_array;
-	protected boolean singleByteEncoding;
-	protected boolean shallowDepth; // true if lc depth is 3
+	
 	private int attr_count;
 	private long[] prefixed_attr_name_array;
 	private int[] prefix_URL_array;
 	private int prefixed_attr_count;
 
 	protected FastLongBuffer VTDBuffer;
-	protected boolean ns,is_ns;
+	
 	//protected int offset_adj; // determine the byte length for ':' for various encoding types
     
 	// again, in terms of byte, not char as encoded in VTD
@@ -1286,13 +1290,13 @@ public class VTDGen {
 	protected FastLongBuffer nsBuffer2;
 	protected FastLongBuffer nsBuffer3;
 	
-	protected boolean br; //buffer reuse
+	
 	private int last_depth;
 	private int last_l1_index;
 	private int last_l2_index;
 	private int last_l3_index;
 	private int last_l4_index;
-	private boolean must_utf_8;
+	
 	protected EOFException e;
 	protected int docLen;
 	protected int docOffset;
@@ -1306,6 +1310,7 @@ public class VTDGen {
 	protected short LcDepth;
 	
 	protected long currentElementRecord;
+	private boolean must_utf_8;
 	private boolean BOM_detected;
 	
 	/**
