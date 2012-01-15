@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -460,8 +460,9 @@ public class XMLChar {
      * @param c The character to check.
      */
     public static boolean isSpaceChar(int c) {
-        return c < 0x10000 && (UNI_CHARS[c] & XML_SPACE) != 0;
+        return c <= 0x20 && (UNI_CHARS[c] & XML_SPACE) != 0;
     }
+   
     /**
      * Returns true if the specified character is a supplemental character.
      *
