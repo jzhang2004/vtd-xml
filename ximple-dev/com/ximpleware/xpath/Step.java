@@ -22,30 +22,33 @@ import com.ximpleware.*;
  * Xpath spec
  * 
  */
-public class Step implements LocationPathNode{
+public class Step{
 	public int axis_type;
 	public NodeTest nt;  
 	public Predicate p,pt;// linked list
 	public Step nextS; // points to next step
-	public int position; // position
+	//public int position; // position
 	public Step prevS; // points to the prev step
 	public Object o; //AutoPilot or TextIter goes here
 	public boolean ft; // first time
+	public boolean hasPredicate;
 	public Step(){
 		nextS = prevS = (Step)null;
 		p  = pt = null;
 		nt = null;
 		ft = true;
-		position = 1;
+		hasPredicate =false;
+		//position = 1;
 	}
 		
-	public void reset(VTDNav vn){
+	final public void reset(VTDNav vn){
 		ft = true;
-		resetP(vn);
-		position = 1;
+		if (hasPredicate)
+			resetP(vn);
+		//position = 1;
 	}
 	
-	public void resetP(VTDNav vn){
+	final public void resetP(VTDNav vn){
 		Predicate temp = p;
 		while(temp!=null){
 			temp.reset(vn);
@@ -53,7 +56,7 @@ public class Step implements LocationPathNode{
 		}
 	}
 	
-	public void resetP(VTDNav vn, Predicate p1){
+	final public void resetP(VTDNav vn, Predicate p1){
 		Predicate temp = p;
 		while(temp!=p1){
 			temp.reset(vn);
@@ -61,78 +64,89 @@ public class Step implements LocationPathNode{
 		}
 	}
 	
-	public void adjust(int n){
+	final public void adjust(int n){
 		Predicate temp = p;
 		while(temp!=null){
 			temp.adjust(n);
 			temp = temp.nextP;
 		}
 	}
-	public NodeTest getNodeTest(){
+	final public NodeTest getNodeTest(){
 		return this.nt;
 	}
-	public Step getNextStep(){
+	final public Step getNextStep(){
 		return nextS;
 	}
 		
-	public void setNextStep(Step s){
+	final public void setNextStep(Step s){
 		nextS = s;
 	}
 		
-	public boolean get_ft(){
+	final public boolean get_ft(){
 		return ft;
 	}
 		
-	public void set_ft(boolean b){
+	final public void set_ft(boolean b){
 		ft = b;
 	}
 				
-	public Step getPrevStep(){
+	final public Step getPrevStep(){
 		return prevS;
 	}
 		
-	public void setPrevStep(Step s){
+	final public void setPrevStep(Step s){
 		prevS = s;
+		/*if ((this.axis_type==AxisType.CHILD 
+				|| this.axis_type==AxisType.CHILD0
+				|| this.axis_type==AxisType.ATTRIBUTE)
+			&& this.nt.testType==NodeTest.NAMETEST){
+			
+		}*/
 	}
 		
-	public void setNodeTest(NodeTest n){
+	final public void setNodeTest(NodeTest n){
 		nt = n;
+		if (axis_type == AxisType.CHILD && n.testType ==NodeTest.NAMETEST ){
+			axis_type = AxisType.CHILD0;
+		}
 	}
 		
-	public void setPredicate(Predicate p1){
+	final public void setPredicate(Predicate p1){
 		if (p == null){
 			p = pt = p1;
 		} else {
 			pt.nextP = p1;
 			pt = pt.nextP;
 		}
+		if (p1!=null) hasPredicate = true;
 	}
 	
-	public boolean eval(VTDNav vn)throws NavException{
+	final public boolean eval(VTDNav vn)throws NavException{
 		/*boolean result = this.nt.eval(vn);
 		if (result == false)
 			return false;
 		return evalPredicates(vn);*/
-		return nt.eval(vn) && evalPredicates(vn);
+		return nt.eval(vn) && ((!hasPredicate) || evalPredicates(vn));
 	}
 	
-	public boolean eval2(VTDNav vn)throws NavException{
+	final public boolean eval2(VTDNav vn)throws NavException{
 		/*boolean result = this.nt.eval(vn);
 		if (result == false)
 			return false;
 		return evalPredicates(vn);*/
-		return nt.eval2(vn) && evalPredicates(vn);
+		//return nt.eval2(vn) && evalPredicates(vn);
+		return nt.eval2(vn) && ((!hasPredicate) || evalPredicates(vn));
 	}
 	
-	public boolean eval(VTDNav vn, Predicate p) throws NavException{
+	final public boolean eval(VTDNav vn, Predicate p) throws NavException{
 	    return nt.eval(vn) && evalPredicates(vn,p);
 	}
 	
-	public boolean eval2(VTDNav vn, Predicate p) throws NavException{
+	final public boolean eval2(VTDNav vn, Predicate p) throws NavException{
 	    return nt.eval2(vn) && evalPredicates(vn,p);
 	}
 	
-	public boolean evalPredicates(VTDNav vn) throws NavException {
+	final public boolean evalPredicates(VTDNav vn) throws NavException {
 		Predicate temp = this.p;
 		while(temp!=null) {
 			if (temp.eval(vn)== false)
@@ -143,7 +157,7 @@ public class Step implements LocationPathNode{
 		return true;
 	}
 		
-	public boolean evalPredicates(VTDNav vn, Predicate p) throws NavException {
+	final public boolean evalPredicates(VTDNav vn, Predicate p) throws NavException {
     	Predicate temp = this.p;
     	while(temp!=p) {
     		if (temp.eval(vn)== false)
@@ -153,11 +167,11 @@ public class Step implements LocationPathNode{
     	return true;
     }
 	
-	public void setAxisType(int st){
+	final public void setAxisType(int st){
 		axis_type = st;
 	}
 
-	public String toString(){
+	final public String toString(){
 		String s;
 		if (p == null)
 			s = axisName(axis_type) + nt;
@@ -170,21 +184,26 @@ public class Step implements LocationPathNode{
 			return s+"/"+nextS.toString();
 	}
 
-	public String axisName(int i){
+	final public String axisName(int i){
 		switch(i){
+			case AxisType.CHILD0:
 			case AxisType.CHILD: return "child::";
+			case AxisType.DESCENDANT_OR_SELF0: return "descendant-or-self::";
+			case AxisType.DESCENDANT0: return "descendant::";
+			case AxisType.PRECEDING0: return "preceding::";
+			case AxisType.FOLLOWING0: return "following::";
+			case AxisType.DESCENDANT_OR_SELF: return "descendant-or-self::";
 			case AxisType.DESCENDANT: return "descendant::";
+			case AxisType.PRECEDING: return "preceding::";
+			case AxisType.FOLLOWING: return "following::";
 			case AxisType.PARENT: return "parent::";
+			case AxisType.ANCESTOR: return "ancestor::";
+			case AxisType.ANCESTOR_OR_SELF: return "ancestor-or-self::";
+			case AxisType.SELF: return "self::";
 			case AxisType.FOLLOWING_SIBLING: return "following-sibling::";
 			case AxisType.PRECEDING_SIBLING: return "preceding-sibling::";
-			case AxisType.FOLLOWING: return "following::";
-			case AxisType.PRECEDING: return "preceding::";
 			case AxisType.ATTRIBUTE: return "attribute::";
-			case AxisType.NAMESPACE: return "namespace::";
-			case AxisType.SELF: return "self::";
-			case AxisType.DESCENDANT_OR_SELF: return "descendant-or-self::";
-			case AxisType.ANCESTOR: return "ancestor::";
-			default: return "ancestor-or-self::";
+			default: return "namespace::";
 
 		}
 
