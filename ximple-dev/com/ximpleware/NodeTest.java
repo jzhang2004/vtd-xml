@@ -16,21 +16,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 package com.ximpleware;
-import com.ximpleware.xpath.LocationPathNode;
+//import com.ximpleware.xpath.LocationPathNode;
 /**
  * This class is used within LocationPathExpr to represent 
  * Nodetest
  *
  */
-public class NodeTest implements LocationPathNode{
+public class NodeTest /*implements LocationPathNode*/{
 	public String nodeName;
 	public String prefix;
 	public String localName;
 	public String URL;
 	boolean nsEnabled;
 	public int testType;
+	public int type; //0 for *, 1 for node name, 2 for local name +URL
 	
-	public static final int NAMETEST = 0,
+	public static final int 
+				NAMETEST = 0,
 				NODE =1,
 				TEXT =2,
 				PI0=3,
@@ -43,43 +45,50 @@ public class NodeTest implements LocationPathNode{
 	/*public void setNsEnabled(boolean b){
 		nsEnabled = b;
 	}*/
-	public void setTestType(int t){
+	final public void setTestType(int t){
 		testType = t;
 	}
-	public void setNodeName(String s){
+	final public void setNodeName(String s){
 		nodeName = s;
+		if (s.equals("*"))
+			type = 0;
+		else
+			type = 1;
 	}
-	public void setNodeNameNS(String p, String ln){
+	final public void setNodeNameNS(String p, String ln){
 		prefix = p;
 		localName = ln;
+		type = 2;
 	}
 	public boolean eval(VTDNav vn)throws NavException{
-		if (testType == NODE)
-			return true;
-		else if(testType == NAMETEST){
-		    if (vn.atTerminal == true)
-		        return false;
-		    if (localName!=null)
-		        return vn.matchElementNS(URL,localName);
-		    else 
-		        return vn.matchElement(nodeName);
+		/*if (testType == NODE)
+			return true;*/
+		//else if(testType == NAMETEST){
+		if (vn.atTerminal)
+		       return false;
+		switch(type){
+			case 0: return true;
+			case 1: return vn.matchElement(nodeName);
+			case 2: return vn.matchElementNS(URL,localName);
 		}
+		//}
 		return false;
 	}
 	
 	public boolean eval2(VTDNav vn)throws NavException{
 		switch(testType){
 		case NAMETEST:
-			if (vn.atTerminal == true)
+			if (vn.atTerminal)
 		        return false;
-			if (localName!=null)
-		        return vn.matchElementNS(URL,localName);
-		    else 
-		        return vn.matchElement(nodeName);
+			switch(type){
+			case 0: return true;
+			case 1: return vn.matchElement(nodeName);
+			case 2: return vn.matchElementNS(URL,localName);
+			}
 		case NODE:
 			return true;
 		case TEXT:
-			if (vn.atTerminal == false)
+			if (!vn.atTerminal)
 		        return false;
 			int t = vn.getTokenType(vn.LN);
 			if (t== VTDNav.TOKEN_CHARACTER_DATA
@@ -89,16 +98,22 @@ public class NodeTest implements LocationPathNode{
 			return false;
 			
 		case PI0:
-		case PI1:
-			if (vn.atTerminal == false)
+			if (!vn.atTerminal)
 				return false;
 			if (vn.getTokenType(vn.LN)== VTDNav.TOKEN_PI_NAME){
 				return true;
 			}
 			return false;
+		case PI1:
+			if (!vn.atTerminal)
+				return false;
+			if (vn.getTokenType(vn.LN)== VTDNav.TOKEN_PI_NAME){
+				return vn.matchTokenString(vn.LN, nodeName);
+			}
+			return false;
 			
 		default: // comment
-			if (vn.atTerminal == false)
+			if (!vn.atTerminal)
 				return false;
 			if (vn.getTokenType(vn.LN)== VTDNav.TOKEN_COMMENT){
 				return true;
@@ -107,7 +122,7 @@ public class NodeTest implements LocationPathNode{
 		}
 	}
 
-	public String toString(){
+	final public String toString(){
 		switch (testType){
 			case NAMETEST :
 			    if (localName == null)
