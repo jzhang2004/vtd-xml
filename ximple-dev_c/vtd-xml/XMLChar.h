@@ -134,7 +134,7 @@ void XMLChar_init();
      */
     //extern inline Boolean XMLChar_isSpaceChar(int c);
 	extern inline Boolean XMLChar_isSpaceChar(int c) {
-        return c < 0x10000 && (CHARS[c] & MASK_SPACE) != 0;
+        return c <= 0x20 && (CHARS[c] & MASK_SPACE) != 0;
     }
     /**
      * Returns true if the specified character is a valid name start

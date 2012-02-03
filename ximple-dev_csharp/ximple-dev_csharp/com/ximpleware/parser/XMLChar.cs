@@ -201,7 +201,7 @@ namespace com.ximpleware.parser
 		/// </param>
 		public static bool isSpaceChar(int c)
 		{
-			return c < 0x10000 && (UNI_CHARS[c] & XML_SPACE) != 0;
+			return c <= 0x20 && (UNI_CHARS[c] & XML_SPACE) != 0;
 		}
 		/// <summary> Returns true if the specified character is a supplemental character.
 		/// 
