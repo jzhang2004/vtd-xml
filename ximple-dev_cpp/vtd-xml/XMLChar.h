@@ -362,7 +362,7 @@ inline char com_ximpleware::XMLChar_isMarkupChar(int c) {
 * @param c The character to check.
 */
 inline char com_ximpleware::XMLChar_isSpaceChar(int c) {
-	return c < 0x10000 && (com_ximpleware::CHARS[c] & com_ximpleware::MASK_SPACE) != 0;
+	return c <= 0x20 && (com_ximpleware::CHARS[c] & com_ximpleware::MASK_SPACE) != 0;
 } // isSpace(int):char
 
 /**
