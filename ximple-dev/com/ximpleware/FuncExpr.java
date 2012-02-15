@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,6 +69,7 @@ public class FuncExpr extends Expr{
 	  isNodeSet = false;
 	  isNumerical = false;
 	  argCount=argCount();
+	 // cacheable =false;
 	  switch(opCode){
 			case FuncName.LAST: 			isNumerical = true;break;
 			case FuncName.POSITION: 		isNumerical = true;break;
@@ -121,6 +122,8 @@ public class FuncExpr extends Expr{
 			case FuncName.ENCODE_FOR_URI:	isString = true; break;
 			case FuncName.MATCH_NAME:		isBoolean =true; break;
 			case FuncName.MATCH_LOCAL_NAME: isBoolean=true;break;
+			case FuncName.NOT_MATCH_NAME:		isBoolean =true; break;
+			case FuncName.NOT_MATCH_LOCAL_NAME: isBoolean=true;break;
 			case FuncName.GENERATE_ID : 	isString = true; break;
 			case FuncName.FORMAT_NUMBER:  	isString = true;break;
 			case FuncName.KEY:				isNodeSet = true; state = START; vg = new VTDGen(); break;
@@ -133,7 +136,7 @@ public class FuncExpr extends Expr{
 			//default:			isNumerical = true; break;
 	  }	  
 	}
-	public boolean checkArgumentCount(){
+	final public boolean checkArgumentCount(){
 		switch(opCode){
 		case FuncName.LAST: 			return argCount==0;
 		case FuncName.POSITION: 		return argCount==0;
@@ -186,6 +189,8 @@ public class FuncExpr extends Expr{
 		case FuncName.ENCODE_FOR_URI:	break;
 		case FuncName.MATCH_NAME:		return argCount==1 || argCount == 2;
 		case FuncName.MATCH_LOCAL_NAME: return argCount==1 || argCount == 2;
+		case FuncName.NOT_MATCH_NAME:		return argCount==1 || argCount == 2;
+		case FuncName.NOT_MATCH_LOCAL_NAME: return argCount==1 || argCount == 2;
 		case FuncName.CURRENT:			return argCount==0;
 		case FuncName.GENERATE_ID : 	return argCount==0 || (argCount ==1 && argumentList.e.isNodeSet());
 		case FuncName.FORMAT_NUMBER:  	return argCount==2 || argCount == 3;
@@ -212,7 +217,7 @@ public class FuncExpr extends Expr{
 		String s = argumentList.e.evalString(vn);
 		return false;
 	}
-	public String toString(){
+	final public String toString(){
 	  if (argumentList == null)
 		  return fname()+" ("+")";
 	  return fname()+" ("+argumentList +")";
@@ -446,6 +451,7 @@ public class FuncExpr extends Expr{
 		if (argumentList.e.isNodeSet()){
 			//boolean b = false;
 			int a = evalFirstArgumentListNodeSet(vn);
+			
 	        if (a==-1)
 	        	return "".startsWith(s2);
 	        else{
@@ -467,12 +473,20 @@ public class FuncExpr extends Expr{
         try {
             a = argumentList.e.evalNodeSet(vn);
             if (a != -1) {
-                if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME) {
+            	int t = vn.getTokenType(a);
+                if (t == VTDNav.TOKEN_ATTR_NAME) {
                     a++;
                 }
-                if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG) {
+                else if (t == VTDNav.TOKEN_STARTING_TAG) {
                     a = vn.getText();
+                }else if (t == VTDNav.TOKEN_PI_NAME){
+                	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
+                		a++;
+                	else 
+                		a=-1;
                 }
+                 
+                //else if (t== VTDNav.T)
             }	            
         } catch (Exception e) {
         }
@@ -590,53 +604,37 @@ public class FuncExpr extends Expr{
 	private String translate(VTDNav vn)
 	{
 		
-	    if (argCount== 3)
-	    {
-	        String resultStr = argumentList.e.evalString(vn);
-	        String indexStr = argumentList.next.e.evalString(vn);
-	        
-	        if(resultStr == null || resultStr.length() == 0 || indexStr == null || indexStr.length() == 0) return resultStr;
-	        
-	        String replace = argumentList.next.next.e.evalString(vn);
-	        
-	        
-	        StringBuilder usedCharStr = new StringBuilder();
-	        
-	        
-	        int lenRep = (replace != null)?replace.length() : 0;
-	        
-	        
-	        for(int i = 0;i< indexStr.length(); i++)
-	        {
-	        	char idxChar = indexStr.charAt(i);
-	        	
-	        	if(usedCharStr.indexOf(String.valueOf(idxChar)) < 0)
-	        	{
-	        		
-	        		if(i < lenRep)
-	        		{
-	        			resultStr = resultStr.replace(idxChar, replace.charAt(i));	        		
-	        		}
-	        		else
-	        		{
-	        			resultStr = resultStr.replaceAll(String.valueOf(idxChar), "");
-	        		}
-	        	
-	        		usedCharStr.append(idxChar);
-	        	
-	        	}
+		if (argCount == 3) {
+			String resultStr = argumentList.e.evalString(vn);
+			String indexStr = argumentList.next.e.evalString(vn);
 
-	        
-	        }
-	        
-	        return resultStr;
-	        
-	    }
-	    else
-	    {
-	    	throw new IllegalArgumentException("Argument count for translate() is invalid. Expected: 3; Actual: " + argCount);
-	    }
+			if (resultStr == null || resultStr.length() == 0
+					|| indexStr == null || indexStr.length() == 0)
+				return resultStr;
+			String replace = argumentList.next.next.e.evalString(vn);
+			StringBuilder usedCharStr = new StringBuilder();
+			int lenRep = (replace != null) ? replace.length() : 0;
+			for (int i = 0; i < indexStr.length(); i++) {
+				char idxChar = indexStr.charAt(i);
+				if (usedCharStr.indexOf(String.valueOf(idxChar)) < 0) {
+					if (i < lenRep) {
+						resultStr = resultStr.replace(idxChar,
+								replace.charAt(i));
+					} else {
+						resultStr = resultStr.replaceAll(
+								String.valueOf(idxChar), "");
+					}
+					usedCharStr.append(idxChar);
+				}
+			}
+			return resultStr;
+		} else {
+			throw new IllegalArgumentException(
+					"Argument count for translate() is invalid. Expected: 3; Actual: "
+							+ argCount);
+		}
 	}
+	
 	private String normalizeSpace(VTDNav vn){
 	    if (argCount== 0){
 	        String s =null;
@@ -743,7 +741,7 @@ public class FuncExpr extends Expr{
 	                    return vn.toRawString(vn.LN);
 	                return vn.toString(vn.LN);
 	            }
-	            return vn.toString(vn.getCurrentIndex());
+	            return vn.getXPathStringVal();
 	        }
 	    	catch(NavException e){
 	    	    return ""; // this will almost never occur
@@ -755,7 +753,7 @@ public class FuncExpr extends Expr{
 			("String()'s argument count is invalid");
 	}
 	
-	public String evalString(VTDNav vn) throws UnsupportedException{
+	final public String evalString(VTDNav vn) throws UnsupportedException{
 	   // int d=0;
 	  switch(opCode){
 	  		case FuncName.CONCAT:
@@ -800,13 +798,17 @@ public class FuncExpr extends Expr{
 			    		else 
 			    		    return "false";
 					 } else {
-					     return ""+ evalNumber(vn);					     
+						 double tmp = evalNumber(vn);
+						 if (tmp - ((int)tmp) ==0 )
+							 return ""+ (int)tmp;
+						 else
+							 return ""+ tmp;
 					 }
 	  }
 	}	
 	
 	
-	public double evalNumber(VTDNav vn){
+	final public double evalNumber(VTDNav vn){
 	    int ac = 0;
 	  switch(opCode){
 			case FuncName.LAST:  if (argCount!=0 )
@@ -939,7 +941,7 @@ public class FuncExpr extends Expr{
 	/**
 	 * 
 	 */
-	public int evalNodeSet(VTDNav vn) throws XPathEvalException {
+	final public int evalNodeSet(VTDNav vn) throws XPathEvalException {
 		switch (opCode) {
 		case FuncName.CURRENT:
 			if (state == START) {
@@ -1023,7 +1025,7 @@ public class FuncExpr extends Expr{
             return i;
 	}
 	
-	public boolean evalBoolean(VTDNav vn){
+	final public boolean evalBoolean(VTDNav vn){
 	  	  switch(opCode){
 			case FuncName.STARTS_WITH:
 			    if (argCount!=2){
@@ -1066,7 +1068,8 @@ public class FuncExpr extends Expr{
 		    
 		    case FuncName.MATCH_NAME:return matchName(vn);
 		    case FuncName.MATCH_LOCAL_NAME: return matchLocalName(vn);
-		    
+		    case FuncName.NOT_MATCH_NAME:return !matchName(vn);
+		    case FuncName.NOT_MATCH_LOCAL_NAME: return !matchLocalName(vn);
 		    case FuncName.ELEMENT_AVAILABLE: return isElementAvailable(vn);
 		    case FuncName.FUNCTION_AVAILABLE: return isElementAvailable(vn);
 		        				
@@ -1081,7 +1084,7 @@ public class FuncExpr extends Expr{
 		  }
 	}
 	
-	public void reset(VTDNav vn){
+	final public void reset(VTDNav vn){
 	    a = 0;
 	    state  = START;
 	    //contextSize = 0;
@@ -1151,19 +1154,19 @@ public class FuncExpr extends Expr{
 				
 		}
 	}
-	public boolean  isNodeSet(){
+	final public boolean  isNodeSet(){
 		return isNodeSet;
 	}
 
-	public boolean  isNumerical(){
+	final public boolean  isNumerical(){
 		return isNumerical;
 	}
 	
-	public boolean isString(){
+	final public boolean isString(){
 	    return isString;
 	}
 	
-	public boolean isBoolean(){
+	final public boolean isBoolean(){
 	    return isBoolean;
 	}
 	
@@ -1242,7 +1245,7 @@ public class FuncExpr extends Expr{
 	// to support computer context size 
 	// needs to add 
 	
-	public boolean requireContextSize(){
+	final public boolean requireContextSize(){
 	    if (opCode == FuncName.LAST)
 	        return true;
 	    else {
@@ -1258,7 +1261,7 @@ public class FuncExpr extends Expr{
 	    return false;
 	}
 	
-	public void setContextSize(int size){	
+	final public void setContextSize(int size){	
 	    if (opCode == FuncName.LAST){
 	        contextSize = size;
 	        //System.out.println("contextSize: "+size);
@@ -1305,7 +1308,10 @@ public class FuncExpr extends Expr{
 		        	return "";
 		        else{
 		        	try{
-		        		return vn.toStringUpperCase(a);
+		        		int t = vn.getTokenType(a);
+		        		if (t!= VTDNav.TOKEN_STARTING_TAG && t!=VTDNav.TOKEN_DOCUMENT)
+		        			return vn.toStringUpperCase(a);
+		        		return vn.getXPathStringVal2(a, (short)1);
 		        	}catch(Exception e){
 		        	}
 		        	return "";
@@ -1327,7 +1333,10 @@ public class FuncExpr extends Expr{
 		        	return "";
 		        else{
 		        	try{
-		        		return vn.toStringLowerCase(a);
+		        		int t = vn.getTokenType(a);
+		        		if (t!= VTDNav.TOKEN_STARTING_TAG && t!=VTDNav.TOKEN_DOCUMENT)
+		        			return vn.toStringLowerCase(a);
+		        		return vn.getXPathStringVal2(a,(short)2);
 		        	}catch(Exception e){
 		        	}
 		        	return "";
@@ -1461,5 +1470,44 @@ public class FuncExpr extends Expr{
 	        throw new IllegalArgumentException
 			("generate-id()'s argument count is invalid");
 		
+	}
+	
+	public boolean isFinal(){
+			Alist temp = argumentList;
+			if (temp ==null)
+				return false;
+			if (temp.e==null)
+				return false;
+			boolean s=true;
+			while(temp!=null){
+			    s= s && temp.e.isFinal();
+			    if (!s)
+			    	return false;
+				temp = temp.next;
+			}
+			return s;			
+	}
+	
+	public void markCacheable(){
+	    Alist temp =argumentList;
+		while(temp!=null ){
+			if (temp.e!=null){
+				if (temp.e.isFinal() && temp.e.isNodeSet()){
+					CachedExpr ce = new CachedExpr(temp.e);
+					temp.e = ce;
+				}
+				temp.e.markCacheable();
+			}
+			temp = temp.next; 
+		}
+		
+	}
+	public void markCacheable2(){
+		 Alist temp =argumentList;
+		 while(temp!=null){
+			 if (temp.e!=null)
+				 temp.e.markCacheable2();
+			temp = temp.next; 
+		}
 	}
 }
