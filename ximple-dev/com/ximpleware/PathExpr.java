@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ public class PathExpr extends Expr {
 		ih = new intHash();
 	}
 	
-	public boolean evalBoolean(VTDNav vn) {
+	final public boolean evalBoolean(VTDNav vn) {
 		boolean a = false;
 		vn.push2();
 		// record teh stack size
@@ -62,7 +62,7 @@ public class PathExpr extends Expr {
 	}
 
 
-	public double evalNumber(VTDNav vn) {
+	final public double evalNumber(VTDNav vn) {
 		double d = Double.NaN;
 		int a = -1;
         vn.push2();
@@ -95,7 +95,7 @@ public class PathExpr extends Expr {
 		return d;
 	}
 
-	public int evalNodeSet(VTDNav vn) throws XPathEvalException, NavException {
+	final public int evalNodeSet(VTDNav vn) throws XPathEvalException, NavException {
 		int a;
 		while (true) {
 			switch (evalState) {
@@ -151,7 +151,7 @@ public class PathExpr extends Expr {
 	}
 
 
-	public String evalString(VTDNav vn) {
+	final public String evalString(VTDNav vn) {
 		String s = "";
 		int a = -1;
         vn.push2();
@@ -180,12 +180,12 @@ public class PathExpr extends Expr {
         return s;
 	}
 // The improved version, use hashtable to check for uniqueness
-	public boolean isUnique(int i){
+	final public boolean isUnique(int i){
 	    return ih.isUnique(i);
 		
 	}
 	
-	public void reset(VTDNav vn) {
+	final public void reset(VTDNav vn) {
 		
 		fe.reset(vn);
 		lpe.reset(vn);
@@ -196,45 +196,43 @@ public class PathExpr extends Expr {
 	}
 
 
-	public String toString() {
+	final public String toString() {
 		
 		return "("+fe +")/" + lpe;
 	}
 
 
-	public boolean isNumerical() {
+	final public boolean isNumerical() {
 	        return false;
 	}
 
 
-	public boolean isNodeSet() {
+	final public boolean isNodeSet() {
 	        return true;
 	}
 	
-	public boolean isString(){
-
+	final public boolean isString(){
 	        return false;
 	}
 	
-	public boolean isBoolean(){
-
+	final public boolean isBoolean(){
 	        return false;
 	}
 	
 	// to support computer context size 
 	// needs to add 
-	public boolean requireContextSize(){
+	final public boolean requireContextSize(){
 	    return false;
 	}
 	
-	public void setContextSize(int size){	    
+	final public void setContextSize(int size){	    
 	}
 	
-	public void setPosition(int pos){
+	final public void setPosition(int pos){
 	    
 	}
 	
-	public int adjust(int n){
+	final public int adjust(int n){
 	    int i = fe.adjust(n);
 	    lpe.adjust(n);
 	    
@@ -243,5 +241,24 @@ public class PathExpr extends Expr {
 	    else 
 	        ih = new intHash(i);
 	    return i;
+	}
+	
+	final public boolean isFinal(){
+		return fe.isFinal();
+	}
+	
+	final public void markCacheable(){
+		fe.markCacheable();
+		lpe.markCacheable();
+	}
+	
+	final public void markCacheable2(){
+		fe.markCacheable2();
+		lpe.markCacheable2();
+	}
+	
+	final public void clearCache(){
+		fe.clearCache();
+		lpe.clearCache();
 	}
 }

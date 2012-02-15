@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ public class UnionExpr extends Expr {
         current = this;
         ih = null;
         state = 0;
+        //cacheable =false;
     }
 
     /*
@@ -43,10 +44,10 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#evalBoolean(com.ximpleware.VTDNav)
      */
-    public boolean evalBoolean(VTDNav vn) {
-        if (e.isNodeSet()==false)
+    final public boolean evalBoolean(VTDNav vn) {
+        /*if (e.isNodeSet()==false)
             return e.evalBoolean(vn);
-        else{
+        else{*/
             boolean a = false;
             vn.push2();
             // record teh stack size
@@ -60,7 +61,7 @@ public class UnionExpr extends Expr {
             reset(vn);
             vn.pop2();
             return a;
-        }
+        //}
         /*else if (e.isNumerical()){
             double dval = e.evalNumber(vn);
             if (dval == 0.0 || Double.isNaN(dval) )
@@ -81,7 +82,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#evalNumber(com.ximpleware.VTDNav)
      */
-    public double evalNumber(VTDNav vn) {
+    final public double evalNumber(VTDNav vn) {
         if (e.isNodeSet()== false)
             return e.evalNumber(vn);   
         //double d;
@@ -120,11 +121,11 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#evalNodeSet(com.ximpleware.VTDNav)
      */
-    public int evalNodeSet(VTDNav vn) throws XPathEvalException, NavException {
+    final public int evalNodeSet(VTDNav vn) throws XPathEvalException, NavException {
         int a;
-        if (this.next == null) {
+        /*if (this.next == null) {
             return e.evalNodeSet(vn);
-        } else {
+        } else {*/
             while (true) {
                 switch (state) {
                 case 0:
@@ -180,7 +181,7 @@ public class UnionExpr extends Expr {
                             "Invalid state evaluating UnionExpr");
                 }
             }
-        }
+        //}
         /*
          * default: throw new XPathEvalException( "Invalid state evaluating
          * PathExpr");
@@ -192,7 +193,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#evalString(com.ximpleware.VTDNav)
      */
-	public String evalString(VTDNav vn) {
+    final public String evalString(VTDNav vn) {
 		if (e.isNodeSet() == false)
 			return e.evalString(vn);
 		else {
@@ -204,7 +205,20 @@ public class UnionExpr extends Expr {
 				a = evalNodeSet(vn);
 				if (a != -1) {
 					int t = vn.getTokenType(a);
-					if (t == VTDNav.TOKEN_ATTR_NAME) {
+					switch(t){
+					case VTDNav.TOKEN_STARTING_TAG:
+					case VTDNav.TOKEN_DOCUMENT:
+						s = vn.getXPathStringVal();
+					case VTDNav.TOKEN_ATTR_NAME:
+						s = vn.toString(a + 1);
+					case VTDNav.TOKEN_PI_NAME:
+						if (a + 1 < vn.vtdSize
+								|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+							s = vn.toString(a + 1);
+					default:
+						s = vn.toString(a);
+					}
+					/*if (t == VTDNav.TOKEN_ATTR_NAME) {
 						s = vn.toString(a + 1);
 					} else if (t == VTDNav.TOKEN_STARTING_TAG
 							|| t == VTDNav.TOKEN_DOCUMENT) {
@@ -215,7 +229,7 @@ public class UnionExpr extends Expr {
 							s = vn.toString(a + 1);
 						// s = vn.toString(a+1);
 					} else
-						s = vn.toString(a);
+						s = vn.toString(a);*/
 				}
 			} catch (Exception e) {
 
@@ -232,7 +246,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#reset(com.ximpleware.VTDNav)
      */
-    public void reset(VTDNav vn) {
+    final public void reset(VTDNav vn) {
         // travese el list and reset every expression
         e.reset(vn);
         current = this;
@@ -251,7 +265,7 @@ public class UnionExpr extends Expr {
      * 
      * @see java.lang.Object#toString()
      */
-    public String toString() {
+    final public String toString() {
         if (this.next == null)
             return this.e.toString();
         else
@@ -264,7 +278,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#isNumerical()
      */
-    public boolean isNumerical() {
+    final public boolean isNumerical() {
         return e.isNumerical();
     }
 
@@ -273,7 +287,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#isNodeSet()
      */
-    public boolean isNodeSet() {
+    final public boolean isNodeSet() {
         return e.isNodeSet();
     }
 
@@ -282,7 +296,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#isString()
      */
-    public boolean isString() {
+    final public boolean isString() {
         return e.isString();
     }
 
@@ -291,7 +305,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#isBoolean()
      */
-    public boolean isBoolean() {
+    final public boolean isBoolean() {
         return e.isBoolean();
     }
 
@@ -300,7 +314,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#requireContextSize()
      */
-    public boolean requireContextSize() {
+    final public boolean requireContextSize() {
        // boolean b = false;
         UnionExpr tmp = this;
         while (tmp != null) {
@@ -317,7 +331,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#setContextSize(int)
      */
-    public void setContextSize(int size) {
+    final public void setContextSize(int size) {
         current = this;
         current.e.setContextSize(size);
         UnionExpr tmp = this.next;
@@ -332,7 +346,7 @@ public class UnionExpr extends Expr {
      * 
      * @see com.ximpleware.xpath.Expr#setPosition(int)
      */
-    public void setPosition(int pos) {
+    final public void setPosition(int pos) {
        
         current = this;
         current.e.setPosition(pos);
@@ -344,12 +358,12 @@ public class UnionExpr extends Expr {
 
     }
 
-    public boolean isUnique(int i) {
+    final public boolean isUnique(int i) {
         return ih.isUnique(i);
 
     }
     
-    public int adjust(int n){        
+    final  public int adjust(int n){        
 	    int i = e.adjust(n);
 	    if (this.next == null)
 	    	return i; // no need to create hash table here 
@@ -363,6 +377,46 @@ public class UnionExpr extends Expr {
             tmp = tmp.next;
         }
         return i;
+    }
+    
+    final public boolean isFinal(){
+    	
+    	UnionExpr tmp = this;
+        while (tmp != null) {
+            if (tmp.e.isFinal()== false){            	
+                return false;
+            }
+            tmp = tmp.next;
+        }        
+        return true;
+    }
+    
+    final public void markCacheable(){
+    	UnionExpr tmp = this;
+        while (tmp != null) {
+        	tmp.e.markCacheable();
+        	tmp = tmp.next;
+        }  
+    }
+    
+    final public void markCacheable2(){
+    	UnionExpr tmp = this;
+        while (tmp != null) {
+        	if (tmp.e.isFinal() && tmp.e.isNodeSet()){
+        		CachedExpr ce = new CachedExpr(tmp.e);
+        		tmp.e = ce;	
+        	}   
+        	tmp.e.markCacheable2();     		       	
+            tmp = tmp.next;
+        }  
+    }
+    
+    final public void clearCache(){
+    	UnionExpr tmp = this;
+        while (tmp != null) {
+        	tmp.e.clearCache(); 		       	
+            tmp = tmp.next;
+        }  
     }
 
 }
