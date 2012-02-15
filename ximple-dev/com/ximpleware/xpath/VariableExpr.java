@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,90 +26,106 @@ public class VariableExpr extends Expr {
 	public VariableExpr(String name, Expr e){
 		exprName = name;
 		exprVal = e;
+		//cacheable =false;
 	}
 	
 	
-	public int adjust(int n) {
+	final public int adjust(int n) {
 		// TODO Auto-generated method stub
 		return exprVal.adjust(n);
 	}
 
 
-	public boolean evalBoolean(VTDNav vn) {
+	final public boolean evalBoolean(VTDNav vn) {
 		// TODO Auto-generated method stub
 		return exprVal.evalBoolean(vn);
 	}
 
 
-	public int evalNodeSet(VTDNav vn) throws XPathEvalException, NavException {
+	final public int evalNodeSet(VTDNav vn) throws XPathEvalException, NavException {
 		// TODO Auto-generated method stub
 		return exprVal.evalNodeSet(vn);
 	}
 
 
-	public double evalNumber(VTDNav vn) {
+	final public double evalNumber(VTDNav vn) {
 		// TODO Auto-generated method stub
 		return exprVal.evalNumber(vn);
 	}
 
 
-	public String evalString(VTDNav vn) {
+	final public String evalString(VTDNav vn) {
 		// TODO Auto-generated method stub
 		return exprVal.evalString(vn);
 	}
 
 
-	public boolean isBoolean() {
+	final public boolean isBoolean() {
 		// TODO Auto-generated method stub
 		return exprVal.isBoolean();
 	}
 
 
-	public boolean isNodeSet() {
+	final public boolean isNodeSet() {
 		// TODO Auto-generated method stub
 		return exprVal.isNodeSet();
 	}
 
 
-	public boolean isNumerical() {
+	final public boolean isNumerical() {
 		// TODO Auto-generated method stub
 		return exprVal.isNumerical();
 	}
 
 
-	public boolean isString() {
+	final public boolean isString() {
 		// TODO Auto-generated method stub
 		return exprVal.isString();
 	}
 
 
-	public boolean requireContextSize() {
+	final public boolean requireContextSize() {
 		// TODO Auto-generated method stub
 		return exprVal.requireContextSize();
 	}
 
 
-	public void reset(VTDNav vn) {
+	final public void reset(VTDNav vn) {
 		// TODO Auto-generated method stub
 		exprVal.reset(vn);
 	}
 
 
-	public void setContextSize(int size) {
+	final public void setContextSize(int size) {
 		// TODO Auto-generated method stub
 		exprVal.setContextSize(size);
 	}
 
 
-	public void setPosition(int pos) {
+	final public void setPosition(int pos) {
 		// TODO Auto-generated method stub
 		exprVal.setPosition(pos);
 	}
 
 
-	public String toString() {
+	final public String toString() {
 		// TODO Auto-generated method stub
 		return "$"+exprName;
 	}
+	
+	final public boolean isFinal(){
+		return exprVal.isFinal();
+	}
 
+	final public void markCacheable(){
+		exprVal.markCacheable();
+	}
+	
+	final public void markCacheable2(){
+		exprVal.markCacheable2();		
+	}
+	
+	final public void clearCache(){
+		exprVal.clearCache();
+	}
 }
