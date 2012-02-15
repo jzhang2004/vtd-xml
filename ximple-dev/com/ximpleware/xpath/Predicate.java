@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,16 +21,27 @@ import com.ximpleware.*;
  * LocationPathExpr uses this class to represent a predicate
  *
  */
-public class Predicate implements LocationPathNode{
+public class Predicate /*implements LocationPathNode*/{
 	double d; // only supports a[1] style of location path for now
+	public Predicate nextP;
 	public int count;
 	public Expr expr;
+	public int type;
+	public Step s;
+	public FilterExpr fe;
+	public boolean requireContext;
+	public final static int simple=0;
+	public final static int complex=1;
+	
+	
 	public Predicate(){
 		nextP = (Predicate) null;
 		count = 0;
 		d = 0;
+		requireContext = false;
+		type = complex;
 	}
-	public boolean eval(VTDNav vn) {
+	final public boolean eval2(VTDNav vn) {
 		boolean b;		
 		count++; // increment the position
 		expr.setPosition(count);
@@ -43,19 +54,49 @@ public class Predicate implements LocationPathNode{
 		return b;
 	}
 	
-	public void setIndex(double index) throws XPathEvalException{
+	final public boolean eval(VTDNav vn){
+		count++;
+		switch (type){
+		case simple:
+			if (d<count)
+				return false;
+			else if(d==count){
+				if (s!=null){
+					s.out_of_range=true;
+				}else
+					fe.out_of_range=true;
+				
+				return true;	
+			}
+	    default:
+			boolean b;
+			expr.setPosition(count);
+			if (expr.isNumerical()){		    
+				b = (expr.evalNumber(vn)== count);
+			}
+			else{ 
+				b = expr.evalBoolean(vn);
+			}
+			if (b) 
+				return true;
+			else 
+				return false;
+		}		
+	}
+	
+	final public void setIndex(double index) throws XPathEvalException{
 		if (index<=0)
 			throw new XPathEvalException("Invalid index number");
 		d = (double) index;
 	}
 	
-	public void reset(VTDNav vn){
+	final public void reset(VTDNav vn){
 		count = 0;
 		expr.reset(vn); // is this really needed?
 	}
-	public Predicate nextP;
+	
 
-	public String toString(){
+	final public String toString(){
 		String s = "["+expr+"]";
 		if (nextP==null){
 			return s;
@@ -67,17 +108,21 @@ public class Predicate implements LocationPathNode{
 	// to support computer context size 
 	// needs to add 
 	
-	public boolean requireContextSize(){
+	final public boolean requireContextSize(){
 	    return expr.requireContextSize();
 	}
 	
-	public void setContextSize(int size){
+	final public void setContextSize(int size){
 	    expr.setContextSize(size);
 	}
 	
-	public void adjust(int n){
+	final public void adjust(int n){
 		expr.adjust(n);
 	}
+	
+	/*public void markCacheable(){
+		expr.markCacheable();
+	}*/
 
 }
 
