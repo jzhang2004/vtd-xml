@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,9 @@ public class LiteralExpr extends Expr {
 	public String s;
 	public LiteralExpr (String st){
 		s = st;
+		//cacheable =false;
 	}	
-	public String toString(){
+	final public String toString(){
 		boolean b = true;
 		for(int i = 0;i<s.length();i++){
 			if (s.charAt(i) == '\''){
@@ -40,11 +41,11 @@ public class LiteralExpr extends Expr {
 		  return "'" + s + "'";
 	}
 
-	public boolean evalBoolean(VTDNav vn){
+	final public boolean evalBoolean(VTDNav vn){
 		return s.length() != 0;
 	}
 
-	public double evalNumber(VTDNav vn){
+	final public double evalNumber(VTDNav vn){
 		try {
 			double dval = Double.parseDouble(s);
 			return dval;
@@ -53,7 +54,7 @@ public class LiteralExpr extends Expr {
 		}	
 	}
 		
-	public int evalNodeSet(VTDNav vn) throws XPathEvalException{
+	final public int evalNodeSet(VTDNav vn) throws XPathEvalException{
 		
 		throw new XPathEvalException("LiteralExpr can't eval to a node set!");
 	}
@@ -62,36 +63,46 @@ public class LiteralExpr extends Expr {
 		return s;
 	}
 
-	public void reset(VTDNav vn){ }
+	final public void reset(VTDNav vn){ }
 
-	public boolean  isNodeSet(){
+	final public boolean  isNodeSet(){
 		return false;
 	}
 
-	public boolean  isNumerical(){
+	final public boolean  isNumerical(){
 		return false;
 	}
 	
-	public boolean isString(){
+	final public boolean isString(){
 	    return true;
 	}
 	
-	public boolean isBoolean(){
+	final public boolean isBoolean(){
 	    return false;
 	}
 	// to support computer context size 
 	// needs to add 
-	public boolean requireContextSize(){
+	final public boolean requireContextSize(){
 	    return false;
 	}
 	
-	public void setContextSize(int size){	    
+	final public void setContextSize(int size){	    
 	}
 	
-	public void setPosition(int pos){
+	final public void setPosition(int pos){
 	    
 	}
-	public int adjust(int n){
+	final public int adjust(int n){
 	    return 0;
 	}
+	final public boolean isFinal(){
+		return true;
+	}
+	final public boolean isConstant(){
+		return true;
+	}
+	/*final public void markCacheable(){
+		
+	}
+	final public void markCacheable2(){}*/
 }
