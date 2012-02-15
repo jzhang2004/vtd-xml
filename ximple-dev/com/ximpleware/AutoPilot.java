@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ public class AutoPilot {
     private FastIntBuffer fib; // for namespace axis
     
     protected Hashtable nsHash;
+    protected boolean enableCaching;
     //private parser p;
     // defines the type of "iteration"
     public final static int UNDEFINED = 0;
@@ -72,7 +73,7 @@ public class AutoPilot {
     public final static int PRECEDING_NODE = 15;
     
     static private Hashtable symbolHash;
-    
+    //static int count=0;
     
  protected String getName(){
    	return name;
@@ -94,8 +95,10 @@ public AutoPilot(VTDNav v) {
     xpe = null;
     symbolHash = new Hashtable();
     fib = null;
+    enableCaching = true;
     //fib = new FastIntBuffer(4);
-    //p = null;       
+    //p = null;   
+    //count=0;
 }
 
 /**
@@ -114,6 +117,8 @@ public AutoPilot(){
     xpe = null;
     symbolHash = new Hashtable();
     fib = null;
+    enableCaching = false;
+    //count=0;
 }
 /** This function creates URL ns prefix 
  *  and is intended to be called prior to selectXPath
@@ -121,7 +126,7 @@ public AutoPilot(){
  *  @param URL
  */
 
-public void declareXPathNameSpace(String prefix, String URL){
+final public void declareXPathNameSpace(String prefix, String URL){
     if (nsHash==null)
         nsHash = new Hashtable();
     nsHash.put(prefix, URL);
@@ -145,6 +150,7 @@ public void bind (VTDNav vnv){
     ft = true;
     size = 0;
     special = false;
+    //count = 0;
     //resetXPath();
 }
 
@@ -173,18 +179,20 @@ public void declareVariableExpr(String varName, String varExpr) throws XPathPars
 /**
  * Remove all declared variable expressions
  */
-public void clearVariableExprs(){
+final public void clearVariableExprs(){
 	symbolHash.clear();
 }
 
 /**
  * Remove all namespaces bindings 
  */
-public void clearXPathNameSpaces(){
+final public void clearXPathNameSpaces(){
 	nsHash.clear();
 }
 
-protected boolean iterate2() throws PilotException, NavException {
+public boolean iterate2() throws PilotException, NavException {
+	//count++;
+	//System.out.println("count-=>"+count);
 	switch (iter_type) {
 		case SIMPLE_NODE:
 			if (ft && vn.atTerminal)
@@ -233,6 +241,8 @@ protected boolean iterate2() throws PilotException, NavException {
  * @exception com.ximpleware.NavException See description in method toElement() in VTDNav class.
  */
 public boolean iterate() throws PilotException, NavException {
+	//count++;
+	//System.out.println("count-=>"+count);
     switch (iter_type) {
         case SIMPLE :
         	//System.out.println("iterating ---> "+name+ " depth ---> "+depth);
@@ -320,12 +330,12 @@ public boolean iterate() throws PilotException, NavException {
          case PRECEDING: 
          	if (vn.atTerminal)
          	    return false;
-         	return vn.iterate_preceding(name, contextCopy,special);
+         	return vn.iterate_preceding(name, contextCopy,endIndex);
 
          case PRECEDING_NS:
          	if (vn.atTerminal)
          	    return false;
-         	return vn.iterate_precedingNS(URL,localName,contextCopy);
+         	return vn.iterate_precedingNS(URL,localName,contextCopy,endIndex);
          	
 
         default :
@@ -553,14 +563,14 @@ public boolean iterate() throws PilotException, NavException {
   	
   }
    
-   protected void selectNode(){
+   final public void selectNode(){
 	   ft = true;
 	   depth = vn.getCurrentDepth();
 	   iter_type = SIMPLE_NODE;
    }
    
    
-   protected void selectPrecedingNode(){
+   final protected void selectPrecedingNode(){
 	   ft = true;
 	   depth = vn.getCurrentDepth();
 	   contextCopy = (int[])vn.context.clone();
@@ -568,7 +578,7 @@ public boolean iterate() throws PilotException, NavException {
 	   endIndex = vn.getCurrentIndex();
    }
    
-   protected void selectFollowingNode(){
+   final protected void selectFollowingNode(){
 	   ft = true;
 	   depth = vn.getCurrentDepth();
 	   iter_type = FOLLOWING_NODE;
@@ -576,7 +586,7 @@ public boolean iterate() throws PilotException, NavException {
    }
    
    
-   protected void selectDescendantNode(){
+   final protected void selectDescendantNode(){
 	   ft = true;
 	   depth = vn.getCurrentDepth();
 	   iter_type = DESCENDANT_NODE;
@@ -685,6 +695,7 @@ protected void selectElement_P(String en) {
     ft = true;	
     name = en;
     contextCopy = (int[])vn.context.clone();
+    endIndex = vn.getCurrentIndex2();
     for(int i = vn.context[0]+1;i<vn.context.length;i++){
         contextCopy[i]=-1;
     }
@@ -706,6 +717,7 @@ protected void selectElementNS_P(String ns_URL, String ln){
     localName = ln;
     URL = ns_URL;
     contextCopy = (int[])vn.context.clone();
+    endIndex = vn.getCurrentIndex2();
     for(int i = vn.context[0]+1;i<vn.context.length;i++){
         vn.context[i]=-1;
     }
@@ -749,7 +761,7 @@ public void selectAttr(String en) {
  * @param ns_URL
  * @param ln
  */
-public void selectAttrNS(String ns_URL, String ln){
+final public void selectAttrNS(String ns_URL, String ln){
 	if (ln == null)
 		throw new IllegalArgumentException("local name of an attribute can't be null");
 	iter_type = ATTR_NS;
@@ -773,6 +785,8 @@ public void selectXPath(String s) throws XPathParseException {
        p.symbolHash = symbolHash;
        xpe = (com.ximpleware.Expr) p.parse().value;
        ft = true;
+       if (enableCaching)
+    	   xpe.markCacheable();
     }catch(XPathParseException e){
     	System.out.println("Syntax error after or around the end of ==>"+s.substring(0,e.getOffset()));
         throw e;
@@ -787,11 +801,13 @@ public void selectXPath(String s) throws XPathParseException {
  *
  */
 
-public void resetXPath(){
+final public void resetXPath(){
 	if (xpe!=null && vn!=null){
 		xpe.reset(vn);
 		ft = true;
 		vn.contextStack2.size = stackSize;
+		if (enableCaching)
+			xpe.clearCache();
 	}
 }
 /**
@@ -799,7 +815,7 @@ public void resetXPath(){
  * @return double
  *
  */
-public double evalXPathToNumber(){
+final public double evalXPathToNumber(){
     return xpe.evalNumber(vn);
 }
 /**
@@ -807,7 +823,7 @@ public double evalXPathToNumber(){
  * @return String
  *
  */
-public String evalXPathToString(){
+final public String evalXPathToString(){
     return xpe.evalString(vn);
 }
 /**
@@ -815,7 +831,7 @@ public String evalXPathToString(){
  * @return boolean
  *
  */
-public boolean evalXPathToBoolean(){
+final public boolean evalXPathToBoolean(){
     return xpe.evalBoolean(vn);
 }
 /**
@@ -846,7 +862,7 @@ public int evalXPath() throws XPathEvalException, NavException{
  * @param b
  */
 
-protected void setSpecial(boolean b ){
+final protected void setSpecial(boolean b ){
 	special = b;
 }
 
@@ -855,7 +871,11 @@ protected void setSpecial(boolean b ){
  * For debugging purpose
  * @return String
  */
-public String getExprString(){
+final public String getExprString(){
 	return xpe.toString();
+}
+
+final public void enableCaching(){
+	enableCaching = true;
 }
 }
