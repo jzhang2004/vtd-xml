@@ -15,8 +15,8 @@ import java.io.FileWriter;
 
 
 public class xmlGen2 {
-	public final static String testDir1 = 
-		"d://ximple-dev//testcases//VTDNav//";
+	public final static String testDir1 = "c://benchmark_2.7//xml//";
+		//"d://ximple-dev//testcases//VTDNav//";
 	public final static String readme = testDir1 + "readme.txt";
 	public final static String enc_ascii = "<?xml version='1.0' encoding=\"us-ascii\"?>";
 	public final static String enc_8859 = "<?xml version='1.0' encoding=\"iso-8859-1\"?>";
@@ -63,8 +63,8 @@ public class xmlGen2 {
 		ba12=null, ba13=null, ba14=null, ba15=null, ba16=null, ba17=null, ba18=null,
 		ba19=null, ba20=null, ba21=null, ba22=null, ba23=null, ba24=null, ba25=null,
 		ba26=null, ba27=null, ba28=null, ba29=null, ba30=null;
-		//ba0 = (enc_ascii+"<!--"+ msg+"-->" + xml1).getBytes("ascii");
-		//ba1 = (enc_8859 +"<!--"+ msg+"-->" + xml1).getBytes("iso-8859-1");
+		ba0 = (enc_ascii+"<!--"+ msg+"-->" + xml1).getBytes("ascii");
+		ba1 = (enc_8859 +"<!--"+ msg+"-->" + xml1).getBytes("iso-8859-1");
 		ba2 = (enc_utf_8+"<!--"+ msg+"-->" + xml1).getBytes("utf-8");
 		ba3 = (enc_utf_16le+"<!--"+ msg+"-->" + xml1).getBytes("utf-16le");
 		ba4 = (enc_utf_16be+"<!--"+ msg+"-->" + xml1).getBytes("utf-16be");
@@ -85,8 +85,8 @@ public class xmlGen2 {
 		fw.write("nav_" + i
 				+ "_*.xml "+"<!--"+ msg+"-->"+"\n");
 		fw.flush();
-		//f0 = new File(testDir1 + "nt_" + i + "_0.xml");
-		//f1 = new File(testDir1 + "nt_" + i + "_1.xml");
+		f0 = new File(testDir1 + "nt_" + i + "_0.xml");
+		f1 = new File(testDir1 + "nt_" + i + "_1.xml");
 		f2 = new File(testDir1 + "nav_" + i + "_2.xml");
 		f3 = new File(testDir1 + "nav_" + i + "_3.xml");
 		f4 = new File(testDir1 + "nav_" + i + "_4.xml");
@@ -291,7 +291,7 @@ public class xmlGen2 {
 			rf = new File(readme);
 			fw = new FileWriter(rf);
 		    for (int i=0;i<40;i++){
-		    	composeXML1(randomXML(5),i,"random structure of XML");
+		    	composeXML1(randomXML(7),i,"random structure of XML");
 		    }
 		    System.out.println("finished!");
 		}

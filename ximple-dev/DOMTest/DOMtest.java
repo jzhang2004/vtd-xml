@@ -16,8 +16,8 @@ import com.ximpleware.*;
 
 class DOMtest {
 	public static void main(String[] argv) {
-		String fileName = "d://ximple-dev//testcases//VTDGen//bad//"+argv[0];//"d://ximple-dev//testcases//VTDGen//bad//nt_0_4.xml";
-		System.out.println("filename ==>"+argv[0]);
+		String fileName = "c://xml//cdata.xml";//"d://ximple-dev//testcases//VTDGen//bad//nt_0_4.xml";
+		//System.out.println("filename ==>"+argv[0]);
 		try {
 			//File f = new File("d://ximple-dev//testcases//xml_gen//test_utf16le.xml");
 			//byte[] ba1 = new byte[(int)f.length()];
@@ -59,6 +59,7 @@ class DOMtest {
 			//System.out.println("utf-16le ok");
 			//d = parser.parse("d://ximple-dev//testcases//xml_gen//test_utf16be.xml");
 			d = parser.parse(fis);
+			System.out.println(d.getNodeName());
 			System.out.println("utf-16be ok"); 
 			/*Node n = d.getDocumentElement();
 
@@ -109,7 +110,7 @@ class DOMtest {
 		
 		// test vtdGen1
 		try{
-			VTDGen1 vg = new VTDGen1();
+			VTDGen vg = new VTDGen();
 			File f = new File(fileName);
 			byte[] ba = new byte[(int)f.length()];
 			FileInputStream fis = new FileInputStream(f);

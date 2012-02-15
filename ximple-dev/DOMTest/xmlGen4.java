@@ -18,7 +18,7 @@ import java.io.FileWriter;
  */
 public class xmlGen4 {
 	public final static String testDir1 = 
-		"d://ximple-dev//testcases//AutoPilot//";
+		"c://benchmark_2.7//xml//";
 	public final static String readme = testDir1 + "readme.txt";
 	public final static String enc_ascii = "<?xml version='1.0' encoding=\"us-ascii\"?>";
 	public final static String enc_8859 = "<?xml version='1.0' encoding=\"iso-8859-1\"?>";
@@ -130,7 +130,7 @@ public class xmlGen4 {
 			rf = new File(readme);
 			fw = new FileWriter(rf);
 		    for (int i=0;i<40;i++){
-		    	composeXML1(randomXML(5),i,"random structure of XML to test name space");
+		    	composeXML1(randomXML(7),i,"random structure of XML to test name space");
 		    }
 		    System.out.println("finished!");
 		}

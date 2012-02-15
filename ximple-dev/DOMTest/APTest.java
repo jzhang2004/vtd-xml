@@ -23,7 +23,7 @@ public class APTest {
 		FastIntBuffer flb3 = new FastIntBuffer();
 	try{
 		int z = 0;
-		VTDGen1 vg = new VTDGen1();
+		VTDGen vg = new VTDGen();
 		File f = new File(fileName);
 		byte[] ba = new byte[(int)f.length()];
 		FileInputStream fis = new FileInputStream(f);

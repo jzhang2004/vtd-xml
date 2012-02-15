@@ -9,8 +9,8 @@ import java.io.FileWriter;
 
 
 public class xmlGen3 {
-	public final static String testDir1 = 
-		"d://ximple-dev//testcases//VTDNav//";
+	public final static String testDir1 = "c://benchmark_2.7//xml//";
+		//"d://ximple-dev//testcases//VTDNav//";
 	public final static String readme = testDir1 + "readme.txt";
 	public final static String enc_ascii = "<?xml version='1.0' encoding=\"us-ascii\"?>";
 	public final static String enc_8859 = "<?xml version='1.0' encoding=\"iso-8859-1\"?>";
@@ -53,8 +53,8 @@ public class xmlGen3 {
     public static String s;
 	public static void composeXML2(String xml1, int i, String msg) throws Exception {
 		byte[] ba0 = null, ba1 = null, ba2 = null, ba3 = null, ba4 = null;
-		//ba0 = (enc_ascii+"<!--"+ msg+"-->" + xml1).getBytes("ascii");
-		//ba1 = (enc_8859 +"<!--"+ msg+"-->" + xml1).getBytes("iso-8859-1");
+		ba0 = (enc_ascii+"<!--"+ msg+"-->" + xml1).getBytes("ascii");
+		ba1 = (enc_8859 +"<!--"+ msg+"-->" + xml1).getBytes("iso-8859-1");
 		ba2 = (enc_utf_8+"<!--"+ msg+"-->" + xml1).getBytes("utf-8");
 		ba3 = (enc_utf_16le+"<!--"+ msg+"-->" + xml1).getBytes("utf-16le");
 		ba4 = (enc_utf_16be+"<!--"+ msg+"-->" + xml1).getBytes("utf-16be");
@@ -63,26 +63,26 @@ public class xmlGen3 {
 		fw.write("nav_" + i
 				+ "_*.xml "+"<!--"+ msg+"-->"+"\n");
 		fw.flush();
-		//f0 = new File(testDir1 + "nt_" + i + "_0.xml");
-		//f1 = new File(testDir1 + "nt_" + i + "_1.xml");
+		f0 = new File(testDir1 + "nt_" + i + "_0.xml");
+		f1 = new File(testDir1 + "nt_" + i + "_1.xml");
 		f2 = new File(testDir1 + "nav_" + i + "_2.xml");
 		f3 = new File(testDir1 + "nav_" + i + "_3.xml");
 		f4 = new File(testDir1 + "nav_" + i + "_4.xml");
 
-		//fos0 = new FileOutputStream(f0);
-		//fos1 = new FileOutputStream(f1);
+		fos0 = new FileOutputStream(f0);
+		fos1 = new FileOutputStream(f1);
 		fos2 = new FileOutputStream(f2);
 		fos3 = new FileOutputStream(f3);
 		fos4 = new FileOutputStream(f4);
 
-		//fos0.write(ba0);
-		//fos1.write(ba1);
+		fos0.write(ba0);
+		fos1.write(ba1);
 		fos2.write(ba2);
 		fos3.write(ba3);
 		fos4.write(ba4);
 
-		//fos0.close();
-		//fos1.close();
+		fos0.close();
+		fos1.close();
 		fos2.close();
 		fos3.close();
 		fos4.close();		
@@ -152,7 +152,7 @@ public class xmlGen3 {
 			rf = new File(readme);
 			fw = new FileWriter(rf);
 		    for (int i=40;i<80;i++){
-		    	composeXML1(randomXML(5),i,"random structure of XML to test name space");
+		    	composeXML1(randomXML(7),i,"random structure of XML to test name space");
 		    }
 		    System.out.println("finished!");
 		}
