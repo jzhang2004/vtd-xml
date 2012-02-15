@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,20 +32,24 @@ public class FilterExpr extends Expr {
 	//FastIntBuffer fib;
 	//int stackSize;
 	boolean first_time;
+	public boolean out_of_range; 
 	//public int position;
 	
 	public FilterExpr(Expr l, Predicate pr){
 		e = l;
 		p = pr;
+		//cacheable =false;
 		//stackSize = 0;
 		//position = 1;
 		//fib = new FastIntBuffer(8);
 		first_time = true;
+		out_of_range=false;
+		pr.fe=this;
 	}
 	/*public int getPositon(){
 		return fib.size();
 	}*/
-	public boolean evalBoolean(VTDNav vn) {
+	final public boolean evalBoolean(VTDNav vn) {
 	    //if (e.isBoolean())
 	    //    return e.evalBoolean(vn);
 		boolean a = false;
@@ -64,7 +68,7 @@ public class FilterExpr extends Expr {
 	}
 
 
-	public double evalNumber(VTDNav vn) {
+	final public double evalNumber(VTDNav vn) {
 		//String s = "";
 		double d = Double.NaN;
 		int a = -1;
@@ -82,7 +86,7 @@ public class FilterExpr extends Expr {
                 }else if (t == VTDNav.TOKEN_PI_NAME) {
                 	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
 	                	//s = vn.toString(a+1); 	
-                	d = vn.parseDouble(a+1);               
+                	d = vn.parseDouble(a+1);                	
                 }else 
                 	d = vn.parseDouble(a);
             }
@@ -96,7 +100,7 @@ public class FilterExpr extends Expr {
 		return d;
 	}
 
-	public int evalNodeSet(VTDNav vn) 
+	final public int evalNodeSet(VTDNav vn) 
 	throws XPathEvalException, NavException {
 	    // if tne predicate require context size
 	    // needs to precompute the context size
@@ -107,7 +111,7 @@ public class FilterExpr extends Expr {
 	    // if the context size is zero
 	    // get immediately set teh state to end
 	    // or backward
-	    if (first_time && p.requireContextSize()){
+	    if (first_time && p.requireContext){
 	        first_time = false;
 	        int i = 0;
 	        //vn.push2();
@@ -118,6 +122,8 @@ public class FilterExpr extends Expr {
 	        p.setContextSize(i);
 	        reset2(vn);
 	    }
+	    if(out_of_range)
+	    	return -1;
 		int a = e.evalNodeSet(vn);
 		while (a!=-1){
 			if (p.eval(vn)==true){
@@ -131,18 +137,7 @@ public class FilterExpr extends Expr {
 		return -1;		
 	}
 
-	public String evalString(VTDNav vn) {
-	    //if (e.isString())
-	   //     return e.evalString(vn);
-		/*int a = getStringIndex(vn);
-        try {
-        	if (a !=-2)
-        		return vn.getXPathStringVal();
-            if (a != -1)
-                return vn.toString(a);
-        } catch (NavException e) {
-        }
-        return "";*/
+	final public String evalString(VTDNav vn) {
 		String s = "";
 		int a = -1;
         vn.push2();
@@ -169,32 +164,38 @@ public class FilterExpr extends Expr {
         return s;
 	}
 
-	public void reset(VTDNav vn) {
+	final public void reset(VTDNav vn) {
 		reset2(vn);
+		
 		//vn.contextStack2.size = stackSize; 
 		//position = 1;
 		first_time = true;
+		/*cached = false; 
+		if (cachedNodeSet != null){
+			cachedNodeSet.clear();
+		}*/
 	}
 	
-	public void reset2(VTDNav vn){
+	final public void reset2(VTDNav vn){
+		out_of_range=false;
 		e.reset(vn);
 		p.reset(vn);
 		//fib.clear();
 	}
 
 
-	public String toString() {
+	final public String toString() {
 		
 		return "("+e+") "+p;
 	}
 
-	public boolean isNumerical() {
+	final public boolean isNumerical() {
 		
 		return false;
 	}
 
 
-	public boolean isNodeSet() {
+	final public boolean isNodeSet() {
 		return true;
 	}
 	
@@ -208,28 +209,58 @@ public class FilterExpr extends Expr {
 		return true;
 	}*/
 	
-	public boolean isString(){
+	final public boolean isString(){
 	    return false;
 	}
 	
-	public boolean isBoolean(){
+	final public boolean isBoolean(){
 	    return false;
 	}
 	// to support computer context size 
 	// needs to add 
-	public boolean requireContextSize(){
+	final public boolean requireContextSize(){
 	    return false;
 	}
 	
-	public void setContextSize(int size){	    
+	final public void setContextSize(int size){	    
 	}
-	public void setPosition(int pos){
+	final public void setPosition(int pos){
 	    
 	}
-	public int adjust(int n){
+	final public int adjust(int n){
 	    return e.adjust(n);
 	    //p.adjust(n);
 	}
+	final public boolean isFinal(){
+		return e.isFinal();
+	}
 	
+	final public void markCacheable2(){
+		e.markCacheable2();	
+		if (p.expr!=null){
+			if (p.expr.isFinal()&&p.expr.isNodeSet()){
+				CachedExpr ce = new CachedExpr(p.expr);
+				p.expr = ce;
+			}
+			p.expr.markCacheable2();
+		}
+	}
 	
+	final public void markCacheable(){
+		e.markCacheable();
+		if (p.expr!=null){
+			if (p.expr.isFinal()&&p.expr.isNodeSet()){
+				CachedExpr ce = new CachedExpr(p.expr);
+				p.expr = ce;
+			}
+			p.expr.markCacheable2();
+		}
+	}	
+	
+	final public void clearCache(){
+		e.clearCache();
+		if (p.expr!=null){
+			p.expr.clearCache();
+		}
+	}
 }
