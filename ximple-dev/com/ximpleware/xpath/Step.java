@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,12 +32,16 @@ public class Step{
 	public Object o; //AutoPilot or TextIter goes here
 	public boolean ft; // first time
 	public boolean hasPredicate;
+	public boolean nt_eval;
+	public boolean out_of_range;
 	public Step(){
 		nextS = prevS = (Step)null;
 		p  = pt = null;
 		nt = null;
 		ft = true;
 		hasPredicate =false;
+		nt_eval=false;
+		out_of_range=false;
 		//position = 1;
 	}
 		
@@ -45,6 +49,8 @@ public class Step{
 		ft = true;
 		if (hasPredicate)
 			resetP(vn);
+		//out_of_range=false;
+		
 		//position = 1;
 	}
 	
@@ -52,6 +58,13 @@ public class Step{
 		Predicate temp = p;
 		while(temp!=null){
 			temp.reset(vn);
+			temp = temp.nextP;
+		}
+	}
+	final public void setStep4Predicates(){
+		Predicate temp = p;
+		while(temp!=null){
+			temp.s=this;
 			temp = temp.nextP;
 		}
 	}
@@ -108,7 +121,24 @@ public class Step{
 		nt = n;
 		if (axis_type == AxisType.CHILD && n.testType ==NodeTest.NAMETEST ){
 			axis_type = AxisType.CHILD0;
+		}else if (axis_type == AxisType.DESCENDANT && n.testType ==NodeTest.NAMETEST ){
+			axis_type = AxisType.DESCENDANT0;
+		}else if (axis_type == AxisType.DESCENDANT_OR_SELF && n.testType ==NodeTest.NAMETEST ){
+			axis_type = AxisType.DESCENDANT_OR_SELF0;
+		}else if (axis_type == AxisType.FOLLOWING && n.testType ==NodeTest.NAMETEST ){
+			axis_type = AxisType.FOLLOWING0;
+		}else if (axis_type == AxisType.PRECEDING && n.testType ==NodeTest.NAMETEST ){
+			axis_type = AxisType.PRECEDING0;
+		}else if (axis_type == AxisType.FOLLOWING_SIBLING && n.testType ==NodeTest.NAMETEST ){
+			axis_type = AxisType.FOLLOWING_SIBLING0;
+		}else if (axis_type == AxisType.PRECEDING_SIBLING&& n.testType ==NodeTest.NAMETEST ){
+			axis_type = AxisType.PRECEDING_SIBLING0;
 		}
+		if (n.testType== NodeTest.NODE 
+				|| (n.testType==NodeTest.NAMETEST && n.nodeName.equals("*"))){
+			nt_eval= true;
+		}
+		
 	}
 		
 	final public void setPredicate(Predicate p1){
@@ -116,8 +146,9 @@ public class Step{
 			p = pt = p1;
 		} else {
 			pt.nextP = p1;
-			pt = pt.nextP;
+			pt = pt.nextP;			
 		}
+		setStep4Predicates();
 		if (p1!=null) hasPredicate = true;
 	}
 	
@@ -201,7 +232,9 @@ public class Step{
 			case AxisType.ANCESTOR_OR_SELF: return "ancestor-or-self::";
 			case AxisType.SELF: return "self::";
 			case AxisType.FOLLOWING_SIBLING: return "following-sibling::";
+			case AxisType.FOLLOWING_SIBLING0: return "following-sibling::";
 			case AxisType.PRECEDING_SIBLING: return "preceding-sibling::";
+			case AxisType.PRECEDING_SIBLING0: return "preceding-sibling::";
 			case AxisType.ATTRIBUTE: return "attribute::";
 			default: return "namespace::";
 
