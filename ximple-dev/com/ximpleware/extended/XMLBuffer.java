@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,7 +97,7 @@ public class XMLBuffer implements IByteBuffer {
      * 
      */
 	public final byte byteAt(long index){
-	    return bufferArray[(int)(index>>30)][(int)(index & 0x3fffffff)];
+		return bufferArray[(int)(index>>30)][(int)(index & 0x3fffffff)];
 	}
 	
 	/**
