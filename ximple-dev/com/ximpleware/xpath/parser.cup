@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,9 +116,15 @@ AndExpr 	::= EqualityExpr: ee
 EqualityExpr    ::= RelationalExpr:re  
 		{: RESULT = re; :}
 		|   EqualityExpr:ee EQ RelationalExpr:re  
-		{: RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re); :}
+		{: RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re); 
+		   //ee is a function expression such as name() or local-name()	
+		   // 
+		:}
 		|   EqualityExpr:ee NE RelationalExpr:re 
-		{: RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); :}
+		{: RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); 
+		   //ee is a function expression such as name() or local-name()	
+		
+		:}
 		;
 
 RelationalExpr  ::= AdditiveExpr:ae  
@@ -256,13 +262,15 @@ Argument   	::=    Expr:e
 
 LocationPath    ::=    RelativeLocationPath:rlp	
 		{: RESULT = new LocationPathExpr();
-		   RESULT.setStep(rlp); 
+		   RESULT.setStep(rlp);
+		   RESULT.optimize();
 		:}
 		|    AbsoluteLocationPath:alp	
 		{: RESULT = new LocationPathExpr();
 		   RESULT.setPathType(LocationPathExpr.ABSOLUTE_PATH);
 		   //System.out.println(" absolute ");
 		   RESULT.setStep(alp);
+		   RESULT.optimize();
 		   //startStep = currentStep=null;
 		:}
 		;
@@ -279,8 +287,8 @@ RelativeLocationPath ::=  Step:s
 		{: RESULT = s; :}
 		|    Step:s SLASH RelativeLocationPath:rlp  	
 		{: //if (s == rlp) throw new XPathParseException("$1 = $3!!!!");
-		   s.nextS = rlp;						
-		   rlp.prevS = s;							 
+		   s.setNextStep(rlp);						
+		   rlp.setPrevStep(s);							 
 		   RESULT= s;
 		:}
 		|    AbbreviatedRelativeLocationPath:arlp 	
@@ -406,7 +414,14 @@ AbbreviatedRelativeLocationPath ::=   Step:s DSLASH RelativeLocationPath:rlp
 
 Predicate 	::=    LB Expr:e RB 
 		{:	RESULT = new Predicate();
-   		        RESULT.expr= e; 
+   		        RESULT.expr= e;
+   		        if (e.isFinal() && e.isNumerical()){
+		        	RESULT.d = e.evalNumber((VTDNav)null);
+		        	RESULT.type = Predicate.simple;
+		        }
+   		        RESULT.requireContext = e.requireContext();
+   		        
+   		        //e.markCacheable();
 		:}   
 	   	;
 
