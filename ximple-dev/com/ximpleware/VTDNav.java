@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,6 +198,7 @@ public class VTDNav {
 	protected boolean shallowDepth;
 	protected BookMark currentNode;
 	protected String URIName;
+	protected int count;
 	
 	protected VTDNav(){}
 	
@@ -253,7 +254,7 @@ public class VTDNav {
 			|| length < 0) {
 			throw new IllegalArgumentException();
 		}
-
+		count=0;
 		l1Buffer = l1;
 		l2Buffer = l2;
 		l3Buffer = l3;
@@ -1324,6 +1325,11 @@ public class VTDNav {
 			return i;
 		return -1;
 	}
+	
+	final protected int getTokenLength2(int index){
+		return (int)
+		((vtdBuffer.longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
+	}
 	/**
      * Get the token length at the given index value please refer to VTD spec
      * for more details Length is in terms of the UTF char unit For prefixed
@@ -1499,51 +1505,50 @@ public class VTDNav {
      * @return boolean
      * @throws NavException
      */
-	protected boolean iterate_preceding(String en, int[] a, boolean special)
+	protected boolean iterate_preceding(String en, int[] a, int endIndex)
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int tokenType;
 		int t,d;
 		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size;
-		while (index >  0) {
+		while (index< endIndex) {
 			tokenType = getTokenType(index);
-			if (tokenType == VTDNav.TOKEN_ATTR_VAL
-					|| tokenType == VTDNav.TOKEN_PI_VAL) {
-				index = index - 2;
+			switch(tokenType){
+			case TOKEN_ATTR_NAME:
+			case TOKEN_ATTR_NS:
+				index = index + 2;
+				continue;
+			case TOKEN_STARTING_TAG:
+			//case TOKEN_DOCUMENT:
+				int depth = getTokenDepth(index);
+				if (index!=a[depth]){
+					if (matchRawTokenString(index,en)){
+						context[0] = depth;
+						if (depth > 0)
+							context[depth] = index;
+						if (depth < maxLCDepthPlusOne)
+							resolveLC();
+						atTerminal = false;
+						return true;
+					}else{
+						index++;
+						continue;
+					}
+				}else{
+					index++;
+					continue;
+				}
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_CDATA_VAL:
+			case TOKEN_COMMENT: 
+					index++; 
+					continue;
+			case TOKEN_PI_NAME:
+				index+=2;
 				continue;
 			}
-			// if (isElementOrDocument(index)) {
-			if (tokenType == VTDNav.TOKEN_STARTING_TAG
-					|| tokenType == VTDNav.TOKEN_DOCUMENT) {
-				int depth = getTokenDepth(index);
-				context[0] = depth;
-				//context[depth]=index;
-				if (depth>0){
-					context[depth] = index;
-					t = index -1;
-					for (int i=depth-1;i>0;i--){
-						if (context[i]>index || context[i] == -1){
-							while(t>0){
-								d = getTokenDepth(t);
-								if ( d == i && isElement(t)){
-									context[i] = t;
-									break;
-								}
-								t--;
-							}							
-						}else
-							break;
-					}
-				}
-				//dumpContext();
-				if (index!= a[depth] && (special || matchElement(en))) {
-					if (depth < maxLCDepthPlusOne)
-						resolveLC();
-					return true;
-				}
-			} 
-			index--;
+			index++;
 		}
 		return false;	
 	}
@@ -1556,53 +1561,52 @@ public class VTDNav {
      * @return boolean
      * @throws NavException
      */
-	protected boolean iterate_precedingNS(String URL, String ln, int[] a )
+	protected boolean iterate_precedingNS(String URL, String ln, int[] a,int endIndex )
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int tokenType;
 		int t,d;
 		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size;
-		while (index > 0 ) {
+		while (index< endIndex) {
 			tokenType = getTokenType(index);
-			if (tokenType == VTDNav.TOKEN_ATTR_VAL
-					|| tokenType == VTDNav.TOKEN_PI_VAL) {
-				index = index - 2;
+			switch(tokenType){
+			case TOKEN_ATTR_NAME:
+			case TOKEN_ATTR_NS:
+				index = index + 2;
+				continue;
+			case TOKEN_STARTING_TAG:
+			//case TOKEN_DOCUMENT:
+				int depth = getTokenDepth(index);
+				if (index!=a[depth]){
+					context[0] = depth;
+					if (depth > 0)
+						context[depth] = index;
+					if (matchElementNS(ln,URL)){						
+						if (depth < maxLCDepthPlusOne)
+							resolveLC();
+						atTerminal = false;
+						return true;
+					}else{
+						index++;
+						continue;
+					}
+				}else{
+					index++;
+					continue;
+				}
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_CDATA_VAL:
+			case TOKEN_COMMENT: 
+					index++; 
+					continue;
+			case TOKEN_PI_NAME:
+				index+=2;
 				continue;
 			}
-			// if (isElementOrDocument(index)) {
-			if (tokenType == VTDNav.TOKEN_STARTING_TAG
-					|| tokenType == VTDNav.TOKEN_DOCUMENT) {
-				int depth = getTokenDepth(index);
-				context[0] = depth;
-				//context[depth]=index;
-				if (depth>0){
-					context[depth] = index;
-					t = index -1;
-					for (int i=depth-1;i>0;i--){
-						if (context[i]>index || context[i]==-1){
-							while(t>0){
-								d = getTokenDepth(t);
-								if ( d == i && isElement(t)){
-									context[i] = t;
-									break;
-								}
-								t--;
-							}							
-						}else
-							break;
-					}
-				}
-				//dumpContext();
-				if (index != a[depth] && matchElementNS(URL,ln)) {	
-					if (depth <maxLCDepthPlusOne)
-						resolveLC();
-					return true;
-				}
-			} 
-			index--;
+			index++;
 		}
-		return false;	
+		return false;
 	}
 	/**
      * This function is called by selectElement_F in autoPilot
@@ -3503,6 +3507,8 @@ public class VTDNav {
      */
 	public boolean toElement(int direction) throws NavException {
 		int size;
+		//count++;
+		//System.out.println("count ==>"+ count);
 		switch (direction) {
 			case ROOT : // to document element!
 				if (context[0] != 0) {
@@ -4889,10 +4895,11 @@ public class VTDNav {
 	public void sampleState(FastIntBuffer fib){
 //		for(int i=0;i<context.)
 //			context[i] = -1;
-//		fib.append(context);
+		for (int i=0;i<=context[0];i++)
+		   fib.append(context[i]);
+		if (atTerminal) fib.append(LN);
 		if (context[0]>=1)
-			fib.append(l1index);
-	
+			fib.append(l1index);	
 		
 		if (context[0]>=2){
 			fib.append(l2index);
@@ -5098,11 +5105,9 @@ public class VTDNav {
 	public static final short XPATH_STRING_MODE_NORMAL = 0;
 	public static final short XPATH_STRING_MODE_UPPERCASE = 1;
 	public static final short XPATH_STRING_MODE_LOWERCASE = 2;
-	final public String getXPathStringVal() throws NavException{
-		return getXPathStringVal((short)0);
-	}
 	
-	final public String getXPathStringVal(short mode) throws NavException{
+	final public void fillXPathString(FastIntBuffer indexBuffer, FastIntBuffer countBuffer) throws NavException{
+		int count = 0;
 		int index = getCurrentIndex() + 1;
 		int tokenType, depth, t=0, length,i=0;
 		int dp = context[0];
@@ -5137,6 +5142,65 @@ public class VTDNav {
 			    continue;
 			}			
 			index++;
+		}		
+	}
+	
+	final public String getXPathStringVal() throws NavException{
+		return getXPathStringVal((short)0);
+	}
+	/**
+	 * Return the 
+	 * @param mode
+	 * @return
+	 * @throws NavException
+	 */
+	final public String getXPathStringVal(short mode) throws NavException{
+		int index = getCurrentIndex() + 1;
+		int tokenType, depth, t=0, length,i=0;
+		int dp = context[0];
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    switch(tokenType){
+		      case VTDNav.TOKEN_ATTR_NAME:
+		      case VTDNav.TOKEN_ATTR_NS:	
+		      case VTDNav.TOKEN_PI_NAME:
+		    	 	index = index+2;
+				    continue;
+		    
+		      case VTDNav.TOKEN_CHARACTER_DATA:
+		      case VTDNav.TOKEN_CDATA_VAL:
+		    	  	fib.append(index);
+		    	  	index++;
+		    	  	continue;
+		    }
+		    /*if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+		    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+		    	length = getTokenLength(index);
+		    	t += length;
+		    	fib.append(index);
+		    	if (length > VTDGen.MAX_TOKEN_LENGTH){
+		    		while(length > VTDGen.MAX_TOKEN_LENGTH){
+		    			length -=VTDGen.MAX_TOKEN_LENGTH;
+		    			i++;
+		    		}
+		    		index += i+1;
+		    	}else
+		    		index++;
+		    	continue;
+		    	//
+		    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS){			  
+			    index = index+2;
+			    continue;
+			}*/	
+			index++;
 		}
 		
 		// calculate the total length
@@ -5153,6 +5217,7 @@ public class VTDNav {
 		}
 				
 		// clear the fib and return a string
+		fib.clear();
 		return sb.toString();
 	}
 
@@ -5616,6 +5681,8 @@ public class VTDNav {
 	// like toElement, toNode takes an integer that determines the 
 	public boolean toNode(int dir) throws NavException{
 		int index,tokenType,depth,lastEntry,tmp;
+		//count++;
+		//System.out.println("count ==>"+ count);
 		switch(dir){
 		case ROOT:
 			if (context[0] != 0) {
@@ -5929,11 +5996,14 @@ public class VTDNav {
 			case 0:
 				if(atTerminal){
 					index = LN;
+					tokenType = getTokenType(LN);
+					if (tokenType==VTDNav.TOKEN_ATTR_NAME)
+						return false;
 					//index++;
 					if (l1Buffer.size!=0){
 						if (index < l1Buffer.upper32At(l1index)){
 							index++;
-							if (getTokenType(LN)==TOKEN_PI_NAME)
+							if (tokenType==TOKEN_PI_NAME)
 								index++;
 							if (index <= l1Buffer.upper32At(l1index)){
 								if (index == l1Buffer.upper32At(l1index)){
@@ -5953,7 +6023,7 @@ public class VTDNav {
 							}
 						}else if ( l1index < l1Buffer.size -1){ // whether lindex is the last entry is l1 buffer
 							l1index++;
-							if (getTokenType(LN)==TOKEN_PI_NAME)
+							if (tokenType==TOKEN_PI_NAME)
 								index++;
 							if (index <= l1Buffer.upper32At(l1index)){
 								if (index == l1Buffer.upper32At(l1index)){
@@ -5973,7 +6043,7 @@ public class VTDNav {
 							}
 						}else{
 							index++;
-							if (getTokenType(LN)==TOKEN_PI_NAME)
+							if (tokenType==TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize){
 								depth = getTokenDepth(index);
@@ -5988,7 +6058,7 @@ public class VTDNav {
 						}						
 					}else{
 						index++;
-						if (getTokenType(LN)==TOKEN_PI_NAME)
+						if (tokenType==TOKEN_PI_NAME)
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
@@ -6026,11 +6096,14 @@ public class VTDNav {
 				//break;
 			case 1:
 				if(atTerminal){
+					tokenType=getTokenType(LN);
+					if (tokenType==VTDNav.TOKEN_ATTR_NAME)
+						return false;
 					if (l1Buffer.lower32At(l1index) != -1) {
 						if (LN < l2Buffer.upper32At(l2upper)) {
 							tmp = l2Buffer.upper32At(l2index);
 							index = LN + 1;
-							if (getTokenType(LN) == TOKEN_PI_NAME)
+							if (tokenType == TOKEN_PI_NAME)
 								index++;
 
 							if (index < tmp) {
@@ -6044,7 +6117,7 @@ public class VTDNav {
 							}
 						} else {
 							index = LN + 1;
-							if (getTokenType(LN) == TOKEN_PI_NAME)
+							if (tokenType == TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
@@ -6059,7 +6132,7 @@ public class VTDNav {
 						}						
 					}else{
 						index= LN+1;
-						if (getTokenType(LN)==TOKEN_PI_NAME)
+						if (tokenType==TOKEN_PI_NAME)
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
@@ -6122,11 +6195,14 @@ public class VTDNav {
 				
 			case 2:
 				if(atTerminal){
+					tokenType=getTokenType(LN);
+					if (tokenType==VTDNav.TOKEN_ATTR_NAME)
+						return false;
 					if (l2Buffer.lower32At(l2index) != -1) {
 						if (LN < l3Buffer.intAt(l3upper)) {
 							tmp = l3Buffer.intAt(l3index);
 							index = LN + 1;
-							if (getTokenType(LN) == TOKEN_PI_NAME)
+							if (tokenType == TOKEN_PI_NAME)
 								index++;
 
 							if (index < tmp) {
@@ -6140,7 +6216,7 @@ public class VTDNav {
 							}
 						} else {
 							index = LN + 1;
-							if (getTokenType(LN) == TOKEN_PI_NAME)
+							if (tokenType == TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
@@ -6154,7 +6230,7 @@ public class VTDNav {
 						}						
 					}else{
 						index= LN+1;
-						if (getTokenType(LN)==TOKEN_PI_NAME)
+						if (tokenType==TOKEN_PI_NAME)
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
@@ -6316,6 +6392,9 @@ public class VTDNav {
 				//break;
 			default:
 				if (atTerminal){
+					tokenType=getTokenType(LN);
+					if (tokenType==VTDNav.TOKEN_ATTR_NAME)
+						return false;
 					index = LN+1;
 					tmp = context[0]+1;
 				}
@@ -6704,7 +6783,7 @@ public class VTDNav {
 				index = context[context[0]] - 1;
 				tmp = context[0];
 			}
-			while (index > context[context[0]-1]) {
+			while (index > context[tmp-1]) {
 				long temp = vtdBuffer.longAt(index);
 				tokenType = (int) ((MASK_TOKEN_TYPE & temp) >>> 60);
 				depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
