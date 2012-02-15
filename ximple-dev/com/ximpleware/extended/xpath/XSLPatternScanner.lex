@@ -171,6 +171,10 @@ or	{     if (isName == 0) {
 
 "|"	{isName = 1 ; return sym(UNION) ; }
 
+current{ws}*"("{ws}*")"{
+			throw XPathParseException("Pattern can't contain current(). See XSL specification");
+		  }
+
 last{ws}*"("		{  	isName = 1; 
 			 	yypushback(1);
 				fname = new FuncName();
@@ -501,7 +505,6 @@ round{ws}*"("		{  	isName = 1;
 				fname.i = FuncName.ROUND;
 				return sym(FNAME,fname);	
 			}
-
 
 \"[^\"]*\" |
 '[^']*'			{
