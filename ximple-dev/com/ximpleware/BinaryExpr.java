@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,6 +58,7 @@ public class BinaryExpr extends Expr {
 		left = l;
 		right = r;
 		fib1 =  null;
+		//cacheable =false;
 		switch(op){
 		 	case ADD:
 			case SUB:
@@ -75,7 +76,7 @@ public class BinaryExpr extends Expr {
 			default:
 		}
 	}
-	public String toString(){
+	final public String toString(){
 		String os;
 		switch(op){
 			case ADD: os = " + "; break;
@@ -98,7 +99,7 @@ public class BinaryExpr extends Expr {
 	}
 
 	
-	public boolean evalBoolean(VTDNav vn){
+	final public boolean evalBoolean(VTDNav vn){
 	    //int i,i1=0;
 	    //int stackSize;
 	    //Expr e1, e2;
@@ -120,7 +121,7 @@ public class BinaryExpr extends Expr {
 		}
 	}
 
-	public double evalNumber(VTDNav vn){
+	final public double evalNumber(VTDNav vn){
 		switch(op){
 			case ADD: return left.evalNumber(vn) + right.evalNumber(vn);
 			case SUB: return left.evalNumber(vn) - right.evalNumber(vn);
@@ -134,11 +135,11 @@ public class BinaryExpr extends Expr {
 		}
 	}
 		
-	public int evalNodeSet(VTDNav vn) throws XPathEvalException {
+	final public int evalNodeSet(VTDNav vn) throws XPathEvalException {
 		throw new XPathEvalException("BinaryExpr can't eval to a node set!");
 	}
 	
-    public String evalString(VTDNav vn){
+	final public String evalString(VTDNav vn){
 		if(isNumerical()){
 		    
 		    double d = evalNumber(vn);
@@ -156,21 +157,28 @@ public class BinaryExpr extends Expr {
 		}
 	}
 
-	public void reset(VTDNav vn){left.reset(vn); right.reset(vn);};
+	final public void reset(VTDNav vn){
+		left.reset(vn); 
+		right.reset(vn); 
+		//cached = false; 
+		/*if (cachedNodeSet != null){
+			cachedNodeSet.clear();
+		}*/
+	};
 
-	public boolean  isNodeSet(){
+	final public boolean  isNodeSet(){
 		return false;
 	}
 
-	public boolean  isNumerical(){
+	final public boolean  isNumerical(){
 		return isNumerical;
 	}
 	
-	public boolean isString(){
+	final public boolean isString(){
 	    return false;
 	}
 	
-	public boolean isBoolean(){
+	final public boolean isBoolean(){
 	    return isBoolean;
 	}
 	// to support computation of context size 
@@ -213,7 +221,7 @@ public class BinaryExpr extends Expr {
 	//are equal if and only if they consist of the same sequence of UCS characters.
 
 
-	private boolean computeComp(int op, VTDNav vn){
+	final private boolean computeComp(int op, VTDNav vn){
 	  //int i, t, i1 = 0, stackSize, s1, s2;
         String st1, st2;
         if (left.isNodeSet() && right.isNodeSet()) {
@@ -263,22 +271,22 @@ public class BinaryExpr extends Expr {
         
 	}
 	
-	public boolean requireContextSize(){
+	final public boolean requireContextSize(){
 	    return left.requireContextSize() || right.requireContextSize();
 	}
 	
-	public void setContextSize(int size){
+	final public void setContextSize(int size){
 	    left.setContextSize(size);
 	    right.setContextSize(size);
 	}
-	public void setPosition(int pos){
+	final public void setPosition(int pos){
 	    left.setPosition(pos);
 	    right.setPosition(pos);
 	}
 	
 	// this function computes the case where one expr is a node set, the other is a string
 	
-	private boolean compNodeSetString(Expr left, Expr right, VTDNav vn,int op){
+	final private boolean compNodeSetString(Expr left, Expr right, VTDNav vn,int op){
 	     int i, i1 = 0, stackSize;
 	     String s;	     
 	     
@@ -309,7 +317,7 @@ public class BinaryExpr extends Expr {
        }
 	}
 	
-	private boolean compareEmptyNodeSet(int op, String s){
+	final private boolean compareEmptyNodeSet(int op, String s){
 	    if (op == NE ){
 	        if (s.length()==0) {
 	            return false;
@@ -322,7 +330,7 @@ public class BinaryExpr extends Expr {
 	            return false;
 	    }	        
 	}
-	private boolean compStringNodeSet(Expr left, Expr right, VTDNav vn,int op){
+	final private boolean compStringNodeSet(Expr left, Expr right, VTDNav vn,int op){
 	     int i, i1 = 0, stackSize;
 	     String s;
         try {
@@ -350,7 +358,7 @@ public class BinaryExpr extends Expr {
         }
 	}
 	
-	private boolean compNumbers(double d1, double d2, int op) {
+	final private boolean compNumbers(double d1, double d2, int op) {
         switch (op) {
         case LE:
             return d1 <= d2;
@@ -365,7 +373,7 @@ public class BinaryExpr extends Expr {
     }
 	// this function computes the boolean when one expression is node set
 	// the other is numerical
-	private boolean compNumericalNodeSet(Expr left, Expr right, VTDNav vn, int op ){
+	final private boolean compNumericalNodeSet(Expr left, Expr right, VTDNav vn, int op ){
 	     int i, i1 = 0, stackSize;
 	     double d;
         try {
@@ -389,7 +397,7 @@ public class BinaryExpr extends Expr {
             throw new RuntimeException("Undefined behavior");
         }
 	}
-	private boolean compNodeSetNumerical(Expr left, Expr right, VTDNav vn, int op ){
+	final private boolean compNodeSetNumerical(Expr left, Expr right, VTDNav vn, int op ){
 	     int i,i1 = 0, stackSize;
 	     double d;
        try {
@@ -414,7 +422,7 @@ public class BinaryExpr extends Expr {
        }
 	}
 	
-	private int getStringVal(VTDNav vn,int i){
+	final private int getStringVal(VTDNav vn,int i){
         int i1,t = vn.getTokenType(i);
         if (t == VTDNav.TOKEN_STARTING_TAG){
             i1 = vn.getText();
@@ -427,7 +435,7 @@ public class BinaryExpr extends Expr {
             return i;
 	}
 	
-	private boolean compareVNumber1(int k, VTDNav vn, double d, int op)
+	final private boolean compareVNumber1(int k, VTDNav vn, double d, int op)
 	throws NavException {
 	    double d1 = vn.parseDouble(k);
 	    switch (op){
@@ -446,7 +454,7 @@ public class BinaryExpr extends Expr {
 	    }
 	}
 	
-	private boolean compareVString1(int k, VTDNav vn, String s, int op)
+	final private boolean compareVString1(int k, VTDNav vn, String s, int op)
 	throws NavException {
 	    int i = vn.compareTokenString(k, s);
         switch (i) {
@@ -467,7 +475,7 @@ public class BinaryExpr extends Expr {
         }
         return false;
 	}
-	private boolean compareVString2(int k, VTDNav vn, String s, int op)
+	final private boolean compareVString2(int k, VTDNav vn, String s, int op)
 	throws NavException {
 	    int i = vn.compareTokenString(k, s);
         switch(i){        	
@@ -489,7 +497,7 @@ public class BinaryExpr extends Expr {
         return false;
 	}
 	
-	private boolean compareVNumber2(int k, VTDNav vn, double d, int op)
+	final private boolean compareVNumber2(int k, VTDNav vn, double d, int op)
 	throws NavException {
 	    double d1 = vn.parseDouble(k);
 	    switch (op){
@@ -507,7 +515,7 @@ public class BinaryExpr extends Expr {
 	    	    return d1 < d;	    	
 	    }
 	}
-	private boolean compareVV(int k,  VTDNav vn, int j,int op) 
+	final private boolean compareVV(int k,  VTDNav vn, int j,int op) 
 	throws NavException {
 	    int i = vn.compareTokens(k, vn, j);
         switch(i){        	    
@@ -530,7 +538,7 @@ public class BinaryExpr extends Expr {
 	}
 	
 	// this method compare node set with another node set
-	private boolean compNodeSetNodeSet(Expr left, Expr right, VTDNav vn, int op){
+	final private boolean compNodeSetNodeSet(Expr left, Expr right, VTDNav vn, int op){
 	    int i,i1,stackSize,s1; 
 	    try {
 	          if (fib1 == null)
@@ -573,9 +581,36 @@ public class BinaryExpr extends Expr {
 	          throw new RuntimeException("Undefined behavior");
 	      }
 	}
-	public int adjust(int n){
+	final public int adjust(int n){
 	    int i = left.adjust(n);
 	    int j = right.adjust(n);
 	    if (i>j)return i; else return j;
+	}
+	
+	final public boolean isFinal(){
+		return left.isFinal() && right.isFinal();
+	}
+	
+	final public void markCacheable(){
+		left.markCacheable();
+		right.markCacheable();			
+	}
+	
+	final public void markCacheable2(){
+		if (left.isFinal() && left.isNodeSet()){
+			CachedExpr ce = new CachedExpr(left);
+			left = ce;
+		} 
+		left.markCacheable2();
+		if (right.isFinal() && right.isNodeSet()){
+			CachedExpr ce = new CachedExpr(right);
+			right = ce;
+		} 
+		right.markCacheable2();
+	}
+	
+	final public void clearCache(){
+		left.clearCache();
+		right.clearCache();
 	}
 }

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,15 @@ abstract public class Expr {
 	
 	abstract public void setPosition(int pos);
 	abstract public int adjust(int n);
+	//protected boolean cacheable;
+	
+	abstract public boolean isFinal();
+	
+	
+	public void markCacheable(){}
+	public void markCacheable2(){}
+	//public boolean isConstant(){return false;}
+	public void clearCache(){}
 	// to support computer context size 
 	// needs to add 
 	//abstract public boolean needContextSize();
