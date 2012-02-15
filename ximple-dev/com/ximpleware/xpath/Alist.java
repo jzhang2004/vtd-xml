@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ public class Alist {
 	public Alist (){
 		next = null;
 	}
-	public String toString(){
+	final public String toString(){
 		Alist temp = this;
 		String s = "";
 		while(temp!=null){
@@ -41,7 +41,7 @@ public class Alist {
 		return s;
 	}
 
-	public void reset(VTDNav vn){
+	final public void reset(VTDNav vn){
 		Alist temp = this;
 		while(temp!=null){
 			temp.e.reset(vn);
