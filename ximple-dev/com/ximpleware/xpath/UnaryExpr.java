@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,26 +28,27 @@ public class UnaryExpr extends Expr {
 	public UnaryExpr (int o, Expr e){
 		op = o;
 		operand = e;
+		//cacheable =false;
 	}
 	
-	public String toString(){
+	final public String toString(){
 		return "-"+operand;
 	}
 
 		
-	public boolean evalBoolean(VTDNav vn){
+	final public boolean evalBoolean(VTDNav vn){
 		
 		return operand.evalBoolean(vn);
 	}
 
-	public double evalNumber(VTDNav vn){ return -1*operand.evalNumber(vn);}
+	final public double evalNumber(VTDNav vn){ return -1*operand.evalNumber(vn);}
 		
-	public int evalNodeSet(VTDNav vn) throws XPathEvalException{
+	final public int evalNodeSet(VTDNav vn) throws XPathEvalException{
 		
 		throw new XPathEvalException("UnaryExpr can't eval to a node set!");
 	}
 	
-        public String evalString(VTDNav vn){
+    final public String evalString(VTDNav vn){
 		double dval = operand.evalNumber(vn);
 		if (dval == (int) dval){
 			return ""+((int) dval);
@@ -55,39 +56,54 @@ public class UnaryExpr extends Expr {
 		return ""+dval;
 	}
 
-	public void reset(VTDNav vn){
+	final public void reset(VTDNav vn){
 		operand.reset(vn);
 	}
 
-	public boolean  isNodeSet(){
+	final public boolean  isNodeSet(){
 		return false;
 	}
 
-	public boolean  isNumerical(){
+	final public boolean  isNumerical(){
 		return true;
 	}
 	
-	public boolean isString(){
+	final public boolean isString(){
 	    return false;
 	}
 	
-	public boolean isBoolean(){
+	final public boolean isBoolean(){
 	    return false;
 	}
 	// to support computer context size 
 	// needs to add 
-	public boolean requireContextSize(){
+	final public boolean requireContextSize(){
 	    return operand.requireContextSize();
 	}
 	
-	public void setContextSize(int size){	  
+	final public void setContextSize(int size){	  
 	    operand.setContextSize(size);
 	}
 	
-	public void setPosition (int pos){
+	final public void setPosition (int pos){
 	    operand.setPosition(pos);
 	}
-	public int adjust(int n){
+	final public int adjust(int n){
 	    return 0;
+	}
+	final public boolean isFinal(){
+		return operand.isFinal();
+	}
+	
+	final public void markCacheable(){
+		operand.markCacheable();
+	}
+	
+	final public void markCacheable2(){
+		operand.markCacheable2();
+	}
+	
+	final public void clearCache(){
+		operand.clearCache();
 	}
 }
