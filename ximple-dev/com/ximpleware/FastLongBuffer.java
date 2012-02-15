@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -217,7 +217,7 @@ public final void append(long i) {
  * Get the capacity of the buffer.
  * @return int
  */
-public int getCapacity() {
+public final int getCapacity() {
 	return capacity;
 }
 /**
@@ -290,7 +290,7 @@ public long[] getLongArray(int startingOffset, int len) {
  * Get the buffer page size.
  * @return int
  */
-public int getPageSize() {
+public final int getPageSize() {
 	return pageSize;
 }
 /**
@@ -373,7 +373,7 @@ public long[] toLongArray() {
  * @return int
  * @param index int
  */
-public int upper32At(int index) {
+public final int upper32At(int index) {
     /*if ( index >= size) {
         throw new IndexOutOfBoundsException();
     }*/
@@ -402,7 +402,7 @@ public int upper32At(int index) {
   * @return status of resize
   *
   */
- public boolean resize(int newSz){     
+ public final boolean resize(int newSz){     
 	 if (newSz <= capacity && newSz >=0){
 		 size = newSz;
 		 return true;

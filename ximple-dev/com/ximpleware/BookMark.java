@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ public class BookMark {
      * VTDNav instance 
      *
      */
-    public void unbind(){
+    final public void unbind(){
         vn1 = null;
     }
     
@@ -90,7 +90,7 @@ public class BookMark {
      * @return VTDNav
      *
      */
-    public VTDNav getNav(){
+    final public VTDNav getNav(){
         return vn1;
     }
     
@@ -164,7 +164,7 @@ public class BookMark {
      * @return
      *
      */
-    public boolean setCursorPosition(){
+    final public boolean setCursorPosition(){
         return setCursorPosition(vn1);
     }
     /**
@@ -228,7 +228,7 @@ public class BookMark {
      * @return
      *
      */
-    public boolean recordCursorPosition(){
+    final public boolean recordCursorPosition(){
         return recordCursorPosition(vn1);
     }
     

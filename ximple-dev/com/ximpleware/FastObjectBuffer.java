@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -284,7 +284,7 @@ public Object[] getObjectArray(int startingOffset, int len) {
 * Creation date: (7/17/03 6:38:02 PM)
 * @return int
 */
-public int getPageSize() {
+public final int getPageSize() {
 	return pageSize;
 }
 /**
@@ -292,7 +292,7 @@ public int getPageSize() {
 * @return int
 * @param index int
 */
-public Object objectAt(int index) {
+public final Object objectAt(int index) {
    if ( index > size-1) {
        throw new IndexOutOfBoundsException();
    }
@@ -308,7 +308,7 @@ public Object objectAt(int index) {
 * @param index int
 * @param newValue int
 */
-public void modifyEntry(int index, Object newValue) {
+public final void modifyEntry(int index, Object newValue) {
 	
        if (index > size - 1) {
            throw new IndexOutOfBoundsException();
@@ -323,7 +323,7 @@ public void modifyEntry(int index, Object newValue) {
 * Returns the total number of objects in the buffer instance
 * @return int
 */
-public int size() {
+public final int size() {
 	return size;
 }
 /**
@@ -359,7 +359,7 @@ public Object[] toObjectArray() {
  * any unnecessary and additional allocation
  *
  */
-public void clear(){
+public final void clear(){
 	size = 0;
 }
 
