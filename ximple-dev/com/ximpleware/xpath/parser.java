@@ -555,6 +555,10 @@ class CUP$parser$actions {
 			RESULT = new Predicate();
 			if (e.isFinal() && e.isNumerical()){
 		        	RESULT.d = e.evalNumber((VTDNav)null);
+		        	Yylex scanner = (Yylex)parser.getScanner();
+		        	if(RESULT.d<1)
+		        		throw new XPathParseException("invalid index number for predicate",
+		        				scanner.getOffset());
 		        	RESULT.type = Predicate.simple;
 		    }
    		    RESULT.expr= e;
