@@ -1507,7 +1507,7 @@ public class VTDNav {
      */
 	protected boolean iterate_preceding(String en, int[] a, int endIndex)
 	throws NavException {
-		int index = getCurrentIndex() - 1;
+		int index = getCurrentIndex() +1;
 		int tokenType;
 		int t,d;
 		//int depth = getTokenDepth(index);
@@ -1523,7 +1523,7 @@ public class VTDNav {
 			//case TOKEN_DOCUMENT:
 				int depth = getTokenDepth(index);
 				if (index!=a[depth]){
-					if (matchRawTokenString(index,en)){
+					if (en.equals("*")||matchRawTokenString(index,en)){
 						context[0] = depth;
 						if (depth > 0)
 							context[depth] = index;
@@ -7120,12 +7120,14 @@ public class VTDNav {
 							}else{
 								context[0]+=1;
 								context[context[0]] = lastEntry;
+								atTerminal = false;
 							}
 							return true;									
 						} else
 							return false;
 					}else if (depth == (context[0] + 1)) {
 						lastEntry = index;
+						atTerminal = false;
 					}
 					index++;
 					break;

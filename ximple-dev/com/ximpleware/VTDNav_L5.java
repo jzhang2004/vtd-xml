@@ -3974,6 +3974,7 @@ public class VTDNav_L5 extends VTDNav {
 							return false;
 					}else if (depth == (context[0] + 1)) {
 						lastEntry = index;
+						atTerminal= false;
 					}
 					index++;
 					break;
