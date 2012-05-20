@@ -197,7 +197,8 @@ public final void append(int i) {
         //obtain the starting offset in that buffer to which the data is to be copied
         //update length
         //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
-    	((int[])bufferArrayList.oa[bufferArrayList.size-1])[size & r] = i;
+    	((int[]) bufferArrayList.get((size >> exp)))[size & r] = i; 
+    	//((int[])bufferArrayList.oa[bufferArrayList.size-1])[size & r] = i;
 //        lastBuffer[size % pageSize] = i;
         size += 1;
     } else // new buffers needed

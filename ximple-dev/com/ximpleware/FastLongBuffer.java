@@ -202,7 +202,8 @@ public final void append(long i) {
         //update length
         //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
         //lastBuffer[size % pageSize] = i;
-        ((long[])bufferArrayList.oa[bufferArrayList.size-1])[size & r] = i;
+    	((long[]) bufferArrayList.oa[size >> exp])[size & r] = i;
+        //((long[])bufferArrayList.oa[bufferArrayList.size-1])[size & r] = i;
         size += 1;
     } else // new buffers needed
         {
