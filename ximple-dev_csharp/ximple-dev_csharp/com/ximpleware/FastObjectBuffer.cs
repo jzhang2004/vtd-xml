@@ -196,7 +196,7 @@ namespace com.ximpleware
                 //obtain the starting offset in that buffer to which the data is to be copied
                 //update length
                 //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
-                ((Object[])bufferArrayList.oa[bufferArrayList.size - 1])[size_Renamed_Field & r] = obj;
+                ((Object[])bufferArrayList.oa[size_Renamed_Field>>exp])[size_Renamed_Field & r] = obj;
                 //       lastBuffer[size % pageSize] = i;
                 size_Renamed_Field += 1;
             }

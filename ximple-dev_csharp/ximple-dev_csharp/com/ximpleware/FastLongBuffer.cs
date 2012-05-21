@@ -199,7 +199,7 @@ namespace com.ximpleware
                 //update length
                 //System.arraycopy(long_array, 0, lastBuffer, size % pageSize, long_array.length);
                 //lastBuffer[size % pageSize] = i;
-                ((long[])bufferArrayList.oa[bufferArrayList.size - 1])[size_Renamed_Field & r] = i;
+                ((long[])bufferArrayList.oa[size_Renamed_Field>>exp])[size_Renamed_Field & r] = i;
                 size_Renamed_Field += 1;
             }
             else // new buffers needed
