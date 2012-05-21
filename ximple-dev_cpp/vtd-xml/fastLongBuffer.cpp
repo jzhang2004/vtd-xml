@@ -168,7 +168,8 @@ void FastLongBuffer::append(Long l){
 	}
 
 	if (size < capacity){
-		lastBuffer[size & r] = l;
+		((Long *)al->get(size>>exp))[size & r] = l; 
+		//lastBuffer[size & r] = l;
 		size ++;
 	}else {
 		Long* newBuffer = new Long[1<<exp];

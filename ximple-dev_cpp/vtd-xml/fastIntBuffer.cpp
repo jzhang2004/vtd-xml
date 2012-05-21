@@ -65,8 +65,9 @@ void FastIntBuffer::append(int i){
 		lastBufferIndex = min((size>>exp),al_size-1);
 		lastBuffer = (int *)al->get(lastBufferIndex);
     }
-	if ((size + 1) <= capacity) {
-		lastBuffer[size & r] = i;
+	if (size < capacity) {
+		((int *)al->get(size>>exp))[size & r] = i; 
+		//lastBuffer[size & r] = i;
 		size += 1;
 	} else
 	{
