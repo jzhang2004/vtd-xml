@@ -206,7 +206,8 @@ void appendLong(FastLongBuffer *flb, Long i){
 	}
 
 	if (flb->size < flb->capacity){
-		lastBuffer[flb->size & flb->r] = i;
+		((Long *)get(flb->al,flb->size >> flb->exp))[flb->size & flb->r] = i;
+		//lastBuffer[flb->size & flb->r] = i;
 		flb->size ++;
 	}else {
 		Long *newBuffer = (Long *)malloc(sizeof(Long)<<flb->exp);

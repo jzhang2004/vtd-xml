@@ -94,8 +94,9 @@ void appendInt(FastIntBuffer *fib, int i){
 		lastBuffer = (int *)get(fib->al,lastBufferIndex);
 
     }
-    if ((fib->size + 1) <= fib->capacity) {
-        lastBuffer[fib->size & fib->r] = i;
+    if (fib->size < fib->capacity) {
+		((int *)get(fib->al,fib->size>>fib->exp))[fib->size & fib->r] = i;
+        //lastBuffer[fib->size & fib->r] = i;
         fib->size += 1;
     } else
         {
