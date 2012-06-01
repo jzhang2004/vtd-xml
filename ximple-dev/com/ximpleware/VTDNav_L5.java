@@ -2308,7 +2308,7 @@ public class VTDNav_L5 extends VTDNav {
 								index++;
 							if (index < vtdSize){
 								depth = getTokenDepth(index);
-								if (depth!=1)
+								if (depth!=0)
 									return false;
 								LN = index;
 								atTerminal = true;
@@ -2380,7 +2380,7 @@ public class VTDNav_L5 extends VTDNav {
 							index = LN + 1;
 							if (tokenType == TOKEN_PI_NAME)
 								index++;
-							if (index < vtdSize - 1) {
+							if (index < vtdSize) {
 								depth = getTokenDepth(index);
 								if (depth==1 && getTokenType(index)!= TOKEN_STARTING_TAG){
 									LN = index;
@@ -2523,6 +2523,7 @@ public class VTDNav_L5 extends VTDNav {
 									break;
 								case TOKEN_PI_VAL:
 									index = index -2;
+									break;
 									default: break loop2;
 								}
 							}else
@@ -2638,6 +2639,7 @@ public class VTDNav_L5 extends VTDNav {
 									break;
 								case TOKEN_PI_VAL:
 									index = index -2;
+									break;
 								default:
 									break loop2;
 								}
@@ -2757,6 +2759,7 @@ public class VTDNav_L5 extends VTDNav {
 									break;
 								case TOKEN_PI_VAL:
 									index = index -2;
+									break;
 									default:
 										break loop2;
 								}
@@ -2832,6 +2835,7 @@ public class VTDNav_L5 extends VTDNav {
 								break;
 							case TOKEN_PI_VAL:
 								index = index -2;
+								break;
 								default:
 									break loop2;
 							}
@@ -2861,7 +2865,7 @@ public class VTDNav_L5 extends VTDNav {
 					if (l3index != l3Buffer.size-1 && l3index != l3upper){
 						lastEntry = index = l3Buffer.upper32At(l3index+1)-1;
 					}
-					if (l4index != l4Buffer.size-1 && l4index != l3upper){
+					if (l4index != l4Buffer.size-1 && l4index != l4upper){
 						lastEntry = index = l4Buffer.upper32At(l4index+1)-1;
 					}
 					// inser here

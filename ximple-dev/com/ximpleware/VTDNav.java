@@ -6062,7 +6062,7 @@ public class VTDNav {
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
-							if (depth!=1)
+							if (depth!=0)
 								return false;
 							LN = index;
 							atTerminal = true;
@@ -6262,6 +6262,7 @@ public class VTDNav {
 									break;
 								case TOKEN_PI_VAL:
 									index = index -2;
+									break;
 								default: break loop2;
 								}
 							}else
@@ -6336,8 +6337,9 @@ public class VTDNav {
 									break;
 								case TOKEN_PI_VAL:
 									index = index -2;
-									default:
-										break loop2;
+									break;
+								default:
+									break loop2;
 								}
 							}else
 								break loop2;
