@@ -1532,6 +1532,7 @@ public class VTDNav {
 						atTerminal = false;
 						return true;
 					}else{
+						context[depth] = index;
 						index++;
 						continue;
 					}
@@ -1588,6 +1589,7 @@ public class VTDNav {
 						atTerminal = false;
 						return true;
 					}else{
+						context[depth] = index;
 						index++;
 						continue;
 					}
@@ -1744,10 +1746,10 @@ public class VTDNav {
 		return false;
 	}
 	
-	//descendent::node()
+	//preceding::node()
 	protected boolean iterate_preceding_node(int[] a, int endIndex)
 	throws NavException {
-		int index = getCurrentIndex() + 1;
+		int index = getCurrentIndex()+1;
 		int tokenType;
 		//int t,d;
 		//int depth = getTokenDepth(index);
@@ -1762,7 +1764,7 @@ public class VTDNav {
 			case TOKEN_STARTING_TAG:
 			//case TOKEN_DOCUMENT:
 				int depth = getTokenDepth(index);
-				if (index!=a[depth]){
+				if (depth>0 && (index!=a[depth])){
 					context[0] = depth;
 					if (depth > 0)
 						context[depth] = index;
@@ -1771,10 +1773,11 @@ public class VTDNav {
 					atTerminal = false;
 					return true;	
 				}else{
+					context[depth]=index;
 					index++;
 					continue;
 				}
-				
+			
 			case TOKEN_CHARACTER_DATA:
 			case TOKEN_CDATA_VAL:
 			case TOKEN_COMMENT:
@@ -5921,7 +5924,9 @@ public class VTDNav {
 							context[0] += 1;
 							context[context[0]] = index;
 							return true;
-						}
+						}else
+							throw new NavException("impossible condition");
+						
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS: index+=2;break;
 					case TOKEN_CHARACTER_DATA:
@@ -5936,8 +5941,8 @@ public class VTDNav {
 							LN = index;
 							atTerminal = true;
 							return true;
-						} else 
-							index++;
+						} else
+							throw new NavException("impossible condition");
 					case TOKEN_PI_NAME:
 						depth =
 							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
@@ -5947,8 +5952,8 @@ public class VTDNav {
 							LN = index;
 							atTerminal = true;
 							return true;
-						} else 
-							index+=2;
+						} else
+							throw new NavException("impossible condition");
  					}
 					//index++;
 				} // what condition
