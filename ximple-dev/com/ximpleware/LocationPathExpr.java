@@ -54,6 +54,8 @@ public class LocationPathExpr extends Expr{
 		final public void optimize(){
 			// get to last step
 			Step ts = s;
+			if (ts==null)
+				return;
 			while(ts.nextS!=null){
 				ts = ts.nextS;
 			}
@@ -352,7 +354,7 @@ public class LocationPathExpr extends Expr{
 		    	case BACKWARD:
 					//if (currentStep.nt.testType < NodeTest.TEXT) {
 						//currentStep = currentStep.prevS;
-						b = false;
+						//b = false;
 						if(currentStep.out_of_range){
 							currentStep.out_of_range = false;
 							if (currentStep.hasPredicate)
@@ -543,7 +545,7 @@ public class LocationPathExpr extends Expr{
 				}
 				ap = (AutoPilot) currentStep.o;
 				//vn.push();
-				b = false;
+				//b = false;
 				while(ap.iterate()){
 					if (!currentStep.hasPredicate || currentStep.evalPredicates(vn)){
 						b = true;
@@ -726,7 +728,7 @@ public class LocationPathExpr extends Expr{
 			// currentStep = currentStep.prevS;
 			ap = (AutoPilot) currentStep.o;
 			// vn.push();
-			b = false;
+			//b = false;
 			while (ap.iterate2()) {
 				if ((currentStep.nt_eval || currentStep.nt.eval2(vn)) 
 						&& ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn))) {
@@ -1442,7 +1444,7 @@ public class LocationPathExpr extends Expr{
 				
 			
 			case  BACKWARD:
-				b = false;
+				//b = false;
 				vn.push2();
 
 				while (vn.toElement(VTDNav.P)) {
@@ -1648,7 +1650,7 @@ public class LocationPathExpr extends Expr{
 				
 			
 			case  BACKWARD:
-				b = false;
+				//b = false;
 				vn.push2();
 
 				while (vn.toNode(VTDNav.P)) {
@@ -3332,7 +3334,7 @@ public class LocationPathExpr extends Expr{
 			}
 
 			// currentStep = currentStep.prevS;
-			b = false;
+			//b = false;
 			while (vn.toNode(VTDNav.NS)) {
 				if ((currentStep.nt_eval || currentStep.nt.eval2(vn)) 
 						&& ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn))) {
