@@ -699,6 +699,106 @@ public class VTDNav_L5 extends VTDNav {
 		l5index = i;
 	}
 	
+	protected void sync(int depth, int index){
+		// assumption is that this is always at terminal
+		switch(depth){
+		case 0: 
+			if(l1Buffer.size!=0){
+				if (l1index==-1)
+					l1index=0;
+				else if (index > l1Buffer.upper32At(l1index) && l1index<l1Buffer.size()){
+					l1index++;
+				}
+				//assert(index<l1Buffer.upper32At(l1index));
+			}
+			break;
+		case 1:
+			if (l1Buffer.lower32At(l1index)!=-1){
+				if (l2lower!=l1Buffer.lower32At(l1index)){
+					l2lower = l2index=l1Buffer.lower32At(l1index);
+					l2upper = l2Buffer.size - 1;
+					int size = l1Buffer.size;
+					for (int i = l1index + 1; i < size; i++) {
+						int temp = l1Buffer.lower32At(i);
+						if (temp != 0xffffffff) {
+							l2upper = temp - 1;
+							break;
+						}
+					}
+					//l2upper = l1Buffer.lower32At(l1index);
+				} 
+				
+				if (index > l2Buffer.upper32At(l2index) && l2index < l2upper){
+					l2index++;					
+				}
+				//assert(index<l2Buffer.upper32At(l2index));
+			}
+			
+			break;
+		case 2:
+			if (l2Buffer.lower32At(l2index)!=-1){
+				if (l3lower!=l2Buffer.lower32At(l2index)){
+					l3index = l3lower = l2Buffer.lower32At(l2index);
+					l3upper = l3Buffer.size - 1;
+					int size = l2Buffer.size;
+					for (int i = l2index + 1; i < size; i++) {
+						int temp = l2Buffer.lower32At(i);
+						if (temp != 0xffffffff) {
+							l3upper = temp - 1;
+							break;
+						}
+					}
+				}
+				if (index > l3Buffer.upper32At(l3index) && l3index < l3upper){
+					l3index++;
+				}
+				//assert(index<l3Buffer.intAt(l3index));
+			}
+			break;
+			
+		case 3:
+			if (l3Buffer.lower32At(l3index)!=-1){
+				if (l4lower!=l3Buffer.lower32At(l3index)){
+					l4index = l4lower = l3Buffer.lower32At(l3index);
+					l4upper = l4Buffer.size - 1;
+					int size = l3Buffer.size;
+					for (int i = l3index + 1; i < size; i++) {
+						int temp = l3Buffer.lower32At(i);
+						if (temp != 0xffffffff) {
+							l4upper = temp - 1;
+							break;
+						}
+					}
+				}
+				if (index > l4Buffer.upper32At(l4index) && l4index < l4upper){
+					l4index++;
+				}
+				//assert(index<l3Buffer.intAt(l3index));
+			}
+			break;
+			
+		case 4:
+			if (l4Buffer.lower32At(l4index)!=-1){
+				if (l5lower!=l4Buffer.lower32At(l4index)){
+					l5index = l5lower = l4Buffer.lower32At(l4index);
+					l5upper = l5Buffer.size - 1;
+					int size = l4Buffer.size;
+					for (int i = l4index + 1; i < size; i++) {
+						int temp = l4Buffer.lower32At(i);
+						if (temp != 0xffffffff) {
+							l5upper = temp - 1;
+							break;
+						}
+					}
+				}
+				if (index > l5Buffer.intAt(l5index) && l5index < l5upper){
+					l5index++;
+				}
+				//assert(index<l3Buffer.intAt(l3index));
+			}
+			break;
+		}
+	}
 	/**
      * This is for debugging purpose
      * 
@@ -736,6 +836,22 @@ public class VTDNav_L5 extends VTDNav {
 			fib.append(l5lower);
 			fib.append(l5upper);			
 		}
+	}
+	
+	public void dumpState(){
+		System.out.println("l1 index ==>"+l1index);
+		System.out.println("l2 index ==>"+l2index);
+		System.out.println("l2 lower ==>"+l2lower);
+		System.out.println("l2 upper ==>"+l2upper);
+		System.out.println("l3 index ==>"+l3index);
+		System.out.println("l3 lower ==>"+l3lower);
+		System.out.println("l3 upper ==>"+l3upper);
+		System.out.println("l4 index ==>"+l4index);
+		System.out.println("l4 lower ==>"+l4lower);
+		System.out.println("l4 upper ==>"+l4upper);
+		System.out.println("l5 index ==>"+l5index);
+		System.out.println("l5 lower ==>"+l5lower);
+		System.out.println("l5 upper ==>"+l5upper);
 	}
 	
 	/**
@@ -1032,9 +1148,10 @@ public class VTDNav_L5 extends VTDNav {
      *                if en is null
      */
 	public boolean toElement(int direction, String en) throws NavException {
-		int temp;
-		int d;
+		int temp=-1;
+		int d=-1;
 		int val=0;
+		boolean b=false;
 		if (en == null)
 			throw new IllegalArgumentException(" Element name can't be null ");
 		if (en.equals("*"))
@@ -1080,7 +1197,16 @@ public class VTDNav_L5 extends VTDNav {
 					return true;
 
 			case NEXT_SIBLING :
-				if (atTerminal)return false;
+				if (atTerminal){					
+					if (nodeToElement(NEXT_SIBLING)){
+						b=true;
+						if (matchElement(en)){
+							return true;
+						}					
+					}else
+						return false;
+				}
+				if (!b){
 				d = context[0];
 				
 				switch(d)
@@ -1095,12 +1221,17 @@ public class VTDNav_L5 extends VTDNav {
 				  	default:
 				}
 				temp = context[d]; // store the current position
-				
+				}
 				while (toElement(NEXT_SIBLING)) {
 					if (matchElement(en)) {
 						return true;
 					}
 				}
+				if (b){
+					context[0]--;//LN value should not change
+					atTerminal=true;
+					return false;
+				}else{
 				switch(d)
 				{
 				  case 1: l1index = val; break;
@@ -1112,39 +1243,64 @@ public class VTDNav_L5 extends VTDNav {
 				}
 				context[d] = temp;
 				return false;
+				}
 
 			case PREV_SIBLING :
-				if (atTerminal) return false;
-				d = context[0];
-				switch(d)
-				{
-				  case -1:
-				  case 0: return false;
-				  case 1: val = l1index; break;
-				  case 2: val = l2index; break;
-				  case 3: val = l3index; break;
-				  case 4: val = l4index; break;
-				  case 5: val = l5index; break;
-				  	default:
-				}
-				temp = context[d]; // store the current position
-				
-				while (toElement(PREV_SIBLING)) {
-					if (matchElement(en)) {
-						return true;
+				if (atTerminal) {					
+					if (nodeToElement(PREV_SIBLING)){
+						b=true;
+						if (matchElement(en)){
+							return true;
+						}					
+					}else
+						return false;
+				}				
+				if (!b){
+					d = context[0];
+					switch(d)
+					{
+					case -1:
+					case 0: return false;
+					case 1: val = l1index; break;
+					case 2: val = l2index; break;
+					case 3: val = l3index; break;
+					case 4: val = l4index; break;
+					case 5: val = l5index; break;
+				  		default:
 					}
+					temp = context[d]; // store the current position
 				}
-				switch(d)
-				{
-				  case 1: l1index = val; break;
-				  case 2: l2index = val; break;
-				  case 3: l3index = val; break;
-				  case 4: l4index = val; break;
-				  case 5: l5index = val; break;
-				  	default:
+			while (toElement(PREV_SIBLING)) {
+				if (matchElement(en)) {
+					return true;
+				}
+			}
+			if (b) {
+				context[0]--;// LN value should not change
+				atTerminal = true;
+				return false;
+			} else {
+				switch (d) {
+				case 1:
+					l1index = val;
+					break;
+				case 2:
+					l2index = val;
+					break;
+				case 3:
+					l3index = val;
+					break;
+				case 4:
+					l4index = val;
+					break;
+				case 5:
+					l5index = val;
+					break;
+				default:
 				}
 				context[d] = temp;
 				return false;
+			}
 
 			default :
 				throw new NavException("illegal navigation options");
@@ -1383,7 +1539,7 @@ public class VTDNav_L5 extends VTDNav {
 
 			case NEXT_SIBLING :
 			case PREV_SIBLING :
-				if(atTerminal)return false;
+				if(atTerminal)return nodeToElement(direction);
 				switch (context[0]) {
 					case -1:
 					case 0 :
@@ -1519,6 +1675,156 @@ public class VTDNav_L5 extends VTDNav {
 
 	}
 	
+	protected boolean nodeToElement(int direction){
+		switch(direction){
+		case NEXT_SIBLING:
+			switch (context[0]) {
+			case 0:
+				if (l1index!=-1){
+					context[0]=1;
+					context[1]=l1Buffer.upper32At(l1index);
+					atTerminal=false;
+					return true;
+				}else
+					return false;
+			case 1:
+				if (l2index!=-1){
+					context[0]=2;
+					context[2]=l2Buffer.upper32At(l2index);
+					atTerminal=false;
+					return true;
+				}else
+					return false;
+				
+			case 2:
+				if (l3index!=-1){
+					context[0]=3;
+					context[3]=l3Buffer.upper32At(l3index);
+					atTerminal=false;
+					return true;
+				}else
+					return false;
+				
+			case 3:
+				if (l4index!=-1){
+					context[0]=4;
+					context[4]=l4Buffer.upper32At(l4index);
+					atTerminal=false;
+					return true;
+				}else
+					return false;
+				
+			case 4:
+				if (l5index!=-1){
+					context[0]=5;
+					context[5]=l5Buffer.intAt(l5index);
+					atTerminal=false;
+					return true;
+				}else
+					return false;	
+				
+			default:
+				int index = LN + 1;
+				int size = vtdBuffer.size;
+				while (index < size) {
+					long temp = vtdBuffer.longAt(index);
+					int token_type =
+						(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+							& 0xf;
+
+					if (token_type == TOKEN_STARTING_TAG) {
+						int depth =
+							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+						if (depth < context[0]) {
+							return false;
+						} else if (depth == (context[0])) {
+							context[context[0]] = index;
+							return true;
+						}
+					}
+					index++;
+				}
+				return false;
+					
+			}
+			
+		case PREV_SIBLING:
+			switch (context[0]) {
+			case 0:
+				if (l1index!=-1 && l1index>0){
+					l1index--;
+					context[0]=1;
+					context[1]=l1Buffer.upper32At(l1index);
+					atTerminal=false;
+					return true;					
+				}else
+					return false;
+			case 1:
+				if (l2index!=-1 && l2index>l2lower){
+					l2index--;
+					context[0]=2;
+					context[2]=l2Buffer.upper32At(l2index);
+					atTerminal=false;
+					return true;					
+				}else
+					return false;
+			case 2:
+				if (l3index!=-1 && l3index>l3lower){
+					l3index--;
+					context[0]=3;
+					context[3]=l3Buffer.upper32At(l3index);
+					atTerminal=false;
+					return true;					
+				}else
+					return false;
+			case 3:
+				if (l4index!=-1 && l4index>l4lower){
+					l4index--;
+					context[0]=4;
+					context[4]=l4Buffer.upper32At(l4index);
+					atTerminal=false;
+					return true;					
+				}else
+					return false;
+				
+			case 4:
+				if (l5index!=-1 && l5index>l5lower){
+					l5index--;
+					context[0]=5;
+					context[5]=l5Buffer.intAt(l5index);
+					atTerminal=false;
+					return true;					
+				}else
+					return false;
+				
+			default:
+				int index = LN- 1;
+				while (index > context[context[0] - 1]) {
+					// scan backforward
+					long temp = vtdBuffer.longAt(index);
+					int token_type =
+						(int) ((MASK_TOKEN_TYPE & temp) >> 60)
+							& 0xf;
+
+					if (token_type == TOKEN_STARTING_TAG) {
+						int depth =
+							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+						/*
+                         * if (depth < context[0]) { return false; }
+                         * else
+                         */
+						if (depth == (context[0])) {
+							context[context[0]] = index;
+							return true;
+						}
+					}
+					index--;
+				} // what condition
+				return false;
+			}
+		}
+		return false;
+	}
 	/**
      * A generic navigation method with namespace support. Move the cursor to
      * the element according to the direction constants and the prefix and local
@@ -1564,9 +1870,10 @@ public class VTDNav_L5 extends VTDNav {
      */
 	public boolean toElementNS(int direction, String URL, String ln)
 		throws NavException {
-		int temp;
+		int temp=-1;
 		int val=0;
-		int d; // temp location
+		int d=-1; // temp location
+		boolean b=false;
 		if (ns == false)
 			return false;
 		switch (direction) {
@@ -1610,7 +1917,16 @@ public class VTDNav_L5 extends VTDNav {
 					return true;
 
 			case NEXT_SIBLING :
-				if (atTerminal)return false;
+				if (atTerminal){					
+					if (nodeToElement(NEXT_SIBLING)){
+						b=true;
+						if (matchElementNS(URL,ln)){
+							return true;
+						}					
+					}else
+						return false;
+				}
+				if (!b){
 				d = context[0];
 				temp = context[d]; // store the current position
 				switch(d)
@@ -1623,6 +1939,7 @@ public class VTDNav_L5 extends VTDNav {
 				  case 4: val = l4index; break;
 				  case 5: val = l5index; break;
 				  	default:
+				}
 				}
 				//if (d == 0)
 				//	return false;
@@ -1631,6 +1948,11 @@ public class VTDNav_L5 extends VTDNav {
 						return true;
 					}
 				}
+				if (b){
+					context[0]--;//LN value should not change
+					atTerminal=true;
+					return false;
+				}else{
 				switch(d)
 				{
 				  case 1: l1index = val; break;
@@ -1642,13 +1964,23 @@ public class VTDNav_L5 extends VTDNav {
 				}
 				context[d] = temp;
 				return false;
+				}
 
 			case PREV_SIBLING :
-				if (atTerminal)return false;
-				d = context[0];
-				temp = context[d]; // store the current position
-				switch(d)
-				{
+				if (atTerminal){					
+					if (nodeToElement(PREV_SIBLING)){
+						b=true;
+						if (matchElementNS(URL,ln)){
+							return true;
+						}					
+					}else
+						return false;
+				}				
+				if (!b){
+					d = context[0];
+					temp = context[d]; // store the current position
+					switch(d)
+					{
 				  case -1:
 				  case 0: return false;
 				  case 1: val = l1index; break;
@@ -1657,6 +1989,7 @@ public class VTDNav_L5 extends VTDNav {
 				  case 4: val = l4index; break;
 				  case 5: val = l5index; break;
 				  	default:
+					}
 				}
 				//if (d == 0)
 				//	return false;
@@ -1665,6 +1998,11 @@ public class VTDNav_L5 extends VTDNav {
 						return true;
 					}
 				}
+				if (b){
+					context[0]--;//LN value should not change
+					atTerminal=true;
+					return false;
+				} else {
 				switch(d)
 				{
 				  case 1: l1index = val; break;
@@ -1676,6 +2014,7 @@ public class VTDNav_L5 extends VTDNav {
 				}
 				context[d] = temp;
 				return false;
+				}
 
 			default :
 				throw new NavException("illegal navigation options");
@@ -1730,30 +2069,41 @@ public class VTDNav_L5 extends VTDNav {
 		// search LC level 1
 		recoverNode_l1(index);
 
-		if (d==1)
+		if (d==1){
+			if (atTerminal && type>VTDNav.TOKEN_ATTR_NS)
+				 sync(1,index);
 			return;
+		}
 		// search LC level 2
 		recoverNode_l2(index);
 		if (d==2){
 			//resolveLC();
+			if (atTerminal && type>VTDNav.TOKEN_ATTR_NS)
+				 sync(2,index);
 			return;
 		}
 		// search LC level 3
 		recoverNode_l3(index);
 		if (d==3){
 			//resolveLC();
+			if (atTerminal && type>VTDNav.TOKEN_ATTR_NS)
+				 sync(3,index);
 			return;
 		}
 		
 		recoverNode_l4(index);
 		if (d==4){
 			//resolveLC();
+			if (atTerminal && type>VTDNav.TOKEN_ATTR_NS)
+				 sync(4,index);
 			return;
 		}
 		
 		recoverNode_l5(index);
 		if (d==5){
 			//resolveLC();
+			if (atTerminal && type>VTDNav.TOKEN_ATTR_NS)
+				 sync(5,index);
 			return;
 		}
 		
@@ -1842,7 +2192,7 @@ public class VTDNav_L5 extends VTDNav {
 				context[0] = 0;
 			}
 			atTerminal = false;
-			l1index = l2index = l3index = -1;
+			//l1index = l2index = l3index = l2lower=l2upper=l3lower=l3upper=l4lower=l4upper=l5lower=l5upper=-1;
 			return true;
 		case PARENT:
 			if (atTerminal == true){
@@ -2183,7 +2533,8 @@ public class VTDNav_L5 extends VTDNav {
 							context[0] += 1;
 							context[context[0]] = index;
 							return true;
-						}
+						}else
+							throw new NavException("impossible condition");
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS: index+=2;break;
 					case TOKEN_CHARACTER_DATA:
