@@ -204,7 +204,12 @@ public boolean iterate2() throws PilotException, NavException {
 			return vn.iterateNode(depth);
 			
 		case DESCENDANT_NODE:
-         	return vn.iterateNode(depth);
+			if (ft&&vn.atTerminal)
+				return false;
+			else{
+				ft=false;
+				return vn.iterateNode(depth);
+			}
          	
 		case FOLLOWING_NODE:
 			if (ft){
@@ -226,6 +231,7 @@ public boolean iterate2() throws PilotException, NavException {
 			if(ft){
 				ft = false;
 				vn.toNode(VTDNav.ROOT);
+				vn.toNode(VTDNav.P);	
 			}
 			return vn.iterate_preceding_node(contextCopy,endIndex);
 		//case 
@@ -330,6 +336,10 @@ public boolean iterate() throws PilotException, NavException {
          case PRECEDING: 
          	if (vn.atTerminal)
          	    return false;
+         	if(ft){
+         		ft = false;
+         		vn.toElement(VTDNav.ROOT);
+         	}
          	return vn.iterate_preceding(name, contextCopy,endIndex);
 
          case PRECEDING_NS:
@@ -574,6 +584,15 @@ public boolean iterate() throws PilotException, NavException {
 	   ft = true;
 	   depth = vn.getCurrentDepth();
 	   contextCopy = (int[])vn.context.clone();
+	   if (contextCopy[0]!=-1){
+	   for (int i=contextCopy[0]+1;i<contextCopy.length;i++){
+		  contextCopy[i]=0;
+	   }
+	   }//else{
+	   //   for (int i=1;i<contextCopy.length;i++){
+	   //	   contextCopy[i]=0;
+	   //	   }
+	   //}
 	   iter_type = PRECEDING_NODE;
 	   endIndex = vn.getCurrentIndex();
    }
