@@ -702,12 +702,27 @@ public class VTDNav_L5 extends VTDNav {
 	protected void sync(int depth, int index){
 		// assumption is that this is always at terminal
 		switch(depth){
+		case -1: return;
 		case 0: 
 			if(l1Buffer.size!=0){
 				if (l1index==-1)
 					l1index=0;
-				else if (index > l1Buffer.upper32At(l1index) && l1index<l1Buffer.size()){
-					l1index++;
+				
+				if (index> l1Buffer.upper32At(l1Buffer.size-1)){
+					l1index = l1Buffer.size-1;
+					return;
+				}
+				
+				if (index > l1Buffer.upper32At(l1index)){
+					while (l1index < l1Buffer.size - 1 && l1Buffer.upper32At(l1index) < index) {
+						l1index++;
+					}
+					//l1index--;
+				}
+				else{
+					while (l1index >0 && l1Buffer.upper32At(l1index-1) > index) {
+						l1index--;
+					}
 				}
 				//assert(index<l1Buffer.upper32At(l1index));
 			}
@@ -728,8 +743,14 @@ public class VTDNav_L5 extends VTDNav {
 					//l2upper = l1Buffer.lower32At(l1index);
 				} 
 				
-				if (index > l2Buffer.upper32At(l2index) && l2index < l2upper){
-					l2index++;					
+				if (index>l2Buffer.upper32At(l2index)){
+					while (l2index < l2upper && l2Buffer.upper32At(l2index)< index){
+						l2index++;					
+					}
+				} else {
+					while(l2index > l2lower && l2Buffer.upper32At(l2index-1)> index){
+						l2index--;
+					}
 				}
 				//assert(index<l2Buffer.upper32At(l2index));
 			}
@@ -749,8 +770,14 @@ public class VTDNav_L5 extends VTDNav {
 						}
 					}
 				}
-				if (index > l3Buffer.upper32At(l3index) && l3index < l3upper){
-					l3index++;
+				if (index>l3Buffer.upper32At(l3index)){
+					while (l3index < l3upper && l3Buffer.upper32At(l3index)<index  ){
+						l3index++;
+					}
+				}else {
+					while(l3index > l3lower && l3Buffer.upper32At(l3index-1)> index){
+						l3index--;
+					}
 				}
 				//assert(index<l3Buffer.intAt(l3index));
 			}
@@ -770,8 +797,15 @@ public class VTDNav_L5 extends VTDNav {
 						}
 					}
 				}
-				if (index > l4Buffer.upper32At(l4index) && l4index < l4upper){
-					l4index++;
+				
+				if (index>l4Buffer.upper32At(l4index)){
+					while (l4index < l4upper && l4Buffer.upper32At(l4index)< index){
+						l4index++;					
+					}
+				} else {
+					while(l4index > l4lower && l4Buffer.upper32At(l4index-1)> index){
+						l4index--;
+					}
 				}
 				//assert(index<l3Buffer.intAt(l3index));
 			}
@@ -791,9 +825,45 @@ public class VTDNav_L5 extends VTDNav {
 						}
 					}
 				}
-				if (index > l5Buffer.intAt(l5index) && l5index < l5upper){
+				
+				if (index>l5Buffer.intAt(l5index)){
+					while (l5index < l5upper && l5Buffer.intAt(l5index)<index  ){
+						l5index++;
+					}
+				}else {
+					while(l5index > l5lower && l5Buffer.intAt(l5index-1)> index){
+						l5index--;
+					}
+				}
+				//assert(index<l3Buffer.intAt(l3index));
+			}
+			break;
+			
+		default:
+			if (l4Buffer.lower32At(l4index)!=-1){
+				if (l5lower!=l4Buffer.lower32At(l4index)){
+					l5index = l5lower = l4Buffer.lower32At(l4index);
+					l5upper = l5Buffer.size - 1;
+					int size = l4Buffer.size;
+					for (int i = l4index + 1; i < size; i++) {
+						int temp = l4Buffer.lower32At(i);
+						if (temp != 0xffffffff) {
+							l5upper = temp - 1;
+							break;
+						}
+					}
+				}
+				
+				//if (context[5]> l5Buffer.intAt(l5index)){
+				while (context[5] != l5Buffer.intAt(l5index)){
 					l5index++;
 				}
+				/*} else {
+					while (context[5] != l5Buffer.intAt(l5index)){
+						l5index--;
+					}
+				}*/
+				
 				//assert(index<l3Buffer.intAt(l3index));
 			}
 			break;
@@ -854,259 +924,13 @@ public class VTDNav_L5 extends VTDNav {
 		System.out.println("l5 upper ==>"+l5upper);
 	}
 	
-	/**
-     * This function is called by selectElement_F in autoPilot
-     * 
-     * @param en
-     *            ElementName
-     * @param special
-     *            whether it is a node()
-     * @return boolean
-     * @throws NavException
-     */
 
-	/*final protected boolean iterate_following(String en, boolean special) 
-	throws NavException{
-		int index = getCurrentIndex() + 1;
-		//int size = vtdBuffer.size;
-		while (index < vtdSize) {
-			if (isElementOrDocument(index)) {
-				int depth = getTokenDepth(index);
-				context[0] = depth;
-				if (depth>0)
-					context[depth] = index;
-				if (special || matchElement(en)) {	
-					if (depth <6)
-					  resolveLC();
-					return true;
-				}
-			} 
-			index++;
-		}
-		return false;		
-	}*/
 	
-	/**
-     * This function is called by selectElementNS_F in autoPilot
-     * 
-     * @param URL
-     * @param ln
-     * @return boolean
-     * @throws NavException
-     */
-	/*final protected boolean iterate_followingNS(String URL, String ln) 
-	throws NavException{
-		int index = getCurrentIndex() + 1;
-		//int size = vtdBuffer.size;
-		while (index < vtdSize) {
-			if (isElementOrDocument(index)) {
-				int depth = getTokenDepth(index);
-				context[0] = depth;
-				if (depth>0)
-					context[depth] = index;
-				if (matchElementNS(URL,ln)) {	
-					if (depth <6)
-						resolveLC();
-					return true;
-				}
-			} 
-			index++;
-		}
-		return false;
-	}*/
 	
-	/**
-     * This function is called by selectElement_P in autoPilot
-     * 
-     * @param en
-     *            element Name
-     * @param a
-     *            context of current position
-     * @param special
-     *            whether the test type is node()
-     * @return boolean
-     * @throws NavException
-     */
-	/*protected boolean iterate_preceding(String en, int[] a, boolean special)
-	throws NavException {
-		int index = getCurrentIndex() - 1;
-		int t,d;
-		//int depth = getTokenDepth(index);
-		//int size = vtdBuffer.size;
-		while (index >  0) {
-			if (isElementOrDocument(index)) {
-				int depth = getTokenDepth(index);
-				context[0] = depth;
-				//context[depth]=index;
-				if (depth>0){
-					context[depth] = index;
-					t = index -1;
-					for (int i=depth-1;i>0;i--){
-						if (context[i]>index || context[i] == -1){
-							while(t>0){
-								d = getTokenDepth(t);
-								if ( d == i && isElement(t)){
-									context[i] = t;
-									break;
-								}
-								t--;
-							}							
-						}else
-							break;
-					}
-				}
-				//dumpContext();
-				if (index!= a[depth] && (special || matchElement(en))) {
-					if (depth <6)
-						resolveLC();
-					return true;
-				}
-			} 
-			index--;
-		}
-		return false;	
-	}*/
 	
-	/**
-     * This function is called by selectElementNS_P in autoPilot
-     * 
-     * @param URL
-     * @param ln
-     * @return boolean
-     * @throws NavException
-     */
-	/*final protected boolean iterate_precedingNS(String URL, String ln, int[] a )
-	throws NavException {
-		int index = getCurrentIndex() - 1;
-		int t,d;
-		//int depth = getTokenDepth(index);
-		//int size = vtdBuffer.size;
-		while (index > 0 ) {
-			if (isElementOrDocument(index)) {
-				int depth = getTokenDepth(index);
-				context[0] = depth;
-				//context[depth]=index;
-				if (depth>0){
-					context[depth] = index;
-					t = index -1;
-					for (int i=depth-1;i>0;i--){
-						if (context[i]>index || context[i]==-1){
-							while(t>0){
-								d = getTokenDepth(t);
-								if ( d == i && isElement(t)){
-									context[i] = t;
-									break;
-								}
-								t--;
-							}							
-						}else
-							break;
-					}
-				}
-				//dumpContext();
-				if (index != a[depth] && matchElementNS(URL,ln)) {	
-					if (depth <6)
-						resolveLC();
-					return true;
-				}
-			} 
-			index--;
-		}
-		return false;	
-	}*/
 	
-	/**
-     * This method is similar to getElementByName in DOM except it doesn't
-     * return the nodeset, instead it iterates over those nodes. Notice that
-     * this method is called by the "iterate" method in the Autopilot class. "*"
-     * will match any element Creation date: (12/2/03 2:31:20 PM)
-     * 
-     * @return boolean
-     * @param dp
-     *            int (The depth of the starting position before iterating)
-     * @param en
-     *            java.lang.String
-     * @exception com.ximpleware.NavException
-     *                The exception is signaled if the underlying byte content
-     *                contains various errors. Notice that we are being
-     *                conservative in making little assumption on the
-     *                correctness of underlying byte content. This is because
-     *                VTD records can be generated by another machine from a
-     *                load-balancer. null element name allowed represent
-     *                node()in XPath;
-     */
-	/*final protected boolean iterate(int dp, String en, boolean special)
-		throws NavException { // the navigation doesn't rely on LC
-		// get the current depth
-		int index = getCurrentIndex() + 1;
-		int tokenType;
-		//int size = vtdBuffer.size;
-		while (index < vtdSize) {
-		    tokenType = getTokenType(index);
-			if (tokenType==VTDNav.TOKEN_ATTR_NAME
-			        || tokenType == VTDNav.TOKEN_ATTR_NS){			  
-			    index = index+2;
-			    continue;
-			}
-			if (isElementOrDocument(index)) {
-				int depth = getTokenDepth(index);
-				if (depth > dp) {
-					context[0] = depth;
-					if (depth>0)
-						context[depth] = index;
-					if (special || matchElement(en)) {
-						if (dp< 6)
-						resolveLC();
-						return true;
-					}
-				} else {
-					return false;
-				}
-			}
-			index++;
-
-		}
-		return false;
-	}*/
 	
-	/*protected int iterateNode(int dp)throws NavException{
-		int index = getCurrentIndex() + 1;
-		int tokenType;
-		//int size = vtdBuffer.size;
-		while (index < vtdSize) {
-			tokenType = getTokenType(index);
-			if (tokenType == VTDNav.TOKEN_ATTR_NAME
-					|| tokenType == VTDNav.TOKEN_ATTR_NS) {
-				index = index + 2;
-				continue;
-			}
-			if (isElementOrDocument(index)) {
-				int depth = getTokenDepth(index);
-				if (depth > dp) {
-					context[0] = depth;
-					if (depth > 0)
-						context[depth] = index;
-					if (dp < 6)
-						resolveLC();
-					return index;
-
-				} else {
-					return -1;
-				}
-			}else{
-				int depth = getTokenDepth(index);
-				if (depth >= dp) {
-					context[0] = depth;
-					atTerminal = true;
-					LN = index;
-					return index;
-				}else
-					return -1;
-			}
-			//index++;
-		}
-		return -1;
-	}*/
+	
 	
 	/**
      * A generic navigation method. Move the cursor to the element according to
@@ -2058,7 +1882,10 @@ public class VTDNav_L5 extends VTDNav {
 			if (index != rootIndex){
 				LN = index;
 				atTerminal = true;
-			}
+				if (type>VTDNav.TOKEN_ATTR_NS)
+				 sync(0,index);
+			} else
+				atTerminal=false;
 			return;		
 		}
 		context[0]=d;
@@ -4391,6 +4218,448 @@ public class VTDNav_L5 extends VTDNav {
 				return false;
 		}
 	}
-
 	
+
+	public boolean verifyNodeCorrectness(){
+	 	if (atTerminal){
+			// check l1 index, l2 index, l2lower, l2upper, l3 index, l3 lower, l3 upper
+			if (getTokenDepth(LN)!=context[0])
+				return false;
+			switch(context[0]){
+				case -1: return true;
+				case 0: 
+					//if (getTokenDepth(LN)!=0)
+					//	return false;
+					if (l1Buffer.size!=0){
+						if (l1index>=l1Buffer.size || l1index<0)
+							return false;
+						if (l1index != l1Buffer.size-1){
+							
+							if (l1Buffer.upper32At(l1index)<LN)
+								return false;								
+						}						
+						return true;
+					}else
+						return true;
+					
+			case 1:
+				if (LN>context[1]){
+					//if (getTokenDepth(LN) != 1)
+					//	return false;
+					if (l1index<0 || l1index>l1Buffer.size)
+						return false;
+					int i1, i2, i3; // l2lower, l2upper and l2index
+					i1 = l1Buffer.lower32At(l1index);
+					if (i1 != -1) {
+						
+						int tmp = l1index + 1;
+						i2 = l2Buffer.size - 1;
+						while (tmp < l1Buffer.size) {
+							if (l1Buffer.lower32At(tmp) != -1) {
+								i2 = l1Buffer.lower32At(tmp) - 1;
+								break;
+							} else
+								tmp++;
+						}
+						if (i1 != l2lower)
+							return false;						
+						if (l2upper != i2)
+							return false;
+						if (l2index > l2upper || l2index < l2lower)
+							return false;
+						if (l2index != l2upper) {
+							if (l2Buffer.upper32At(l2index) < LN)
+								return false;
+						} 
+					}
+					return true;
+				}else
+					return false;
+			case 2:  
+				if (LN>context[2] && context[2]> context[1]){
+					//if (getTokenDepth(LN) != 2)
+					//	return false;
+					if (l1index<0 || l1index>l1Buffer.size)
+						return false;
+					int i1,i2, i3; //l2lower, l2upper and l2index
+					i1 = l1Buffer.lower32At(l1index);
+					if(i1==-1)return false;
+					if (i1!=l2lower)
+						return false;
+					int tmp = l1index+1;
+					i2 = l2Buffer.size-1;
+					while(tmp<l1Buffer.size){
+						if (l1Buffer.lower32At(tmp)!=-1){
+							i2 = l1Buffer.lower32At(tmp)-1;
+							break;
+						}else
+							tmp++;
+					}
+					if(context[2]!=l2Buffer.upper32At(l2index)){
+						return false;
+					}
+					if (l2index>l2upper || l2index < l2lower){
+						return false;
+					}
+					//l3 
+					i1 = l2Buffer.lower32At(l2index);
+					if (i1!=-1){
+						if (l3lower!=i1)
+							return false;
+						i2 = l3Buffer.size-1;
+						tmp = l2index+1;
+						
+						while(tmp<l2Buffer.size){
+							if (l2Buffer.lower32At(tmp)!=-1){
+								i2 = l2Buffer.lower32At(tmp)-1;
+								break;
+							}else
+								tmp++;
+						}
+						
+						if (l3lower!=i1)
+							return false;
+						
+						if (l3upper!=i2)
+							return false;
+						
+						if (l3index > l3upper || l3index < l3lower)
+							return false;
+						if (l3index != l3upper) {
+							if (l3Buffer.upper32At(l3index) < LN)
+								return false;
+						} 
+					}
+					return true;
+				}else 
+					return false;
+				
+			case 3:
+				if (LN>context[3] && context[3]> context[2] && context[2]> context[1]){
+					//if (getTokenDepth(LN) != 2)
+					//	return false;
+					if (l1index<0 || l1index>l1Buffer.size)
+						return false;
+					int i1,i2, i3; //l2lower, l2upper and l2index
+					i1 = l1Buffer.lower32At(l1index);
+					if(i1==-1)return false;
+					if (i1!=l2lower)
+						return false;
+					int tmp = l1index+1;
+					i2 = l2Buffer.size-1;
+					while(tmp<l1Buffer.size){
+						if (l1Buffer.lower32At(tmp)!=-1){
+							i2 = l1Buffer.lower32At(tmp)-1;
+							break;
+						}else
+							tmp++;
+					}
+					if(context[2]!=l2Buffer.upper32At(l2index)){
+						return false;
+					}
+					if (l2index>l2upper || l2index < l2lower){
+						return false;
+					}
+					//l3 
+					i1 = l2Buffer.lower32At(l2index);
+					if (i1==-1){return false;}
+					if (l3lower!=i1)
+						return false;
+					i2 = l3Buffer.size-1;
+					tmp = l2index+1;
+						
+					while(tmp<l2Buffer.size){
+						if (l2Buffer.lower32At(tmp)!=-1){
+							i2 = l2Buffer.lower32At(tmp)-1;
+							break;
+						}else
+							tmp++;
+					}
+						
+					if (l3lower!=i1)
+						return false;
+						
+					if (l3upper!=i2)
+						return false;
+						
+					if (l3index > l3upper || l3index < l3lower)
+							return false;
+					/*if (l3index != l3upper) {
+						if (l3Buffer.upper32At(l3index) < LN)
+							return false;
+					} */
+					//l4
+					i1 = l3Buffer.lower32At(l3index);
+					if (i1!=-1){
+						if (l4lower!=i1)
+							return false;
+						i2 = l4Buffer.size-1;
+						tmp = l3index+1;
+						
+						while(tmp<l3Buffer.size){
+							if (l3Buffer.lower32At(tmp)!=-1){
+								i2 = l3Buffer.lower32At(tmp)-1;
+								break;
+							}else
+								tmp++;
+						}
+						
+						if (l4lower!=i1)
+							return false;
+						
+						if (l4upper!=i2)
+							return false;
+						
+						if (l4index > l4upper || l4index < l4lower)
+							return false;
+						if (l4index != l4upper) {
+							if (l4Buffer.upper32At(l4index) < LN)
+								return false;
+						} 
+					}
+					return true;
+				}else 
+					return false;
+			case 4:
+				if (LN>context[3] && context[3]> context[2] && context[2]> context[1]){
+					//if (getTokenDepth(LN) != 2)
+					//	return false;
+					if (l1index<0 || l1index>l1Buffer.size)
+						return false;
+					int i1,i2, i3; //l2lower, l2upper and l2index
+					i1 = l1Buffer.lower32At(l1index);
+					if(i1==-1)return false;
+					if (i1!=l2lower)
+						return false;
+					int tmp = l1index+1;
+					i2 = l2Buffer.size-1;
+					while(tmp<l1Buffer.size){
+						if (l1Buffer.lower32At(tmp)!=-1){
+							i2 = l1Buffer.lower32At(tmp)-1;
+							break;
+						}else
+							tmp++;
+					}
+					if(context[2]!=l2Buffer.upper32At(l2index)){
+						return false;
+					}
+					if (l2index>l2upper || l2index < l2lower){
+						return false;
+					}
+					//l3 
+					i1 = l2Buffer.lower32At(l2index);
+					if (i1==-1){return false;}
+					if (l3lower!=i1)
+						return false;
+					i2 = l3Buffer.size-1;
+					tmp = l2index+1;
+						
+					while(tmp<l2Buffer.size){
+						if (l2Buffer.lower32At(tmp)!=-1){
+							i2 = l2Buffer.lower32At(tmp)-1;
+							break;
+						}else
+							tmp++;
+					}
+						
+					if (l3lower!=i1)
+						return false;
+						
+					if (l3upper!=i2)
+						return false;
+						
+					if (l3index > l3upper || l3index < l3lower)
+							return false;
+					/*if (l3index != l3upper) {
+						if (l3Buffer.upper32At(l3index) < LN)
+							return false;
+					} */
+					i1 = l3Buffer.lower32At(l3index);
+					if (i1==-1){ return false;}
+					if (l4lower!=i1)
+						return false;
+					i2 = l4Buffer.size-1;
+					tmp = l3index+1;
+						
+					while(tmp<l3Buffer.size){
+						if (l3Buffer.lower32At(tmp)!=-1){
+							i2 = l3Buffer.lower32At(tmp)-1;
+							break;
+						}else
+							tmp++;
+					}
+						
+					if (l4lower!=i1)
+						return false;
+						
+					if (l4upper!=i2)
+						return false;
+						
+					if (l4index > l4upper || l4index < l4lower)
+						return false;
+					/*if (l4index != l4upper) {
+						if (l4Buffer.upper32At(l4index) < LN)
+							return false;
+					}*/
+					i1=l4Buffer.lower32At(l4index);
+					if (i1!=-1){
+						if (i1!=l5lower)return false;
+						i2 = l5Buffer.size-1;
+						tmp = l4index+1;
+						
+						while(tmp<l4Buffer.size){
+							if (l4Buffer.lower32At(tmp)!=-1){
+								i2 = l4Buffer.lower32At(tmp)-1;
+								break;
+							}else
+								tmp++;
+						}
+						
+						if (l5lower!=i1)
+							return false;
+						
+						if (l5upper!=i2)
+							return false;
+						
+						if (l5index<i1 || l5index>i2)
+							return false;
+						
+						if (l5index != l5upper) {
+							if (l5Buffer.intAt(l5index) < LN)
+								return false;
+						} 				
+					}
+					return true;
+				}else 
+					return false;
+				
+				
+			default:  
+				if (l1index<0 || l1index>l1Buffer.size)
+					return false;
+				int i1,i2,i3; //l2lower, l2upper and l2index
+				i1 = l1Buffer.lower32At(l1index);
+				if(i1==-1)return false;
+				if (i1!=l2lower)
+					return false;
+				int tmp = l1index+1;
+				i2 = l2Buffer.size-1;
+				while(tmp<l1Buffer.size){
+					if (l1Buffer.lower32At(tmp)!=-1){
+						i2 = l1Buffer.lower32At(tmp)-1;
+						break;
+					}else
+						tmp++;
+				}
+				if(context[2]!=l2Buffer.upper32At(l2index)){
+					return false;
+				}
+				if (l2index>l2upper || l2index < l2lower){
+					return false;
+				}
+				//l3 
+				i1 = l2Buffer.lower32At(l2index);
+				if (i1==-1){return false;}
+				if (l3lower!=i1)
+					return false;
+				i2 = l3Buffer.size-1;
+				tmp = l2index+1;
+					
+				while(tmp<l2Buffer.size){
+					if (l2Buffer.lower32At(tmp)!=-1){
+						i2 = l2Buffer.lower32At(tmp)-1;
+						break;
+					}else
+						tmp++;
+				}
+					
+				if (l3lower!=i1)
+					return false;
+					
+				if (l3upper!=i2)
+					return false;
+					
+				if (l3index > l3upper || l3index < l3lower)
+						return false;
+				
+				i1 = l3Buffer.lower32At(l3index);
+				if (i1==-1){ return false;}
+				if (l4lower!=i1)
+					return false;
+				i2 = l4Buffer.size-1;
+				tmp = l3index+1;
+					
+				while(tmp<l3Buffer.size){
+					if (l3Buffer.lower32At(tmp)!=-1){
+						i2 = l3Buffer.lower32At(tmp)-1;
+						break;
+					}else
+						tmp++;
+				}
+					
+				if (l4lower!=i1)
+					return false;
+					
+				if (l4upper!=i2)
+					return false;
+					
+				if (l4index > l4upper || l4index < l4lower)
+					return false;
+				/*if (l4index != l4upper) {
+					if (l4Buffer.upper32At(l4index) < LN)
+						return false;
+				}*/
+				i1=l4Buffer.lower32At(l4index);
+				
+				if (i1!=l5lower)return false;
+				i2 = l5Buffer.size-1;
+				tmp = l4index+1;
+					
+				while(tmp<l4Buffer.size){
+					if (l4Buffer.lower32At(tmp)!=-1){
+						i2 = l4Buffer.lower32At(tmp)-1;
+						break;
+					}else
+						tmp++;
+				}
+					
+				if (l5lower!=i1)
+					return false;
+					
+				if (l5upper!=i2)
+					return false;
+					
+				if (l5index<i1 || l5index>i2)
+					return false;
+					
+				if (context[context[0]]>LN)
+					return false;
+				
+				if (context[0]==5){
+					if (l5index!=l5upper){
+						if(l5Buffer.intAt(l5index)>LN)
+							return false;
+					}
+					if (l5index+1 <= l5Buffer.size-1){
+						if (l5Buffer.intAt(l5index+1)<LN){
+							return false;
+						}
+					}
+				}
+				return true;
+			}
+		}else {
+			switch(context[0]){
+			case -1:
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+				default:return true;
+			}
+			
+		}
+			}
 }

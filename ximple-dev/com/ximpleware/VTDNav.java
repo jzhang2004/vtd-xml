@@ -3161,13 +3161,28 @@ public class VTDNav {
 	 */
 	protected void sync(int depth, int index){
 		// assumption is that this is always at terminal
+		int t=-1;
 		switch(depth){
+		case -1: return;
 		case 0: 
 			if(l1Buffer.size!=0){
 				if (l1index==-1)
 					l1index=0;
-				else if (index > l1Buffer.upper32At(l1index) && l1index<l1Buffer.size()){
-					l1index++;
+				
+				if (index> l1Buffer.upper32At(l1Buffer.size-1)){
+					l1index = l1Buffer.size-1;
+					return;
+				}
+				
+				if (index > l1Buffer.upper32At(l1index)){
+					while (l1index < l1Buffer.size - 1 && l1Buffer.upper32At(l1index) < index) {
+						l1index++;
+					}
+				}
+				else{
+					while (l1index >0 && l1Buffer.upper32At(l1index-1) > index) {
+						l1index--;
+					}
 				}
 				//assert(index<l1Buffer.upper32At(l1index));
 			}
@@ -3188,14 +3203,21 @@ public class VTDNav {
 					//l2upper = l1Buffer.lower32At(l1index);
 				} 
 				
-				if (index > l2Buffer.upper32At(l2index) && l2index < l2upper){
-					l2index++;					
+				if (index>l2Buffer.upper32At(l2index)){
+					while (l2index < l2upper && l2Buffer.upper32At(l2index)< index){
+						l2index++;					
+					}
+				} else {
+					while(l2index > l2lower && l2Buffer.upper32At(l2index-1)> index){
+						l2index--;
+					}
 				}
+				
 				//assert(index<l2Buffer.upper32At(l2index));
 			}
 			
 			break;
-		case 2:
+		case 2:		
 			if (l2Buffer.lower32At(l2index)!=-1){
 				if (l3lower!=l2Buffer.lower32At(l2index)){
 					l3index = l3lower = l2Buffer.lower32At(l2index);
@@ -3209,9 +3231,43 @@ public class VTDNav {
 						}
 					}
 				}
-				if (index > l3Buffer.intAt(l3index) && l3index < l3upper){
-					l3index++;
+				if (index>l3Buffer.intAt(l3index)){
+					while (l3index < l3upper && l3Buffer.intAt(l3index)<index  ){
+						l3index++;
+					}
+				}else {
+					while(l3index > l3lower && l3Buffer.intAt(l3index-1)> index){
+						l3index--;
+					}
 				}
+				
+				//assert(index<l3Buffer.intAt(l3index));
+			}
+			break;
+		default:
+			if (l2Buffer.lower32At(l2index)!=-1){
+				if (l3lower!=l2Buffer.lower32At(l2index)){
+					l3index = l3lower = l2Buffer.lower32At(l2index);
+					l3upper = l3Buffer.size - 1;
+					int size = l2Buffer.size;
+					for (int i = l2index + 1; i < size; i++) {
+						int temp = l2Buffer.lower32At(i);
+						if (temp != 0xffffffff) {
+							l3upper = temp - 1;
+							break;
+						}
+					}
+				}
+				//if (context[3]> l3Buffer.intAt(l3index)){
+					while (context[3] != l3Buffer.intAt(l3index)){
+						l3index++;
+					}
+				//} else {
+				//	while (context[3] != l3Buffer.intAt(l3index)){
+				//		l3index--;
+				//	}
+				//}
+				
 				//assert(index<l3Buffer.intAt(l3index));
 			}
 			break;
@@ -5154,6 +5210,214 @@ public class VTDNav {
      * @param fib
      */
 	
+	public boolean verifyNodeCorrectness(){
+	 	if (atTerminal){
+			// check l1 index, l2 index, l2lower, l2upper, l3 index, l3 lower, l3 upper
+			if (getTokenDepth(LN)!=context[0])
+				return false;
+			switch(context[0]){
+				case -1: return true;
+				case 0: 
+					//if (getTokenDepth(LN)!=0)
+					//	return false;
+					if (l1Buffer.size!=0){
+						if (l1index>=l1Buffer.size || l1index<0)
+							return false;
+						if (l1index != l1Buffer.size-1){
+							
+							if (l1Buffer.upper32At(l1index)<LN)
+								return false;								
+						}						
+						return true;
+					}else
+						return true;
+					
+			case 1:
+				if (LN>context[1]){
+					//if (getTokenDepth(LN) != 1)
+					//	return false;
+					if (l1index<0 || l1index>l1Buffer.size)
+						return false;
+					int i1, i2, i3; // l2lower, l2upper and l2index
+					i1 = l1Buffer.lower32At(l1index);
+					if (i1 != -1) {
+						if (i1 != l2lower)
+							return false;
+						int tmp = l1index + 1;
+						i2 = l2Buffer.size - 1;
+						while (tmp < l1Buffer.size) {
+							if (l1Buffer.lower32At(tmp) != -1) {
+								i2 = l1Buffer.lower32At(tmp) - 1;
+								break;
+							} else
+								tmp++;
+						}
+						if (l2upper != i2)
+							return false;
+						if (l2index > l2upper || l2index < l2lower)
+							return false;
+						if (l2index != l2upper) {
+							if (l2Buffer.upper32At(l2index) < LN)
+								return false;
+						} 
+						if (l2index!=l2lower){
+							if (l2Buffer.upper32At(l2index-1)>LN)
+								return false;
+						}
+					}
+					return true;
+				}else
+					return false;
+			case 2:  
+				if (LN>context[2] && context[2]> context[1]){
+					//if (getTokenDepth(LN) != 2)
+					//	return false;
+					if (l1index<0 || l1index>l1Buffer.size)
+						return false;
+					int i1,i2, i3; //l2lower, l2upper and l2index
+					i1 = l1Buffer.lower32At(l1index);
+					if(i1==-1)return false;
+					if (i1!=l2lower)
+						return false;
+					int tmp = l1index+1;
+					i2 = l2Buffer.size-1;
+					while(tmp<l1Buffer.size){
+						if (l1Buffer.lower32At(tmp)!=-1){
+							i2 = l1Buffer.lower32At(tmp)-1;
+							break;
+						}else
+							tmp++;
+					}
+					if(context[2]!=l2Buffer.upper32At(l2index)){
+						return false;
+					}
+					if (l2index>l2upper || l2index < l2lower){
+						return false;
+					}
+					//l3 
+					i1 = l2Buffer.lower32At(l2index);
+					if (i1!=-1){
+						if (l3lower!=i1)
+							return false;
+						i2 = l3Buffer.size-1;
+						tmp = l2index+1;
+						
+						while(tmp<l2Buffer.size){
+							if (l2Buffer.lower32At(tmp)!=-1){
+								i2 = l2Buffer.lower32At(tmp)-1;
+								break;
+							}else
+								tmp++;
+						}
+						
+						if (l3lower!=i1)
+							return false;
+						
+						if (l3upper!=i2)
+							return false;
+						
+						if (l3index<i1 || l3index>i2)
+							return false;
+						
+						if (l3index != l3upper) {
+							if (l3Buffer.intAt(l3index) < LN)
+								return false;
+						} 		
+						if (l3index!=l3lower){
+							if (l3Buffer.intAt(l3index-1)>LN)
+								return false;
+						}
+					}
+					return true;
+				}else 
+					return false;
+				
+			default:  
+				//if (getTokenDepth(LN) != 2)
+				//	return false;
+				if (l1index<0 || l1index>l1Buffer.size)
+					return false;
+				int i1,i2, i3; //l2lower, l2upper and l2index
+				i1 = l1Buffer.lower32At(l1index);
+				
+				if (i1==-1)return false;
+				if (i1!=l2lower)
+					return false;
+				int tmp = l1index+1;
+				i2 = l2Buffer.size-1;
+				while(tmp<l1Buffer.size){
+					if (l1Buffer.lower32At(tmp)!=-1){
+						i2 = l1Buffer.lower32At(tmp)-1;
+						break;
+					}else
+						tmp++;
+				}
+				if(context[2]!=l2Buffer.upper32At(l2index)){
+					return false;
+				}
+				if (l2index>l2upper || l2index < l2lower){
+					return false;
+				}
+				//l3 
+				i1 = l2Buffer.lower32At(l2index);
+				if (i1==-1)
+					return false;
+				if (i1!=l3lower)
+					return false;
+				i2 = l3Buffer.size-1;
+				tmp = l2index+1;
+				
+				while(tmp<l2Buffer.size){
+					if (l2Buffer.lower32At(tmp)!=-1){
+						i2 = l2Buffer.lower32At(tmp)-1;
+						break;
+					}else
+						tmp++;
+				}
+					
+				if (l3lower!=i1)
+					return false;
+					
+				if (l3upper!=i2)
+					return false;
+					
+				if (l3index<i1 || l3index>i2)
+					return false;
+					
+				if (context[context[0]]>LN)
+					return false;
+				
+				if (context[0]==3){
+					if (l3index!=l3upper){
+						if(l3Buffer.intAt(l3index)>LN)
+							return false;
+					}
+					if (l3index+1 <= l3Buffer.size-1){
+						if (l3Buffer.intAt(l3index+1)<LN){
+							return false;
+						}
+					}
+				}
+							
+			}
+			return true;
+				
+			
+		}else {
+			switch(context[0]){
+			case -1:
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+				default:return true;
+			}
+			
+		}
+	}
+	
 	public void sampleState(FastIntBuffer fib){
 //		for(int i=0;i<context.)
 //			context[i] = -1;
@@ -5763,7 +6027,7 @@ public class VTDNav {
 				LN = index;
 				atTerminal = true;
 				
-			}			
+			}else atTerminal=false;			
 			return;
 		case 0:
 			context[0]=0;
@@ -5772,7 +6036,8 @@ public class VTDNav {
 				atTerminal = true;
 				if (type>VTDNav.TOKEN_ATTR_NS)
 				 sync(0,index);
-			}
+			} else
+				atTerminal=false;
 			return;		
 		}
 		
@@ -5780,7 +6045,8 @@ public class VTDNav {
 		if (type != VTDNav.TOKEN_STARTING_TAG){
 			LN = index;
 			atTerminal = true;
-		}
+		}else
+			atTerminal = false;
 		// search LC level 1
 		recoverNode_l1(index);
 		
@@ -6080,6 +6346,7 @@ public class VTDNav {
 					// l2upper and l2lower
 					l2lower = l1Buffer.lower32At(l1index);
 					tmp = l1index+1;
+					l2upper = l2Buffer.size-1;
 					while(tmp<l1Buffer.size){
 						if (l1Buffer.lower32At(tmp)!=-1){
 							l2upper = l1Buffer.lower32At(tmp)-1;
@@ -6087,9 +6354,9 @@ public class VTDNav {
 						}else
 							tmp++;
 					}
-					if (tmp==l1Buffer.size){
-						l2upper = l2Buffer.size-1;
-					}					
+					//if (tmp==l1Buffer.size){
+					//	l2upper = l2Buffer.size-1;
+					//}					
 					index = context[1]+1;
 					tmp = l2Buffer.upper32At(l2lower);
 					while(index<tmp){
@@ -6137,6 +6404,7 @@ public class VTDNav {
 					// l2upper and l2lower
 					l3lower = l2Buffer.lower32At(l2index);
 					tmp = l2index+1;
+					l3upper = l3Buffer.size-1;
 					while(tmp<l2Buffer.size){
 						if (l2Buffer.lower32At(tmp)!=-1){
 							l3upper = l2Buffer.lower32At(tmp)-1;
@@ -6144,9 +6412,9 @@ public class VTDNav {
 						}else
 							tmp++;
 					}
-					if (tmp==l2Buffer.size){
-						l3upper = l3Buffer.size-1;
-					}					
+					//if (tmp==l2Buffer.size){
+					//	l3upper = l3Buffer.size-1;
+					//}					
 					index = context[2]+1;
 					tmp = l3Buffer.intAt(l3lower);
 					while(index<tmp){
@@ -6306,7 +6574,7 @@ public class VTDNav {
 							}else{
 								return false;
 							}
-						}else if ( l1index < l1Buffer.size -1){ // whether lindex is the last entry is l1 buffer
+						}else if ( l1index < l1Buffer.size -1){ // whether l1index is the last entry in l1 buffer
 							l1index++;
 							if (tokenType==TOKEN_PI_NAME)
 								index++;
