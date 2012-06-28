@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,10 @@
 #define MASK_TOKEN_DEPTH  0x0ff0000000000000LL
 #define MASK_TOKEN_NS_MARK 0x00000000c0000000LL
 
+#define XPATH_STRING_MODE_NORMAL 0
+#define XPATH_STRING_MODE_UPPERCASE 1
+#define XPATH_STRING_MODE_LOWERCASE 2
+
 //#define ROOT 0
 //#define PARENT 1
 //#define FIRST_CHILD 2
@@ -53,18 +57,19 @@
 #define PS 5
 
 struct vTDNav;
+struct bookMark;
 
 typedef void (*freeVTDNav_) (struct vTDNav *vn);
 typedef void (*recoverNode_)(struct vTDNav *vn, int index);
 typedef Boolean (*toElement_)(struct vTDNav *vn, navDir d);
 typedef Boolean (*toElement2_)(struct vTDNav *vn, navDir d, UCSChar *s);
 typedef Boolean (*toElementNS_)(struct vTDNav *vn, navDir d, UCSChar *URL, UCSChar *ln);
-typedef int (*iterate_)(struct vTDNav *vn, int dp, UCSChar *en, Boolean special);
+/*typedef int (*iterate_)(struct vTDNav *vn, int dp, UCSChar *en, Boolean special);
 typedef int (*iterateNS_)(struct vTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
 typedef Boolean (*iterate_preceding_)(struct vTDNav *vn,UCSChar *en, int* a, Boolean special);
 typedef Boolean (*iterate_precedingNS_)(struct vTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
 typedef Boolean (*iterate_following_)(struct vTDNav *vn,UCSChar *en, Boolean special);
-typedef Boolean (*iterate_followingNS_)(struct vTDNav *vn, UCSChar *URL, UCSChar *ln);
+typedef Boolean (*iterate_followingNS_)(struct vTDNav *vn, UCSChar *URL, UCSChar *ln);*/
 typedef struct vTDNav* (*duplicateNav_)(struct vTDNav *vn);
 typedef struct vTDNav* (*cloneNav_)(struct vTDNav *vn);
 typedef void (*resolveLC_)(struct vTDNav *vn);
@@ -76,6 +81,12 @@ typedef void (*sampleState_)(struct vTDNav *vn, FastIntBuffer *fib);
 typedef Boolean (*writeIndex_VTDNav_)(struct vTDNav *vn, FILE *f);
 typedef Boolean (*writeIndex2_VTDNav_)(struct vTDNav *vn, char *fileName);
 typedef Boolean (*writeSeparateIndex_VTDNav_)(struct vTDNav *vn, char *vtdIndex);
+typedef Boolean (*toNode_)(struct vTDNav *vn, navDir d);
+typedef void (*sync_)(struct vTDNav *vn,int depth, int index);
+typedef void (*dumpState_)(struct vTDNav *vn);
+typedef Boolean (*verifyNodeCorrectness_)(struct vTDNav *vn);
+
+
 
 typedef struct vTDNav{
 	freeVTDNav_ __freeVTDNav;
@@ -83,6 +94,10 @@ typedef struct vTDNav{
 	toElement_ __toElement;
 	toElement2_ __toElement2;
 	toElementNS_ __toElementNS;
+	toNode_   __toNode;
+	sync_  __sync;
+	verifyNodeCorrectness_ __verifyNodeCorrectness;
+	dumpState_  __dumpState;
 	/*iterate_  __iterate;
 	iterateNS_  __iterateNS;
 	iterate_preceding_ __iterate_preceding;
@@ -144,6 +159,10 @@ typedef struct vTDNav{
 	Boolean master; // true if vn is obtained by calling getNav(), otherwise false
 	                // useful for implementing dupliateNav() and cloneNav();
 	short maxLCDepthPlusOne;
+	int count;
+	struct bookMark *currentNode;
+	FastIntBuffer *fib;
+	UCSChar *URIName;
 } VTDNav;
 
 
@@ -156,6 +175,10 @@ typedef struct vTDNav_L5{
 	toElement_ __toElement;
 	toElement2_ __toElement2;
 	toElementNS_ __toElementNS;
+	toNode_   __toNode;
+	sync_  __sync;
+	verifyNodeCorrectness_ __verifyNodeCorrectness;
+	dumpState_  __dumpState;
 	/*iterate_  __iterate;
 	iterateNS_  __iterateNS;
 	iterate_preceding_ __iterate_preceding;
@@ -227,7 +250,10 @@ typedef struct vTDNav_L5{
 	FastLongBuffer *_l3Buffer;
 	FastLongBuffer *l4Buffer;
 	FastIntBuffer *l5Buffer;
-
+	int count;
+	struct bookMark *currentNode;
+	FastIntBuffer *fib;
+	UCSChar *URIName;
 } VTDNav_L5;
 
 
@@ -377,14 +403,14 @@ extern int iterateNS(VTDNav *vn, int dp, UCSChar *URL, UCSChar *ln);
 }*/
 
 // This function is called by selectElement_P in autoPilot
-extern Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special);
+extern Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, int endIndex);
 
 /*inline Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, Boolean special){
 	return vn->__iterate_preceding(vn,en,a,special);
 }*/
 
 // This function is called by selectElementNS_P in autoPilot
-extern Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a);
+extern Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a, int endIndex);
 
 /*inline Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a){
 	return vn->__iterate_precedingNS(vn,URL,ln,a);
@@ -506,6 +532,20 @@ extern inline Boolean toElement(VTDNav *vn, navDir direction){
 	return vn->__toElement(vn,direction);
 }
 
+
+extern inline Boolean toNode(VTDNav *vn, navDir direction){
+	return vn->__toNode(vn,direction);
+}
+
+
+
+extern inline void dumpState(VTDNav *vn){
+	vn->__dumpState(vn);
+}
+
+extern inline Boolean verifyNodeCorrectness(VTDNav *vn){
+	return vn->__verifyNodeCorrectness(vn);
+}
 /**
  * A generic navigation method.
  * Move the current to the element according to the direction 
@@ -761,6 +801,19 @@ extern VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastLongBuffer *l3, FastLongBuffer *l4, 
 					 FastIntBuffer *l5, int so, int len,Boolean br);
+
+extern Long getOffsetBeforeTail(VTDNav *vn);
+
+extern void dumpState_L5(VTDNav *vn);
+
+extern void dumpState(VTDNav *vn);
+
+
+extern Boolean iterate_following_node(VTDNav *vn);
+
+extern Boolean iterate_preceding_node(VTDNav *vn,int a[], int index);
+
+
 
 
 /* This method takes a vtd index, and recover its correspondin
