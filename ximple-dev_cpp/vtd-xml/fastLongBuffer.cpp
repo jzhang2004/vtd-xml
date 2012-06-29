@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@ void FastLongBuffer::append(Long* longArray, int len){
 }
 // append a long to the end of FastLongBuffer
 void FastLongBuffer::append(Long l){
-	Long *lastBuffer = NULL;
+	/*Long *lastBuffer = NULL;
 	int lastBufferIndex;
 	int al_size = al->size;
 
@@ -165,7 +165,7 @@ void FastLongBuffer::append(Long l){
 	}else{
 		lastBufferIndex = min((size>>exp),al_size-1);
 		lastBuffer = (Long *)al->get(lastBufferIndex);
-	}
+	}*/
 
 	if (size < capacity){
 		((Long *)al->get(size>>exp))[size & r] = l; 

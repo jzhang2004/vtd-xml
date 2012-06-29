@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,17 +54,17 @@ FastIntBuffer::~FastIntBuffer(){
 
 // Create FastIntBuffer with initial page size of (1<<e) ints
 void FastIntBuffer::append(int i){
-	int lastBufferIndex;
-	int* lastBuffer = NULL;
-	int al_size = al->size;
-    if (al_size == 0) {
+	//int lastBufferIndex;
+	//int* lastBuffer = NULL;
+	//int al_size = al->size;
+    /*if (al_size == 0) {
 		lastBuffer = new int[1<<exp];
         al->add((void*)lastBuffer);
         capacity = pageSize;
     } else {
 		lastBufferIndex = min((size>>exp),al_size-1);
 		lastBuffer = (int *)al->get(lastBufferIndex);
-    }
+    }*/
 	if (size < capacity) {
 		((int *)al->get(size>>exp))[size & r] = i; 
 		//lastBuffer[size & r] = i;
