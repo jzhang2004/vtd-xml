@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -117,14 +117,17 @@ namespace com_ximpleware {
 
 		// This function is called by selectElementNS_F in autoPilot
 		//bool iterate_followingNS( UCSChar *URL, UCSChar *ln);
-		void resolveLC();
+		virtual void resolveLC();
 		//void resolveLC_l3();
 		//void resolveLC_l4();
 		//void resolveLC_l5();
 		void recoverNode_l3(int i);
 
-
-
+		bool nodeToElement(int direction);
+		void sync(int depth, int index);
+		//virtual void sync(int depth, int index);
+		virtual bool toNode_LastChild();
+		virtual bool toNode_PrevSibling();
 	public:
 		//Load the context info from ContextBuffer.
 		//Info saved including LC and current state of the context 
@@ -197,6 +200,9 @@ namespace com_ximpleware {
 		bool writeSeparateIndex( char *vtdIndexFileName);
 		bool writeSeparateIndex( FILE *f);
 		void recoverNode(int i);
+		void dumpState();
+		bool toNode(int direction);
+		virtual bool verifyNodeCorrectness();
 	};
 };
 

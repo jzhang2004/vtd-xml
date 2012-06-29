@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,13 @@
 //#include "fastLongBuffer.h"
 //#include "contextBuffer.h"
 //#include "elementFragmentNs.h"
-//#include "XMLChar.h"
 #include "indexHandler.h"
 #include "fastIntBuffer.h"
 #include "fastLongBuffer.h"
 #include "contextBuffer.h"
 #include "UTF8Char.h"
 #include "XMLChar.h"
+#include "bookMark.h"
 // Get declaration for f(int i, char c, float x)
 #include "decoder.h"
 #include <math.h>
@@ -40,6 +40,7 @@
 namespace com_ximpleware {
 	class FastLongBuffer;
 	class ElementFragmentNs;
+	class BookMark;
 	class VTDNav {
 		friend class ElementFragmentNs;
 		friend class FastIntBuffer;
@@ -142,7 +143,7 @@ namespace com_ximpleware {
 		int LN;// record txt and attrbute for XPath eval purposes
 
 		encoding_t encoding;
-
+		
 		//int currentOffset;
 		//int currentOffset2;
 
@@ -173,6 +174,37 @@ namespace com_ximpleware {
 		FastIntBuffer *l3Buffer;
 		UByte* XMLDoc;
 		short maxLCDepthPlusOne;
+		
+		FastIntBuffer *fib;
+		UCSChar *name;
+		int nameIndex;
+		UCSChar *localName;
+		int localNameIndex;
+		BookMark *currentNode;
+		UCSChar  *URIName;
+		int count;
+		virtual void resolveLC();
+
+		Long getOffsetBeforeTail();
+		int getTokenLength2(int index);
+		bool iterate_following_node();
+		bool iterate_preceding_node(int a[], int endIndex);
+		bool iterate_preceding(UCSChar* en, int a[], int endIndex);
+		bool iterate_precedingNS(UCSChar* URL, UCSChar* ln, int a[],int endIndex );
+		bool iterateNode(int dp);
+		void loadCurrentNode();// ->setCursorPosition();}
+		bool nodeToElement(int direction);
+		void setCurrentNode();
+
+		virtual void sync(int depth, int index);
+		virtual bool toNode_LastChild();
+		virtual bool toNode_PrevSibling();
+		
+		//bool nodeToElement(int direction);
+
+		/*{
+			return (int)((vtdBuffer->longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
+		}*/
 
 	public:
 		const static Long MASK_TOKEN_FULL_LEN=0x000fffff00000000LL;
@@ -185,6 +217,10 @@ namespace com_ximpleware {
 		const static Long MASK_TOKEN_DEPTH=0x0ff0000000000000LL;
 		const static Long MASK_TOKEN_NS_MARK=0x00000000c0000000LL;
 		
+		const static short XPATH_STRING_MODE_NORMAL = 0;
+		const static short XPATH_STRING_MODE_UPPERCASE = 1;
+		const static short XPATH_STRING_MODE_LOWERCASE = 2;
+
 		const static navDir R=ROOT;
 		const static navDir P=PARENT;
 		const static navDir FC=FIRST_CHILD;
@@ -229,8 +265,10 @@ namespace com_ximpleware {
 		
 		ElementFragmentNs *getElementFragmentNs();
 		Long getSiblingElementFragments(int i);
+		
+		
 
-		virtual void resolveLC();
+		
 		/**
 		* Get the encoding of the XML document.
 		* <pre>   0  ASCII       </pre>
@@ -299,11 +337,10 @@ namespace com_ximpleware {
 		//if ns is false, return false immediately
 		virtual bool iterateNS(int dp, const UCSChar *URL, const UCSChar *ln);
 
-		// This function is called by selectElement_P in autoPilot
-		virtual bool iterate_preceding(const UCSChar *en, int* a, bool special);
+		
 
 		// This function is called by selectElementNS_P in autoPilot
-		virtual bool iterate_precedingNS(const UCSChar *URL, const UCSChar *ln, int* a);
+		//virtual bool iterate_precedingNS(const UCSChar *URL, const UCSChar *ln, int* a);
 
 		// This function is called by selectElement_F in autoPilot
 		virtual bool iterate_following(const UCSChar *en, bool special);
@@ -547,6 +584,13 @@ namespace com_ximpleware {
 		* or CDATA  */
 		virtual void recoverNode( int index);
 
+		virtual void dumpState();
+
+		virtual void fillXPathString(FastIntBuffer *indexBuffer, FastIntBuffer countBuffer);
+		UCSChar* getXPathStringVal(short mode);
+		UCSChar* getXPathStringVal2(int j, short mode);
+		virtual bool toNode(int direction);
+		virtual bool verifyNodeCorrectness();
 	};
 
 	inline bool VTDNav::matchElement( const UCSChar *en){
@@ -838,6 +882,9 @@ namespace com_ximpleware {
 	inline bool VTDNav::matchRawTokenString1( int offset, int len,const UCSChar *s){
 		return  compareRawTokenString2(offset,len,s)==0;
 	}
+	inline int VTDNav::getTokenLength2(int index){
+			return (int)((vtdBuffer->longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
+		}
 };
 
 //Get the depth (>=0) of the current element.
