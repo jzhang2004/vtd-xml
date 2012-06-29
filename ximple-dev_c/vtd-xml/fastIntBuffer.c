@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,8 +79,8 @@ void freeFastIntBuffer(FastIntBuffer *fib){
 
 /* Append i to the end of FastIntBuffer */
 void appendInt(FastIntBuffer *fib, int i){
-	int lastBufferIndex;
-	int* lastBuffer = NULL;
+	//int lastBufferIndex;
+	/*int* lastBuffer = NULL;
     if (fib->al->size == 0) {
 		lastBuffer = (int *)malloc(sizeof(int)<<fib->exp);
 		if (lastBuffer == NULL){
@@ -93,7 +93,7 @@ void appendInt(FastIntBuffer *fib, int i){
 		lastBufferIndex = min((fib->size>>fib->exp),fib->al->size-1);
 		lastBuffer = (int *)get(fib->al,lastBufferIndex);
 
-    }
+    }*/
     if (fib->size < fib->capacity) {
 		((int *)get(fib->al,fib->size>>fib->exp))[fib->size & fib->r] = i;
         //lastBuffer[fib->size & fib->r] = i;

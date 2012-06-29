@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -189,10 +189,10 @@ void appendLongArray(FastLongBuffer *flb, Long *longArray, int len){
 
 /* append a long to the end of FastLongBuffer */
 void appendLong(FastLongBuffer *flb, Long i){
-	Long *lastBuffer = NULL;
-	int lastBufferIndex;
+	//Long *lastBuffer = NULL;
+	//int lastBufferIndex;
 
-	if (flb->al->size == 0) {
+	/*if (flb->al->size == 0) {
 		lastBuffer = (Long *)malloc(sizeof(Long)<<flb->exp);
 		if (lastBuffer == NULL){
 			throwException2(out_of_mem,
@@ -203,7 +203,7 @@ void appendLong(FastLongBuffer *flb, Long i){
 	}else{
 		lastBufferIndex = min((flb->size>>flb->exp),flb->al->size-1);
 		lastBuffer = (Long *)get(flb->al, lastBufferIndex);
-	}
+	}*/
 
 	if (flb->size < flb->capacity){
 		((Long *)get(flb->al,flb->size >> flb->exp))[flb->size & flb->r] = i;
