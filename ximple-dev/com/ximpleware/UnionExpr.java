@@ -209,14 +209,18 @@ public class UnionExpr extends Expr {
 					case VTDNav.TOKEN_STARTING_TAG:
 					case VTDNav.TOKEN_DOCUMENT:
 						s = vn.getXPathStringVal();
+						break;
 					case VTDNav.TOKEN_ATTR_NAME:
 						s = vn.toString(a + 1);
+						break;
 					case VTDNav.TOKEN_PI_NAME:
 						if (a + 1 < vn.vtdSize
 								|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
 							s = vn.toString(a + 1);
+						break;
 					default:
 						s = vn.toString(a);
+						break;
 					}
 					/*if (t == VTDNav.TOKEN_ATTR_NAME) {
 						s = vn.toString(a + 1);
