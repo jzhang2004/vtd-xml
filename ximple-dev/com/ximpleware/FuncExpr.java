@@ -721,16 +721,16 @@ public class FuncExpr extends Expr{
 	
 	private String concat(VTDNav vn){
 	    StringBuffer  sb = new StringBuffer();
-	    if (argCount>=2){
+	    //if (argCount>=2){
 			Alist temp = argumentList;
 			while(temp!=null){
 				sb.append(temp.e.evalString(vn));
 				temp = temp.next;
 			}
 			return sb.toString();
-	    } else 
-	        throw new IllegalArgumentException
-		("concat()'s argument count is invalid");
+	    //} else 
+	    //    throw new IllegalArgumentException
+		//("concat()'s argument count is invalid");
 	}
 	
 	private String getString(VTDNav vn){
@@ -811,27 +811,27 @@ public class FuncExpr extends Expr{
 	final public double evalNumber(VTDNav vn){
 	    int ac = 0;
 	  switch(opCode){
-			case FuncName.LAST:  if (argCount!=0 )
+			case FuncName.LAST:  /*if (argCount!=0 )
 									throw new IllegalArgumentException
-									("floor()'s argument count is invalid");
+									("floor()'s argument count is invalid");*/
 								 return contextSize;			
-			case FuncName.POSITION:   if (argCount!=0 )
+			case FuncName.POSITION:  /* if (argCount!=0 )
 									throw new IllegalArgumentException
-									("position()'s argument count is invalid");
+									("position()'s argument count is invalid");*/
 								 return position;
 			case FuncName.COUNT: 	return count(vn);
-			case FuncName.NUMBER:   if (argCount!=1)
+			case FuncName.NUMBER:   /*if (argCount!=1)
 										throw new IllegalArgumentException
-										("number()'s argument count is invalid");
+										("number()'s argument count is invalid");*/
 									return argumentList.e.evalNumber(vn);
 									
 			case FuncName.SUM:	    return sum(vn);
-			case FuncName.FLOOR: 	if (argCount!=1 )
-			    						throw new IllegalArgumentException("floor()'s argument count is invalid");
+			case FuncName.FLOOR: 	/*if (argCount!=1 )
+			    						throw new IllegalArgumentException("floor ()'s argument count is invalid");*/
 			    					return Math.floor(argumentList.e.evalNumber(vn));
 			    					
-			case FuncName.CEILING:	if (argCount!=1 )
-			    						throw new IllegalArgumentException("ceiling()'s argument count is invalid");
+			case FuncName.CEILING:	/*if (argCount!=1 )
+			    						throw new IllegalArgumentException("ceiling()'s argument count is invalid");*/
 			    					return Math.ceil(argumentList.e.evalNumber(vn));
 			    					
 			case FuncName.STRING_LENGTH:
@@ -862,12 +862,12 @@ public class FuncExpr extends Expr{
 			    					    throw new IllegalArgumentException("string-length()'s argument count is invalid");
 			    					}
 			    
-			case FuncName.ROUND: 	if (argCount!=1 )
-			    						throw new IllegalArgumentException("round()'s argument count is invalid");
+			case FuncName.ROUND: 	/*if (argCount!=1 )
+			    						throw new IllegalArgumentException("round()'s argument count is invalid");*/
 			    					return Math.floor(argumentList.e.evalNumber(vn))+0.5d;
 			    					
-			case FuncName.ABS:		if (argCount!=1 )
-										throw new IllegalArgumentException("abs()'s argument count is invalid");
+			case FuncName.ABS:		/*if (argCount!=1 )
+										throw new IllegalArgumentException("abs()'s argument count is invalid");*/
 									return Math.abs(argumentList.e.evalNumber(vn));		
 			case FuncName.ROUND_HALF_TO_EVEN :	return roundHalfToEven(vn);		    							
 			case FuncName.ROUND_HALF_TO_ODD:
@@ -1028,42 +1028,42 @@ public class FuncExpr extends Expr{
 	final public boolean evalBoolean(VTDNav vn){
 	  	  switch(opCode){
 			case FuncName.STARTS_WITH:
-			    if (argCount!=2){
-			        throw new IllegalArgumentException("starts-with()'s argument count is invalid");
-			    }
+			    //if (argCount!=2){
+			    //    throw new IllegalArgumentException("starts-with()'s argument count is invalid");
+			    //}
 			    return startsWith(vn);
 			case FuncName.CONTAINS:
-			    if (argCount!=2){
+			    /*if (argCount!=2){
 			        throw new IllegalArgumentException("contains()'s argument count is invalid");
-				}
+				}*/
 			    return contains(vn);
-			case FuncName.TRUE: if (argCount!=0){
+			case FuncName.TRUE: /*if (argCount!=0){
 									throw new IllegalArgumentException("true() doesn't take any argument");
-								}
+								}*/
 								return true;			
-			case FuncName.FALSE:if (argCount!=0){
+			case FuncName.FALSE:/*if (argCount!=0){
 									throw new IllegalArgumentException("false() doesn't take any argument");
-								}
+								}*/
 								return false;	
-			case FuncName.BOOLEAN: if (argCount!=1){
+			case FuncName.BOOLEAN: /*if (argCount!=1){
 										throw new IllegalArgumentException("boolean() doesn't take any argument");
-								   }
+								   }*/
 									return argumentList.e.evalBoolean(vn);	
-			case FuncName.NOT:	if (argCount!=1){
+			case FuncName.NOT:	/*if (argCount!=1){
 										throw new IllegalArgumentException("not() doesn't take any argument");
-			   					}
+			   					}*/
 								return !argumentList.e.evalBoolean(vn);
 		    case FuncName.LANG:
-		        				if (argCount!=1){
+		        				/*if (argCount!=1){
 		        				    	throw new IllegalArgumentException("lang()'s argument count is invalid");
-		        				}
+		        				}*/
 								return lang(vn,argumentList.e.evalString(vn));
 								
 		    case FuncName.COMPARE:throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
 		    case FuncName.ENDS_WITH:
-		        if (argCount!=2){
+		        /*if (argCount!=2){
 		        throw new IllegalArgumentException("ends-with()'s argument count is invalid");
-		    }
+		    }*/
 		    return endsWith(vn);
 		    
 		    case FuncName.MATCH_NAME:return matchName(vn);
@@ -1172,18 +1172,20 @@ public class FuncExpr extends Expr{
 	
 	private int count(VTDNav vn){
 	    int a = -1;
-	    if (argCount!=1 || argumentList.e.isNodeSet()==false)
-			throw new IllegalArgumentException
-				("Count()'s argument count is invalid");
+	   // if (argCount!=1 || argumentList.e.isNodeSet()==false)
+		//	throw new IllegalArgumentException
+			//	("Count()'s argument count is invalid");
 		vn.push2();
 		int size= vn.contextStack2.size ;
 		try{
 			a = 0;
 			argumentList.e.adjust(vn.getTokenCount());
 			while(argumentList.e.evalNodeSet(vn)!=-1){
+				//System.out.println(" ===>"+vn.getCurrentIndex());
 				a ++;
 			}
 		}catch(Exception e){
+			System.out.println("exception in count");
 		}
 		argumentList.e.reset(vn);
 		vn.contextStack2.size = size;
