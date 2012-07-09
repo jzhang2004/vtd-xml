@@ -2005,7 +2005,7 @@ public class VTDNav_L5 extends VTDNav {
 	            os);
 	}
 	
-	public boolean toNode(int dir) throws NavException{
+	protected boolean toNode(int dir) throws NavException{
 		int index,tokenType,depth,lastEntry,tmp;
 		//count++;
 		//System.out.println("count ==>"+ count);

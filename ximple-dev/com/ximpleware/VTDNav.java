@@ -1509,7 +1509,6 @@ public class VTDNav {
 	throws NavException {
 		int index = getCurrentIndex() +1;
 		int tokenType;
-		int t,d;
 		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size;
 		while (index< endIndex) {
@@ -1567,7 +1566,6 @@ public class VTDNav {
 	throws NavException {
 		int index = getCurrentIndex() - 1;
 		int tokenType;
-		int t,d;
 		//int depth = getTokenDepth(index);
 		//int size = vtdBuffer.size;
 		while (index< endIndex) {
@@ -4580,7 +4578,7 @@ public class VTDNav {
 		return toRawString(offset, len);
 	}
 	
-	final protected String toRawString(StringBuilder sb, int index) 
+	final protected void toRawString(StringBuilder sb, int index) 
 		throws NavException {		
 		int type = getTokenType(index);
 		int len;
@@ -4591,7 +4589,7 @@ public class VTDNav {
 		else
 			len = getTokenLength(index);
 		int offset = getTokenOffset(index);
-		return toRawString(offset, len);
+		toRawString(offset, len,sb);
 	}
 	/**
 	 * Convert a token at the given index to a String, upper case chars
@@ -4660,6 +4658,17 @@ public class VTDNav {
 	}
 	
 	final protected void toRawString(int os, int len, StringBuffer sb) throws NavException {
+		int offset = os;
+	    int endOffset = os + len;
+	    long l;
+	    while (offset < endOffset) {
+	        l = getChar(offset);
+	        offset += (int)(l>>32);
+	        sb.append((char)l);	                
+	    }
+	}
+	
+	final protected void toRawString(int os, int len, StringBuilder sb) throws NavException {
 		int offset = os;
 	    int endOffset = os + len;
 	    long l;
@@ -5238,7 +5247,7 @@ public class VTDNav {
 					//	return false;
 					if (l1index<0 || l1index>l1Buffer.size)
 						return false;
-					int i1, i2, i3; // l2lower, l2upper and l2index
+					int i1, i2; // l2lower, l2upper and l2index
 					i1 = l1Buffer.lower32At(l1index);
 					if (i1 != -1) {
 						if (i1 != l2lower)
@@ -5274,7 +5283,7 @@ public class VTDNav {
 					//	return false;
 					if (l1index<0 || l1index>l1Buffer.size)
 						return false;
-					int i1,i2, i3; //l2lower, l2upper and l2index
+					int i1,i2; //l2lower, l2upper and l2index
 					i1 = l1Buffer.lower32At(l1index);
 					if(i1==-1)return false;
 					if (i1!=l2lower)
@@ -5337,7 +5346,7 @@ public class VTDNav {
 				//	return false;
 				if (l1index<0 || l1index>l1Buffer.size)
 					return false;
-				int i1,i2, i3; //l2lower, l2upper and l2index
+				int i1,i2; //l2lower, l2upper and l2index
 				i1 = l1Buffer.lower32At(l1index);
 				
 				if (i1==-1)return false;
@@ -5692,7 +5701,7 @@ public class VTDNav {
 	 */
 	final public String getXPathStringVal(short mode) throws NavException{
 		int index = getCurrentIndex() + 1;
-		int tokenType, depth, t=0, length,i=0;
+		int tokenType, depth, t=0;
 		int dp = context[0];
 		//int size = vtdBuffer.size;
 		// store all text tokens underneath the current element node
@@ -6228,7 +6237,7 @@ public class VTDNav {
 		currentNode.setCursorPosition();
 	}
 	// like toElement, toNode takes an integer that determines the 
-	public boolean toNode(int dir) throws NavException{
+	protected boolean toNode(int dir) throws NavException{
 		int index,tokenType,depth,lastEntry,tmp;
 		//count++;
 		//System.out.println("count ==>"+ count);
