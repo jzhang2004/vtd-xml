@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,7 +154,11 @@ MultiplicativeExpr    ::=  UnaryExpr:ue
 		;
 
 UnaryExpr    	::=    UnionExpr:ue  
-		{: RESULT = ue; :}
+		{: if(ue.next==null){
+				RESULT = ue.e;}
+		   else{
+				RESULT = ue;
+		   } :}
   		|    SUB UnaryExpr:ue   
 		{: RESULT = new UnaryExpr( BinaryExpr.SUB, ue); :}
 		 %prec UMINUS
@@ -250,13 +254,15 @@ Argument   	::=    Expr:e
 
 LocationPath    ::=    RelativeLocationPath:rlp	
 		{: RESULT = new LocationPathExpr();
-		   RESULT.Step=rlp; 
+		   RESULT.Step=rlp;
+		   RESULT.optimize();
 		:}
 		|    AbsoluteLocationPath:alp	
 		{: RESULT = new LocationPathExpr();
 		   RESULT.PathType=LocationPathExpr.ABSOLUTE_PATH;
 		   //System.out.println(" absolute ");
 		   RESULT.Step=alp;
+		   RESULT.optimize();
 		   //startStep = currentStep=null;
 		:}
 		;
@@ -285,12 +291,7 @@ Step		::= AxisSpecifier:as1 nodetest:nt PredicateList:pl
 		{: RESULT = new Step();
       	   RESULT.AxisType=as1.i;
       	   if ( (as1.i== AxisType.ATTRIBUTE
-	        	 || as1.i == AxisType.DESCENDANT
-      	         || as1.i == AxisType.PRECEDING
-      	         || as1.i == AxisType.FOLLOWING
-      	         || as1.i == AxisType.FOLLOWING_SIBLING
-      	         || as1.i == AxisType.PRECEDING_SIBLING
-      	         || as1.i == AxisType.NAMESPACE) && 
+	        	|| as1.i == AxisType.NAMESPACE) && 
       	        (nt.testType>1)){
       	          Yylex scanner = (Yylex)my_parser.getScanner();
       	          throw new XPathParseException(as1.getAxisString()+" axis can't operate on"+
@@ -403,7 +404,16 @@ AbbreviatedRelativeLocationPath ::=   Step:s DSLASH RelativeLocationPath:rlp
 
 Predicate 	::=    LB Expr:e RB 
 		{:	RESULT = new Predicate();
-   		        RESULT.expr= e; 
+   		        RESULT.expr= e;
+   		        if (e.isFinal() && e.Numerical){
+		        	RESULT.d = e.evalNumber((VTDNav)null);
+		        	Yylex scanner = (Yylex)parser.getScanner();
+		        	if(RESULT.d<1)
+		        		throw new XPathParseException("invalid index number for predicate",
+		        				scanner.getOffset());
+		        	RESULT.type = Predicate.simple;
+		        }
+   		        RESULT.requireContext = e.requireContext();
 		:}   
 	   	;
 

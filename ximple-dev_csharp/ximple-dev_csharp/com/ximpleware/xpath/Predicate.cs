@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -45,13 +45,60 @@ namespace com.ximpleware.xpath
 		internal double d; // only supports a[1] style of location path for now
 		public int count;
 		public Expr expr;
+        public int type;
+	    public Step s;
+	    public FilterExpr fe;
+	    public bool requireContext;
+	    public const int simple=0;
+	    public const int complex=1;
+
 		public Predicate()
 		{
 			nextP = (Predicate) null;
 			count = 0;
 			d = 0;
+            requireContext = false;
+            type = complex;
 		}
-		public bool eval(VTDNav vn)
+
+        public bool eval(VTDNav vn)
+        {
+            count++;
+            switch (type)
+            {
+                case simple:
+                    if (d < count)
+                        return false;
+                    else if (d == count)
+                    {
+                        if (s != null)
+                        {
+                            s.out_of_range = true;
+                        }
+                        else
+                            fe.out_of_range = true;
+
+                        return true;
+                    }
+                    return false;
+                default:
+                    bool b;
+                    expr.Position = count;
+                    if (expr.Numerical)
+                    {
+                        b = (expr.evalNumber(vn) == count);
+                    }
+                    else
+                    {
+                        b = expr.evalBoolean(vn);
+                    }
+                    if (b)
+                        return true;
+                    else
+                        return false;
+            }
+        }
+		public bool eval2(VTDNav vn)
 		{
 			bool b;
 			count++; // increment the position

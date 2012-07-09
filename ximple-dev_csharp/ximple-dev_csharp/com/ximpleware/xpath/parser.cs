@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -554,7 +554,17 @@ public class CUP_parser_actions {
 		int eright = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-1)).right;
 		Expr e = (Expr)((TUVienna.CS_CUP.Runtime.Symbol) CUP_parser_stack.elementAt(CUP_parser_top-1)).value;
 			RESULT = new Predicate();
-   		        RESULT.expr= e; 
+            if (e.isFinal() && e.Numerical)
+            {
+                RESULT.d = e.evalNumber((VTDNav)null);
+                Yylex scanner = (Yylex)my_parser.getScanner();
+                if (RESULT.d < 1)
+                    throw new XPathParseException("invalid index number for predicate",
+                            scanner.getOffset());
+                RESULT.type = Predicate.simple;
+            }
+            RESULT.expr = e;
+            RESULT.requireContext = e.requireContextSize();
 		
               CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(28/*Predicate*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-2)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
             }
@@ -777,11 +787,6 @@ public class CUP_parser_actions {
 		 RESULT = new Step();
       	   RESULT.AxisType=as1.i;
       	   if ( (as1.i== AxisType.ATTRIBUTE
-	        	 || as1.i == AxisType.DESCENDANT
-      	         || as1.i == AxisType.PRECEDING
-      	         || as1.i == AxisType.FOLLOWING
-      	         || as1.i == AxisType.FOLLOWING_SIBLING
-      	         || as1.i == AxisType.PRECEDING_SIBLING
       	         || as1.i == AxisType.NAMESPACE) && 
       	        (nt.testType>1)){
       	          Yylex scanner = (Yylex)my_parser.getScanner();
@@ -821,8 +826,8 @@ public class CUP_parser_actions {
 		int rlpright = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right;
 		Step rlp = (Step)((TUVienna.CS_CUP.Runtime.Symbol) CUP_parser_stack.elementAt(CUP_parser_top-0)).value;
 		 //if (s == rlp) throw new XPathParseException("$1 = $3!!!!");
-		   s.nextS = rlp;						
-		   rlp.prevS = s;							 
+		   s.NextStep= rlp;						
+		   rlp.PrevStep = s;							 
 		   RESULT= s;
 		
               CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(24/*RelativeLocationPath*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-2)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
@@ -885,6 +890,7 @@ public class CUP_parser_actions {
 		   RESULT.PathType=LocationPathExpr.ABSOLUTE_PATH;
 		   //System.out.println(" absolute ");
 		   RESULT.Step=alp;
+           RESULT.optimize();
 		   //startStep = currentStep=null;
 		
               CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(18/*LocationPath*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
@@ -899,8 +905,8 @@ public class CUP_parser_actions {
 		int rlpright = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right;
 		Step rlp = (Step)((TUVienna.CS_CUP.Runtime.Symbol) CUP_parser_stack.elementAt(CUP_parser_top-0)).value;
 		 RESULT = new LocationPathExpr();
-		   RESULT.Step=rlp; 
-		
+		   RESULT.Step=rlp;
+           RESULT.optimize();
               CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(18/*LocationPath*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
             }
           return CUP_parser_result;
@@ -967,7 +973,12 @@ public class CUP_parser_actions {
 		int alleft = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-1)).left;
 		int alright = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-1)).right;
 		Alist al = (Alist)((TUVienna.CS_CUP.Runtime.Symbol) CUP_parser_stack.elementAt(CUP_parser_top-1)).value;
-		 RESULT = new FuncExpr(fn.i, al); 
+		 //RESULT = new FuncExpr(fn.i, al);
+         FuncExpr tfe = new FuncExpr(fn.i, al);
+         if (!tfe.checkArgumentCount())
+             throw new XPathParseException(" argument input for function " + tfe.fname() + " incorrect");
+         RESULT = tfe;
+		
               CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(1/*FunctionCall*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-3)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
             }
           return CUP_parser_result;
@@ -1190,7 +1201,10 @@ public class CUP_parser_actions {
 		int ueleft = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).left;
 		int ueright = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right;
 		UnionExpr ue = (UnionExpr)((TUVienna.CS_CUP.Runtime.Symbol) CUP_parser_stack.elementAt(CUP_parser_top-0)).value;
-		 RESULT = ue; 
+        if (ue.next == null)
+            RESULT = ue.e;
+        else
+            RESULT = ue;
               CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(10/*UnaryExpr*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
             }
           return CUP_parser_result;

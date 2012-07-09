@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ using System;
 
 namespace com.ximpleware.xpath
 {
-    public class VariableExpr:Expr
+    public class VariableExpr : Expr
     {
 
 
@@ -69,7 +69,7 @@ namespace com.ximpleware.xpath
         }
 
 
-      
+
         override public bool requireContextSize()
         {
             // TODO Auto-generated method stub
@@ -138,6 +138,26 @@ namespace com.ximpleware.xpath
                 exprVal.Position = value;
             }
 
+        }
+
+        public override bool isFinal()
+        {
+            return exprVal.isFinal();
+        }
+
+        public override void markCacheable()
+        {
+            exprVal.markCacheable();
+        }
+
+        public override void markCacheable2()
+        {
+            exprVal.markCacheable2();
+        }
+
+        public override void clearCache()
+        {
+            exprVal.clearCache();
         }
     }
 }

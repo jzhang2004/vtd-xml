@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,9 @@ namespace com.ximpleware.xpath
         public const int LOWER_CASE = 32;
         public const int ENDS_WITH = 33;
         public const int QNAME = 34;
+        /// <summary>
+        /// 
+        /// </summary>
         public const int LOCAL_NAME_FROM_QNAME = 35;
         public const int NAMESPACE_URI_FROM_QNAME = 36;
         public const int NAMESPACE_URI_FOR_PREFIX = 37;
@@ -70,5 +73,19 @@ namespace com.ximpleware.xpath
         public const int IRI_TO_URI = 39;
         public const int ESCAPE_HTML_URI = 40;
         public const int ENCODE_FOR_URI = 41;
+
+        public const int     MATCH_NAME = 42;
+	    public const int     MATCH_LOCAL_NAME = 43;
+	    public const int     NOT_MATCH_NAME = 44;
+	    public const int     NOT_MATCH_LOCAL_NAME = 45;
+	    public const int	 CURRENT =46;
+	    public const int 	 GENERATE_ID = 47;
+	    public const int 	 FORMAT_NUMBER = 48;
+ 	    public const int     KEY = 49;
+ 	    public const int     ID =50;
+ 	    public const int     DOCUMENT =51;
+ 	    public const int     SYSTEM_PROPERTY =52;
+ 	    public const int 	 ELEMENT_AVAILABLE =53;
+ 	    public const int 	 FUNCTION_AVAILABLE = 54;
     }
 }
