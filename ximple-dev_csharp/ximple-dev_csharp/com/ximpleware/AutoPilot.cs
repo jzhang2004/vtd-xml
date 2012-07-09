@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -56,26 +56,28 @@ namespace com.ximpleware
 		{
 			return xpe.ToString();
 		}
-		private int depth;
+		protected int depth;
 		// the depth of the element at the starting point will determine when to stop iteration
-		private int iter_type; // see selectElement
-		private VTDNav vn; // the navigator object
-		private int index; // for iterAttr
-		private bool ft; // a helper variable for 
-		private bool special; // This helps distinguish between
+		protected int iter_type; // see selectElement
+		protected VTDNav vn; // the navigator object
+        //private int endIndex;
+		protected int index; // for iterAttr
+		protected bool ft; // a helper variable for 
+		protected bool special; // This helps distinguish between
 		// the case of node() and * for preceding axis
 		// of xpath evaluation
-		private System.String name; // Store element name after selectElement
-        private System.String name2; //xmlns:+name
-        private System.String localName; // Store local name after selectElemntNS
-		private System.String URL; // Store URL name after selectElementNS
-		private int size; // for iterateAttr
+		protected System.String name; // Store element name after selectElement
+        protected System.String name2; //xmlns:+name
+        protected System.String localName; // Store local name after selectElemntNS
+		protected System.String URL; // Store URL name after selectElementNS
+		protected int size; // for iterateAttr
         private FastIntBuffer fib; 
-		private Expr xpe; // for evalXPath
+		protected Expr xpe; // for evalXPath
 		
-		private int[] contextCopy; //for preceding axis
-		private int stackSize; // the stack size for xpath evaluation
-		static private System.Collections.Hashtable nsHash;
+		protected int[] contextCopy; //for preceding axis
+		protected int stackSize; // the stack size for xpath evaluation
+		static protected System.Collections.Hashtable nsHash;
+        protected bool cachingEnabled;
         static private System.Collections.Hashtable symbolHash;
 		//private parser p;
 		// defines the type of "iteration"
@@ -93,6 +95,13 @@ namespace com.ximpleware
 		public const int ATTR = 9;
 		public const int ATTR_NS = 10;
         public const int NAME_SPACE = 11;
+        public const int SIMPLE_NODE = 12;
+        public const int DESCENDANT_NODE = 13;
+        public const int FOLLOWING_NODE = 14;
+        public const int PRECEDING_NODE = 15;
+
+        //protected bool enableCaching;
+        protected int endIndex;
 		/// <summary> AutoPilot constructor comment.</summary>
 		/// <exception cref="IllegalArgumentException">If the VTDNav object is null 
 		/// </exception>
@@ -109,6 +118,8 @@ namespace com.ximpleware
 			special = false;
 			xpe = null;
             symbolHash = new System.Collections.Hashtable();
+            fib = null;
+            cachingEnabled= true;
 			//p = null;       
 		}
 		
@@ -127,6 +138,8 @@ namespace com.ximpleware
 			special = false;
 			xpe = null;
             symbolHash = new System.Collections.Hashtable();
+            fib = null;
+            cachingEnabled = false;
 		}
 		/// <summary>This function creates URL ns prefix 
 		/// and is intended to be called prior to selectXPath
@@ -317,13 +330,18 @@ namespace com.ximpleware
 				case PRECEDING: 
 					if (vn.atTerminal)
 						return false;
-					return vn.iterate_preceding(name, contextCopy, special);
+                    if (ft)
+                    {
+                        ft = false;
+                        vn.toElement(VTDNav.ROOT);
+                    }
+					return vn.iterate_preceding(name, contextCopy, endIndex);
 				
 				
 				case PRECEDING_NS: 
 					if (vn.atTerminal)
 						return false;
-					return vn.iterate_precedingNS(URL, localName, contextCopy);
+					return vn.iterate_precedingNS(URL, localName, contextCopy,endIndex);
 				
 				
 				default: 
@@ -727,6 +745,7 @@ namespace com.ximpleware
 			name = en;
 			contextCopy = new int[vn.context.Length];
 			vn.context.CopyTo(contextCopy, 0);
+            endIndex = vn.getCurrentIndex2();
 			for (int i = vn.context[0] + 1; i < vn.context.Length; i++)
 			{
 				contextCopy[i] = - 1;
@@ -752,6 +771,7 @@ namespace com.ximpleware
 			URL = ns_URL;
 			contextCopy = new int[vn.context.Length];
 			vn.context.CopyTo(contextCopy, 0);
+            endIndex = vn.getCurrentIndex2();
 			for (int i = vn.context[0] + 1; i < vn.context.Length; i++)
 			{
 				vn.context[i] = - 1;
@@ -802,6 +822,8 @@ namespace com.ximpleware
                 p.symbolHash = symbolHash;
 				xpe = (com.ximpleware.Expr) p.parse().value;
                 ft = true;
+                if (cachingEnabled)
+                    xpe.markCacheable();
 			}
 			catch (XPathParseException e)
 			{
@@ -828,7 +850,6 @@ namespace com.ximpleware
         {
             nsHash.Clear();
         }
-		
 		/// <summary> 
         /// Reset the XPath so the XPath Expression can 
 		/// be reused and revaluated in anther context position
@@ -842,6 +863,8 @@ namespace com.ximpleware
 				xpe.reset(vn);
 				ft = true;
 				vn.contextStack2.size = stackSize;
+                if (cachingEnabled)
+                    xpe.clearCache();
 			}
 		}
 
@@ -897,5 +920,114 @@ namespace com.ximpleware
 			}
 			throw new PilotException(" Null XPath expression ");
 		}
+
+        public bool iterate2() {
+            //count++;
+            //System.out.println("count-=>"+count);
+            switch (iter_type)
+            {
+                case SIMPLE_NODE:
+                    if (ft && vn.atTerminal)
+                        return false;
+                    if (ft)
+                    {
+                        ft = false;
+                        return true;
+                    }
+                    return vn.iterateNode(depth);
+
+                case DESCENDANT_NODE:
+                    if (ft && vn.atTerminal)
+                        return false;
+                    else
+                    {
+                        ft = false;
+                        return vn.iterateNode(depth);
+                    }
+
+                case FOLLOWING_NODE:
+                    if (ft)
+                    {
+                        bool b = false;
+                        do
+                        {
+                            b = vn.toNode(VTDNav.NEXT_SIBLING);
+                            if (b)
+                            {
+                                ft = false;
+                                return true;
+                            }
+                            else
+                            {
+                                b = vn.toNode(VTDNav.PARENT);
+                            }
+                        } while (b);
+                        return false;
+                    }
+                    return vn.iterate_following_node();
+
+                case PRECEDING_NODE:
+                    if (ft)
+                    {
+                        ft = false;
+                        vn.toNode(VTDNav.ROOT);
+                        vn.toNode(VTDNav.P);
+                    }
+                    return vn.iterate_preceding_node(contextCopy, endIndex);
+                //case 
+                default:
+                    throw new PilotException(" iteration action type undefined");
+            }
+}
+
+        public void enableCaching()
+        {
+            this.cachingEnabled = true;
+        }
+
+
+        protected internal void selectFollowingNode()
+        {
+            ft = true;
+            depth = vn.getCurrentDepth();
+            iter_type = FOLLOWING_NODE;
+            // contextCopy = (int[])vn.context.clone();
+        }
+
+        protected internal void selectNode()
+        {
+            ft = true;
+            depth = vn.getCurrentDepth();
+            iter_type = SIMPLE_NODE;
+        }
+
+        protected internal void selectPrecedingNode()
+        {
+            ft = true;
+            depth = vn.getCurrentDepth();
+            contextCopy = (int[])vn.context.Clone();
+            if (contextCopy[0] != -1)
+            {
+                for (int i = contextCopy[0] + 1; i < contextCopy.Length; i++)
+                {
+                    contextCopy[i] = 0;
+                }
+            }//else{
+            //   for (int i=1;i<contextCopy.length;i++){
+            //	   contextCopy[i]=0;
+            //	   }
+            //}
+            iter_type = PRECEDING_NODE;
+            endIndex = vn.getCurrentIndex();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        protected internal void selectDescendantNode()
+        {
+            ft = true;
+            depth = vn.getCurrentDepth();
+            iter_type = DESCENDANT_NODE;
+        }
 	}
 }
