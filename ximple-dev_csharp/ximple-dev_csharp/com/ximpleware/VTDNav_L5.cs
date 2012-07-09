@@ -2109,7 +2109,7 @@ namespace com.ximpleware
         }
 
 
-        public override bool toNode(int dir)
+        protected internal override bool toNode(int dir)
         {
             int index, tokenType, depth, lastEntry, tmp;
             //count++;

@@ -6202,7 +6202,7 @@ namespace com.ximpleware
 	}
 
 
-    public virtual bool toNode(int dir) {
+    protected internal virtual bool toNode(int dir) {
 		int index,tokenType,depth,lastEntry,tmp;
 		//count++;
 		//System.out.println("count ==>"+ count);
