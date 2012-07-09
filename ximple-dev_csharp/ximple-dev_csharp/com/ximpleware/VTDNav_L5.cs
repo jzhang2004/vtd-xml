@@ -9,7 +9,7 @@ namespace com.ximpleware
     {
 
         protected internal int l4index;
-        protected internal int l5index; 
+        protected internal int l5index;
         protected internal int l4upper;
         protected internal int l4lower;
         protected internal int l5upper;
@@ -75,6 +75,7 @@ namespace com.ximpleware
                 throw new System.ArgumentException();
             }
 
+            count = 0;
             l1Buffer = l1;
             l2Buffer = l2;
             l3Buffer = l3;
@@ -714,7 +715,7 @@ namespace com.ximpleware
             //System.out.print("   t2  ==>"+t2+"   t1  ==>"+t1);
             i = Math.Min(l4lower + (int)(((float)(index - t1) / (t2 - t1 + 1)) * (l4upper - l4lower)), l4upper);
             //System.out.print("  i1  "+i);
-            while (i < l4Buffer.size_Renamed_Field- 1 && l4Buffer.upper32At(i) < index)
+            while (i < l4Buffer.size_Renamed_Field - 1 && l4Buffer.upper32At(i) < index)
             {
                 i++;
             }
@@ -751,7 +752,7 @@ namespace com.ximpleware
             int t1 = l5Buffer.intAt(l5lower);
             int t2 = l5Buffer.intAt(l5upper);
             i = Math.Min(l5lower + (int)(((float)(index - t1) / (t2 - t1 + 1)) * (l5upper - l5lower)), l5upper);
-            while (i < l5Buffer.size_Renamed_Field- 1 && l5Buffer.intAt(i) < index)
+            while (i < l5Buffer.size_Renamed_Field - 1 && l5Buffer.intAt(i) < index)
             {
                 i++;
             }
@@ -1096,9 +1097,10 @@ namespace com.ximpleware
          */
         public override bool toElement(int direction, String en)
         {
-            int temp;
-            int d;
+            int temp=-1;
+            int d=-1;
             int val = 0;
+            bool b = false;
             if (en == null)
                 throw new System.ArgumentException(" Element name can't be null ");
             if (en.Equals("*"))
@@ -1151,57 +1153,86 @@ namespace com.ximpleware
                         return true;
 
                 case NEXT_SIBLING:
-                    if (atTerminal) return false;
-                    d = context[0];
-
-                    switch (d)
+                    if (atTerminal){					
+					if (nodeToElement(NEXT_SIBLING)){
+						b=true;
+						if (matchElement(en)){
+							return true;
+						}					
+					}else
+						return false;
+				}
+                    if (!b)
                     {
-                        case -1:
-                        case 0: return false;
-                        case 1: val = l1index; break;
-                        case 2: val = l2index; break;
-                        case 3: val = l3index; break;
-                        case 4: val = l4index; break;
-                        case 5: val = l5index; break;
-                        default: break;
-                    }
-                    temp = context[d]; // store the current position
+                        d = context[0];
 
-                    while (toElement(NEXT_SIBLING))
-                    {
-                        if (matchElement(en))
+                        switch (d)
                         {
-                            return true;
+                            case -1:
+                            case 0: return false;
+                            case 1: val = l1index; break;
+                            case 2: val = l2index; break;
+                            case 3: val = l3index; break;
+                            case 4: val = l4index; break;
+                            case 5: val = l5index; break;
+                            default: break;
                         }
+                        temp = context[d]; // store the current position
                     }
-                    switch (d)
-                    {
-                        case 1: l1index = val; break;
-                        case 2: l2index = val; break;
-                        case 3: l3index = val; break;
-                        case 4: l4index = val; break;
-                        case 5: l5index = val; break;
-                        default: break;
-                    }
-                    context[d] = temp;
-                    return false;
+                        while (toElement(NEXT_SIBLING))
+                        {
+                            if (matchElement(en))
+                            {
+                                return true;
+                            }
+                        }
+                        if (b)
+                        {
+                            context[0]--;//LN value should not change
+                            atTerminal = true;
+                            return false;
+                        }
+                        else
+                        {
+                            switch (d)
+                            {
+                                case 1: l1index = val; break;
+                                case 2: l2index = val; break;
+                                case 3: l3index = val; break;
+                                case 4: l4index = val; break;
+                                case 5: l5index = val; break;
+                                default: break;
+                            }
+                            context[d] = temp;
+                            return false;
+                        }
 
                 case PREV_SIBLING:
-                    if (atTerminal) return false;
-                    d = context[0];
-                    switch (d)
+                    if (atTerminal) {					
+					if (nodeToElement(PREV_SIBLING)){
+						b=true;
+						if (matchElement(en)){
+							return true;
+						}					
+					}else
+						return false;
+				}
+                    if (!b)
                     {
-                        case -1:
-                        case 0: return false;
-                        case 1: val = l1index; break;
-                        case 2: val = l2index; break;
-                        case 3: val = l3index; break;
-                        case 4: val = l4index; break;
-                        case 5: val = l5index; break;
-                        default: break;
+                        d = context[0];
+                        switch (d)
+                        {
+                            case -1:
+                            case 0: return false;
+                            case 1: val = l1index; break;
+                            case 2: val = l2index; break;
+                            case 3: val = l3index; break;
+                            case 4: val = l4index; break;
+                            case 5: val = l5index; break;
+                            default: break;
+                        }
+                        temp = context[d]; // store the current position
                     }
-                    temp = context[d]; // store the current position
-
                     while (toElement(PREV_SIBLING))
                     {
                         if (matchElement(en))
@@ -1209,18 +1240,27 @@ namespace com.ximpleware
                             return true;
                         }
                     }
-                    switch (d)
-                    {
-                        case 1: l1index = val; break;
-                        case 2: l2index = val; break;
-                        case 3: l3index = val; break;
-                        case 4: l4index = val; break;
-                        case 5: l5index = val; break;
-                        default: break;
-                    }
-                    context[d] = temp;
-                    return false;
 
+                    if (b)
+                    {
+                        context[0]--;// LN value should not change
+                        atTerminal = true;
+                        return false;
+                    }
+                    else
+                    {
+                        switch (d)
+                        {
+                            case 1: l1index = val; break;
+                            case 2: l2index = val; break;
+                            case 3: l3index = val; break;
+                            case 4: l4index = val; break;
+                            case 5: l5index = val; break;
+                            default: break;
+                        }
+                        context[d] = temp;
+                        return false;
+                    }
                 default:
                     throw new NavException("illegal navigation options");
             }
@@ -1350,7 +1390,7 @@ namespace com.ximpleware
                                 return false;
                             }
                             context[0] = 3;
-                            l3upper = l3Buffer.size_Renamed_Field- 1;
+                            l3upper = l3Buffer.size_Renamed_Field - 1;
                             size = l2Buffer.size_Renamed_Field;
                             for (int i = l2index + 1; i < size; i++)
                             {
@@ -1401,7 +1441,7 @@ namespace com.ximpleware
                             }
                             context[0] = 5;
 
-                            l5upper = l5Buffer.size_Renamed_Field- 1;
+                            l5upper = l5Buffer.size_Renamed_Field - 1;
                             size = l4Buffer.size_Renamed_Field;
                             for (int i = l4index + 1; i < size; i++)
                             {
@@ -1495,7 +1535,7 @@ namespace com.ximpleware
 
                 case NEXT_SIBLING:
                 case PREV_SIBLING:
-                    if (atTerminal) return false;
+                    if (atTerminal) return nodeToElement(direction);
                     switch (context[0])
                     {
                         case -1:
@@ -1713,9 +1753,10 @@ namespace com.ximpleware
          */
         public override bool toElementNS(int direction, String URL, String ln)
         {
-            int temp;
+            int temp = -1;
             int val = 0;
-            int d; // temp location
+            int d = -1; // temp location
+            bool b = false;
             if (ns == false)
                 return false;
             switch (direction)
@@ -1766,55 +1807,94 @@ namespace com.ximpleware
                         return true;
 
                 case NEXT_SIBLING:
-                    if (atTerminal) return false;
-                    d = context[0];
-                    temp = context[d]; // store the current position
-                    switch (d)
+                    if (atTerminal)
                     {
-                        case -1:
-                        case 0: return false;
-                        case 1: val = l1index; break;
-                        case 2: val = l2index; break;
-                        case 3: val = l3index; break;
-                        case 4: val = l4index; break;
-                        case 5: val = l5index; break;
-                        default: break;
+                        if (nodeToElement(NEXT_SIBLING))
+                        {
+                            b = true;
+                            if (matchElementNS(URL, ln))
+                            {
+                                return true;
+                            }
+                        }
+                        else
+                            return false;
+                    }
+                    if (!b)
+                    {
+                        d = context[0];
+                        temp = context[d]; // store the current position
+                        switch (d)
+                        {
+                            case -1:
+                            case 0: return false;
+                            case 1: val = l1index; break;
+                            case 2: val = l2index; break;
+                            case 3: val = l3index; break;
+                            case 4: val = l4index; break;
+                            case 5: val = l5index; break;
+                            default: break;
+                        }
                     }
                     //if (d == 0)
                     //	return false;
-                    while (toElement(NEXT_SIBLING))
+                    if (b)
                     {
-                        if (matchElementNS(URL, ln))
+                        context[0]--;//LN value should not change
+                        atTerminal = true;
+                        return false;
+                    }
+                    else
+                    {
+                        while (toElement(NEXT_SIBLING))
                         {
-                            return true;
+                            if (matchElementNS(URL, ln))
+                            {
+                                return true;
+                            }
                         }
+                        switch (d)
+                        {
+                            case 1: l1index = val; break;
+                            case 2: l2index = val; break;
+                            case 3: l3index = val; break;
+                            case 4: val = l4index; break;
+                            case 5: val = l5index; break;
+                            default: break;
+                        }
+                        context[d] = temp;
+                        return false;
                     }
-                    switch (d)
-                    {
-                        case 1: l1index = val; break;
-                        case 2: l2index = val; break;
-                        case 3: l3index = val; break;
-                        case 4: val = l4index; break;
-                        case 5: val = l5index; break;
-                        default: break;
-                    }
-                    context[d] = temp;
-                    return false;
 
                 case PREV_SIBLING:
-                    if (atTerminal) return false;
-                    d = context[0];
-                    temp = context[d]; // store the current position
-                    switch (d)
+                    if (atTerminal)
                     {
-                        case -1:
-                        case 0: return false;
-                        case 1: val = l1index; break;
-                        case 2: val = l2index; break;
-                        case 3: val = l3index; break;
-                        case 4: val = l4index; break;
-                        case 5: val = l5index; break;
-                        default: break;
+                        if (nodeToElement(PREV_SIBLING))
+                        {
+                            b = true;
+                            if (matchElementNS(URL, ln))
+                            {
+                                return true;
+                            }
+                        }
+                        else
+                            return false;
+                    }
+                    if (!b)
+                    {
+                        d = context[0];
+                        temp = context[d]; // store the current position
+                        switch (d)
+                        {
+                            case -1:
+                            case 0: return false;
+                            case 1: val = l1index; break;
+                            case 2: val = l2index; break;
+                            case 3: val = l3index; break;
+                            case 4: val = l4index; break;
+                            case 5: val = l5index; break;
+                            default: break;
+                        }
                     }
                     //if (d == 0)
                     //	return false;
@@ -1825,17 +1905,26 @@ namespace com.ximpleware
                             return true;
                         }
                     }
-                    switch (d)
+                    if (b)
                     {
-                        case 1: l1index = val; break;
-                        case 2: l2index = val; break;
-                        case 3: l3index = val; break;
-                        case 4: val = l4index; break;
-                        case 5: val = l5index; break;
-                        default: break;
+                        context[0]--;//LN value should not change
+                        atTerminal = true;
+                        return false;
                     }
-                    context[d] = temp;
-                    return false;
+                    else
+                    {
+                        switch (d)
+                        {
+                            case 1: l1index = val; break;
+                            case 2: l2index = val; break;
+                            case 3: l3index = val; break;
+                            case 4: val = l4index; break;
+                            case 5: val = l5index; break;
+                            default: break;
+                        }
+                        context[d] = temp;
+                        return false;
+                    }
 
                 default:
                     throw new NavException("illegal navigation options");
@@ -1852,6 +1941,7 @@ namespace com.ximpleware
          */
         public override void recoverNode(int index)
         {
+            int t;
             if (index < 0 || index >= vtdSize)
                 throw new NavException("Invalid VTD index");
 
@@ -1883,7 +1973,11 @@ namespace com.ximpleware
                     {
                         LN = index;
                         atTerminal = true;
+                        if (type > VTDNav.TOKEN_ATTR_NS)
+                            sync(0, index);
                     }
+                    else
+                        atTerminal = false;
                     return;
             }
             context[0] = d;
@@ -1896,12 +1990,18 @@ namespace com.ximpleware
             recoverNode_l1(index);
 
             if (d == 1)
+            {
+                if (atTerminal && type > VTDNav.TOKEN_ATTR_NS)
+                    sync(1, index);
                 return;
+            }
             // search LC level 2
             recoverNode_l2(index);
             if (d == 2)
             {
                 //resolveLC();
+                if (atTerminal && type > VTDNav.TOKEN_ATTR_NS)
+                    sync(2, index);
                 return;
             }
             // search LC level 3
@@ -1909,6 +2009,8 @@ namespace com.ximpleware
             if (d == 3)
             {
                 //resolveLC();
+                if (atTerminal && type > VTDNav.TOKEN_ATTR_NS)
+                    sync(3, index);
                 return;
             }
 
@@ -1916,6 +2018,8 @@ namespace com.ximpleware
             if (d == 4)
             {
                 //resolveLC();
+                if (atTerminal && type > VTDNav.TOKEN_ATTR_NS)
+                    sync(4, index);
                 return;
             }
 
@@ -1923,6 +2027,8 @@ namespace com.ximpleware
             if (d == 5)
             {
                 //resolveLC();
+                if (atTerminal && type > VTDNav.TOKEN_ATTR_NS)
+                    sync(5, index);
                 return;
             }
 
@@ -1933,7 +2039,7 @@ namespace com.ximpleware
             }
             else
             {
-                int t = index - 1;
+                t = index - 1;
                 while (!(getTokenType(t) == VTDNav.TOKEN_STARTING_TAG &&
                         getTokenDepth(t) == d))
                 {
@@ -1941,20 +2047,25 @@ namespace com.ximpleware
                 }
                 context[d] = t;
             }
-            int t1 = context[d] - 1;
+            t = context[d] - 1;
             d--;
             while (d > 5)
             {
-                while (!(getTokenType(t1) == VTDNav.TOKEN_STARTING_TAG &&
-                        getTokenDepth(t1) == d))
+                while (!(getTokenType(t) == VTDNav.TOKEN_STARTING_TAG &&
+                        getTokenDepth(t) == d))
                 {
-                    t1--;
+                    t--;
                 }
-                context[d] = t1;
+                context[d] = t;
                 d--;
             }
             //resolveLC();		
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="os"></param>
         public override void writeIndex(System.IO.Stream os)
         {
             IndexHandler.writeIndex_L5(1,
@@ -1985,7 +2096,7 @@ namespace com.ximpleware
                  this.nestingLevel - 1,
                  5,
                  this.rootIndex,
-                 //this.XMLDoc.getBytes(),
+                //this.XMLDoc.getBytes(),
                  this.docOffset,
                  this.docLen,
                  (FastLongBuffer)this.vtdBuffer,
@@ -1995,6 +2106,3761 @@ namespace com.ximpleware
                  (FastLongBuffer)this.l4Buffer,
                  (FastIntBuffer)this.l5Buffer,
                  os);
+        }
+
+
+        public override bool toNode(int dir)
+        {
+            int index, tokenType, depth, lastEntry, tmp;
+            //count++;
+            //System.out.println("count ==>"+ count);
+            switch (dir)
+            {
+                case ROOT:
+                    if (context[0] != 0)
+                    {
+                        /*
+                         * for (int i = 1; i <= context[0]; i++) { context[i] =
+                         * 0xffffffff; }
+                         */
+                        context[0] = 0;
+                    }
+                    atTerminal = false;
+                    //l1index = l2index = l3index = -1;
+                    return true;
+                case PARENT:
+                    if (atTerminal == true)
+                    {
+                        atTerminal = false;
+                        return true;
+                    }
+                    if (context[0] > 0)
+                    {
+                        //context[context[0]] = context[context[0] + 1] =
+                        // 0xffffffff;
+                        context[context[0]] = -1;
+                        context[0]--;
+                        return true;
+                    }
+                    else if (context[0] == 0)
+                    {
+                        context[0] = -1; //to be compatible with XPath Data model
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                case FIRST_CHILD:
+                    if (atTerminal) return false;
+                    switch (context[0])
+                    {
+                        case -1:
+                            //starting with root element
+                            //scan backward, if there is a pi | comment node
+                            index = rootIndex - 1;
+                            while (index > 0)
+                            {
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_COMMENT: index--; break;
+                                    case TOKEN_PI_VAL: index -= 2; break;
+                                    default:
+                                        goto loop1;
+                                }
+                            }
+                        loop1:
+                            index++; // points to
+                            if (index != rootIndex)
+                            {
+                                atTerminal = true;
+                                LN = index;
+                            }
+                            else
+                            {
+                                context[0] = 0;
+                            }
+                            return true;
+                        case 0:
+                            if (l1Buffer.size_Renamed_Field != 0)
+                            {
+                                index = l1Buffer.upper32At(0) - 1;
+                                //rewind
+                                while (index > rootIndex)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_CHARACTER_DATA:
+                                        case TOKEN_COMMENT:
+                                        case TOKEN_CDATA_VAL:
+                                            index--;
+                                            break;
+                                        case TOKEN_PI_VAL:
+                                            index -= 2;
+                                            break;
+                                        default:
+                                            goto loop11;
+                                    }
+                                }
+                            loop11:
+                                index++;
+                                l1index = 0;
+                                if (index == l1Buffer.upper32At(0))
+                                {
+                                    context[0] = 1;
+                                    context[1] = l1Buffer.upper32At(0);
+                                    atTerminal = false;
+                                }
+                                else
+                                {
+                                    atTerminal = true;
+                                    LN = index;
+                                }
+                                return true;
+
+                            }
+                            else
+                            {
+                                //get to the first non-attr node after the starting tag
+                                index = rootIndex + 1;
+                                while (index < vtdSize)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            if (getTokenDepth(index) == 0)
+                                            {
+                                                atTerminal = true;
+                                                LN = index;
+                                                return true;
+                                            }
+                                            else
+                                                return false;
+
+                                    }
+                                }
+                                return false;
+                            }
+
+                        case 1:
+                            if (l1Buffer.lower32At(l1index) != -1)
+                            {
+                                // l2upper and l2lower
+                                l2lower = l1Buffer.lower32At(l1index);
+                                tmp = l1index + 1;
+                                while (tmp < l1Buffer.size_Renamed_Field)
+                                {
+                                    if (l1Buffer.lower32At(tmp) != -1)
+                                    {
+                                        l2upper = l1Buffer.lower32At(tmp) - 1;
+                                        break;
+                                    }
+                                    else
+                                        tmp++;
+                                }
+                                if (tmp == l1Buffer.size_Renamed_Field)
+                                {
+                                    l2upper = l2Buffer.size_Renamed_Field - 1;
+                                }
+                                index = context[1] + 1;
+                                tmp = l2Buffer.upper32At(l2lower);
+                                while (index < tmp)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            l2index = l2lower;
+                                            atTerminal = true;
+                                            LN = index;
+                                            return true;
+                                    }
+                                }
+                                l2index = l2lower;
+                                context[0] = 2;
+                                context[2] = index;
+                                return true;
+                            }
+                            else
+                            {
+                                index = context[1] + 1;
+                                while (index < vtdSize)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            if (getTokenDepth(index) == 1 && getTokenType(index) != VTDNav.TOKEN_STARTING_TAG)
+                                            {
+                                                atTerminal = true;
+                                                LN = index;
+                                                return true;
+                                            }
+                                            else
+                                                return false;
+
+                                    }
+                                }
+                                return false;
+                            }
+
+                        case 2:
+                            if (l2Buffer.lower32At(l2index) != -1)
+                            {
+                                // l2upper and l2lower
+                                l3lower = l2Buffer.lower32At(l2index);
+                                tmp = l2index + 1;
+                                while (tmp < l2Buffer.size_Renamed_Field)
+                                {
+                                    if (l2Buffer.lower32At(tmp) != -1)
+                                    {
+                                        l3upper = l2Buffer.lower32At(tmp) - 1;
+                                        break;
+                                    }
+                                    else
+                                        tmp++;
+                                }
+                                if (tmp == l2Buffer.size_Renamed_Field)
+                                {
+                                    l3upper = l3Buffer.size_Renamed_Field - 1;
+                                }
+                                index = context[2] + 1;
+                                tmp = l3Buffer.upper32At(l3lower);
+                                while (index < tmp)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            l3index = l3lower;
+                                            atTerminal = true;
+                                            LN = index;
+                                            return true;
+                                    }
+                                }
+                                l3index = l3lower;
+                                context[0] = 3;
+                                context[3] = index;
+                                return true;
+                            }
+                            else
+                            {
+                                index = context[2] + 1;
+                                while (index < vtdSize)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            if (getTokenDepth(index) == 2 && getTokenType(index) != VTDNav.TOKEN_STARTING_TAG)
+                                            {
+                                                atTerminal = true;
+                                                LN = index;
+                                                return true;
+                                            }
+                                            else
+                                                return false;
+
+                                    }
+                                }
+                                return false;
+                            }
+                        case 3:
+                            if (l3Buffer.lower32At(l3index) != -1)
+                            {
+                                // l2upper and l2lower
+                                l4lower = l3Buffer.lower32At(l3index);
+                                tmp = l3index + 1;
+                                while (tmp < l3Buffer.size_Renamed_Field)
+                                {
+                                    if (l3Buffer.lower32At(tmp) != -1)
+                                    {
+                                        l4upper = l3Buffer.lower32At(tmp) - 1;
+                                        break;
+                                    }
+                                    else
+                                        tmp++;
+                                }
+                                if (tmp == l3Buffer.size_Renamed_Field)
+                                {
+                                    l4upper = l4Buffer.size_Renamed_Field - 1;
+                                }
+                                index = context[3] + 1;
+                                tmp = l4Buffer.upper32At(l4lower);
+                                while (index < tmp)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            l4index = l4lower;
+                                            atTerminal = true;
+                                            LN = index;
+                                            return true;
+                                    }
+                                }
+                                l4index = l4lower;
+                                context[0] = 4;
+                                context[4] = index;
+                                return true;
+                            }
+                            else
+                            {
+                                index = context[3] + 1;
+                                while (index < vtdSize)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            if (getTokenDepth(index) == 3 && getTokenType(index) != VTDNav.TOKEN_STARTING_TAG)
+                                            {
+                                                atTerminal = true;
+                                                LN = index;
+                                                return true;
+                                            }
+                                            else
+                                                return false;
+
+                                    }
+                                }
+                                return false;
+                            }
+                        case 4:
+                            if (l4Buffer.lower32At(l4index) != -1)
+                            {
+                                // l2upper and l2lower
+                                l5lower = l4Buffer.lower32At(l4index);
+                                tmp = l4index + 1;
+                                while (tmp < l4Buffer.size_Renamed_Field)
+                                {
+                                    if (l4Buffer.lower32At(tmp) != -1)
+                                    {
+                                        l5upper = l4Buffer.lower32At(tmp) - 1;
+                                        break;
+                                    }
+                                    else
+                                        tmp++;
+                                }
+                                if (tmp == l4Buffer.size_Renamed_Field)
+                                {
+                                    l5upper = l5Buffer.size_Renamed_Field - 1;
+                                }
+                                index = context[4] + 1;
+                                tmp = l5Buffer.intAt(l5lower);
+                                while (index < tmp)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            l5index = l5lower;
+                                            atTerminal = true;
+                                            LN = index;
+                                            return true;
+                                    }
+                                }
+                                l5index = l5lower;
+                                context[0] = 5;
+                                context[5] = index;
+                                return true;
+                            }
+                            else
+                            {
+                                index = context[4] + 1;
+                                while (index < vtdSize)
+                                {
+                                    tokenType = getTokenType(index);
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_ATTR_NAME:
+                                        case TOKEN_ATTR_NS:
+                                            index += 2;
+                                            break;
+                                        default:
+                                            if (getTokenDepth(index) == 4 && getTokenType(index) != VTDNav.TOKEN_STARTING_TAG)
+                                            {
+                                                atTerminal = true;
+                                                LN = index;
+                                                return true;
+                                            }
+                                            else
+                                                return false;
+
+                                    }
+                                }
+                                return false;
+                            }
+
+                        default:
+                            index = context[context[0]] + 1;
+                            while (index < vtdBuffer.size_Renamed_Field)
+                            {
+                                long temp = vtdBuffer.longAt(index);
+                                tokenType =
+                                    (int)((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
+                                switch (tokenType)
+                                {
+                                    case TOKEN_STARTING_TAG:
+                                        depth =
+                                            (int)((MASK_TOKEN_DEPTH & temp) >> 52);
+                                        if (depth <= context[0])
+                                        {
+                                            return false;
+                                        }
+                                        else if (depth == (context[0] + 1))
+                                        {
+                                            context[0] += 1;
+                                            context[context[0]] = index;
+                                            return true;
+                                        }
+                                        else
+                                            throw new NavException("impossible condition");
+
+                                    case TOKEN_ATTR_NAME:
+                                    case TOKEN_ATTR_NS: index += 2; break;
+                                    case TOKEN_CHARACTER_DATA:
+                                    case TOKEN_COMMENT:
+                                    case TOKEN_CDATA_VAL:
+                                        depth =
+                                            (int)((MASK_TOKEN_DEPTH & temp) >> 52);
+                                        if (depth < context[0])
+                                        {
+                                            return false;
+                                        }
+                                        else if (depth == (context[0]))
+                                        {
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        else
+                                            throw new NavException("impossible condition");
+                                    case TOKEN_PI_NAME:
+                                        depth =
+                                            (int)((MASK_TOKEN_DEPTH & temp) >> 52);
+                                        if (depth < context[0])
+                                        {
+                                            return false;
+                                        }
+                                        else if (depth == (context[0]))
+                                        {
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        else
+                                            throw new NavException("impossible condition");
+                                }
+                                //index++;
+                            } // what condition
+                            return false;
+                    }
+                case LAST_CHILD:
+                    if (atTerminal) return false;
+                    return toNode_LastChild();
+
+                case NEXT_SIBLING:
+                    switch (context[0])
+                    {
+                        case -1:
+                            if (atTerminal)
+                            {
+                                index = LN;
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_PI_NAME:
+                                        index += 2;
+                                        break;
+                                    //break loop2;
+                                    case TOKEN_COMMENT:
+                                        index++;
+                                        break;
+                                }
+
+                                if (index < vtdSize)
+                                {
+                                    tokenType = getTokenType(index);
+                                    depth = getTokenDepth(index);
+                                    if (depth == -1)
+                                    {
+                                        LN = index;
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        atTerminal = false;
+                                        context[0] = 0;
+                                        return true;
+                                        // depth has to be zero
+                                    }
+                                }
+                                else
+                                    return false;
+
+                            }
+                            else
+                            {
+                                return false;
+                            }
+
+                        case 0:
+                            if (atTerminal)
+                            {
+                                index = LN;
+                                tokenType = getTokenType(LN);
+                                if (tokenType == VTDNav.TOKEN_ATTR_NAME)
+                                    return false;
+                                //index++;
+                                if (l1Buffer.size_Renamed_Field != 0)
+                                {
+                                    if (index < l1Buffer.upper32At(l1index))
+                                    {
+                                        index++;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index <= l1Buffer.upper32At(l1index))
+                                        {
+                                            if (index == l1Buffer.upper32At(l1index))
+                                            {
+                                                atTerminal = false;
+                                                context[0] = 1;
+                                                context[1] = index;
+                                                return true;
+                                            }
+                                            depth = getTokenDepth(index);
+                                            if (depth != 0)
+                                                return false;
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                    else if (l1index < l1Buffer.size_Renamed_Field - 1)
+                                    { // whether lindex is the last entry is l1 buffer
+                                        l1index++;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index <= l1Buffer.upper32At(l1index))
+                                        {
+                                            if (index == l1Buffer.upper32At(l1index))
+                                            {
+                                                atTerminal = false;
+                                                context[0] = 1;
+                                                context[1] = index;
+                                                return true;
+                                            }
+                                            depth = getTokenDepth(index);
+                                            if (depth != 0)
+                                                return false;
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        index++;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index < vtdSize)
+                                        {
+                                            depth = getTokenDepth(index);
+                                            if (depth != 0)
+                                                return false;
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    index++;
+                                    if (tokenType == TOKEN_PI_NAME)
+                                        index++;
+                                    if (index < vtdSize)
+                                    {
+                                        depth = getTokenDepth(index);
+                                        if (depth != 0)
+                                            return false;
+                                        LN = index;
+                                        atTerminal = true;
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+                                index = vtdSize - 1;
+                                depth = -2;
+                                // get to the end, then rewind
+                                while (index > rootIndex)
+                                {
+                                    depth = getTokenDepth(index);
+                                    if (depth == -1)
+                                    {
+                                        index--;
+                                    }
+                                    else
+                                        break;
+                                }
+                                index++;
+                                if (index >= vtdSize)
+                                    return false;
+                                else
+                                {
+                                    context[0] = -1;
+                                    LN = index;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                            }
+                        //break;
+                        case 1:
+                            if (atTerminal)
+                            {
+                                tokenType = getTokenType(LN);
+                                if (tokenType == VTDNav.TOKEN_ATTR_NAME)
+                                    return false;
+                                if (l1Buffer.lower32At(l1index) != -1)
+                                {
+                                    if (LN < l2Buffer.upper32At(l2upper))
+                                    {
+                                        tmp = l2Buffer.upper32At(l2index);
+                                        index = LN + 1;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+
+                                        if (index < tmp)
+                                        {
+                                            LN = index;
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            context[0] = 2;
+                                            context[2] = tmp;
+                                            atTerminal = false;
+                                            return true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        index = LN + 1;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index < vtdSize)
+                                        {
+                                            depth = getTokenDepth(index);
+                                            if (depth == 1 && getTokenType(index) != TOKEN_STARTING_TAG)
+                                            {
+                                                LN = index;
+                                                atTerminal = true;
+                                                return true;
+                                            }
+                                            return false;
+                                        }
+                                        else
+                                            return false;
+                                    }
+                                }
+                                else
+                                {
+                                    index = LN + 1;
+                                    if (getTokenType(LN) == TOKEN_PI_NAME)
+                                        index++;
+                                    if (index < vtdSize)
+                                    {
+                                        depth = getTokenDepth(index);
+                                        if (depth == 1 && getTokenType(index) != TOKEN_STARTING_TAG)
+                                        {
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (l1index != l1Buffer.size_Renamed_Field - 1)
+                                {
+                                    // not the last one
+                                    //rewind
+                                    l1index++;
+                                    index = lastEntry = l1Buffer.upper32At(l1index) - 1;
+                                    while (getTokenDepth(index) == 0)
+                                    {
+                                        index--;
+                                    }
+                                    if (lastEntry == index)
+                                    {
+                                        atTerminal = false;
+                                        context[0] = 1;
+                                        context[1] = index + 1;
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        atTerminal = true;
+                                        context[0] = 0;
+                                        LN = index + 1;
+                                        return true;
+                                    }
+                                }
+                                else
+                                {
+                                    index = vtdSize - 1;
+                                    while (index > l1Buffer.upper32At(l1index) && getTokenDepth(index) <= 0)
+                                    {
+                                        index--;
+                                    }
+
+                                    if (index == vtdSize - 1)
+                                    {
+                                        if (getTokenDepth(index) == 0)
+                                        {
+                                            context[0] = 0;
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        else
+                                            return false;
+                                    }
+                                    index++;
+                                    if (getTokenDepth(index) == 0)
+                                    {
+                                        context[0] = 0;
+                                        LN = index;
+                                        atTerminal = true;
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
+                                }
+                            }
+
+                        case 2:
+                            if (atTerminal)
+                            {
+                                tokenType = getTokenType(LN);
+                                if (tokenType == VTDNav.TOKEN_ATTR_NAME)
+                                    return false;
+                                if (l2Buffer.lower32At(l2index) != -1)
+                                {
+                                    if (LN < l3Buffer.upper32At(l3upper))
+                                    {
+                                        tmp = l3Buffer.upper32At(l3index);
+                                        index = LN + 1;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+
+                                        if (index < tmp)
+                                        {
+                                            LN = index;
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            context[0] = 3;
+                                            context[3] = tmp;
+                                            atTerminal = false;
+                                            return true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        index = LN + 1;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index < vtdSize)
+                                        {
+                                            depth = getTokenDepth(index);
+                                            if (depth == 2 && getTokenType(index) != TOKEN_STARTING_TAG)
+                                            {
+                                                LN = index;
+                                                return true;
+                                            }
+                                            return false;
+                                        }
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    index = LN + 1;
+                                    if (tokenType == TOKEN_PI_NAME)
+                                        index++;
+                                    if (index < vtdSize)
+                                    {
+                                        depth = getTokenDepth(index);
+                                        if (depth == 2 && getTokenType(index) != TOKEN_STARTING_TAG)
+                                        {
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //l2index < l2upper
+                                if (l2index < l2upper)
+                                {
+                                    tmp = l2Buffer.upper32At(l2index);
+                                    l2index++;
+                                    lastEntry = index = l2Buffer.upper32At(l2index) - 1;
+                                    //rewind
+                                    while (index > tmp)
+                                    {
+                                        if (getTokenDepth(index) == 1)
+                                        {
+                                            tokenType = getTokenType(index);
+                                            switch (tokenType)
+                                            {
+                                                case TOKEN_CHARACTER_DATA:
+                                                case TOKEN_COMMENT:
+                                                case TOKEN_CDATA_VAL:
+                                                    index--;
+                                                    break;
+                                                case TOKEN_PI_VAL:
+                                                    index = index - 2;
+                                                    break;
+                                                default: goto loop2;
+                                            }
+                                        }
+                                        else
+                                            goto loop2;
+                                    }
+                                loop2:
+                                    if (index == lastEntry)
+                                    {
+                                        context[0] = 2;
+                                        context[2] = index + 1;
+                                        return true;
+                                    }
+                                    context[0] = 1;
+                                    LN = index + 1;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                {
+                                    lastEntry = index = vtdSize - 1;
+                                    if (l1index != l1Buffer.size_Renamed_Field - 1)
+                                    {
+                                        lastEntry = index = l1Buffer.upper32At(l1index + 1) - 1;
+                                    }
+                                    tmp = l2Buffer.upper32At(l2index);
+
+                                    //rewind
+                                    while (index > tmp)
+                                    {
+                                        if (getTokenDepth(index) < 2)
+                                            index--;
+                                        else
+                                            break;
+                                    }
+                                    if ((/*lastEntry>=index &&*/ getTokenDepth(index) == 1))
+                                    {
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 1;
+                                        return true;
+                                    }
+
+                                    if (lastEntry != index && getTokenDepth(index + 1) == 1)
+                                    {
+                                        LN = index + 1;
+                                        atTerminal = true;
+                                        context[0] = 1;
+                                        return true;
+                                    }
+
+                                    return false;
+                                }
+
+                            }
+                        //break;
+                        case 3:
+                            if (atTerminal)
+                            {
+                                tokenType = getTokenType(LN);
+                                if (tokenType == VTDNav.TOKEN_ATTR_NAME)
+                                    return false;
+                                if (l3Buffer.lower32At(l3index) != -1)
+                                {
+                                    if (LN < l4Buffer.upper32At(l4upper))
+                                    {
+                                        tmp = l4Buffer.upper32At(l4index);
+                                        index = LN + 1;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index < tmp)
+                                        {
+                                            LN = index;
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            context[0] = 4;
+                                            context[4] = tmp;
+                                            atTerminal = false;
+                                            return true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        index = LN + 1;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index < vtdSize)
+                                        {
+                                            depth = getTokenDepth(index);
+                                            if (depth == 3 && getTokenType(index) != TOKEN_STARTING_TAG)
+                                            {
+                                                LN = index;
+                                                return true;
+                                            }
+                                            return false;
+                                        }
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    index = LN + 1;
+                                    if (tokenType == TOKEN_PI_NAME)
+                                        index++;
+                                    if (index < vtdSize)
+                                    {
+                                        depth = getTokenDepth(index);
+                                        if (depth == 3 && getTokenType(index) != TOKEN_STARTING_TAG)
+                                        {
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //l2index < l2upper
+                                if (l3index < l3upper)
+                                {
+                                    tmp = l3Buffer.upper32At(l3index);
+                                    l3index++;
+                                    lastEntry = index = l3Buffer.upper32At(l3index) - 1;
+                                    //rewind
+                                    while (index > tmp)
+                                    {
+                                        if (getTokenDepth(index) == 2)
+                                        {
+                                            tokenType = getTokenType(index);
+                                            switch (tokenType)
+                                            {
+                                                case TOKEN_CHARACTER_DATA:
+                                                case TOKEN_COMMENT:
+                                                case TOKEN_CDATA_VAL:
+                                                    index--;
+                                                    break;
+                                                case TOKEN_PI_VAL:
+                                                    index = index - 2;
+                                                    break;
+                                                default:
+                                                    goto loop2;
+                                            }
+                                        }
+                                        else
+                                            goto loop2;
+                                    }
+
+                                loop2:
+                                    if (index == lastEntry)
+                                    {
+                                        context[0] = 3;
+                                        context[3] = index + 1;
+                                        return true;
+                                    }
+                                    context[0] = 2;
+                                    LN = index + 1;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                {
+                                    lastEntry = index = vtdSize - 1;
+
+                                    if (l1index != l1Buffer.size_Renamed_Field - 1)
+                                    {
+                                        lastEntry = index = l1Buffer.upper32At(l1index + 1) - 1;
+                                    }
+
+                                    if (l2index != l2Buffer.size_Renamed_Field - 1 && l2index != l2upper)
+                                    {
+                                        lastEntry = index = l2Buffer.upper32At(l2index + 1) - 1;
+                                    }
+                                    // insert here
+                                    tmp = l3Buffer.upper32At(l3index);
+
+                                    //rewind
+                                    while (index > tmp)
+                                    {
+                                        if (getTokenDepth(index) < 3)
+                                            index--;
+                                        else
+                                            break;
+                                    }
+                                    if ((/*lastEntry==index &&*/ getTokenDepth(index) == 2))
+                                    {
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 2;
+                                        return true;
+                                    }
+
+                                    if (lastEntry != index && getTokenDepth(index + 1) == 2)
+                                    {
+                                        LN = index + 1;
+                                        atTerminal = true;
+                                        context[0] = 2;
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                            }
+                        case 4:
+                            if (atTerminal)
+                            {
+                                tokenType = getTokenType(LN);
+                                if (tokenType == VTDNav.TOKEN_ATTR_NAME)
+                                    return false;
+                                if (l4Buffer.lower32At(l4index) != -1)
+                                {
+                                    if (LN < l5Buffer.intAt(l5upper))
+                                    {
+                                        tmp = l5Buffer.intAt(l5index);
+                                        index = LN + 1;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index < tmp)
+                                        {
+                                            LN = index;
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            context[0] = 5;
+                                            context[5] = tmp;
+                                            atTerminal = false;
+                                            return true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        index = LN + 1;
+                                        if (tokenType == TOKEN_PI_NAME)
+                                            index++;
+                                        if (index < vtdSize)
+                                        {
+                                            depth = getTokenDepth(index);
+                                            if (depth == 4 && getTokenType(index) != TOKEN_STARTING_TAG)
+                                            {
+                                                LN = index;
+                                                return true;
+                                            }
+                                            return false;
+                                        }
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    index = LN + 1;
+                                    if (tokenType == TOKEN_PI_NAME)
+                                        index++;
+                                    if (index < vtdSize)
+                                    {
+                                        depth = getTokenDepth(index);
+                                        if (depth == 4 && getTokenType(index) != TOKEN_STARTING_TAG)
+                                        {
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //l2index < l2upper
+                                if (l4index < l4upper)
+                                {
+                                    tmp = l4Buffer.upper32At(l4index);
+                                    l4index++;
+                                    lastEntry = index = l4Buffer.upper32At(l4index) - 1;
+                                    //rewind
+                                    while (index > tmp)
+                                    {
+                                        if (getTokenDepth(index) == 3)
+                                        {
+                                            tokenType = getTokenType(index);
+                                            switch (tokenType)
+                                            {
+                                                case TOKEN_CHARACTER_DATA:
+                                                case TOKEN_COMMENT:
+                                                case TOKEN_CDATA_VAL:
+                                                    index--;
+                                                    break;
+                                                case TOKEN_PI_VAL:
+                                                    index = index - 2;
+                                                    break;
+                                                default:
+                                                    goto loop2;
+                                            }
+                                        }
+                                        else
+                                            goto loop2;
+                                    }
+                                loop2:
+                                    if (index == lastEntry)
+                                    {
+                                        context[0] = 4;
+                                        context[4] = index + 1;
+                                        return true;
+                                    }
+                                    context[0] = 3;
+                                    LN = index + 1;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                {
+                                    lastEntry = index = vtdSize - 1;
+
+                                    if (l1index != l1Buffer.size_Renamed_Field - 1)
+                                    {
+                                        lastEntry = index = l1Buffer.upper32At(l1index + 1) - 1;
+                                    }
+
+                                    if (l2index != l2Buffer.size_Renamed_Field - 1 && l2index != l2upper)
+                                    {
+                                        lastEntry = index = l2Buffer.upper32At(l2index + 1) - 1;
+                                    }
+
+                                    if (l3index != l3Buffer.size_Renamed_Field - 1 && l3index != l3upper)
+                                    {
+                                        lastEntry = index = l3Buffer.upper32At(l3index + 1) - 1;
+                                    }
+                                    // insert here
+                                    tmp = l4Buffer.upper32At(l4index);
+
+                                    //rewind
+                                    while (index > tmp)
+                                    {
+                                        if (getTokenDepth(index) < 4)
+                                            index--;
+                                        else
+                                            break;
+                                    }
+                                    if ((/*lastEntry==index &&*/ getTokenDepth(index) == 3))
+                                    {
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 3;
+                                        return true;
+                                    }
+
+                                    if (lastEntry != index && getTokenDepth(index + 1) == 3)
+                                    {
+                                        LN = index + 1;
+                                        atTerminal = true;
+                                        context[0] = 3;
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                            }
+
+                        case 5:
+                            if (!atTerminal)
+                            {
+                                //l2index < l2upper
+                                if (l5index < l5upper)
+                                {
+                                    tmp = l5Buffer.intAt(l5index);
+                                    l5index++;
+                                    lastEntry = index = l5Buffer.intAt(l5index) - 1;
+                                    //rewind
+                                    while (index > tmp)
+                                    {
+                                        if (getTokenDepth(index) == 4)
+                                        {
+                                            tokenType = getTokenType(index);
+                                            switch (tokenType)
+                                            {
+                                                case TOKEN_CHARACTER_DATA:
+                                                case TOKEN_COMMENT:
+                                                case TOKEN_CDATA_VAL:
+                                                    index--;
+                                                    break;
+                                                case TOKEN_PI_VAL:
+                                                    index = index - 2;
+                                                    break;
+                                                default:
+                                                    goto loop2;
+                                            }
+                                        }
+                                        else
+                                            goto loop2;
+                                    }
+                                loop2:
+                                    if (index == lastEntry)
+                                    {
+                                        context[0] = 5;
+                                        context[5] = index + 1;
+                                        return true;
+                                    }
+                                    context[0] = 4;
+                                    LN = index + 1;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                {
+                                    lastEntry = index = vtdSize - 1;
+
+                                    if (l1index != l1Buffer.size_Renamed_Field - 1)
+                                    {
+                                        lastEntry = index = l1Buffer.upper32At(l1index + 1) - 1;
+                                    }
+
+                                    if (l2index != l2Buffer.size_Renamed_Field - 1 && l2index != l2upper)
+                                    {
+                                        lastEntry = index = l2Buffer.upper32At(l2index + 1) - 1;
+                                    }
+
+                                    if (l3index != l3Buffer.size_Renamed_Field - 1 && l3index != l3upper)
+                                    {
+                                        lastEntry = index = l3Buffer.upper32At(l3index + 1) - 1;
+                                    }
+                                    if (l4index != l4Buffer.size_Renamed_Field - 1 && l4index != l4upper)
+                                    {
+                                        lastEntry = index = l4Buffer.upper32At(l4index + 1) - 1;
+                                    }
+                                    // inser here
+                                    tmp = l5Buffer.intAt(l5index);
+
+                                    //rewind
+                                    while (index > tmp)
+                                    {
+                                        if (getTokenDepth(index) < 5)
+                                            index--;
+                                        else
+                                            break;
+                                    }
+                                    if ((/*lastEntry==index &&*/ getTokenDepth(index) == 4))
+                                    {
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 4;
+                                        return true;
+                                    }
+
+                                    if (lastEntry != index && getTokenDepth(index + 1) == 4)
+                                    {
+                                        LN = index + 1;
+                                        atTerminal = true;
+                                        context[0] = 4;
+                                        return true;
+                                    }
+
+                                    return false;
+                                }
+
+                            }
+                            goto default;
+                        default:
+                            if (atTerminal)
+                            {
+                                tokenType = getTokenType(LN);
+                                if (tokenType == VTDNav.TOKEN_ATTR_NAME)
+                                    return false;
+                                index = LN + 1;
+                                tmp = context[0] + 1;
+                            }
+                            else
+                            {
+                                index = context[context[0]] + 1;
+                                tmp = context[0];
+                            }
+                            while (index < vtdSize)
+                            {
+                                long temp = vtdBuffer.longAt(index);
+                                tokenType = (int)((MASK_TOKEN_TYPE & temp) >> 60) & 0xf;
+                                depth = (int)((MASK_TOKEN_DEPTH & temp) >> 52);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_STARTING_TAG:
+                                        if (depth < tmp)
+                                        {
+                                            return false;
+                                        }
+                                        else if (depth == tmp)
+                                        {
+                                            context[0] = tmp;
+                                            context[context[0]] = index;
+                                            atTerminal = false;
+                                            return true;
+                                        }
+                                        else
+                                            index++;
+                                        break;
+                                    case TOKEN_ATTR_NAME:
+                                    case TOKEN_ATTR_NS:
+                                        index += 2;
+                                        break;
+                                    case TOKEN_CHARACTER_DATA:
+                                    case TOKEN_COMMENT:
+                                    case TOKEN_CDATA_VAL:
+                                        //depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+                                        if (depth < tmp - 1)
+                                        {
+                                            return false;
+                                        }
+                                        else if (depth == (tmp - 1))
+                                        {
+                                            context[0] = tmp - 1;
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        else
+                                            index++;
+                                        break;
+                                    case TOKEN_PI_NAME:
+                                        //depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
+                                        if (depth < tmp - 1)
+                                        {
+                                            return false;
+                                        }
+                                        else if (depth == tmp - 1)
+                                        {
+                                            context[0] = tmp - 1;
+                                            LN = index;
+                                            atTerminal = true;
+                                            return true;
+                                        }
+                                        else
+                                            index += 2;
+                                        break;
+                                    default:
+                                        index++;
+                                        break;
+                                }
+
+                            }
+                            return false;
+                    }
+                case PREV_SIBLING:
+                    return toNode_PrevSibling();
+                default:
+                    throw new NavException("illegal navigation options");
+            }
+        }
+
+        protected internal override bool toNode_PrevSibling()
+        {
+            int index, tokenType, depth, tmp;
+            switch (context[0])
+            {
+                case -1:
+                    if (atTerminal)
+                    {
+                        index = LN - 1;
+                        if (index > 0)
+                        {
+                            depth = getTokenDepth(index);
+                            if (depth == -1)
+                            {
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_PI_VAL:
+                                        index--;
+                                        goto case TOKEN_COMMENT;
+                                    case TOKEN_COMMENT:
+                                        LN = index;
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            }
+                            else
+                            {
+                                context[0] = 0;
+                                atTerminal = false;
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                case 0:
+                    if (atTerminal)
+                    {
+                        if (l1Buffer.size_Renamed_Field != 0)
+                        {
+                            // three cases
+                            if (LN < l1Buffer.upper32At(l1index))
+                            {
+                                index = LN - 1;
+                                if (index > rootIndex)
+                                {
+                                    tokenType = getTokenType(index);
+                                    depth = getTokenDepth(index);
+                                    if (depth == 0)
+                                    {
+                                        switch (tokenType)
+                                        {
+                                            case TOKEN_CHARACTER_DATA:
+                                            case TOKEN_COMMENT:
+                                            case TOKEN_CDATA_VAL:
+                                                LN = index;
+                                                return true;
+                                            case TOKEN_PI_VAL:
+                                                LN = index - 1;
+                                                return true;
+                                        }
+                                    }
+                                    if (l1index == 0)
+                                        return false;
+                                    l1index--;
+                                    atTerminal = false;
+                                    context[0] = 1;
+                                    context[1] = l1Buffer.upper32At(l1index);
+                                    return true;
+                                }
+                                else
+                                    return false;
+                            }
+                            else
+                            {
+                                index = LN - 1;
+                                if (index > l1Buffer.upper32At(l1index))
+                                {
+                                    tokenType = getTokenType(index);
+                                    depth = getTokenDepth(index);
+                                    if (depth == 0)
+                                    {
+                                        switch (tokenType)
+                                        {
+                                            case TOKEN_CHARACTER_DATA:
+                                            case TOKEN_COMMENT:
+                                            case TOKEN_CDATA_VAL:
+                                                LN = index;
+                                                return true;
+                                            case TOKEN_PI_VAL:
+                                                LN = index - 1;
+                                                return true;
+                                        }
+                                    }
+                                }
+                                atTerminal = false;
+                                context[0] = 1;
+                                context[1] = l1Buffer.upper32At(l1index);
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            index = LN - 1;
+                            if (index > rootIndex)
+                            {
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_PI_VAL:
+                                        index--;
+                                        goto case TOKEN_CHARACTER_DATA;
+                                    case TOKEN_CHARACTER_DATA:
+                                    case TOKEN_COMMENT:
+                                    case TOKEN_CDATA_VAL:
+
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 0;
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            }
+                        }
+                        return false;
+
+                    }
+                    else
+                    {
+                        index = rootIndex - 1;
+                        if (index > 0)
+                        {
+                            tokenType = getTokenType(index);
+                            switch (tokenType)
+                            {
+                                case TOKEN_PI_VAL:
+                                    index--;
+                                    goto case TOKEN_COMMENT;
+                                case TOKEN_COMMENT:
+                                    LN = index;
+                                    atTerminal = true;
+                                    context[0] = -1;
+                                    return true;
+                                default:
+                                    return false;
+                            }
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                //break;
+                case 1:
+                    if (atTerminal)
+                    {
+                        if (l1Buffer.lower32At(l1index) != -1)
+                        {
+                            tmp = l2Buffer.upper32At(l2index);
+                            if (LN > tmp)
+                            {
+                                index = LN - 1;
+                                if (getTokenType(index) == TOKEN_PI_VAL)
+                                {
+                                    index--;
+                                }
+                                if (getTokenDepth(index) == 1)
+                                {
+                                    LN = index;
+                                    return true;
+                                }
+                                else
+                                {
+                                    atTerminal = false;
+                                    context[0] = 2;
+                                    context[2] = tmp;
+                                    return true;
+                                }
+                            }
+                            else if (l2index != l2lower)
+                            {
+                                l2index--;
+                                atTerminal = false;
+                                context[0] = 2;
+                                context[2] = l2Buffer.upper32At(l2index);
+                                return true;
+                            }
+                            else
+                            {
+                                index = LN - 1;
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_PI_VAL:
+                                        index--;
+                                        goto case TOKEN_CHARACTER_DATA;
+                                    case TOKEN_CHARACTER_DATA:
+                                    case TOKEN_COMMENT:
+                                    case TOKEN_CDATA_VAL:
+
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 1;
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            index = LN - 1;
+                            if (getTokenType(index) == TOKEN_PI_VAL)
+                                index--;
+                            if (index > context[1])
+                            {
+                                tokenType = getTokenType(index);
+                                if (tokenType != VTDNav.TOKEN_ATTR_VAL)
+                                {
+                                    LN = index;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                    return false;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        index = context[1] - 1;
+                        tokenType = getTokenType(index);
+                        if (getTokenDepth(index) == 0
+                                && tokenType != TOKEN_ATTR_VAL
+                                && tokenType != TOKEN_STARTING_TAG)
+                        {
+                            if (tokenType == TOKEN_PI_VAL)
+                                index--;
+                            context[0] = 0;
+                            atTerminal = true;
+                            LN = index;
+                            return true;
+                        }
+                        else
+                        {
+                            // no more prev sibling element
+                            if (l1index != 0)
+                            {
+                                l1index--;
+                                context[1] = l1Buffer.upper32At(l1index);
+                                return true;
+                            }
+                            else
+                                return false;
+                        }
+                    }
+                //break;
+                case 2:
+                    if (atTerminal)
+                    {
+                        if (l2Buffer.lower32At(l2index) != -1)
+                        {
+                            tmp = l3Buffer.upper32At(l3index);
+                            if (LN > tmp)
+                            {
+                                index = LN - 1;
+                                if (getTokenType(index) == TOKEN_PI_VAL)
+                                {
+                                    index--;
+                                }
+                                if (getTokenDepth(index) == 2)
+                                {
+                                    LN = index;
+                                    return true;
+                                }
+                                else
+                                {
+                                    atTerminal = false;
+                                    context[0] = 3;
+                                    context[3] = tmp;
+                                    return true;
+                                }
+                            }
+                            else if (l3index != l3lower)
+                            {
+                                l3index--;
+                                atTerminal = false;
+                                context[0] = 3;
+                                context[3] = l3Buffer.upper32At(l3index);
+                                return true;
+                            }
+                            else
+                            {
+                                index = LN - 1;
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_PI_VAL:
+                                        index--;
+                                        goto case TOKEN_CHARACTER_DATA;
+                                    case TOKEN_CHARACTER_DATA:
+                                    case TOKEN_COMMENT:
+                                    case TOKEN_CDATA_VAL:
+
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 2;
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            index = LN - 1;
+                            if (getTokenType(index) == TOKEN_PI_VAL)
+                                index--;
+                            if (index > context[2])
+                            {
+                                tokenType = getTokenType(index);
+                                if (tokenType != VTDNav.TOKEN_ATTR_VAL)
+                                {
+                                    LN = index;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                    return false;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        index = context[2] - 1;
+                        tokenType = getTokenType(index);
+                        if (getTokenDepth(index) == 1
+                                && tokenType != TOKEN_ATTR_VAL
+                                && tokenType != TOKEN_STARTING_TAG)
+                        {
+                            if (tokenType == TOKEN_PI_VAL)
+                                index--;
+                            context[0] = 1;
+                            atTerminal = true;
+                            LN = index;
+                            return true;
+                        }
+                        else
+                        {
+                            // no more prev sibling element
+                            if (l2index != l2lower)
+                            {
+                                l2index--;
+                                context[2] = l2Buffer.upper32At(l2index);
+                                return true;
+                            }
+                            else
+                                return false;
+                        }
+                    }
+                //break;
+                case 3:
+                    if (atTerminal)
+                    {
+                        if (l3Buffer.lower32At(l3index) != -1)
+                        {
+                            tmp = l4Buffer.upper32At(l4index);
+                            if (LN > tmp)
+                            {
+                                index = LN - 1;
+                                if (getTokenType(index) == TOKEN_PI_VAL)
+                                {
+                                    index--;
+                                }
+                                if (getTokenDepth(index) == 3)
+                                {
+                                    LN = index;
+                                    return true;
+                                }
+                                else
+                                {
+                                    atTerminal = false;
+                                    context[0] = 4;
+                                    context[4] = tmp;
+                                    return true;
+                                }
+                            }
+                            else if (l4index != l4lower)
+                            {
+                                l4index--;
+                                atTerminal = false;
+                                context[0] = 4;
+                                context[4] = l4Buffer.upper32At(l4index);
+                                return true;
+                            }
+                            else
+                            {
+                                index = LN - 1;
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_PI_VAL:
+                                        index--;
+                                        goto case TOKEN_CHARACTER_DATA;
+                                    case TOKEN_CHARACTER_DATA:
+                                    case TOKEN_COMMENT:
+                                    case TOKEN_CDATA_VAL:
+
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 3;
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            index = LN - 1;
+                            if (getTokenType(index) == TOKEN_PI_VAL)
+                                index--;
+                            if (index > context[3])
+                            {
+                                tokenType = getTokenType(index);
+                                if (tokenType != VTDNav.TOKEN_ATTR_VAL)
+                                {
+                                    LN = index;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                    return false;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        index = context[3] - 1;
+                        tokenType = getTokenType(index);
+                        if (getTokenDepth(index) == 2
+                                && tokenType != TOKEN_ATTR_VAL
+                                && tokenType != TOKEN_STARTING_TAG)
+                        {
+                            if (tokenType == TOKEN_PI_VAL)
+                                index--;
+                            context[0] = 2;
+                            atTerminal = true;
+                            LN = index;
+                            return true;
+                        }
+                        else
+                        {
+                            // no more prev sibling element
+                            if (l3index != l3lower)
+                            {
+                                l3index--;
+                                context[3] = l3Buffer.upper32At(l3index);
+                                return true;
+                            }
+                            else
+                                return false;
+                        }
+                    }
+                case 4:
+                    if (atTerminal)
+                    {
+                        if (l4Buffer.lower32At(l4index) != -1)
+                        {
+                            tmp = l5Buffer.intAt(l5index);
+                            if (LN > tmp)
+                            {
+                                index = LN - 1;
+                                if (getTokenType(index) == TOKEN_PI_VAL)
+                                {
+                                    index--;
+                                }
+                                if (getTokenDepth(index) == 4)
+                                {
+                                    LN = index;
+                                    return true;
+                                }
+                                else
+                                {
+                                    atTerminal = false;
+                                    context[0] = 5;
+                                    context[5] = tmp;
+                                    return true;
+                                }
+                            }
+                            else if (l5index != l5lower)
+                            {
+                                l5index--;
+                                atTerminal = false;
+                                context[0] = 5;
+                                context[5] = l5Buffer.intAt(l5index);
+                                return true;
+                            }
+                            else
+                            {
+                                index = LN - 1;
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_PI_VAL:
+                                        index--;
+                                        goto case TOKEN_CHARACTER_DATA;
+                                    case TOKEN_CHARACTER_DATA:
+                                    case TOKEN_COMMENT:
+                                    case TOKEN_CDATA_VAL:
+
+                                        LN = index;
+                                        atTerminal = true;
+                                        context[0] = 4;
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            index = LN - 1;
+                            if (getTokenType(index) == TOKEN_PI_VAL)
+                                index--;
+                            if (index > context[4])
+                            {
+                                tokenType = getTokenType(index);
+                                if (tokenType != VTDNav.TOKEN_ATTR_VAL)
+                                {
+                                    LN = index;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                    return false;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        index = context[4] - 1;
+                        tokenType = getTokenType(index);
+                        if (getTokenDepth(index) == 3
+                                && tokenType != TOKEN_ATTR_VAL
+                                && tokenType != TOKEN_STARTING_TAG)
+                        {
+                            if (tokenType == TOKEN_PI_VAL)
+                                index--;
+                            context[0] = 3;
+                            atTerminal = true;
+                            LN = index;
+                            return true;
+                        }
+                        else
+                        {
+                            // no more prev sibling element
+                            if (l4index != l4lower)
+                            {
+                                l4index--;
+                                context[4] = l4Buffer.upper32At(l4index);
+                                return true;
+                            }
+                            else
+                                return false;
+                        }
+                    }
+
+                case 5:
+                    if (!atTerminal)
+                    {
+                        index = context[5] - 1;
+                        tokenType = getTokenType(index);
+                        if (getTokenDepth(index) == 4
+                                && tokenType != TOKEN_ATTR_VAL
+                                && tokenType != TOKEN_STARTING_TAG)
+                        {
+                            if (tokenType == TOKEN_PI_VAL)
+                                index--;
+                            context[0] = 4;
+                            atTerminal = true;
+                            LN = index;
+                            return true;
+                        }
+                        else
+                        {
+                            // no more prev sibling element
+                            if (l5index != l5lower)
+                            {
+                                l5index--;
+                                context[5] = l5Buffer.intAt(l5index);
+                                return true;
+                            }
+                            else
+                                return false;
+                        }
+                    }
+                    goto default;
+                default:
+                    if (atTerminal)
+                    {
+                        index = LN - 1;
+                        tmp = context[0] + 1;
+                    }
+                    else
+                    {
+                        index = context[context[0]] - 1;
+                        tmp = context[0];
+                    }
+                    while (index > context[tmp - 1])
+                    {
+                        long temp = vtdBuffer.longAt(index);
+                        tokenType = (int)((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
+                        depth = (int)((MASK_TOKEN_DEPTH & temp) >> 52);
+                        switch (tokenType)
+                        {
+                            case TOKEN_STARTING_TAG:
+                                if (depth == tmp)
+                                {
+                                    context[0] = tmp;
+                                    context[context[0]] = index;
+                                    atTerminal = false;
+                                    return true;
+                                }
+                                else
+                                    index--;
+                                break;
+                            case TOKEN_ATTR_VAL:
+                                //case TOKEN_ATTR_NS:
+                                index -= 2;
+                                break;
+                            case TOKEN_CHARACTER_DATA:
+                            case TOKEN_COMMENT:
+                            case TOKEN_CDATA_VAL:
+                                if (depth == tmp - 1)
+                                {
+                                    context[0] = tmp - 1;
+                                    LN = index;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                    index--;
+                                break;
+                            case TOKEN_PI_VAL:
+                                if (depth == (tmp - 1))
+                                {
+                                    context[0] = tmp - 1;
+                                    LN = index - 1;
+                                    atTerminal = true;
+                                    return true;
+                                }
+                                else
+                                    index -= 2;
+                                break;
+                            default:
+                                index--;
+                                break;
+                        }
+
+                    }
+                    return false;
+            }
+        }
+
+        protected internal override bool toNode_LastChild()
+        {
+            int depth, index, tokenType, lastEntry, tmp;
+            switch (context[0])
+            {
+                case -1:
+                    index = vtdSize - 1;
+                    tokenType = getTokenType(index);
+                    depth = getTokenDepth(index);
+                    if (depth == -1)
+                    {
+                        switch (tokenType)
+                        {
+                            case TOKEN_COMMENT:
+                                LN = index;
+                                atTerminal = true;
+                                return true;
+                            case TOKEN_PI_VAL:
+                                LN = index - 1;
+                                atTerminal = true;
+                                return true;
+                        }
+                    }
+                    context[0] = 0;
+                    return true;
+
+                case 0:
+                    if (l1Buffer.size_Renamed_Field != 0)
+                    {
+                        lastEntry = l1Buffer.upper32At(l1Buffer.size_Renamed_Field - 1);
+                        index = vtdSize - 1;
+                        while (index > lastEntry)
+                        {
+                            depth = getTokenDepth(index);
+                            if (depth == -1)
+                            {
+                                index--;
+                                continue;
+                            }
+                            else if (depth == 0)
+                            {
+                                tokenType = getTokenType(index);
+                                switch (tokenType)
+                                {
+                                    case TOKEN_CHARACTER_DATA:
+                                    case TOKEN_COMMENT:
+                                    case TOKEN_CDATA_VAL:
+                                        LN = index;
+                                        atTerminal = true;
+                                        l1index = l1Buffer.size_Renamed_Field - 1;
+                                        return true;
+                                    case TOKEN_PI_VAL:
+                                        LN = index - 1;
+                                        atTerminal = true;
+                                        l1index = l1Buffer.size_Renamed_Field - 1;
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            }
+                            else
+                            {
+                                l1index = l1Buffer.size_Renamed_Field - 1;
+                                context[0] = 1;
+                                context[1] = lastEntry;
+                                return true;
+                            }
+                        }
+                        l1index = l1Buffer.size_Renamed_Field - 1;
+                        context[0] = 1;
+                        context[1] = lastEntry;
+                        return true;
+                    }
+                    else
+                    {
+                        index = vtdSize - 1;
+                        while (index > rootIndex)
+                        {
+                            depth = getTokenDepth(index);
+                            if (depth == -1)
+                            {
+                                index--;
+                                continue;
+                            }
+                            tokenType = getTokenType(index);
+                            switch (tokenType)
+                            {
+                                case TOKEN_CHARACTER_DATA:
+                                case TOKEN_COMMENT:
+                                case TOKEN_CDATA_VAL:
+                                    LN = index;
+                                    atTerminal = true;
+                                    return true;
+                                case TOKEN_PI_VAL:
+                                    LN = index - 1;
+                                    atTerminal = true;
+                                    return true;
+                                default:
+                                    return false;
+                            }
+                        }
+                        return false;
+                    }
+
+                case 1:
+                    if (l1Buffer.lower32At(l1index) != -1)
+                    {
+                        l2lower = l1Buffer.lower32At(l1index);
+                        tmp = l1index + 1;
+                        while (tmp < l1Buffer.size_Renamed_Field)
+                        {
+                            if (l1Buffer.lower32At(tmp) != -1)
+                            {
+                                l2upper = l1Buffer.lower32At(tmp) - 1;
+                                break;
+                            }
+                            else
+                                tmp++;
+                        }
+                        if (tmp == l1Buffer.size_Renamed_Field)
+                        {
+                            l2upper = l2Buffer.size_Renamed_Field - 1;
+                        }
+                        l2index = l2upper;
+                        index = vtdSize - 1;
+                        if (l1index != l1Buffer.size_Renamed_Field - 1)
+                        {
+                            index = l1Buffer.upper32At(l1index + 1) - 1;
+                        }
+                        tmp = l2Buffer.upper32At(l2index);
+                        // rewind and find the first node of depth 1
+                        while (index > tmp)
+                        {
+                            depth = getTokenDepth(index);
+                            if (depth < 1)
+                                index--;
+                            else if (depth == 1)
+                            {
+                                tokenType = getTokenType(index);
+                                if (tokenType == TOKEN_PI_VAL)
+                                    LN = index - 1;
+                                else
+                                    LN = index;
+                                atTerminal = true;
+                                //context[0]=1;
+                                return true;
+                            }
+                            else
+                                break;
+                        }
+                        context[0] = 2;
+                        context[2] = tmp;
+                        return true;
+
+
+                    }
+                    else
+                    {
+                        index = context[1] + 1;
+                        while (index < vtdSize)
+                        {
+                            tokenType = getTokenType(index);
+                            switch (tokenType)
+                            {
+                                case TOKEN_ATTR_NAME:
+                                case TOKEN_ATTR_NS:
+                                    index += 2;
+                                    break;
+                                default: goto loop;
+                            }
+                        }
+                    loop:
+                        if (index < vtdSize && getTokenDepth(index) == 1 && getTokenType(index) != VTDNav.TOKEN_STARTING_TAG)
+                        {
+                            lastEntry = index;
+                            index++;
+                            //scan forward
+                            while (index < vtdSize)
+                            {
+                                tokenType = getTokenType(index);
+                                depth = getTokenDepth(index);
+                                if (depth == 1)
+                                {
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_CHARACTER_DATA:
+                                        case TOKEN_COMMENT:
+                                        case TOKEN_CDATA_VAL:
+                                            lastEntry = index;
+                                            index++;
+                                            break;
+                                        case TOKEN_PI_NAME:
+                                            lastEntry = index;
+                                            index += 2;
+                                            break;
+                                        default:
+                                            goto loop2;
+                                    }
+                                }
+                                else
+                                    goto loop2;
+                            }
+                        loop2:
+                            LN = lastEntry;
+                            atTerminal = true;
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+
+                case 2:
+                    if (l2Buffer.lower32At(l2index) != -1)
+                    {
+                        l3lower = l2Buffer.lower32At(l2index);
+                        tmp = l2index + 1;
+                        while (tmp < l2Buffer.size_Renamed_Field)
+                        {
+                            if (l2Buffer.lower32At(tmp) != -1)
+                            {
+                                l3upper = l2Buffer.lower32At(tmp) - 1;
+                                break;
+                            }
+                            else
+                                tmp++;
+                        }
+                        if (tmp == l2Buffer.size_Renamed_Field)
+                        {
+                            l3upper = l3Buffer.size_Renamed_Field - 1;
+                        }
+                        l3index = l3upper;
+                        index = vtdSize - 1;
+
+                        if (l1index != l1Buffer.size_Renamed_Field - 1)
+                        {
+                            index = l1Buffer.upper32At(l1index + 1) - 1;
+                        }
+
+                        if (l2index != l2Buffer.size_Renamed_Field - 1 && l2index != l2upper)
+                        {
+                            index = l2Buffer.upper32At(l2index + 1) - 1;
+                        }
+                        tmp = l3Buffer.upper32At(l3index);
+                        // rewind and find the first node of depth 1
+                        while (index > tmp)
+                        {
+                            depth = getTokenDepth(index);
+                            if (depth < 2)
+                                index--;
+                            else if (depth == 2)
+                            {
+                                tokenType = getTokenType(index);
+                                if (tokenType == TOKEN_PI_VAL)
+                                    LN = index - 1;
+                                else
+                                    LN = index;
+                                atTerminal = true;
+                                //context[0]=1;
+                                return true;
+                            }
+                            else
+                                break;
+                        }
+                        context[0] = 3;
+                        context[3] = tmp;
+                        return true;
+                    }
+                    else
+                    {
+                        index = context[2] + 1;
+                        while (index < vtdSize)
+                        {
+                            tokenType = getTokenType(index);
+                            switch (tokenType)
+                            {
+                                case TOKEN_ATTR_NAME:
+                                case TOKEN_ATTR_NS:
+                                    index += 2;
+                                    break;
+                                default: goto loop;
+                            }
+                        }
+                    loop:
+                        if (index < vtdSize && getTokenDepth(index) == 2 && getTokenType(index) != VTDNav.TOKEN_STARTING_TAG)
+                        {
+                            lastEntry = index;
+                            index++;
+                            //scan forward
+                            while (index < vtdSize)
+                            {
+                                tokenType = getTokenType(index);
+                                depth = getTokenDepth(index);
+                                if (depth == 2)
+                                {
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_CHARACTER_DATA:
+                                        case TOKEN_COMMENT:
+                                        case TOKEN_CDATA_VAL:
+                                            lastEntry = index;
+                                            index++;
+                                            break;
+                                        case TOKEN_PI_NAME:
+                                            lastEntry = index;
+                                            index += 2;
+                                            break;
+                                        default:
+                                            goto loop2;
+                                    }
+                                }
+                                else
+                                    goto loop2;
+                            }
+                        loop2:
+                            LN = lastEntry;
+                            atTerminal = true;
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+
+                case 3:
+                    if (l3Buffer.lower32At(l3index) != -1)
+                    {
+                        l4lower = l3Buffer.lower32At(l3index);
+                        tmp = l3index + 1;
+                        while (tmp < l3Buffer.size_Renamed_Field)
+                        {
+                            if (l3Buffer.lower32At(tmp) != -1)
+                            {
+                                l4upper = l3Buffer.lower32At(tmp) - 1;
+                                break;
+                            }
+                            else
+                                tmp++;
+                        }
+                        if (tmp == l3Buffer.size_Renamed_Field)
+                        {
+                            l4upper = l4Buffer.size_Renamed_Field - 1;
+                        }
+                        l4index = l4upper;
+                        index = vtdSize - 1;
+
+                        if (l1index != l1Buffer.size_Renamed_Field - 1)
+                        {
+                            index = l1Buffer.upper32At(l1index + 1) - 1;
+                        }
+
+                        if (l2index != l2Buffer.size_Renamed_Field - 1 && l2index != l2upper)
+                        {
+                            index = l2Buffer.upper32At(l2index + 1) - 1;
+                        }
+
+                        if (l3index != l3Buffer.size_Renamed_Field - 1 && l3index != l3upper)
+                        {
+                            index = l3Buffer.upper32At(l3index + 1) - 1;
+                        }
+
+                        tmp = l4Buffer.upper32At(l4index);
+                        // rewind and find the first node of depth 1
+                        while (index > tmp)
+                        {
+                            depth = getTokenDepth(index);
+                            if (depth < 3)
+                                index--;
+                            else if (depth == 3)
+                            {
+                                tokenType = getTokenType(index);
+                                if (tokenType == TOKEN_PI_VAL)
+                                    LN = index - 1;
+                                else
+                                    LN = index;
+                                atTerminal = true;
+                                // context[0]=1;
+                                return true;
+                            }
+                            else
+                                break;
+                        }
+                        context[0] = 4;
+                        context[4] = tmp;
+                        return true;
+                    }
+                    else
+                    {
+                        index = context[3] + 1;
+                        while (index < vtdSize)
+                        {
+                            tokenType = getTokenType(index);
+                            switch (tokenType)
+                            {
+                                case TOKEN_ATTR_NAME:
+                                case TOKEN_ATTR_NS:
+                                    index += 2;
+                                    break;
+                                default:
+                                    goto loop;
+                            }
+                        }
+                    loop:
+                        if (index < vtdSize && getTokenDepth(index) == 3
+                                && getTokenType(index) != VTDNav.TOKEN_STARTING_TAG)
+                        {
+                            lastEntry = index;
+                            index++;
+                            // scan forward
+                            while (index < vtdSize)
+                            {
+                                tokenType = getTokenType(index);
+                                depth = getTokenDepth(index);
+                                if (depth == 3)
+                                {
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_CHARACTER_DATA:
+                                        case TOKEN_COMMENT:
+                                        case TOKEN_CDATA_VAL:
+                                            lastEntry = index;
+                                            index++;
+                                            break;
+                                        case TOKEN_PI_NAME:
+                                            lastEntry = index;
+                                            index += 2;
+                                            break;
+                                        default:
+                                            goto loop2;
+                                    }
+                                }
+                                else
+                                    goto loop2;
+                            }
+                        loop2:
+                            LN = lastEntry;
+                            atTerminal = true;
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                case 4:
+                    if (l4Buffer.lower32At(l4index) != -1)
+                    {
+                        l5lower = l4Buffer.lower32At(l4index);
+                        tmp = l4index + 1;
+                        while (tmp < l4Buffer.size_Renamed_Field)
+                        {
+                            if (l4Buffer.lower32At(tmp) != -1)
+                            {
+                                l5upper = l4Buffer.lower32At(tmp) - 1;
+                                break;
+                            }
+                            else
+                                tmp++;
+                        }
+                        if (tmp == l4Buffer.size_Renamed_Field)
+                        {
+                            l5upper = l5Buffer.size_Renamed_Field - 1;
+                        }
+                        l5index = l5upper;
+                        index = vtdSize - 1;
+
+                        if (l1index != l1Buffer.size_Renamed_Field - 1)
+                        {
+                            index = l1Buffer.upper32At(l1index + 1) - 1;
+                        }
+
+                        if (l2index != l2Buffer.size_Renamed_Field - 1 && l2index != l2upper)
+                        {
+                            index = l2Buffer.upper32At(l2index + 1) - 1;
+                        }
+
+                        if (l3index != l3Buffer.size_Renamed_Field - 1 && l3index != l3upper)
+                        {
+                            index = l3Buffer.upper32At(l3index + 1) - 1;
+                        }
+
+                        if (l4index != l4Buffer.size_Renamed_Field - 1 && l4index != l4upper)
+                        {
+                            index = l4Buffer.upper32At(l4index + 1) - 1;
+                        }
+
+                        tmp = l5Buffer.intAt(l5index);
+                        // rewind and find the first node of depth 1
+                        while (index > tmp)
+                        {
+                            depth = getTokenDepth(index);
+                            if (depth < 4)
+                                index--;
+                            else if (depth == 4)
+                            {
+                                tokenType = getTokenType(index);
+                                if (tokenType == TOKEN_PI_VAL)
+                                    LN = index - 1;
+                                else
+                                    LN = index;
+                                atTerminal = true;
+                                //context[0]=1;
+                                return true;
+                            }
+                            else
+                                break;
+                        }
+                        context[0] = 5;
+                        context[5] = tmp;
+                        return true;
+                    }
+                    else
+                    {
+                        index = context[4] + 1;
+                        while (index < vtdSize)
+                        {
+                            tokenType = getTokenType(index);
+                            switch (tokenType)
+                            {
+                                case TOKEN_ATTR_NAME:
+                                case TOKEN_ATTR_NS:
+                                    index += 2;
+                                    break;
+                                default: goto loop;
+                            }
+                        }
+
+                    loop:
+                        if (index < vtdSize && getTokenDepth(index) == 4 && getTokenType(index) != VTDNav.TOKEN_STARTING_TAG)
+                        {
+                            lastEntry = index;
+                            index++;
+                            //scan forward
+                            while (index < vtdSize)
+                            {
+                                tokenType = getTokenType(index);
+                                depth = getTokenDepth(index);
+                                if (depth == 4)
+                                {
+                                    switch (tokenType)
+                                    {
+                                        case TOKEN_CHARACTER_DATA:
+                                        case TOKEN_COMMENT:
+                                        case TOKEN_CDATA_VAL:
+                                            lastEntry = index;
+                                            index++;
+                                            break;
+                                        case TOKEN_PI_NAME:
+                                            lastEntry = index;
+                                            index += 2;
+                                            break;
+                                        default:
+                                            goto loop2;
+                                    }
+                                }
+                                else
+                                    goto loop2;
+                            }
+
+                        loop2:
+                            LN = lastEntry;
+                            atTerminal = true;
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+
+                default:
+                    index = context[context[0]] + 1;
+                    lastEntry = -1; atTerminal = false;
+                    while (index < vtdBuffer.size_Renamed_Field)
+                    {
+                        long temp = vtdBuffer.longAt(index);
+                        tokenType =
+                            (int)((MASK_TOKEN_TYPE & temp) >> 60) & 0x0f;
+                        depth = getTokenDepth(index);
+                        switch (tokenType)
+                        {
+                            case TOKEN_STARTING_TAG:
+                                if (depth <= context[0])
+                                {
+                                    if (lastEntry != -1)
+                                    {
+                                        if (atTerminal)
+                                        {
+                                            LN = lastEntry;
+                                        }
+                                        else
+                                        {
+                                            context[0] += 1;
+                                            context[context[0]] = lastEntry;
+                                        }
+                                        return true;
+                                    }
+                                    else
+                                        return false;
+                                }
+                                else if (depth == (context[0] + 1))
+                                {
+                                    lastEntry = index;
+                                    atTerminal = false;
+                                }
+                                index++;
+                                break;
+                            case TOKEN_ATTR_NAME:
+                            case TOKEN_ATTR_NS: index += 2; break;
+                            case TOKEN_CHARACTER_DATA:
+                            case TOKEN_COMMENT:
+                            case TOKEN_CDATA_VAL:
+                                if (depth < context[0])
+                                {
+                                    if (lastEntry != -1)
+                                    {
+                                        if (atTerminal)
+                                        {
+                                            LN = lastEntry;
+                                        }
+                                        else
+                                        {
+                                            context[0]++;
+                                            context[context[0]] = lastEntry;
+                                        }
+                                        return true;
+                                    }
+                                    else
+                                        return false;
+                                }
+                                else if (depth == (context[0]))
+                                {
+                                    lastEntry = index;
+                                    atTerminal = true;
+                                }
+                                index++;
+                                break;
+                            case TOKEN_PI_NAME:
+                                if (depth < context[0])
+                                {
+                                    if (lastEntry != -1)
+                                    {
+                                        if (atTerminal)
+                                        {
+                                            LN = lastEntry;
+                                        }
+                                        else
+                                        {
+                                            context[0]++;
+                                            context[context[0]] = lastEntry;
+                                        }
+                                        return true;
+                                    }
+                                    else
+                                        return false;
+                                }
+                                else if (depth == (context[0]))
+                                {
+                                    lastEntry = index;
+                                    atTerminal = true;
+                                }
+                                index += 2;
+                                break;
+                        }
+                        //index++;
+                    } // what condition
+                    if (lastEntry != -1)
+                    {
+                        if (atTerminal)
+                        {
+                            LN = lastEntry;
+                        }
+                        else
+                        {
+                            context[0]++;
+                            context[context[0]] = lastEntry;
+                        }
+                        return true;
+                    }
+                    else
+                        return false;
+            }
+        }
+
+
+        protected internal new bool nodeToElement(int direction)
+        {
+            switch (direction)
+            {
+                case NEXT_SIBLING:
+                    switch (context[0])
+                    {
+                        case 0:
+                            if (l1index != -1)
+                            {
+                                context[0] = 1;
+                                context[1] = l1Buffer.upper32At(l1index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+                        case 1:
+                            if (l2index != -1)
+                            {
+                                context[0] = 2;
+                                context[2] = l2Buffer.upper32At(l2index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+
+                        case 2:
+                            if (l3index != -1)
+                            {
+                                context[0] = 3;
+                                context[3] = l3Buffer.upper32At(l3index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+
+                        case 3:
+                            if (l4index != -1)
+                            {
+                                context[0] = 4;
+                                context[4] = l4Buffer.upper32At(l4index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+
+                        case 4:
+                            if (l5index != -1)
+                            {
+                                context[0] = 5;
+                                context[5] = l5Buffer.intAt(l5index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+
+                        default:
+                            int index = LN + 1;
+                            int size = vtdBuffer.size_Renamed_Field;
+                            while (index < size)
+                            {
+                                long temp = vtdBuffer.longAt(index);
+                                int token_type =
+                                    (int)((MASK_TOKEN_TYPE & temp) >> 60) & 0x0f;
+                                       
+
+                                if (token_type == TOKEN_STARTING_TAG)
+                                {
+                                    int depth =
+                                        (int)((MASK_TOKEN_DEPTH & temp) >> 52);
+                                    if (depth < context[0])
+                                    {
+                                        return false;
+                                    }
+                                    else if (depth == (context[0]))
+                                    {
+                                        context[context[0]] = index;
+                                        return true;
+                                    }
+                                }
+                                index++;
+                            }
+                            return false;
+
+                    }
+
+                case PREV_SIBLING:
+                    switch (context[0])
+                    {
+                        case 0:
+                            if (l1index != -1 && l1index > 0)
+                            {
+                                l1index--;
+                                context[0] = 1;
+                                context[1] = l1Buffer.upper32At(l1index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+                        case 1:
+                            if (l2index != -1 && l2index > l2lower)
+                            {
+                                l2index--;
+                                context[0] = 2;
+                                context[2] = l2Buffer.upper32At(l2index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+                        case 2:
+                            if (l3index != -1 && l3index > l3lower)
+                            {
+                                l3index--;
+                                context[0] = 3;
+                                context[3] = l3Buffer.upper32At(l3index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+                        case 3:
+                            if (l4index != -1 && l4index > l4lower)
+                            {
+                                l4index--;
+                                context[0] = 4;
+                                context[4] = l4Buffer.upper32At(l4index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+
+                        case 4:
+                            if (l5index != -1 && l5index > l5lower)
+                            {
+                                l5index--;
+                                context[0] = 5;
+                                context[5] = l5Buffer.intAt(l5index);
+                                atTerminal = false;
+                                return true;
+                            }
+                            else
+                                return false;
+
+                        default:
+                            int index = LN - 1;
+                            while (index > context[context[0] - 1])
+                            {
+                                // scan backforward
+                                long temp = vtdBuffer.longAt(index);
+                                int token_type =
+                                    (int)((MASK_TOKEN_TYPE & temp) >> 60)
+                                        & 0xf;
+
+                                if (token_type == TOKEN_STARTING_TAG)
+                                {
+                                    int depth =
+                                        (int)((MASK_TOKEN_DEPTH & temp) >> 52);
+                                    /*
+                                     * if (depth < context[0]) { return false; }
+                                     * else
+                                     */
+                                    if (depth == (context[0]))
+                                    {
+                                        context[context[0]] = index;
+                                        return true;
+                                    }
+                                }
+                                index--;
+                            } // what condition
+                            return false;
+                    }
+            }
+            return false;
+        }
+
+        protected internal override void sync(int depth, int index)
+        {
+            // assumption is that this is always at terminal
+            switch (depth)
+            {
+                case -1: return;
+                case 0:
+                    if (l1Buffer.size_Renamed_Field != 0)
+                    {
+                        if (l1index == -1)
+                            l1index = 0;
+
+                        if (index > l1Buffer.upper32At(l1Buffer.size_Renamed_Field - 1))
+                        {
+                            l1index = l1Buffer.size_Renamed_Field - 1;
+                            return;
+                        }
+
+                        if (index > l1Buffer.upper32At(l1index))
+                        {
+                            while (l1index < l1Buffer.size_Renamed_Field - 1 && l1Buffer.upper32At(l1index) < index)
+                            {
+                                l1index++;
+                            }
+                            //l1index--;
+                        }
+                        else
+                        {
+                            while (l1index > 0 && l1Buffer.upper32At(l1index - 1) > index)
+                            {
+                                l1index--;
+                            }
+                        }
+                        //assert(index<l1Buffer.upper32At(l1index));
+                    }
+                    break;
+                case 1:
+                    if (l1Buffer.lower32At(l1index) != -1)
+                    {
+                        if (l2lower != l1Buffer.lower32At(l1index))
+                        {
+                            l2lower = l2index = l1Buffer.lower32At(l1index);
+                            l2upper = l2Buffer.size_Renamed_Field - 1;
+                            int size = l1Buffer.size_Renamed_Field;
+                            for (int i = l1index + 1; i < size; i++)
+                            {
+                                int temp = l1Buffer.lower32At(i);
+                                if (temp != -1)
+                                {
+                                    l2upper = temp - 1;
+                                    break;
+                                }
+                            }
+                            //l2upper = l1Buffer.lower32At(l1index);
+                        }
+
+                        if (index > l2Buffer.upper32At(l2index))
+                        {
+                            while (l2index < l2upper && l2Buffer.upper32At(l2index) < index)
+                            {
+                                l2index++;
+                            }
+                        }
+                        else
+                        {
+                            while (l2index > l2lower && l2Buffer.upper32At(l2index - 1) > index)
+                            {
+                                l2index--;
+                            }
+                        }
+                        //assert(index<l2Buffer.upper32At(l2index));
+                    }
+
+                    break;
+                case 2:
+                    if (l2Buffer.lower32At(l2index) != -1)
+                    {
+                        if (l3lower != l2Buffer.lower32At(l2index))
+                        {
+                            l3index = l3lower = l2Buffer.lower32At(l2index);
+                            l3upper = l3Buffer.size_Renamed_Field - 1;
+                            int size = l2Buffer.size_Renamed_Field;
+                            for (int i = l2index + 1; i < size; i++)
+                            {
+                                int temp = l2Buffer.lower32At(i);
+                                if (temp != -1)
+                                {
+                                    l3upper = temp - 1;
+                                    break;
+                                }
+                            }
+                        }
+                        if (index > l3Buffer.upper32At(l3index))
+                        {
+                            while (l3index < l3upper && l3Buffer.upper32At(l3index) < index)
+                            {
+                                l3index++;
+                            }
+                        }
+                        else
+                        {
+                            while (l3index > l3lower && l3Buffer.upper32At(l3index - 1) > index)
+                            {
+                                l3index--;
+                            }
+                        }
+                        //assert(index<l3Buffer.intAt(l3index));
+                    }
+                    break;
+
+                case 3:
+                    if (l3Buffer.lower32At(l3index) != -1)
+                    {
+                        if (l4lower != l3Buffer.lower32At(l3index))
+                        {
+                            l4index = l4lower = l3Buffer.lower32At(l3index);
+                            l4upper = l4Buffer.size_Renamed_Field - 1;
+                            int size = l3Buffer.size_Renamed_Field;
+                            for (int i = l3index + 1; i < size; i++)
+                            {
+                                int temp = l3Buffer.lower32At(i);
+                                if (temp != -1)
+                                {
+                                    l4upper = temp - 1;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (index > l4Buffer.upper32At(l4index))
+                        {
+                            while (l4index < l4upper && l4Buffer.upper32At(l4index) < index)
+                            {
+                                l4index++;
+                            }
+                        }
+                        else
+                        {
+                            while (l4index > l4lower && l4Buffer.upper32At(l4index - 1) > index)
+                            {
+                                l4index--;
+                            }
+                        }
+                        //assert(index<l3Buffer.intAt(l3index));
+                    }
+                    break;
+
+                case 4:
+                    if (l4Buffer.lower32At(l4index) != -1)
+                    {
+                        if (l5lower != l4Buffer.lower32At(l4index))
+                        {
+                            l5index = l5lower = l4Buffer.lower32At(l4index);
+                            l5upper = l5Buffer.size_Renamed_Field - 1;
+                            int size = l4Buffer.size_Renamed_Field;
+                            for (int i = l4index + 1; i < size; i++)
+                            {
+                                int temp = l4Buffer.lower32At(i);
+                                if (temp != -1)
+                                {
+                                    l5upper = temp - 1;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (index > l5Buffer.intAt(l5index))
+                        {
+                            while (l5index < l5upper && l5Buffer.intAt(l5index) < index)
+                            {
+                                l5index++;
+                            }
+                        }
+                        else
+                        {
+                            while (l5index > l5lower && l5Buffer.intAt(l5index - 1) > index)
+                            {
+                                l5index--;
+                            }
+                        }
+                        //assert(index<l3Buffer.intAt(l3index));
+                    }
+                    break;
+
+                default:
+                    if (l4Buffer.lower32At(l4index) != -1)
+                    {
+                        if (l5lower != l4Buffer.lower32At(l4index))
+                        {
+                            l5index = l5lower = l4Buffer.lower32At(l4index);
+                            l5upper = l5Buffer.size_Renamed_Field - 1;
+                            int size = l4Buffer.size_Renamed_Field;
+                            for (int i = l4index + 1; i < size; i++)
+                            {
+                                int temp = l4Buffer.lower32At(i);
+                                if (temp != -1)
+                                {
+                                    l5upper = temp - 1;
+                                    break;
+                                }
+                            }
+                        }
+
+                        //if (context[5]> l5Buffer.intAt(l5index)){
+                        while (context[5] != l5Buffer.intAt(l5index))
+                        {
+                            l5index++;
+                        }
+                        /*} else {
+                            while (context[5] != l5Buffer.intAt(l5index)){
+                                l5index--;
+                            }
+                        }*/
+
+                        //assert(index<l3Buffer.intAt(l3index));
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override bool verifyNodeCorrectness()
+        {
+            int i1, i2, tmp;
+            if (atTerminal)
+            {
+                // check l1 index, l2 index, l2lower, l2upper, l3 index, l3 lower, l3 upper
+                if (getTokenDepth(LN) != context[0])
+                    return false;
+                switch (context[0])
+                {
+                    case -1: return true;
+                    case 0:
+                        //if (getTokenDepth(LN)!=0)
+                        //	return false;
+                        if (l1Buffer.size_Renamed_Field != 0)
+                        {
+                            if (l1index >= l1Buffer.size_Renamed_Field || l1index < 0)
+                                return false;
+                            if (l1index != l1Buffer.size_Renamed_Field - 1)
+                            {
+
+                                if (l1Buffer.upper32At(l1index) < LN)
+                                    return false;
+                            }
+                            return true;
+                        }
+                        else
+                            return true;
+
+                    case 1:
+                        if (LN > context[1])
+                        {
+                            //if (getTokenDepth(LN) != 1)
+                            //	return false;
+                            if (l1index < 0 || l1index > l1Buffer.size_Renamed_Field)
+                                return false;
+                            //int i1, i2, i3; // l2lower, l2upper and l2index
+                            i1 = l1Buffer.lower32At(l1index);
+                            if (i1 != -1)
+                            {
+
+                                tmp = l1index + 1;
+                                i2 = l2Buffer.size_Renamed_Field - 1;
+                                while (tmp < l1Buffer.size_Renamed_Field)
+                                {
+                                    if (l1Buffer.lower32At(tmp) != -1)
+                                    {
+                                        i2 = l1Buffer.lower32At(tmp) - 1;
+                                        break;
+                                    }
+                                    else
+                                        tmp++;
+                                }
+                                if (i1 != l2lower)
+                                    return false;
+                                if (l2upper != i2)
+                                    return false;
+                                if (l2index > l2upper || l2index < l2lower)
+                                    return false;
+                                if (l2index != l2upper)
+                                {
+                                    if (l2Buffer.upper32At(l2index) < LN)
+                                        return false;
+                                }
+                            }
+                            return true;
+                        }
+                        else
+                            return false;
+                    case 2:
+                        if (LN > context[2] && context[2] > context[1])
+                        {
+                            //if (getTokenDepth(LN) != 2)
+                            //	return false;
+                            if (l1index < 0 || l1index > l1Buffer.size_Renamed_Field)
+                                return false;
+                            //int i1, i2, i3; //l2lower, l2upper and l2index
+                            i1 = l1Buffer.lower32At(l1index);
+                            if (i1 == -1) return false;
+                            if (i1 != l2lower)
+                                return false;
+                            tmp = l1index + 1;
+                            i2 = l2Buffer.size_Renamed_Field - 1;
+                            while (tmp < l1Buffer.size_Renamed_Field)
+                            {
+                                if (l1Buffer.lower32At(tmp) != -1)
+                                {
+                                    i2 = l1Buffer.lower32At(tmp) - 1;
+                                    break;
+                                }
+                                else
+                                    tmp++;
+                            }
+                            if (context[2] != l2Buffer.upper32At(l2index))
+                            {
+                                return false;
+                            }
+                            if (l2index > l2upper || l2index < l2lower)
+                            {
+                                return false;
+                            }
+                            //l3 
+                            i1 = l2Buffer.lower32At(l2index);
+                            if (i1 != -1)
+                            {
+                                if (l3lower != i1)
+                                    return false;
+                                i2 = l3Buffer.size_Renamed_Field - 1;
+                                tmp = l2index + 1;
+
+                                while (tmp < l2Buffer.size_Renamed_Field)
+                                {
+                                    if (l2Buffer.lower32At(tmp) != -1)
+                                    {
+                                        i2 = l2Buffer.lower32At(tmp) - 1;
+                                        break;
+                                    }
+                                    else
+                                        tmp++;
+                                }
+
+                                if (l3lower != i1)
+                                    return false;
+
+                                if (l3upper != i2)
+                                    return false;
+
+                                if (l3index > l3upper || l3index < l3lower)
+                                    return false;
+                                if (l3index != l3upper)
+                                {
+                                    if (l3Buffer.upper32At(l3index) < LN)
+                                        return false;
+                                }
+                            }
+                            return true;
+                        }
+                        else
+                            return false;
+
+                    case 3:
+                        if (LN > context[3] && context[3] > context[2] && context[2] > context[1])
+                        {
+                            //if (getTokenDepth(LN) != 2)
+                            //	return false;
+                            if (l1index < 0 || l1index > l1Buffer.size_Renamed_Field)
+                                return false;
+                            // int i1, i2, i3; //l2lower, l2upper and l2index
+                            i1 = l1Buffer.lower32At(l1index);
+                            if (i1 == -1) return false;
+                            if (i1 != l2lower)
+                                return false;
+                            tmp = l1index + 1;
+                            i2 = l2Buffer.size_Renamed_Field - 1;
+                            while (tmp < l1Buffer.size_Renamed_Field)
+                            {
+                                if (l1Buffer.lower32At(tmp) != -1)
+                                {
+                                    i2 = l1Buffer.lower32At(tmp) - 1;
+                                    break;
+                                }
+                                else
+                                    tmp++;
+                            }
+                            if (context[2] != l2Buffer.upper32At(l2index))
+                            {
+                                return false;
+                            }
+                            if (l2index > l2upper || l2index < l2lower)
+                            {
+                                return false;
+                            }
+                            //l3 
+                            i1 = l2Buffer.lower32At(l2index);
+                            if (i1 == -1) { return false; }
+                            if (l3lower != i1)
+                                return false;
+                            i2 = l3Buffer.size_Renamed_Field - 1;
+                            tmp = l2index + 1;
+
+                            while (tmp < l2Buffer.size_Renamed_Field)
+                            {
+                                if (l2Buffer.lower32At(tmp) != -1)
+                                {
+                                    i2 = l2Buffer.lower32At(tmp) - 1;
+                                    break;
+                                }
+                                else
+                                    tmp++;
+                            }
+
+                            if (l3lower != i1)
+                                return false;
+
+                            if (l3upper != i2)
+                                return false;
+
+                            if (l3index > l3upper || l3index < l3lower)
+                                return false;
+                            /*if (l3index != l3upper) {
+                                if (l3Buffer.upper32At(l3index) < LN)
+                                    return false;
+                            } */
+                            //l4
+                            i1 = l3Buffer.lower32At(l3index);
+                            if (i1 != -1)
+                            {
+                                if (l4lower != i1)
+                                    return false;
+                                i2 = l4Buffer.size_Renamed_Field - 1;
+                                tmp = l3index + 1;
+
+                                while (tmp < l3Buffer.size_Renamed_Field)
+                                {
+                                    if (l3Buffer.lower32At(tmp) != -1)
+                                    {
+                                        i2 = l3Buffer.lower32At(tmp) - 1;
+                                        break;
+                                    }
+                                    else
+                                        tmp++;
+                                }
+
+                                if (l4lower != i1)
+                                    return false;
+
+                                if (l4upper != i2)
+                                    return false;
+
+                                if (l4index > l4upper || l4index < l4lower)
+                                    return false;
+                                if (l4index != l4upper)
+                                {
+                                    if (l4Buffer.upper32At(l4index) < LN)
+                                        return false;
+                                }
+                            }
+                            return true;
+                        }
+                        else
+                            return false;
+                    case 4:
+                        if (LN > context[3] && context[3] > context[2] && context[2] > context[1])
+                        {
+                            //if (getTokenDepth(LN) != 2)
+                            //	return false;
+                            if (l1index < 0 || l1index > l1Buffer.size_Renamed_Field)
+                                return false;
+                            // int i1, i2, i3; //l2lower, l2upper and l2index
+                            i1 = l1Buffer.lower32At(l1index);
+                            if (i1 == -1) return false;
+                            if (i1 != l2lower)
+                                return false;
+                            tmp = l1index + 1;
+                            i2 = l2Buffer.size_Renamed_Field - 1;
+                            while (tmp < l1Buffer.size_Renamed_Field)
+                            {
+                                if (l1Buffer.lower32At(tmp) != -1)
+                                {
+                                    i2 = l1Buffer.lower32At(tmp) - 1;
+                                    break;
+                                }
+                                else
+                                    tmp++;
+                            }
+                            if (context[2] != l2Buffer.upper32At(l2index))
+                            {
+                                return false;
+                            }
+                            if (l2index > l2upper || l2index < l2lower)
+                            {
+                                return false;
+                            }
+                            //l3 
+                            i1 = l2Buffer.lower32At(l2index);
+                            if (i1 == -1) { return false; }
+                            if (l3lower != i1)
+                                return false;
+                            i2 = l3Buffer.size_Renamed_Field - 1;
+                            tmp = l2index + 1;
+
+                            while (tmp < l2Buffer.size_Renamed_Field)
+                            {
+                                if (l2Buffer.lower32At(tmp) != -1)
+                                {
+                                    i2 = l2Buffer.lower32At(tmp) - 1;
+                                    break;
+                                }
+                                else
+                                    tmp++;
+                            }
+
+                            if (l3lower != i1)
+                                return false;
+
+                            if (l3upper != i2)
+                                return false;
+
+                            if (l3index > l3upper || l3index < l3lower)
+                                return false;
+                            /*if (l3index != l3upper) {
+                                if (l3Buffer.upper32At(l3index) < LN)
+                                    return false;
+                            } */
+                            i1 = l3Buffer.lower32At(l3index);
+                            if (i1 == -1) { return false; }
+                            if (l4lower != i1)
+                                return false;
+                            i2 = l4Buffer.size_Renamed_Field - 1;
+                            tmp = l3index + 1;
+
+                            while (tmp < l3Buffer.size_Renamed_Field)
+                            {
+                                if (l3Buffer.lower32At(tmp) != -1)
+                                {
+                                    i2 = l3Buffer.lower32At(tmp) - 1;
+                                    break;
+                                }
+                                else
+                                    tmp++;
+                            }
+
+                            if (l4lower != i1)
+                                return false;
+
+                            if (l4upper != i2)
+                                return false;
+
+                            if (l4index > l4upper || l4index < l4lower)
+                                return false;
+                            /*if (l4index != l4upper) {
+                                if (l4Buffer.upper32At(l4index) < LN)
+                                    return false;
+                            }*/
+                            i1 = l4Buffer.lower32At(l4index);
+                            if (i1 != -1)
+                            {
+                                if (i1 != l5lower) return false;
+                                i2 = l5Buffer.size_Renamed_Field - 1;
+                                tmp = l4index + 1;
+
+                                while (tmp < l4Buffer.size_Renamed_Field)
+                                {
+                                    if (l4Buffer.lower32At(tmp) != -1)
+                                    {
+                                        i2 = l4Buffer.lower32At(tmp) - 1;
+                                        break;
+                                    }
+                                    else
+                                        tmp++;
+                                }
+
+                                if (l5lower != i1)
+                                    return false;
+
+                                if (l5upper != i2)
+                                    return false;
+
+                                if (l5index < i1 || l5index > i2)
+                                    return false;
+
+                                if (l5index != l5upper)
+                                {
+                                    if (l5Buffer.intAt(l5index) < LN)
+                                        return false;
+                                }
+                            }
+                            return true;
+                        }
+                        else
+                            return false;
+
+
+                    default:
+                        if (l1index < 0 || l1index > l1Buffer.size_Renamed_Field)
+                            return false;
+                        //l2lower, l2upper and l2index
+                        i1 = l1Buffer.lower32At(l1index);
+                        if (i1 == -1) return false;
+                        if (i1 != l2lower)
+                            return false;
+                        tmp = l1index + 1;
+                        i2 = l2Buffer.size_Renamed_Field - 1;
+                        while (tmp < l1Buffer.size_Renamed_Field)
+                        {
+                            if (l1Buffer.lower32At(tmp) != -1)
+                            {
+                                i2 = l1Buffer.lower32At(tmp) - 1;
+                                break;
+                            }
+                            else
+                                tmp++;
+                        }
+                        if (context[2] != l2Buffer.upper32At(l2index))
+                        {
+                            return false;
+                        }
+                        if (l2index > l2upper || l2index < l2lower)
+                        {
+                            return false;
+                        }
+                        //l3 
+                        i1 = l2Buffer.lower32At(l2index);
+                        if (i1 == -1) { return false; }
+                        if (l3lower != i1)
+                            return false;
+                        i2 = l3Buffer.size_Renamed_Field - 1;
+                        tmp = l2index + 1;
+
+                        while (tmp < l2Buffer.size_Renamed_Field)
+                        {
+                            if (l2Buffer.lower32At(tmp) != -1)
+                            {
+                                i2 = l2Buffer.lower32At(tmp) - 1;
+                                break;
+                            }
+                            else
+                                tmp++;
+                        }
+
+                        if (l3lower != i1)
+                            return false;
+
+                        if (l3upper != i2)
+                            return false;
+
+                        if (l3index > l3upper || l3index < l3lower)
+                            return false;
+
+                        i1 = l3Buffer.lower32At(l3index);
+                        if (i1 == -1) { return false; }
+                        if (l4lower != i1)
+                            return false;
+                        i2 = l4Buffer.size_Renamed_Field - 1;
+                        tmp = l3index + 1;
+
+                        while (tmp < l3Buffer.size_Renamed_Field)
+                        {
+                            if (l3Buffer.lower32At(tmp) != -1)
+                            {
+                                i2 = l3Buffer.lower32At(tmp) - 1;
+                                break;
+                            }
+                            else
+                                tmp++;
+                        }
+
+                        if (l4lower != i1)
+                            return false;
+
+                        if (l4upper != i2)
+                            return false;
+
+                        if (l4index > l4upper || l4index < l4lower)
+                            return false;
+                        /*if (l4index != l4upper) {
+                            if (l4Buffer.upper32At(l4index) < LN)
+                                return false;
+                        }*/
+                        i1 = l4Buffer.lower32At(l4index);
+
+                        if (i1 != l5lower) return false;
+                        i2 = l5Buffer.size_Renamed_Field - 1;
+                        tmp = l4index + 1;
+
+                        while (tmp < l4Buffer.size_Renamed_Field)
+                        {
+                            if (l4Buffer.lower32At(tmp) != -1)
+                            {
+                                i2 = l4Buffer.lower32At(tmp) - 1;
+                                break;
+                            }
+                            else
+                                tmp++;
+                        }
+
+                        if (l5lower != i1)
+                            return false;
+
+                        if (l5upper != i2)
+                            return false;
+
+                        if (l5index < i1 || l5index > i2)
+                            return false;
+
+                        if (context[context[0]] > LN)
+                            return false;
+
+                        if (context[0] == 5)
+                        {
+                            if (l5index != l5upper)
+                            {
+                                if (l5Buffer.intAt(l5index) > LN)
+                                    return false;
+                            }
+                            if (l5index + 1 <= l5Buffer.size_Renamed_Field - 1)
+                            {
+                                if (l5Buffer.intAt(l5index + 1) < LN)
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                }
+            }
+            else
+            {
+                switch (context[0])
+                {
+                    case -1:
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    default: return true;
+                }
+            }
+        }
+        public override void dumpState()
+        {
+            Console.WriteLine("l1 index ==>" + l1index);
+            Console.WriteLine("l2 index ==>" + l2index);
+            Console.WriteLine("l2 lower ==>" + l2lower);
+            Console.WriteLine("l2 upper ==>" + l2upper);
+            Console.WriteLine("l3 index ==>" + l3index);
+            Console.WriteLine("l3 lower ==>" + l3lower);
+            Console.WriteLine("l3 upper ==>" + l3upper);
+            Console.WriteLine("l4 index ==>" + l4index);
+            Console.WriteLine("l4 lower ==>" + l4lower);
+            Console.WriteLine("l4 upper ==>" + l4upper);
+            Console.WriteLine("l5 index ==>" + l5index);
+            Console.WriteLine("l5 lower ==>" + l5lower);
+            Console.WriteLine("l5 upper ==>" + l5upper);
         }
     }
 }
