@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,8 @@ namespace com.ximpleware
         private const long MASK_INSERT_BYTE = 0x4000000000000000L; //0100
         private const long MASK_INSERT_SEGMENT_BYTE_ENCLOSED = 0x6000000000000000L; //0110
         private const ulong MASK_INSERT_BYTE_ENCLOSED = 0x8000000000000000L; //1000
+        private const ulong MASK_NULL =  0xc000000000000000L; //1100
+       // private const ulong MASK_INSERT_FRAGMENT_NS_ENCLOSED = 0xe000000000000000L;
         //private const long MASK_INSERT_SEGMENT_STRING = 0x6000000000000000L; //0110
 
         //UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
@@ -305,7 +307,13 @@ namespace com.ximpleware
             }
             if (deleteHash.isUnique(offset) == false)
                 throw new ModifyException("There can be only one deletion per offset value");
-
+            while (len > (1 << 29) - 1)
+            {
+                flb.append(((long)((1 << 29) - 1)) << 32 | offset | MASK_DELETE);
+                fob.append((Object)null);
+                len -= (1 << 29) - 1;
+                offset += (1 << 29) - 1;
+            }
             flb.append(((long)len) << 32 | offset | MASK_DELETE);
             fob.append((System.Object)null);
         }
@@ -489,7 +497,7 @@ namespace com.ximpleware
         /// <summary> Update the token with the byte array content,
         /// according to the encoding of the master document
         /// </summary>
-        /// <param name="offset">
+        /// <param name="index">
         /// </param>
         /// <param name="newContentBytes">*
         /// </param>
@@ -653,6 +661,40 @@ namespace com.ximpleware
         /// Delete can't overlap with, nor contains, another delete
         /// 
         /// </summary>
+        /// 
+    
+        protected internal void check2() {
+    	int os1, os2, temp;
+        int size = flb.size_Renamed_Field;
+        for (int i=0;i<size;){
+            os1 = flb.lower32At(i);
+            os2 = flb.lower32At(i)+ (flb.upper32At(i)& 0x1fffffff)-1;            
+            
+            int z=1;
+			while (i + z < size) {
+				temp = flb.lower32At(i+z);
+				if (temp==os1){
+					if ((flb.upper32At(i+z)& 0x1fffffff)!=0) // not an insert
+						os2=flb.lower32At(i+z)+ (flb.upper32At(i+z)& 0x1fffffff)-1; 
+					z++;
+				}
+				else if (temp > os1 && temp <= os2) {
+					int k= flb.lower32At(i+z)+ (flb.upper32At(i+z)& 0x1fffffff)-1;
+					if (k>os2)
+					// take care of overlapping conditions
+					 throw new ModifyException
+					  ("Invalid insertion/deletion condition detected between offset "
+					   +os1 + " and offset "+os2);
+					else
+						flb.modifyEntry(i+z,(long)(((ulong)(flb.longAt(i+z)& 0x1fffffffffffffffL))|MASK_NULL));
+					//System.out.println(" hex ==> "+Long.toHexString(flb.longAt(k+z)));
+					z++;
+				} else
+					break;
+			}
+            i+=z;
+        }
+    }
         protected internal void check()
         {
             int os1, os2, temp;
@@ -1589,7 +1631,7 @@ namespace com.ximpleware
                 {
                     docSize += ((ByteSegment)fob.objectAt(i)).len + inc;
                 }
-                else /*if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)*/
+                else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)
                 {
                     docSize += ((ElementFragmentNs)fob.objectAt(i)).getSize(md.encoding) + inc;
                 }
@@ -2015,5 +2057,202 @@ namespace com.ximpleware
             else
                 insertBytesAt((int)l, xml, offset << 1, length << 1);
         }
+
+        /**
+     * This method will insert a segment of the byte array (contained in vn, and 
+     * transcode into a byte array) before the tail of cursor element, 
+     * @param vn
+     * @param contentOffset
+     * @param contentLen
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(VTDNav vn, int contentOffset, int contentLen){
+        insertBeforeTail(vn.encoding,vn.XMLDoc.getBytes(),contentOffset, contentLen);       
+    }
+
+    /**
+     * This method will insert  a segment of the byte array  before the tail of cursor element,
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param b
+     * @param l
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(byte[] b, long l){
+        long i = md.getOffsetBeforeTail();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+        	insertAfterHead(b,l);
+        	return;
+        }
+        insertBytesAt((int)i,b,l);
+    }
+
+    /**
+     * This method will insert byte array b right before the tail of cursor element, 
+     * @param b
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(byte[] b){
+    	long i = md.getOffsetBeforeTail();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+            // handle empty element case
+        	// <a/> would become <a>b's content</a>
+        	// so there are two insertions there
+        	insertAfterHead(b);
+        	return;
+        }
+        insertBytesAt((int)i,b);
+    }
+
+      
+    /**
+     * This method will insert a namespace compensated fragment before the tail of cursor element, 
+     * @param ef
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(ElementFragmentNs ef){
+        long i = md.getOffsetBeforeTail();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+        	insertAfterHead(ef);
+        	return;
+        }
+        insertElementFragmentNsAt((int)i, ef);
+    }
+
+        /**
+     * This method will insert a segment of the byte array  before the tail of cursor element, 
+     * @param b
+     * @param offset
+     * @param len
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(byte[] b, int offset, int len){
+        long i = md.getOffsetBeforeTail();
+        if (i<0){
+            //throw new ModifyException("Insertion failed");
+        	insertAfterHead(b, offset, len);
+        	return;
+        }
+        insertBytesAt((int)i,b,offset, len);
+    }
+    /**
+     * This method will insert the transcoded representation of a segment of byte array b right before the tail of cursor element,
+     * @param src_encoding
+     * @param b
+     * @param offset
+     * @param length
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(int src_encoding, byte[] b, int offset, int length){
+        if(src_encoding == encoding){
+            insertAfterHead(b,offset,length);
+        }else{
+            long i = md.getOffsetBeforeTail();
+            if (i<0){
+                //throw new ModifyException("Insertion failed");
+            	insertAfterHead(src_encoding,b,offset, length);
+            	return;
+            }
+            byte[] bo = Transcoder.transcode(b, offset, length, src_encoding, encoding);
+            insertBytesAt((int)i,bo,offset, length);            
+        }
+    }
+
+    /**
+     * This method will insert the transcoded representation of byte array b right before the tail of cursor element, 
+     * @param src_encoding
+     * @param b
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(int src_encoding, byte[] b){
+        if(src_encoding == encoding){
+            insertBeforeTail(b);
+        }else{
+            long i = md.getOffsetBeforeTail();
+            if (i<0){
+                //throw new ModifyException("Insertion failed");
+            	insertAfterHead(src_encoding,b);
+            	return;
+            }
+            byte[] bo = Transcoder.transcode(b, 0, b.Length, src_encoding, encoding);
+            insertBytesAt((int)i,bo);            
+        }
+    }
+
+     /**
+     * This method will insert the transcoded representation of a segment of the byte array  before the tail of cursor element, 
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     * @param src_encoding
+     * @param b
+     * @param l
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(int src_encoding, byte[] b, long l){
+        if(src_encoding == encoding){
+            insertBeforeTail(b,l);
+        }else{
+            long i = md.getOffsetBeforeTail();
+            if (i<0){
+                //throw new ModifyException("Insertion failed");
+            	insertAfterHead(src_encoding,b,l);
+            	return;
+            }
+            byte[] bo = Transcoder.transcode(b, (int)l, (int)l>>32, src_encoding, encoding);
+            insertBytesAt((int)i,bo,l);            
+        }
+    }
+
+   /**
+     * This method will insert byte content of string right before the tail of cursor element, 
+     * @param s
+     * @throws ModifyException
+     * @throws NavException
+     */
+    public void insertBeforeTail(String s){
+    	long i = md.getOffsetBeforeTail();
+    	if (i<0){
+        //throw new ModifyException("Insertion failed");
+        // handle empty element case
+    	// <a/> would become <a>b's content</a>
+    	// so there are two insertions there
+            insertAfterHead(eg.GetBytes(s));
+    		return;
+    	}
+        insertBytesAt((int)i, eg.GetBytes(s));
+    }
+
+   
+
+  
+    /**
+     * This method will insert a segment of the byte array (contained in vn, and 
+     * transcode into a byte array) before the tail of cursor element, 
+     * l1 (a long)'s upper 32 bit is length, lower 32 bit is offset
+     *
+     * @param vn
+     * @param l1
+     * @throws ModifyException
+     * @throws NavException
+     * @throws TranscodeException
+     */
+    public void insertBeforeTail(VTDNav vn, long l1){
+        insertBeforeTail(vn.encoding, vn.XMLDoc.getBytes(), l1);
+    }
+
+
     }
 }
