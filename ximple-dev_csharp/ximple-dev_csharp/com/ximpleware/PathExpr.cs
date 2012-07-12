@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,11 @@ namespace com.ximpleware
 		//public int getPositon(){
 		//	return fib.size_Renamed_Field;
 		//}
-		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="f"></param>
+		/// <param name="l"></param>
 		public PathExpr(Expr f, LocationPathExpr l)
 		{
 			fe = f;
@@ -106,7 +110,11 @@ namespace com.ximpleware
 			//fib = new FastIntBuffer(8);
 			ih = new intHash();
 		}
-		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="vn"></param>
+		/// <returns></returns>
 		public override bool evalBoolean(VTDNav vn)
 		{
 			bool a = false;
@@ -127,18 +135,53 @@ namespace com.ximpleware
 			return a;
 		}
 		
-		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="vn"></param>
+		/// <returns></returns>
 		public override double evalNumber(VTDNav vn)
 		{
-            int a = getStringIndex(vn);
+            double d = Double.NaN;
+            int a = -1;
+            vn.push2();
+            int size = vn.contextStack2.size;
             try
             {
-                if (a != -1) return vn.parseDouble(a);
+                a = evalNodeSet(vn);
+                if (a != -1)
+                {
+                    int t = vn.getTokenType(a);
+                    if (t == VTDNav.TOKEN_ATTR_NAME)
+                    {
+                        d = vn.parseDouble(a + 1);
+                    }
+                    else if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
+                    {
+                        String s = vn.getXPathStringVal();
+                        d = Double.Parse(s);
+                    }
+                    else if (t == VTDNav.TOKEN_PI_NAME)
+                    {
+                        if (a + 1 < vn.vtdSize || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                            //s = vn.toString(a+1); 	
+                            d = vn.parseDouble(a + 1);
+                        else
+                            d = Double.NaN;
+                    }
+                    else
+                        d = vn.parseDouble(a);
+                }
             }
-            catch (NavException e)
+            catch (Exception e)
             {
+
             }
-            return Double.NaN;
+            vn.contextStack2.size = size;
+            reset(vn);
+            vn.pop2();
+            //return s;
+            return d;
 		}
 		
 		public override int evalNodeSet(VTDNav vn)
@@ -213,19 +256,49 @@ namespace com.ximpleware
 			//return -1;
 		}
 		
-		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="vn"></param>
+		/// <returns></returns>
 		public override System.String evalString(VTDNav vn)
 		{
-            int a = getStringIndex(vn);
+            String s = "";
+            int a = -1;
+            vn.push2();
+            int size = vn.contextStack2.size;
             try
             {
+                a = evalNodeSet(vn);
                 if (a != -1)
-                    return vn.toString(a);
+                {
+                    int t = vn.getTokenType(a);
+                    if (t == VTDNav.TOKEN_ATTR_NAME)
+                    {
+                        s = vn.toString(a + 1);
+                    }
+                    else if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
+                    {
+                        s = vn.getXPathStringVal();
+                    }
+                    else if (t == VTDNav.TOKEN_PI_NAME)
+                    {
+                        if (a + 1 < vn.vtdSize || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                            s = vn.toString(a + 1);
+                        //s = vn.toString(a+1);               
+                    }
+                    else
+                        s = vn.toString(a);
+                }
             }
-            catch (NavException e)
+            catch (Exception e)
             {
+
             }
-            return "";	
+            vn.contextStack2.size = size;
+            reset(vn);
+            vn.pop2();
+            return s;
 		}
 		// The improved version, use hashtable to check for uniqueness
 		public bool isUnique(int i)
@@ -256,5 +329,35 @@ namespace com.ximpleware
 		{
 			return false;
 		}
+
+        public override bool isFinal(){
+		    return fe.isFinal();
+	    }
+
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public override void markCacheable()
+        {
+            fe.markCacheable();
+            lpe.markCacheable();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public override void markCacheable2()
+        {
+            fe.markCacheable2();
+            lpe.markCacheable2();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public override void clearCache()
+        {
+            fe.clearCache();
+            lpe.clearCache();
+        }
 	}
 }

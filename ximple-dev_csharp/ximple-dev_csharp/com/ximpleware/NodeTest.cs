@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,11 @@ namespace com.ximpleware
 		{
 			set
 			{
-				nodeName = value;
+                nodeName = value;
+                if (value.Equals("*"))
+                    type = 0;
+                else
+                    type = 1;
 			}
 			
 		}
@@ -51,7 +55,8 @@ namespace com.ximpleware
 		public System.String URL;
 		internal bool nsEnabled;
 		public int testType;
-		
+        public int type;
+
 		public const int NAMETEST = 0;
 		public const int NODE = 1;
 		public const int TEXT = 2;
@@ -65,25 +70,78 @@ namespace com.ximpleware
 		}
 		public void  setNodeNameNS(System.String p, System.String ln)
 		{
-			prefix = p;
-			localName = ln;
+            prefix = p;
+            localName = ln;
+            type = 2;
 		}
 		public  bool eval(VTDNav vn)
 		{
-			if (testType == NODE)
-				return true;
-			else if (testType == NAMETEST)
-			{
-				if (vn.atTerminal == true)
-					return false;
-				if (localName != null)
-					return vn.matchElementNS(URL, localName);
-				else
-					return vn.matchElement(nodeName);
-			}
-			return false;
+            if (vn.atTerminal)
+                return false;
+            switch (type)
+            {
+                case 0: return true;
+                case 1: return vn.matchElement(nodeName);
+                case 2: return vn.matchElementNS(URL, localName);
+            }
+            //}
+            return false;
 		}
-		
+
+        public bool eval2(VTDNav vn) {
+            switch (testType)
+            {
+                case NAMETEST:
+                    if (vn.atTerminal)
+                        return false;
+                    switch (type)
+                    {
+                        case 0: return true;
+                        case 1: return vn.matchElement(nodeName);
+                        case 2: return vn.matchElementNS(URL, localName);
+                    }
+                    return false;
+                case NODE:
+                    return true;
+                case TEXT:
+                    if (!vn.atTerminal)
+                        return false;
+                    int t = vn.getTokenType(vn.LN);
+                    if (t == VTDNav.TOKEN_CHARACTER_DATA
+                            || t == VTDNav.TOKEN_CDATA_VAL)
+                    {
+                        return true;
+                    }
+                    return false;
+
+                case PI0:
+                    if (!vn.atTerminal)
+                        return false;
+                    if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_PI_NAME)
+                    {
+                        return true;
+                    }
+                    return false;
+                case PI1:
+                    if (!vn.atTerminal)
+                        return false;
+                    if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_PI_NAME)
+                    {
+                        return vn.matchTokenString(vn.LN, nodeName);
+                    }
+                    return false;
+
+                default: // comment
+                    if (!vn.atTerminal)
+                        return false;
+                    if (vn.getTokenType(vn.LN) == VTDNav.TOKEN_COMMENT)
+                    {
+                        return true;
+                    }
+                    return false;
+            }
+        
+        }
 		public override System.String ToString()
 		{
 			switch (testType)

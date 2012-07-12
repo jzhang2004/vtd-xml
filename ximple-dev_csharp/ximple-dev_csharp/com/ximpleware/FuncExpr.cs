@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -126,10 +126,27 @@ namespace com.ximpleware
         internal bool isNumerical_Renamed_Field;
         internal bool isBoolean_Renamed_Field;
         internal bool isString_Renamed_Field;
+        internal bool isNodeSet_Renamed_Field;
         internal int contextSize;
+        VTDNav newVN, xslVN;
         //double d;
         internal int position;
+        internal int argCount1;
         internal int a;
+        internal int state;
+        VTDGen vg;
+        String s;
+
+        public const int START = 0, // initial state
+            END = 1, // return to begin
+            TERMINAL = 2, // no more next step
+            FORWARD = 3, //
+            BACKWARD = 4;
+
+        VTDNav getNewNav() { return newVN; }
+
+        void setXslVn(VTDNav vn1) { xslVN = vn1; }
+
         internal int argCount()
         {
             Alist temp = argumentList;
@@ -148,9 +165,11 @@ namespace com.ximpleware
             argumentList = list;
             isBoolean_Renamed_Field = false;
             isString_Renamed_Field = false;
+            isNodeSet_Renamed_Field = false;
             position = 0;
             //isNodeSet = false;
             isNumerical_Renamed_Field = false;
+            argCount1 = argCount();
             switch (opCode)
             {
 
@@ -226,10 +245,89 @@ namespace com.ximpleware
                 case FuncName.RESOLVE_QNAME: isString_Renamed_Field = true; break;
                 case FuncName.IRI_TO_URI: isString_Renamed_Field = true; break;
                 case FuncName.ESCAPE_HTML_URI: isString_Renamed_Field = true; break;
-                default: isString_Renamed_Field = true; break;
+                case FuncName.ENCODE_FOR_URI: isString_Renamed_Field = true; break;
+                case FuncName.MATCH_NAME: isBoolean_Renamed_Field = true; break;
+                case FuncName.MATCH_LOCAL_NAME: isBoolean_Renamed_Field = true; break;
+                case FuncName.NOT_MATCH_NAME: isBoolean_Renamed_Field = true; break;
+                case FuncName.NOT_MATCH_LOCAL_NAME: isBoolean_Renamed_Field = true; break;
+                case FuncName.GENERATE_ID: isString_Renamed_Field = true; break;
+                case FuncName.FORMAT_NUMBER: isString_Renamed_Field = true; break;
+                case FuncName.KEY: isNodeSet_Renamed_Field = true; state = START; vg = new VTDGen(); break;
+                case FuncName.DOCUMENT: isNodeSet_Renamed_Field = true; state = START; vg = new VTDGen(); break;
+                case FuncName.CURRENT: isNodeSet_Renamed_Field = true; state = START; vg = new VTDGen(); break;
+                case FuncName.SYSTEM_PROPERTY: isString_Renamed_Field = true; break;
+                case FuncName.ELEMENT_AVAILABLE: isBoolean_Renamed_Field = true; break;
+                case FuncName.FUNCTION_AVAILABLE: isBoolean_Renamed_Field = true; break;
             }
         }
+        public bool checkArgumentCount()
+        {
+            switch (opCode)
+            {
+                case FuncName.LAST: return argCount1 == 0;
+                case FuncName.POSITION: return argCount1 == 0;
+                case FuncName.COUNT: return (argCount1 == 1 && argumentList.e.NodeSet);
 
+                case FuncName.LOCAL_NAME: return (argCount1 == 0 || (argCount1 == 1 && argumentList.e.NodeSet));
+                case FuncName.NAMESPACE_URI: return (argCount1 == 0 || (argCount1 == 1 && argumentList.e.NodeSet));
+                case FuncName.NAME: return (argCount1 == 0 || (argCount1 == 1 && argumentList.e.NodeSet));
+                case FuncName.STRING: return argCount1 < 2;
+                case FuncName.CONCAT: return argCount1 > 1;
+                case FuncName.STARTS_WITH: return argCount1 == 2;
+                case FuncName.CONTAINS: return argCount1 == 2;
+                case FuncName.SUBSTRING_BEFORE: return argCount1 == 2;
+                case FuncName.SUBSTRING_AFTER: return argCount1 == 2;
+                case FuncName.SUBSTRING: return argCount1 == 2 || argCount1 == 3;
+                case FuncName.STRING_LENGTH: return argCount1 < 2;
+                case FuncName.NORMALIZE_SPACE: return argCount1 < 2;
+                case FuncName.TRANSLATE: return argCount1 == 3;
+                case FuncName.BOOLEAN: return argCount1 == 1;
+                case FuncName.NOT: return argCount1 == 1;
+                case FuncName.TRUE: return argCount1 == 0;
+                case FuncName.FALSE: return argCount1 == 0;
+                case FuncName.LANG: return (argCount1 == 1);
+                case FuncName.NUMBER: return argCount1 == 1;
+                case FuncName.SUM: return (argCount1 == 1 && argumentList.e.NodeSet);
+                case FuncName.FLOOR: return argCount1 == 1;
+                case FuncName.CEILING: return argCount1 == 1;
+                case FuncName.ROUND: return argCount1 == 1;
+                case FuncName.ABS: return argCount1 == 1;
+                case FuncName.ROUND_HALF_TO_EVEN:
+                    return argCount1 == 1 || argCount1 == 2;
+                case FuncName.ROUND_HALF_TO_ODD:
+                    return argCount1 == 1 || argCount1 == 2;
+                case FuncName.CODE_POINTS_TO_STRING:
+                    break;
+                case FuncName.COMPARE: break;
+                case FuncName.UPPER_CASE: return argCount1 == 1;
+                case FuncName.LOWER_CASE: return argCount1 == 1;
+                case FuncName.ENDS_WITH: return argCount1 == 2;
+                case FuncName.QNAME: break;
+                case FuncName.LOCAL_NAME_FROM_QNAME:
+                    break;
+                case FuncName.NAMESPACE_URI_FROM_QNAME:
+                    break;
+                case FuncName.NAMESPACE_URI_FOR_PREFIX:
+                    break;
+                case FuncName.RESOLVE_QNAME: break;
+                case FuncName.IRI_TO_URI: break;
+                case FuncName.ESCAPE_HTML_URI: break;
+                case FuncName.ENCODE_FOR_URI: break;
+                case FuncName.MATCH_NAME: return argCount1 == 1 || argCount1 == 2;
+                case FuncName.MATCH_LOCAL_NAME: return argCount1 == 1 || argCount1 == 2;
+                case FuncName.NOT_MATCH_NAME: return argCount1 == 1 || argCount1 == 2;
+                case FuncName.NOT_MATCH_LOCAL_NAME: return argCount1 == 1 || argCount1 == 2;
+                case FuncName.CURRENT: return argCount1 == 0;
+                case FuncName.GENERATE_ID: return argCount1 == 0 || (argCount1 == 1 && argumentList.e.NodeSet);
+                case FuncName.FORMAT_NUMBER: return argCount1 == 2 || argCount1 == 3;
+                case FuncName.KEY: return argCount1 == 2;
+                case FuncName.DOCUMENT: return argCount1 == 1 || (argCount1 == 2 && argumentList.next.e.NodeSet);
+                case FuncName.SYSTEM_PROPERTY: return argCount1 == 1 && argumentList.e.String;
+                case FuncName.ELEMENT_AVAILABLE: return argCount1 == 1 && argumentList.e.String;
+                case FuncName.FUNCTION_AVAILABLE: return argCount1 == 1 && argumentList.e.String;
+            }
+            return false;
+        }
         public override System.String ToString()
         {
             if (argumentList == null)
@@ -238,7 +336,7 @@ namespace com.ximpleware
         }
         private String getString(VTDNav vn)
         {
-            if (argCount() == 0)
+            if (argCount1 == 0)
                 try
                 {
                     if (vn.atTerminal)
@@ -253,7 +351,7 @@ namespace com.ximpleware
                 {
                     return null; // this will almost never occur
                 }
-            else if (argCount() == 1)
+            else if (argCount1 == 1)
             {
                 return argumentList.e.evalString(vn);
             }
@@ -262,7 +360,7 @@ namespace com.ximpleware
         }
         private String getLocalName(VTDNav vn)
         {
-            if (argCount() == 0)
+            if (argCount1 == 0)
             {
                 try
                 {
@@ -316,7 +414,7 @@ namespace com.ximpleware
                 }
 
             }
-            else if (argCount() == 1)
+            else if (argCount1 == 1)
             {
                 int a = evalFirstArgumentListNodeSet2(vn);
 
@@ -356,7 +454,7 @@ namespace com.ximpleware
 
         private String getNameSpaceURI(VTDNav vn)
         {
-            if (argCount() == 0)
+            if (argCount1 == 0)
             {
                 try
                 {
@@ -379,7 +477,7 @@ namespace com.ximpleware
                     return "";
                 }
             }
-            else if (argCount() == 1)
+            else if (argCount1 == 1)
             {
                 vn.push2();
                 int size = vn.contextStack2.size;
@@ -421,7 +519,7 @@ namespace com.ximpleware
         private String getName(VTDNav vn)
         {
             int a;
-            if (argCount() == 0)
+            if (argCount1 == 0)
             {
                 a = vn.getCurrentIndex();
                 int type = vn.getTokenType(a);
@@ -446,7 +544,7 @@ namespace com.ximpleware
                 else
                     return "";
             }
-            else if (argCount() == 1)
+            else if (argCount1 == 1)
             {
                 a = evalFirstArgumentListNodeSet2(vn);
                 try
@@ -497,20 +595,22 @@ namespace com.ximpleware
                 case FuncName.SUBSTRING: return subString(vn);
                 case FuncName.TRANSLATE: return translate(vn);
                 case FuncName.NORMALIZE_SPACE: return normalizeSpace(vn);
-                case FuncName.CODE_POINTS_TO_STRING: 
+                case FuncName.CODE_POINTS_TO_STRING:
                     throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
-   			    case FuncName.UPPER_CASE: return upperCase(vn);
+                case FuncName.UPPER_CASE: return upperCase(vn);
                 case FuncName.LOWER_CASE: return lowerCase(vn);
-   			    case FuncName.QNAME:
-   			    case FuncName.LOCAL_NAME_FROM_QNAME:
-   			    case FuncName.NAMESPACE_URI_FROM_QNAME:
-   			    case FuncName.NAMESPACE_URI_FOR_PREFIX:
-   			    case FuncName.RESOLVE_QNAME:
-   			    case FuncName.IRI_TO_URI:
-   			    case FuncName.ESCAPE_HTML_URI:
-   			    case FuncName.ENCODE_FOR_URI:
-   			        throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
-
+                case FuncName.QNAME:
+                case FuncName.LOCAL_NAME_FROM_QNAME:
+                case FuncName.NAMESPACE_URI_FROM_QNAME:
+                case FuncName.NAMESPACE_URI_FOR_PREFIX:
+                case FuncName.RESOLVE_QNAME:
+                case FuncName.IRI_TO_URI:
+                case FuncName.ESCAPE_HTML_URI:
+                case FuncName.ENCODE_FOR_URI:
+                    throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
+                case FuncName.GENERATE_ID: return generateID(vn);
+                case FuncName.FORMAT_NUMBER: return formatNumber(vn);
+                case FuncName.SYSTEM_PROPERTY: return getSystemProperty(vn);
                 default: if (Boolean)
                     {
                         if (evalBoolean(vn) == true)
@@ -520,7 +620,11 @@ namespace com.ximpleware
                     }
                     else
                     {
-                        return "" + evalNumber(vn);
+                        double tmp = evalNumber(vn);
+                        if (tmp - ((int)tmp) == 0)
+                            return "" + (int)tmp;
+                        else
+                            return "" + tmp;
                     }
                 //break;
 
@@ -529,10 +633,6 @@ namespace com.ximpleware
 
         private string translate(VTDNav vn)
         {
-            int numArg = argCount();
-
-            if (numArg == 3)
-            {
                 String resultStr = argumentList.e.evalString(vn);
                 String indexStr = argumentList.next.e.evalString(vn);
 
@@ -568,11 +668,7 @@ namespace com.ximpleware
 
                 return resultSB.ToString();
 
-            }
-            else
-            {
-                throw new System.ArgumentException("Argument count for translate() is invalid. Expected: 3; Actual: " + numArg);
-            }
+            
         }
 
         public override double evalNumber(VTDNav vn)
@@ -581,30 +677,30 @@ namespace com.ximpleware
             switch (opCode)
             {
 
-                case FuncName.LAST: if (argCount() != 0)
-                        throw new System.ArgumentException("floor()'s argument count is invalid");
+                case FuncName.LAST: /*if (argCount() != 0)
+                        throw new System.ArgumentException("floor()'s argument count is invalid");*/
                     return contextSize;
 
-                case FuncName.POSITION: if (argCount() != 0)
-                        throw new System.ArgumentException("position()'s argument count is invalid");
+                case FuncName.POSITION: /*if (argCount() != 0)
+                        throw new System.ArgumentException("position()'s argument count is invalid");*/
                     return position;
 
                 case FuncName.COUNT: return count(vn);
 
-                case FuncName.NUMBER: if (argCount() != 1)
-                        throw new System.ArgumentException("number()'s argument count is invalid");
+                case FuncName.NUMBER: /*if (argCount() != 1)
+                        throw new System.ArgumentException("number()'s argument count is invalid");*/
                     return argumentList.e.evalNumber(vn);
 
 
                 case FuncName.SUM: return sum(vn);
 
-                case FuncName.FLOOR: if (argCount() != 1)
-                        throw new System.ArgumentException("floor()'s argument count is invalid");
+                case FuncName.FLOOR: /*if (argCount() != 1)
+                        throw new System.ArgumentException("floor()'s argument count is invalid");*/
                     return System.Math.Floor(argumentList.e.evalNumber(vn));
 
 
-                case FuncName.CEILING: if (argCount() != 1)
-                        throw new System.ArgumentException("ceiling()'s argument count is invalid");
+                case FuncName.CEILING: /*if (argCount() != 1)
+                        throw new System.ArgumentException("ceiling()'s argument count is invalid");*/
                     return System.Math.Ceiling(argumentList.e.evalNumber(vn));
 
 
@@ -652,17 +748,18 @@ namespace com.ximpleware
                 //goto case FuncName.ROUND;
 
 
-                case FuncName.ROUND: if (argCount() != 1)
-                        throw new System.ArgumentException("round()'s argument count is invalid");
+                case FuncName.ROUND:/* if (argCount() != 1)
+                        throw new System.ArgumentException("round()'s argument count is invalid");*/
                     //UPGRADE_TODO: Method 'java.lang.Math.round' was converted to 'System.Math.Round' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangMathround_double'"
                     return (long)System.Math.Round(argumentList.e.evalNumber(vn));
 
-                case FuncName.ABS: if (argCount() != 1)
-                        throw new System.ArgumentException("abs()'s argument count is invalid");
+                case FuncName.ABS: /*if (argCount() != 1)
+                        throw new System.ArgumentException("abs()'s argument count is invalid");*/
                     //UPGRADE_TODO: Method 'java.lang.Math.round' was converted to 'System.Math.Round' which has a different behavior. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1073_javalangMathround_double'"
                     return (long)System.Math.Abs(argumentList.e.evalNumber(vn));
-                case FuncName.ROUND_HALF_TO_EVEN :
-                    int numArg = argCount();
+                case FuncName.ROUND_HALF_TO_EVEN:
+                    return roundHalfToEven(vn);
+                    /*int numArg = argCount();
                     if (numArg < 1 || numArg > 2)
                     {
                         throw new System.ArgumentException("Argument count for roundHalfToEven() is invalid. Expected: 1 or 2; Actual: " + numArg);
@@ -670,10 +767,10 @@ namespace com.ximpleware
 
                     double value = argumentList.e.evalNumber(vn);
                     int precision = (numArg == 2) ? (int)Math.Floor(argumentList.next.e.evalNumber(vn) + 0.5d) : 0;
-                    return (long)System.Math.Round(value, precision, MidpointRounding.ToEven);
+                    return (long)System.Math.Round(value, precision, MidpointRounding.ToEven);*/
 
-   			    case FuncName.ROUND_HALF_TO_ODD:
-   			        throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
+                case FuncName.ROUND_HALF_TO_ODD:
+                    throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
 
                 default: if (isBoolean_Renamed_Field)
                     {
@@ -702,6 +799,102 @@ namespace com.ximpleware
 
         public override int evalNodeSet(VTDNav vn)
         {
+            switch (opCode)
+            {
+                case FuncName.CURRENT:
+                    if (state == START)
+                    {
+                        vn.loadCurrentNode();
+                        state = END;
+                        return vn.getCurrentIndex2();
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                // break;
+                case FuncName.DOCUMENT:
+                    if (argCount1 == 1)
+                    {
+                        if (!argumentList.e.NodeSet)
+                        {
+                            if (state == START)
+                            {
+                                String s = argumentList.e.evalString(vn);
+                                if (s.Length == 0)
+                                {
+                                    newVN = xslVN;
+                                    newVN.context[0] = -1;
+                                }
+                                else if (vg.parseFile(s, true))
+                                {
+                                    newVN = vg.getNav();
+                                    newVN.context[0] = -1;
+                                    newVN.URIName = s;
+                                }
+                                else
+                                {
+                                    state = END;
+                                    return -1;
+                                }
+                                state = END;
+                                return 0;
+                            }
+                            else
+                            {
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                if (state != END)
+                                {
+                                    a = argumentList.e.evalNodeSet(vn);
+                                    if (a != -1)
+                                    {
+                                        String s = vn.toString(getStringVal(vn, a));
+                                        if (s.Length == 0)
+                                        {
+                                            newVN = xslVN;
+                                            newVN.context[0] = -1;
+                                        }
+                                        else if (vg.parseFile(s, true))
+                                        {
+                                            newVN = vg.getNav();
+                                            newVN.context[0] = -1;
+                                            newVN.URIName = s;
+                                        }
+                                        else
+                                        {
+                                            state = END;
+                                            return -1;
+                                        }
+                                        state = END;
+                                        return 0;
+                                    }
+                                    else
+                                    {
+                                        state = END;
+                                        return -1;
+                                    }
+                                }
+                                else
+                                    return -1;
+                            }
+                            catch (NavException e)
+                            {
+
+                            }
+                        }
+                    }
+
+                    break;
+                case FuncName.KEY:
+                    throw new XPathEvalException(" key() not yet implemented ");
+                // break;
+            }
             throw new XPathEvalException(" Function Expr can't eval to node set ");
         }
 
@@ -710,55 +903,61 @@ namespace com.ximpleware
             switch (opCode)
             {
                 case FuncName.STARTS_WITH:
-                    if (argCount() != 2)
+                    /*if (argCount() != 2)
                     {
                         throw new System.ArgumentException("starts-with()'s argument count is invalid");
-                    }
+                    }*/
                     return startsWith(vn);
                 case FuncName.CONTAINS:
-                    if (argCount() != 2)
+                    /*if (argCount() != 2)
                     {
                         throw new System.ArgumentException("contains()'s argument count is invalid");
-                    }
+                    }*/
                     return contains(vn);
-                case FuncName.TRUE: if (argCount() != 0)
+                case FuncName.TRUE: /*if (argCount() != 0)
                     {
                         throw new System.ArgumentException("true() doesn't take any argument");
-                    }
+                    }*/
                     return true;
 
-                case FuncName.FALSE: if (argCount() != 0)
+                case FuncName.FALSE: /*if (argCount() != 0)
                     {
                         throw new System.ArgumentException("false() doesn't take any argument");
-                    }
+                    }*/
                     return false;
 
-                case FuncName.BOOLEAN: if (argCount() != 1)
+                case FuncName.BOOLEAN: /*if (argCount() != 1)
                     {
                         throw new System.ArgumentException("boolean() doesn't take any argument");
-                    }
+                    }*/
                     return argumentList.e.evalBoolean(vn);
 
-                case FuncName.NOT: if (argCount() != 1)
+                case FuncName.NOT: /*if (argCount() != 1)
                     {
                         throw new System.ArgumentException("not() doesn't take any argument");
-                    }
+                    }*/
                     return !argumentList.e.evalBoolean(vn);
                 case FuncName.LANG:
-                    if (argCount() != 1)
+                    /*if (argCount() != 1)
                     {
                         throw new System.ArgumentException("lang()'s argument count is invalid");
-                    }
+                    }*/
                     return lang(vn, argumentList.e.evalString(vn));
 
                 case FuncName.COMPARE: throw new com.ximpleware.xpath.UnsupportedException("not yet implemented");
                 case FuncName.ENDS_WITH:
-                    if (argCount() != 2)
+                    /*if (argCount() != 2)
                     {
                         throw new System.ArgumentException("ends-with()'s argument count is invalid");
-                    }
+                    }*/
                     return endsWith(vn);
-          				
+                case FuncName.MATCH_NAME: return matchName(vn);
+                case FuncName.MATCH_LOCAL_NAME: return matchLocalName(vn);
+                case FuncName.NOT_MATCH_NAME: return !matchName(vn);
+                case FuncName.NOT_MATCH_LOCAL_NAME: return !matchLocalName(vn);
+                case FuncName.ELEMENT_AVAILABLE: return isElementAvailable(vn);
+                case FuncName.FUNCTION_AVAILABLE: return isElementAvailable(vn);
+
                 default: if (Numerical)
                     {
                         double d = evalNumber(vn);
@@ -778,6 +977,7 @@ namespace com.ximpleware
         public override void reset(VTDNav vn)
         {
             a = 0;
+            state = START;
             //contextSize = 0;
             if (argumentList != null)
                 argumentList.reset(vn);
@@ -839,7 +1039,7 @@ namespace com.ximpleware
                 case FuncName.CEILING: return "ceiling";
 
                 case FuncName.ROUND: return "round";
-                    // added for 2.0
+                // added for 2.0
                 case FuncName.ABS: return "abs";
                 case FuncName.ROUND_HALF_TO_EVEN:
                     return "round-half-to-even";
@@ -861,7 +1061,15 @@ namespace com.ximpleware
                 case FuncName.RESOLVE_QNAME: return "resolve-QName";
                 case FuncName.IRI_TO_URI: return "iri-to-uri";
                 case FuncName.ESCAPE_HTML_URI: return "escape-html-uri";
-                default: return "encode-for-uri";
+                case FuncName.ENCODE_FOR_URI: return "encode-for-uri";
+                case FuncName.MATCH_NAME: return "match-name";
+                case FuncName.MATCH_LOCAL_NAME: return "match-local-name";
+                case FuncName.CURRENT: return "current";
+                case FuncName.GENERATE_ID: return "generate-id";
+                case FuncName.FORMAT_NUMBER: return "format-number";
+                case FuncName.KEY: return "key";
+                default:
+                    return "document";
 
             }
         }
@@ -869,7 +1077,7 @@ namespace com.ximpleware
 
         private System.String subStringAfter(VTDNav vn)
         {
-            if (argCount() == 2)
+            if (argCount1 == 2)
             {
                 String s1 = argumentList.e.evalString(vn);
                 String s2 = argumentList.next.e.evalString(vn);
@@ -889,7 +1097,7 @@ namespace com.ximpleware
 
         private System.String subStringBefore(VTDNav vn)
         {
-            if (argCount() == 2)
+            if (argCount1 == 2)
             {
                 String s1 = argumentList.e.evalString(vn);
                 String s2 = argumentList.next.e.evalString(vn);
@@ -909,7 +1117,7 @@ namespace com.ximpleware
 
         private System.String subString(VTDNav vn)
         {
-            if (argCount() == 2)
+            if (argCount1 == 2)
             {
                 System.String s = argumentList.e.evalString(vn);
                 if (s != null)
@@ -923,7 +1131,7 @@ namespace com.ximpleware
                 }
                 return null;
             }
-            else if (argCount() == 3)
+            else if (argCount1 == 3)
             {
                 System.String s = argumentList.e.evalString(vn);
                 if (s != null)
@@ -946,7 +1154,7 @@ namespace com.ximpleware
 
         private System.String normalizeSpace(VTDNav vn)
         {
-            if (argCount() == 0)
+            if (argCount1 == 0)
             {
                 String s = null;
                 try
@@ -973,7 +1181,7 @@ namespace com.ximpleware
                     return ""; // this will almost never occur
                 }
             }
-            else if (argCount() == 1)
+            else if (argCount1 == 1)
             {
                 String s = argumentList.e.evalString(vn);
                 return normalize(s);
@@ -1032,26 +1240,27 @@ namespace com.ximpleware
         private System.String concat(VTDNav vn)
         {
             StringBuilder sb = new StringBuilder();
-            if (argCount() >= 2)
+            // if (argCount1 >= 2)
+            //{
+            Alist temp = argumentList;
+            while (temp != null)
             {
-                Alist temp = argumentList;
-                while (temp != null)
-                {
-                    sb.Append(temp.e.evalString(vn));
-                    temp = temp.next;
-                }
-                return sb.ToString();
+                sb.Append(temp.e.evalString(vn));
+                temp = temp.next;
             }
-            else
-                throw new System.ArgumentException("concat()'s argument count is invalid");
+            return sb.ToString();
+            //}
+            //else
+            //    throw new System.ArgumentException("concat()'s argument count is invalid");
         }
 
         private int count(VTDNav vn)
         {
             int a = -1;
-            if (argCount() != 1 || argumentList.e.NodeSet == false)
-                throw new System.ArgumentException("Count()'s argument count is invalid");
+            //if (argCount1 != 1 || argumentList.e.NodeSet == false)
+            //    throw new System.ArgumentException("Count()'s argument count is invalid");
             vn.push2();
+            int size = vn.contextStack2.size;
             try
             {
                 a = 0;
@@ -1060,22 +1269,22 @@ namespace com.ximpleware
                 {
                     a++;
                 }
-                argumentList.e.reset(vn);
-                vn.pop2();
             }
             catch (System.Exception e)
             {
-                argumentList.e.reset(vn);
-                vn.pop2();
+
             }
+            argumentList.e.reset(vn);
+            vn.contextStack2.size = size;
+            vn.pop2();
             return a;
         }
 
         private double sum(VTDNav vn)
         {
             double d = 0;
-            if (argCount() != 1 || argumentList.e.NodeSet == false)
-                throw new System.ArgumentException("sum()'s argument count is invalid");
+            /*if (argCount() != 1 || argumentList.e.NodeSet == false)
+                throw new System.ArgumentException("sum()'s argument count is invalid");*/
             vn.push2();
             try
             {
@@ -1098,9 +1307,9 @@ namespace com.ximpleware
                         if (System.Double.IsNaN(d))
                             break;
                     }
-                    else if (t == VTDNav.TOKEN_CHARACTER_DATA 
+                    else if (t == VTDNav.TOKEN_CHARACTER_DATA
                         || t == VTDNav.TOKEN_CDATA_VAL
-                        || t== VTDNav.TOKEN_COMMENT)
+                        || t == VTDNav.TOKEN_COMMENT)
                     {
                         d = d + vn.parseDouble(a);
                         if (System.Double.IsNaN(d))
@@ -1196,13 +1405,21 @@ namespace com.ximpleware
                 a = argumentList.e.evalNodeSet(vn);
                 if (a != -1)
                 {
-                    if (vn.getTokenType(a) == VTDNav.TOKEN_ATTR_NAME)
+                    int t = vn.getTokenType(a);
+                    if (t == VTDNav.TOKEN_ATTR_NAME)
                     {
                         a++;
                     }
-                    if (vn.getTokenType(a) == VTDNav.TOKEN_STARTING_TAG)
+                    else if (t == VTDNav.TOKEN_STARTING_TAG)
                     {
                         a = vn.getText();
+                    }
+                    else if (t == VTDNav.TOKEN_PI_NAME)
+                    {
+                        if (a + 1 < vn.vtdSize || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                            a++;
+                        else
+                            a = -1;
                     }
                 }
             }
@@ -1367,6 +1584,319 @@ namespace com.ximpleware
             else
                 throw new System.ArgumentException
                 ("lowerCase()'s argument count is invalid");
+        }
+
+        public override bool isFinal()
+        {
+            Alist temp = argumentList;
+            if (temp == null)
+                return false;
+            if (temp.e == null)
+                return false;
+            bool s = true;
+            while (temp != null)
+            {
+                s = s && temp.e.isFinal();
+                if (!s)
+                    return false;
+                temp = temp.next;
+            }
+            return s;
+        }
+
+        private String formatNumber(VTDNav vn)
+        {
+            return "";
+        }
+
+        private bool matchName(VTDNav vn)
+        {
+            int a;
+            if (argCount1 == 1)
+            {
+                a = vn.getCurrentIndex();
+                int type = vn.getTokenType(a);
+                String s1 = argumentList.e.evalString(vn);
+                if (type == VTDNav.TOKEN_STARTING_TAG
+                        || type == VTDNav.TOKEN_ATTR_NAME
+                        || type == VTDNav.TOKEN_PI_NAME)
+                {
+                    try
+                    {
+                        return vn.matchRawTokenString(a, s1);
+                    }
+                    catch (Exception e)
+                    {
+                        return false;
+                    }
+                }
+                else
+                    return false;
+            }
+            else if (argCount1 == 2)
+            {
+                a = evalFirstArgumentListNodeSet2(vn);
+                String s1 = argumentList.next.e.evalString(vn);
+                try
+                {
+                    if (a == -1 || vn.ns == false)
+                        return false;
+                    else
+                    {
+                        int type = vn.getTokenType(a);
+                        if (type == VTDNav.TOKEN_STARTING_TAG
+                                || type == VTDNav.TOKEN_ATTR_NAME
+                                || type == VTDNav.TOKEN_PI_NAME)
+                            return vn.matchRawTokenString(a, s1);
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                }
+                return false;
+            }
+            else
+                throw new System.ArgumentException(
+                        "name()'s argument count is invalid");
+        }
+        private bool matchLocalName(VTDNav vn)
+        {
+            if (argCount1 == 1)
+            {
+                try
+                {
+                    int index = vn.getCurrentIndex();
+                    int type = vn.getTokenType(index);
+                    String s1 = argumentList.e.evalString(vn);
+                    if (vn.ns && (type == VTDNav.TOKEN_STARTING_TAG
+                            || type == VTDNav.TOKEN_ATTR_NAME))
+                    {
+                        int offset = vn.getTokenOffset(index);
+                        int length = vn.getTokenLength(index);
+                        if (length < 0x10000 || (length >> 16) == 0)
+                        {
+                            return (vn.compareRawTokenString(index, s1) == 0);//vn.toRawString(index);
+                        }
+                        else
+                        {
+                            int preLen = length >> 16;
+                            int QLen = length & 0xffff;
+                            if (preLen != 0)
+                            {
+                                return (vn.compareRawTokenString(offset + preLen + 1, QLen
+                                           - preLen - 1, s1) == 0);
+                            }
+                        }
+                    }
+                    else if (type == VTDNav.TOKEN_PI_NAME)
+                    {
+                        return vn.compareRawTokenString(index, s1) == 0;
+                    }
+                    else
+                        return "".Equals(s1);
+                }
+                catch (NavException e)
+                {
+                    return false; // this will never occur
+                }
+
+            }
+            else if (argCount1 == 2)
+            {
+                int a = evalFirstArgumentListNodeSet2(vn);
+                String s1 = argumentList.next.e.evalString(vn);
+                if (a == -1 || vn.ns == false)
+                    return "".Equals(s1);
+                int type = vn.getTokenType(a);
+                if (type == VTDNav.TOKEN_STARTING_TAG || type == VTDNav.TOKEN_ATTR_NAME)
+                {
+                    //return "".equals(s1);
+                    try
+                    {
+                        int offset = vn.getTokenOffset(a);
+                        int length = vn.getTokenLength(a);
+                        if (length < 0x10000 || (length >> 16) == 0)
+                            return vn.compareRawTokenString(a, s1) == 0;
+                        else
+                        {
+                            int preLen = length >> 16;
+                            int QLen = length & 0xffff;
+                            if (preLen != 0)
+                                return vn.compareRawTokenString(offset + preLen + 1,
+                                        QLen - preLen - 1, s1) == 0;
+                            /*else {
+                                return vn.toRawString(offset, QLen);
+                            }*/
+                        }
+                    }
+                    catch (NavException e)
+                    {
+                        return "".Equals(s1); // this will almost never occur
+                    }
+                }
+                else if (type == VTDNav.TOKEN_PI_NAME)
+                {
+                    try
+                    {
+                        return vn.compareRawTokenString(a, s1) == 0;
+                    }
+                    catch (NavException e)
+                    {
+                        return "".Equals(s1);
+                    }
+                }
+                return "".Equals(s1);
+            }
+            else
+                throw new ArgumentException
+                ("local-name()'s argument count is invalid");
+            return false;
+        }
+
+        /**
+         * generate-id(nodeset?);
+         * @param vn
+         * @return
+         */
+        private String generateID(VTDNav vn)
+        {
+            if (argCount1 == 0)
+            {
+                return "v" + vn.getCurrentIndex2();
+            }
+            else if (argCount1 == 1)
+            {
+                int i = evalFirstArgumentListNodeSet2(vn);
+                return "v" + i;
+            }
+            else
+                throw new ArgumentException
+                ("generate-id()'s argument count is invalid");
+
+        }
+
+
+
+        private int getStringVal(VTDNav vn, int i)
+        {
+            int i1, t = vn.getTokenType(i);
+            if (t == VTDNav.TOKEN_STARTING_TAG)
+            {
+                i1 = vn.getText();
+                return i1;
+            }
+            else if (t == VTDNav.TOKEN_ATTR_NAME
+                    || t == VTDNav.TOKEN_ATTR_NS || t == VTDNav.TOKEN_PI_NAME)
+                return i + 1;
+            else
+                return i;
+        }
+
+        private String getSystemProperty(VTDNav vn)
+        {
+            String s = argumentList.e.evalString(vn);
+            return "";
+        }
+
+        private bool isElementAvailable(VTDNav vn)
+        {
+            String s = argumentList.e.evalString(vn);
+            return false;
+        }
+
+        private bool isFunctionAvailable(VTDNav vn)
+        {
+            String s = argumentList.e.evalString(vn);
+            return false;
+        }
+
+        public override void markCacheable()
+        {
+            Alist temp = argumentList;
+            while (temp != null)
+            {
+                if (temp.e != null)
+                {
+                    if (temp.e.isFinal() && temp.e.NodeSet)
+                    {
+                        CachedExpr ce = new CachedExpr(temp.e);
+                        temp.e = ce;
+                    }
+                    temp.e.markCacheable();
+                }
+                temp = temp.next;
+            }
+
+        }
+        public override void markCacheable2()
+        {
+            Alist temp = argumentList;
+            while (temp != null)
+            {
+                if (temp.e != null)
+                    temp.e.markCacheable2();
+                temp = temp.next;
+            }
+        }
+
+        private double roundHalfToEven(VTDNav vn)
+        {
+            //int numArg = argCount;
+            /*if (argCount1 < 1 || argCount1 > 2)
+            {
+                throw new ArgumentException("Argument count for roundHalfToEven() is invalid. Expected: 1 or 2; Actual: " + argCount1);
+            }*/
+            double value = argumentList.e.evalNumber(vn);
+            long precision = (argCount1 == 2) ? (long)Math.Floor(argumentList.next.e.evalNumber(vn) + 0.5d) : 0;
+
+            if (value < 0) return -roundHalfToEvenPositive(-value, precision);
+            else return roundHalfToEvenPositive(value, precision);
+        }
+
+        private double roundHalfToEvenPositive(double value, long precision)
+        {
+            const double ROUNDING_EPSILON = 0.00000001;
+            long dec = 1;
+
+            //shif the decimal point by precision
+            long absPre = Math.Abs(precision);
+
+            for (int i = 0; i < absPre; i++)
+            {
+                dec *= 10;
+            }
+
+            if (precision > 0) value *= dec;
+            else if (precision < 0) value /= dec;
+
+            double result = 0;
+            long intPart = (long)value;
+
+            //'value' is exctly halfway between two integers
+            if (Math.Abs(value - (intPart + 0.5d)) < ROUNDING_EPSILON)
+            {
+                // 'ipart' is even 
+                if (intPart % 2 == 0)
+                {
+                    result = intPart;
+                }
+                else
+                {// nearest even integer
+                    result = (long)-Math.Floor(-(intPart + 0.5d));
+                }
+            }
+            else
+            {
+                //use the usual round to closest	    
+                result = Math.Round(value);
+            }
+
+            //shif the decimal point back to where it was
+            if (precision > 0) result /= dec;
+            else if (precision < 0) result *= dec;
+
+            return result;
         }
     }
 }

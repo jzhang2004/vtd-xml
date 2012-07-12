@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -699,6 +699,43 @@ namespace com.ximpleware
             throw new System.SystemException("Undefined behavior");
         }
     }
-	
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+    public override bool isFinal()
+    {
+        return left.isFinal() && right.isFinal();
+    }
+        /// <summary>
+        /// 
+        /// </summary>
+    public override void markCacheable(){
+		left.markCacheable();
+		right.markCacheable();			
+	}
+	/// <summary>
+	/// 
+	/// </summary>
+	public override void markCacheable2(){
+		if (left.isFinal() && left.NodeSet){
+			CachedExpr ce = new CachedExpr(left);
+			left = ce;
+		} 
+		left.markCacheable2();
+		if (right.isFinal() && right.NodeSet){
+			CachedExpr ce = new CachedExpr(right);
+			right = ce;
+		} 
+		right.markCacheable2();
+	}
+        /// <summary>
+        /// 
+        /// </summary>
+    public override void clearCache()
+    {
+		left.clearCache();
+		right.clearCache();
+	}
 	}
 }

@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,9 @@ namespace com.ximpleware
 
     abstract public class Expr
     {
+        /// <summary>
+        /// 
+        /// </summary>
         abstract public bool Numerical { get; }
         abstract public bool NodeSet { get; }
         abstract public bool String { get; }
@@ -43,9 +46,42 @@ namespace com.ximpleware
 
         abstract public void reset(VTDNav vn);
         abstract public override System.String ToString();
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         abstract public bool requireContextSize();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         abstract public int adjust(int n);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        abstract public bool isFinal();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void markCacheable() { }
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void markCacheable2() { }
+        
+        //public boolean isConstant(){return false;}
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void clearCache() { }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <returns></returns>
         protected int getStringIndex(VTDNav vn)
         {
             int a = -1;
