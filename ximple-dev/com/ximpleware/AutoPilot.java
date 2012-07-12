@@ -117,7 +117,7 @@ public AutoPilot(){
     xpe = null;
     symbolHash = new Hashtable();
     fib = null;
-    enableCaching = false;
+    enableCaching = true;
     //count=0;
 }
 /** This function creates URL ns prefix 
@@ -345,6 +345,10 @@ public boolean iterate() throws PilotException, NavException {
          case PRECEDING_NS:
          	if (vn.atTerminal)
          	    return false;
+         	if(ft){
+         		ft = false;
+         		vn.toElement(VTDNav.ROOT);
+         	}
          	return vn.iterate_precedingNS(URL,localName,contextCopy,endIndex);
          	
 
@@ -573,7 +577,7 @@ public boolean iterate() throws PilotException, NavException {
   	
   }
    
-   final public void selectNode(){
+   final protected void selectNode(){
 	   ft = true;
 	   depth = vn.getCurrentDepth();
 	   iter_type = SIMPLE_NODE;
@@ -893,8 +897,11 @@ final protected void setSpecial(boolean b ){
 final public String getExprString(){
 	return xpe.toString();
 }
-
-final public void enableCaching(){
-	enableCaching = true;
+/**
+ * set state to false to disable caching, which by default is enabled
+ * @param state
+ */
+final public void enableCaching(boolean state){
+	enableCaching = state;
 }
 }
