@@ -139,7 +139,7 @@ namespace com.ximpleware
 			xpe = null;
             symbolHash = new System.Collections.Hashtable();
             fib = null;
-            cachingEnabled = false;
+            cachingEnabled = true;
 		}
 		/// <summary>This function creates URL ns prefix 
 		/// and is intended to be called prior to selectXPath
@@ -341,6 +341,11 @@ namespace com.ximpleware
 				case PRECEDING_NS: 
 					if (vn.atTerminal)
 						return false;
+                    if (ft)
+                    {
+                        ft = false;
+                        vn.toElement(VTDNav.ROOT);
+                    }
 					return vn.iterate_precedingNS(URL, localName, contextCopy,endIndex);
 				
 				
@@ -980,9 +985,9 @@ namespace com.ximpleware
             }
 }
 
-        public void enableCaching()
+        public void enableCaching(bool state)
         {
-            this.cachingEnabled = true;
+            this.cachingEnabled = state;
         }
 
 
