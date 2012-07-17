@@ -146,14 +146,23 @@ public class FilterExpr extends Expr {
             a = evalNodeSet(vn);
             if (a != -1) {
             	int t = vn.getTokenType(a);
-                if (t == VTDNav.TOKEN_ATTR_NAME) {
-                    s = vn.toString(a+1);
-                } else if (t == VTDNav.TOKEN_STARTING_TAG || t ==VTDNav.TOKEN_DOCUMENT) {
-                    s = vn.getXPathStringVal();
-                }else if (t == VTDNav.TOKEN_PI_NAME) {
-                	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
-	                	s = vn.toString(a+1);              
-                }
+            	switch(t){
+				case VTDNav.TOKEN_STARTING_TAG:
+				case VTDNav.TOKEN_DOCUMENT:
+					s = vn.getXPathStringVal();
+					break;
+				case VTDNav.TOKEN_ATTR_NAME:
+					s = vn.toString(a + 1);
+					break;
+				case VTDNav.TOKEN_PI_NAME:
+					//if (a + 1 < vn.vtdSize
+					//		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+						s = vn.toString(a + 1);
+					break;
+				default:
+					s = vn.toString(a);
+					break;
+				}
             }
         } catch (Exception e) {
 
