@@ -194,7 +194,7 @@ public class LocationPathExpr extends Expr{
 		}
 	
 		final public String evalString(VTDNav vn){ 	
-			String s = "";
+			String s="";
 			int a = -1;
 	        vn.push2();
 	        int size = vn.contextStack2.size;
@@ -202,15 +202,23 @@ public class LocationPathExpr extends Expr{
 	            a = evalNodeSet(vn);
 	            if (a != -1) {
 	            	int t = vn.getTokenType(a);
-	                if (t == VTDNav.TOKEN_ATTR_NAME) {
-	                    s = vn.toString(a+1);
-	                } else if (t == VTDNav.TOKEN_STARTING_TAG || t ==VTDNav.TOKEN_DOCUMENT) {
-	                    s = vn.getXPathStringVal();
-	                }else if (t == VTDNav.TOKEN_PI_NAME){
-	                	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
-	                	s = vn.toString(a+1); 	                
-	                }else
-	                	s= vn.toString(a);
+	            	switch(t){
+					case VTDNav.TOKEN_STARTING_TAG:
+					case VTDNav.TOKEN_DOCUMENT:
+						s = vn.getXPathStringVal();
+						break;
+					case VTDNav.TOKEN_ATTR_NAME:
+						s = vn.toString(a + 1);
+						break;
+					case VTDNav.TOKEN_PI_NAME:
+						//if (a + 1 < vn.vtdSize
+						//		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+							s = vn.toString(a + 1);
+						break;
+					default:
+						s = vn.toString(a);
+						break;
+					}
 	            }
 	        } catch (Exception e) {
 
@@ -239,12 +247,20 @@ public class LocationPathExpr extends Expr{
 				state = END;								
 			}
 		}
+		/**
+		 * For processing node tests that are element specific
+		 * @param vn
+		 * @return
+		 * @throws XPathEvalException
+		 * @throws NavException
+		 */
 		final protected int process_child(VTDNav vn)throws XPathEvalException,NavException{
 		    int result;
 		    boolean b = false, b1 = false;
 		    int k=1;
 		    Predicate t= null;
-		    
+		    //System.out.println(" index-============= " + vn.getCurrentIndex());
+		    //System.out.println(" depth ==============" + vn.getCurrentDepth());
 		    switch(state){
 		    	case START:
 		    	    //if (currentStep.nt.testType < NodeTest.TEXT){
@@ -443,7 +459,7 @@ public class LocationPathExpr extends Expr{
 			    
     	        t = currentStep.p;
     	        while(t!=null){
-    	            if (t.requireContextSize()){
+    	            if (t.requireContext){
     	                int i = computeContextSize(t,vn);
     	                if (i==0){
     	                    b1 = true;
@@ -624,7 +640,7 @@ public class LocationPathExpr extends Expr{
 
 			t = currentStep.p;
 			while (t != null) {
-				if (t.requireContextSize()) {
+				if (t.requireContext) {
 					int i = computeContextSize(t, vn);
 					if (i == 0) {
 						b1 = true;
@@ -794,7 +810,7 @@ public class LocationPathExpr extends Expr{
 			case  FORWARD:
     	        t = currentStep.p;
     	        while(t!=null){
-    	            if (t.requireContextSize()){
+    	            if (t.requireContext){
     	                int i = computeContextSize(t,vn);
     	                if (i==0){
     	                    b1 = true;
@@ -885,7 +901,7 @@ public class LocationPathExpr extends Expr{
 			case  FORWARD:
     	        t = currentStep.p;
     	        while(t!=null){
-    	            if (t.requireContextSize()){
+    	            if (t.requireContext){
     	                int i = computeContextSize(t,vn);
     	                if (i==0){
     	                    b1 = true;
@@ -978,7 +994,7 @@ public class LocationPathExpr extends Expr{
 	    		
 	    	    t = currentStep.p;
 	    	    while (t != null) {
-	    	        if (t.requireContextSize()) {
+	    	        if (t.requireContext) {
 	    	            int i = computeContextSize( t, vn);
 	    	            if (i == 0) {
 	    	                b1 = true;
@@ -1029,7 +1045,7 @@ public class LocationPathExpr extends Expr{
 	    	case FORWARD:	    	    
 	    	     t = currentStep.p;
 	    	     while(t!=null){
-	    	        if (t.requireContextSize()){
+	    	        if (t.requireContext){
 	    	             int i = computeContextSize(t,vn);
 	    	             if (i==0){
 	    	                 b1 = true;
@@ -1065,7 +1081,8 @@ public class LocationPathExpr extends Expr{
 			   		}							
 			   	}
 			   	if ( state == BACKWARD){
-			   		currentStep.resetP(vn);
+			   		if (currentStep.hasPredicate)
+			   			currentStep.resetP(vn);
 					vn.pop2();
 			   		currentStep=currentStep.prevS;
 			   	}			    
@@ -1095,7 +1112,8 @@ public class LocationPathExpr extends Expr{
 				if (b==false){
 					vn.pop2();
 					if (currentStep.prevS!=null) {
-						currentStep.resetP(vn);
+						if (currentStep.hasPredicate)
+							currentStep.resetP(vn);
 						state =  BACKWARD;
 						currentStep = currentStep.prevS;
 					}
@@ -1117,7 +1135,8 @@ public class LocationPathExpr extends Expr{
 			vn.pop2();
 			
 			if (currentStep.prevS!=null) {
-				currentStep.resetP(vn);
+				if (currentStep.hasPredicate)
+					currentStep.resetP(vn);
 				 state =  BACKWARD;
 				currentStep = currentStep.prevS;
 			}
@@ -1145,7 +1164,7 @@ public class LocationPathExpr extends Expr{
 	    		
 	    	    t = currentStep.p;
 	    	    while (t != null) {
-	    	        if (t.requireContextSize()) {
+	    	        if (t.requireContext) {
 	    	            int i = computeContextSize( t, vn);
 	    	            if (i == 0) {
 	    	                b1 = true;
@@ -1161,7 +1180,7 @@ public class LocationPathExpr extends Expr{
 	    	    }
 
 	    	    state = END;
-	    	    if (vn.getCurrentDepth() != -1) {
+	    	    //if (vn.getCurrentDepth() != -1) {
 	    	        vn.push2();
 
 	    	        while (vn.toNode(VTDNav.P)) {
@@ -1185,7 +1204,7 @@ public class LocationPathExpr extends Expr{
 	    	        		currentStep.resetP(vn);
 	    	            vn.pop2();
 	    	        }
-	    	    }
+	    	   // }
 	    	    break;
     	        
 	    	case END:   
@@ -1196,7 +1215,7 @@ public class LocationPathExpr extends Expr{
 	    	case FORWARD:	    	    
 	    	     t = currentStep.p;
 	    	     while(t!=null){
-	    	        if (t.requireContextSize()){
+	    	        if (t.requireContext){
 	    	             int i = computeContextSize(t,vn);
 	    	             if (i==0){
 	    	                 b1 = true;
@@ -1232,7 +1251,8 @@ public class LocationPathExpr extends Expr{
 			   		}							
 			   	}
 			   	if ( state == BACKWARD){
-			   		currentStep.resetP(vn);
+			   		if (currentStep.hasPredicate)
+			   			currentStep.resetP(vn);
 					vn.pop2();
 			   		currentStep=currentStep.prevS;
 			   	}			    
@@ -1262,7 +1282,8 @@ public class LocationPathExpr extends Expr{
 				if (b==false){
 					vn.pop2();
 					if (currentStep.prevS!=null) {
-						currentStep.resetP(vn);
+						if (currentStep.hasPredicate)
+							currentStep.resetP(vn);
 						state =  BACKWARD;
 						currentStep = currentStep.prevS;
 					}
@@ -1284,7 +1305,8 @@ public class LocationPathExpr extends Expr{
 			vn.pop2();
 			
 			if (currentStep.prevS!=null) {
-				currentStep.resetP(vn);
+				if (currentStep.hasPredicate)
+					currentStep.resetP(vn);
 				 state =  BACKWARD;
 				currentStep = currentStep.prevS;
 			}
@@ -1308,7 +1330,7 @@ public class LocationPathExpr extends Expr{
 			case  START:
 	    	    t = currentStep.p;
 	    	    while (t != null) {
-	    	        if (t.requireContextSize()) {
+	    	        if (t.requireContext) {
 	    	            int i = computeContextSize( t, vn);
 	    	            if (i == 0) {
 	    	                b1 = true;
@@ -1374,7 +1396,7 @@ public class LocationPathExpr extends Expr{
 			case  FORWARD:
 	    	     t = currentStep.p;
 	    	     while(t!=null){
-	    	        if (t.requireContextSize()){
+	    	        if (t.requireContext){
 	    	             int i = computeContextSize(t,vn);
 	    	             if (i==0){
 	    	                 b1 = true;
@@ -1430,7 +1452,8 @@ public class LocationPathExpr extends Expr{
 						}
 					
 					if ( state ==  BACKWARD) {
-						currentStep.resetP(vn);
+						if (currentStep.hasPredicate)
+							currentStep.resetP(vn);
 						currentStep.ft = true;
 						vn.pop2();
 						currentStep = currentStep.prevS;
@@ -1466,7 +1489,8 @@ public class LocationPathExpr extends Expr{
 				}
 				if (b == false) {
 					vn.pop2();
-					currentStep.resetP(vn);
+					if (currentStep.hasPredicate)
+						currentStep.resetP(vn);
 					if (currentStep.prevS != null) {
 						currentStep.ft = true;
 						 state =  BACKWARD;
@@ -1487,7 +1511,8 @@ public class LocationPathExpr extends Expr{
 					}
 				}
 				vn.pop2();
-				currentStep.resetP(vn);
+				if (currentStep.hasPredicate)
+					currentStep.resetP(vn);
 				if (currentStep.prevS!=null) {
 					currentStep.ft = true;
 					 state =  BACKWARD;
@@ -1514,7 +1539,7 @@ public class LocationPathExpr extends Expr{
 			case  START:
 	    	    t = currentStep.p;
 	    	    while (t != null) {
-	    	        if (t.requireContextSize()) {
+	    	        if (t.requireContext) {
 	    	            int i = computeContextSize( t, vn);
 	    	            if (i == 0) {
 	    	                b1 = true;
@@ -1580,7 +1605,7 @@ public class LocationPathExpr extends Expr{
 			case  FORWARD:
 	    	     t = currentStep.p;
 	    	     while(t!=null){
-	    	        if (t.requireContextSize()){
+	    	        if (t.requireContext){
 	    	             int i = computeContextSize(t,vn);
 	    	             if (i==0){
 	    	                 b1 = true;
@@ -1636,7 +1661,8 @@ public class LocationPathExpr extends Expr{
 						}
 					
 					if ( state ==  BACKWARD) {
-						currentStep.resetP(vn);
+						if (currentStep.hasPredicate)
+							currentStep.resetP(vn);
 						currentStep.ft = true;
 						vn.pop2();
 						currentStep = currentStep.prevS;
@@ -1672,7 +1698,8 @@ public class LocationPathExpr extends Expr{
 				}
 				if (b == false) {
 					vn.pop2();
-					currentStep.resetP(vn);
+					if (currentStep.hasPredicate)
+						currentStep.resetP(vn);
 					if (currentStep.prevS != null) {
 						currentStep.ft = true;
 						 state =  BACKWARD;
@@ -1693,7 +1720,8 @@ public class LocationPathExpr extends Expr{
 					}
 				}
 				vn.pop2();
-				currentStep.resetP(vn);
+				if (currentStep.hasPredicate)
+					currentStep.resetP(vn);
 				if (currentStep.prevS!=null) {
 					currentStep.ft = true;
 					 state =  BACKWARD;
@@ -1721,7 +1749,7 @@ public class LocationPathExpr extends Expr{
 		  case  FORWARD:
   	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -1795,7 +1823,7 @@ public class LocationPathExpr extends Expr{
 		case FORWARD:
 			t = currentStep.p;
 			while (t != null) {
-				if (t.requireContextSize()) {
+				if (t.requireContext) {
 					int i = computeContextSize(t, vn);
 					if (i == 0) {
 						b1 = true;
@@ -1871,7 +1899,7 @@ public class LocationPathExpr extends Expr{
 		    
 	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -1927,13 +1955,13 @@ public class LocationPathExpr extends Expr{
                     currentStep.ft = true;
                     if (currentStep.hasPredicate)
                     	currentStep.resetP(vn);
-                    vn.setAtTerminal(false);
+                    vn.atTerminal=(false);
                     if (state == FORWARD) {
                         state = BACKWARD;
                         currentStep = currentStep.prevS;
                     }
                 } else {
-                	vn.setAtTerminal(true);
+                	vn.atTerminal=(true);
                     if (currentStep.nextS != null) {
                         vn.LN = temp;
                         state = FORWARD;
@@ -1967,8 +1995,9 @@ public class LocationPathExpr extends Expr{
 			if (temp == -1) {
 				vn.pop2();
 				currentStep.ft = true;
-				currentStep.resetP(vn);
-				vn.setAtTerminal(false);
+				if (currentStep.hasPredicate)
+					currentStep.resetP(vn);
+				vn.atTerminal=(false);
 				if (currentStep.prevS != null) {
 					state =  BACKWARD;
 					currentStep = currentStep.prevS;
@@ -2000,8 +2029,9 @@ public class LocationPathExpr extends Expr{
 				    vn.LN = temp;
 					return temp;
 				}
-			vn.setAtTerminal(false);
-			currentStep.resetP(vn);
+			vn.atTerminal=(false);
+			if (currentStep.hasPredicate)
+				currentStep.resetP(vn);
 			if (currentStep.prevS == null) {
 				currentStep.ft = true;
 				vn.pop2();
@@ -2032,7 +2062,7 @@ public class LocationPathExpr extends Expr{
 
   	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -2102,7 +2132,8 @@ public class LocationPathExpr extends Expr{
 		  	}
 		    if (b==false){
 		    	vn.pop2();
-		    	currentStep.resetP(vn);
+		    	if (currentStep.hasPredicate)
+		    		currentStep.resetP(vn);
 		    	if (currentStep.prevS==null){
 		    		 state =  END;
 		    	}else{
@@ -2151,7 +2182,7 @@ public class LocationPathExpr extends Expr{
 
   	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -2269,7 +2300,7 @@ public class LocationPathExpr extends Expr{
 		  case  FORWARD:
   	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -2387,7 +2418,7 @@ public class LocationPathExpr extends Expr{
 		  case  FORWARD:
   	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -2457,7 +2488,8 @@ public class LocationPathExpr extends Expr{
 		  	}
 		    if (b==false){
 		    	vn.pop2();
-		    	currentStep.resetP(vn);
+		    	if (currentStep.hasPredicate)
+		    		currentStep.resetP(vn);
 		    	if (currentStep.prevS==null){
 		    		 state =  END;
 		    	}else{
@@ -2506,7 +2538,7 @@ public class LocationPathExpr extends Expr{
 		    
 	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -2552,7 +2584,7 @@ public class LocationPathExpr extends Expr{
                 }
                 if (state == START)
                     state = END;
-                vn.setAtTerminal(true);
+                vn.atTerminal=(true);
                 while ((temp = ap.iterateAttr2()) != -1) {
                     if ( !currentStep.hasPredicate || currentStep.evalPredicates(vn)) {
                         break;
@@ -2562,7 +2594,7 @@ public class LocationPathExpr extends Expr{
                     currentStep.ft = true;
                     if (currentStep.hasPredicate)
                     	currentStep.resetP(vn);
-                    vn.setAtTerminal(false);
+                    vn.atTerminal=(false);
                     if (state == FORWARD) {
                         state = BACKWARD;
                         currentStep = currentStep.prevS;
@@ -2603,7 +2635,7 @@ public class LocationPathExpr extends Expr{
 				currentStep.ft = true;
 				if (currentStep.hasPredicate)
 					 currentStep.resetP(vn);
-				vn.setAtTerminal(false);
+				vn.atTerminal=(false);
 				if (currentStep.prevS != null) {
 					state =  BACKWARD;
 					currentStep = currentStep.prevS;
@@ -2635,7 +2667,7 @@ public class LocationPathExpr extends Expr{
 				    vn.LN = temp;
 					return temp;
 				}
-			vn.setAtTerminal(false);
+			vn.atTerminal=(false);
    		    if (currentStep.hasPredicate)
    		    	currentStep.resetP(vn);
    		    currentStep.ft = true;
@@ -2806,7 +2838,7 @@ public class LocationPathExpr extends Expr{
 		    }
 		}			    
 	    vn.pop2();
-		currentStep.resetP(vn,p);
+	   	currentStep.resetP(vn,p);
 		currentStep.out_of_range=false;
 		//currentStep.o = ap;
 		return i;
@@ -2822,7 +2854,7 @@ public class LocationPathExpr extends Expr{
 		    }
 		}			    
 	    vn.pop2();
-		currentStep.resetP(vn,p);
+	    currentStep.resetP(vn,p);
 		currentStep.out_of_range=false;
 		return i;
 	}
