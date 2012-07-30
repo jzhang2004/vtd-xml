@@ -1071,12 +1071,16 @@ public class VTDNav {
 
 		// for an element with next sibling
 		if (toElement(NEXT_SIBLING)) {
-
+			
 			int temp = getCurrentIndex();
+			int temp2 = temp;
+			//boolean b = false;
 			// rewind
-			while (getTokenDepth(temp) < depth) {
+			while (getTokenDepth(temp) <= depth) {
 				temp--;
 			}
+			if(temp!=temp2)
+				temp++;
 			//temp++;
 			int so2 = getTokenOffset(temp) - 1;
 			// look for the first '>'
@@ -4585,9 +4589,9 @@ public class VTDNav {
 		if (type == TOKEN_STARTING_TAG
 			|| type == TOKEN_ATTR_NAME
 			|| type == TOKEN_ATTR_NS)
-			len = getTokenLength(index) & 0xffff;
+			len = getTokenLength2(index) & 0xffff;
 		else
-			len = getTokenLength(index);
+			len = getTokenLength2(index);
 		int offset = getTokenOffset(index);
 		toRawString(offset, len,sb);
 	}
@@ -4875,12 +4879,12 @@ public class VTDNav {
 	
 	final protected void toString(StringBuilder sb, int index) 
 	throws NavException {	
-		int type = getTokenType(index);
+		/*int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
-			toRawString(sb, index); 
+			toRawString(sb, index);*/ 
 		int len;
-		len = getTokenLength(index);
+		len = getTokenLength2(index);
 
 		int offset = getTokenOffset(index);
 		toString(offset, len, sb);
@@ -4888,12 +4892,12 @@ public class VTDNav {
 	
 	final protected void toStringUpperCase(StringBuilder sb, int index) 
 	throws NavException {	
-		int type = getTokenType(index);
+		/*int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
-			toRawString(sb, index); 
+			toRawString(sb, index);*/ 
 		int len;
-		len = getTokenLength(index);
+		len = getTokenLength2(index);
 
 		int offset = getTokenOffset(index);
 		toStringUpperCase(offset, len, sb);
@@ -4901,12 +4905,12 @@ public class VTDNav {
 	
 	final protected void toStringLowerCase(StringBuilder sb, int index) 
 	throws NavException {	
-		int type = getTokenType(index);
+		/*int type = getTokenType(index);
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
-			toRawString(sb, index); 
+			toRawString(sb, index); */
 		int len;
-		len = getTokenLength(index);
+		len = getTokenLength2(index);
 
 		int offset = getTokenOffset(index);
 		toStringLowerCase(offset, len, sb);
@@ -5694,13 +5698,14 @@ public class VTDNav {
 		return getXPathStringVal((short)0);
 	}
 	/**
-	 * Return the 
+	 * Return the String value of an Element Node
 	 * @param mode
 	 * @return
 	 * @throws NavException
 	 */
 	final public String getXPathStringVal(short mode) throws NavException{
-		int index = getCurrentIndex() + 1;
+		return getXPathStringVal2(getCurrentIndex(),mode);
+		/*int index = getCurrentIndex() + 1;
 		int tokenType, depth, t=0;
 		int dp = context[0];
 		//int size = vtdBuffer.size;
@@ -5708,6 +5713,7 @@ public class VTDNav {
 		while (index < vtdSize) {
 		    tokenType = getTokenType(index);
 		    depth = getTokenDepth(index);
+		    t = t + getTokenLength2(index);
 		    if (depth<dp || 
 		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
 		    	break;
@@ -5745,11 +5751,11 @@ public class VTDNav {
 			    index = index+2;
 			    continue;
 			}*/	
-			index++;
-		}
+		//	index++;
+		//}
 		
 		// calculate the total length
-		StringBuilder sb = new StringBuilder(t);
+		/*StringBuilder sb = new StringBuilder(t);
 		
 		for(t=0;t<fib.size;t++ ){
 			switch(mode){
@@ -5763,7 +5769,7 @@ public class VTDNav {
 				
 		// clear the fib and return a string
 		fib.clear();
-		return sb.toString();
+		return sb.toString();*/
 	}
 
 	final protected String getXPathStringVal2(int j, short mode) throws NavException{
@@ -5780,6 +5786,7 @@ public class VTDNav {
 		while (index < vtdSize) {
 		    tokenType = getTokenType(index);
 		    depth = getTokenDepth(index);
+		    t=t+getTokenLength2(index);
 		    if (depth<dp || 
 		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
 		    	break;
@@ -5822,6 +5829,7 @@ public class VTDNav {
 		}
 				
 		// clear the fib and return a string
+		fib.clear();
 		return sb.toString();
 	}
 	final public boolean XPathStringVal_Contains() throws NavException{
@@ -5874,11 +5882,14 @@ public class VTDNav {
 		// for an element with next sibling
 		if (toElement(NEXT_SIBLING)) {
 
-			int temp = getCurrentIndex();
+			int temp2,temp = getCurrentIndex();
+			temp2=temp;
 			// rewind
 			while (getTokenDepth(temp) < depth) {
 				temp--;
 			}
+			if (temp2!=temp)
+				temp++;
 			//temp++;
 			int so2 = getTokenOffset(temp) - 1;
 			// look for the first '>'
