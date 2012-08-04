@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1762,14 +1762,14 @@ VTDGen::pState VTDGen::process_pi_tag(){
 			_writeVTD(
 				(temp_offset),
 				0,
-				TOKEN_PI_NAME,
+				TOKEN_PI_VAL,
 				depth);
 		}
 		else{
 			_writeVTD(
 				(temp_offset) >> 1,
 				0,
-				TOKEN_PI_NAME,
+				TOKEN_PI_VAL,
 				depth);
 		}
 		if (skipChar('>')) {
@@ -3181,8 +3181,110 @@ void VTDGen::parse(bool ns1){
 	}
 }
 
-bool VTDGen::parseFile(bool ns, const char* fileName){
+UByte* VTDGen::doubleCapacity(UByte *b, size_t cap){
+	UByte *t = new UByte[cap];
+	memcpy(t,b,cap>>1);
+	delete b;
+	return t;
+}
+Long VTDGen::getBytes_UTF8(UCSChar *s){
+	/* < 0x7f  1 byte*/
+	/* < 0x7ff  2 bytes */
+	/* < 0xffff  3 bytes */
+	/* < 0x 10ffff  4 bytes*/
+	size_t len = wcslen(s),i=0,k=0,capacity = max<size_t>(len,8);/*minimum size is 8 */
+	UByte *ba = new UByte[capacity]; 
+	if (ba == NULL)
+		throw OutOfMemException("Byte allocation failed in getBytes_UTF_8");
+	for (i=0;i<len;i++){
+		if (s[i]<= 0x7f){
+			if (capacity -k<1){
+				capacity = capacity<<1;
+				ba = doubleCapacity(ba,capacity);
+			}
+			ba[k]=(UByte)s[i];
+			k++;
+		}else if (s[i] <=0x7ff){
+			if (capacity -k<2){
+				capacity = capacity<<1;
+				ba = doubleCapacity(ba,capacity);
+			}
+			ba[k]= ((s[i] & 0x7c0) >> 6) | 0xc0;
+			ba[k+1] = (s[i] & 0x3f) | 0x80;
+			k += 2;
+		}else if (s[i] <=0xffff){
+			if (capacity -k<3){
+				capacity = capacity<<1;
+				ba = doubleCapacity(ba,capacity);
+			}
+			ba[k]= ((s[i] & 0xf000) >> 12) | 0xe0;
+			ba[k+1] = ((s[i] & 0xfc) >> 6) | 0x80;
+			ba[k+2] = (s[i] & 0x3f) | 0x80;
+			k += 3;
+		}else if (s[i] <=0x10ffff){
+			if (capacity -k<4){
+				capacity = capacity<<1;
+				ba = doubleCapacity(ba,capacity);
+			}
+			ba[k]= ((s[i] & 0x1c0000) >> 18) | 0xf0;
+			ba[k+1] = ((s[i] & 0x3f0) >> 12) | 0x80;
+			ba[k+2] = ((s[i] & 0xfc) >> 6) | 0x80;
+			ba[k+3] = (s[i] & 0x3f) | 0x80;
+			k += 4;
+		}else
+			throw ModifyException("Invalid XML char for getBytes_UTF_8");
+	}
+	return ((Long)k<<32)|(Long)ba;
+}
+bool VTDGen::parseFile(bool ns, const UCSChar* fileName){	
 	FILE *f = NULL;
+	//exception e;
+	int status,len;
+	UByte *ba=NULL;
+	struct stat buffer;
+	char *fileName2 = (char *)getBytes_UTF8((UCSChar *)fileName);
+	f = fopen(fileName2,"rb");
+	delete fileName2;//delete it after fopen
+	if (f==NULL){
+		//throwException2(invalid_argument,"fileName not valid");
+		return false;
+	}
+	status = stat(fileName2,&buffer);
+	if (status !=0){
+		fclose(f);
+		//throw ParseException("error occurred in parseFile");
+		return false;
+	}
+	len = buffer.st_size;
+	ba = new UByte[len];
+	if (ba == NULL){
+		fclose(f);
+		//throwException2(out_of_mem,"error occurred in parseFile");
+		return false;
+	}
+	if (fread(ba,1,len,f)!=(size_t)len){
+		fclose(f);
+		return false;
+	}
+	setDoc(ba,len);
+	try{
+		parse(ns);
+	}catch(ParseException& e){
+		delete[] ba;
+		clear();
+		fclose(f);
+		printf("%s\n",e.what());
+		//printf("%s\n",e.sub_msg);
+		//throwException2(out_of_mem,"error occurred in parseFile");
+		return false;
+	}
+	
+	fclose(f);
+	return true;
+}
+
+bool VTDGen::parseFile(bool ns, const char* fileName){
+		FILE *f = NULL;
 	//exception e;
 	int status,len;
 	UByte *ba=NULL;
@@ -3225,6 +3327,7 @@ bool VTDGen::parseFile(bool ns, const char* fileName){
 	fclose(f);
 	return true;
 }
+
 //done!!
 void VTDGen::setDoc(UByte *ba, int len){
 	setDoc(ba, len, 0, len);
