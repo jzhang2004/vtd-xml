@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,9 @@ it(UNDEFINED), /* initial state: not defined */
 xpe(NULL),
 //nl(NULL),
 contextCopy(NULL),
-fib(NULL)
+fib(NULL),
+cachingOption(true),
+stackSize(0)
 {
 }
 
@@ -66,7 +68,9 @@ it(UNDEFINED), /* initial state: not defined */
 xpe(NULL),
 //nl(NULL),
 contextCopy(NULL),
-fib(NULL)
+fib(NULL),
+cachingOption(true),
+stackSize(0)
 {
 }
 
@@ -225,6 +229,7 @@ void AutoPilot::selectElement_P(UCSChar *en){
 	elementName = en;
     contextCopy = new int[vn->nestingLevel]; //(int[])vn.context.clone();
 	memcpy(contextCopy,vn->context,a);
+	endIndex = vn->getCurrentIndex2();
 	for(i = vn->context[0]+1 ; i<vn->nestingLevel ; i++){
         contextCopy[i]=-1;
     }
@@ -248,6 +253,7 @@ void AutoPilot::selectElementNS_P(UCSChar *URL, UCSChar *ln){
 	localName = ln;
     contextCopy = new int[vn->nestingLevel]; //(int[])vn.context.clone();
 	memcpy(contextCopy,vn->context,a);
+	endIndex = vn->getCurrentIndex2();
 	for(i = vn->context[0]+1 ; i<vn->nestingLevel ; i++){
         contextCopy[i]=-1;
     }
@@ -334,12 +340,20 @@ bool AutoPilot::iterate(){
 		case PRECEDING:
 			if (vn->atTerminal)
          	    return false;
-         	return vn->iterate_preceding( elementName, contextCopy, special);
+			if (ft){
+				ft = false;
+				vn->toElement(ROOT);
+			}
+         	return vn->iterate_preceding( elementName, contextCopy, endIndex);
 
 		case PRECEDING_NS:
 			if (vn->atTerminal)
          	    return false;
-         	return vn->iterate_precedingNS( URL,localName,contextCopy);
+			if (ft){
+				ft = false;
+				vn->toElement(ROOT);
+			}
+         	return vn->iterate_precedingNS( URL,localName,contextCopy,endIndex);
 		default :
 			throw PilotException("unknow iteration type for iterateAP");
 			return false;
@@ -514,12 +528,14 @@ bool AutoPilot::selectXPath(UCSChar *s){
 		throw XPathParseException("Invalid XPath expression");
 		return false;
 	}
+	if (cachingOption)
+		xpe->markCacheable();
 	return true;
 }
 /*
 * Evaluate XPath to a bool
 */
-bool AutoPilot::evalXPathTobool(){
+bool AutoPilot::evalXPathToBool(){
 	return	xpe->evalBoolean(vn);
 }
 
@@ -562,6 +578,8 @@ void AutoPilot::resetXPath(){
 		xpe->reset(vn);
 		vn->contextBuf2->size = stackSize;
 		ft = true;
+		if (cachingOption)
+			xpe->clearCache();
 	}
 }
 
@@ -789,5 +807,90 @@ void AutoPilot::insertExpr(UCSChar *varName, Expr *e){
 		tmp->next->variableName = varName;
 		tmp->next->ve = e;
 		return;
+	}
+}
+
+
+void AutoPilot::selectDescendantNode(){
+	ft = true;  
+	depth = vn->getCurrentDepth();
+	it = DESCENDANT_NODE;
+}
+
+void AutoPilot::selectNode(){
+	ft = true;
+	depth = vn->getCurrentDepth();
+	it = SIMPLE_NODE;
+}
+
+void AutoPilot::selectPrecedingNode(){
+	int a = sizeof(int)* vn->nestingLevel;
+	ft = true;
+	   depth = vn->getCurrentDepth();
+	   contextCopy = new int[vn->nestingLevel]; //(int[])vn.context.clone();
+		memcpy(contextCopy,vn->context,a);
+	   
+	   if (contextCopy[0]!=-1){
+		   for (int i=contextCopy[0]+1;i<vn->nestingLevel;i++){
+			contextCopy[i]=0;
+	   }
+	   }//else{
+	   //   for (int i=1;i<contextCopy.length;i++){
+	   //	   contextCopy[i]=0;
+	   //	   }
+	   //}
+	   it = PRECEDING_NODE;
+	   endIndex = vn->getCurrentIndex();
+}
+void AutoPilot::selectFollowingNode(){
+	ft = true;
+	   depth = vn->getCurrentDepth();
+	   it = FOLLOWING_NODE;
+}
+bool AutoPilot::iterate2(){
+	switch (it) {
+		case SIMPLE_NODE:
+			if (ft && vn->atTerminal)
+				return false;
+			if (ft){
+				ft =false;
+				return true;
+			}
+			return vn->iterateNode(depth);
+			
+		case DESCENDANT_NODE:
+			if (ft&&vn->atTerminal)
+				return false;
+			else{
+				ft=false;
+				return vn->iterateNode(depth);
+			}
+         	
+		case FOLLOWING_NODE:
+			if (ft){
+				bool b= false;
+				do{
+					b = vn->toNode(NEXT_SIBLING);
+					if (b){
+						ft = false;
+						return true;
+					}else{
+						b = vn->toNode(PARENT);
+					}
+				}while(b);
+				return false;
+			}			
+			return vn->iterate_following_node();
+			
+		case PRECEDING_NODE:
+			if(ft){
+				ft = false;
+				vn->toNode(ROOT);
+				vn->toNode(PARENT);	
+			}
+			return vn->iterate_preceding_node(contextCopy,endIndex);
+		//case 
+		default :
+			throw new PilotException(" iteration action type undefined");
 	}
 }
