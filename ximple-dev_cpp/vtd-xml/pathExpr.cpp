@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -54,13 +54,36 @@ bool PathExpr::evalBoolean(VTDNav *vn){
 }
 
 double PathExpr::evalNumber(VTDNav *vn){
-	double d = 0.0;	
-	int a = getStringIndex(vn);
-	try{
-		if (a!=-1) return vn->parseDouble(a);
-	}catch (...){
+	double d1 = 0.0;
+	double d=d1/d1;
+	int a = -1;
+	vn->push2();
+	int size = vn-> contextBuf2->size;
+	try {
+		a = evalNodeSet(vn);
+		if (a != -1) {
+			int t = vn->getTokenType(a);
+			if (t == TOKEN_ATTR_NAME) {
+				d = vn->parseDouble(a+1);
+			} else if (t == TOKEN_STARTING_TAG || t ==TOKEN_DOCUMENT) {
+				UCSChar *s = vn->getXPathStringVal(), *s1;
+				d  = wcstod(s,&s1);
+				delete s;
+			}else if (t == TOKEN_PI_NAME) {
+				if (a+1 < vn->vtdSize || vn->getTokenType(a+1)==TOKEN_PI_VAL)
+					//s = vn.toString(a+1); 	
+					d = vn->parseDouble(a+1);                	
+			}else 
+				d = vn->parseDouble(a);
+		}
+	} catch (NavException&) {
+
 	}
-	return 0/d;
+	vn->contextBuf2->size = size;
+	reset(vn);
+	vn->pop2();
+	//return s;
+	return d;
 }
 
 int PathExpr::evalNodeSet(VTDNav *vn){
@@ -117,14 +140,40 @@ int PathExpr::evalNodeSet(VTDNav *vn){
 }
 
 UCSChar* PathExpr::evalString(VTDNav *vn){
-	int a = getStringIndex(vn);
+	UCSChar *s = NULL;	
+	int a = -1;
+	vn->push2();
+    int size = vn->contextBuf2->size;
+     
 	try {
-		if (a != -1)
-			return vn->toString(a);
-	} catch (std::bad_alloc&) {
-		throw;
-	}
-	return createEmptyString();
+         a = evalNodeSet(vn);
+		 if (a != -1) {
+			 int t = vn->getTokenType(a);
+			 switch(t){
+			 case TOKEN_STARTING_TAG:
+			 case TOKEN_DOCUMENT:
+				 s = vn->getXPathStringVal();
+				 break;
+			 case TOKEN_ATTR_NAME:
+				 s = vn->toString(a + 1);
+				 break;
+			 case TOKEN_PI_NAME:
+				 //if (a + 1 < vn.vtdSize
+				 //		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+				 s = vn->toString(a + 1);
+				 break;
+			 default:
+				 s = vn->toString(a);
+				 break;
+			 }				
+		 }
+        } catch (NavException&) {
+
+        }
+        vn->contextBuf2->size = size;
+        reset(vn);
+        vn->pop2();
+        return s;
 }
 
 void PathExpr::reset(VTDNav *vn){
@@ -159,4 +208,23 @@ int PathExpr::adjust(int n){
 		ih = new IntHash(i);
 	}
 	return i;
+}
+
+bool PathExpr::isFinal(){
+	return fe->isFinal();
+}
+		
+void PathExpr::markCacheable(){
+	fe->markCacheable();
+	lpe->markCacheable();
+}
+
+void PathExpr::markCacheable2(){
+	fe->markCacheable2();
+	lpe->markCacheable2();
+}
+
+void PathExpr::clearCache(){
+	fe->clearCache();
+	lpe->clearCache();
 }

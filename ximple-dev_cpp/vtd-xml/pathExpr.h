@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,11 @@ namespace com_ximpleware{
 
 		void setPosition(int pos);
 		int adjust(int n);
+		bool isFinal();
+		
+		void markCacheable();
+		void markCacheable2();
+		void clearCache();
 
 	private:
 		Expr *fe;
