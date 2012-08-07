@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ namespace com_ximpleware {
 	class VTDGen {	
 		friend class IndexHandler;
 		friend class FastLongBuffer;
+		friend class VTDNav;
 	private:
 		typedef enum {
 			STATE_LT_SEEN,
@@ -131,7 +132,8 @@ namespace com_ximpleware {
 		bool skipChar(int ch);
 		void writeVTD(int offset, int length, tokenType token_type, int depth);
 		void finishUp();
-
+		UByte* doubleCapacity(UByte *b, size_t cap);
+		Long getBytes_UTF8(UCSChar *s);
 		void decide_encoding();
 		pState process_end_pi();
 		pState process_end_comment();
@@ -206,6 +208,7 @@ namespace com_ximpleware {
 		// Generating VTD tokens and Location cache info for an XML file
 
 		bool parseFile(bool ns, const char* fileName);
+		bool parseFile(bool ns, const UCSChar* fileName);
 		// Set the XMLDoc container.
 		void setDoc(UByte *byteArray, int arrayLen);
 		// Set the XMLDoc container.Also set the offset and len of the document 
