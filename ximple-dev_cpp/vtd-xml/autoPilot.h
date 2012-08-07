@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,11 @@ namespace com_ximpleware{
 		PRECEDING_NS,
 		ATTR,
 		ATTR_NS,
-		NAMESPACE} iterType;
+		NAMESPACE,
+		SIMPLE_NODE,
+		DESCENDANT_NODE,
+		FOLLOWING_NODE,
+		PRECEDING_NODE} iterType;
 
 
 	class Expr;
@@ -49,6 +53,7 @@ namespace com_ximpleware{
 		int depth;
 		VTDNav *vn;
 		int index; /* for iterAttr*/
+		int endIndex;
 		bool ft;
 		bool special;
 		iterType it;
@@ -58,6 +63,7 @@ namespace com_ximpleware{
 		int stackSize; /* record stack size for xpath evaluation */
 		FastIntBuffer *fib;
 		static NsList *nl;
+		bool cachingOption;
 		static ExprList *el;
 		void insertItem(UCSChar *prefix, UCSChar *URL);
 		void insertExpr(UCSChar *varName, Expr *e);
@@ -135,6 +141,8 @@ namespace com_ximpleware{
 
 		bool iterate();
 
+		bool iterate2();
+
 		// This method implements the attribute axis for XPath
 		int iterateAttr();
 
@@ -147,7 +155,7 @@ namespace com_ximpleware{
 		/*
 		* Evaluate XPath to a bool
 		*/
-		bool evalXPathTobool();
+		bool evalXPathToBool();
 
 		/*
 		* Evaluate XPath to a String
@@ -182,7 +190,7 @@ namespace com_ximpleware{
 		/* Declare the variable name and expression binding*/
 		void declareVariableExpr(UCSChar* varName, UCSChar* varExpr);
 
-
+		void enableCaching(bool state){cachingOption = state;}
 	
 	protected:
 
@@ -197,6 +205,10 @@ namespace com_ximpleware{
 		void selectNameSpace(UCSChar *name);
 
 		int iterateNameSpace();
+		void selectDescendantNode();
+		void selectNode();
+		void selectPrecedingNode();
+		void selectFollowingNode();
 			
 	};
 
