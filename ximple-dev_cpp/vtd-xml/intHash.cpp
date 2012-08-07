@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,8 @@ m1(0),
 m2((~m1) & 0xffffffff),
 pse(ih_pageSizeE),
 hw(1),
-maxDepth(0)
+maxDepth(0),
+e(0)
 {
 	//IntHash(0);
 	int i=0;
@@ -113,6 +114,7 @@ bool IntHash::isUnique(int i){
 	if (temp>maxDepth){
 		maxDepth = temp;
 	}
+
 	if (storage[temp]==NULL) {
 		//ih->storage[temp]= createFastIntBuffer2(ih->pse);
 		try{
@@ -128,14 +130,14 @@ bool IntHash::isUnique(int i){
 		return true;
 	}
 	else{
-		size = storage[temp]->size;
+		size = ((FastIntBuffer *)storage[temp])->size;
 		for (j=0;j<size;j++){
 			//if (i == storage[temp]->intAt(j)){
-			if (i == storage[temp]->intAt(j)){
+			if (i == ((FastIntBuffer *)storage[temp])->intAt(j)){
 				return false;
 			}
 		}
-		storage[temp]->append(i);
+		((FastIntBuffer *)storage[temp])->append(i);
 		return true;
 	}
 }
