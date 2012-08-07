@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,15 @@ LiteralExpr::LiteralExpr(UCSChar *st):
 s(st){
 }
 
-LiteralExpr::~LiteralExpr(){
+inline LiteralExpr::~LiteralExpr(){
 	delete s;
 	s=NULL;
 }
 
-bool LiteralExpr::isNumerical(){return false;}
-bool LiteralExpr::isNodeSet(){return false;}
-bool LiteralExpr::isString(){return true;}
-bool LiteralExpr::isBoolean(){return false;}
+inline bool LiteralExpr::isNumerical(){return false;}
+inline bool LiteralExpr::isNodeSet(){return false;}
+inline bool LiteralExpr::isString(){return true;}
+inline bool LiteralExpr::isBoolean(){return false;}
 
 void LiteralExpr::reset(VTDNav *vn){}
 void LiteralExpr::toString(UCSChar* string){
@@ -72,7 +72,10 @@ void LiteralExpr::setContextSize(int size){}
 void LiteralExpr::setPosition(int pos){}
 int LiteralExpr::adjust(int n) {return 0;}
 
+bool LiteralExpr::isFinal(){return true;}
 
+
+bool LiteralExpr::isConstant(){return true;}
 char* com_ximpleware::getAxisString(axisType at) {
 
 	switch(at){
