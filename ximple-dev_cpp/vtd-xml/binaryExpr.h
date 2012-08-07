@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,12 @@ namespace com_ximpleware{
 		bool compareVString2(int k, VTDNav *vn, UCSChar *s, opType op);
 		bool compareVV(int k,  VTDNav *vn, int j,opType op);
 		bool compEmptyNodeSet(opType op, UCSChar *s);
+
+		bool isFinal();
+		
+		void markCacheable();
+		void markCacheable2();
+		void clearCache();
 
 		Expr *left;
 		opType op;
