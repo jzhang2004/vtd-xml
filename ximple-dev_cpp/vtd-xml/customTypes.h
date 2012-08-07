@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include <wchar.h>
 #include <string.h>
 #include "vtdException.h"
+#include <cstdint>
 
 using namespace std;
 #ifndef isNaN
