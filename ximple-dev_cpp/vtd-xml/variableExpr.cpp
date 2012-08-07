@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -73,3 +73,8 @@ void VariableExpr::setPosition(int pos){
 int VariableExpr::adjust(int n){
 	return exprVal->adjust(n);
 }
+
+bool VariableExpr::isFinal(){return exprVal->isFinal();}
+void VariableExpr::markCacheable(){exprVal->markCacheable();}
+void VariableExpr::markCacheable2(){exprVal->markCacheable2();}
+void VariableExpr::clearCache(){exprVal->clearCache();}

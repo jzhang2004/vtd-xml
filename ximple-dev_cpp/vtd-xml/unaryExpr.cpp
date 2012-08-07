@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -63,3 +63,7 @@ void UnaryExpr::setContextSize(int size){e->setContextSize(size);}
 
 void UnaryExpr::setPosition(int pos){e->setContextSize(pos);}
 int UnaryExpr::adjust(int n){return 0;}
+bool UnaryExpr::isFinal(){return e->isFinal();}
+void UnaryExpr::markCacheable(){e->markCacheable();}
+void UnaryExpr::markCacheable2(){e->markCacheable2();}
+void UnaryExpr::clearCache(){e->clearCache();}
