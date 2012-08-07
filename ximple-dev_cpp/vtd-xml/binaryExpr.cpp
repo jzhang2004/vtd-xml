@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 #include "binaryExpr.h"
+#include "cachedExpr.h"
 using namespace com_ximpleware;
 
 BinaryExpr::BinaryExpr(Expr *e1, opType op1, Expr *e2):
@@ -387,7 +388,8 @@ bool BinaryExpr::compNodeSetNodeSet(  VTDNav *vn, opType op){
 				for (k = 0; k < s1; k++) {
 					bool b = compareVV(fib1->intAt(k),vn,i1,op);
 					if (b){
-						delete(fib1);
+						//delete(fib1);
+						fib1->clear();
 						vn->contextBuf2->size = stackSize;
 						vn->pop2();
 						right->reset(vn);
@@ -399,7 +401,7 @@ bool BinaryExpr::compNodeSetNodeSet(  VTDNav *vn, opType op){
 		vn->contextBuf2->size = stackSize;
 		vn->pop2();
 		right->reset(vn);
-		delete(fib1);
+		fib1->clear();
 		return false;
 
 	} catch (std::bad_alloc&) {
@@ -407,6 +409,7 @@ bool BinaryExpr::compNodeSetNodeSet(  VTDNav *vn, opType op){
 	}catch (...){
 		if(fib1!=NULL)
 			delete(fib1);
+		fib1=NULL;
 
 		throw OtherException("undefined run time behavior in computerEQNE");
 	}
@@ -534,4 +537,27 @@ bool BinaryExpr::compareVV(int k,  VTDNav *vn, int j,opType op){
 				}
 	}
 	return false;
+}
+
+bool BinaryExpr::isFinal(){return left->isFinal() && right->isFinal();}
+		
+void BinaryExpr::markCacheable(){
+	left->markCacheable();
+	right->markCacheable();		
+}
+void BinaryExpr::markCacheable2(){
+	if (left->isFinal() && left->isNodeSet()){
+		CachedExpr *ce = new CachedExpr(left);
+		left = ce;
+	} 
+	left->markCacheable2();
+	if (right->isFinal() && right->isNodeSet()){
+		CachedExpr *ce = new CachedExpr(right);
+		right = ce;
+	} 
+	right->markCacheable2();	
+}
+void BinaryExpr::clearCache(){
+	left->clearCache();
+	right->clearCache();
 }
