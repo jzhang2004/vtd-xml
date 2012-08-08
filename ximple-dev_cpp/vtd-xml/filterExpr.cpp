@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #include "filterExpr.h"
+#include "cachedExpr.h"
 using namespace com_ximpleware;
 
 FilterExpr::FilterExpr(Expr *e1, Predicate *pr):
 e(e1),
-p(pr)
-{}
+p(pr),
+out_of_range(false)
+{
+	pr->fe = this;
+}
 	
 FilterExpr::~FilterExpr(){
 	delete e;
@@ -48,18 +52,52 @@ bool FilterExpr::evalBoolean(VTDNav *vn){
 }
 
 double FilterExpr::evalNumber(VTDNav *vn){
-	double d = 0.0;
+
+	//String s = "";
+		double d1 = 0.0;
+		double d=d1/d1;
+		int a = -1;
+        vn->push2();
+        int size = vn-> contextBuf2->size;
+        try {
+            a = evalNodeSet(vn);
+            if (a != -1) {
+            	int t = vn->getTokenType(a);
+                if (t == TOKEN_ATTR_NAME) {
+                	d = vn->parseDouble(a+1);
+                } else if (t == TOKEN_STARTING_TAG || t ==TOKEN_DOCUMENT) {
+                    UCSChar *s = vn->getXPathStringVal(), *s1;
+                    d  = wcstod(s,&s1);
+					delete s;
+                }else if (t == TOKEN_PI_NAME) {
+                	if (a+1 < vn->vtdSize || vn->getTokenType(a+1)==TOKEN_PI_VAL)
+	                	//s = vn.toString(a+1); 	
+                	d = vn->parseDouble(a+1);                	
+                }else 
+                	d = vn->parseDouble(a);
+            }
+        } catch (NavException&) {
+
+        }
+        vn->contextBuf2->size = size;
+        reset(vn);
+        vn->pop2();
+        //return s;
+		return d;
+
+		/////////////////
+	/*double d = 0.0;
 	int a = getStringIndex(vn);
 	try{
 		if (a!=-1) return vn->parseDouble(a);
 	}catch (NavException&){
 	}
-	return 0/d;
+	return 0/d;*/
 }
 
 int FilterExpr::evalNodeSet(VTDNav *vn){
 	int i,a;
-	if (first_time && p->requireContextSize_p()){
+	if (first_time && p->requireContext){
 		first_time = false;
 		i = 0;
 		e->adjust(vn->vtdSize);
@@ -69,6 +107,8 @@ int FilterExpr::evalNodeSet(VTDNav *vn){
 		reset2(vn);
 	}
 	a = e->evalNodeSet(vn);
+	if (out_of_range)
+		return -1;
 	while (a!=-1){
 		if (p->eval_p(vn)==true){
 			//p.reset();
@@ -82,14 +122,41 @@ int FilterExpr::evalNodeSet(VTDNav *vn){
 }
 
 UCSChar* FilterExpr::evalString(VTDNav *vn){
-	int a = getStringIndex(vn);
+
+	UCSChar *s = NULL;	
+	int a = -1;
+	vn->push2();
+    int size = vn->contextBuf2->size;
+     
 	try {
-		if (a != -1)
-			return vn->toString(a);
-	} catch (std::bad_alloc&) {
-		throw;
-	}
-	return createEmptyString();
+         a = evalNodeSet(vn);
+         if (a != -1) {
+            	int t = vn->getTokenType(a);
+                switch(t){
+			 case TOKEN_STARTING_TAG:
+			 case TOKEN_DOCUMENT:
+				 s = vn->getXPathStringVal();
+				 break;
+			 case TOKEN_ATTR_NAME:
+				 s = vn->toString(a + 1);
+				 break;
+			 case TOKEN_PI_NAME:
+				 //if (a + 1 < vn.vtdSize
+				 //		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+				 s = vn->toString(a + 1);
+				 break;
+			 default:
+				 s = vn->toString(a);
+				 break;
+			 }		
+            }
+        } catch (NavException&) {
+
+        }
+        vn->contextBuf2->size = size;
+        reset(vn);
+        vn->pop2();
+        return s;
 }
 
 void FilterExpr::reset(VTDNav *vn){
@@ -99,6 +166,7 @@ void FilterExpr::reset(VTDNav *vn){
 	first_time = true;
 }
 void FilterExpr::reset2(VTDNav *vn){
+	out_of_range = false;
 	e->reset(vn);
 	p->reset_p(vn);
 }
@@ -131,4 +199,37 @@ void FilterExpr::setPosition(int pos){
 
 int FilterExpr::adjust(int n){
 	return e->adjust(n);
+}
+
+bool FilterExpr::isFinal(){
+	return e->isFinal();
+}
+		
+void FilterExpr::markCacheable(){
+	e->markCacheable();
+	if (p->e!=NULL){
+		if (p->e->isFinal()&&p->e->isNodeSet()){
+			CachedExpr *ce = new CachedExpr(p->e);
+			p->e= ce;
+		}
+		p->e->markCacheable2();
+	}
+}
+
+void FilterExpr::markCacheable2(){
+	e->markCacheable2();
+	if (p->e!=NULL){
+		if (p->e->isFinal()&&p->e->isNodeSet()){
+			CachedExpr *ce = new CachedExpr(p->e);
+			p->e= ce;
+		}
+		p->e->markCacheable2();
+	}
+}
+
+void FilterExpr::clearCache(){
+	e->clearCache();
+	if (p->e!=NULL){
+		p->e->clearCache();
+	}
 }

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,10 @@
 #define FILTER_EXPR_H
 #include "expr.h"
 
+
 namespace com_ximpleware{
 	class FilterExpr: public Expr{
+		friend struct Predicate;
 	public:
 		FilterExpr(Expr *e1, Predicate *pr);
 		virtual ~FilterExpr();
@@ -44,11 +46,18 @@ namespace com_ximpleware{
 
 		void setPosition(int pos);
 		int adjust(int n);
+		
+		bool isFinal();
+		
+		void markCacheable();
+		void markCacheable2();
+		void clearCache();
 
-	private:
+	protected:
 		Expr *e;
 		Predicate *p;
 		bool first_time;
+		bool out_of_range;
 	};
 }
 #endif
