@@ -1987,7 +1987,7 @@ bool VTDNav_L5::toNode(int dir){
 				while (index < vtdBuffer->size) {
 					Long temp = vtdBuffer->longAt(index);
 					tokenType =
-						(int) ((MASK_TOKEN_TYPE & temp) >>60);
+						(int) ((MASK_TOKEN_TYPE & temp) >>60)&0xf;
 					switch(tokenType){
 					case TOKEN_STARTING_TAG:
 						depth =
@@ -2731,7 +2731,7 @@ bool VTDNav_L5::toNode(int dir){
 				}
 				while (index < vtdSize) {
 					Long temp = vtdBuffer->longAt(index);
-					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60);
+					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
 					depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
 					switch (tokenType) {
 					case TOKEN_STARTING_TAG:						
@@ -2818,14 +2818,14 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					if (l1index<0 || l1index>l1Buffer->size)
 						return false;
 					int i1, i2; // l2lower, l2upper and l2index
-					i1 = l1Buffer->upper32At(l1index);
+					i1 = l1Buffer->lower32At(l1index);
 					if (i1 != -1) {
 						
 						int tmp = l1index + 1;
 						i2 = l2Buffer->size - 1;
 						while (tmp < l1Buffer->size) {
 							if (l1Buffer->upper32At(tmp) != -1) {
-								i2 = l1Buffer->upper32At(tmp) - 1;
+								i2 = l1Buffer->lower32At(tmp) - 1;
 								break;
 							} else
 								tmp++;
@@ -2851,15 +2851,15 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					if (l1index<0 || l1index>l1Buffer->size)
 						return false;
 					int i1,i2; //l2lower, l2upper and l2index
-					i1 = l1Buffer->upper32At(l1index);
+					i1 = l1Buffer->lower32At(l1index);
 					if(i1==-1)return false;
 					if (i1!=l2lower)
 						return false;
 					int tmp = l1index+1;
 					i2 = l2Buffer->size-1;
 					while(tmp<l1Buffer->size){
-						if (l1Buffer->upper32At(tmp)!=-1){
-							i2 = l1Buffer->upper32At(tmp)-1;
+						if (l1Buffer->lower32At(tmp)!=-1){
+							i2 = l1Buffer->lower32At(tmp)-1;
 							break;
 						}else
 							tmp++;
@@ -2871,7 +2871,7 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 						return false;
 					}
 					//l3 
-					i1 = l2Buffer->upper32At(l2index);
+					i1 = l2Buffer->lower32At(l2index);
 					if (i1!=-1){
 						if (l3lower!=i1)
 							return false;
@@ -2879,8 +2879,8 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 						tmp = l2index+1;
 						
 						while(tmp<l2Buffer->size){
-							if (l2Buffer->upper32At(tmp)!=-1){
-								i2 = l2Buffer->upper32At(tmp)-1;
+							if (l2Buffer->lower32At(tmp)!=-1){
+								i2 = l2Buffer->lower32At(tmp)-1;
 								break;
 							}else
 								tmp++;
@@ -2910,15 +2910,15 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					if (l1index<0 || l1index>l1Buffer->size)
 						return false;
 					int i1,i2; //l2lower, l2upper and l2index
-					i1 = l1Buffer->upper32At(l1index);
+					i1 = l1Buffer->lower32At(l1index);
 					if(i1==-1)return false;
 					if (i1!=l2lower)
 						return false;
 					int tmp = l1index+1;
 					i2 = l2Buffer->size-1;
 					while(tmp<l1Buffer->size){
-						if (l1Buffer->upper32At(tmp)!=-1){
-							i2 = l1Buffer->upper32At(tmp)-1;
+						if (l1Buffer->lower32At(tmp)!=-1){
+							i2 = l1Buffer->lower32At(tmp)-1;
 							break;
 						}else
 							tmp++;
@@ -2930,7 +2930,7 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 						return false;
 					}
 					//l3 
-					i1 = l2Buffer->upper32At(l2index);
+					i1 = l2Buffer->lower32At(l2index);
 					if (i1==-1){return false;}
 					if (l3lower!=i1)
 						return false;
@@ -2938,8 +2938,8 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					tmp = l2index+1;
 						
 					while(tmp<l2Buffer->size){
-						if (l2Buffer->upper32At(tmp)!=-1){
-							i2 = l2Buffer->upper32At(tmp)-1;
+						if (l2Buffer->lower32At(tmp)!=-1){
+							i2 = l2Buffer->lower32At(tmp)-1;
 							break;
 						}else
 							tmp++;
@@ -2958,7 +2958,7 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 							return false;
 					} */
 					//l4
-					i1 = l3Buffer->upper32At(l3index);
+					i1 = l3Buffer->lower32At(l3index);
 					if (i1!=-1){
 						if (l4lower!=i1)
 							return false;
@@ -2966,8 +2966,8 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 						tmp = l3index+1;
 						
 						while(tmp<l3Buffer->size){
-							if (l3Buffer->upper32At(tmp)!=-1){
-								i2 = l3Buffer->upper32At(tmp)-1;
+							if (l3Buffer->lower32At(tmp)!=-1){
+								i2 = l3Buffer->lower32At(tmp)-1;
 								break;
 							}else
 								tmp++;
@@ -2996,15 +2996,15 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					if (l1index<0 || l1index>l1Buffer->size)
 						return false;
 					int i1,i2; //l2lower, l2upper and l2index
-					i1 = l1Buffer->upper32At(l1index);
+					i1 = l1Buffer->lower32At(l1index);
 					if(i1==-1)return false;
 					if (i1!=l2lower)
 						return false;
 					int tmp = l1index+1;
 					i2 = l2Buffer->size-1;
 					while(tmp<l1Buffer->size){
-						if (l1Buffer->upper32At(tmp)!=-1){
-							i2 = l1Buffer->upper32At(tmp)-1;
+						if (l1Buffer->lower32At(tmp)!=-1){
+							i2 = l1Buffer->lower32At(tmp)-1;
 							break;
 						}else
 							tmp++;
@@ -3016,7 +3016,7 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 						return false;
 					}
 					//l3 
-					i1 = l2Buffer->upper32At(l2index);
+					i1 = l2Buffer->lower32At(l2index);
 					if (i1==-1){return false;}
 					if (l3lower!=i1)
 						return false;
@@ -3024,8 +3024,8 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					tmp = l2index+1;
 						
 					while(tmp<l2Buffer->size){
-						if (l2Buffer->upper32At(tmp)!=-1){
-							i2 = l2Buffer->upper32At(tmp)-1;
+						if (l2Buffer->lower32At(tmp)!=-1){
+							i2 = l2Buffer->lower32At(tmp)-1;
 							break;
 						}else
 							tmp++;
@@ -3043,7 +3043,7 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 						if (l3Buffer->upper32At(l3index) < LN)
 							return false;
 					} */
-					i1 = l3Buffer->upper32At(l3index);
+					i1 = l3Buffer->lower32At(l3index);
 					if (i1==-1){ return false;}
 					if (l4lower!=i1)
 						return false;
@@ -3051,8 +3051,8 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					tmp = l3index+1;
 						
 					while(tmp<l3Buffer->size){
-						if (l3Buffer->upper32At(tmp)!=-1){
-							i2 = l3Buffer->upper32At(tmp)-1;
+						if (l3Buffer->lower32At(tmp)!=-1){
+							i2 = l3Buffer->lower32At(tmp)-1;
 							break;
 						}else
 							tmp++;
@@ -3070,15 +3070,15 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 						if (l4Buffer->upper32At(l4index) < LN)
 							return false;
 					}*/
-					i1=l4Buffer->upper32At(l4index);
+					i1=l4Buffer->lower32At(l4index);
 					if (i1!=-1){
 						if (i1!=l5lower)return false;
 						i2 = l5Buffer->size-1;
 						tmp = l4index+1;
 						
 						while(tmp<l4Buffer->size){
-							if (l4Buffer->upper32At(tmp)!=-1){
-								i2 = l4Buffer->upper32At(tmp)-1;
+							if (l4Buffer->lower32At(tmp)!=-1){
+								i2 = l4Buffer->lower32At(tmp)-1;
 								break;
 							}else
 								tmp++;
@@ -3107,15 +3107,15 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 				if (l1index<0 || l1index>l1Buffer->size)
 					return false;
 				int i1,i2; //l2lower, l2upper and l2index
-				i1 = l1Buffer->upper32At(l1index);
+				i1 = l1Buffer->lower32At(l1index);
 				if(i1==-1)return false;
 				if (i1!=l2lower)
 					return false;
 				int tmp = l1index+1;
 				i2 = l2Buffer->size-1;
 				while(tmp<l1Buffer->size){
-					if (l1Buffer->upper32At(tmp)!=-1){
-						i2 = l1Buffer->upper32At(tmp)-1;
+					if (l1Buffer->lower32At(tmp)!=-1){
+						i2 = l1Buffer->lower32At(tmp)-1;
 						break;
 					}else
 						tmp++;
@@ -3127,7 +3127,7 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					return false;
 				}
 				//l3 
-				i1 = l2Buffer->upper32At(l2index);
+				i1 = l2Buffer->lower32At(l2index);
 				if (i1==-1){return false;}
 				if (l3lower!=i1)
 					return false;
@@ -3135,8 +3135,8 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 				tmp = l2index+1;
 					
 				while(tmp<l2Buffer->size){
-					if (l2Buffer->upper32At(tmp)!=-1){
-						i2 = l2Buffer->upper32At(tmp)-1;
+					if (l2Buffer->lower32At(tmp)!=-1){
+						i2 = l2Buffer->lower32At(tmp)-1;
 						break;
 					}else
 						tmp++;
@@ -3151,7 +3151,7 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 				if (l3index > l3upper || l3index < l3lower)
 						return false;
 				
-				i1 = l3Buffer->upper32At(l3index);
+				i1 = l3Buffer->lower32At(l3index);
 				if (i1==-1){ return false;}
 				if (l4lower!=i1)
 					return false;
@@ -3159,8 +3159,8 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 				tmp = l3index+1;
 					
 				while(tmp<l3Buffer->size){
-					if (l3Buffer->upper32At(tmp)!=-1){
-						i2 = l3Buffer->upper32At(tmp)-1;
+					if (l3Buffer->lower32At(tmp)!=-1){
+						i2 = l3Buffer->lower32At(tmp)-1;
 						break;
 					}else
 						tmp++;
@@ -3178,15 +3178,15 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 					if (l4Buffer->upper32At(l4index) < LN)
 						return false;
 				}*/
-				i1=l4Buffer->upper32At(l4index);
+				i1=l4Buffer->lower32At(l4index);
 				
 				if (i1!=l5lower)return false;
 				i2 = l5Buffer->size-1;
 				tmp = l4index+1;
 					
 				while(tmp<l4Buffer->size){
-					if (l4Buffer->upper32At(tmp)!=-1){
-						i2 = l4Buffer->upper32At(tmp)-1;
+					if (l4Buffer->lower32At(tmp)!=-1){
+						i2 = l4Buffer->lower32At(tmp)-1;
 						break;
 					}else
 						tmp++;
@@ -4023,7 +4023,7 @@ bool VTDNav_L5::toNode_LastChild(){
 			while (index < vtdBuffer->size) {
 				Long temp = vtdBuffer->longAt(index);
 				tokenType =
-					(int) ((MASK_TOKEN_TYPE & temp) >> 60);
+					(int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0x0f;
 				depth =getTokenDepth(index);
 				switch(tokenType){
 				case TOKEN_STARTING_TAG:
@@ -4585,7 +4585,7 @@ bool VTDNav_L5::toNode_PrevSibling(){
 			}
 			while (index > context[tmp-1]) {
 				Long temp = vtdBuffer->longAt(index);
-				tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60);
+				tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
 				depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
 				switch (tokenType) {
 				case TOKEN_STARTING_TAG:
