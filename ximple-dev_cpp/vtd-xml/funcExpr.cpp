@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,11 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 #include "funcExpr.h"
+#include "cachedExpr.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <wchar.h>
+#include "vtdGen.h"
 using namespace com_ximpleware;
 
 static double myround(double v);
@@ -27,7 +31,12 @@ al(a),
 isNum (false),
 isBool(false),
 isStr(false),
-a(0)
+isNode(false),
+argCount1(argCount()),
+a(0),
+newVN(NULL),
+xslVN(NULL),
+vg(NULL)
 {
 
 	 switch(oc){
@@ -72,64 +81,90 @@ a(0)
 			case FN_RESOLVE_QNAME:		   isStr = true; break;
 			case FN_IRI_TO_URI:			   isStr = true; break;
 			case FN_ESCAPE_HTML_URI:	   isStr = true; break;
-			default:		isStr = true; break;	
+			case FN_ENCODE_FOR_URI:	isStr  = true; break;
+			case FN_MATCH_NAME:		isBool  =true; break;
+			case FN_MATCH_LOCAL_NAME: isBool =true;break;
+			case FN_NOT_MATCH_NAME:		isBool  =true; break;
+			case FN_NOT_MATCH_LOCAL_NAME: isBool =true;break;
+			case FN_GENERATE_ID : 	isStr  = true; break;
+			case FN_FORMAT_NUMBER:  	isStr  = true;break;
+			case FN_KEY:				isNode  = true; state = XPATH_EVAL_START; vg = new VTDGen();break;
+			case FN_DOCUMENT:			isNode  = true; state = XPATH_EVAL_START; vg = new VTDGen();break;
+			case FN_CURRENT:			isNode  = true; state = XPATH_EVAL_START; vg = new VTDGen();break;
+			case FN_SYSTEM_PROPERTY: 	isStr  = true; break;
+			case FN_ELEMENT_AVAILABLE: isBool  = true; break;
+			//case FN_FUNCTION_AVAILABLE: isBool  = true; break;
+			default:		isBool = true; break;	
 	  }
 
 }
 FuncExpr::~FuncExpr(){
 	if (al!=NULL)
 		delete(al);
+	if (this->xslVN!=NULL){
+		delete xslVN->XMLDoc;
+		delete xslVN;
+	}
+	if (this->newVN!=NULL){
+	
+	}
+
 	al = NULL;
 }
 bool FuncExpr::evalBoolean(VTDNav *vn){
 	switch(opCode){
 			case FN_STARTS_WITH:
-				if (argCount()!=2){
+				/*if (argCount()!=2){
 					throw InvalidArgumentException("starts-with()'s <funcExpr> argument count is invalid");
-				}
+				}*/
 				return startsWith(vn);
 
 			case FN_CONTAINS:
-				if (argCount()!=2){
+				/*if (argCount()!=2){
 					throw InvalidArgumentException("contains()'s <funcExpr> argument count is invalid");
-				}
+				}*/
 				return contains(vn);
 
 			case FN_TRUE:
-				if (argCount()!=0){
+				/*if (argCount()!=0){
 					throw InvalidArgumentException("true()'s <funcExpr> argument count is invalid");
-				}
+				}*/
 				return true;
 			case FN_FALSE:
-				if (argCount()!=0){
+				/*if (argCount()!=0){
 					throw InvalidArgumentException("false()'s <funcExpr> argument count is invalid");
-				}
+				}*/
 				return false;
 			case FN_BOOLEAN:
-				if (argCount()!=1){
+				/*if (argCount()!=1){
 					throw InvalidArgumentException("boolean()'s <funcExpr> argument count is invalid");
-				}
+				}*/
 				return al->e->evalBoolean( vn);
 			case FN_NOT:
-				if (argCount()!=1){
+				/*if (argCount()!=1){
 					throw InvalidArgumentException("not()'s <funcExpr> argument count is invalid");
-				}
+				}*/
 				return !al->e->evalBoolean(vn);
 			case FN_LANG:
-				if (argCount()!=1){
+				/*if (argCount()!=1){
 					throw InvalidArgumentException("boolean()'s <funcExpr> argument count is invalid");
-				}
+				}*/
 				return lang( vn, al->e->evalString(vn));
 
 			case FN_COMPARE:
 				throw OtherException("functions not yet supported");
 			
 			case FN_ENDS_WITH:
-				if (argCount()!=2){
+				/*if (argCount()!=2){
 					throw InvalidArgumentException("ends-with()'s <funcExpr> argument count is invalid");
-				}
+				}*/
 				return endsWith(vn);
-				
+			case FN_MATCH_NAME:return matchName(vn);
+		    case FN_MATCH_LOCAL_NAME: return matchLocalName(vn);
+		    case FN_NOT_MATCH_NAME:return !matchName(vn);
+		    case FN_NOT_MATCH_LOCAL_NAME: return !matchLocalName(vn);
+		    case FN_ELEMENT_AVAILABLE: return isElementAvailable(vn);
+		    case FN_FUNCTION_AVAILABLE: return isElementAvailable(vn);
 				
 			default:
 				if (isNumerical()){
@@ -150,36 +185,36 @@ double FuncExpr::evalNumber(VTDNav *vn){
 	size_t len;
 	UCSChar *tmpString = NULL;
 	switch(opCode){
-			case FN_LAST:  if (argCount()!=0 ){
+			case FN_LAST:  /*if (argCount()!=0 ){
 								throw InvalidArgumentException("last()'s  <funcExpr> argument count is invalid");
-							}
+							}*/
 						   return contextSize;
-			case FN_POSITION:   if (argCount()!=0 ){
+			case FN_POSITION:   /*if (argCount()!=0 ){
 									throw InvalidArgumentException("position()'s  <funcExpr> argument count is invalid");
-								}
+								}*/
 
 								return position;
 
 			case FN_COUNT: 		return count(vn);
 
-			case FN_NUMBER:		if (argCount()!=1){
+			case FN_NUMBER:		/*if (argCount()!=1){
 									throw InvalidArgumentException("number()'s  <funcExpr> argument count is invalid");
-								}
+								}*/
 								return al->e->evalNumber(vn);
 
 			case FN_SUM:	    return sum(vn);
-			case FN_FLOOR: 		if (argCount()!=1 ){
+			case FN_FLOOR: 		/*if (argCount()!=1 ){
 									throw InvalidArgumentException("floor()'s  <funcExpr> argument count is invalid");
-								}
+								}*/
 								return floor(al->e->evalNumber(vn));
 
-			case FN_CEILING:	if (argCount()!=1 ){
+			case FN_CEILING:	/*if (argCount()!=1 ){
 									throw InvalidArgumentException("ceiling()'s  <funcExpr> argument count is invalid");
-								}
+								}*/
 								return ceil(al->e->evalNumber(vn));
 
 			case FN_STRING_LENGTH:
-								ac = argCount();
+								ac = argCount1;
 			    				if (ac == 0){
 									
 			    				    try{
@@ -216,16 +251,16 @@ double FuncExpr::evalNumber(VTDNav *vn){
 									throw InvalidArgumentException("string-length()'s  <funcExpr> argument count is invalid");
 			    				}
 
-			case FN_ROUND: 	if (argCount()==1 )
+			case FN_ROUND: 	/*if (argCount()==1 )*/
 								return myround(al->e->evalNumber(vn));
-							else {
+							/*else {
 								throw InvalidArgumentException("round()'s  <funcExpr> argument count is invalid");
-							}
-			case FN_ABS:    if (argCount()==1 )
+							}*/
+			case FN_ABS:    //if (argCount()==1 )
 								return fabs(al->e->evalNumber(vn));
-							else {
+							/*else {
 								throw InvalidArgumentException("abs()'s  <funcExpr> argument count is invalid");
-							}
+							}*/
 			case FN_ROUND_HALF_TO_EVEN:
 							return roundHalfToEven( vn);
 			case FN_ROUND_HALF_TO_ODD:
@@ -264,7 +299,91 @@ double FuncExpr::evalNumber(VTDNav *vn){
 					 }
 }
 int FuncExpr::evalNodeSet(VTDNav *vn){
-	throw XPathEvalException("funcExpr can't eval to a node set!");
+	switch (opCode) {
+		case FN_CURRENT:
+			if (state == XPATH_EVAL_START) {
+				vn->loadCurrentNode();
+				state = XPATH_EVAL_END;
+				return vn->getCurrentIndex2();
+			} else {
+				return -1;
+			}
+			// break;
+		case FN_DOCUMENT:
+			if (argCount1 == 1) {
+				if (!al->e->isNodeSet()) {
+					if (state == XPATH_EVAL_START) {
+						UCSChar *s = al->e->evalString(vn);
+						Long l= getBytes_UTF8(s);
+						//delete s;
+						int len=(int)(l>>32);
+						char *s1 = (char *)l;
+						if (wcslen(s) == 0) {
+							newVN = xslVN;
+							newVN->context[0] = -1;
+						} else if (vg->parseFile(true, s1)) {
+							newVN = vg->getNav();
+							
+							newVN->context[0] = -1;
+							newVN->URIName = s;
+						} else {
+							state = XPATH_EVAL_END;
+							delete s;
+							delete s1;
+							return -1;
+						}
+						state = XPATH_EVAL_END;
+						delete s;
+						delete s1;
+						return 0;
+					} else {
+						return -1;
+					}
+				} else {
+					try {
+						if (state != XPATH_EVAL_END) {
+							a = al->e->evalNodeSet(vn);
+							if (a != -1) {
+								UCSChar *s = vn->toString(getStringVal(vn,a));
+								Long l= getBytes_UTF8(s);
+								//delete s;
+								int len=(int)(l>>32);
+								char *s1 = (char *)l;
+								if (wcslen(s) == 0) {
+									newVN = xslVN;
+									newVN->context[0] = -1;
+								} else if (vg->parseFile(true,s1)) {
+									newVN = vg->getNav();
+									newVN->context[0] = -1;
+									newVN->URIName = s;
+								} else {
+									state = XPATH_EVAL_END;
+									delete s;
+									delete s1;
+									return -1;
+								}
+								state = XPATH_EVAL_END;
+								delete s;
+								delete s1;
+								return 0;
+							} else {
+								state = XPATH_EVAL_END;
+								return -1;
+							}
+						} else
+							return -1;
+					} catch (NavException e) {
+
+					}
+				}
+			}
+
+			break;
+		case FN_KEY:
+			throw new XPathEvalException(" key() not yet implemented ");
+			// break;
+		}
+		throw new XPathEvalException(" Function Expr can't eval to node set ");
 	return -1;
 }
 UCSChar* FuncExpr::evalString(VTDNav *vn){
@@ -302,7 +421,9 @@ UCSChar* FuncExpr::evalString(VTDNav *vn){
   			case FN_ESCAPE_HTML_URI:
   			case FN_ENCODE_FOR_URI:
 				throw OtherException("functions not yet supported");
-				
+			case FN_GENERATE_ID: return generateID(vn);
+			case FN_FORMAT_NUMBER: return formatNumber(vn);
+			case FN_SYSTEM_PROPERTY: return getSystemProperty(vn);
 			default: if (isBoolean()){
 			    		if (evalBoolean(vn)== true)
 			    		    tmp = wcsdup(L"true");
@@ -349,6 +470,7 @@ UCSChar* FuncExpr::evalString(VTDNav *vn){
 
 void FuncExpr::reset(VTDNav *vn){
 	a = 0;
+	state= XPATH_EVAL_START;
 	//contextSize = 0;
 	if (al!=NULL)
 		al->reset_al(vn);
@@ -364,7 +486,7 @@ void FuncExpr::toString(UCSChar* string){
 }
 
 bool FuncExpr::isNumerical(){return isNum;}
-bool FuncExpr::isNodeSet(){return false;}
+bool FuncExpr::isNodeSet(){return isNode;}
 bool FuncExpr::isString(){return isStr;}
 bool FuncExpr::isBoolean(){return isBool;}
 
@@ -423,10 +545,10 @@ double FuncExpr::sum( VTDNav *vn){
 	double d = 0;
 	double n=0;
 	int i1;
-	if (argCount() != 1
-		|| al->e->isNodeSet() == false){
-			throw InvalidArgumentException("sum() <funcExpr> 's argument has to be a node set ");
-		}
+	//if (argCount() != 1
+	//	|| al->e->isNodeSet() == false){
+	//		throw InvalidArgumentException("sum() <funcExpr> 's argument has to be a node set ");
+	//	}
 
 	vn->push2();
 	try {
@@ -475,10 +597,10 @@ int FuncExpr::argCount(){
 int FuncExpr::count( VTDNav *vn){
 	int a = -1;
 
-	if (argCount()!=1
+	/*if (argCount()!=1
 		||(al->e->isNodeSet)()==false){
 			throw InvalidArgumentException("count <funcExpr> 's argument has to be a node set ");
-		}
+		}*/
 
 	vn->push2();
 	try{
@@ -487,41 +609,74 @@ int FuncExpr::count( VTDNav *vn){
 		while(al->e->evalNodeSet(vn)!=-1){
 			a ++;
 		}
-		al->e->reset(vn);
-		vn->pop2();
-
 	}catch(...){
-		al->e->reset(vn);
-		vn->pop2();
+		printf("something wrong in count");
 	}
+	al->e->reset(vn);
+	vn->pop2();
 	return a;
 }
 UCSChar* FuncExpr::getLocalName( VTDNav *vn){
 	int index;
 	tokenType type;
-	if (argCount()== 0){
+	if (argCount1== 0){
 		try{
 			index = vn->getCurrentIndex();
 			type = vn->getTokenType(index);
 			if (vn->ns && (type == TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME)) {
 				int offset = vn->getTokenOffset(index);
 				int length = vn->getTokenLength(index);
-				if (length < 0x10000)
-					return vn->toRawString(index);
+				if (length < 0x10000){
+					if (vn->localNameIndex!=index){
+						vn->localNameIndex = index;
+						if (vn->localName !=NULL)
+							delete vn->localName;
+						vn->localName = vn->toRawString(index);
+					}
+					return vn->localName;
+				}
 				else {
 					int preLen = length >> 16;
 					int QLen = length & 0xffff;
-					if (preLen != 0)
-						return vn->toRawString2(offset + preLen+1, QLen
-						- preLen - 1);
+					if (preLen != 0){
+						     
+						if (vn->localNameIndex != index){
+                        		vn->localNameIndex = index;
+								if (vn->localName!=NULL)
+									delete vn->localName;
+                        		vn->localName = vn->toRawString(offset + preLen+1, QLen
+                                        - preLen - 1);
+                        
+						}
+                        
+						return vn->localName;
+						//return vn->toRawString(offset + preLen+1, QLen
+						//- preLen - 1);
+					}else {
+						if (vn->localNameIndex != index){
+							vn->localNameIndex = index;
+							if (vn->localName!=NULL)
+								delete vn->localName;
+							vn->localName = vn->toRawString(offset, QLen);
+						}
+						return vn->localName;
+					}
 				}
+			} else if (type ==TOKEN_PI_NAME){
+				if (vn->localNameIndex != index){
+                		vn->localNameIndex = index;
+						if (vn->localName!=NULL)
+							delete vn->localName;
+                		vn->localName = vn->toRawString(index);
+                	}
+                    return vn->localName;
 			}
 		}
 		catch(...){
 
 		}
 	}
-	else if (argCount() == 1){
+	else if (argCount1 == 1){
 		int a = -1;
 		tokenType type;
 		vn->push2();
@@ -548,7 +703,7 @@ UCSChar* FuncExpr::getLocalName( VTDNav *vn){
 				int preLen = length >> 16;
 				int QLen = length & 0xffff;
 				if (preLen != 0)
-					return vn->toRawString2(offset + preLen+1,
+					return vn->toRawString(offset + preLen+1,
 					QLen - preLen - 1);
 			}
 		} catch (...) {
@@ -562,13 +717,21 @@ UCSChar* FuncExpr::getLocalName( VTDNav *vn){
 UCSChar* FuncExpr::getName( VTDNav *vn){
 	int a;
 	int type;
-	if (argCount()== 0){
+	if (argCount1== 0){
 		a = vn->getCurrentIndex();
 		type = vn->getTokenType(a);
 		if ( type == TOKEN_STARTING_TAG
-			|| type == TOKEN_ATTR_NAME){
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_PI_NAME){
 			try{
-				return vn->toString(a);
+				if (vn->nameIndex!=a){
+					if (vn->name !=NULL)
+						delete vn->name;
+	            	vn->name = vn->toRawString(a);
+	            	vn->nameIndex = a;	
+	            }
+            	return vn->name;	  
+				//return vn->toString(a);
 			}catch(...){
 				return createEmptyString();
 			}
@@ -576,7 +739,7 @@ UCSChar* FuncExpr::getName( VTDNav *vn){
 		else
 			return createEmptyString();
 	}
-	else if (argCount() == 1){
+	else if (argCount1 == 1){
 		a = -1;
 		vn->push2();
 		try{
@@ -593,8 +756,8 @@ UCSChar* FuncExpr::getName( VTDNav *vn){
 			}
 			else{
 				int type = vn->getTokenType(a);
-				if ( type== TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME)
-					return vn->toString(a);
+				if ( type== TOKEN_STARTING_TAG || type == TOKEN_ATTR_NAME || type == TOKEN_PI_NAME)
+					return vn->toRawString(a);
 				return createEmptyString();
 			}
 		}catch(...){
@@ -607,7 +770,7 @@ UCSChar* FuncExpr::getName( VTDNav *vn){
 	return createEmptyString();
 }
 UCSChar* FuncExpr::getNameSpaceURI( VTDNav *vn){
-	if (argCount()== 0){
+	if (argCount1== 0){
 		try{
 			int i = vn->getCurrentIndex();
 			int type = vn->getTokenType(i);
@@ -622,7 +785,7 @@ UCSChar* FuncExpr::getNameSpaceURI( VTDNav *vn){
 		}catch (...){
 		}
 	}
-	else if (argCount() == 1){
+	else if (argCount1 == 1 &&  al->e->isNodeSet()){
 		int a = -1, size;
 		vn->push2();
 		size = vn->contextBuf2->size;
@@ -654,20 +817,20 @@ UCSChar* FuncExpr::getNameSpaceURI( VTDNav *vn){
 	return createEmptyString();
 }
 UCSChar* FuncExpr::getString( VTDNav *vn){
-	if (argCount()== 0){
+	if (argCount1== 0){
 		try{
 			if (vn->atTerminal){
 				if (vn->getTokenType(vn->LN) == TOKEN_CDATA_VAL )
 					return vn->toRawString(vn->LN);
 				return vn->toString(vn->LN);
 			}
-			return vn->toString(vn->getCurrentIndex());
+			return vn->getXPathStringVal();
 		}
 		catch(...){
 			 // this will almost never occur
 		}
 	}
-	else if (argCount() == 1){
+	else if (argCount1 == 1){
 		return al->e->evalString(vn);
 	} else {
 		throw InvalidArgumentException(
@@ -697,7 +860,7 @@ UCSChar* FuncExpr::concat( VTDNav *vn){
 	}
 	result[0]=0;/*end of string set*/
 
-	if (argCount()>=2){
+	//if (argCount()>=2){
 		AList* temp = al;
 		while(temp!=NULL){
 			/*perform concatenation here*/
@@ -723,9 +886,9 @@ UCSChar* FuncExpr::concat( VTDNav *vn){
 			temp = temp->next;
 		}
 		return result;
-	}
-	throw InvalidArgumentException("concat()'s <funcExpr> argument count is invalid");
-	return NULL;
+	//}
+	//throw InvalidArgumentException("concat()'s <funcExpr> argument count is invalid");
+	//return NULL;
 }
 bool FuncExpr::startsWith( VTDNav *vn){
 	UCSChar* s2 = al->next->e->evalString(vn);
@@ -759,7 +922,7 @@ bool FuncExpr::endsWith( VTDNav *vn){
 UCSChar* FuncExpr::subString( VTDNav *vn){
 	UCSChar *str;
 	size_t len;
-	if (argCount()==2){
+	if (argCount1==2){
 		double d1;
 		int temp;
 		
@@ -780,7 +943,7 @@ UCSChar* FuncExpr::subString( VTDNav *vn){
 		
 		return str;
 
-	} else if (argCount()==3){
+	} else if (argCount1==3){
 		double d1, d2;
 		int temp1, endIdx;
 		size_t cpLen;
@@ -812,7 +975,7 @@ UCSChar* FuncExpr::subString( VTDNav *vn){
 	return NULL;
 }
 UCSChar* FuncExpr::normalizeString( VTDNav *vn){
-	if (argCount() == 0){
+	if (argCount1 == 0){
 		UCSChar *s = NULL;
 		try{
 			if (vn->atTerminal)
@@ -832,7 +995,7 @@ UCSChar* FuncExpr::normalizeString( VTDNav *vn){
 		catch(...){
 			return createEmptyString();
 		}
-	} else if (argCount() ==1){
+	} else if (argCount1 ==1){
 		UCSChar *s = al->e->evalString(vn);
 		return normalize(s);
 	}
@@ -842,7 +1005,7 @@ UCSChar* FuncExpr::normalizeString( VTDNav *vn){
 	}
 }
 UCSChar* FuncExpr::subStringBefore( VTDNav *vn){
-if (argCount() == 2){
+if (argCount1 == 2){
 		UCSChar* s1 = al->e->evalString(vn);
 		UCSChar* s2 = al->next->e->evalString(vn);
 		UCSChar* temp = NULL;
@@ -861,7 +1024,7 @@ if (argCount() == 2){
 	return NULL;
 }
 UCSChar* FuncExpr::subStringAfter( VTDNav *vn){
-	if (argCount() == 2){
+	if (argCount1 == 2){
 		UCSChar* s1 = al->e->evalString(vn);
 		UCSChar* s2 = al->next->e->evalString(vn);
 		size_t /*len1=wcslen(s1),*/len2=wcslen(s2);
@@ -981,7 +1144,23 @@ UCSChar* FuncExpr::normalize(UCSChar *s){
 // int evalFirstArgumentListNodeSet( VTDNav *vn);
 // int evalFirstArgumentListNodeSet2( VTDNav *vn);
 UCSChar* FuncExpr::upperCase( VTDNav *vn){
-	if (argCount() == 1){
+	if (argCount1 == 1){
+		if (al->e->isNodeSet()){
+			int a = evalFirstArgumentListNodeSet(vn);
+		        if (a==-1)
+		        	return createEmptyString();
+		        else{
+		        	try{
+		        		int t = vn->getTokenType(a);
+		        		if (t!= TOKEN_STARTING_TAG && t!=TOKEN_DOCUMENT)
+		        			return vn->toStringUpperCase(a);
+		        		return vn->getXPathStringVal(a, (short)1);
+		        	}catch(...){
+		        	}
+		        	return createEmptyString();
+		        }		
+		}
+		else{
 		UCSChar *s = al->e->evalString(vn);
 		UCSChar *s1= s;
 		int i=0;
@@ -992,23 +1171,40 @@ UCSChar* FuncExpr::upperCase( VTDNav *vn){
 			i++;
 		}
 		return s;
+		}
 	}else{
 		throw InvalidArgumentException("upper-case()'s  <funcExpr> argument count is invalid");
 		return createEmptyString();
 	}
 }
 UCSChar* FuncExpr::lowerCase( VTDNav *vn){
-	if (argCount() == 1){
-		UCSChar *s = al->e->evalString(vn);
-		UCSChar *s1= s;
-		int i=0;
-		while( s1[i] != 0){
-			if (s1[i]>64 && s1[i]<91){
-				s1[i] +=32;
+	if (argCount1 == 1){
+		if (al->e->isNodeSet()){
+		int a = evalFirstArgumentListNodeSet(vn);
+		if (a==-1)
+		    return createEmptyString(); 
+		else{
+        	try{
+        		int t = vn->getTokenType(a);
+        		if (t!= TOKEN_STARTING_TAG && t!=TOKEN_DOCUMENT)
+        			return vn->toStringLowerCase(a);
+        		return vn->getXPathStringVal(a,(short)2);
+        	}catch(NavException&){
+	       	}
+		   	return createEmptyString();
+        }	
+		}else {
+			UCSChar *s1 = al->e->evalString(vn);
+			int i=0;
+			while( s1[i] != 0){
+				if (s1[i]>64 && s1[i]<91){
+					s1[i] +=32;
+				}
+				i++;
 			}
-			i++;
+			return s1;
 		}
-		return s;
+		
 		
 	}else{
 		throw InvalidArgumentException("lower-case()'s  <funcExpr> argument count is invalid");
@@ -1053,10 +1249,9 @@ static double roundHalfToEvenPositive(double value, long precision){
 	    if(precision > 0) result /= dec;
 	    else if(precision < 0) result *= dec;
 	    
-		return result;
-		
-		
+		return result;		
 	}
+
 double FuncExpr::roundHalfToEven( VTDNav *vn){
 		double value;
 		long precision;
@@ -1116,10 +1311,388 @@ UCSChar* FuncExpr::fname(){
 			case FN_RESOLVE_QNAME:		  return (UCSChar *)L"resolve-QName";
 			case FN_IRI_TO_URI:			  return (UCSChar *)L"iri-to-uri";
 			case FN_ESCAPE_HTML_URI:	  return (UCSChar *)L"escape-html-uri";
-	
+			case FN_ENCODE_FOR_URI:	return (UCSChar *)L"encode-for-uri";
+			case FN_MATCH_NAME:		return (UCSChar *)L"match-name";
+			case FN_MATCH_LOCAL_NAME:	return (UCSChar *)L"match-local-name";
+			case FN_CURRENT:			return (UCSChar *)L"current";
+			case FN_GENERATE_ID:		return (UCSChar *)L"generate-id";
+			case FN_FORMAT_NUMBER:	return (UCSChar *)L"format-number";
+			case FN_KEY:		return (UCSChar *)L"key";
 			default:			return (UCSChar *)L"encode-for-uri";
-
 	}
+}
+
+
+bool FuncExpr::isFinal(){
+	AList *temp = al;
+	if (temp ==NULL)
+		return false;
+	if (temp->e==NULL)
+		return false;
+	bool s=true;
+	while(temp!=NULL){
+		s= s && temp->e->isFinal();
+		if (!s)
+			return false;
+		temp = temp->next;
+	}
+	return s;	
+}
+		
+void FuncExpr::markCacheable(){
+	AList *temp = al;
+	while(temp!=NULL ){
+		if (temp->e!=NULL){
+			if (temp->e->isFinal() && temp->e->isNodeSet()){
+				CachedExpr *ce = new CachedExpr(temp->e);
+				temp->e = ce;
+			}
+			temp->e->markCacheable();
+		}
+		temp = temp->next; 
+	}
+}
+
+void FuncExpr::markCacheable2(){
+	AList *temp = al;
+	while(temp!=NULL){
+		if (temp->e!=NULL)
+			temp->e->markCacheable2();
+		temp = temp->next; 
+	}
+}
+
+void FuncExpr::clearCache(){
+	AList *temp =al;
+	while(temp!=NULL ){
+		if (temp->e!=NULL){				
+			temp->e->clearCache();
+		}
+		temp = temp->next; 
+	}
+}
+
+bool FuncExpr::checkArgumentCount(){
+	switch(opCode){
+		case FN_LAST: 			return argCount1==0;
+		case FN_POSITION: 		return argCount1==0;
+		case FN_COUNT: 			return (argCount1==1 && al->e->isNodeSet());
+		
+		case FN_LOCAL_NAME: 		return (argCount1==0 ||(argCount1==1 && al->e->isNodeSet()));
+		case FN_NAMESPACE_URI: 	return (argCount1==0 ||(argCount1==1 && al->e->isNodeSet()));
+		case FN_NAME: 			return (argCount1==0 ||(argCount1==1 && al->e->isNodeSet()));
+		case FN_STRING: 			return argCount1 < 2;
+		case FN_CONCAT: 			return argCount1 > 1;
+		case FN_STARTS_WITH:		return argCount1 ==2;
+		case FN_CONTAINS: 		return argCount1 ==2;
+		case FN_SUBSTRING_BEFORE: return argCount1==2;
+		case FN_SUBSTRING_AFTER: 	return argCount1==2;
+		case FN_SUBSTRING: 		return argCount1==2 || argCount1==3;
+		case FN_STRING_LENGTH: 	return argCount1<2;
+		case FN_NORMALIZE_SPACE: 	return argCount1 <2;
+		case FN_TRANSLATE:	 	return argCount1 ==3;
+		case FN_BOOLEAN: 			return argCount1 ==1;
+		case FN_NOT: 			    return argCount1 ==1;
+		case FN_TRUE: 			return argCount1 ==0;
+		case FN_FALSE: 			return argCount1 ==0;
+		case FN_LANG: 			return (argCount1==1);
+		case FN_NUMBER:			return argCount1==1;
+		case FN_SUM: 			    return (argCount1==1 && al->e->isNodeSet());
+		case FN_FLOOR: 			return argCount1==1;
+		case FN_CEILING: 			return argCount1==1;
+		case FN_ROUND:			return argCount1==1;
+		case FN_ABS:				return argCount1==1;
+		case FN_ROUND_HALF_TO_EVEN :
+										return argCount1==1 || argCount1 == 2;
+		case FN_ROUND_HALF_TO_ODD:
+										return argCount1==1 || argCount1 == 2;
+		case FN_CODE_POINTS_TO_STRING:
+		    							break;
+		case FN_COMPARE:			break;
+		case FN_UPPER_CASE:		return argCount1==1;
+		case FN_LOWER_CASE:		return argCount1==1;
+		case FN_ENDS_WITH:		return argCount1==2;
+		case FN_QNAME:			break;
+		case FN_LOCAL_NAME_FROM_QNAME:
+		    							break;
+		case FN_NAMESPACE_URI_FROM_QNAME:
+		    							break;
+		case FN_NAMESPACE_URI_FOR_PREFIX:
+		    							break;
+		case FN_RESOLVE_QNAME:	break;
+		case FN_IRI_TO_URI:    	break;
+		case FN_ESCAPE_HTML_URI:	break;
+		case FN_ENCODE_FOR_URI:	break;
+		case FN_MATCH_NAME:		return argCount1==1 || argCount1 == 2;
+		case FN_MATCH_LOCAL_NAME: return argCount1==1 || argCount1 == 2;
+		case FN_NOT_MATCH_NAME:		return argCount1==1 || argCount1 == 2;
+		case FN_NOT_MATCH_LOCAL_NAME: return argCount1==1 || argCount1 == 2;
+		case FN_CURRENT:			return argCount1==0;
+		case FN_GENERATE_ID : 	return argCount1==0 || (argCount1 ==1 && al->e->isNodeSet());
+		case FN_FORMAT_NUMBER:  	return argCount1==2 || argCount1== 3;
+		case FN_KEY:				return argCount1==2;
+		case FN_DOCUMENT:			return argCount1==1 || (argCount1==2 && al->next->e->isNodeSet());	
+		case FN_SYSTEM_PROPERTY: 	return argCount1==1 && al->e->isString() ;
+		case FN_ELEMENT_AVAILABLE: return argCount1==1 && al->e->isString();
+		case FN_FUNCTION_AVAILABLE: return argCount1==1 && al->e->isString();
+		}
+		return false;	
+}
+
+
+
+//bool FuncExpr::isElementAvailable(VTDNav *vn){return false;}
+//bool FuncExpr::isFunctionAvailable(VTDNav *vn){return false;}
+UCSChar *FuncExpr::formatNumber(VTDNav *vn){return createEmptyString();}
+UCSChar *FuncExpr::generateID(VTDNav *vn){
+	if (argCount1== 0){
+		UCSChar *str = new UCSChar[14];
+		swprintf(str, L"v%d", vn->getCurrentIndex2());
+		return str;
+		//return "v"+vn->getCurrentIndex2();
+	}else if (argCount1== 1) {
+		UCSChar *str = new UCSChar[14];
+		int i=evalFirstArgumentListNodeSet2(vn);
+		swprintf(str, L"v%d",i);
+		return str;
+	} else 
+	    throw new InvalidArgumentException
+			("generate-id()'s argument count is invalid");
+}
+
+
+int FuncExpr::evalFirstArgumentListNodeSet( VTDNav *vn){
+	vn->push2();
+        int size = vn->contextBuf2->size;
+        int a = -1;
+        try {
+            a = al->e->evalNodeSet(vn);
+            if (a != -1) {
+            	int t = vn->getTokenType(a);
+                if (t == TOKEN_ATTR_NAME) {
+                    a++;
+                }
+                else if (t == TOKEN_STARTING_TAG) {
+                    a = vn->getText();
+                }else if (t == TOKEN_PI_NAME){
+                	//if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
+                	a++;
+                	//else 
+                	//	a=-1;
+                }
+                 
+                //else if (t== VTDNav.T)
+            }	            
+        } catch (NavException&) {
+        }
+        vn->contextBuf2->size = size;
+        al->e->reset(vn);
+        vn->pop2();
+        return a;
+}
+
+int FuncExpr::evalFirstArgumentListNodeSet2( VTDNav *vn){
+	vn->push2();
+        int size = vn->contextBuf2->size;
+        int a = -1;
+        try {
+            a = al->e->evalNodeSet(vn);	            
+        } catch (NavException&) {
+        }
+        vn->contextBuf2->size = size;
+        al->e->reset(vn);
+        vn->pop2();
+        return a;
+}
+
+bool FuncExpr::matchName(VTDNav *vn){
+	int a;
+	bool b=false;
+	if (argCount1 == 1) {
+		a = vn->getCurrentIndex();
+		int type = vn->getTokenType(a);
+		UCSChar *s1 = al->e->evalString(vn);
+		if (type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_PI_NAME) {
+				try {
+					b= vn->matchRawTokenString(a, s1);
+				} catch (NavException&) {
+					b =false;
+				}
+				delete s1;
+				return b;
+		} else
+			return false;
+	} else if (argCount1 == 2) {
+		a = evalFirstArgumentListNodeSet2(vn);
+		UCSChar *s1 = al->next->e->evalString(vn);
+		try {
+			if (a == -1 || vn->ns == false){}
+			//return false;
+			else {
+				int type = vn->getTokenType(a);
+				if (type ==  TOKEN_STARTING_TAG
+					|| type ==  TOKEN_ATTR_NAME
+					|| type ==  TOKEN_PI_NAME)
+					b =vn->matchRawTokenString(a, s1);
+
+			}
+			delete s1;
+			return b;
+		} catch (NavException &) {
+		}
+		return false;
+	} else
+		throw new InvalidArgumentException(
+		"name()'s argument count is invalid");
+}
+
+bool FuncExpr::matchLocalName(VTDNav *vn){
+	bool b=false;
+	 if (argCount1== 1){
+	        try{
+	            int index = vn->getCurrentIndex();
+	            int type = vn->getTokenType(index);
+	            UCSChar *s1 = al->e->evalString(vn);
+	            if (vn->ns && (type == TOKEN_STARTING_TAG 
+	                    || type == TOKEN_ATTR_NAME)) {
+                    int offset = vn->getTokenOffset(index);
+                    int length = vn->getTokenLength(index);
+                    if (length < 0x10000 || (length>>16)==0){
+                    	b= (vn->compareRawTokenString(index, s1)==0);//vn.toRawString(index);
+                    }
+                    else {
+                        int preLen = length >> 16;
+                        int QLen = length & 0xffff;
+                        if (preLen != 0){
+                        	 b= (vn->compareRawTokenString2(offset + preLen+1, QLen
+                                        - preLen - 1,s1)==0);                        	
+                        }
+                    }
+                } else if (type == TOKEN_PI_NAME){
+                	b= (vn->compareRawTokenString(index, s1)==0);
+                } else 
+                    b= (wcscmp(s1,L"")==0);
+				delete s1;
+				return b;
+	        }catch(NavException&){
+	        	 return false; // this will never occur
+	        }
+	        
+	    } else if (argCount1 == 2){
+	        int a=evalFirstArgumentListNodeSet2(vn);
+	        UCSChar *s1 = al->next->e->evalString(vn);
+			if (a == -1 || vn->ns == false)
+			    b= (wcscmp(L"",s1)==0);
+			int type = vn->getTokenType(a);
+			if (type==TOKEN_STARTING_TAG || type== TOKEN_ATTR_NAME){
+			    //return "".equals(s1);
+			try {			    
+			    int offset = vn->getTokenOffset(a);
+			    int length = vn->getTokenLength(a);
+			    if (length < 0x10000 || (length>> 16)==0)
+			       b= vn->compareRawTokenString(a,s1)==0;
+			    else {
+			        int preLen = length >> 16;
+			        int QLen = length & 0xffff;
+			        if (preLen != 0)
+			            b= vn->compareRawTokenString2(offset + preLen+1, 
+			                    QLen - preLen - 1,s1)==0;
+			        /*else {
+			            return vn.toRawString(offset, QLen);
+			        }*/
+			    }
+			} catch (NavException&) {
+				 b= (wcscmp(L"",s1)==0); // this will almost never occur
+			}		
+			delete s1;
+			return b;
+			}else if (type == TOKEN_PI_NAME){
+				try{
+					b= (vn->compareRawTokenString(a,s1)==0);
+				}catch(NavException&){
+					b= (wcscmp(L"",s1)==0);
+				}
+				delete s1;
+				return b;
+			}
+			 b= (wcscmp(L"",s1)==0);
+			 delete s1;
+			 return b;
+	    } else 
+	        throw new InvalidArgumentException
+			("local-name()'s argument count is invalid");
+		return false;
+}
+
+UByte* FuncExpr::doubleCapacity(UByte *b, size_t cap){
+	UByte *t = new UByte[cap];
+	memcpy(t,b,cap>>1);
+	delete b;
+	return t;
+}
+Long FuncExpr::getBytes_UTF8(UCSChar *s){
+	/* < 0x7f  1 byte*/
+	/* < 0x7ff  2 bytes */
+	/* < 0xffff  3 bytes */
+	/* < 0x 10ffff  4 bytes*/
+	size_t len = wcslen(s),i=0,k=0,capacity = max<size_t>(len,8);/*minimum size is 8 */
+	UByte *ba = new UByte[capacity]; 
+	if (ba == NULL)
+		throw OutOfMemException("Byte allocation failed in getBytes_UTF_8");
+	for (i=0;i<len;i++){
+		if (s[i]<= 0x7f){
+			if (capacity -k<1){
+				capacity = capacity<<1;
+				ba = doubleCapacity(ba,capacity);
+			}
+			ba[k]=(UByte)s[i];
+			k++;
+		}else if (s[i] <=0x7ff){
+			if (capacity -k<2){
+				capacity = capacity<<1;
+				ba = doubleCapacity(ba,capacity);
+			}
+			ba[k]= ((s[i] & 0x7c0) >> 6) | 0xc0;
+			ba[k+1] = (s[i] & 0x3f) | 0x80;
+			k += 2;
+		}else if (s[i] <=0xffff){
+			if (capacity -k<3){
+				capacity = capacity<<1;
+				ba = doubleCapacity(ba,capacity);
+			}
+			ba[k]= ((s[i] & 0xf000) >> 12) | 0xe0;
+			ba[k+1] = ((s[i] & 0xfc) >> 6) | 0x80;
+			ba[k+2] = (s[i] & 0x3f) | 0x80;
+			k += 3;
+		}else if (s[i] <=0x10ffff){
+			if (capacity -k<4){
+				capacity = capacity<<1;
+				ba = doubleCapacity(ba,capacity);
+			}
+			ba[k]= ((s[i] & 0x1c0000) >> 18) | 0xf0;
+			ba[k+1] = ((s[i] & 0x3f0) >> 12) | 0x80;
+			ba[k+2] = ((s[i] & 0xfc) >> 6) | 0x80;
+			ba[k+3] = (s[i] & 0x3f) | 0x80;
+			k += 4;
+		}else
+			throw ModifyException("Invalid XML char for getBytes_UTF_8");
+	}
+	return ((Long)k<<32)|(Long)ba;
+}
+
+int FuncExpr::getStringVal(VTDNav *vn, int i){
+	tokenType t = vn->getTokenType(i);
+	if (t == TOKEN_STARTING_TAG){
+		int i1 = vn->getText();
+		return i1;
+	}
+	else if (t == TOKEN_ATTR_NAME
+		|| t == TOKEN_ATTR_NS ||t==TOKEN_PI_NAME)
+		return i+1;
+	else
+		 return i;
 }
 
 AList::AList(){

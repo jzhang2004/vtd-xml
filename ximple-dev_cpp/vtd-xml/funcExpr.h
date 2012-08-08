@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "expr.h"
 
 namespace com_ximpleware{
+	
 	typedef enum FuncName {FN_LAST,
 		FN_POSITION,
 		FN_COUNT,
@@ -63,7 +64,20 @@ namespace com_ximpleware{
 		FN_RESOLVE_QNAME,
 		FN_IRI_TO_URI,
 		FN_ESCAPE_HTML_URI,
-		FN_ENCODE_FOR_URI
+		FN_ENCODE_FOR_URI,
+		FN_MATCH_NAME,
+		FN_MATCH_LOCAL_NAME,
+		FN_NOT_MATCH_NAME,
+		FN_NOT_MATCH_LOCAL_NAME,
+		FN_CURRENT,
+		FN_GENERATE_ID,
+		FN_FORMAT_NUMBER,
+		FN_KEY,
+		FN_ID,
+		FN_DOCUMENT,
+		FN_SYSTEM_PROPERTY,
+		FN_ELEMENT_AVAILABLE,
+		FN_FUNCTION_AVAILABLE
 	} funcName;
 
 	
@@ -91,6 +105,13 @@ namespace com_ximpleware{
 		void setPosition(int pos);
 		int adjust(int n);
 
+		bool isFinal();
+		
+		void markCacheable();
+		void markCacheable2();
+		void clearCache();
+		bool checkArgumentCount();
+
 	private:
 
 		funcName opCode;
@@ -98,9 +119,16 @@ namespace com_ximpleware{
 		bool isNum;
 		bool isBool;
 		bool isStr;
+		bool isNode;
 		int contextSize;
 		int position;
+		int argCount1;
 		int a;
+		int state;
+		VTDGen *vg;
+		VTDNav *newVN, *xslVN;
+		UCSChar *s;
+		//int a;
 		double sum( VTDNav *vn);
 		int argCount();
 		int count( VTDNav *vn);
@@ -120,14 +148,26 @@ namespace com_ximpleware{
 		bool isWS(UCSChar c);
 		bool lang( VTDNav *vn, UCSChar* s);
 		UCSChar* normalize(UCSChar *s);
+		bool matchName(VTDNav *vn);
+		bool matchLocalName(VTDNav *vn);
+		//bool isElementAvailable(VTDNav *vn);
 		
-		// int evalFirstArgumentListNodeSet( VTDNav *vn);
-		// int evalFirstArgumentListNodeSet2( VTDNav *vn);
+		UCSChar* formatNumber(VTDNav *vn);
+		UCSChar* generateID(VTDNav *vn);
+		int evalFirstArgumentListNodeSet( VTDNav *vn);
+		int evalFirstArgumentListNodeSet2( VTDNav *vn);
 		UCSChar* upperCase( VTDNav *vn);
 		UCSChar* lowerCase( VTDNav *vn);
 		double roundHalfToEven( VTDNav *vn);
-
+		VTDNav *getNewNav(){return newVN;}
 		UCSChar *fname();
+		int getStringVal(VTDNav *vn,int i);
+		UCSChar *getSystemProperty(VTDNav *vn){return createEmptyString();}
+		bool isElementAvailable(VTDNav *vn){return false;}
+		bool isFunctionAvailable(VTDNav *vn){return false;}
+		UByte* doubleCapacity(UByte *b, size_t cap);
+		Long getBytes_UTF8(UCSChar *s);
+		//UCSChar *getStringVal(VTDNav *vn, int i);
 	};
 }
 
