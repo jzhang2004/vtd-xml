@@ -86,12 +86,12 @@ namespace com_ximpleware {
 		int decode(int offset);
 		int compareRawTokenString2( int offset, int len, const UCSChar *s);
 		int compareTokenString2( int offset, int len, const UCSChar *s);
-		UCSChar *toStringUpperCase2( int os, int len);
-		UCSChar *toStringLowerCase2( int os, int len);
+		UCSChar *toStringUpperCase( int os, int len);
+		UCSChar *toStringLowerCase( int os, int len);
 		//UCSChar *toRawStringUpperCase( int index);
 		//UCSChar *toRawStringLowerCase( int index);
-		UCSChar *toRawStringUpperCase2( int os, int len);
-		UCSChar *toRawStringLowerCase2( int os, int len);
+		UCSChar *toRawStringUpperCase( int os, int len);
+		UCSChar *toRawStringLowerCase( int os, int len);
 		
 		
 		int compareNormalizedTokenString2(int offset, int len, const UCSChar *s);
@@ -199,7 +199,9 @@ namespace com_ximpleware {
 		virtual void sync(int depth, int index);
 		virtual bool toNode_LastChild();
 		virtual bool toNode_PrevSibling();
-		
+		int _toString(UCSChar *s, int index, int os);
+		int _toStringUpperCase(UCSChar *s, int index, int os);
+		int _toStringLowerCase(UCSChar *s, int index, int os);
 		//bool nodeToElement(int direction);
 
 		/*{
@@ -462,14 +464,14 @@ namespace com_ximpleware {
 		//(entities and char references not expanded).
 		//os and len are in bytes
 		UCSChar *toRawString( int index);
-		UCSChar *toRawString2( int os, int len);
+		UCSChar *toRawString( int os, int len);
 
 		//Convert a token at the given index to a String, (entities and char 
 		//references resolved).
 		// An attribute name or an element name will get the UCS2 string of qualified name 
 		//os and len are in bytes
 		UCSChar *toString( int index);
-		UCSChar *toString2( int os, int len);
+		UCSChar *toString( int os, int len);
 
 		/**
 		* Set the value of atTerminal
@@ -587,8 +589,16 @@ namespace com_ximpleware {
 		virtual void dumpState();
 
 		virtual void fillXPathString(FastIntBuffer *indexBuffer, FastIntBuffer countBuffer);
-		UCSChar* getXPathStringVal(short mode);
-		UCSChar* getXPathStringVal2(int j, short mode);
+		UCSChar* getXPathStringVal(){
+			return getXPathStringVal(0);
+		}
+		//UCSChar* getXPathStringVal(short mode);
+		
+		UCSChar* VTDNav::getXPathStringVal(short mode){
+			return getXPathStringVal(getCurrentIndex(),mode);
+		}
+		
+		UCSChar* getXPathStringVal(int j, short mode);
 		virtual bool toNode(int direction);
 		virtual bool verifyNodeCorrectness();
 	};
