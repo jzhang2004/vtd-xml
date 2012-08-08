@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -47,13 +47,18 @@ namespace com_ximpleware{
 		int adjust(int n);	
 		UnionExpr *current;
 		UnionExpr *next;
+		Expr *fe;
 
-
+		bool isFinal();
+		
+		void markCacheable();
+		void markCacheable2();
+		void clearCache();
 	private:
 		bool isUnique_une(int i){
 			return ih->isUnique(i);
 		}
-		Expr *fe;
+		
 		int evalState;
 		/*FastIntBuffer *fib;*/
 		IntHash *ih;

@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 #include "unionExpr.h"
+#include "cachedExpr.h"
 #pragma warning(disable:4355)
 using namespace com_ximpleware;
 
@@ -54,121 +55,166 @@ bool UnionExpr::evalBoolean(VTDNav *vn){
 	
 	bool b = false;
 	int size;
-	if (fe->isNodeSet()==false){
-		return fe->evalBoolean(vn);
-	}else{
-			vn->push2();
-			/* record teh stack size*/
-			size = vn->contextBuf2->size;
-			try{	
-				b = (evalNodeSet(vn) != -1);
-			}catch (...){
-			}
-			/*rewind stack */
-			vn->contextBuf2->size = size;
-			reset(vn);
-			vn->pop2();
-			return b;
+	/*if (fe->isNodeSet()==false){
+	return fe->evalBoolean(vn);
+	}else{*/
+	vn->push2();
+	/* record teh stack size*/
+	size = vn->contextBuf2->size;
+	try{	
+		b = (evalNodeSet(vn) != -1);
+	}catch (...){
 	}
+	/*rewind stack */
+	vn->contextBuf2->size = size;
+	reset(vn);
+	vn->pop2();
+	return b;
+	//}
 }
 
 double UnionExpr::evalNumber(VTDNav *vn){
-	double d = 0.0;
-	int a;
-	if (fe->isNodeSet()==false){   
-		return fe->evalNumber(vn);   
+	double d1 = 0.0;
+	double d=d1/d1;
+	int a = -1;
+	vn->push2();
+	int size = vn-> contextBuf2->size;
+	try {
+		a = evalNodeSet(vn);
+		if (a != -1) {
+			int t = vn->getTokenType(a);
+			if (t == TOKEN_ATTR_NAME) {
+				d = vn->parseDouble(a+1);
+			} else if (t == TOKEN_STARTING_TAG || t ==TOKEN_DOCUMENT) {
+				UCSChar *s = vn->getXPathStringVal(), *s1;
+				d  = wcstod(s,&s1);
+				delete s;
+			}else if (t == TOKEN_PI_NAME) {
+				if (a+1 < vn->vtdSize || vn->getTokenType(a+1)==TOKEN_PI_VAL)
+					//s = vn.toString(a+1); 	
+					d = vn->parseDouble(a+1);                	
+			}else 
+				d = vn->parseDouble(a);
+		}
+	} catch (NavException&) {
+
 	}
-	a = getStringIndex(vn);
-	try{
-		if (a!=-1) return vn->parseDouble(a);
-	}catch (...){
-	}
-	return 0/d;
+	vn->contextBuf2->size = size;
+	reset(vn);
+	vn->pop2();
+	//return s;
+	return d;
 }
 
 int UnionExpr::evalNodeSet(VTDNav *vn){
 	int a;
-	if (next == NULL) {
-		return fe->evalNodeSet(vn);
-	} else {
-		while (true) {
-			switch (evalState) {
-				case 0:
-					if (ih == NULL ){
-						//exception ee;
-						try{
-							ih = new IntHash();
-						}
-						catch(...){
-							throw;
-						}
-					}
-					if (current != NULL) {
-						vn->push2();
-						while ((a = current->fe->evalNodeSet(vn))!= -1) {
-								if (isUnique_une(a)) {
-									evalState = 1;
-									return a;
-								}
-						}
-						evalState = 2;
-						vn->pop2();
-						break;
-					} else
-						evalState = 3;
-					break;
-
-				case 1:
-					while ((a = current->fe->evalNodeSet(vn)) != -1) 
-					{
-						if (isUnique_une(a)) {
-							evalState = 1;
-							return a;
-						}
-					}
-					evalState = 2;
-					vn->pop2();
-					break;
-
-				case 2:
-					current = current->next;
-					if (current != NULL) {
-						vn->push2();
-						while ((a = current->fe->evalNodeSet(vn)) != -1) {
-								if (isUnique_une(a)) {
-									evalState = 1;
-									return a;
-								}
-						}
-						vn->pop2();
-						break;
-					} else
-						evalState = 3;
-					break;
-
-				case 3:
-					return -1;
-
-				default:
-					throw OtherException("Invalid state evaluating unionExpr");
+	/*if (next == NULL) {
+	return fe->evalNodeSet(vn);
+	} else {*/
+	while (true) {
+		switch (evalState) {
+		case 0:
+			if (ih == NULL ){
+				//exception ee;
+				try{
+					ih = new IntHash();
+				}
+				catch(...){
+					throw;
+				}
 			}
+			if (current != NULL) {
+				vn->push2();
+				while ((a = current->fe->evalNodeSet(vn))!= -1) {
+					if (isUnique_une(a)) {
+						evalState = 1;
+						return a;
+					}
+				}
+				evalState = 2;
+				vn->pop2();
+				break;
+			} else
+				evalState = 3;
+			break;
+
+		case 1:
+			while ((a = current->fe->evalNodeSet(vn)) != -1) 
+			{
+				if (isUnique_une(a)) {
+					evalState = 1;
+					return a;
+				}
+			}
+			evalState = 2;
+			vn->pop2();
+			break;
+
+		case 2:
+			current = current->next;
+			if (current != NULL) {
+				vn->push2();
+				while ((a = current->fe->evalNodeSet(vn)) != -1) {
+					if (isUnique_une(a)) {
+						evalState = 1;
+						return a;
+					}
+				}
+				vn->pop2();
+				break;
+			} else
+				evalState = 3;
+			break;
+
+		case 3:
+			return -1;
+
+		default:
+			throw OtherException("Invalid state evaluating unionExpr");
 		}
 	}
+	//}
 }
 
 UCSChar* UnionExpr::evalString(VTDNav *vn){
-	int a;
+	int a=-1;
 	if (fe->isNodeSet()==false){   
 		return fe->evalString(vn);   
 	}
-	a = getStringIndex(vn);
+	UCSChar *s = NULL;	
+	//int a = -1;
+	vn->push2();
+    int size = vn->contextBuf2->size;
+     
 	try {
-		if (a != -1)
-			return vn->toString(a);
-	} catch (std::bad_alloc& ) {
-		throw;
-	}
-	return createEmptyString();	
+         a = evalNodeSet(vn);
+         if (a != -1) {
+            	int t = vn->getTokenType(a);
+                switch(t){
+			 case TOKEN_STARTING_TAG:
+			 case TOKEN_DOCUMENT:
+				 s = vn->getXPathStringVal();
+				 break;
+			 case TOKEN_ATTR_NAME:
+				 s = vn->toString(a + 1);
+				 break;
+			 case TOKEN_PI_NAME:
+				 //if (a + 1 < vn.vtdSize
+				 //		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+				 s = vn->toString(a + 1);
+				 break;
+			 default:
+				 s = vn->toString(a);
+				 break;
+			 }		
+            }
+        } catch (NavException&) {
+
+        }
+        vn->contextBuf2->size = size;
+        reset(vn);
+        vn->pop2();
+        return s;
 }
 
 void UnionExpr::reset(VTDNav *vn){
@@ -256,4 +302,43 @@ int UnionExpr::adjust(int n){
 		ih = new IntHash(i);
 	}
 	return i;
+}
+
+bool UnionExpr::isFinal(){
+	UnionExpr *tmp = this;
+	while (tmp != NULL) {
+		if (tmp->fe->isFinal()== false){            	
+			return false;
+		}
+		tmp = tmp->next;
+	}        
+	return true;
+}
+		
+void UnionExpr::markCacheable(){
+	UnionExpr *tmp = this;
+	while (tmp != NULL) {
+		tmp->fe->markCacheable();
+		tmp = tmp->next;
+	}  
+}
+
+void UnionExpr::markCacheable2(){
+	UnionExpr *tmp = this;
+	while (tmp != NULL) {
+		if (tmp->fe->isFinal() && tmp->fe->isNodeSet()){
+			CachedExpr *ce = new CachedExpr(tmp->fe);
+			tmp->fe = ce;	
+		}   
+		tmp->fe->markCacheable2();     		       	
+		tmp = tmp->next;
+	}  
+}
+
+void UnionExpr::clearCache(){
+	UnionExpr *tmp = this;
+	while (tmp != NULL) {
+		tmp->fe->clearCache(); 		       	
+		tmp = tmp->next;
+	}  
 }
