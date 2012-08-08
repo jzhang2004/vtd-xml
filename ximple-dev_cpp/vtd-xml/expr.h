@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,19 +44,26 @@ namespace com_ximpleware{
 		OP_GT
 	} opType;
 
-	typedef enum AxisType {  AXIS_CHILD,
-		AXIS_DESCENDANT,
-		AXIS_PARENT,
-		AXIS_ANCESTOR,
-		AXIS_FOLLOWING_SIBLING,
-		AXIS_PRECEDING_SIBLING,
-		AXIS_FOLLOWING,
-		AXIS_PRECEDING,
-		AXIS_ATTRIBUTE,
-		AXIS_NAMESPACE,
-		AXIS_SELF,
-		AXIS_DESCENDANT_OR_SELF,
-		AXIS_ANCESTOR_OR_SELF
+	typedef enum AxisType {  AXIS_CHILD0,
+						 AXIS_CHILD,
+						 AXIS_DESCENDANT_OR_SELF0,
+						 AXIS_DESCENDANT0,
+						 AXIS_PRECEDING0,
+						 AXIS_FOLLOWING0,
+						 AXIS_DESCENDANT_OR_SELF,
+						 AXIS_DESCENDANT,
+						 AXIS_PRECEDING,
+						 AXIS_FOLLOWING,
+						 AXIS_PARENT,
+						 AXIS_ANCESTOR,
+						 AXIS_ANCESTOR_OR_SELF,
+						 AXIS_SELF,
+						 AXIS_FOLLOWING_SIBLING,
+						 AXIS_FOLLOWING_SIBLING0,
+						 AXIS_PRECEDING_SIBLING,
+						 AXIS_PRECEDING_SIBLING0,					 
+						 AXIS_ATTRIBUTE,
+						 AXIS_NAMESPACE	
 	} axisType;
 
 	typedef enum {	NT_NAMETEST ,
@@ -74,6 +81,11 @@ namespace com_ximpleware{
 		XPATH_EVAL_FORWARD, 
 		XPATH_EVAL_BACKWARD			
 	} LPstate;
+
+	typedef enum{
+		SIMPLE_P,
+		COMPLEX_P
+	} PredicateEvalOption;
 
 	struct AList {
 		Expr *e;
@@ -93,26 +105,35 @@ namespace com_ximpleware{
 		UCSChar* URL;
 		bool nsEnabled;
 		nodeTestType testType;
+		int type;
 		NodeTest();
 		virtual ~NodeTest();
 		bool eval_nt(VTDNav *vn);
+		bool eval_nt2(VTDNav *vn);
 		void setNodeName(UCSChar *name);
 		void setNodeNameNS(UCSChar *p, UCSChar *ln);
-		void setTestType(nodeTestType ntt); 
+		void setTestType(nodeTestType ntt){
+			testType = ntt;
+		}
 		void toString_nt(UCSChar *string);
 	} ;
 
 	
-
+	struct Step;
 
 	struct Predicate{
 		double d; /* only supports a[1] style of location path for now*/
 		int count;
 		Predicate *nextP;
 		Expr *e;
+		int type;
+		Step *s;
+		FilterExpr *fe;
+		bool requireContext;
 		Predicate();
 		virtual ~Predicate();
 		bool eval_p(VTDNav *vn);
+		bool eval2_p(VTDNav *vn);
 		void setIndex_p(int i);
 		void setContextSize_p(int size);
 		bool requireContextSize_p();
@@ -121,7 +142,6 @@ namespace com_ximpleware{
 		void adjust(int n);//{e->adjust(n);};
 	};
 
-	
 
 	struct Step{
 		axisType axis_type;
@@ -132,6 +152,9 @@ namespace com_ximpleware{
 		Step *prevS; /* points to the prev step */
 		AutoPilot *o; /*AutoPilot goes here*/
 		bool ft; /* first time*/
+		bool hasPredicate;
+		bool nt_eval;
+		bool out_of_range;
 		Step();
 		virtual ~Step();
 		void reset_s(VTDNav *vn);
@@ -144,12 +167,25 @@ namespace com_ximpleware{
 		Step *getPrevStep();
 		void setNodeTest(NodeTest *n);
 		void setPredicate(Predicate *p1);
-		bool eval_s(VTDNav *vn);
-		bool eval_s2(VTDNav *vn, Predicate *p);
+		bool eval_s(VTDNav *vn){
+			return nt->eval_nt(vn) && ((!hasPredicate) || evalPredicates(vn));
+		}
+		bool eval_s2(VTDNav *vn, Predicate *p){
+			return nt->eval_nt(vn) && evalPredicates2(vn,p);
+		}
+		bool eval2_s(VTDNav *vn){
+			return nt->eval_nt2(vn) && ((!hasPredicate) || evalPredicates(vn));
+		}
+		bool eval2_s2(VTDNav *vn, Predicate *p){
+			return nt->eval_nt2(vn) && evalPredicates2(vn,p);
+		}
 		bool evalPredicates(VTDNav *vn);
 		bool evalPredicates2(VTDNav *vn, Predicate *p);
-		void setAxisType(axisType st);
+		void setAxisType(axisType st){
+			axis_type = st;
+		}
 		void toString_s(UCSChar *string);
+		void setStep4Predicates();
 		void adjust(int n);/*{
 			Predicate* temp = p;
 			while(temp!=NULL){
@@ -189,6 +225,11 @@ namespace com_ximpleware{
 		virtual void setPosition(int pos)=0;
 		virtual int adjust(int n)=0;
 		virtual ~Expr(){}
+		virtual bool isFinal()=0;
+		virtual void markCacheable(){}
+		virtual void markCacheable2(){}
+	//public boolean isConstant(){return false;}
+		virtual void clearCache(){}
 		// to support computer context size 
 		// needs to add 
 		//virtual public boolean needContextSize();
