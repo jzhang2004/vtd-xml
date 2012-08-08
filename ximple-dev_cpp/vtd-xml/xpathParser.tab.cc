@@ -39,7 +39,7 @@
 #line 1 "xpathParser.yy"
 
 /* 
-* Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -985,7 +985,12 @@ namespace yy {
 
 /* Line 678 of lalr1.cc  */
 #line 286 "xpathParser.yy"
-    { (yyval.expression) = (Expr *)(yysemantic_stack_[(1) - (1)].une);}
+	  { if (yysemantic_stack_[(1) - (1)].une->next == NULL){
+		   yyval.expression = yysemantic_stack_[(1) - (1)].une->fe;
+		}else {
+			(yyval.expression) = (Expr *)(yysemantic_stack_[(1) - (1)].une);
+		}
+	}
     break;
 
   case 23:
@@ -1197,6 +1202,8 @@ namespace yy {
 #line 417 "xpathParser.yy"
     { try {
 													(yyval.expression) = (Expr *)new FuncExpr((yysemantic_stack_[(4) - (1)].fname), (yysemantic_stack_[(4) - (3)].a));
+													if  (!((FuncExpr *)yyval.expression)->checkArgumentCount())
+														throw new XPathParseException("Invalid argument for functional expression");
 															//addObj($$);
 													   }
 													   catch(...){
@@ -1263,6 +1270,7 @@ namespace yy {
 													//addObj($$->ih);
 													//addObj($$->ih->storage);
 													(yyval.lpe)->setStep((yysemantic_stack_[(1) - (1)].s));
+													(yyval.lpe)->optimize();
 												  }
 											 catch(...){
 													//freeAllObj();
@@ -1281,6 +1289,7 @@ namespace yy {
 													//addObj($$->ih);
 													(yyval.lpe)->pathType = ABSOLUTE_PATH;
 													(yyval.lpe)->setStep((yysemantic_stack_[(1) - (1)].s));
+													(yyval.lpe)->optimize();
 												  }
 											  catch(...) {
 													//freeLocationPathExpr($$);
@@ -1345,15 +1354,10 @@ namespace yy {
 															//addObj($$);
 															(yyval.s)->setAxisType((yysemantic_stack_[(3) - (1)].at));
 															if ( ((yysemantic_stack_[(3) - (1)].at)== AXIS_ATTRIBUTE
-	        												|| (yysemantic_stack_[(3) - (1)].at) == AXIS_DESCENDANT
-      														|| (yysemantic_stack_[(3) - (1)].at) == AXIS_PRECEDING
-      														|| (yysemantic_stack_[(3) - (1)].at) == AXIS_FOLLOWING
-      														|| (yysemantic_stack_[(3) - (1)].at) == AXIS_FOLLOWING_SIBLING
-      														|| (yysemantic_stack_[(3) - (1)].at) == AXIS_PRECEDING_SIBLING
       														|| (yysemantic_stack_[(3) - (1)].at) == AXIS_NAMESPACE) && 
       														((yysemantic_stack_[(3) - (2)].nodetest)->testType>1)){
       																printf("%s axis can't operate on comment(), pi(), or text()\n", com_ximpleware::getAxisString((yysemantic_stack_[(3) - (1)].at)));
-      																throw XPathParseException(" attr|descedant|preceding|following|following-sibling|preceding-sibling axis can't operate on comment(), pi(), or text()");
+      																throw XPathParseException(" attr|namespace axis can't operate on comment(), pi(), or text()");
       	         											}
 															(yyval.s)->setNodeTest((yysemantic_stack_[(3) - (2)].nodetest));
 															(yyval.s)->setPredicate((yysemantic_stack_[(3) - (3)].p));
@@ -1570,6 +1574,13 @@ namespace yy {
 									(yyval.p) = new Predicate();
 									//addObj($$);
 									(yyval.p)->e = (yysemantic_stack_[(3) - (2)].expression);
+									if ((yyval.p)->e->isFinal() && (yyval.p)->e->isNumerical()){
+										yyval.p->d = yyval.p->e->evalNumber(NULL);
+										if (yyval.p->d <1){
+											throw new XPathParseException("Invalid index number <1");
+										}
+										yyval.p->type = SIMPLE_P;
+									}
 								} catch(...){
 									//freeAllObj();
 									YYABORT;
