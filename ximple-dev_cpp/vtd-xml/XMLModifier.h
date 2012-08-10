@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,8 @@ namespace com_ximpleware {
 		const static Long MASK_INSERT_SEGMENT_BYTE_ENCLOSED = 0x6000000000000000LL;
 		const static Long MASK_INSERT_BYTE_ENCLOSED = 0x8000000000000000LL;
 		const static Long MASK_INSERT_FRAGMENT_NS_ENCLOSED = 0xe000000000000000LL;
-		
+		const static Long MASK_NULL =  0xc000000000000000LL; //1100
+
 		XMLModifier();
 		XMLModifier(VTDNav *vn);
 		~XMLModifier();
@@ -120,7 +121,47 @@ namespace com_ximpleware {
 		void insertBeforeElement(VTDNav *vn1, int contentOffset, int contentLen);
 		void insertAfterHead(VTDNav *vn1, int contentOffset, int contentLen);
 
+		///2.11----------------------
+		void insertBeforeTail(VTDNav *vn1, int contentOffset, int contentLen){
+			insertBeforeTail(vn1->encoding,vn1->XMLDoc,contentOffset, contentLen); 
+		}
+		/*void insertBeforeTail(VTDNav *vn1, Long l){
+			insertBeforeTail(vn1->encoding, vn1->XMLDoc, l);
+		}*/
 		
+		/*void insertBeforeTail(UByte *ba, Long l);
+		void insertBeforeTail(char *ba, Long l){
+			insertBeforeTail((UByte *)ba, l);
+		}*/
+		
+		void insertBeforeTail(UByte *ba, int contentOffset, int contentLen);
+		void insertBeforeTail(char *ba, int contentOffset, int contentLen){
+			insertBeforeTail((UByte *)ba, contentOffset, contentLen);
+		}
+
+		void insertBeforeTail(UByte *ba, int arrayLen);
+		void insertBeforeTail(char *ba, int arrayLen){
+			insertBeforeTail((UByte *)ba, arrayLen);
+		}
+
+		void insertBeforeTail(ElementFragmentNs *ef);
+
+		/*void insertBeforeTail(encoding_t src_encoding,UByte *ba, Long l);
+		void insertBeforeTail(encoding_t src_encoding,char *ba, Long l){
+			insertBeforeTail(src_encoding, (UByte *)ba, l);
+		}*/
+
+		void insertBeforeTail(encoding_t src_encoding, UByte *ba, int contentOffset, int contentLen);
+		void insertBeforeTail(encoding_t src_encoding,char *ba,int contentOffset, int contentLen){
+			insertBeforeTail(src_encoding, (UByte *)ba, contentOffset, contentLen);
+		}
+
+		void insertBeforeTail(encoding_t src_encoding, UByte *ba, int arrayLen);
+		void insertBeforeTail(encoding_t src_encoding, char *ba, int arrayLen){
+			insertBeforeTail(src_encoding, (UByte *)ba, arrayLen);
+		}
+
+		void insertBeforeTail(UCSChar *s);
 
 		/*
 		void updateToken2(XMLModifier *xm, int index, UByte *newContentBytes, int len);
@@ -168,6 +209,8 @@ namespace com_ximpleware {
 		void insertBytesEnclosedAt( int offset, ElementFragmentNs* ef);
 
 		void insertEndingTag(Long l);
+		void check2();
+		
 		
 	};
 }
