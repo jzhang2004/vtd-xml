@@ -1104,7 +1104,7 @@ void XMLModifier::output(FILE *f){
 							if (k!=t)
 								throw IOException("fwrite didn't complete");  
 							offset = (flb->lower32At(i1) + (flb->upper32At(i1) & 0x1fffffff))<<1;
-					}else{
+					}else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED) {
 						fwrite(b1,sizeof(UByte),2,f);
 						((ElementFragmentNs*)fob->lower32At(i2))->writeFragmentToFile(f,encoding);
 						fwrite(b2,sizeof(UByte),2,f);
