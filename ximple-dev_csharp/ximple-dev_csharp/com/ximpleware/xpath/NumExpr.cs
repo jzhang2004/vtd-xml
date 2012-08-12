@@ -139,9 +139,5 @@ namespace com.ximpleware.xpath
             return true;
         }
 
-        public bool isConstant()
-        {
-            return true;
-        }
 	}
 }
