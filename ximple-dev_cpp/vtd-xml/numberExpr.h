@@ -46,7 +46,7 @@ namespace com_ximpleware{
 		void setPosition(int pos);
 		int adjust(int n);
 		bool isFinal();
-		bool isConstant();
+		//bool isConstant();
 	};
 }
 #endif

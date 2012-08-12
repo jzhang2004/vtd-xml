@@ -100,7 +100,7 @@ void NumberExpr::setPosition(int pos){
 bool NumberExpr::isFinal(){return true;}
 
 
-bool NumberExpr::isConstant(){return true;}
+/*bool NumberExpr::isConstant(){return true;}*/
 int NumberExpr::adjust(int n){
 	return 0;
 }

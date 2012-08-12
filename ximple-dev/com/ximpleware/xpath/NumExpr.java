@@ -93,9 +93,9 @@ public class NumExpr extends Expr{
 	final public boolean isFinal(){
 		return true;
 	}
-	final public boolean isConstant(){
+	/*final public boolean isConstant(){
 		return true;
-	}
+	}*/
 	/*final public void markCacheable(){
 		
 	}
