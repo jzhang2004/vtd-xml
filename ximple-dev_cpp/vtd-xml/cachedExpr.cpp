@@ -99,6 +99,8 @@ UCSChar* CachedExpr::evalString(VTDNav *vn){
 
 void CachedExpr::reset(VTDNav *vn){
 	count = 0;
+	if (e!=NULL && vn!=NULL)
+		e->reset(vn);
 }
 
 void CachedExpr::toString(UCSChar *s){
