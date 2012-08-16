@@ -136,6 +136,8 @@ namespace com.ximpleware
         public override void reset(VTDNav vn)
         {
             count = 0;
+            if (e != null && vn != null)
+                e.reset(vn);
             /*if (vn1!=vn){
                 cached = false;
                 if (ens!=null)
