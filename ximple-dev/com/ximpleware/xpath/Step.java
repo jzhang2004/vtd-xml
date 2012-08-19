@@ -49,7 +49,7 @@ public class Step{
 		ft = true;
 		if (hasPredicate)
 			resetP(vn);
-		//out_of_range=false;
+		out_of_range=false;
 		
 		//position = 1;
 	}
