@@ -1972,6 +1972,7 @@ Step::~Step(){
 void Step::reset_s(VTDNav *vn){
 	ft = true;
 	if (hasPredicate) resetP_s(vn);
+	out_of_range=false;
 	//position =1;
 }
 
