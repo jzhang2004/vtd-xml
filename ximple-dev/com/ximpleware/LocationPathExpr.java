@@ -2672,9 +2672,9 @@ public class LocationPathExpr extends Expr{
    		    	currentStep.resetP(vn);
    		    currentStep.ft = true;
 			if (currentStep.prevS == null) {
-				 state =  END;
+				state =  END;
 			} else {
-				 state =  BACKWARD;
+				state =  BACKWARD;
 				currentStep = currentStep.prevS;
 			}
 			
@@ -2864,11 +2864,11 @@ public class LocationPathExpr extends Expr{
 	throws NavException,XPathEvalException{		
 		int i = 0;
 		AutoPilot ap = (AutoPilot)currentStep.o;
-		if (vn.toElement(VTDNav.PARENT)){
-		    if (currentStep.eval(vn,p)){
-		        i++;
-		    }
-		}			    
+		//if (vn.toElement(VTDNav.PARENT)){
+		if (currentStep.eval(vn,p)){
+		   i++;
+		}
+		//}			    
 		currentStep.resetP(vn,p);
 		currentStep.out_of_range=false;
 		currentStep.o = ap;
@@ -2879,11 +2879,11 @@ public class LocationPathExpr extends Expr{
 	throws NavException,XPathEvalException{		
 		int i = 0;
 		AutoPilot ap = (AutoPilot)currentStep.o;
-		if (vn.toNode(VTDNav.PARENT)){
-		    if (currentStep.eval2(vn,p)){
-		        i++;
-		    }
-		}			    
+		//if (vn.toNode(VTDNav.PARENT)){
+		if (currentStep.eval2(vn,p)){
+		   i++;
+		}
+		//}			    
 		currentStep.resetP(vn,p);
 		currentStep.out_of_range=false;
 		currentStep.o = ap;
