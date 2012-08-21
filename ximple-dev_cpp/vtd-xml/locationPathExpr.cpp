@@ -2583,11 +2583,11 @@ int LocationPathExpr::computeContextSize4PrecedingSibling2(Predicate *p, VTDNav 
 int LocationPathExpr::computeContextSize4Self(Predicate *p, VTDNav *vn){
 		int i = 0;
 		AutoPilot *ap = (AutoPilot *)currentStep->o;
-		if (vn->toElement(PARENT)){
-		    if (currentStep->eval_s2(vn,p)){
-		        i++;
-		    }
-		}			    
+		//if (vn->toElement(PARENT)){
+		if (currentStep->eval_s2(vn,p)){
+		   i++;
+		}
+		//}
 		currentStep->resetP2_s(vn,p);
 		currentStep->out_of_range=false;
 		currentStep->o = ap;
@@ -2597,11 +2597,11 @@ int LocationPathExpr::computeContextSize4Self(Predicate *p, VTDNav *vn){
 int LocationPathExpr::computeContextSize4Self2(Predicate *p, VTDNav *vn){
 		int i = 0;
 		AutoPilot *ap = (AutoPilot *)currentStep->o;
-		if (vn->toNode(PARENT)){
-		    if (currentStep->eval2_s2(vn,p)){
-		        i++;
-		    }
-		}			    
+		//if (vn->toNode(PARENT)){
+		if (currentStep->eval2_s2(vn,p)){
+		   i++;
+		}
+		//}
 		currentStep->resetP2_s(vn,p);
 		currentStep->out_of_range=false;
 		currentStep->o = ap;
