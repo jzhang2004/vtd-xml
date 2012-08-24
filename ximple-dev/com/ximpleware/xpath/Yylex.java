@@ -1585,6 +1585,7 @@ class Yylex extends sym implements java_cup.runtime.Scanner {
 
 				name.prefix = yytext().substring(0,len-2);
 				name.localname = "*";
+				name.qname = new String(yytext());
 				//System.out.println("NAME "+name+ " returned");
 				return sym(NAME,name);
           }
