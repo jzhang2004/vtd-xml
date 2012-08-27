@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,10 @@ unionExpr *createUnionExpr(expr *e){
 	une->reset = (reset_)&reset_une;
 	une->toString = (to_String)&toString_une;
 	une->adjust =  (adjust_)&adjust_une;
+	une->isFinal = (isFinal_)&isFinal_une;
+	une->markCacheable = (markCacheable_)&markCacheable_une;
+	une->markCacheable2 = (markCacheable2_)&markCacheable2_une;
+	une->clearCache = (clearCache_)&clearCache_une;
 	une->fe = e;
 	une->next = NULL;
 	une->current = une;
@@ -56,7 +60,8 @@ unionExpr *createUnionExpr(expr *e){
 }
 void freeUnionExpr(unionExpr *e){
 	unionExpr *tmp, *tmp2;
-	e->fe->freeExpr(e->fe);
+	if (e->fe!=NULL)
+		e->fe->freeExpr(e->fe);
 	freeIntHash(e->ih);
 	tmp = e->next;
     free(e);
@@ -71,11 +76,11 @@ void freeUnionExpr(unionExpr *e){
 
 int	evalNodeSet_une (unionExpr *e,VTDNav *vn){
 	int a;
-	if (e->next == NULL) {
-		return e->fe->evalNodeSet(e->fe,vn);
-	} else {
-		while (TRUE) {
-			switch (e->evalState) {
+	/*if (e->next == NULL) {
+	return e->fe->evalNodeSet(e->fe,vn);
+	} else {*/
+	while (TRUE) {
+		switch (e->evalState) {
 				case 0:
 					if (e->ih == NULL ){
 						exception ee;
@@ -134,61 +139,105 @@ int	evalNodeSet_une (unionExpr *e,VTDNav *vn){
 				default:
 					throwException2(other_exception,
 						"Invalid state evaluating unionExpr");
-			}
 		}
 	}
+	//}
 }
 
-double	evalNumber_une (unionExpr *e,VTDNav *vn){
-	double d = 0.0;
+double	evalNumber_une (unionExpr *une,VTDNav *vn){
+	double d1 = 0.0;
 	exception ee;
-	int a;
-	if (e->fe->isNodeSet(e->fe)==FALSE){   
-		return e->fe->evalNumber(e->fe,vn);   
+	double d=d1/d1;
+	int a = -1,size;
+	push2(vn);
+	size = vn->contextBuf2->size;
+	Try {
+		a = evalNodeSet_une(une,vn);
+		if (a != -1) {
+			int t = getTokenType(vn,a);
+			if (t == TOKEN_ATTR_NAME) {
+				d = parseDouble(vn,a+1);
+			} else if (t == TOKEN_STARTING_TAG || t ==TOKEN_DOCUMENT) {
+				UCSChar *s =getXPathStringVal( vn,0), *s1;
+				d  = wcstod(s,&s1);
+				free( s);
+			}else if (t == TOKEN_PI_NAME) {
+				if (a+1 < vn->vtdSize || getTokenType(vn,a+1)==TOKEN_PI_VAL)
+					//s = vn.toString(a+1); 	
+					d = parseDouble(vn,a+1);                	
+			}else 
+				d = parseDouble(vn,a);
+		}
+	} Catch (ee) {
+
 	}
-	a = getStringIndex((expr *)e,vn);
-	Try{
-		if (a!=-1) return parseDouble(vn,a);
-	}Catch (ee){
-	}
-	return 0/d;
+	vn->contextBuf2->size = size;
+	reset_une(une,vn);
+	pop2(vn);
+	//return s;
+	return d;
 }
 UCSChar* evalString_une  (unionExpr *e,VTDNav *vn){
 	exception ee;
-	int a;
+	int a,size;
+	UCSChar *s = NULL;	
 	if (e->fe->isNodeSet(e->fe)==FALSE){   
 		return e->fe->evalString(e->fe,vn);   
-	}
-	a = getStringIndex((expr *)e,vn);
+	}	
+	//int a = -1;
+	push2(vn);
+    size = vn->contextBuf2->size;
+     
 	Try {
-		if (a != -1)
-			return toString(vn,a);
-	} Catch (ee) {
-		if(ee.et == out_of_mem)
-			Throw ee;
-	}
-	return createEmptyString();	
+         a = evalNodeSet_une(e,vn);
+         if (a != -1) {
+            	int t = getTokenType(vn,a);
+                switch(t){
+			 case TOKEN_STARTING_TAG:
+			 case TOKEN_DOCUMENT:
+				 s = getXPathStringVal(vn,0);
+				 break;
+			 case TOKEN_ATTR_NAME:
+				 s = toString(vn,a + 1);
+				 break;
+			 case TOKEN_PI_NAME:
+				 //if (a + 1 < vn.vtdSize
+				 //		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+				 s = toString(vn,a + 1);
+				 break;
+			 default:
+				 s = toString(vn,a);
+				 break;
+			 }		
+            }
+        } Catch (ee) {
+
+        }
+        vn->contextBuf2->size = size;
+        reset_une(e,vn);
+        pop2(vn);
+        return s;
 }
 Boolean evalBoolean_une (unionExpr *e,VTDNav *vn){
 	exception ee;
 	Boolean b = FALSE;
 	int size;
-	if (e->fe->isNodeSet(e->fe)==FALSE){
-		return e->fe->evalBoolean(e->fe,vn);
-	}else{
-			push2(vn);
-			/* record teh stack size*/
-			size = vn->contextBuf2->size;
-			Try{	
-				b = (evalNodeSet_une(e,vn) != -1);
-			}Catch (ee){
-			}
-			/*rewind stack */
-			vn->contextBuf2->size = size;
-			reset_une(e,vn);
-			pop2(vn);
-			return b;
+	/*if (e->fe->isNodeSet(e->fe)==FALSE){
+	return e->fe->evalBoolean(e->fe,vn);
+	}else{*/
+	push2(vn);
+	/* record teh stack size*/
+	size = vn->contextBuf2->size;
+	Try{	
+		b = (evalNodeSet_une(e,vn) != -1);
+	}Catch (ee){
 	}
+	/*rewind stack */
+	vn->contextBuf2->size = size;
+	reset_une(e,vn);
+	pop2(vn);
+	return b;
+	//}
 	
 	/*else if (e->fe->isNumerical(e->fe)){
            double dval = e->fe->evalNumber(e->fe,vn);
@@ -290,4 +339,43 @@ int adjust_une(unionExpr *une, int n){
 			une->ih = createIntHash2(i);
 		}
 		return i;
+}
+
+Boolean isFinal_une(unionExpr *une){
+	unionExpr *tmp = une;
+	while (tmp != NULL) {
+		if (tmp->fe->isFinal(tmp->fe)== FALSE){            	
+			return FALSE;
+		}
+		tmp = tmp->next;
+	}        
+	return TRUE;
+}
+
+void markCacheable_une(unionExpr *une){
+	unionExpr *tmp = une;
+	while (tmp != NULL) {
+		tmp->fe->markCacheable(tmp->fe);
+		tmp = tmp->next;
+	}  
+}
+
+void markCacheable2_une(unionExpr *une){
+	unionExpr *tmp = une;
+	while (tmp != NULL) {
+		if (tmp->fe->isFinal(tmp->fe) && tmp->fe->isNodeSet(tmp->fe)){
+			cachedExpr *ce = createCachedExpr(tmp->fe);
+			tmp->fe = (expr *)ce;	
+		}   
+		tmp->fe->markCacheable2(tmp->fe);     		       	
+		tmp = tmp->next;
+	}  
+}
+
+void clearCache_une(unionExpr *une){
+	unionExpr *tmp = une;
+	while (tmp != NULL) {
+		tmp->fe->clearCache(tmp->fe); 		       	
+		tmp = tmp->next;
+	} 
 }
