@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -3245,14 +3245,14 @@ int process_pi_tag(VTDGen *vg){
 			_writeVTD(vg,
 				(vg->temp_offset),
 				0,
-				TOKEN_PI_NAME,
+				TOKEN_PI_VAL,
 				vg->depth);
 		}
 		else{
 			_writeVTD(vg,
 				(vg->temp_offset) >> 1,
 				0,
-				TOKEN_PI_NAME,
+				TOKEN_PI_VAL,
 				vg->depth);
 		}
 		if (skipChar(vg,'>')) {
