@@ -377,7 +377,7 @@ int LocationPathExpr::process_ancestor_or_self(VTDNav *vn){
 		case  XPATH_EVAL_START:
 			t = currentStep->p;
 			while (t != NULL) {
-				if (t->requireContextSize_p()) {
+				if (t->requireContext) {
 					int i = computeContextSize(t, vn);
 					if (i == 0) {
 						b1 = true;
