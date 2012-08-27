@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -438,6 +438,10 @@ binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
 	be->reset = (reset_)&reset_be;
 	be->toString = (to_String)&toString_be;
 	be->adjust = (adjust_)&adjust_be;
+	be->isFinal= (isFinal_)&isFinal_be;
+	be->markCacheable = (markCacheable_)&markCacheable_be;
+	be->markCacheable2 = (markCacheable2_)&markCacheable2_be;
+	be->clearCache = (clearCache_)&clearCache_be;
 	be->left = e1;
 	be->op = op;
 	be->right = e2;
@@ -670,4 +674,32 @@ int getStringIndex(expr *exp, VTDNav *vn){
 	pop2(vn);
 	return a;
 
+}
+
+
+Boolean isFinal_be(binaryExpr *e){
+	return e->left->isFinal(e->left) && e->right->isFinal(e->right);
+}
+
+void markCacheable_be(binaryExpr *e){
+	e->left->markCacheable(e->left);
+	e->right->markCacheable(e->right);	
+}
+
+void markCacheable2_be(binaryExpr *e){
+	if (e->left->isFinal(e->left) && e->left->isNodeSet(e->left)){
+		cachedExpr *ce = createCachedExpr(e->left);
+		e->left = (expr *)ce;
+	} 
+	e->left->markCacheable2(e->left);
+	if (e->right->isFinal(e->right) && e->right->isNodeSet(e->right)){
+		cachedExpr *ce = createCachedExpr(e->right);
+		e->right = (expr *)ce;
+	} 
+	e->right->markCacheable2(e->right);
+}
+
+void clearCache_be(binaryExpr *e){
+	e->left->clearCache(e->left);
+	e->right->clearCache(e->right);
 }
