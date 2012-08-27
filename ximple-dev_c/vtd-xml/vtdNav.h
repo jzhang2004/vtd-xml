@@ -25,6 +25,7 @@
 #include "XMLChar.h"
 #include "decoder.h"
 #include <math.h>
+//#include "bookMark.h"
 //#include "elementFragmentNs.h"
 
 
@@ -136,6 +137,14 @@ typedef struct vTDNav{
 	FastLongBuffer *l2Buffer;
 	FastIntBuffer *l3Buffer;
 	UByte* XMLDoc;
+	FastIntBuffer *fib;
+	UCSChar *name;
+	int nameIndex;
+	UCSChar *localName;
+	int localNameIndex;
+	struct bookMark *currentNode;
+	UCSChar  *URIName;
+	int count;
     
 	Long offsetMask;
 	ContextBuffer *contextBuf;
@@ -159,10 +168,8 @@ typedef struct vTDNav{
 	Boolean master; // true if vn is obtained by calling getNav(), otherwise false
 	                // useful for implementing dupliateNav() and cloneNav();
 	short maxLCDepthPlusOne;
-	int count;
-	struct bookMark *currentNode;
-	FastIntBuffer *fib;
-	UCSChar *URIName;
+
+
 } VTDNav;
 
 
@@ -218,6 +225,14 @@ typedef struct vTDNav_L5{
 	FastLongBuffer *l2Buffer;
 	FastIntBuffer *l3Buffer;
 	UByte* XMLDoc;
+		FastIntBuffer *fib;
+		UCSChar *name;
+		int nameIndex;
+		UCSChar *localName;
+		int localNameIndex;
+		struct bookMark *currentNode;
+		UCSChar  *URIName;
+		int count;
     
 	Long offsetMask;
 	ContextBuffer *contextBuf;
@@ -250,10 +265,8 @@ typedef struct vTDNav_L5{
 	FastLongBuffer *_l3Buffer;
 	FastLongBuffer *l4Buffer;
 	FastIntBuffer *l5Buffer;
-	int count;
-	struct bookMark *currentNode;
-	FastIntBuffer *fib;
-	UCSChar *URIName;
+
+
 } VTDNav_L5;
 
 
@@ -653,7 +666,8 @@ extern Boolean overWrite(VTDNav *vn, int index, UByte* ba, int offset, int len);
 extern int compareTokenString(VTDNav *vn,int index, UCSChar *s);
 
 extern int compareRawTokenString(VTDNav *vn, int index, UCSChar *s);
-
+extern Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
+extern int compareRawTokenString2(VTDNav *vn, int offset, int len, UCSChar *s);
 extern int compareTokens(VTDNav *vn, int i1, VTDNav *vn2, int i2);
 
 
@@ -813,6 +827,18 @@ extern Boolean iterate_following_node(VTDNav *vn);
 
 extern Boolean iterate_preceding_node(VTDNav *vn,int a[], int index);
 
+extern Boolean iterateNode(VTDNav *vn, int dp);
+
+extern inline int getTokenLength2(VTDNav *vn,int index){
+	return (int)((longAt(vn->vtdBuffer,index) & MASK_TOKEN_FULL_LEN) >> 32);
+}
+
+extern void setCurrentNode(VTDNav *vn);
+extern void loadCurrentNode(VTDNav *vn);
+extern void fillXPathString(VTDNav *vn,FastIntBuffer *indexBuffer,FastIntBuffer *countBuffer);
+extern UCSChar *getXPathStringVal(VTDNav *vn,short mode);
+extern UCSChar *getXPathStringVal2(VTDNav *vn,int i,short mode);
+//extern Boolean iterateNode(VTDNav *vn, int dp);
 
 
 

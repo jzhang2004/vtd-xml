@@ -31,7 +31,7 @@ static Long handle_utf16be(VTDNav *vn, int offset);
 static inline Boolean isElement(VTDNav  *vn, int index);
 static inline Boolean isElementOrDocument(VTDNav *vn, int index);
 static inline Boolean isWS(int ch);
-static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
+//static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
 static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCSChar *s);
 static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
 static Boolean matchTokenString2(VTDNav *vn, Long l, UCSChar *s);
@@ -44,7 +44,7 @@ static Boolean resolveNS2(VTDNav *vn, UCSChar *URL, int offset, int len); //UCSC
 static int lookupNS2(VTDNav *vn, int offset, int len);
 static Long getChar4OtherEncoding(VTDNav *vn, int offset);
 static int decode(VTDNav *vn,int offset);
-static int compareRawTokenString2(VTDNav *vn, int offset, int len, UCSChar *s);
+//static int compareRawTokenString2(VTDNav *vn, int offset, int len, UCSChar *s);
 static int compareTokenString2(VTDNav *vn, int offset, int len, UCSChar *s);
 static UCSChar *toStringUpperCase2(VTDNav *vn, int os, int len);
 static UCSChar *toStringLowerCase2(VTDNav *vn, int os, int len);
@@ -123,7 +123,6 @@ static Boolean _writeIndex_VTDNav_L5(VTDNav_L5 *vn, FILE *f);
 static Boolean _writeIndex2_VTDNav_L5(VTDNav_L5 *vn, char *fileName);
 static Boolean _writeSeparateIndex_VTDNav_L5(VTDNav_L5 *vn, char *fileName);
 
-static Boolean iterateNode(VTDNav *vn, int dp);
 
 static inline void sync(VTDNav *vn, int depth, int index);
 
@@ -147,6 +146,13 @@ static Boolean _verifyNodeCorrectness(VTDNav *vn);
 
 static Boolean _verifyNodeCorrectness_L5(VTDNav_L5 *vn);
 
+static int _toString(VTDNav *vn, UCSChar *s, int index, int offset);
+
+static int _toStringLowerCase(VTDNav *vn, UCSChar *s, int index, int offset);
+
+static int _toStringUpperCase(VTDNav *vn, UCSChar *s, int index, int offset);
+
+static UCSChar* _getXPathStringVal(VTDNav *vn, int index,short mode);
 /*Create VTDNav object*/
 static Long handle_utf8(VTDNav *vn, Long temp, int offset){
 	int c,d,a,i;
@@ -390,6 +396,10 @@ VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 						 vn->LN = 0;
 						 vn->shallowDepth = TRUE;
 						 vn->maxLCDepthPlusOne = 4;
+						 vn->name=NULL;
+						 vn->localName=NULL;
+						 vn->URIName=NULL;
+						 vn->currentNode=NULL;
 						 return vn;
 }
 
@@ -408,6 +418,14 @@ void _freeVTDNav(VTDNav *vn)
 		}
 		free(vn->context);
 		free(vn->stackTemp);
+		if (vn->name!= NULL)
+			free(vn->name);
+		if (vn->localName != NULL)
+			free(vn->localName);
+		if (vn->URIName != NULL)
+			free(vn->URIName);
+		if (vn->currentNode != NULL)
+			freeBookMark( vn->currentNode);
 		//free(vn->XMLDoc);
 		free(vn);
 	}						 
@@ -765,12 +783,14 @@ Long getElementFragment(VTDNav *vn){
 	so = getTokenOffset(vn,getCurrentIndex2(vn)) - 1;
 	if (toElement(vn,NEXT_SIBLING)) {
 
-		int temp = getCurrentIndex(vn);
+		int temp = getCurrentIndex(vn),temp2=temp;
 		int so2;
 		// rewind 
 		while (getTokenDepth(vn,temp) < depth) {
 			temp--;
 		}
+		if (temp!=temp2)
+			temp++;
 		//temp++;
 		so2 = getTokenOffset(vn,temp) - 1;
 		// look for the first '>'
@@ -890,11 +910,13 @@ Long getContentFragment(VTDNav *vn){
 		// for an element with next sibling
 		if (toElement(vn,NEXT_SIBLING)) {
 
-			int temp = getCurrentIndex(vn);
+			int temp = getCurrentIndex(vn),temp2=temp;
 			// rewind
 			while (getTokenDepth(vn,temp) < depth) {
 				temp--;
 			}
+			if (temp!=temp2)
+				temp++;
 			//temp++;
 			so2 = getTokenOffset(vn,temp) - 1;
 			// look for the first '>'
@@ -2522,6 +2544,7 @@ Boolean _toElement(VTDNav *vn, navDir direction){
 			case PREV_SIBLING :
 				if (vn->atTerminal) return nodeToElement(vn,direction);
 				switch (vn->context[0]) {
+			case -1:
 			case 0 :
 				return FALSE;
 			case 1 :
@@ -5046,6 +5069,10 @@ VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
 							   vn->LN = 0;
 							   vn->shallowDepth = FALSE;
 							   vn->maxLCDepthPlusOne = 6;
+							   vn->name=NULL;
+							   vn->localName=NULL;
+							   vn->URIName=NULL;
+							   vn->currentNode=NULL;
 							   return vn;
 
 }
@@ -7173,7 +7200,7 @@ loop2:
 				while (index < vn->vtdBuffer->size) {
 					Long temp = longAt(vn->vtdBuffer,index);
 					tokenType =
-						(int) ((MASK_TOKEN_TYPE & temp) >> 60);
+						(int) ((MASK_TOKEN_TYPE & temp) >> 60)&0x0f;
 					switch(tokenType){
 					case TOKEN_STARTING_TAG:
 						depth =
@@ -7673,7 +7700,7 @@ loop222:
 				}
 				while (index < vn->vtdSize) {
 					Long temp = longAt(vn->vtdBuffer,index);
-					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60);
+					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0x0f;
 					depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
 					switch (tokenType) {
 					case TOKEN_STARTING_TAG:						
@@ -7917,7 +7944,7 @@ loop11:
 							tmp++;
 					}
 					if (tmp==vn->l2Buffer->size){
-						vn->l3upper = vn->l3Buffer->size-1;
+						vn->l3upper = vn->_l3Buffer->size-1;
 					}					
 					index = vn->context[2]+1;
 					tmp = upper32At(vn->_l3Buffer,vn->l3lower);
@@ -7965,14 +7992,14 @@ loop11:
 				// l2upper and l2lower
 				vn->l4lower = lower32At(vn->_l3Buffer,vn->l3index);
 				tmp = vn->l3index+1;
-				while(tmp<vn->l3Buffer->size){
+				while(tmp<vn->_l3Buffer->size){
 					if (lower32At(vn->_l3Buffer,tmp)!=-1){
 						vn->l4upper = lower32At(vn->_l3Buffer,tmp)-1;
 						break;
 					}else
 						tmp++;
 				}
-				if (tmp==vn->l3Buffer->size){
+				if (tmp==vn->_l3Buffer->size){
 					vn->l4upper = vn->l4Buffer->size-1;
 				}					
 				index = vn->context[3]+1;
@@ -8078,7 +8105,7 @@ loop11:
 				while (index < vn->vtdBuffer->size) {
 					Long temp = longAt(vn->vtdBuffer,index);
 					tokenType =
-						(int) ((MASK_TOKEN_TYPE & temp) >> 60);
+						(int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0x0f;
 					switch(tokenType){
 					case TOKEN_STARTING_TAG:
 						depth =
@@ -8696,7 +8723,7 @@ loop23:
 							lastEntry = index =upper32At( vn->l2Buffer,vn->l2index+1)-1;
 						}
 
-						if (vn->l3index != vn->l3Buffer->size-1 && vn->l3index != vn->l3upper){
+						if (vn->l3index != vn->_l3Buffer->size-1 && vn->l3index != vn->l3upper){
 							lastEntry = index = upper32At(vn->_l3Buffer,vn->l3index+1)-1;
 						}
 						// insert here
@@ -8773,7 +8800,7 @@ loop24:
 						lastEntry = index =upper32At(vn->l2Buffer,vn->l2index+1)-1;
 					}
 					
-					if (vn->l3index != vn->l3Buffer->size-1 && vn->l3index != vn->l3upper){
+					if (vn->l3index != vn->_l3Buffer->size-1 && vn->l3index != vn->l3upper){
 						lastEntry = index = upper32At(vn->_l3Buffer,vn->l3index+1)-1;
 					}
 					if (vn->l4index != vn->l4Buffer->size-1 && vn->l4index != vn->l4upper){
@@ -8822,7 +8849,7 @@ loop24:
 				}
 				while (index < vn->vtdSize) {
 					Long temp = longAt(vn->vtdBuffer,index);
-					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60);
+					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
 					depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
 					switch (tokenType) {
 					case TOKEN_STARTING_TAG:						
@@ -9353,7 +9380,7 @@ loop33:
 			while (index < vn->vtdBuffer->size) {
 				Long temp = longAt(vn->vtdBuffer,index);
 				tokenType =
-					(int) ((MASK_TOKEN_TYPE & temp) >> 60);
+					(int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0x0f;
 				depth =getTokenDepth((VTDNav *)vn,index);
 				switch(tokenType){
 				case TOKEN_STARTING_TAG:
@@ -9706,7 +9733,7 @@ loop33:
 			while (index < vn->vtdBuffer->size) {
 				Long temp = longAt(vn->vtdBuffer,index);
 				tokenType =
-					(int) ((MASK_TOKEN_TYPE & temp) >> 60);
+					(int) ((MASK_TOKEN_TYPE & temp) >> 60)& 0x0f;
 				depth =getTokenDepth(vn,index);
 				switch(tokenType){
 				case TOKEN_STARTING_TAG:
@@ -10652,7 +10679,7 @@ loop33:
 			}
 			while (index > vn->context[tmp-1]) {
 				Long temp = longAt(vn->vtdBuffer,index);
-				tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60);
+				tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0x0f;
 				depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
 				switch (tokenType) {
 				case TOKEN_STARTING_TAG:
@@ -10873,7 +10900,7 @@ loop33:
 			if (lower32At(vn->l2Buffer,vn->l2index)!=-1){
 				if (vn->l3lower!=lower32At(vn->l2Buffer,vn->l2index)){
 					vn->l3index = vn->l3lower = lower32At(vn->l2Buffer,vn->l2index);
-					vn->l3upper = vn->l3Buffer->size - 1;
+					vn->l3upper = vn->_l3Buffer->size - 1;
 					size = vn->l2Buffer->size;
 					for (i = vn->l2index + 1; i < size; i++) {
 						int temp = lower32At(vn->l2Buffer,i);
@@ -11641,3 +11668,180 @@ loop33:
 			
 		}
 	}
+
+
+	Boolean iterateNode(VTDNav *vn, int dp){
+	int index = getCurrentIndex(vn) + 1;
+		int tokenType,depth;
+		// int size = vtdBuffer.size;
+		while (index < vn->vtdSize) {
+			tokenType = getTokenType(vn,index);
+			switch(tokenType){
+			case TOKEN_ATTR_NAME:
+			case TOKEN_ATTR_NS:
+				index = index + 2;
+				continue;
+			case TOKEN_STARTING_TAG:
+			case TOKEN_DOCUMENT:
+				depth = getTokenDepth(vn,index);
+				vn->atTerminal = FALSE;
+				if (depth > dp) {
+					vn->context[0] = depth;
+					if (depth > 0)
+						vn->context[depth] = index;
+					if (dp < vn->maxLCDepthPlusOne)
+						resolveLC(vn);
+					return TRUE;					
+				} else {
+					return FALSE;
+				}
+			case TOKEN_CHARACTER_DATA:
+			case TOKEN_COMMENT:
+			case TOKEN_PI_NAME:
+			case TOKEN_CDATA_VAL:
+				depth = getTokenDepth(vn,index);
+				
+				if (depth >= dp){
+					sync(vn,depth,index);
+					vn->LN= index;
+					vn->context[0]= depth;
+					vn->atTerminal = TRUE;
+					return TRUE;
+				}
+				return FALSE;
+			default:
+				index ++;
+			}			
+		}
+		return FALSE;	
+	}
+
+	void setCurrentNode(VTDNav *vn){
+		if (vn->currentNode == NULL) {
+			vn->currentNode = createBookMark2(vn);
+		} else {
+			recordCursorPosition2(vn->currentNode);//   ->recordCursorPosition();
+		}
+	}
+	
+	void loadCurrentNode(VTDNav *vn){
+		setCursorPosition2(vn->currentNode);
+	}
+	
+	void fillXPathString(VTDNav *vn,FastIntBuffer *indexBuffer,FastIntBuffer *countBuffer){}
+
+	inline UCSChar *getXPathStringVal(VTDNav *vn,short mode){
+		return _getXPathStringVal(vn,getCurrentIndex(vn),mode);
+	}
+	inline UCSChar *getXPathStringVal2(VTDNav *vn,int i,short mode){
+		return _getXPathStringVal(vn,getCurrentIndex(vn), i, mode);
+	}
+
+	static UCSChar* _getXPathStringVal(VTDNav *vn,int j,short mode){
+		//exception ee;
+		int tokenType,os=0;
+		UCSChar *sb=NULL;
+		int index = j + 1;
+		int depth, t = 0, i = 0;
+		int dp = getTokenDepth(vn,j);
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vn->vtdSize) {
+			tokenType = getTokenType(vn,index);
+			depth = getTokenDepth(vn,index);
+			t = t + getTokenLength2(vn,index);
+			if (depth < dp || (depth == dp && tokenType == TOKEN_STARTING_TAG)) {
+				break;
+			}
+			switch (tokenType) {
+		case TOKEN_ATTR_NAME:
+		case TOKEN_ATTR_NS:
+		case TOKEN_PI_NAME:
+			index = index + 2;
+			continue;
+
+		case TOKEN_CHARACTER_DATA:
+		case TOKEN_CDATA_VAL:
+			appendInt(vn->fib,index);
+			index++;
+			continue;
+			}
+			index++;
+		}
+
+		// calculate the total length
+		sb = malloc(sizeof(UCSChar)*(t + 1));
+		//int os = 0;
+		for (t = 0; t < vn->fib->size; t++) {
+			switch (mode) {
+		case 0:
+			os += _toString(vn,sb, intAt(vn->fib,t), os);
+			break;
+		case 1:
+			os += _toStringUpperCase(vn,sb, intAt(vn->fib,t), os);
+			break;
+		case 2:
+			os += _toStringLowerCase(vn,sb, intAt(vn->fib,t), os);
+			break;
+		default:
+			throwException2( nav_exception, "Invaild xpath string val mode");
+			}
+
+		}
+
+		// clear the fib and return a string
+		clearFastIntBuffer(vn->fib);
+		sb[os] = 0; // END Of STRING
+		return sb;
+	}
+
+	static int _toString(VTDNav *vn, UCSChar *s, int index, int offset){
+		int len = getTokenLength2(vn,index), k = offset;
+		int os = getTokenOffset(vn,index);
+		int endOffset = os + len;
+		Long l;
+		while (offset < endOffset) {
+			l = getCharResolved(vn,offset);
+			offset += (int) (l >> 32);
+			s[k++] = (UCSChar) l; // java only support 16 bit unit code
+		}
+
+		return k;
+	}
+
+	static int _toStringLowerCase(VTDNav *vn, UCSChar *s, int index, int offset){
+		int len = getTokenLength2(vn,index), k = offset;
+		int os = getTokenOffset(vn,index);
+		int endOffset = os + len;
+		Long l;
+		while (offset < endOffset) {
+			l = getCharResolved(vn,offset);
+			offset += (int) (l >> 32);
+			if ((int) l > 64 && (int) l < 91)
+				s[k++] = (UCSChar)(l + 32); // java only support 16 bit unit code
+			else
+				s[k++] = (UCSChar) l; // java only support 16 bit unit code
+		}
+		return k;
+	}
+
+	static int _toStringUpperCase(VTDNav *vn, UCSChar *s, int index, int offset){
+
+		int len = getTokenLength2(vn,index), k = offset;
+		int os = getTokenOffset(vn,index);
+		int endOffset = os + len;
+		Long l;
+		while (offset < endOffset) {
+			l = getCharResolved(vn,offset);
+			offset += (int) (l >> 32);
+			//s[k++] = (UCSChar)l; // java only support 16 bit unit code
+			if ((int) l > 96 && (int) l < 123)
+				s[k++] = (UCSChar)(l - 32); // java only support 16 bit unit code
+			else
+				s[k++] = (UCSChar) l;
+
+		}
+
+		return k;
+	}
+
