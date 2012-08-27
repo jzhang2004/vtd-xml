@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ static char ba3[2]={0,0x3e};
 static char ba4[2]={0,0x3c};
 
 static void check(XMLModifier *xm);
+static void check2(XMLModifier *xm);
 static void sort(XMLModifier *xm);
 static void insertBytesAt(XMLModifier *xm, int offset, Long l);
 static void insertBytesAt2(XMLModifier *xm, int offset, Long lenPlusPointer);
@@ -373,6 +374,13 @@ void removeContent(XMLModifier *xm, int offset, int len){
 		throwException2(modify_exception,
 			"There can be only one deletion per offset value");
 	}
+	while(len > (1<<29)-1){
+		appendLong(xm->flb,((Long)((1<<29)-1))<<32 | offset | MASK_DELETE);
+		appendLong(xm->fob,(Long)NULL);
+		len -= (1<<29)-1;
+		offset += (1<<29)-1;
+	}
+
 	appendLong(xm->flb,((Long)len)<<32 | offset | MASK_DELETE);
 	appendLong(xm->fob,(Long)NULL);
 }
@@ -702,7 +710,7 @@ void insertAfterHead4(XMLModifier *xm, ElementFragmentNs *ef){
 		insertEndingTag(xm,i);
 		return;
 	}
-	insertBytesAt3(xm,i,ef);
+	insertBytesAt3(xm,(int)i,ef);
 }
 
 /* the present implementation automatically garbage collect 
@@ -807,7 +815,7 @@ void output(XMLModifier *xm, FILE *f){
 	len = (t==0)?
 		xm->md->docLen:(xm->md->docLen-32);
 	sort(xm);
-	check(xm);
+	check2(xm);
 	ba = xm->md->XMLDoc;
 
 	if (xm->flb->size==0){
@@ -872,7 +880,7 @@ void output(XMLModifier *xm, FILE *f){
 						throwException2(io_exception,"fwrite didn't complete");   
 					fwrite("<",sizeof(UByte),1,f);
 					offset=lower32At(xm->flb,i);
-				}else {
+				}else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED) {
 					
 					t = lower32At(xm->flb,i);
 					k=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
@@ -897,7 +905,8 @@ void output(XMLModifier *xm, FILE *f){
                         i1 = i2;
                         i2 = temp2;
                     }									
-					
+					if ((l & (~0x1fffffffffffffffL)) == MASK_NULL) {
+					} else {
 					t = lower32At(xm->flb,i1);
 					k1=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 					if (k1!=t-offset)
@@ -935,11 +944,12 @@ void output(XMLModifier *xm, FILE *f){
 								throwException2(io_exception,"fwrite didn't complete");  
 							fwrite("<",sizeof(UByte),1,f);
 							offset = lower32At(xm->flb,i1) + (upper32At(xm->flb,i1) & 0x1fffffff);
-					}else{
+					}else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED) {
 						fwrite(">",sizeof(UByte),1,f);
 						writeFragmentToFile2((ElementFragmentNs*)lower32At(xm->fob,i2),f,xm->encoding);
 						fwrite("<",sizeof(UByte),1,f);
 						offset = lower32At(xm->flb,i1) + (upper32At(xm->flb,i1) & 0x1fffffff);
+					}
 					}
 			}
 		}  
@@ -1034,7 +1044,8 @@ void output(XMLModifier *xm, FILE *f){
                         i1 = i2;
                         i2 = temp2;
                     }									
-					
+					if ((l & (~0x1fffffffffffffffL)) == MASK_NULL) {
+					} else {
 					t = lower32At(xm->flb,i1)<<1;
 					k1=fwrite(xm->md->XMLDoc+offset,sizeof(UByte),t-offset,f);
 					if (k1!=t-offset)
@@ -1076,6 +1087,7 @@ void output(XMLModifier *xm, FILE *f){
 						writeFragmentToFile2((ElementFragmentNs*)lower32At(xm->fob,i2),f,xm->encoding);
 						fwrite(b2,sizeof(UByte),2,f);
 						offset = (lower32At(xm->flb,i1) + (upper32At(xm->flb,i1) & 0x1fffffff))<<1;
+					}
 					}
 			}
 		}  
@@ -1300,7 +1312,7 @@ void insertAfterHead5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int a
 	}
 	bo = Transcoder_transcode(ba, 0, arrayLen, src_encoding, xm->encoding);
 	//insertBytesAt(xm,offset+len,bo);
-	insertBytesAt(xm, i, bo);
+	insertBytesAt(xm, (int)i, bo);
 }
 
 /*
@@ -1361,7 +1373,7 @@ void insertAfterHead6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int c
 		return;
 	}
 	bo = Transcoder_transcode(ba, contentOffset, contentLen, src_encoding, xm->encoding);
-	insertBytesAt(xm,i, bo);
+	insertBytesAt(xm,(int)i, bo);
 }
 
 /*
@@ -1419,15 +1431,15 @@ void updateToken4(XMLModifier *xm, int index, VTDNav *vn1, int contentOffset, in
 	updateToken3(xm,index, vn1->XMLDoc,contentOffset, contentLen, vn1->encoding);
 }
 
-void insertAfterElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
+inline void insertAfterElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
 	insertAfterElement6(xm,vn1->encoding,vn1->XMLDoc,contentOffset,contentLen);
 }
 
-void insertBeforeElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
+inline void insertBeforeElement7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
 	insertBeforeElement6(xm, vn1->encoding,vn1->XMLDoc,contentOffset, contentLen);
 }
 
-void insertAfterHead7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
+inline void insertAfterHead7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
 	insertAfterHead6(xm,vn1->encoding,vn1->XMLDoc,contentOffset,contentLen);
 }
 
@@ -1475,5 +1487,128 @@ void insertBytesEnclosedAt3(XMLModifier *xm, int offset, ElementFragmentNs *ef){
 	appendLong(xm->fob, (Long) ef);
 }
 
+static void check2(XMLModifier *xm){
+	    	int os1, os2, temp,i,z;
+        int size = xm->flb->size;
+        for (i=0;i<size;i++){
+            os1 = lower32At(xm->flb,i);
+            os2 = lower32At(xm->flb,i)+ (upper32At(xm->flb,i)& 0x1fffffff)-1;            
+            
+            z=1;
+			while (i + z < size) {
+				temp = lower32At(xm->flb,i+z);
+				if (temp==os1){
+					if ((upper32At(xm->flb,i+z)& 0x1fffffff)!=0) // not an insert
+						os2=lower32At(xm->flb,i+z)+ (upper32At(xm->flb,i+z)& 0x1fffffff)-1; 
+					z++;
+				}
+				else if (temp > os1 && temp <= os2) {
+					int k= lower32At(xm->flb,i+z)+ (upper32At(xm->flb,i+z)& 0x1fffffff)-1;
+					if (k>os2)
+					// take care of overlapping conditions
+					 throwException2(modify_exception,
+						"Invalid insertion/deletion condition detected in output()");
+					else{
+						
+						modifyEntryFLB(xm->flb,i+z,
+							(longAt(xm->flb,i+z)& 0x1fffffffffffffffLL)|MASK_NULL
+							);
+					}
+					//System.out.println(" hex ==> "+Long.toHexString(flb.longAt(k+z)));
+					z++;
+				} else
+					break;
+			}
+            i+=z;
+        }
+}
 
+void insertBeforeTail(XMLModifier *xm, UCSChar *s){
+	Long i = getOffsetBeforeTail(xm->md);
+    if (i<0){
+     //throw new ModifyException("Insertion failed");
+     // handle empty element case
+     // <a/> would become <a>b's content</a>
+     // so there are two insertions there
+    	insertAfterHead(xm,s);
+    	return;
+    }
+	if (xm->encoding < FORMAT_UTF_16BE)
+		insertBytesAt(xm,(int)i,xm->gbytes(s));
+	else
+		insertBytesAt(xm,((int)i)<<1,xm->gbytes(s));
+}
 
+void insertBeforeTail2(XMLModifier *xm, UByte* ba, int arrayLen){
+	Long i = getOffsetBeforeTail(xm->md);
+	if (i<0){
+		//throw new ModifyException("Insertion failed");
+		// handle empty element case
+		// <a/> would become <a>b's content</a>
+		// so there are two insertions there
+		insertAfterHead2(xm,ba, arrayLen);
+		return;
+	}
+
+	insertBytesAt2(xm,(int)i,(((Long)arrayLen)<<32)|(int)ba);
+}
+
+void insertBeforeTail3(XMLModifier *xm, UByte* ba, int contentOffset, int contentLen){
+	Long i = getOffsetBeforeTail(xm->md);
+	if (i<0){
+		//throw new ModifyException("Insertion failed");
+		insertAfterHead3(xm,ba, contentOffset, contentLen);
+		return;
+	}
+	insertBytesAt2(xm,(int)i,(((Long)contentLen)<<32)|((int)ba+contentOffset));
+}
+
+void insertBeforeTail4(XMLModifier *xm, ElementFragmentNs *ef){
+	Long i = getOffsetBeforeTail(xm->md);
+    if (i<0){
+            //throw new ModifyException("Insertion failed");
+        insertAfterHead4(xm,ef);
+        return;
+    }
+	insertBytesAt3(xm,(int)i, ef);
+}
+
+void insertBeforeTail5(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int arrayLen){
+	if(src_encoding == xm->encoding){
+		insertBeforeTail2(xm,ba, arrayLen);
+	}else{
+		Long i = getOffsetBeforeTail(xm->md),bo;
+		if (i<0){
+			//throw new ModifyException("Insertion failed");
+			insertAfterHead5(xm,src_encoding,ba,arrayLen);
+			return;
+		}
+		bo = Transcoder_transcode(ba,0,arrayLen,src_encoding, xm->encoding); 
+		if ( xm->encoding < FORMAT_UTF_16BE)
+			insertBytesAt(xm, (int) i,bo);
+		else
+			insertBytesAt(xm, (int) i<< 1, bo);        
+	}
+}
+
+void insertBeforeTail6(XMLModifier *xm, encoding_t src_encoding, UByte* ba, int contentOffset, int contentLen){
+	if(src_encoding == xm->encoding){
+		insertAfterHead3(xm,ba,contentOffset,contentLen);
+	}else{
+		Long i = getOffsetBeforeTail(xm->md),bo;
+		if (i<0){
+			//throw new ModifyException("Insertion failed");
+			insertAfterHead6(xm,src_encoding,ba,contentOffset, contentLen);
+			return;
+		}
+		bo = Transcoder_transcode(ba, contentOffset, contentLen, src_encoding,  xm->encoding);
+		if ( xm->encoding < FORMAT_UTF_16BE)
+			insertBytesAt( xm,(int) i,bo);
+		else
+			insertBytesAt( xm, ((int) i)<< 1, bo);
+	}
+}
+
+inline void insertBeforeTail7(XMLModifier *xm, VTDNav *vn1, int contentOffset, int contentLen){
+	insertBeforeTail6(xm,vn1->encoding,vn1->XMLDoc,contentOffset, contentLen); 
+}
