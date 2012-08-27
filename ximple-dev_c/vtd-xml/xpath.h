@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #define X1_H
 #include "customTypes.h"
 #include "vtdNav.h"
+#include "vtdGen.h"
 #include "autoPilot.h"
 /* expr doesn't have a constructor*/
 
@@ -69,6 +70,10 @@ typedef void	(*set_ContextSize)(struct Expr *e, int s);
 typedef void	(*set_Position)(struct Expr *e, int pos);
 typedef void    (*to_String)(struct Expr *e, UCSChar* string);
 typedef int    (*adjust_)(struct Expr *e, int n);
+typedef Boolean (*isFinal_)(struct Expr *e);
+typedef void   (*markCacheable_)(struct Expr *e);
+typedef void   (*markCacheable2_)(struct Expr *e);
+typedef void   (*clearCache_)(struct Expr *e);
 typedef struct Expr {
 	free_Expr freeExpr;
 	eval_NodeSet evalNodeSet;
@@ -85,6 +90,10 @@ typedef struct Expr {
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 } expr;
 
 
@@ -105,6 +114,10 @@ typedef struct LiteralExpr {
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	UCSChar *s;
 } literalExpr;
 
@@ -125,6 +138,10 @@ void	setContextSize_le(literalExpr *e,int s);
 void	setPosition_le(literalExpr *e,int pos);
 void    toString_le(literalExpr *e, UCSChar* string);
 int	adjust_le(literalExpr *e, int n);
+Boolean isFinal_le(literalExpr *e);
+void markCacheable_le(literalExpr *e);
+void markCacheable2_le(literalExpr *e);
+void clearCache_le(literalExpr *e);
  /*number expression*/
 typedef struct NumberExpr {
 	free_Expr freeExpr;
@@ -142,6 +159,10 @@ typedef struct NumberExpr {
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	double dval;
 } numberExpr;
 
@@ -162,6 +183,10 @@ void	setContextSize_ne(numberExpr *e,int s);
 void	setPosition_ne(numberExpr *e,int pos);
 void    toString_ne(numberExpr *e, UCSChar* string);
 int	adjust_ne(numberExpr *e, int n);
+Boolean isFinal_ne(numberExpr *e);
+void markCacheable_ne(numberExpr *e);
+void markCacheable2_ne(numberExpr *e);
+void clearCache_ne(numberExpr *e);
 /* binary Expr*/
 /*  define operand */
 typedef enum OpType{		
@@ -196,6 +221,10 @@ typedef struct BinaryExpr {
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	expr *left;
 	opType op;
 	expr *right;
@@ -220,6 +249,10 @@ void	setContextSize_be(binaryExpr *e,int s);
 void	setPosition_be(binaryExpr *e,int pos);
 void    toString_be(binaryExpr *e, UCSChar* string);
 int	adjust_be(binaryExpr *e, int n);
+Boolean isFinal_be(binaryExpr *e);
+void markCacheable_be(binaryExpr *e);
+void markCacheable2_be(binaryExpr *e);
+void clearCache_be(binaryExpr *e);
 /* unary Expr */
 typedef struct UnaryExpr {
 	free_Expr freeExpr;
@@ -233,6 +266,10 @@ typedef struct UnaryExpr {
 	is_NodeSet isNodeSet;
 	require_ContextSize requireContextSize;
 	reset_ reset;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	set_ContextSize setContextSize;
 	set_Position setPosition;
 	to_String toString;
@@ -257,6 +294,10 @@ void	setContextSize_ue(unaryExpr *e,int s);
 void	setPosition_ue(unaryExpr *e,int pos);
 void    toString_ue(unaryExpr *e, UCSChar* string);
 int	adjust_ue(unaryExpr *e, int n);
+Boolean isFinal_ue(unaryExpr *e);
+void markCacheable_ue(unaryExpr *e);
+void markCacheable2_ue(unaryExpr *e);
+void clearCache_ue(unaryExpr *e);
 /* function Expr */
 typedef enum FuncName {FN_LAST,
 		   FN_POSITION,
@@ -300,8 +341,27 @@ typedef enum FuncName {FN_LAST,
 		   FN_RESOLVE_QNAME,
 		   FN_IRI_TO_URI,
 		   FN_ESCAPE_HTML_URI,
-		   FN_ENCODE_FOR_URI
+		   FN_ENCODE_FOR_URI,
+		   FN_MATCH_NAME,	
+		   FN_MATCH_LOCAL_NAME,
+		   FN_NOT_MATCH_NAME,
+		   FN_NOT_MATCH_LOCAL_NAME,
+		   FN_CURRENT,
+		   FN_GENERATE_ID,
+		   FN_FORMAT_NUMBER,
+		   FN_KEY,
+		   FN_ID,
+		   FN_DOCUMENT,
+		   FN_SYSTEM_PROPERTY,
+		   FN_ELEMENT_AVAILABLE,
+		   FN_FUNCTION_AVAILABLE
 } funcName;
+
+typedef enum{
+		SIMPLE_P,
+		COMPLEX_P
+} PredicateEvalOption;
+
 typedef struct AList {
 	expr *e;
 	struct AList *next;
@@ -328,14 +388,24 @@ typedef struct FuncExpr {
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	funcName opCode;
 	aList *al;
 	Boolean isNum;
 	Boolean isBool;
 	Boolean isStr;
+	Boolean isNode;
 	int contextSize;
 	int position;
+	int argCount1;
 	int a;
+	int state;
+	VTDGen *vg;
+	VTDNav *newVN, *xslVN;
+	UCSChar *s;
 } funcExpr;
 
 funcExpr *createFuncExpr(funcName oc, aList *a);
@@ -354,20 +424,34 @@ void	setContextSize_fne(funcExpr *e,int s);
 void	setPosition_fne(funcExpr *e,int pos);
 void    toString_fne(funcExpr *e, UCSChar* string);
 int	adjust_fne(funcExpr *e, int n);
+Boolean isFinal_fne(funcExpr *e);
+		
+void markCacheable_fne(funcExpr *e);
+void markCacheable2_fne(funcExpr *e);
+void clearCache_fne(funcExpr *e);
+Boolean checkArgumentCount(funcExpr *e);
 /* location Expr */
-typedef enum AxisType {  AXIS_CHILD,
+typedef enum AxisType {  
+						 AXIS_CHILD0,
+						 AXIS_CHILD,
+						 AXIS_DESCENDANT_OR_SELF0,
+						 AXIS_DESCENDANT0,
+						 AXIS_PRECEDING0,
+						 AXIS_FOLLOWING0,
+						 AXIS_DESCENDANT_OR_SELF,
 						 AXIS_DESCENDANT,
+						 AXIS_PRECEDING,
+						 AXIS_FOLLOWING,
 						 AXIS_PARENT,
 						 AXIS_ANCESTOR,
-						 AXIS_FOLLOWING_SIBLING,
-						 AXIS_PRECEDING_SIBLING,
-						 AXIS_FOLLOWING,
-						 AXIS_PRECEDING,
-						 AXIS_ATTRIBUTE,
-						 AXIS_NAMESPACE,
+						 AXIS_ANCESTOR_OR_SELF,
 						 AXIS_SELF,
-						 AXIS_DESCENDANT_OR_SELF,
-						 AXIS_ANCESTOR_OR_SELF
+						 AXIS_FOLLOWING_SIBLING,
+						 AXIS_FOLLOWING_SIBLING0,
+						 AXIS_PRECEDING_SIBLING,
+						 AXIS_PRECEDING_SIBLING0,					 
+						 AXIS_ATTRIBUTE,
+						 AXIS_NAMESPACE						 
 					} axisType;
 
 char* getAxisString(axisType at);
@@ -387,11 +471,13 @@ typedef struct nodeTest{
 	UCSChar* URL;
 	Boolean nsEnabled;
 	nodeTestType testType;
+	int type;
 } NodeTest;
 
 NodeTest *createNodeTest();
 void freeNodeTest(NodeTest *nt);
 Boolean eval_nt(NodeTest *nt, VTDNav *vn);
+Boolean eval_nt2(NodeTest *nt, VTDNav *vn);
 void setNodeName(NodeTest *nt, UCSChar *name);
 void setNodeNameNS(NodeTest *nt, UCSChar *p, UCSChar *ln);
 void setTestType(NodeTest *nt, nodeTestType ntt); 
@@ -403,11 +489,16 @@ typedef struct predicate{
 	int count;
 	struct predicate *nextP;
 	expr *e;
+	int type;
+	struct step *s;
+	struct FilterExpr *fe;
+	Boolean requireContext;
 } Predicate;
 
 Predicate *createPredicate();
 void freePredicate(Predicate *p);
 Boolean eval_p(Predicate *p, VTDNav *vn);
+Boolean eval2_p(Predicate *p, VTDNav *vn);
 void setIndex_p(Predicate *p, int i);
 void setContextSize_p(Predicate *p, int size);
 Boolean requireContextSize_p(Predicate *p);
@@ -420,10 +511,13 @@ typedef struct step{
 	NodeTest *nt;  
 	Predicate *p,*pt;/* linked list */
 	struct step *nextS; /* points to next step */
-	int position; /* position */
+	//int position; /* position */
 	struct step *prevS; /* points to the prev step */
 	struct autoPilot *o; /*AutoPilot goes here*/
 	Boolean ft; /* first time*/
+	Boolean hasPredicate;
+	Boolean nt_eval;
+	Boolean out_of_range;
 }Step;
 
 Step *createStep();
@@ -440,11 +534,14 @@ void setNodeTest(Step *s,NodeTest *n);
 void setPredicate(Step *s,Predicate *p1);
 Boolean eval_s(Step *s,VTDNav *vn);
 Boolean eval_s2(Step *s,VTDNav *vn, Predicate *p);
+Boolean eval2_s(Step *s,VTDNav *vn);
+Boolean eval2_s2(Step *s,VTDNav *vn, Predicate *p);
 Boolean evalPredicates(Step *s,VTDNav *vn);
 Boolean evalPredicates2(Step *s,VTDNav *vn, Predicate *p);
 void setAxisType(Step *s,axisType st);
 void toString_s(Step *s, UCSChar *string);
 int adjust_s(Step *s, int n);
+void setStep4Predicates(Step *s);
 
 typedef enum{
 	ABSOLUTE_PATH,
@@ -475,6 +572,10 @@ typedef struct LocationPathExpr {
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	Step* s;
 	Step* currentStep;
 	pt pathType;
@@ -499,8 +600,14 @@ void	setContextSize_lpe(locationPathExpr *e,int s);
 void	setPosition_lpe(locationPathExpr *e,int pos);
 void    toString_lpe(locationPathExpr *e, UCSChar* string);
 int	adjust_lpe(locationPathExpr *e, int n);
-Boolean isUnique(locationPathExpr *e,int i);
+Boolean isUnique_lpe(locationPathExpr *e,int i);
 void setStep(locationPathExpr *e, Step* st);
+Boolean isFinal_lpe(locationPathExpr *e);
+void markCacheable_lpe(locationPathExpr *e);
+void markCacheable2_lpe(locationPathExpr *e);
+void clearCache_lpe(locationPathExpr *e);
+void optimize(locationPathExpr *e);
+
 
 
 /* filter expr */
@@ -517,6 +624,10 @@ typedef struct FilterExpr{
 	is_NodeSet isNodeSet;
 	require_ContextSize requireContextSize;
 	reset_ reset;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	set_ContextSize setContextSize;
 	set_Position setPosition;
 	to_String toString;
@@ -524,6 +635,7 @@ typedef struct FilterExpr{
 	struct Expr *e;
 	Predicate *p;
 	Boolean first_time;
+	Boolean out_of_range;
 } filterExpr;
 
 filterExpr *createFilterExpr(expr *l, Predicate *pr);
@@ -562,11 +674,16 @@ typedef struct PathExpr{
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	expr *fe;
 	locationPathExpr *lpe;
 	int evalState;
 	/*FastIntBuffer *fib;*/
 	IntHash *ih;
+	
 } pathExpr;
 
 pathExpr *createPathExpr(expr *f, locationPathExpr *l);
@@ -585,6 +702,10 @@ void	setContextSize_pe(pathExpr *e,int s);
 void	setPosition_pe(pathExpr *e,int pos);
 void    toString_pe(pathExpr *e, UCSChar* string);
 int	adjust_pe(pathExpr *e, int n);
+Boolean isFinal_pe(pathExpr *e);
+void markCacheable_pe(pathExpr *e);
+void markCacheable2_pe(pathExpr *e);
+void clearCache_pe(pathExpr *e);
 
 /* Union Expr */
 
@@ -604,6 +725,10 @@ typedef struct UnionExpr{
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	expr *fe;
 	struct UnionExpr *current;
 	struct UnionExpr *next;
@@ -628,6 +753,10 @@ void	setContextSize_une(unionExpr *e,int s);
 void	setPosition_une(unionExpr *e,int pos);
 void    toString_une(unionExpr *e, UCSChar* string);
 int	adjust_une(unionExpr *e, int n);
+Boolean isFinal_une(unionExpr *ve);
+void markCacheable_une(unionExpr *ve);
+void markCacheable2_une(unionExpr *ve);
+void clearCache_une(unionExpr *ve);
 
 typedef struct VariableExpr{
 	free_Expr freeExpr;
@@ -645,6 +774,10 @@ typedef struct VariableExpr{
 	set_Position setPosition;
 	to_String toString;
 	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
 	//expr *fe;
 	UCSChar* exprName;
 	expr *exprVal;
@@ -671,6 +804,10 @@ void	setContextSize_ve(variableExpr *e,int s);
 void	setPosition_ve(variableExpr *e,int pos);
 void    toString_ve(variableExpr *e, UCSChar* string);
 int	adjust_ve(variableExpr *e, int n);
+Boolean isFinal_ve(variableExpr *ve);
+void markCacheable_ve(variableExpr *ve);
+void markCacheable2_ve(variableExpr *ve);
+void clearCache_ve(variableExpr *ve);
 
 int yylex();
 /*void yyrestart(FILE *i);*/
@@ -704,4 +841,54 @@ expr *xpathParse(UCSChar *input, NsList *nl, ExprList *el);
 
 int getStringIndex(expr *exp, VTDNav *vn);
 
+typedef struct CachedExpr{
+	free_Expr freeExpr;
+	eval_NodeSet evalNodeSet;
+	eval_Number evalNumber;
+	eval_String evalString;
+	eval_Boolean evalBoolean;
+	is_Boolean isBoolean;
+	is_Numerical isNumerical;
+	is_String  isString;
+	is_NodeSet isNodeSet;
+	require_ContextSize requireContextSize;
+	reset_ reset;
+	set_ContextSize setContextSize;
+	set_Position setPosition;
+	to_String toString;
+	adjust_ adjust;
+	isFinal_ isFinal;
+	markCacheable_ markCacheable;
+	markCacheable2_ markCacheable2;
+	clearCache_ clearCache;
+	expr *e;
+	Boolean cached;
+	Boolean eb;
+	double en;
+	UCSChar *es;
+	FastIntBuffer *ens;
+	int count;
+	VTDNav *vn1;
+} cachedExpr;
+
+cachedExpr *createCachedExpr(expr *e1);
+void freeCachedExpr(cachedExpr *e);
+int		evalNodeSet_ce (cachedExpr *e,VTDNav *vn);
+double	evalNumber_ce (cachedExpr *e,VTDNav *vn);
+UCSChar* evalString_ce  (cachedExpr *e,VTDNav *vn);
+Boolean evalBoolean_ce (cachedExpr *e,VTDNav *vn);
+Boolean isBoolean_ce (cachedExpr *e);
+Boolean isNumerical_ce (cachedExpr *e);
+Boolean isString_ce (cachedExpr *e);
+Boolean isNodeSet_ce (cachedExpr *e);
+Boolean requireContextSize_ce(cachedExpr *e);
+void	reset_ce(cachedExpr *e, VTDNav *vn);
+void	setContextSize_ce(cachedExpr *e,int s);
+void	setPosition_ce(cachedExpr *e,int pos);
+void    toString_ce(cachedExpr *e, UCSChar* string);
+int	adjust_ce(cachedExpr *e, int n);
+Boolean isFinal_ce(cachedExpr *ve);
+void markCacheable_ce(cachedExpr *ve);
+void markCacheable2_ce(cachedExpr *ve);
+void clearCache_ce(cachedExpr *ve);
 #endif
