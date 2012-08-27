@@ -1,6 +1,6 @@
 %{
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -243,11 +243,20 @@ MultiplicativeExpr    :  UnaryExpr  {$$ = $1; }
 								}
 		;
 
-UnaryExpr    	:    UnionExpr  { $$ = (expr *)$1;}
+UnaryExpr    	:    UnionExpr  { 
+								if ($1->next!=NULL){
+									$$ = (expr *)($1->next);
+								}else
+									$$ = $1;
+									
+									
+								}
   		|    SUB UnaryExpr  %prec UMINUS  {
 			 					Try {
-	 									$$ = (expr *)createUnaryExpr(OP_NE,$2);
-	 									addObj($$);
+	 									
+	 										$$ = (expr *)createUnaryExpr(OP_NE,$2);
+	 										addObj($$); 									
+	 									
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
@@ -377,6 +386,9 @@ PrimaryExpr     :    VariableReference {$$ = $1;}
 FunctionCall    :    FunctionName LP ArgumentList RP { Try {
 															$$ = (expr *)createFuncExpr($1, $3);
 															addObj($$);
+															if  (!checkArgumentCount($$))
+																throwException2(xpath_parse_exception,"Invalid argument for functional expression");
+															
 													   }
 													   Catch(e){
 															//freeAllObj();
@@ -419,6 +431,7 @@ LocationPath    :    RelativeLocationPath	{ Try {
 													addObj($$->ih);
 													addObj($$->ih->storage);
 													setStep($$, $1);
+													optimize($$);
 												  }
 											  Catch (e) {
 													//freeAllObj();
@@ -431,6 +444,7 @@ LocationPath    :    RelativeLocationPath	{ Try {
 													addObj($$->ih);
 													$$->pathType = ABSOLUTE_PATH;
 													setStep($$, $1);
+													optimize($$);
 												  }
 											  Catch (e) {
 													//freeLocationPathExpr($$);
@@ -460,15 +474,10 @@ Step		:    AxisSpecifier NodeTest PredicateList {
 															addObj($$);
 															setAxisType($$, $1);
 															if ( ($1== AXIS_ATTRIBUTE
-	        												|| $1 == AXIS_DESCENDANT
-      														|| $1 == AXIS_PRECEDING
-      														|| $1 == AXIS_FOLLOWING
-      														|| $1 == AXIS_FOLLOWING_SIBLING
-      														|| $1 == AXIS_PRECEDING_SIBLING
       														|| $1 == AXIS_NAMESPACE) && 
       														($2->testType>1)){
       																printf("%s axis can't operate on comment(), pi(), or text()\n", getAxisString($1));
-      																throwException2(xpath_parse_exception," attr|descedant|preceding|following|following-sibling|preceding-sibling axis can't operate on comment(), pi(), or text()");
+      																throwException2(xpath_parse_exception," attr|namespace axis can't operate on comment(), pi(), or text()");
       	         											}
 															setNodeTest($$, $2);
 															setPredicate($$, $3);
@@ -619,6 +628,14 @@ Predicate 	:    LB Expr RB {
 									$$ = createPredicate();
 									addObj($$);
 									$$->e = $2;
+									if ($2->isFinal($2) && $2->isNumerical($2)){
+										if ($$->d<1){
+											throwException2(xpath_parse_excpetion,"Invalid index number <1");
+										}
+										$$->type = SIMPLE_P;
+									}
+									$$->requireContext=requireContextSize($2);
+
 								} Catch(e){
 									//freeAllObj();
 									YYABORT;

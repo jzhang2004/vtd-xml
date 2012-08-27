@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,7 +146,7 @@
 #line 1 "l8.y"
 
 /* 
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1420,16 +1420,26 @@ yyreduce:
 
   case 22:
 #line 246 "l8.y"
-    { yyval.expression = (expr *)yyvsp[0].une;;}
+	  { if (yyvsp[0].une->next == NULL) {
+		  yyval.expression = (expr *)yyvsp[0].une->fe;
+		  yyvsp[0].une->fe = NULL;
+		  yyvsp[0].une->freeExpr(yyvsp[0].une);
+	    }
+	    else 
+		{
+		   yyval.expression = (expr *)yyvsp[0].une;
+		}
+	  ;}
     break;
 
   case 23:
 #line 247 "l8.y"
     {
 			 					Try {
+									
 	 									yyval.expression = (expr *)createUnaryExpr(OP_NE,yyvsp[0].expression);
 	 									addObj(yyval.expression);
-	 								}
+								}
 	 							Catch(e){
 	 								//freeAllObj();
 									YYABORT;
@@ -1483,6 +1493,7 @@ yyreduce:
 #line 289 "l8.y"
     {  														
   														Try{
+															//printf("creating locationi path \n");
   															tmpLPExpr = createLocationPathExpr();
   															addObj(tmpLPExpr);
   															addObj(tmpLPExpr->ih);
@@ -1504,6 +1515,7 @@ yyreduce:
 #line 307 "l8.y"
     {
 														Try {
+															//printf("creating step \n");
 															tmpStep = createStep();
 															addObj(tmpStep);
 															setAxisType(tmpStep,AXIS_DESCENDANT_OR_SELF);
@@ -1600,6 +1612,8 @@ yyreduce:
 #line 377 "l8.y"
     { Try {
 															yyval.expression = (expr *)createFuncExpr(yyvsp[-3].fname, yyvsp[-1].a);
+															if  (!checkArgumentCount(((funcExpr *)yyval.expression)))
+																throwException2( xpath_parse_exception,"Invalid argument for functional expression");
 															addObj(yyval.expression);
 													   }
 													   Catch(e){
@@ -1656,6 +1670,7 @@ yyreduce:
 													addObj(yyval.lpe->ih);
 													addObj(yyval.lpe->ih->storage);
 													setStep(yyval.lpe, yyvsp[0].s);
+													optimize(yyval.lpe);
 												  }
 											  Catch (e) {
 													//freeAllObj();
@@ -1666,12 +1681,13 @@ yyreduce:
 
   case 44:
 #line 428 "l8.y"
-    {		Try {  /*printf("absolute locationpath \n");*/
+    {		Try { // printf("absolute locationpath \n");
 													yyval.lpe = createLocationPathExpr();
 													addObj(yyval.lpe);
 													addObj(yyval.lpe->ih);
 													yyval.lpe->pathType = ABSOLUTE_PATH;
 													setStep(yyval.lpe, yyvsp[0].s);
+													optimize(yyval.lpe);
 												  }
 											  Catch (e) {
 													//freeLocationPathExpr($$);
@@ -1722,15 +1738,10 @@ yyreduce:
 															addObj(yyval.s);
 															setAxisType(yyval.s, yyvsp[-2].at);
 															if ( (yyvsp[-2].at== AXIS_ATTRIBUTE
-	        												|| yyvsp[-2].at == AXIS_DESCENDANT
-      														|| yyvsp[-2].at == AXIS_PRECEDING
-      														|| yyvsp[-2].at == AXIS_FOLLOWING
-      														|| yyvsp[-2].at == AXIS_FOLLOWING_SIBLING
-      														|| yyvsp[-2].at == AXIS_PRECEDING_SIBLING
-      														|| yyvsp[-2].at == AXIS_NAMESPACE) && 
+	        												|| yyvsp[-2].at == AXIS_NAMESPACE) && 
       														(yyvsp[-1].nodetest->testType>1)){
       																printf("%s axis can't operate on comment(), pi(), or text()\n", getAxisString(yyvsp[-2].at));
-      																throwException2(xpath_parse_exception," attr|descedant|preceding|following|following-sibling|preceding-sibling axis can't operate on comment(), pi(), or text()");
+      																throwException2(xpath_parse_exception," attr|namespace axis can't operate on comment(), pi(), or text()");
       	         											}
 															setNodeTest(yyval.s, yyvsp[-1].nodetest);
 															setPredicate(yyval.s, yyvsp[0].p);
@@ -1750,10 +1761,11 @@ yyreduce:
   case 53:
 #line 485 "l8.y"
     { Try {
+										//printf("create Node test2");
 										yyval.nodetest = createNodeTest();
 										addObj(yyval.nodetest);
 										setTestType(yyval.nodetest,NT_NAMETEST);
-										//wprintf(L"$1.qname %ls\n",$1.qname);
+										//wprintf(L"$1.qname %ls\n",yyval.name.qname);
 										setNodeName(yyval.nodetest,yyvsp[0].name.qname);
 										//addObj($1.qname);
 										if (yyvsp[0].name.localname!=NULL){
@@ -1778,6 +1790,7 @@ yyreduce:
   case 54:
 #line 509 "l8.y"
     { Try{
+									//printf("create node test\n");
 	 								yyval.nodetest = createNodeTest();
 	 								addObj(yyval.nodetest);
 	 								if (yyvsp[0].ntest.nt !=3)
@@ -1853,6 +1866,7 @@ yyreduce:
 #line 559 "l8.y"
     {
 					Try{
+						//printf("create step\n");
 						yyval.s = createStep();
 						addObj(yyval.s);
 						tmpNt = createNodeTest();
@@ -1919,6 +1933,13 @@ yyreduce:
 									yyval.p = createPredicate();
 									addObj(yyval.p);
 									yyval.p->e = yyvsp[-1].expression;
+									if ((yyval.p)->e->isFinal((yyval.p)->e) && (yyval.p)->e->isNumerical((yyval.p)->e)){
+										yyval.p->d = yyval.p->e->evalNumber(yyval.p->e,NULL);
+										if (yyval.p->d <1){
+											throwException2(xpath_parse_exception,"Invalid index number <1");
+										}
+										yyval.p->type = SIMPLE_P;
+									}
 								} Catch(e){
 									//freeAllObj();
 									YYABORT;
@@ -1932,6 +1953,7 @@ yyreduce:
 								Try {
 								    //addObj($2);
 								    ex = getExprFromList(xpathExprList,yyvsp[0].name.qname);
+									//printf("here !!!\n");
 								    if (ex==NULL) {
 										YYABORT;
 								    }
