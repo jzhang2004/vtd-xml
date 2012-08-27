@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,10 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 	pe->reset = (reset_)&reset_pe;
 	pe->toString = (to_String)&toString_pe;
 	pe->adjust = (adjust_)&adjust_pe;
+	pe->isFinal = (isFinal_)&isFinal_pe;
+	pe->markCacheable = (markCacheable_)&markCacheable_pe;
+	pe->markCacheable2 = (markCacheable2_)&markCacheable2_pe;
+	pe->clearCache=(clearCache_)&clearCache_pe;
 	pe->fe = f;
 	pe->lpe= l;
 	pe->evalState = 0;
@@ -123,28 +127,77 @@ int	evalNodeSet_pe (pathExpr *pe,VTDNav *vn){
 }
 double	evalNumber_pe (pathExpr *pe,VTDNav *vn){
 
-	double d = 0.0;
-	exception e;
-	int a = getStringIndex((expr *)pe,vn);
-	Try{
-		if (a!=-1) return parseDouble(vn,a);
-	}Catch (e){
+	double d1 = 0.0;
+	exception ee;
+	double d=d1/d1;
+	int a = -1,size;
+	push2(vn);
+	size = vn->contextBuf2->size;
+	Try {
+		a = evalNodeSet_pe(pe,vn);
+		if (a != -1) {
+			int t = getTokenType(vn,a);
+			if (t == TOKEN_ATTR_NAME) {
+				d = parseDouble(vn,a+1);
+			} else if (t == TOKEN_STARTING_TAG || t ==TOKEN_DOCUMENT) {
+				UCSChar *s =getXPathStringVal( vn,0), *s1;
+				d  = wcstod(s,&s1);
+				free( s);
+			}else if (t == TOKEN_PI_NAME) {
+				if (a+1 < vn->vtdSize || getTokenType(vn,a+1)==TOKEN_PI_VAL)
+					//s = vn.toString(a+1); 	
+					d = parseDouble(vn,a+1);                	
+			}else 
+				d = parseDouble(vn,a);
+		}
+	} Catch (ee) {
+
 	}
-	return 0/d;
+	vn->contextBuf2->size = size;
+	reset_pe(pe,vn);
+	pop2(vn);
+	//return s;
+	return d;
 }
 
 UCSChar* evalString_pe  (pathExpr *pe,VTDNav *vn){
-	exception e;
-	int a = getStringIndex((expr *)pe,vn);
+	exception ee;
+	int a,size;
+	UCSChar *s = NULL;	
+	
+	//int a = -1;
+	push2(vn);
+    size = vn->contextBuf2->size;
+     
 	Try {
-		if (a != -1)
-			return toString(vn,a);
-	} Catch (e) {
-		if (e.et ==out_of_mem){
-			Throw e;
-		}
-	}
-	return createEmptyString();
+         a = evalNodeSet_pe(pe,vn);
+         if (a != -1) {
+            	int t = getTokenType(vn,a);
+                switch(t){
+			 case TOKEN_STARTING_TAG:
+			 case TOKEN_DOCUMENT:
+				 s = getXPathStringVal(vn,0);
+				 break;
+			 case TOKEN_ATTR_NAME:
+				 s = toString(vn,a + 1);
+				 break;
+			 case TOKEN_PI_NAME:
+				 //if (a + 1 < vn.vtdSize
+				 //		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+				 s = toString(vn,a + 1);
+				 break;
+			 default:
+				 s = toString(vn,a);
+				 break;
+			 }		
+            }
+        } Catch (ee) {
+
+        }
+        vn->contextBuf2->size = size;
+        reset_pe(pe,vn);
+        pop2(vn);
+        return s;
 
 }
 Boolean evalBoolean_pe (pathExpr *pe,VTDNav *vn){
@@ -214,4 +267,23 @@ int adjust_pe(pathExpr *pe, int n){
 		pe->ih = createIntHash2(i);
 	}
 	return i;
+}
+
+Boolean isFinal_pe(pathExpr *e){
+	return e->fe->isFinal(e->fe);
+}
+
+void markCacheable_pe(pathExpr *e){
+	e->fe->markCacheable(e->fe);
+	e->lpe->markCacheable(e->lpe);
+}
+
+void markCacheable2_pe(pathExpr *e){
+	e->fe->markCacheable2(e->fe);
+	e->lpe->markCacheable2(e->lpe);
+}
+
+void clearCache_pe(pathExpr *e){
+	e->fe->clearCache(e->fe);
+	e->lpe->clearCache(e->lpe);
 }
