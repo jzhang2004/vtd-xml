@@ -21,7 +21,7 @@
 #include <wchar.h>
 #include <string.h>
 #include "vtdException.h"
-#include <cstdint>
+//#include <cstdint>
 
 using namespace std;
 #ifndef isNaN
