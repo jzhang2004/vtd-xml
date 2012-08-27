@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,10 @@ variableExpr *createVariableExpr(UCSChar* s, expr *e){
 	v->reset = (reset_)&reset_ve;
 	v->toString = (to_String)&toString_ve;
 	v->adjust= (adjust_)&adjust_ve;
+	v->isFinal= (isFinal_)&isFinal_ve;
+	v->markCacheable = (markCacheable_)&markCacheable_ve;
+	v->markCacheable2 = (markCacheable_)&markCacheable2_ve;
+	v->clearCache=(clearCache_)&clearCache_ve;
 	v->exprName = s;
 	v->exprVal = e;
 	return v;
@@ -91,4 +95,19 @@ void  toString_ve(variableExpr *ve, UCSChar* string){
 }
 int	adjust_ve(variableExpr *ve, int n){
 	return ve->exprVal->adjust(ve->exprVal,n);
+}
+
+Boolean isFinal_ve(variableExpr *ve){
+	return ve->exprVal->isFinal(ve->exprVal);
+}
+void markCacheable_ve(variableExpr *ve){
+	ve->exprVal->markCacheable(ve->exprVal);
+}
+
+void markCacheable2_ve(variableExpr *ve){
+	ve->exprVal->markCacheable2(ve->exprVal);
+}
+
+void clearCache_ve(variableExpr *ve){
+	ve->exprVal->clearCache(ve->exprVal);
 }
