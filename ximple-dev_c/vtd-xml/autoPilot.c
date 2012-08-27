@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -162,6 +162,8 @@ AutoPilot *createAutoPilot(VTDNav *v){
 	ap->contextCopy = NULL;
 	ap->special = FALSE;
 	ap->fib = NULL;
+	ap->cachingOption = TRUE;
+	ap->stackSize=0;
 	return ap;
 }
 
@@ -189,6 +191,8 @@ AutoPilot *createAutoPilot2(){
 	ap->contextCopy = NULL;
 	ap->special = FALSE;
 	ap->fib = NULL;
+	ap->cachingOption = TRUE;
+	ap->stackSize=0;
 	return ap;
 }
 
@@ -358,6 +362,7 @@ void selectElement_P(AutoPilot *ap, UCSChar *en){
 	ap->elementName = en;
     ap->contextCopy = (int *)malloc(a); //(int[])vn.context.clone();
 	memcpy(ap->contextCopy,ap->vn->context,a);
+	ap->endIndex=getCurrentIndex2(ap->vn);
 	for(i = ap->vn->context[0]+1 ; i<ap->vn->nestingLevel ; i++){
         ap->contextCopy[i]=-1;
     }
@@ -382,6 +387,7 @@ void selectElementNS_P(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 	ap->localName = ln;
     ap->contextCopy = (int *)malloc(a); //(int[])vn.context.clone();
 	memcpy(ap->contextCopy,ap->vn->context,a);
+	ap->endIndex=getCurrentIndex2(ap->vn);
 	for(i = ap->vn->context[0]+1 ; i<ap->vn->nestingLevel ; i++){
         ap->contextCopy[i]=-1;
     }
@@ -475,12 +481,20 @@ Boolean iterateAP(AutoPilot *ap){
 		case PRECEDING:
 			if (ap->vn->atTerminal)
          	    return FALSE;
-         	return iterate_preceding(ap->vn, ap->elementName, ap->contextCopy, ap->special);
+			if (ap->ft){
+				ap->ft = FALSE;
+				toElement(ap->vn,ROOT);
+			}
+         	return iterate_preceding(ap->vn, ap->elementName, ap->contextCopy, ap->endIndex);
 
 		case PRECEDING_NS:
 			if (ap->vn->atTerminal)
          	    return FALSE;
-         	return iterate_precedingNS(ap->vn, ap->URL,ap->localName,ap->contextCopy);
+			if (ap->ft){
+				ap->ft = FALSE;
+				toElement(ap->vn,ROOT);
+			}
+         	return iterate_precedingNS(ap->vn, ap->URL,ap->localName,ap->contextCopy,ap->endIndex);
 		default :
 			throwException2(pilot_exception,
 				"unknow iteration type for iterateAP");
@@ -664,6 +678,8 @@ Boolean selectXPath(AutoPilot *ap, UCSChar *s){
 		throwException2(xpath_parse_exception, "Invalid XPath expression");
 		return FALSE;
 	}
+	if (ap->cachingOption)
+		ap->xpe->markCacheable(ap->xpe);
 	return TRUE;
 	
 }
@@ -715,6 +731,8 @@ void resetXPath(AutoPilot *ap){
 		ap->xpe->reset(ap->xpe,ap->vn);
 		ap->vn->contextBuf2->size = ap->stackSize;
 		ap->ft = TRUE;
+		if (ap->cachingOption)
+			ap->xpe->clearCache(ap->xpe);
 	}
 }
 
@@ -860,3 +878,94 @@ Boolean checkNsUniqueness(AutoPilot *ap, int index){
 	return TRUE;
 }
 
+void selectNode(AutoPilot *ap){
+	ap->ft = TRUE;
+	ap->depth = getCurrentDepth(ap->vn);
+	ap->it = SIMPLE_NODE;
+}
+void selectPrecedingNode(AutoPilot *ap){
+	int i;
+	int a = sizeof(int)* ap->vn->nestingLevel;
+	ap->ft = TRUE;
+	ap->depth = getCurrentDepth(ap->vn);
+	ap->contextCopy = (int *)malloc(a); //(int[])vn.context.clone();
+	memcpy(ap->contextCopy,ap->vn->context,a);
+	   
+	if (ap->contextCopy[0]!=-1){
+	   for (i=ap->contextCopy[0]+1;i<ap->vn->nestingLevel;i++){
+	 		ap->contextCopy[i]=0;
+		}
+	}//else{
+	   //   for (int i=1;i<contextCopy.length;i++){
+	   //	   contextCopy[i]=0;
+	   //	   }
+	   //}
+	 ap->it = PRECEDING_NODE;
+	 ap->endIndex = getCurrentIndex(ap->vn);
+}
+
+void selectFollowingNode(AutoPilot *ap){
+	 ap->ft = TRUE;
+	 ap->depth = getCurrentDepth(ap->vn);
+	 ap->it = FOLLOWING_NODE;
+}
+
+void selectDescendantNode(AutoPilot *ap){
+	 ap->ft = TRUE;
+	 ap->depth = getCurrentDepth(ap->vn);
+	 ap->it = DESCENDANT_NODE;
+}
+
+
+Boolean iterateAP2(AutoPilot *ap){
+switch (ap->it) {
+		case SIMPLE_NODE:
+			if (ap->ft && ap->vn->atTerminal)
+				return FALSE;
+			if (ap->ft){
+				ap->ft =FALSE;
+				return TRUE;
+			}
+			return iterateNode(ap->vn,ap->depth);
+			
+		case DESCENDANT_NODE:
+			if (ap->ft&&ap->vn->atTerminal)
+				return FALSE;
+			else{
+				ap->ft=FALSE;
+				return iterateNode(ap->vn,ap->depth);
+			}
+         	
+		case FOLLOWING_NODE:
+			if (ap->ft){
+				Boolean b= FALSE;
+				do{
+					b = toNode(ap->vn,NEXT_SIBLING);
+					if (b){
+						ap->ft = FALSE;
+						return TRUE;
+					}else{
+						b = toNode(ap->vn,PARENT);
+					}
+				}while(b);
+				return FALSE;
+			}			
+			return iterate_following_node(ap->vn);
+			
+		case PRECEDING_NODE:
+			if(ap->ft){
+				ap->ft = FALSE;
+				toNode(ap->vn,ROOT);
+				toNode(ap->vn,PARENT);	
+			}
+			return iterate_preceding_node(ap->vn,ap->contextCopy,ap->endIndex);
+		//case 
+		default :
+			throwException2(pilot_exception," iteration action type undefined");
+			return FALSE;
+}
+}
+
+void enableCaching(AutoPilot *ap, Boolean state){
+	ap->cachingOption = state;
+}

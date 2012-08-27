@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,11 @@ typedef enum iter_type { UNDEFINED,
 						PRECEDING_NS,
 						ATTR,
 						ATTR_NS,
-						NAMESPACE} iterType;
+						NAMESPACE,
+						SIMPLE_NODE,
+						DESCENDANT_NODE,
+						FOLLOWING_NODE,
+						PRECEDING_NODE} iterType;
 
 
 
@@ -50,6 +54,7 @@ typedef struct autoPilot{
 	int depth;
 	VTDNav *vn;
 	int index; /* for iterAttr*/
+	int endIndex;
 	Boolean ft;
 	Boolean special;
     iterType it;
@@ -58,12 +63,14 @@ typedef struct autoPilot{
 	int *contextCopy; /* for preceding axis */
 	int stackSize; /* record stack size for xpath evaluation */
 	FastIntBuffer *fib;
+	Boolean cachingOption;
 	
 } AutoPilot;
 
 /*create AutoPilot */
 AutoPilot *createAutoPilot(VTDNav *v);
 AutoPilot *createAutoPilot2();
+
 
 void printExprString(AutoPilot *ap);
 
@@ -131,6 +138,14 @@ void selectElement_P(AutoPilot *ap, UCSChar *en);
 void selectElementNS_P(AutoPilot *ap, UCSChar *URL, UCSChar *ln);
 
 
+void selectNode(AutoPilot *ap);
+void selectPrecedingNode(AutoPilot *ap);
+
+void selectFollowingNode(AutoPilot *ap);
+
+void selectDescendantNode(AutoPilot *ap);
+
+
 /**
  * Setspecial is used by XPath evaluator to distinguish between
  * node() and *
@@ -143,6 +158,8 @@ void setSpecial(AutoPilot *ap, Boolean b);
 //Iterate over all the selected element nodes.
 
 Boolean iterateAP(AutoPilot *ap);
+
+Boolean iterateAP2(AutoPilot *ap);
 
 // Normal iterate Attribute nodes...
 int iterateAttr(AutoPilot *ap);
@@ -195,5 +212,8 @@ void declareVariableExpr(AutoPilot *ap, UCSChar* varName, UCSChar* varExpr);
 void selectNameSpace(AutoPilot *ap, UCSChar *name);
 
 int iterateNameSpace(AutoPilot *ap);
+
+void enableCaching(AutoPilot *ap, Boolean state);
+
 #endif
 
