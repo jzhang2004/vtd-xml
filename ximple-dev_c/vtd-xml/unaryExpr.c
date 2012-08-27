@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,10 @@ unaryExpr *createUnaryExpr(opType op, expr *e1){
 	ue->adjust = (adjust_)&adjust_ue;
 	ue->e = e1;
 	ue->op = op;
+	ue->clearCache=(clearCache_)&clearCache_ue;
+	ue->markCacheable = (markCacheable_)&markCacheable_ue;
+	ue->markCacheable2 = (markCacheable2_)&markCacheable2_ue;
+	ue->isFinal = (isFinal_)&isFinal_ue;
 
 	return ue;
 }
@@ -118,3 +122,10 @@ void    toString_ue(unaryExpr *ue, UCSChar* string){
 }
 
 int adjust_ue(unaryExpr *e, int n){return 0;}
+
+Boolean isFinal_ue(unaryExpr *ue){return ue->e->isFinal(ue->e);}
+void markCacheable_ue(unaryExpr *ue){ue->e->markCacheable(ue->e);}
+void markCacheable2_ue(unaryExpr *ue){ue->e->markCacheable2(ue->e);}
+void clearCache_ue(unaryExpr *ue){
+	ue->e->clearCache(ue->e);
+}

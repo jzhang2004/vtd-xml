@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -39,8 +39,10 @@ literalExpr *createLiteralExpr(UCSChar *st){
 	l->toString = (to_String)&toString_le;
 	l->adjust= (adjust_)&adjust_le;
 	l->s= st;
-
-
+	l->clearCache = (clearCache_)&clearCache_le;
+	l->markCacheable = (markCacheable_)&markCacheable_le;
+	l->markCacheable2 = (markCacheable2_)&markCacheable2_le;
+	l->isFinal = (isFinal_) &isFinal_le;
 	return l;
 
 }
@@ -122,6 +124,11 @@ void    toString_le(literalExpr *le, UCSChar* string){
 int adjust_le(literalExpr *le, int n){
 	return 0;
 }
+
+Boolean isFinal_le(literalExpr *e){return TRUE;}
+void markCacheable_le(literalExpr *e){}
+void markCacheable2_le(literalExpr *e){}
+void clearCache_le(literalExpr *e){}
 
 char* getAxisString(axisType at){
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2010 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,10 @@ numberExpr *createNumberExpr (double d){
 	n->toString = (to_String)&toString_ne;
 	n->adjust =  (adjust_)&adjust_ne;
 	n->dval= d;
+	n->isFinal = (isFinal_)&isFinal_ne;
+	n->markCacheable = (markCacheable_)&markCacheable_ne;
+	n->markCacheable2 = (markCacheable2_)&markCacheable2_ne;
+	n->clearCache = (clearCache_)&clearCache_ne;
 
 	return n;
 }
@@ -136,3 +140,8 @@ void    toString_ne(numberExpr *ne, UCSChar* string){
 int adjust_ne(numberExpr *ne, int n){
 	return 0;
 }
+
+Boolean isFinal_ne(numberExpr *e){return TRUE;}
+void markCacheable_ne(numberExpr *e){}
+void markCacheable2_ne(numberExpr *e){}
+void clearCache_ne(numberExpr *e){}
