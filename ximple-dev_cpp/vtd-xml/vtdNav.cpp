@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #include "vtdNav.h"
-#include "VTDGen.h"
+#include "vtdGen.h"
 #include "bookMark.h"
 #include "elementFragmentNs.h"
 
@@ -4289,7 +4289,7 @@ void VTDNav::dumpState() {
 }
 
 void VTDNav::fillXPathString(FastIntBuffer* indexBuffer,
-		FastIntBuffer countBuffer) {
+		FastIntBuffer *countBuffer) {
 	int count = 0;
 	int index = getCurrentIndex() + 1;
 	int tokenType, depth, t = 0, length, i = 0;
