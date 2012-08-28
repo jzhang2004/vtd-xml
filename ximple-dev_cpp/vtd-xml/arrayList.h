@@ -46,8 +46,8 @@ namespace com_ximpleware {
 	};
 
 	inline int ArrayList::add(void *element){
-		int t = 0,k=0;
-		void **v=NULL;
+		//int t = 0,k=0;
+		//void **v=NULL;
 		if (size < capacity){
 			storage[size] = element;
 			size++;
