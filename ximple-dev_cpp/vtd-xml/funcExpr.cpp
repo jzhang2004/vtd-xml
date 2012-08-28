@@ -1447,13 +1447,13 @@ UCSChar *FuncExpr::formatNumber(VTDNav *vn){return createEmptyString();}
 UCSChar *FuncExpr::generateID(VTDNav *vn){
 	if (argCount1== 0){
 		UCSChar *str = new UCSChar[14];
-		swprintf(str, L"v%d", vn->getCurrentIndex2());
+		swprintf(str,14, L"v%d", vn->getCurrentIndex2());
 		return str;
 		//return "v"+vn->getCurrentIndex2();
 	}else if (argCount1== 1) {
 		UCSChar *str = new UCSChar[14];
 		int i=evalFirstArgumentListNodeSet2(vn);
-		swprintf(str, L"v%d",i);
+		swprintf(str,14, L"v%d",i);
 		return str;
 	} else 
 	    throw new InvalidArgumentException
