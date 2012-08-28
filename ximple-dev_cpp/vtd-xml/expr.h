@@ -24,6 +24,7 @@
 namespace com_ximpleware{
 	class AutoPilot;
         class Expr;
+        class FilterExpr;
 	typedef enum{
 		ABSOLUTE_PATH,
 		RELATIVE_PATH
@@ -135,9 +136,16 @@ namespace com_ximpleware{
 		bool eval_p(VTDNav *vn);
 		bool eval2_p(VTDNav *vn);
 		void setIndex_p(int i);
-		void setContextSize_p(int size);
-		bool requireContextSize_p();
-		void reset_p(VTDNav *vn);
+		void setContextSize_p(int size);/*{
+					e->setContextSize(size);
+				}*/
+		bool requireContextSize_p();/*{
+					return e->requireContextSize();
+				}*/
+		void reset_p(VTDNav *vn);/*{
+					count = 0;
+					e->reset(vn); // is this really needed?
+				}*/
 		void toString_p( UCSChar *string);
 		void adjust(int n);//{e->adjust(n);};
 	};

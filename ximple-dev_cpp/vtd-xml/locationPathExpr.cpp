@@ -1901,13 +1901,13 @@ void Predicate::setIndex_p(int i){
 	}
 	d = (double) i;
 }
-inline void Predicate::setContextSize_p(int size){
+void Predicate::setContextSize_p(int size){
 	e->setContextSize(size);
 }
-inline bool Predicate::requireContextSize_p(){
+bool Predicate::requireContextSize_p(){
 	return e->requireContextSize();
 }
-inline void Predicate::reset_p(VTDNav *vn){
+void Predicate::reset_p(VTDNav *vn){
 	count = 0;
 	e->reset(vn); // is this really needed?
 }
