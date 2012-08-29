@@ -1694,13 +1694,13 @@ UCSChar *formatNumber(funcExpr *e, VTDNav *vn){return createEmptyString();}
 UCSChar *generateID(funcExpr *e, VTDNav *vn){
 	if (e->argCount1== 0){
 		UCSChar *str = malloc(sizeof(UCSChar)*14);
-		swprintf(str, L"v%d", getCurrentIndex2(vn));
+		swprintf(str,14, L"v%d", getCurrentIndex2(vn));
 		return str;
 		//return "v"+vn->getCurrentIndex2();
 	}else if (e->argCount1== 1) {
 		UCSChar *str = malloc(sizeof(UCSChar)*14);
 		int i=evalFirstArgumentListNodeSet2(e,vn);
-		swprintf(str, L"v%d",i);
+		swprintf(str,14, L"v%d",i);
 		return str;
 	} else 
 	    throwException2(invalid_argument,

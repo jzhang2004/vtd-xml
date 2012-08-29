@@ -33,7 +33,7 @@ static inline Boolean isElementOrDocument(VTDNav *vn, int index);
 static inline Boolean isWS(int ch);
 //static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
 static Boolean matchRawTokenString2(VTDNav *vn, Long l, UCSChar *s);
-static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
+//static Boolean matchTokenString1(VTDNav *vn, int offset, int len, UCSChar *s);
 static Boolean matchTokenString2(VTDNav *vn, Long l, UCSChar *s);
 static inline int NSval(VTDNav *vn, int i);
 static int parseInt2(VTDNav *vn, int index, int radix);

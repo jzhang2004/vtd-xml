@@ -478,9 +478,9 @@ NodeTest *createNodeTest();
 void freeNodeTest(NodeTest *nt);
 Boolean eval_nt(NodeTest *nt, VTDNav *vn);
 Boolean eval_nt2(NodeTest *nt, VTDNav *vn);
-void setNodeName(NodeTest *nt, UCSChar *name);
-void setNodeNameNS(NodeTest *nt, UCSChar *p, UCSChar *ln);
-void setTestType(NodeTest *nt, nodeTestType ntt); 
+extern inline void setNodeName(NodeTest *nt, UCSChar *name);
+extern inline void setNodeNameNS(NodeTest *nt, UCSChar *p, UCSChar *ln);
+extern inline void setTestType(NodeTest *nt, nodeTestType ntt); 
 void toString_nt(NodeTest *nt, UCSChar *string);
 
 
@@ -499,12 +499,12 @@ Predicate *createPredicate();
 void freePredicate(Predicate *p);
 Boolean eval_p(Predicate *p, VTDNav *vn);
 Boolean eval2_p(Predicate *p, VTDNav *vn);
-void setIndex_p(Predicate *p, int i);
-void setContextSize_p(Predicate *p, int size);
-Boolean requireContextSize_p(Predicate *p);
-void reset_p(Predicate *p, VTDNav *vn);
+extern inline void setIndex_p(Predicate *p, int i);
+extern inline void setContextSize_p(Predicate *p, int size);
+extern inline Boolean requireContextSize_p(Predicate *p);
+extern inline void reset_p(Predicate *p, VTDNav *vn);
 void toString_p(Predicate *p, UCSChar *string);
-int adjust_p(Predicate *p, int n);
+extern inline int adjust_p(Predicate *p, int n);
 
 typedef struct step{
 	axisType axis_type;
@@ -525,23 +525,23 @@ void freeStep(Step *s);
 void reset_s(Step *s, VTDNav *vn);
 void resetP_s(Step *s,VTDNav *vn);
 void resetP2_s(Step *s,VTDNav *vn, Predicate *p1);
-NodeTest *getNodeTest(Step *s);
-Step *getNextStep(Step *s);
-Boolean get_ft(Step *s);
-void set_ft(Step *s, Boolean b);
-Step *getPrevStep(Step *s);
+extern inline NodeTest *getNodeTest(Step *s);
+extern inline Step *getNextStep(Step *s);
+extern inline Boolean get_ft(Step *s);
+extern inline void set_ft(Step *s, Boolean b);
+extern inline Step *getPrevStep(Step *s);
 void setNodeTest(Step *s,NodeTest *n);
 void setPredicate(Step *s,Predicate *p1);
-Boolean eval_s(Step *s,VTDNav *vn);
-Boolean eval_s2(Step *s,VTDNav *vn, Predicate *p);
-Boolean eval2_s(Step *s,VTDNav *vn);
-Boolean eval2_s2(Step *s,VTDNav *vn, Predicate *p);
+extern inline Boolean eval_s(Step *s,VTDNav *vn);
+extern inline Boolean eval_s2(Step *s,VTDNav *vn, Predicate *p);
+extern inline Boolean eval2_s(Step *s,VTDNav *vn);
+extern inline Boolean eval2_s2(Step *s,VTDNav *vn, Predicate *p);
 Boolean evalPredicates(Step *s,VTDNav *vn);
 Boolean evalPredicates2(Step *s,VTDNav *vn, Predicate *p);
-void setAxisType(Step *s,axisType st);
+extern inline void setAxisType(Step *s,axisType st);
 void toString_s(Step *s, UCSChar *string);
 int adjust_s(Step *s, int n);
-void setStep4Predicates(Step *s);
+extern inline void setStep4Predicates(Step *s);
 
 typedef enum{
 	ABSOLUTE_PATH,
@@ -602,12 +602,11 @@ void    toString_lpe(locationPathExpr *e, UCSChar* string);
 int	adjust_lpe(locationPathExpr *e, int n);
 Boolean isUnique_lpe(locationPathExpr *e,int i);
 void setStep(locationPathExpr *e, Step* st);
-Boolean isFinal_lpe(locationPathExpr *e);
+extern inline Boolean isFinal_lpe(locationPathExpr *e);
 void markCacheable_lpe(locationPathExpr *e);
 void markCacheable2_lpe(locationPathExpr *e);
 void clearCache_lpe(locationPathExpr *e);
 void optimize(locationPathExpr *e);
-
 
 
 /* filter expr */

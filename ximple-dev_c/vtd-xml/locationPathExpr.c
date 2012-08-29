@@ -18,7 +18,8 @@
 #include "xpath.h"
 #include "textIter.h"
 static UCSChar *axisName(axisType i);
-static Boolean isUnique_lpe(locationPathExpr *lpe, int i);
+
+static inline Boolean isUnique_lpe(locationPathExpr *lpe, int i);
 static 	int computeContextSize4Ancestor(locationPathExpr *lpe,Predicate *p, VTDNav *vn);
 static 	int computeContextSize4Ancestor2(locationPathExpr *lpe,Predicate *p, VTDNav *vn);
 static 	int computeContextSize4AncestorOrSelf(locationPathExpr *lpe,Predicate *p, VTDNav *vn);
@@ -63,6 +64,7 @@ static  int process_namespace(locationPathExpr *lpe, VTDNav *vn);
 static  void selectNodeType(locationPathExpr *lpe, TextIter *ti);
 static  void transition_child(locationPathExpr *lpe, VTDNav *vn);
 static  void transition_DDFP(locationPathExpr *lpe, VTDNav *vn);
+
 static void selectNodeType(locationPathExpr *lpe, TextIter *ti){
 		if (lpe->currentStep->nt->testType == NT_TEXT )
 			selectText(ti);
@@ -102,8 +104,8 @@ UCSChar *axisName(axisType i){
 	}
 }
 
-inline Boolean isUnique_lpe(locationPathExpr *lpe, int i){
 
+Boolean isUnique_lpe(locationPathExpr *lpe, int i){
 	return isUniqueIntHash(lpe->ih,i);
 }
 
@@ -1705,7 +1707,6 @@ Boolean eval_nt(NodeTest *nt, VTDNav *vn){
 	return FALSE;
 }
 
-
 Boolean eval_nt2(NodeTest *nt, VTDNav *vn){
 	int t;
 		switch(nt->testType){
@@ -1754,7 +1755,7 @@ Boolean eval_nt2(NodeTest *nt, VTDNav *vn){
 		}
 }
 
-extern inline void setNodeName(NodeTest *nt, UCSChar *name){
+void setNodeName(NodeTest *nt, UCSChar *name){
 	nt->nodeName = name;
 	if (wcscmp(name,L"*")==0){
 		nt->type=0;
@@ -1762,13 +1763,13 @@ extern inline void setNodeName(NodeTest *nt, UCSChar *name){
 		nt->type=1;
 }
 
-extern inline void setNodeNameNS(NodeTest *nt, UCSChar *p, UCSChar *ln){
+void setNodeNameNS(NodeTest *nt, UCSChar *p, UCSChar *ln){
 	nt->localName = ln;
 	nt->prefix = p;
 	nt->type = 2;
 }
 
-extern inline void setTestType(NodeTest *nt, nodeTestType ntt){
+void setTestType(NodeTest *nt, nodeTestType ntt){
 	nt->testType = ntt;
 }
 
@@ -1873,15 +1874,15 @@ void setIndex_p(Predicate *p, int index){
 	p->d = (double) index;
 }
 
-inline void setContextSize_p(Predicate *p, int size){
+void setContextSize_p(Predicate *p, int size){
 	p->e->setContextSize(p->e,size);
 }
 
-inline Boolean requireContextSize_p(Predicate *p){
+Boolean requireContextSize_p(Predicate *p){
 	return p->e->requireContextSize(p->e);
 }
 
-inline void reset_p(Predicate *p, VTDNav* vn){
+void reset_p(Predicate *p, VTDNav* vn){
 	p->count = 0;
 	p->e->reset(p->e,vn); // is this really needed?
 }
@@ -1963,22 +1964,27 @@ void resetP2_s(Step *s,VTDNav *vn, Predicate *p1){
 		}
 }
 
-inline NodeTest *getNodeTest(Step *s){
+NodeTest *getNodeTest(Step *s){
 	return s->nt;
 }
-inline Step *getNextStep(Step *s){
+
+Step *getNextStep(Step *s){
 	return s->nextS;
 }
-inline Boolean get_ft(Step *s){
+
+Boolean get_ft(Step *s){
 	return s->ft;
 }
-inline void set_ft(Step *s, Boolean b){
+
+void set_ft(Step *s, Boolean b){
 	s->ft = b;
 }
-inline Step *getPrevStep(Step *s){
+
+Step *getPrevStep(Step *s){
 	return s->prevS;
 }
-extern inline void setNodeTest(Step *s,NodeTest *n){
+
+void setNodeTest(Step *s,NodeTest *n){
 	s->nt = n;
 	if (s->axis_type == AXIS_CHILD && n->testType ==NT_NAMETEST ){
 			s->axis_type = AXIS_CHILD0;
@@ -2001,7 +2007,8 @@ extern inline void setNodeTest(Step *s,NodeTest *n){
 		}
 		
 }
-extern inline void setPredicate(Step *s,Predicate *p1){
+
+void setPredicate(Step *s,Predicate *p1){
 	if (s->p == NULL){
 			s->p = s->pt = p1;
 		} else {
@@ -2011,19 +2018,23 @@ extern inline void setPredicate(Step *s,Predicate *p1){
 		setStep4Predicates(s);
 		if (p1!=NULL) s->hasPredicate = TRUE;
 }
-inline Boolean eval_s(Step *s,VTDNav *vn){
+
+Boolean eval_s(Step *s,VTDNav *vn){
 	return eval_nt(s->nt,vn) && ((!s->hasPredicate) ||evalPredicates(s,vn));
 }
-inline Boolean eval_s2(Step *s,VTDNav *vn, Predicate *p){
+
+Boolean eval_s2(Step *s,VTDNav *vn, Predicate *p){
 	return eval_nt(s->nt,vn) && evalPredicates2(s,vn,p);
 }
-inline Boolean eval2_s(Step *s,VTDNav *vn){
+
+Boolean eval2_s(Step *s,VTDNav *vn){
 	return eval_nt2(s->nt,vn) && ((!s->hasPredicate) || evalPredicates(s,vn));
 }
 
-inline Boolean eval2_s2(Step *s,VTDNav *vn, Predicate *p){
+Boolean eval2_s2(Step *s,VTDNav *vn, Predicate *p){
 	return eval_nt2(s->nt,vn) && evalPredicates2(s,vn,p);
 }
+
 Boolean evalPredicates(Step *s,VTDNav *vn){
 	Predicate *temp = s->p;
 	while(temp!=NULL) {
@@ -2042,10 +2053,12 @@ Boolean evalPredicates2(Step *s,VTDNav *vn, Predicate *p){
 	}
 	return TRUE;
 }
-extern inline void setAxisType(Step *s,axisType st){
+
+void setAxisType(Step *s,axisType st){
 	s->axis_type = st;
 
 }
+
 void toString_s(Step *s, UCSChar *string){
 	//String s;
 
@@ -2316,23 +2329,23 @@ Boolean evalBoolean_lpe (locationPathExpr *lpe,VTDNav *vn){
 	return a;
 }
 
-inline Boolean isBoolean_lpe (locationPathExpr *lpe){
+Boolean isBoolean_lpe (locationPathExpr *lpe){
 	return FALSE;
 }
 
-inline Boolean isNumerical_lpe (locationPathExpr *lpe){
+Boolean isNumerical_lpe (locationPathExpr *lpe){
 	return FALSE;
 }
 
-inline Boolean isString_lpe (locationPathExpr *lpe){
+Boolean isString_lpe (locationPathExpr *lpe){
 	return FALSE;
 }
 
-inline Boolean isNodeSet_lpe (locationPathExpr *lpe){
+Boolean isNodeSet_lpe (locationPathExpr *lpe){
 	return TRUE;
 }
 
-inline Boolean requireContextSize_lpe(locationPathExpr *lpe){
+Boolean requireContextSize_lpe(locationPathExpr *lpe){
 	return FALSE;
 }
 void reset_lpe(locationPathExpr *lpe, VTDNav *vn){
@@ -2365,6 +2378,7 @@ extern inline void setStep(locationPathExpr *lpe, Step* st){
 	lpe->s = st;
 }
 
+
 void clearCache_lpe(locationPathExpr *lpe){
 	Step *temp = lpe->s;
 	while(temp!=NULL){
@@ -2396,7 +2410,8 @@ void markCacheable2_lpe(locationPathExpr *lpe){
 }
 
 
-inline Boolean isFinal_lpe(locationPathExpr *lpe){return (lpe->pathType ==  ABSOLUTE_PATH);}
+Boolean isFinal_lpe(locationPathExpr *lpe){return (lpe->pathType ==  ABSOLUTE_PATH);}
+
 
 int adjust_lpe(locationPathExpr *lpe, int n){
 	int i;
