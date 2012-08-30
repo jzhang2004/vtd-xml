@@ -18,6 +18,8 @@
 #include "xpath.h"
 #include "textIter.h"
 static UCSChar *axisName(axisType i);
+
+static inline Boolean isUnique_lpe(locationPathExpr *lpe, int i);
 static 	int computeContextSize4Ancestor(locationPathExpr *lpe,Predicate *p, VTDNav *vn);
 static 	int computeContextSize4Ancestor2(locationPathExpr *lpe,Predicate *p, VTDNav *vn);
 static 	int computeContextSize4AncestorOrSelf(locationPathExpr *lpe,Predicate *p, VTDNav *vn);
