@@ -233,18 +233,23 @@ namespace com.ximpleware
                 if (a != -1)
                 {
                     int t = vn.getTokenType(a);
-                    if (t == VTDNav.TOKEN_ATTR_NAME)
+                    switch (t)
                     {
-                        s = vn.toString(a + 1);
-                    }
-                    else if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
-                    {
-                        s = vn.getXPathStringVal();
-                    }
-                    else if (t == VTDNav.TOKEN_PI_NAME)
-                    {
-                        if (a + 1 < vn.vtdSize || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                        case VTDNav.TOKEN_STARTING_TAG:
+                        case VTDNav.TOKEN_DOCUMENT:
+                            s = vn.getXPathStringVal();
+                            break;
+                        case VTDNav.TOKEN_ATTR_NAME:
                             s = vn.toString(a + 1);
+                            break;
+                        case VTDNav.TOKEN_PI_NAME:
+                            //if (a + 1 < vn.vtdSize
+                            //		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                            s = vn.toString(a + 1);
+                            break;
+                        default:
+                            s = vn.toString(a);
+                            break;
                     }
                 }
             }
