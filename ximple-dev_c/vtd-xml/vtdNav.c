@@ -400,6 +400,7 @@ VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 						 vn->localName=NULL;
 						 vn->URIName=NULL;
 						 vn->currentNode=NULL;
+						 vn->fib = createFastIntBuffer2(5);
 						 return vn;
 }
 
@@ -427,6 +428,7 @@ void _freeVTDNav(VTDNav *vn)
 		if (vn->currentNode != NULL)
 			freeBookMark( vn->currentNode);
 		//free(vn->XMLDoc);
+		freeFastIntBuffer(vn->fib);
 		free(vn);
 	}						 
 }
@@ -1530,7 +1532,7 @@ Boolean matchElementNS(VTDNav *vn, UCSChar *URL, UCSChar *ln){
 
 //Match a string against a token with given offset and len, entities 
 //doesn't get resolved.
-static Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s){
+Boolean matchRawTokenString1(VTDNav *vn, int offset, int len, UCSChar *s){
   return  compareRawTokenString2(vn,offset,len,s)==0;
 }
 
@@ -4933,6 +4935,8 @@ void _freeVTDNav_L5(VTDNav_L5 *vn){
 	}
 	free( vn->context);
 	free( vn->stackTemp);
+	freeFastIntBuffer(vn->fib);
+	free(vn);
 }
 
 VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
@@ -5073,6 +5077,7 @@ VTDNav_L5 *createVTDNav_L5(int r, encoding_t enc, Boolean ns, int depth,
 							   vn->localName=NULL;
 							   vn->URIName=NULL;
 							   vn->currentNode=NULL;
+							   vn->fib = createFastIntBuffer2(5);
 							   return vn;
 
 }
@@ -11734,7 +11739,7 @@ loop33:
 		return _getXPathStringVal(vn,getCurrentIndex(vn),mode);
 	}
 	inline UCSChar *getXPathStringVal2(VTDNav *vn,int i,short mode){
-		return _getXPathStringVal(vn,getCurrentIndex(vn), i, mode);
+		return _getXPathStringVal(vn, i, mode);
 	}
 
 	static UCSChar* _getXPathStringVal(VTDNav *vn,int j,short mode){
@@ -11775,13 +11780,13 @@ loop33:
 		for (t = 0; t < vn->fib->size; t++) {
 			switch (mode) {
 		case 0:
-			os += _toString(vn,sb, intAt(vn->fib,t), os);
+			os = _toString(vn,sb, intAt(vn->fib,t), os);
 			break;
 		case 1:
-			os += _toStringUpperCase(vn,sb, intAt(vn->fib,t), os);
+			os = _toStringUpperCase(vn,sb, intAt(vn->fib,t), os);
 			break;
 		case 2:
-			os += _toStringLowerCase(vn,sb, intAt(vn->fib,t), os);
+			os = _toStringLowerCase(vn,sb, intAt(vn->fib,t), os);
 			break;
 		default:
 			throwException2( nav_exception, "Invaild xpath string val mode");
@@ -11798,11 +11803,15 @@ loop33:
 	static int _toString(VTDNav *vn, UCSChar *s, int index, int offset){
 		int len = getTokenLength2(vn,index), k = offset;
 		int os = getTokenOffset(vn,index);
+		int type = getTokenType(vn,index);
 		int endOffset = os + len;
 		Long l;
-		while (offset < endOffset) {
-			l = getCharResolved(vn,offset);
-			offset += (int) (l >> 32);
+		while (os < endOffset) {
+			if (type!=TOKEN_CDATA_VAL)
+				l = getCharResolved(vn,os);
+			else
+				l = getChar(vn,os);
+			os += (int) (l >> 32);
 			s[k++] = (UCSChar) l; // java only support 16 bit unit code
 		}
 
@@ -11812,11 +11821,15 @@ loop33:
 	static int _toStringLowerCase(VTDNav *vn, UCSChar *s, int index, int offset){
 		int len = getTokenLength2(vn,index), k = offset;
 		int os = getTokenOffset(vn,index);
+		int type = getTokenType(vn,index);
 		int endOffset = os + len;
 		Long l;
-		while (offset < endOffset) {
-			l = getCharResolved(vn,offset);
-			offset += (int) (l >> 32);
+		while (os < endOffset) {
+			if (type!=TOKEN_CDATA_VAL)
+				l = getCharResolved(vn,os);
+			else
+				l = getChar(vn,os);
+			os += (int) (l >> 32);
 			if ((int) l > 64 && (int) l < 91)
 				s[k++] = (UCSChar)(l + 32); // java only support 16 bit unit code
 			else
@@ -11829,11 +11842,15 @@ loop33:
 
 		int len = getTokenLength2(vn,index), k = offset;
 		int os = getTokenOffset(vn,index);
+		int type = getTokenType(vn,index);
 		int endOffset = os + len;
 		Long l;
-		while (offset < endOffset) {
-			l = getCharResolved(vn,offset);
-			offset += (int) (l >> 32);
+		while (os < endOffset) {
+			if (type!=TOKEN_CDATA_VAL)
+				l = getCharResolved(vn,os);
+			else
+				l = getChar(vn,os);
+			os += (int) (l >> 32);
 			//s[k++] = (UCSChar)l; // java only support 16 bit unit code
 			if ((int) l > 96 && (int) l < 123)
 				s[k++] = (UCSChar)(l - 32); // java only support 16 bit unit code
@@ -11844,4 +11861,5 @@ loop33:
 
 		return k;
 	}
+
 
