@@ -388,7 +388,7 @@ namespace com.ximpleware
             // a little scanning is needed
             // has next sibling case
             // if not
-            int temp, so2, d, i;
+            int temp,temp2,so2, d, i;
             int depth = getCurrentDepth();
             //		 document length and offset returned if depth == -1
             if (depth == -1)
@@ -407,12 +407,14 @@ namespace com.ximpleware
             if (toElement(NEXT_SIBLING))
             {
 
-                temp = getCurrentIndex();
+                temp =temp2 = getCurrentIndex();
                 // rewind 
                 while (getTokenDepth(temp) < depth)
                 {
                     temp--;
                 }
+                if (temp != temp2)
+                    temp++;
                 //temp++;
                 so2 = getTokenOffset(temp) - 1;
                 // look for the first '>'
@@ -5241,7 +5243,7 @@ namespace com.ximpleware
             // a little scanning is needed
             // has next sibling case
             // if not
-            int temp, so2, d, i;
+            int temp,temp2, so2, d, i;
 
             int depth = getCurrentDepth();
             //		 document length and offset returned if depth == -1
@@ -5266,12 +5268,14 @@ namespace com.ximpleware
             if (toElement(NEXT_SIBLING))
             {
 
-                temp = getCurrentIndex();
+                temp2=temp = getCurrentIndex();
                 // rewind
                 while (getTokenDepth(temp) < depth)
                 {
                     temp--;
                 }
+                if (temp2 != temp)
+                    temp++;
                 //temp++;
                 so2 = getTokenOffset(temp) - 1;
                 // look for the first '>'
@@ -5423,15 +5427,19 @@ namespace com.ximpleware
         protected internal void toString(System.Text.StringBuilder sb, int index)
         {
 
-            int type = getTokenType(index);
-            if (type != TOKEN_CHARACTER_DATA &&
-                    type != TOKEN_ATTR_VAL)
-                toRawString(sb, index);
-            int len;
-            len = getTokenLength(index);
+            /*int type = getTokenType(index);
+		if (type!=TOKEN_CHARACTER_DATA &&
+				type!= TOKEN_ATTR_VAL)
+			toRawString(sb, index); */
+            int len, type;
+            len = getTokenLength2(index);
+            type = getTokenType(index);
 
             int offset = getTokenOffset(index);
-            toString(offset, len, sb);
+            if (type != VTDNav.TOKEN_CDATA_VAL)
+                toString(offset, len, sb);
+            else
+                toRawString(offset, len, sb);
         }
 
         protected internal void toRawString(int os, int len, System.Text.StringBuilder sb)
@@ -5459,25 +5467,7 @@ namespace com.ximpleware
                 sb.Append((char)l);
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sb"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        protected internal String toRawString(System.Text.StringBuilder sb, int index)
-        {
-            int type = getTokenType(index);
-            int len;
-            if (type == TOKEN_STARTING_TAG
-                || type == TOKEN_ATTR_NAME
-                || type == TOKEN_ATTR_NS)
-                len = getTokenLength(index) & 0xffff;
-            else
-                len = getTokenLength(index);
-            int offset = getTokenOffset(index);
-            return toRawString(offset, len);
-        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -5523,7 +5513,8 @@ namespace com.ximpleware
 	}
 
     public String getXPathStringVal(short mode){
-		int index = getCurrentIndex() + 1;
+        return getXPathStringVal2(getCurrentIndex(), mode);
+		/*int index = getCurrentIndex() + 1;
 		int tokenType, depth, t=0;
 		int dp = context[0];
 		//int size = vtdBuffer.size;
@@ -5531,6 +5522,7 @@ namespace com.ximpleware
 		while (index < vtdSize) {
 		    tokenType = getTokenType(index);
 		    depth = getTokenDepth(index);
+            t = t + getTokenLength2(index);
 		    if (depth<dp || 
 		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
 		    	break;
@@ -5568,11 +5560,11 @@ namespace com.ximpleware
 			    index = index+2;
 			    continue;
 			}*/	
-			index++;
-		}
+		//	index++;
+		//}
 		
 		// calculate the total length
-		StringBuilder sb = new StringBuilder(t);
+		/*StringBuilder sb = new StringBuilder(t);
 		
 		for(t=0;t<fib.size_Renamed_Field;t++ ){
 			switch(mode){
@@ -5586,7 +5578,7 @@ namespace com.ximpleware
 				
 		// clear the fib and return a string
 		fib.clear();
-		return sb.ToString();
+		return sb.ToString();*/
 	}
 
    protected internal String getXPathStringVal2(int j, short mode){
@@ -5603,6 +5595,7 @@ namespace com.ximpleware
 		while (index < vtdSize) {
 		    tokenType = getTokenType(index);
 		    depth = getTokenDepth(index);
+            t = t + getTokenLength2(index);
 		    if (depth<dp || 
 		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
 		    	break;
@@ -5645,6 +5638,7 @@ namespace com.ximpleware
 		}
 				
 		// clear the fib and return a string
+        fib.clear();
 		return sb.ToString();
 	}
         
@@ -7764,16 +7758,20 @@ namespace com.ximpleware
 	    //return sb.toString();
 	}
 
-    protected internal void toStringLowerCase(StringBuilder sb, int index) {	
-		int type = getTokenType(index);
-		if (type!=TOKEN_CHARACTER_DATA &&
-				type!= TOKEN_ATTR_VAL)
-			toRawString(sb, index); 
-		int len;
-		len = getTokenLength(index);
+    protected internal void toStringLowerCase(StringBuilder sb, int index) {
+        /*int type = getTokenType(index);
+        if (type!=TOKEN_CHARACTER_DATA &&
+                type!= TOKEN_ATTR_VAL)
+            toRawString(sb, index); */
+        int len, type;
+        len = getTokenLength2(index);
+        type = getTokenType(index);
 
-		int offset = getTokenOffset(index);
-		toStringLowerCase(offset, len, sb);
+        int offset = getTokenOffset(index);
+        if (type != VTDNav.TOKEN_CDATA_VAL)
+            toStringLowerCase(offset, len, sb);
+        else
+            toRawStringLowerCase(offset, len, sb);
 	}
 
 	protected internal void toStringLowerCase(int os, int len, StringBuilder sb){
@@ -7809,16 +7807,20 @@ namespace com.ximpleware
 	}
 	
 
-   protected internal void toStringUpperCase(StringBuilder sb, int index) {	
-		int type = getTokenType(index);
-		if (type!=TOKEN_CHARACTER_DATA &&
-				type!= TOKEN_ATTR_VAL)
-			toRawString(sb, index); 
-		int len;
-		len = getTokenLength(index);
+   protected internal void toStringUpperCase(StringBuilder sb, int index) {
+       /*int type = getTokenType(index);
+       if (type!=TOKEN_CHARACTER_DATA &&
+               type!= TOKEN_ATTR_VAL)
+           toRawString(sb, index);*/
+       int len, type;
+       len = getTokenLength2(index);
+       type = getTokenType(index);
 
-		int offset = getTokenOffset(index);
-		toStringUpperCase(offset, len, sb);
+       int offset = getTokenOffset(index);
+       if (type != VTDNav.TOKEN_CDATA_VAL)
+           toStringUpperCase(offset, len, sb);
+       else
+           toRawStringUpperCase(offset, len, sb);
 	}
 	
 	public bool XPathStringVal_Contains(){
