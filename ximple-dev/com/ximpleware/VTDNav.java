@@ -4883,12 +4883,18 @@ public class VTDNav {
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
 			toRawString(sb, index);*/ 
-		int len;
+		int len,type;
 		len = getTokenLength2(index);
+		type= getTokenType(index);
 
 		int offset = getTokenOffset(index);
-		toString(offset, len, sb);
+		if (type!=VTDNav.TOKEN_CDATA_VAL)
+			toString(offset, len, sb);
+		else
+			toRawString(offset, len, sb);
 	}
+	
+	
 	
 	final protected void toStringUpperCase(StringBuilder sb, int index) 
 	throws NavException {	
@@ -4896,11 +4902,15 @@ public class VTDNav {
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
 			toRawString(sb, index);*/ 
-		int len;
+		int len,type;
 		len = getTokenLength2(index);
-
+		type= getTokenType(index);
+		
 		int offset = getTokenOffset(index);
-		toStringUpperCase(offset, len, sb);
+		if (type!=VTDNav.TOKEN_CDATA_VAL)
+			toStringUpperCase(offset, len, sb);
+		else
+			toRawStringUpperCase(offset, len, sb);
 	}
 	
 	final protected void toStringLowerCase(StringBuilder sb, int index) 
@@ -4909,11 +4919,15 @@ public class VTDNav {
 		if (type!=TOKEN_CHARACTER_DATA &&
 				type!= TOKEN_ATTR_VAL)
 			toRawString(sb, index); */
-		int len;
+		int len,type;
 		len = getTokenLength2(index);
+		type= getTokenType(index);
 
 		int offset = getTokenOffset(index);
-		toStringLowerCase(offset, len, sb);
+		if (type!=VTDNav.TOKEN_CDATA_VAL)
+			toStringLowerCase(offset, len, sb);
+		else
+			toRawStringLowerCase(offset, len, sb);
 	}
 	
 	/**
@@ -5808,7 +5822,8 @@ public class VTDNav {
 		    	continue;
 		    	//
 		    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
-			        || tokenType == VTDNav.TOKEN_ATTR_NS){			  
+			        || tokenType == VTDNav.TOKEN_ATTR_NS
+			        || tokenType == VTDNav.TOKEN_PI_NAME){			  
 			    index = index+2;
 			    continue;
 			}			
