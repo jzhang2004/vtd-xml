@@ -277,9 +277,9 @@ namespace com.ximpleware
                                 s = vn.toString(a + 1);
                                 break;
                             case VTDNav.TOKEN_PI_NAME:
-                                if (a + 1 < vn.vtdSize
-                                        || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
-                                    s = vn.toString(a + 1);
+                                //if (a + 1 < vn.vtdSize
+                                //        || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                                s = vn.toString(a + 1);
                                 break;
                             default:
                                 s = vn.toString(a);
