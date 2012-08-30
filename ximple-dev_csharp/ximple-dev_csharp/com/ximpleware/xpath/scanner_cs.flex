@@ -664,6 +664,7 @@ self{ws}*::		{	isName = 1;
 
 				name.prefix = yytext().Substring(0,len-2);
 				name.localname = "*";
+				name.qname = String.Copy(yytext());
 				//System.out.println("NAME "+name+ " returned");
 				return sym(NAME,name);
 			}
