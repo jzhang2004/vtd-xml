@@ -232,7 +232,12 @@ PrimaryExpr     ::=  VariableReference:ve
 		;
 
 FunctionCall    ::=    FunctionName:fn LP ArgumentList:al RP
-		{: RESULT = new FuncExpr(fn.i, al); :} 
+		{: 
+		   FuncExpr tfe = new FuncExpr(fn.i, al);
+			 if (!tfe.checkArgumentCount())
+             throw new XPathParseException(" argument input for function " + tfe.fname() + " incorrect");
+			 RESULT = new FuncExpr(fn.i, al); 
+		:} 
 		;
 
 ArgumentList	::=    
