@@ -77,10 +77,7 @@ public class Predicate /*implements LocationPathNode*/{
 			else{ 
 				b = expr.evalBoolean(vn);
 			}
-			if (b) 
-				return true;
-			else 
-				return false;
+			return b;
 		}		
 	}
 	

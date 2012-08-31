@@ -1056,7 +1056,7 @@ public class XMLModifier {
      */
     public void insertBeforeTail(VTDNav vn, int contentOffset, int contentLen)
     throws ModifyException, NavException,TranscodeException {
-        insertBeforeTail(vn.encoding,vn.XMLDoc.getBytes(),contentOffset, contentLen);       
+        insertBeforeTail(vn.XMLDoc.getBytes(),contentOffset, contentLen);       
     }
     /**
      * This method will insert the transcoded representation of a segment of the byte array  before the tail of cursor element, 
