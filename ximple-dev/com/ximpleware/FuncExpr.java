@@ -456,7 +456,11 @@ public class FuncExpr extends Expr{
 	        	return "".startsWith(s2);
 	        else{
 	        	try{
-	        		return vn.startsWith(a, s2);
+	        		int t = vn.getTokenType(a);
+	        		if (a!=VTDNav.TOKEN_STARTING_TAG&& a!=VTDNav.TOKEN_DOCUMENT)
+	        			return vn.startsWith(a, s2);
+	        		else 
+	        			return vn.XPathStringVal_StartsWith(a,s2);
 	        	}catch(Exception e){
 	        	}
 	        	return false;
@@ -477,13 +481,13 @@ public class FuncExpr extends Expr{
                 if (t == VTDNav.TOKEN_ATTR_NAME) {
                     a++;
                 }
-                else if (t == VTDNav.TOKEN_STARTING_TAG) {
-                    a = vn.getText();
-                }else if (t == VTDNav.TOKEN_PI_NAME){
-                	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
-                		a++;
-                	else 
-                		a=-1;
+                /*else if (t == VTDNav.TOKEN_STARTING_TAG) {
+                   // a = vn.getText();
+                }*/else if (t == VTDNav.TOKEN_PI_NAME){
+                	//if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
+                	a++;
+                	//else 
+                	//	a=-1;
                 }
                  
                 //else if (t== VTDNav.T)
@@ -518,7 +522,11 @@ public class FuncExpr extends Expr{
 	        	return "".startsWith(s2);
 	        else{
 	        	try{
-	        		return vn.endsWith(a, s2);
+	        		int t=vn.getTokenType(a);
+	        		if (t!=VTDNav.TOKEN_STARTING_TAG && t!=VTDNav.TOKEN_DOCUMENT)
+	        			return vn.endsWith(a, s2);
+	        		else
+	        			return vn.XPathStringVal_EndsWith(a, s2);
 	        	}catch(Exception e){
 	        	}
 	        	return false;
@@ -537,7 +545,11 @@ public class FuncExpr extends Expr{
 			if (a==-1)
 				return false;
 			try {
-				return vn.contains(a, s2);
+				int t=vn.getTokenType(a);
+				if (t!=VTDNav.TOKEN_STARTING_TAG && t!=VTDNav.TOKEN_DOCUMENT)
+					return vn.contains(a, s2);
+				else
+					return vn.XPathStringVal_Contains(a,s2);
 			}catch (Exception e){
 				return false;
 			}				
@@ -604,7 +616,7 @@ public class FuncExpr extends Expr{
 	private String translate(VTDNav vn)
 	{
 		
-		if (argCount == 3) {
+		//if (argCount == 3) {
 			String resultStr = argumentList.e.evalString(vn);
 			String indexStr = argumentList.next.e.evalString(vn);
 
@@ -628,11 +640,11 @@ public class FuncExpr extends Expr{
 				}
 			}
 			return resultStr;
-		} else {
+		/*} else {
 			throw new IllegalArgumentException(
 					"Argument count for translate() is invalid. Expected: 3; Actual: "
 							+ argCount);
-		}
+		}*/
 	}
 	
 	private String normalizeSpace(VTDNav vn){
@@ -649,7 +661,12 @@ public class FuncExpr extends Expr{
 	                } else
 	                    s= vn.toNormalizedString(vn.LN);	                
 	            }else {
-	                s= vn.toNormalizedString(vn.getCurrentIndex());
+	            	int i = vn.getCurrentIndex();
+	            	int t = vn.getTokenType(i);
+	            	if (t==VTDNav.TOKEN_STARTING_TAG || t==VTDNav.TOKEN_DOCUMENT){
+	            		s = vn.toNormalizedXPathString(i);
+	            	}else
+	                s= vn.toNormalizedString(i);
 	            }
 	            return s;
 	        }
@@ -665,7 +682,11 @@ public class FuncExpr extends Expr{
 		        	return ""; 
 		        else {		        	
 		        	try{
-		        		s = vn.toNormalizedString(a); 
+		        		int t = vn.getTokenType(a);
+		        		if (t==VTDNav.TOKEN_STARTING_TAG || t==VTDNav.TOKEN_DOCUMENT){
+		        			s =  vn.toNormalizedXPathString(a);
+		        		}else
+		        			s = vn.toNormalizedString(a); 
 		        	} catch (Exception e){
 		        	}
 		        	return s;	
@@ -1071,7 +1092,7 @@ public class FuncExpr extends Expr{
 		    case FuncName.NOT_MATCH_NAME:return !matchName(vn);
 		    case FuncName.NOT_MATCH_LOCAL_NAME: return !matchLocalName(vn);
 		    case FuncName.ELEMENT_AVAILABLE: return isElementAvailable(vn);
-		    case FuncName.FUNCTION_AVAILABLE: return isElementAvailable(vn);
+		    case FuncName.FUNCTION_AVAILABLE: return isFunctionAvailable(vn);
 		        				
 			default: if (isNumerical()){
 			    		double d = evalNumber(vn);
@@ -1195,8 +1216,8 @@ public class FuncExpr extends Expr{
 	
 	private double sum(VTDNav vn){
 	    double d=0;
-	    if (argCount != 1 || argumentList.e.isNodeSet() == false)
-	        throw new IllegalArgumentException("sum()'s argument count or type is invalid");
+	    /*if (argCount != 1 || argumentList.e.isNodeSet() == false)
+	        throw new IllegalArgumentException("sum()'s argument count or type is invalid");*/
     	vn.push2();
     	int size = vn.contextStack2.size;
     	try {
@@ -1501,14 +1522,24 @@ public class FuncExpr extends Expr{
 				temp.e.markCacheable();
 			}
 			temp = temp.next; 
-		}
-		
+		}		
 	}
+	
 	public void markCacheable2(){
 		 Alist temp =argumentList;
 		 while(temp!=null){
 			 if (temp.e!=null)
 				 temp.e.markCacheable2();
+			temp = temp.next; 
+		}
+	}
+	
+	public void clearCache(){
+		Alist temp =argumentList;
+		while(temp!=null ){
+			if (temp.e!=null){				
+				temp.e.clearCache();
+			}
 			temp = temp.next; 
 		}
 	}
