@@ -5838,6 +5838,7 @@ public class VTDNav {
 				case 0:toString(sb,fib.intAt(t)); break;
 				case 1:toStringUpperCase(sb, fib.intAt(t)); break;
 				case 2:toStringLowerCase(sb, fib.intAt(t)); break;
+				//case 3:toNormalizedString(sb,fib.intAt(t)); break;
 				default:throw new NavException("Invaild xpath string val mode");
 			}			
 			
@@ -5847,19 +5848,239 @@ public class VTDNav {
 		fib.clear();
 		return sb.toString();
 	}
-	final public boolean XPathStringVal_Contains() throws NavException{
+	
+	final public boolean XPathStringVal_Contains(int j, String s) throws NavException{
+		int tokenType;
+		int index = j + 1;
+		int depth, t=0, i=0,offset, endOffset,len,type,c;
+		long l;
+		boolean result=false;
+		int dp = getTokenDepth(j);
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    //t=t+getTokenLength2(index);
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+		    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+		    	//length = getTokenLength2(index);
+		    	//t += length;
+		    	fib.append(index);
+		    	index++;
+		    	continue;
+		    	//
+		    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS
+			        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
 		
+		index=0;
+		loop:while(index<fib.size){
+			type = getTokenType(fib.intAt(index));
+			offset = getTokenOffset(fib.intAt(index));
+			len = getTokenLength(fib.intAt(index));
+			endOffset = offset+len;
+			while(offset<endOffset){
+				if (type==VTDNav.TOKEN_CHARACTER_DATA)
+					l = getCharResolved(offset);
+				else
+					l = getChar(offset);
+				c = (int)l;
+				if (c==s.charAt(0)&& matchSubString(offset, endOffset, index, type,s)){
+					result=true;
+					break loop;
+				}else
+					offset += (int)(l>>32);
+			}			
+			index++;
+		}
+		
+		
+		fib.clear();
+		return result;
+	}
+	
+	private boolean matchSubString(int os, int eos, int index, int t, String s) throws NavException{
+		int offset = os, endOffset=eos, type =t, c;long l;
+		int i=0;
+		boolean b=false;
+		while(offset<endOffset){
+			if (type==VTDNav.TOKEN_CHARACTER_DATA)
+				l = getCharResolved(offset);
+			else
+				l = getChar(offset);
+			c = (int)l;
+			if (i<s.length()-1 && c==s.charAt(i)){		
+				offset += (int)(l>>32);
+				i++;
+			}else if(i==s.length()-1)
+				return true;
+			else
+				return false;				
+		}
+		index++;
+		while(index<fib.size){		
+			offset = getTokenOffset(fib.intAt(index));
+			endOffset = offset + getTokenLength2(fib.intAt(index));
+			type = getTokenType(fib.intAt(index));
+			while(offset<endOffset){
+				if (type==VTDNav.TOKEN_CHARACTER_DATA)
+					l = getCharResolved(offset);
+				else
+					l = getChar(offset);
+				c = (int)l;
+				if (i<s.length() && c==s.charAt(i)){		
+					offset += (int)(l>>32);
+					i++;
+				}else if(i==s.length())
+					return true;
+				else
+					return false;				
+			}
+			index++;
+		}while(index<fib.size);
+		if (i==s.length())
+			return true;
 		return false;
 	}
 	
-	final public boolean XPathStringVal_StartsWith() throws NavException{
-		
-		return false;		
+	final public boolean XPathStringVal_StartsWith(int j, String s) throws NavException{
+		int tokenType;
+		int index = j + 1;
+		int depth,length,i=0, offset, endOffset, len,c;
+		long l;
+		int dp = getTokenDepth(j);
+		boolean r = false;//default
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    //t=t+getTokenLength2(index);
+		    if (depth<dp ||
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA ){
+		    	//if (!match)
+		    	offset = getTokenOffset(index);
+		    	len = getTokenLength2(index);
+		    	endOffset = offset + len;
+		    	while(offset<endOffset){
+		    		l = getCharResolved(offset);
+		    		c = (int)l;
+		    		
+		    		if (i< s.length()&& c == s.charAt(i)){
+		    			offset += (int)(l>>32);
+		    			i++;
+		    		}else if (i==s.length())
+		    			return true;
+		    		else
+		    			return false;
+		    		
+		    	}
+		    	index++;
+		    	continue;
+		    }else if( tokenType==VTDNav.TOKEN_CDATA_VAL){
+		    	offset = getTokenOffset(index);
+		    	len = getTokenLength2(index);
+		    	endOffset = offset + len;
+		    	while(offset<endOffset){
+		    		l = getChar(offset);
+		    		c = (int)l;
+		    		
+		    		if (i< s.length()&& c == s.charAt(i)){
+		    			offset += (int)(l>>32);
+		    			i++;
+		    		}else if (i==s.length())
+		    			return true;
+		    		else
+		    			return false;
+		    		
+		    	}
+		    	index++;
+		    	continue;
+		    }else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS
+			        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+			    
+		    	index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		return false;
 	}
 	
-	final public boolean XPathStringVal_EndsWith() throws NavException{
+	final public boolean XPathStringVal_EndsWith(int j,String s) throws NavException{
+		int tokenType;
+		int index = j + 1;
+		int depth, t=0, length,i=0,d=0, offset,endOffset,type;
+		boolean b=false;
+		long l;
+		int dp = getTokenDepth(j);
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    //t=t+getStringLength(index);
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+		    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+		    	length = getTokenLength2(index);
+		    	//t += length;
+		    	fib.append(index);
+		    	index++;
+		    	continue;
+		    	//
+		    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS
+			        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		//if (t<s.length())
+		//	return false;
+		for (i=fib.size-1;i!=0;i--){
+			t+=getStringLength(fib.intAt(i));
+			if (t>=s.length()){
+				d = t-s.length();//# of chars to be skipped
+				break;
+			}
+		}
 		
-		return false;
+		if (i<-1)return false;
+		type = getTokenType(fib.intAt(i));
+		offset = getTokenOffset(fib.intAt(i));
+		endOffset = offset+getTokenLength2(fib.intAt(i));
+		for(j=0;j<d;j++){
+			if (type==VTDNav.TOKEN_CHARACTER_DATA){
+				l=getCharResolved(offset);
+			}else
+				l=getChar(offset);
+			offset += (int)(l>>32);
+		}
+		b =matchSubString(offset, endOffset,i,type,s);
+		fib.clear();
+		return b;
 	}
 	
 	
@@ -7778,5 +7999,133 @@ public class VTDNav {
 			}else
 				return false;
 		}
+	}
+
+	final public String toNormalizedXPathString(int j) throws NavException{
+		// TODO Auto-generated method stub
+		int tokenType;
+		int index = j + 1;
+		int depth, t=0;
+		int dp = getTokenDepth(j);
+		boolean r = false;//default
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA || tokenType==VTDNav.TOKEN_CDATA_VAL){
+		    	//if (!match)
+		    	t=t+getTokenLength2(index);
+		    	fib.append(index);
+		    	index++;
+		    	continue;
+		    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS
+			        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		//allocate string buffer
+		StringBuilder sb = new StringBuilder(t);
+		//now create teh string, leading zeros/trailling zero stripped, multiple ws collapse into one
+		index =0;
+		int state=0;// start
+		while(index<fib.size){
+			int offset= getTokenOffset(fib.intAt(index));
+			int len = getTokenLength2(fib.intAt(index));
+			int endOS= offset + len;
+			int c;
+			long l;
+			
+			int type = getTokenType(fib.intAt(index));
+			if (type==VTDNav.TOKEN_CHARACTER_DATA){
+				while(offset < endOS){
+					l = getCharResolved(offset);
+					c = (int)l;
+					offset += (int)(l>>32);
+					
+					switch(state){
+					case 0:
+						if(isWS(c)){
+							
+						}else{
+							sb.append((char)c);
+							state =1;
+						}
+						break;
+						
+					case 1:
+						if(isWS(c)){
+							sb.append((char)' ');
+							state =2;
+						}else{
+							sb.append((char)c);
+						}
+						break;
+						
+					case 2:
+						if (isWS(c)){
+							
+						}else{
+							sb.append((char)c);
+							state = 1;
+						}
+						break;
+					
+					}
+				}
+			}else{
+				while(offset < endOS){
+					l = getChar(offset);
+					c = (int)l;
+					offset += (int)(l>>32);
+					
+					switch(state){
+					case 0:
+						if(isWS(c)){
+							
+						}else{
+							sb.append((char)c);
+							state =1;
+						}
+						break;
+					case 1:
+						if(isWS(c)){
+							sb.append((char)' ');
+							state =2;
+						}else{
+							sb.append((char)c);
+						}
+						break;
+					
+					case 2: 
+						if (isWS(c)){
+							
+						}else{
+							sb.append((char)c);
+							state = 1;
+						}
+						break;
+					
+					}
+				}
+			}			
+			
+			index++;
+			//System.out.println(sb.toString());
+		}
+		fib.clear();
+		//String s =sb.toString();
+		//System.out.println();
+		return sb.toString();
+		
 	}
 }
