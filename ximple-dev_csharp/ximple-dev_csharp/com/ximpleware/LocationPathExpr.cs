@@ -225,21 +225,24 @@ namespace com.ximpleware
                 if (a != -1)
                 {
                     int t = vn.getTokenType(a);
-                    if (t == VTDNav.TOKEN_ATTR_NAME)
+                    switch (t)
                     {
-                        s = vn.toString(a + 1);
-                    }
-                    else if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
-                    {
-                        s = vn.getXPathStringVal();
-                    }
-                    else if (t == VTDNav.TOKEN_PI_NAME)
-                    {
-                        if (a + 1 < vn.vtdSize || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                        case VTDNav.TOKEN_STARTING_TAG:
+                        case VTDNav.TOKEN_DOCUMENT:
+                            s = vn.getXPathStringVal();
+                            break;
+                        case VTDNav.TOKEN_ATTR_NAME:
                             s = vn.toString(a + 1);
+                            break;
+                        case VTDNav.TOKEN_PI_NAME:
+                            //if (a + 1 < vn.vtdSize
+                            //		|| vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                            s = vn.toString(a + 1);
+                            break;
+                        default:
+                            s = vn.toString(a);
+                            break;
                     }
-                    else
-                        s = vn.toString(a);
                 }
             }
             catch (Exception e)
@@ -455,7 +458,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -658,7 +661,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -773,7 +776,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -836,7 +839,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -881,7 +884,8 @@ namespace com.ximpleware
                     }
                     if (state == BACKWARD)
                     {
-                        currentStep.resetP(vn);
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
                         vn.pop2();
                         currentStep = currentStep.prevS;
                     }
@@ -918,7 +922,8 @@ namespace com.ximpleware
                         vn.pop2();
                         if (currentStep.prevS != null)
                         {
-                            currentStep.resetP(vn);
+                            if (currentStep.hasPredicate)
+                                currentStep.resetP(vn);
                             state = BACKWARD;
                             currentStep = currentStep.prevS;
                         }
@@ -944,7 +949,8 @@ namespace com.ximpleware
 
                     if (currentStep.prevS != null)
                     {
-                        currentStep.resetP(vn);
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
                         state = BACKWARD;
                         currentStep = currentStep.prevS;
                     }
@@ -971,7 +977,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -1053,7 +1059,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -1124,7 +1130,8 @@ namespace com.ximpleware
 
                     if (state == BACKWARD)
                     {
-                        currentStep.resetP(vn);
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
                         currentStep.ft = true;
                         vn.pop2();
                         currentStep = currentStep.prevS;
@@ -1166,7 +1173,8 @@ namespace com.ximpleware
                     if (b == false)
                     {
                         vn.pop2();
-                        currentStep.resetP(vn);
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
                         if (currentStep.prevS != null)
                         {
                             currentStep.ft = true;
@@ -1192,7 +1200,8 @@ namespace com.ximpleware
                         }
                     }
                     vn.pop2();
-                    currentStep.resetP(vn);
+                    if (currentStep.hasPredicate)
+                        currentStep.resetP(vn);
                     if (currentStep.prevS != null)
                     {
                         currentStep.ft = true;
@@ -1223,7 +1232,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -1314,7 +1323,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -1460,7 +1469,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -1608,7 +1617,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -2055,7 +2064,7 @@ namespace com.ximpleware
                     t = currentStep.p;
                     while (t != null)
                     {
-                        if (t.requireContextSize())
+                        if (t.requireContext)
                         {
                             int i = computeContextSize(t, vn);
                             if (i == 0)
@@ -2176,7 +2185,8 @@ namespace com.ximpleware
                     {
                         vn.pop2();
                         currentStep.ft = true;
-                        currentStep.resetP(vn);
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
                         vn.atTerminal=(false);
                         if (currentStep.prevS != null)
                         {
@@ -2221,7 +2231,8 @@ namespace com.ximpleware
                             return temp;
                         }
                     vn.atTerminal=(false);
-                    currentStep.resetP(vn);
+                    if (currentStep.hasPredicate)
+                        currentStep.resetP(vn);
                     if (currentStep.prevS == null)
                     {
                         currentStep.ft = true;
@@ -2560,11 +2571,11 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 	{		
 		int i = 0;
 		AutoPilot ap = (AutoPilot)currentStep.o;
-		if (vn.toElement(VTDNav.PARENT)){
-		    if (currentStep.eval(vn,p)){
-		        i++;
-		    }
-		}			    
+		//if (vn.toElement(VTDNav.PARENT)){
+		if (currentStep.eval(vn,p)){
+		    i++;
+		}
+		//}			    
 		currentStep.resetP(vn,p);
 		currentStep.out_of_range=false;
 		currentStep.o = ap;
@@ -2575,11 +2586,11 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 	{		
 		int i = 0;
 		AutoPilot ap = (AutoPilot)currentStep.o;
-		if (vn.toNode(VTDNav.PARENT)){
-		    if (currentStep.eval2(vn,p)){
-		        i++;
-		    }
-		}			    
+		//if (vn.toNode(VTDNav.PARENT)){
+		if (currentStep.eval2(vn,p)){
+		   i++;
+		}
+		//}			    
 		currentStep.resetP(vn,p);
 		currentStep.out_of_range=false;
 		currentStep.o = ap;
@@ -2671,7 +2682,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 			case  START:
 	    	    t = currentStep.p;
 	    	    while (t != null) {
-	    	        if (t.requireContextSize()) {
+	    	        if (t.requireContext) {
 	    	            int i = computeContextSize( t, vn);
 	    	            if (i == 0) {
 	    	                b1 = true;
@@ -2737,7 +2748,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 			case  FORWARD:
 	    	     t = currentStep.p;
 	    	     while(t!=null){
-	    	        if (t.requireContextSize()){
+	    	        if (t.requireContext){
 	    	             int i = computeContextSize(t,vn);
 	    	             if (i==0){
 	    	                 b1 = true;
@@ -2793,7 +2804,8 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 						}
 					
 					if ( state ==  BACKWARD) {
-						currentStep.resetP(vn);
+                        if (currentStep.hasPredicate)
+    						currentStep.resetP(vn);
 						currentStep.ft = true;
 						vn.pop2();
 						currentStep = currentStep.prevS;
@@ -2829,7 +2841,8 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 				}
 				if (b == false) {
 					vn.pop2();
-					currentStep.resetP(vn);
+                    if (currentStep.hasPredicate)
+    					currentStep.resetP(vn);
 					if (currentStep.prevS != null) {
 						currentStep.ft = true;
 						 state =  BACKWARD;
@@ -2850,7 +2863,8 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 					}
 				}
 				vn.pop2();
-				currentStep.resetP(vn);
+                if (currentStep.hasPredicate)
+    				currentStep.resetP(vn);
 				if (currentStep.prevS!=null) {
 					currentStep.ft = true;
 					 state =  BACKWARD;
@@ -2880,7 +2894,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 	    		
 	    	    t = currentStep.p;
 	    	    while (t != null) {
-	    	        if (t.requireContextSize()) {
+	    	        if (t.requireContext) {
 	    	            int i = computeContextSize( t, vn);
 	    	            if (i == 0) {
 	    	                b1 = true;
@@ -2931,7 +2945,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 	    	case FORWARD:	    	    
 	    	     t = currentStep.p;
 	    	     while(t!=null){
-	    	        if (t.requireContextSize()){
+	    	        if (t.requireContext){
 	    	             int i = computeContextSize(t,vn);
 	    	             if (i==0){
 	    	                 b1 = true;
@@ -2967,7 +2981,8 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 			   		}							
 			   	}
 			   	if ( state == BACKWARD){
-			   		currentStep.resetP(vn);
+                    if (currentStep.hasPredicate) 
+                        currentStep.resetP(vn);
 					vn.pop2();
 			   		currentStep=currentStep.prevS;
 			   	}			    
@@ -2997,7 +3012,8 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 				if (b==false){
 					vn.pop2();
 					if (currentStep.prevS!=null) {
-						currentStep.resetP(vn);
+                        if (currentStep.hasPredicate) 
+                            currentStep.resetP(vn);
 						state =  BACKWARD;
 						currentStep = currentStep.prevS;
 					}
@@ -3019,7 +3035,8 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 			vn.pop2();
 			
 			if (currentStep.prevS!=null) {
-				currentStep.resetP(vn);
+                if (currentStep.hasPredicate) 
+                    currentStep.resetP(vn);
 				 state =  BACKWARD;
 				currentStep = currentStep.prevS;
 			}
@@ -3226,7 +3243,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 
 			t = currentStep.p;
 			while (t != null) {
-				if (t.requireContextSize()) {
+				if (t.requireContext) {
 					int i = computeContextSize(t, vn);
 					if (i == 0) {
 						b1 = true;
@@ -3423,7 +3440,7 @@ protected int process_following_sibling2(VTDNav vn)
 
   	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -3493,7 +3510,8 @@ protected int process_following_sibling2(VTDNav vn)
 		  	}
 		    if (b==false){
 		    	vn.pop2();
-		    	currentStep.resetP(vn);
+                if (currentStep.hasPredicate)
+    		    	currentStep.resetP(vn);
 		    	if (currentStep.prevS==null){
 		    		 state =  END;
 		    	}else{
@@ -3539,7 +3557,7 @@ protected internal  int process_parent2(VTDNav vn)
 			case  FORWARD:
     	        t = currentStep.p;
     	        while(t!=null){
-    	            if (t.requireContextSize()){
+    	            if (t.requireContext){
     	                int i = computeContextSize(t,vn);
     	                if (i==0){
     	                    b1 = true;
@@ -3631,7 +3649,7 @@ protected internal  int process_parent2(VTDNav vn)
 		  case  FORWARD:
   	        t = currentStep.p;
 	        while(t!=null){
-	            if (t.requireContextSize()){
+	            if (t.requireContext){
 	                int i = computeContextSize(t,vn);
 	                if (i==0){
 	                    b1 = true;
@@ -3700,8 +3718,9 @@ protected internal  int process_parent2(VTDNav vn)
 		  		}
 		  	}
 		    if (b==false){
-		    	vn.pop2();
-		    	currentStep.resetP(vn);
+                vn.pop2(); 
+                if (currentStep.hasPredicate)
+		    	    currentStep.resetP(vn);
 		    	if (currentStep.prevS==null){
 		    		 state =  END;
 		    	}else{
@@ -3746,7 +3765,7 @@ protected internal  int process_parent2(VTDNav vn)
 		case FORWARD:
 			t = currentStep.p;
 			while (t != null) {
-				if (t.requireContextSize()) {
+				if (t.requireContext) {
 					int i = computeContextSize(t, vn);
 					if (i == 0) {
 						b1 = true;
