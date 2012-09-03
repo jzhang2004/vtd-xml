@@ -345,7 +345,7 @@ namespace com.ximpleware
                             return vn.toRawString(vn.LN);
                         return vn.toString(vn.LN);
                     }
-                    return vn.toString(vn.getCurrentIndex());
+                    return vn.getXPathStringVal();
                 }
                 catch (NavException e)
                 {
@@ -421,31 +421,47 @@ namespace com.ximpleware
                 if (a == -1 || vn.ns == false)
                     return "";
                 int type = vn.getTokenType(a);
-                if (type != VTDNav.TOKEN_STARTING_TAG && type != VTDNav.TOKEN_ATTR_NAME)
-                    return "";
-                try
+                if (type == VTDNav.TOKEN_STARTING_TAG || type == VTDNav.TOKEN_ATTR_NAME)
                 {
-                    int offset = vn.getTokenOffset(a);
-                    int length = vn.getTokenLength(a);
-                    if (length < 0x10000)
-                        return vn.toRawString(a);
-                    else
+
+                    try
                     {
-                        int preLen = length >> 16;
-                        int QLen = length & 0xffff;
-                        if (preLen != 0)
-                            return vn.toRawString(offset + preLen + 1,
-                                    QLen - preLen - 1);
+                        int offset = vn.getTokenOffset(a);
+                        int length = vn.getTokenLength(a);
+                        if (length < 0x10000)
+                            return vn.toRawString(a);
                         else
                         {
-                            return vn.toRawString(offset, QLen);
+                            int preLen = length >> 16;
+                            int QLen = length & 0xffff;
+                            if (preLen != 0)
+                                return vn.toRawString(offset + preLen + 1,
+                                        QLen - preLen - 1);
+                            else
+                            {
+                                return vn.toRawString(offset, QLen);
+                            }
                         }
                     }
+
+                    catch (NavException e)
+                    {
+                        return ""; // this will almost never occur
+                    }
                 }
-                catch (NavException e)
+                else if (type == VTDNav.TOKEN_PI_NAME)
                 {
-                    return ""; // this will almost never occur
+                    try
+                    {
+                        return vn.toRawString(a);
+                    }
+                    catch (NavException e)
+                    {
+                        return "";
+                    }
                 }
+                else
+                    return "";
             }
             else
                 throw new System.ArgumentException
@@ -477,7 +493,7 @@ namespace com.ximpleware
                     return "";
                 }
             }
-            else if (argCount1 == 1)
+            else if (argCount1 == 1 && argumentList.e.NodeSet)
             {
                 vn.push2();
                 int size = vn.contextStack2.size;
@@ -525,13 +541,14 @@ namespace com.ximpleware
                 int type = vn.getTokenType(a);
 
                 if ((type == VTDNav.TOKEN_STARTING_TAG
-                        || type == VTDNav.TOKEN_ATTR_NAME))
+                        || type == VTDNav.TOKEN_ATTR_NAME
+                        || type == VTDNav.TOKEN_PI_NAME))
                 {
                     try
                     {
                         if (vn.nameIndex != a)
                         {
-                            vn.name = vn.toString(a);
+                            vn.name = vn.toRawString(a);
                             vn.nameIndex = a;
                         }
                         return vn.name;
@@ -555,8 +572,9 @@ namespace com.ximpleware
                     {
                         int type = vn.getTokenType(a);
                         if (type == VTDNav.TOKEN_STARTING_TAG
-                                || type == VTDNav.TOKEN_ATTR_NAME)
-                            return vn.toString(a);
+                                || type == VTDNav.TOKEN_ATTR_NAME
+                                || type == VTDNav.TOKEN_PI_NAME)
+                            return vn.toRawString(a);
                         return "";
                     }
                 }
@@ -1416,10 +1434,10 @@ namespace com.ximpleware
                     }
                     else if (t == VTDNav.TOKEN_PI_NAME)
                     {
-                        if (a + 1 < vn.vtdSize || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
+                        //if (a + 1 < vn.vtdSize || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
                             a++;
-                        else
-                            a = -1;
+                        //else
+                        //    a = -1;
                     }
                 }
             }
@@ -1525,7 +1543,7 @@ namespace com.ximpleware
 
         private String upperCase(VTDNav vn)
         {
-            if (argCount() == 1)
+            if (argCount1 == 1)
             {
                 if (argumentList.e.NodeSet)
                 {
@@ -1536,7 +1554,10 @@ namespace com.ximpleware
                     {
                         try
                         {
-                            return vn.toStringUpperCase(a);
+                            int t = vn.getTokenType(a);
+                            if (t != VTDNav.TOKEN_STARTING_TAG && t != VTDNav.TOKEN_DOCUMENT)
+                                return vn.toStringUpperCase(a);
+                            return vn.getXPathStringVal2(a, (short)1);
                         }
                         catch (Exception e)
                         {
@@ -1557,7 +1578,7 @@ namespace com.ximpleware
 
         private String lowerCase(VTDNav vn)
         {
-            if (argCount() == 1)
+            if (argCount1 == 1)
             {
                 if (argumentList.e.NodeSet)
                 {
@@ -1568,7 +1589,10 @@ namespace com.ximpleware
                     {
                         try
                         {
-                            return vn.toStringLowerCase(a);
+                            int t = vn.getTokenType(a);
+                            if (t != VTDNav.TOKEN_STARTING_TAG && t != VTDNav.TOKEN_DOCUMENT)
+                                return vn.toStringLowerCase(a);
+                            return vn.getXPathStringVal2(a, (short)2);
                         }
                         catch (Exception e)
                         {
@@ -1897,6 +1921,19 @@ namespace com.ximpleware
             else if (precision < 0) result *= dec;
 
             return result;
+        }
+
+        public void clearCache()
+        {
+            Alist temp = argumentList;
+            while (temp != null)
+            {
+                if (temp.e != null)
+                {
+                    temp.e.clearCache();
+                }
+                temp = temp.next;
+            }
         }
     }
 }
