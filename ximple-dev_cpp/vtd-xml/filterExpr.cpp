@@ -149,7 +149,9 @@ UCSChar* FilterExpr::evalString(VTDNav *vn){
 				 s = vn->toString(a);
 				 break;
 			 }		
-            }
+            }else{
+   			 s=wcsdup(L"");
+   		 }
         } catch (NavException&) {
 
         }
