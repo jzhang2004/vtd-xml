@@ -974,7 +974,7 @@ namespace com.ximpleware
                 case FuncName.NOT_MATCH_NAME: return !matchName(vn);
                 case FuncName.NOT_MATCH_LOCAL_NAME: return !matchLocalName(vn);
                 case FuncName.ELEMENT_AVAILABLE: return isElementAvailable(vn);
-                case FuncName.FUNCTION_AVAILABLE: return isElementAvailable(vn);
+                case FuncName.FUNCTION_AVAILABLE: return isFunctionAvailable(vn);
 
                 default: if (Numerical)
                     {
@@ -1191,7 +1191,16 @@ namespace com.ximpleware
                             s = vn.toString(vn.LN);
                     }
                     else
-                        s = vn.toString(vn.getCurrentIndex());
+                    {
+                        int i = vn.getCurrentIndex();
+                        int t = vn.getTokenType(i);
+                        if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
+                        {
+                            s = vn.toNormalizedXPathString(i);
+                        }
+                        else
+                            s = vn.toNormalizedString(i);
+                    }
                     return normalize(s);
                 }
                 catch (NavException e)
@@ -1201,8 +1210,37 @@ namespace com.ximpleware
             }
             else if (argCount1 == 1)
             {
-                String s = argumentList.e.evalString(vn);
-                return normalize(s);
+                String s = "";
+                if (argumentList.e.NodeSet)
+                {
+                    //boolean b = false;
+                    int a = evalFirstArgumentListNodeSet(vn);
+                    if (a == -1)
+                        return "";
+                    else
+                    {
+                        try
+                        {
+                            int t = vn.getTokenType(a);
+                            if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
+                            {
+                                s = vn.toNormalizedXPathString(a);
+                            }
+                            else
+                                s = vn.toNormalizedString(a);
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                        return s;
+                    }
+                }
+                else
+                {
+                    s = argumentList.e.evalString(vn);
+                    return normalize(s);
+                }
+	        
             }
             throw new System.ArgumentException("normalize-space()'s argument count is invalid");
             //return null;
@@ -1428,10 +1466,10 @@ namespace com.ximpleware
                     {
                         a++;
                     }
-                    else if (t == VTDNav.TOKEN_STARTING_TAG)
+                    /*else if (t == VTDNav.TOKEN_STARTING_TAG)
                     {
                         a = vn.getText();
-                    }
+                    }*/
                     else if (t == VTDNav.TOKEN_PI_NAME)
                     {
                         //if (a + 1 < vn.vtdSize || vn.getTokenType(a + 1) == VTDNav.TOKEN_PI_VAL)
@@ -1480,7 +1518,11 @@ namespace com.ximpleware
                 {
                     try
                     {
-                        return vn.endsWith(a, s2);
+                        int t = vn.getTokenType(a);
+                        if (t != VTDNav.TOKEN_STARTING_TAG && t != VTDNav.TOKEN_DOCUMENT)
+                            return vn.endsWith(a, s2);
+                        else
+                            return vn.XPathStringVal_EndsWith(a, s2);
                     }
                     catch (Exception e)
                     {
@@ -1503,7 +1545,11 @@ namespace com.ximpleware
                     return false;
                 try
                 {
-                    return vn.contains(a, s2);
+                    int t = vn.getTokenType(a);
+                    if (t != VTDNav.TOKEN_STARTING_TAG && t != VTDNav.TOKEN_DOCUMENT)
+                        return vn.contains(a, s2);
+                    else
+                        return vn.XPathStringVal_Contains(a, s2);
                 }
                 catch (Exception e)
                 {
@@ -1529,7 +1575,11 @@ namespace com.ximpleware
                 {
                     try
                     {
-                        return vn.startsWith(a, s2);
+                        int t = vn.getTokenType(a);
+                        if (t != VTDNav.TOKEN_STARTING_TAG && t != VTDNav.TOKEN_DOCUMENT)
+                            return vn.startsWith(a, s2);
+                        else
+                            return vn.XPathStringVal_StartsWith(a, s2);
                     }
                     catch (Exception e)
                     {
