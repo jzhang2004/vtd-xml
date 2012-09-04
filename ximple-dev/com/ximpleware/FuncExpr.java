@@ -1511,7 +1511,7 @@ public class FuncExpr extends Expr{
 			return s;			
 	}
 	
-	public void markCacheable(){
+	public void markCacheable2(){
 	    Alist temp =argumentList;
 		while(temp!=null ){
 			if (temp.e!=null){
@@ -1519,17 +1519,17 @@ public class FuncExpr extends Expr{
 					CachedExpr ce = new CachedExpr(temp.e);
 					temp.e = ce;
 				}
-				temp.e.markCacheable();
+				temp.e.markCacheable2();
 			}
 			temp = temp.next; 
 		}		
 	}
 	
-	public void markCacheable2(){
+	public void markCacheable(){
 		 Alist temp =argumentList;
 		 while(temp!=null){
 			 if (temp.e!=null)
-				 temp.e.markCacheable2();
+				 temp.e.markCacheable();
 			temp = temp.next; 
 		}
 	}

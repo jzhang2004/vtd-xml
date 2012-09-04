@@ -1835,7 +1835,7 @@ namespace com.ximpleware
             return false;
         }
 
-        public override void markCacheable()
+        public override void markCacheable2()
         {
             Alist temp = argumentList;
             while (temp != null)
@@ -1847,19 +1847,19 @@ namespace com.ximpleware
                         CachedExpr ce = new CachedExpr(temp.e);
                         temp.e = ce;
                     }
-                    temp.e.markCacheable();
+                    temp.e.markCacheable2();
                 }
                 temp = temp.next;
             }
 
         }
-        public override void markCacheable2()
+        public override void markCacheable()
         {
             Alist temp = argumentList;
             while (temp != null)
             {
                 if (temp.e != null)
-                    temp.e.markCacheable2();
+                    temp.e.markCacheable();
                 temp = temp.next;
             }
         }
