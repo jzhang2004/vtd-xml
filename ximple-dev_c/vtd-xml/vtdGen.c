@@ -3774,10 +3774,10 @@ static void addWhiteSpaceRecord(VTDGen *vg){
 			vg->length1 = vg->offset - vg->increment - vg->temp_offset;
 			if (vg->length1 != 0)
 				if (vg->encoding < FORMAT_UTF_16BE)
-					writeVTD(vg,vg->temp_offset, vg->length1, 
+					writeVTDText(vg,vg->temp_offset, vg->length1,
 							TOKEN_CHARACTER_DATA, vg->depth);
 				else
-					writeVTD(vg, vg->temp_offset >> 1,vg->length1 >> 1,
+					writeVTDText(vg, vg->temp_offset >> 1,vg->length1 >> 1,
 							TOKEN_CHARACTER_DATA, vg->depth);
 		}
 }
