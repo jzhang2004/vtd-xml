@@ -269,6 +269,8 @@ static Long handle_utf16be(VTDNav *vn, int offset){
 	}
 }
 
+
+static Boolean matchSubString(VTDNav*vn, int os, int eos, int index, int t, UCSChar *s);
 VTDNav *createVTDNav(int r, encoding_t enc, Boolean ns, int depth,
 					 UByte *x, int xLen, FastLongBuffer *vtd, FastLongBuffer *l1,
 					 FastLongBuffer *l2, FastIntBuffer *l3, int so, int len, Boolean br){
@@ -11863,3 +11865,368 @@ loop33:
 	}
 
 
+
+	UCSChar *toNormalizedXPathString(VTDNav *vn,int j){			
+		// TODO Auto-generated method stub
+		int tokenType;UCSChar* sb =NULL;int state=0;
+		int index = j + 1;
+		int depth, t=0;
+		int dp = getTokenDepth(vn,j);
+		Boolean r = FALSE;//default
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vn->vtdSize) {
+		    tokenType = getTokenType(vn,index);
+		    depth = getTokenDepth(vn,index);
+		    
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==TOKEN_CHARACTER_DATA || tokenType==TOKEN_CDATA_VAL){
+		    	//if (!match)
+		    	t=t+getTokenLength2(vn,index);
+		    	appendInt(vn->fib,index);
+		    	index++;
+		    	continue;
+		    } else if (tokenType==TOKEN_ATTR_NAME
+			        || tokenType ==TOKEN_ATTR_NS
+			        || tokenType ==TOKEN_PI_NAME){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		//allocate string buffer
+		sb = malloc(sizeof(UCSChar)*(t+1));
+		t=0;
+		//now create teh string, leading zeros/trailling zero stripped, multiple ws collapse into one
+		index =0;
+
+		while(index<vn->fib->size){
+			int offset= getTokenOffset(vn,intAt(vn->fib,index));
+			int len = getTokenLength2(vn,intAt(vn->fib,index));
+			int endOS= offset + len;
+			int c;
+			Long l;
+			
+			int type = getTokenType(vn,intAt(vn->fib,index));
+			if (type==TOKEN_CHARACTER_DATA){
+				while(offset < endOS){
+					l = getCharResolved(vn,offset);
+					c = (int)l;
+					offset += (int)(l>>32);
+					
+					switch(state){
+					case 0:
+						if(isWS(c)){
+							
+						}else{
+							sb[t++]=(char)c;
+							
+							state =1;
+						}
+						break;
+						
+					case 1:
+						if(isWS(c)){
+							sb[t++]=(char)' ';
+							state =2;
+						}else{
+							sb[t++]=(char)c;
+						}
+						break;
+						
+					case 2:
+						if (isWS(c)){
+							
+						}else{
+							sb[t++]=((char)c);
+							state = 1;
+						}
+						break;
+					
+					}
+				}
+			}else{
+				while(offset < endOS){
+					l = getChar(vn,offset);
+					c = (int)l;
+					offset += (int)(l>>32);
+					
+					switch(state){
+					case 0:
+						if(isWS(c)){
+							
+						}else{
+							sb[t++]=((char)c);
+							state =1;
+						}
+						break;
+					case 1:
+						if(isWS(c)){
+							sb[t++]=((char)' ');
+							state =2;
+						}else{
+							sb[t++]=((char)c);
+						}
+						break;
+					
+					case 2: 
+						if (isWS(c)){
+							
+						}else{
+							sb[t++]=((char)c);
+							state = 1;
+						}
+						break;
+					
+					}
+				}
+			}			
+			
+			index++;
+			//System.out.println(sb.toString());
+		}
+
+		//put end of string character
+		sb[t]=0;
+		clearFastIntBuffer(vn->fib);
+		//String s =sb.toString();
+		//System.out.println();
+		return sb;
+}
+	Boolean XPathStringVal_Contains(VTDNav *vn,int j, UCSChar *s){
+		int tokenType;
+		int index = j + 1;
+		int depth, t=0, i=0,offset, endOffset,len,type,c;
+		Long l;
+		Boolean result=FALSE;
+		int dp = getTokenDepth(vn,j);
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vn->vtdSize) {
+		    tokenType = getTokenType(vn,index);
+		    depth = getTokenDepth(vn,index);
+		    //t=t+getTokenLength2(index);
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==TOKEN_CHARACTER_DATA
+		    		|| tokenType==TOKEN_CDATA_VAL){
+		    	//length = getTokenLength2(index);
+		    	//t += length;
+		    	appendInt(vn->fib,index);
+		    	index++;
+		    	continue;
+		    	//
+		    } else if (tokenType==TOKEN_ATTR_NAME
+			        || tokenType == TOKEN_ATTR_NS
+			        || tokenType == TOKEN_PI_NAME){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		
+		index=0;
+		while(index<vn->fib->size){
+			type = getTokenType(vn,intAt(vn->fib,index));
+			offset = getTokenOffset(vn,intAt(vn->fib,index));
+			len = getTokenLength(vn,intAt(vn->fib,index));
+			endOffset = offset+len;
+			while(offset<endOffset){
+				if (type==TOKEN_CHARACTER_DATA)
+					l = getCharResolved(vn,offset);
+				else
+					l = getChar(vn,offset);
+				c = (int)l;
+				if (c==s[0]&& matchSubString(vn,offset, endOffset, index, type,s)){
+					result=TRUE;
+					goto loop;
+				}else
+					offset += (int)(l>>32);
+			}			
+			index++;
+		}
+		
+		loop:
+		clearFastIntBuffer(vn->fib);
+		return result;
+	}
+	
+	Boolean XPathStringVal_StartsWith(VTDNav *vn,int j, UCSChar *s){
+		int tokenType;
+		int index = j + 1;
+		int depth,i=0, offset, endOffset, len,len2=wcslen(s),c;
+		Long l;
+		int dp = getTokenDepth(vn,j);
+		Boolean r = FALSE;//default
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vn->vtdSize) {
+		    tokenType = getTokenType(vn,index);
+		    depth = getTokenDepth(vn,index);
+		    //t=t+getTokenLength2(index);
+		    if (depth<dp ||
+		    		(depth==dp && tokenType==TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==TOKEN_CHARACTER_DATA ){
+		    	//if (!match)
+		    	offset = getTokenOffset(vn,index);
+		    	len = getTokenLength2(vn,index);
+		    	endOffset = offset + len;
+		    	while(offset<endOffset){
+		    		l = getCharResolved(vn,offset);
+		    		c = (int)l;
+		    		
+		    		if (i< len2&& c == s[i]){
+		    			offset += (int)(l>>32);
+		    			i++;
+		    		}else if (i==len2)
+		    			return TRUE;
+		    		else
+		    			return FALSE;
+		    		
+		    	}
+		    	index++;
+		    	continue;
+		    }else if( tokenType==TOKEN_CDATA_VAL){
+		    	offset = getTokenOffset(vn,index);
+		    	len = getTokenLength2(vn,index);
+		    	endOffset = offset + len;
+		    	while(offset<endOffset){
+		    		l = getChar(vn,offset);
+		    		c = (int)l;
+		    		
+		    		if (i< len2&& c == s[i]){
+		    			offset += (int)(l>>32);
+		    			i++;
+		    		}else if (i==len2)
+		    			return TRUE;
+		    		else
+		    			return FALSE;
+		    		
+		    	}
+		    	index++;
+		    	continue;
+		    }else if (tokenType==TOKEN_ATTR_NAME
+			        || tokenType == TOKEN_ATTR_NS
+			        || tokenType == TOKEN_PI_NAME){			  
+			    
+		    	index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		return FALSE;
+	}
+	
+	Boolean XPathStringVal_EndsWith(VTDNav *vn,int j, UCSChar *s){
+		int tokenType;
+		int index = j + 1,len=wcslen(s);
+		int depth, t=0, i=0,d=0, offset,endOffset,type;
+		Boolean b=FALSE;
+		Long l;
+		int dp = getTokenDepth(vn,j);
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vn->vtdSize) {
+		    tokenType = getTokenType(vn,index);
+		    depth = getTokenDepth(vn,index);
+		    //t=t+getStringLength(index);
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==TOKEN_CHARACTER_DATA
+		    		|| tokenType==TOKEN_CDATA_VAL){
+		    	//length = getTokenLength2(index);
+		    	//t += length;
+		    	appendInt(vn->fib,index);
+		    	index++;
+		    	continue;
+		    	//
+		    } else if (tokenType==TOKEN_ATTR_NAME
+			        || tokenType ==TOKEN_ATTR_NS
+			        || tokenType ==TOKEN_PI_NAME){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		//if (t<s.length())
+		//	return false;
+		for (i=vn->fib->size-1;i!=0;i--){
+			t+=getStringLength(vn,intAt(vn->fib,i));
+			if (t>=len){
+				d = t-len;//# of chars to be skipped
+				break;
+			}
+		}
+		
+		if (i<-1)return FALSE;
+		type = getTokenType(vn,intAt(vn->fib,i));
+		offset = getTokenOffset(vn,intAt(vn->fib,i));
+		endOffset = offset+getTokenLength2(vn,intAt(vn->fib,i));
+		for(j=0;j<d;j++){
+			if (type==TOKEN_CHARACTER_DATA){
+				l=getCharResolved(vn,offset);
+			}else
+				l=getChar(vn,offset);
+			offset += (int)(l>>32);
+		}
+		b =matchSubString(vn,offset, endOffset,i,type,s);
+		clearFastIntBuffer(vn->fib);
+		return b;
+	}
+
+	Boolean matchSubString(VTDNav*vn, int os, int eos, int index, int t, UCSChar *s){
+		int offset = os, endOffset=eos, type =t, c;Long l;
+		int i=0;int len=wcslen(s);
+		Boolean b=FALSE;
+		while(offset<endOffset){
+			if (type==TOKEN_CHARACTER_DATA)
+				l = getCharResolved(vn,offset);
+			else
+				l = getChar(vn,offset);
+			c = (int)l;
+			if (i<len-1 && c==s[i]){		
+				offset += (int)(l>>32);
+				i++;
+			}else if(i==len-1)
+				return TRUE;
+			else
+				return FALSE;				
+		}
+		index++;
+		while(index<vn->fib->size){		
+			offset = getTokenOffset(vn,intAt(vn->fib,index));
+			endOffset = offset + getTokenLength2(vn,intAt(vn->fib,index));
+			type = getTokenType(vn,intAt(vn->fib,index));
+			while(offset<endOffset){
+				if (type==TOKEN_CHARACTER_DATA)
+					l = getCharResolved(vn,offset);
+				else
+					l = getChar(vn,offset);
+				c = (int)l;
+				if (i<len && c==s[i]){		
+					offset += (int)(l>>32);
+					i++;
+				}else if(i==len)
+					return TRUE;
+				else
+					return FALSE;				
+			}
+			index++;
+		}while(index<vn->fib->size);
+		if (i==len)
+			return TRUE;
+		return FALSE;
+	}

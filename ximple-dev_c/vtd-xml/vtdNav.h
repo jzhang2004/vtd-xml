@@ -838,6 +838,11 @@ extern void loadCurrentNode(VTDNav *vn);
 extern void fillXPathString(VTDNav *vn,FastIntBuffer *indexBuffer,FastIntBuffer *countBuffer);
 extern UCSChar *getXPathStringVal(VTDNav *vn,short mode);
 extern UCSChar *getXPathStringVal2(VTDNav *vn,int i,short mode);
+
+extern UCSChar *toNormalizedXPathString(VTDNav *vn,int j);
+extern Boolean XPathStringVal_Contains(VTDNav *vn,int j, UCSChar *s);
+extern Boolean XPathStringVal_StartsWith(VTDNav *vn,int j, UCSChar *s);
+extern Boolean XPathStringVal_EndsWith(VTDNav *vn,int j, UCSChar *s);
 //extern Boolean iterateNode(VTDNav *vn, int dp);
 
 
