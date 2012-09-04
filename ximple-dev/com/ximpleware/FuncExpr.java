@@ -457,7 +457,7 @@ public class FuncExpr extends Expr{
 	        else{
 	        	try{
 	        		int t = vn.getTokenType(a);
-	        		if (a!=VTDNav.TOKEN_STARTING_TAG&& a!=VTDNav.TOKEN_DOCUMENT)
+	        		if (t!=VTDNav.TOKEN_STARTING_TAG&&t!=VTDNav.TOKEN_DOCUMENT)
 	        			return vn.startsWith(a, s2);
 	        		else 
 	        			return vn.XPathStringVal_StartsWith(a,s2);
