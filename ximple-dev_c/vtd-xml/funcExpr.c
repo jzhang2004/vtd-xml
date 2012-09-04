@@ -1110,9 +1110,31 @@ void   toString_fne(funcExpr *fne, UCSChar* string){
 	}
 }
 static Boolean contains_fe(funcExpr *fne, VTDNav *vn){
-	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
+	Boolean b=FALSE;
+	exception ee;
+	UCSChar* s1=NULL;
 	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
-	Boolean b = FALSE;
+	if(fne->al->e->isNodeSet(fne->al->e)){
+		//UCSChar* s1 = al->e->evalString( vn);
+		int a = evalFirstArgumentListNodeSet(fne,vn);
+		if (a==-1)
+			return FALSE;
+		Try {
+			int t=getTokenType(vn,a);
+			if (t!=TOKEN_STARTING_TAG && t!=TOKEN_DOCUMENT)
+				b= contains(vn,a, s2);
+			else
+				b= XPathStringVal_Contains(vn,a,s2);
+			free(s2);
+			return b;
+		}Catch(ee){
+			free(s2);
+			return FALSE;
+		}		
+	}
+	
+	s1 = fne->al->e->evalString(fne->al->e, vn);
+	//Boolean b = FALSE;
 	if (s1 == NULL || s2 == NULL)
 		return FALSE;
 	if (wcsstr(s1,s2)!=NULL)
@@ -1162,11 +1184,35 @@ static UCSChar* concat(funcExpr *fne, VTDNav *vn){
 }
 /* can be optimized to test whether the argument returns a VTD index */
 static Boolean startsWith_fe(funcExpr *fne, VTDNav *vn){
-	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
-	//UCSChar* s3 = NULL;
-	UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
-	
 	Boolean b = FALSE;
+	exception ee;
+	UCSChar* s1,*s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
+	if (fne->al->e->isNodeSet(fne->al)){
+			//boolean b = false;
+			int a = evalFirstArgumentListNodeSet(fne,vn);
+			
+	        if (a==-1)
+	        	return wcslen(s2)==0;
+	        else{
+	        	Try{
+	        		int t = getTokenType(vn,a);
+	        		if (t!=TOKEN_STARTING_TAG&& t!=TOKEN_DOCUMENT)
+	        			b= startsWith(vn,a, s2);
+	        		else 
+	        			b= XPathStringVal_StartsWith(vn,a,s2);
+					free( s2);
+					return b;
+	        	}Catch(ee){
+					free( s2);
+					return FALSE;
+	        	}
+	        	
+	        }								
+		} 
+	//UCSChar* s3 = NULL;
+	s1 = fne->al->e->evalString(fne->al->e, vn);
+	
+	
 	if (wcsstr(s1,s2)==s1)
 		b = TRUE;
 	free(s1);
@@ -1175,13 +1221,36 @@ static Boolean startsWith_fe(funcExpr *fne, VTDNav *vn){
 }
 /* can be optimized to test whether the argument returns a VTD index */
 static Boolean endsWith_fe(funcExpr *fne, VTDNav *vn){
-	UCSChar* s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
-    UCSChar* s1 = fne->al->e->evalString(fne->al->e, vn);
-	
-	size_t l1 = wcslen(s1);
-	size_t l2 = wcslen(s2);
-	//UCSChar* s3 = NULL;
 	Boolean b = FALSE;
+	exception ee;size_t l1,l2;
+	UCSChar* s1=NULL,*s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
+	if (fne->al->e->isNodeSet(fne->al->e)){
+		int a = evalFirstArgumentListNodeSet(fne,vn);
+		if (a==-1)
+			return wcslen(s2)==0;
+		else{
+			Try{
+				int t=getTokenType(vn,a);
+				if (t!=TOKEN_STARTING_TAG && t!=TOKEN_DOCUMENT)
+					b= endsWith(vn,a, s2);
+				else
+					b= XPathStringVal_EndsWith(vn,a, s2);
+				free(s2);
+				return b;
+			}Catch(ee){
+				free( s2);
+				return FALSE;
+			}
+			
+			
+		}								
+	}	
+    
+	s1 = fne->al->e->evalString(fne->al->e, vn);
+	l1 = wcslen(s1);
+	l2 = wcslen(s2);
+	//UCSChar* s3 = NULL;
+	
 	if (wcsstr(s1+(l1-l2),s2)== (s1+l1-l2)){
 		//
 		b = TRUE;
@@ -1365,9 +1434,10 @@ static UCSChar* translate(funcExpr *fne, VTDNav *vn){
 }
 
 static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
+	exception e;
 	if (fne->argCount1 == 0){
 		UCSChar *s = NULL;
-		exception e;
+		
 		Try{
 			if (vn->atTerminal)
 			{
@@ -1376,25 +1446,47 @@ static UCSChar* normalizeString(funcExpr *fne, VTDNav *vn){
 					s =toRawString(vn,vn->LN);
 				else if (ttype == TOKEN_ATTR_NAME
 					|| ttype == TOKEN_ATTR_NS){
-						s = toString(vn,vn->LN+1);
-				}else
-					s = toString(vn,vn->LN);
-			}else
-				s = toString(vn,getCurrentIndex(vn));
-			return normalize(s);
+						s = toNormalizedString(vn,vn->LN+1);
+				}else{
+					s= toNormalizedString(vn,vn->LN);
+				}
+			}else{
+				int i = getCurrentIndex(vn);
+	            int t = getTokenType(vn,i);
+	            if (t==TOKEN_STARTING_TAG || t==TOKEN_DOCUMENT){
+	            	s = toNormalizedXPathString(vn,i);
+	            }else
+	                s= toNormalizedString(vn,i);
+			}
+			return s;
 		}
 		Catch(e){
 			return createEmptyString();
 		}
 	} else if (fne->argCount1 ==1){
-		UCSChar *s = fne->al->e->evalString(fne->al->e, vn);
-		return normalize(s);
+		UCSChar *s=NULL;
+		if (fne->al->e->isNodeSet(fne->al->e)){
+			//boolean b = false;
+			int a = evalFirstArgumentListNodeSet(fne,vn);
+		    if (a==-1)
+		       	return wcsdup(L""); 
+		    else {		        	
+		       	Try{
+		        		int t = getTokenType(vn,a);
+		        		if (t==TOKEN_STARTING_TAG || t==TOKEN_DOCUMENT){
+		        			s = toNormalizedXPathString(vn,a);
+		        		}else
+		        			s = toNormalizedString(vn,a); 
+		        } Catch (e){
+		        }
+		        return s;	
+		    }	    	
+	   	}else {
+			UCSChar *s = fne->al->e->evalString(fne->al->e,vn);
+			return normalize(s);
+	    }
 	}
-	{
-		throwException2(invalid_argument,
-			"normalize-space()'s <funcExpr> argument count is invalid");
-		return NULL;
-	}
+	return NULL;
 }
 
 static UCSChar* normalize(UCSChar *s){
@@ -1521,11 +1613,11 @@ static double roundHalfToEvenPositive(double value, long precision){
 		int i;
 		double result = 0;
 		const double ROUNDING_EPSILON  = 0.00000001;
-	    long dec = 1;
-		long intPart = (long)value;
+	    Long dec = 1;
+		Long intPart = (Long)value;
 	    
 	    //shif the decimal point by precision
-	    long absPre = abs(precision);
+	    Long absPre = abs(precision);
 	    
 	    for(i = 0; i < absPre; i++){
 	    	dec *= 10;
@@ -1540,7 +1632,7 @@ static double roundHalfToEvenPositive(double value, long precision){
 	    	if(intPart%2 == 0){
 	    		result = intPart;
 	    	}else{// nearest even integer
-	    		result = (long)ceil( intPart + (double)0.5 );
+	    		result = (Long)ceil( intPart + (double)0.5 );
 	    	}
 	    }else{
 	    	//use the usual round to closest	    
@@ -1558,7 +1650,7 @@ static double roundHalfToEvenPositive(double value, long precision){
 
 static double roundHalfToEven(funcExpr *fne, VTDNav *vn) {
 		double value;
-		long precision;
+		Long precision;
 		int numArg = argCount(fne);
 
 	    if (numArg < 1 || numArg > 2){
@@ -1567,7 +1659,7 @@ static double roundHalfToEven(funcExpr *fne, VTDNav *vn) {
 	    }
 
 		value = (double)fne->al->e->evalNumber(fne->al->e, vn);	    
-	    precision = (numArg == 2)? (long)floor((double)fne->al->next->e->evalNumber(fne->al->next->e,vn)+0.5) : 0;
+	    precision = (numArg == 2)? (Long)floor((double)fne->al->next->e->evalNumber(fne->al->next->e,vn)+0.5) : 0;
 	    
 	    if(value < 0) return -roundHalfToEvenPositive(-value, precision);	    
 	    else return roundHalfToEvenPositive(value, precision);
@@ -1591,7 +1683,7 @@ Boolean isFinal_fne(funcExpr *e){
 	return s;	
 }
 		
-void markCacheable_fne(funcExpr *e){
+void markCacheable2_fne(funcExpr *e){
 	aList *temp = e->al;
 	while(temp!=NULL ){
 		if (temp->e!=NULL){
@@ -1599,16 +1691,16 @@ void markCacheable_fne(funcExpr *e){
 				cachedExpr *ce = createCachedExpr(temp->e);
 				temp->e = (expr *)ce;
 			}
-			temp->e->markCacheable(temp->e);
+			temp->e->markCacheable2(temp->e);
 		}
 		temp = temp->next; 
 	}
 }
-void markCacheable2_fne(funcExpr *e){
+void markCacheable_fne(funcExpr *e){
 	aList *temp = e->al;
 	while(temp!=NULL){
 		if (temp->e!=NULL)
-			temp->e->markCacheable2(temp->e);
+			temp->e->markCacheable(temp->e);
 		temp = temp->next; 
 	}
 }
@@ -1721,9 +1813,7 @@ int evalFirstArgumentListNodeSet(funcExpr *e, VTDNav *vn){
                 if (t == TOKEN_ATTR_NAME) {
                     a++;
                 }
-                else if (t == TOKEN_STARTING_TAG) {
-                    a = getText(vn);
-                }else if (t == TOKEN_PI_NAME){
+                else if (t == TOKEN_PI_NAME){
                 	//if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
                 	a++;
                 	//else 
