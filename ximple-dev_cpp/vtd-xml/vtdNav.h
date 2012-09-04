@@ -95,6 +95,8 @@ namespace com_ximpleware {
 		
 		
 		int compareNormalizedTokenString2(int offset, int len, const UCSChar *s);
+		bool matchSubString(int os, int eos, int index, int t, UCSChar *s);
+
 
 	protected:
 		VTDNav(int r, 
@@ -588,19 +590,24 @@ namespace com_ximpleware {
 
 		virtual void dumpState();
 
-		virtual void fillXPathString(FastIntBuffer *indexBuffer, FastIntBuffer countBuffer);
+		virtual void fillXPathString(FastIntBuffer *indexBuffer, FastIntBuffer *countBuffer);
 		UCSChar* getXPathStringVal(){
 			return getXPathStringVal(0);
 		}
 		//UCSChar* getXPathStringVal(short mode);
 		
-		UCSChar* VTDNav::getXPathStringVal(short mode){
+		UCSChar* getXPathStringVal(short mode){
 			return getXPathStringVal(getCurrentIndex(),mode);
 		}
 		
 		UCSChar* getXPathStringVal(int j, short mode);
 		virtual bool toNode(int direction);
 		virtual bool verifyNodeCorrectness();
+
+		UCSChar *toNormalizedXPathString(int j);
+		bool XPathStringVal_Contains(int j, UCSChar *s);
+		bool XPathStringVal_StartsWith(int j, UCSChar *s);
+		bool XPathStringVal_EndsWith(int j, UCSChar *s);
 	};
 
 	inline bool VTDNav::matchElement( const UCSChar *en){
