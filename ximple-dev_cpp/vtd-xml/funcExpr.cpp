@@ -839,11 +839,29 @@ UCSChar* FuncExpr::getString( VTDNav *vn){
 	return createEmptyString();
 }
 bool FuncExpr::contains( VTDNav *vn){
+	bool b=false;
 	UCSChar* s2 = al->next->e->evalString(vn);
 	//UCSChar* s3 = NULL;
-	UCSChar* s1 = al->e->evalString( vn);
+	if(al->e->isNodeSet()){
+		//UCSChar* s1 = al->e->evalString( vn);
+		int a = evalFirstArgumentListNodeSet(vn);
+		if (a==-1)
+			return false;
+		try {
+			int t=vn->getTokenType(a);
+			if (t!=TOKEN_STARTING_TAG && t!=TOKEN_DOCUMENT)
+				b= vn->contains(a, s2);
+			else
+				b= vn->XPathStringVal_Contains(a,s2);
+			delete s2;
+			return b;
+		}catch (...){
+			delete s2;
+			return false;
+		}		
+	}
 	
-	bool b = false;
+	UCSChar* s1 = al->e->evalString( vn);
 	if (wcsstr(s1,s2)!=NULL)
 		b = true;
 	delete(s1);
@@ -891,11 +909,33 @@ UCSChar* FuncExpr::concat( VTDNav *vn){
 	//return NULL;
 }
 bool FuncExpr::startsWith( VTDNav *vn){
+	bool b=false;
 	UCSChar* s2 = al->next->e->evalString(vn);
+	if (al->e->isNodeSet()){
+			//boolean b = false;
+			int a = evalFirstArgumentListNodeSet(vn);
+			
+	        if (a==-1)
+	        	return wcslen(s2)==0;
+	        else{
+	        	try{
+	        		int t = vn->getTokenType(a);
+	        		if (t!=TOKEN_STARTING_TAG&& t!=TOKEN_DOCUMENT)
+	        			b= vn->startsWith(a, s2);
+	        		else 
+	        			b= vn->XPathStringVal_StartsWith(a,s2);
+					delete s2;
+					return b;
+	        	}catch(...){
+					delete s2;
+					return false;
+	        	}
+	        	
+	        }								
+		} 
 	//UCSChar* s3 = NULL;
 	UCSChar* s1 = al->e->evalString( vn);
 	
-	bool b = false;
 	if (wcsstr(s1,s2)==s1)
 		b = true;
 	delete(s1);
@@ -903,13 +943,35 @@ bool FuncExpr::startsWith( VTDNav *vn){
     return b;
 }
 bool FuncExpr::endsWith( VTDNav *vn){
+	bool b=false;
 	UCSChar* s2 = al->next->e->evalString(vn);
+	if (al->e->isNodeSet()){
+		int a = evalFirstArgumentListNodeSet(vn);
+		if (a==-1)
+			return wcslen(s2)==0;
+		else{
+			try{
+				int t=vn->getTokenType(a);
+				if (t!=TOKEN_STARTING_TAG && t!=TOKEN_DOCUMENT)
+					b= vn->endsWith(a, s2);
+				else
+					b= vn->XPathStringVal_EndsWith(a, s2);
+				delete s2;
+				return b;
+			}catch(...){
+				delete s2;
+				return false;
+			}
+			
+			
+		}								
+	}	
     UCSChar* s1 = al->e->evalString(vn);
 	
 	size_t l1 = wcslen(s1);
 	size_t l2 = wcslen(s2);
 	//UCSChar* s3 = NULL;
-	bool b = false;
+	
 	if (wcsstr(s1+(l1-l2),s2)== (s1+l1-l2)){
 		//
 		b = true;
@@ -985,19 +1047,47 @@ UCSChar* FuncExpr::normalizeString( VTDNav *vn){
 					s =vn->toRawString(vn->LN);
 				else if (ttype == TOKEN_ATTR_NAME
 					|| ttype == TOKEN_ATTR_NS){
-						s = vn->toString(vn->LN+1);
-				}else
-					s = vn->toString(vn->LN);
-			}else
-				s = vn->toString(vn->getCurrentIndex());
-			return normalize(s);
+						s = vn->toNormalizedString(vn->LN+1);
+				}else{
+					s= vn->toNormalizedString(vn->LN);
+				}
+			}else{
+				int i = vn->getCurrentIndex();
+	            	int t = vn->getTokenType(i);
+	            	if (t==TOKEN_STARTING_TAG || t==TOKEN_DOCUMENT){
+	            		s = vn->toNormalizedXPathString(i);
+	            	}else
+	                s= vn->toNormalizedString(i);
+			}
+			return s;
 		}
 		catch(...){
 			return createEmptyString();
 		}
 	} else if (argCount1 ==1){
-		UCSChar *s = al->e->evalString(vn);
-		return normalize(s);
+		//UCSChar *s="";
+	    if (al->e->isNodeSet()){
+			//boolean b = false;
+			int a = evalFirstArgumentListNodeSet(vn);
+		    if (a==-1)
+		       	return wcsdup(L""); 
+		    else {		        	
+		       	try{
+		        		int t = vn->getTokenType(a);
+		        		if (t==TOKEN_STARTING_TAG || t==TOKEN_DOCUMENT){
+		        			s =  vn->toNormalizedXPathString(a);
+		        		}else
+		        			s = vn->toNormalizedString(a); 
+		        	} catch (...){
+		        	}
+		        	return s;	
+		        }	    	
+	    	}
+	    	else {
+				UCSChar *s = al->e->evalString(vn);
+				return normalize(s);
+	    	}
+		
 	}
 	{
 		throw InvalidArgumentException("normalize-space()'s <funcExpr> argument count is invalid");
@@ -1215,15 +1305,15 @@ UCSChar* FuncExpr::lowerCase( VTDNav *vn){
 static double myround(double v){
 			return (v>0.0) ? floor(v+0.5) : ceil(v-0.5);
 		}
-static double roundHalfToEvenPositive(double value, long precision){
+static double roundHalfToEvenPositive(double value, Long precision){
 		int i;
 		double result = 0;
 		const double ROUNDING_EPSILON  = 0.00000001;
-	    long dec = 1;
-		long intPart = (long)value;
+	    Long dec = 1;
+		Long intPart = (Long)value;
 	    
 	    //shif the decimal point by precision
-	    long absPre = abs(precision);
+	    Long absPre = abs(precision);
 	    
 	    for(i = 0; i < absPre; i++){
 	    	dec *= 10;
@@ -1238,7 +1328,7 @@ static double roundHalfToEvenPositive(double value, long precision){
 	    	if(intPart%2 == 0){
 	    		result = intPart;
 	    	}else{// nearest even integer
-	    		result = (long)ceil( intPart + (double)0.5 );
+	    		result = (Long)ceil( intPart + (double)0.5 );
 	    	}
 	    }else{
 	    	//use the usual round to closest	    
@@ -1254,7 +1344,7 @@ static double roundHalfToEvenPositive(double value, long precision){
 
 double FuncExpr::roundHalfToEven( VTDNav *vn){
 		double value;
-		long precision;
+		Long precision;
 		int numArg = argCount();
 
 	    if (numArg < 1 || numArg > 2){
@@ -1262,7 +1352,7 @@ double FuncExpr::roundHalfToEven( VTDNav *vn){
 	    }
 
 		value = (double)al->e->evalNumber( vn);	    
-	    precision = (numArg == 2)? (long)floor((double)al->next->e->evalNumber(vn)+0.5) : 0;
+	    precision = (numArg == 2)? (Long)floor((double)al->next->e->evalNumber(vn)+0.5) : 0;
 	    
 	    if(value < 0) return -roundHalfToEvenPositive(-value, precision);	    
 	    else return roundHalfToEvenPositive(value, precision);
@@ -1339,7 +1429,7 @@ bool FuncExpr::isFinal(){
 	return s;	
 }
 		
-void FuncExpr::markCacheable(){
+void FuncExpr::markCacheable2(){
 	AList *temp = al;
 	while(temp!=NULL ){
 		if (temp->e!=NULL){
@@ -1347,17 +1437,17 @@ void FuncExpr::markCacheable(){
 				CachedExpr *ce = new CachedExpr(temp->e);
 				temp->e = ce;
 			}
-			temp->e->markCacheable();
+			temp->e->markCacheable2();
 		}
 		temp = temp->next; 
 	}
 }
 
-void FuncExpr::markCacheable2(){
+void FuncExpr::markCacheable(){
 	AList *temp = al;
 	while(temp!=NULL){
 		if (temp->e!=NULL)
-			temp->e->markCacheable2();
+			temp->e->markCacheable();
 		temp = temp->next; 
 	}
 }
@@ -1471,9 +1561,6 @@ int FuncExpr::evalFirstArgumentListNodeSet( VTDNav *vn){
             	int t = vn->getTokenType(a);
                 if (t == TOKEN_ATTR_NAME) {
                     a++;
-                }
-                else if (t == TOKEN_STARTING_TAG) {
-                    a = vn->getText();
                 }else if (t == TOKEN_PI_NAME){
                 	//if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
                 	a++;
