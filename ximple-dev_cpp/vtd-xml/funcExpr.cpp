@@ -1065,7 +1065,7 @@ UCSChar* FuncExpr::normalizeString( VTDNav *vn){
 			return createEmptyString();
 		}
 	} else if (argCount1 ==1){
-		UCSChar *s="";
+		UCSChar *s=NULL;
 	    if (al->e->isNodeSet()){
 			//boolean b = false;
 			int a = evalFirstArgumentListNodeSet(vn);
