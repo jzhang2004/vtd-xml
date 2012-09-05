@@ -590,7 +590,7 @@ namespace com_ximpleware {
 
 		virtual void dumpState();
 
-		virtual void fillXPathString(FastIntBuffer *indexBuffer, FastIntBuffer *countBuffer);
+		void fillXPathString(FastIntBuffer *indexBuffer, FastIntBuffer *countBuffer);
 		UCSChar* getXPathStringVal(){
 			return getXPathStringVal(0);
 		}
