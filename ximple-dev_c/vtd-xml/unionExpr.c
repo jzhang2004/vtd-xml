@@ -209,7 +209,8 @@ UCSChar* evalString_une  (unionExpr *e,VTDNav *vn){
 				 s = toString(vn,a);
 				 break;
 			 }		
-            }
+            }else
+				wcsdup(L"");
         } Catch (ee) {
 
         }

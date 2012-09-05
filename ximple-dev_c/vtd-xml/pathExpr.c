@@ -190,7 +190,9 @@ UCSChar* evalString_pe  (pathExpr *pe,VTDNav *vn){
 				 s = toString(vn,a);
 				 break;
 			 }		
-            }
+		 }else
+			return wcsdup(L"");
+		 
         } Catch (ee) {
 
         }

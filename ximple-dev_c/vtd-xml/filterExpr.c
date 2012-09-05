@@ -145,7 +145,8 @@ UCSChar* evalString_fe  (filterExpr *fe,VTDNav *vn){
 				 s = toString(vn,a);
 				 break;
 			 }		
-            }
+            }else
+				return wcsdup(L"");
         } Catch (ee) {
 
         }
