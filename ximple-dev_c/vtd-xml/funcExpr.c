@@ -16,7 +16,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 #include "xpath.h"
-#include "xmlModifier.h"
+#include "XMLModifier.h"
 
 static double sum(funcExpr *fne, VTDNav *vn);
 static int argCount(funcExpr *fne);
