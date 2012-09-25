@@ -1076,11 +1076,15 @@ public class VTDNav {
 			int temp2 = temp;
 			//boolean b = false;
 			// rewind
-			while (getTokenDepth(temp) <= depth) {
+			while (getTokenDepth(temp) == depth && 
+					(getTokenType(temp)==VTDNav.TOKEN_COMMENT || 
+							getTokenType(temp)==VTDNav.TOKEN_PI_VAL ||
+							getTokenType(temp)==VTDNav.TOKEN_PI_NAME)) {
+				
 				temp--;
 			}
-			if(temp!=temp2)
-				temp++;
+			/*if(temp!=temp2)
+				temp++;*/
 			//temp++;
 			int so2 = getTokenOffset(temp) - 1;
 			// look for the first '>'
@@ -6118,14 +6122,18 @@ public class VTDNav {
 		// for an element with next sibling
 		if (toElement(NEXT_SIBLING)) {
 
-			int temp2,temp = getCurrentIndex();
-			temp2=temp;
+			int temp = getCurrentIndex();
+			//temp2=temp;
 			// rewind
-			while (getTokenDepth(temp) < depth) {
+			while (getTokenDepth(temp) == depth && 
+					(getTokenType(temp)==VTDNav.TOKEN_COMMENT || 
+							getTokenType(temp)==VTDNav.TOKEN_PI_VAL ||
+							getTokenType(temp)==VTDNav.TOKEN_PI_NAME)) {
+				
 				temp--;
 			}
-			if (temp2!=temp)
-				temp++;
+			/*if(temp!=temp2)
+				temp++;*/
 			//temp++;
 			int so2 = getTokenOffset(temp) - 1;
 			// look for the first '>'
