@@ -133,7 +133,7 @@ public class VTDNav {
 	protected final static long MASK_TOKEN_FULL_LEN = 0x000fffff00000000L;
 	protected final static long MASK_TOKEN_PRE_LEN = 0x000ff80000000000L;
 	protected final static long MASK_TOKEN_QN_LEN = 0x000007ff00000000L;
-	protected static long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
+	protected long MASK_TOKEN_OFFSET = 0x000000003fffffffL;
 	protected final static long MASK_TOKEN_TYPE = 0xf000000000000000L;
 	protected final static long MASK_TOKEN_DEPTH = 0x0ff0000000000000L;
 
