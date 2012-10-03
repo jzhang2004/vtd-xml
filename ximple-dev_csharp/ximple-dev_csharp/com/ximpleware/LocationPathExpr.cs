@@ -1372,11 +1372,15 @@ namespace com.ximpleware
                             }
                         }
                     }
-                    if (currentStep.hasPredicate)
-                        currentStep.resetP(vn);
-                    vn.pop2();
-                    if (state == BACKWARD)
+                    if (state == END ){
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
+                        vn.pop2();
+                    }else if (state == BACKWARD)
                     {
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
+                        vn.pop2();
                         currentStep = currentStep.prevS;
                     }
                     break;
@@ -1518,11 +1522,15 @@ namespace com.ximpleware
                             }
                         }
                     }
-                    if (currentStep.hasPredicate)
-                        currentStep.resetP(vn);
-                    vn.pop2();
-                    if (state == BACKWARD)
+                    if(state == END)  {
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
+                        vn.pop2();
+                    }else if (state == BACKWARD)
                     {
+                        if (currentStep.hasPredicate)
+                            currentStep.resetP(vn);
+                        vn.pop2();
                         currentStep = currentStep.prevS;
                     }
                     break;
@@ -3478,10 +3486,15 @@ protected int process_following_sibling2(VTDNav vn)
 		  			}
 		  		}
 		  	}
-		  	if (currentStep.hasPredicate)
-		  		currentStep.resetP(vn);	
-		  	vn.pop2();
-		  	if ( state ==  BACKWARD){
+            if (state == END)
+            {
+                if (currentStep.hasPredicate)
+                    currentStep.resetP(vn);
+                vn.pop2();
+            }else if ( state ==  BACKWARD){
+                if (currentStep.hasPredicate)
+                    currentStep.resetP(vn);
+                vn.pop2();
 		  		currentStep = currentStep.prevS;				  		
 		  	}
 		    break;
@@ -3687,10 +3700,16 @@ protected internal  int process_parent2(VTDNav vn)
 		  			}
 		  		}
 		  	}
-		  	if (currentStep.hasPredicate)
-		  		currentStep.resetP(vn);
-		  	vn.pop2();
-		  	if ( state ==  BACKWARD){	
+            if (state == END)
+            {
+                if (currentStep.hasPredicate)
+                    currentStep.resetP(vn);
+                vn.pop2();
+            }
+		  	else if ( state ==  BACKWARD){
+                if (currentStep.hasPredicate)
+                    currentStep.resetP(vn);
+                vn.pop2();
 		  		currentStep = currentStep.prevS;				  		
 		  	}
 		  	break;

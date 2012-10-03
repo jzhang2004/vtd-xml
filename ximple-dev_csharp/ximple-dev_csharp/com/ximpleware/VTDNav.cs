@@ -409,8 +409,12 @@ namespace com.ximpleware
 
                 temp =temp2 = getCurrentIndex();
                 // rewind 
-                while (getTokenDepth(temp) < depth)
+                while (getTokenDepth(temp) == depth &&
+                     (getTokenType(temp) == VTDNav.TOKEN_COMMENT ||
+                             getTokenType(temp) == VTDNav.TOKEN_PI_VAL ||
+                             getTokenType(temp) == VTDNav.TOKEN_PI_NAME))
                 {
+
                     temp--;
                 }
                 if (temp != temp2)
@@ -940,7 +944,7 @@ namespace com.ximpleware
         protected internal const long MASK_TOKEN_FULL_LEN = 0x000fffff00000000;
         protected const long MASK_TOKEN_PRE_LEN = 0x000ff80000000000;
         protected const long MASK_TOKEN_QN_LEN = 0x000007ff00000000;
-        internal static long MASK_TOKEN_OFFSET = 0x000000003fffffff;
+        internal long MASK_TOKEN_OFFSET = 0x000000003fffffff;
         //UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
         protected const long MASK_TOKEN_TYPE = unchecked((long)0xf000000000000000);
         //UPGRADE_TODO: Literal detected as an unsigned long can generate compilation errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1175'"
@@ -5270,8 +5274,12 @@ namespace com.ximpleware
 
                 temp2=temp = getCurrentIndex();
                 // rewind
-                while (getTokenDepth(temp) < depth)
+                while (getTokenDepth(temp) == depth &&
+                     (getTokenType(temp) == VTDNav.TOKEN_COMMENT ||
+                             getTokenType(temp) == VTDNav.TOKEN_PI_VAL ||
+                             getTokenType(temp) == VTDNav.TOKEN_PI_NAME))
                 {
+
                     temp--;
                 }
                 if (temp2 != temp)
