@@ -1317,11 +1317,15 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn){
 					  }
 				  }
 			  }
-			  if(lpe->currentStep->hasPredicate)
-			  resetP_s(lpe->currentStep,vn);
-			  pop2(vn);
-			  if ( lpe->state==  XPATH_EVAL_BACKWARD){				  
-				  lpe->currentStep = lpe->currentStep->prevS;
+			  if ( lpe->state==  XPATH_EVAL_END){	
+				if(lpe->currentStep->hasPredicate)
+					resetP_s(lpe->currentStep,vn);
+				pop2(vn);
+			  }else if ( lpe->state==  XPATH_EVAL_BACKWARD){
+				if(lpe->currentStep->hasPredicate)
+					resetP_s(lpe->currentStep,vn);
+				pop2(vn);
+				lpe->currentStep = lpe->currentStep->prevS;
 			  }
 			  break;
 
@@ -1527,12 +1531,15 @@ static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn){
 					  }
 				  }
 			  }
-			  if (lpe->currentStep->hasPredicate)
-				  resetP_s(lpe->currentStep,vn);
-			  pop2(vn);
+			 
 			  if ( lpe->state==  XPATH_EVAL_END){
-				 
+				  if (lpe->currentStep->hasPredicate)
+					  resetP_s(lpe->currentStep,vn);
+				  pop2(vn);
 			  }else if ( lpe->state==  XPATH_EVAL_BACKWARD){
+				  if (lpe->currentStep->hasPredicate)
+					  resetP_s(lpe->currentStep,vn);
+				  pop2(vn);
 				  lpe->currentStep = lpe->currentStep->prevS;
 			  }
 			  break;
@@ -3630,10 +3637,14 @@ int process_following_sibling2(locationPathExpr *lpe,VTDNav *vn){
 		  			}
 		  		}
 		  	}
-		  	if (lpe->currentStep->hasPredicate)
-		  		resetP_s(lpe->currentStep,vn);	
-		  	pop2(vn);
-		  	if ( lpe->state ==  XPATH_EVAL_BACKWARD){
+			if (lpe->state == XPATH_EVAL_END){
+		  		if (lpe->currentStep->hasPredicate)
+		  			resetP_s(lpe->currentStep,vn);	
+		  		pop2(vn);
+			}else if ( lpe->state ==  XPATH_EVAL_BACKWARD){
+				if (lpe->currentStep->hasPredicate)
+		  			resetP_s(lpe->currentStep,vn);	
+		  		pop2(vn);
 		  		lpe->currentStep = lpe->currentStep->prevS;				  		
 		  	}
 		    break;
@@ -3838,11 +3849,15 @@ int process_preceding_sibling2(locationPathExpr *lpe,VTDNav *vn){
 		  			}
 		  		}
 		  	}
-		  	if (lpe->currentStep->hasPredicate)
-		  		resetP_s(lpe->currentStep,vn);
-		  	pop2(vn);
-		  	if ( lpe->state ==   XPATH_EVAL_BACKWARD){	
-		  		lpe->currentStep = lpe->currentStep->prevS;				  		
+			if ( lpe->state ==   XPATH_EVAL_BACKWARD){	
+		  		if (lpe->currentStep->hasPredicate)
+		  			resetP_s(lpe->currentStep,vn);
+		  		pop2(vn);
+			}else if ( lpe->state ==   XPATH_EVAL_BACKWARD){	
+		  		if (lpe->currentStep->hasPredicate)
+		  			resetP_s(lpe->currentStep,vn);
+		  		pop2(vn);
+				lpe->currentStep = lpe->currentStep->prevS;				  		
 		  	}
 		  	break;
 		  	 

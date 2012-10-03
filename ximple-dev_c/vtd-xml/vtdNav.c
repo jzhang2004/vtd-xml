@@ -790,9 +790,13 @@ Long getElementFragment(VTDNav *vn){
 		int temp = getCurrentIndex(vn),temp2=temp;
 		int so2;
 		// rewind 
-		while (getTokenDepth(vn,temp) < depth) {
-			temp--;
-		}
+		while (getTokenDepth(vn,temp) == depth && 
+					(getTokenType(vn,temp)== TOKEN_COMMENT || 
+							getTokenType(vn,temp)==TOKEN_PI_VAL ||
+							getTokenType(vn,temp)==TOKEN_PI_NAME)) {
+				
+				temp--;
+			}
 		if (temp!=temp2)
 			temp++;
 		//temp++;
@@ -916,7 +920,11 @@ Long getContentFragment(VTDNav *vn){
 
 			int temp = getCurrentIndex(vn),temp2=temp;
 			// rewind
-			while (getTokenDepth(vn,temp) < depth) {
+			while (getTokenDepth(vn,temp) == depth && 
+					(getTokenType(vn,temp)== TOKEN_COMMENT || 
+							getTokenType(vn,temp)==TOKEN_PI_VAL ||
+							getTokenType(vn,temp)==TOKEN_PI_NAME)) {
+				
 				temp--;
 			}
 			if (temp!=temp2)
