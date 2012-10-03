@@ -2100,11 +2100,15 @@ public class LocationPathExpr extends Expr{
 		  			}
 		  		}
 		  	}
-		  	if (currentStep.hasPredicate)
-		  		currentStep.resetP(vn);	
-		  	vn.pop2();
-		  	if ( state ==  BACKWARD){
-		  		currentStep = currentStep.prevS;				  		
+		  	if (state ==END){
+		  		if (currentStep.hasPredicate)
+		  			currentStep.resetP(vn);	
+		  		vn.pop2();
+		  	}else  	if ( state ==  BACKWARD){
+		  		if (currentStep.hasPredicate)
+		  			currentStep.resetP(vn);	
+		  		vn.pop2();
+		  		currentStep = currentStep.prevS;
 		  	}
 		    break;
 		  	 
@@ -2220,10 +2224,14 @@ public class LocationPathExpr extends Expr{
 		  			}
 		  		}
 		  	}
-		  	if (currentStep.hasPredicate)
-		  		currentStep.resetP(vn);
-		  	vn.pop2();
-		  	if ( state ==  BACKWARD){	
+		  	if (state ==END){
+		  		if (currentStep.hasPredicate)
+		  			currentStep.resetP(vn);
+		  		vn.pop2();
+		  	}else if ( state ==  BACKWARD){	
+		  		if (currentStep.hasPredicate)
+		  			currentStep.resetP(vn);
+		  		vn.pop2();
 		  		currentStep = currentStep.prevS;				  		
 		  	}
 		    break;
@@ -2338,10 +2346,14 @@ public class LocationPathExpr extends Expr{
 		  			}
 		  		}
 		  	}
-		  	if (currentStep.hasPredicate)
-		  		currentStep.resetP(vn);
-		  	vn.pop2();
-		  	if ( state ==  BACKWARD){
+		  	if (state ==END){
+		  		if (currentStep.hasPredicate)
+		  			currentStep.resetP(vn);
+		  		vn.pop2();
+		  	}else if ( state ==  BACKWARD){
+		  		if (currentStep.hasPredicate)
+			  		currentStep.resetP(vn);
+			  	vn.pop2();
 		  		currentStep = currentStep.prevS;				  		
 		  	}
 		  	 break;
@@ -2456,10 +2468,14 @@ public class LocationPathExpr extends Expr{
 		  			}
 		  		}
 		  	}
-		  	if (currentStep.hasPredicate)
-		  		currentStep.resetP(vn);
-		  	vn.pop2();
-		  	if ( state ==  BACKWARD){	
+		  	if (state ==END){
+		  		if (currentStep.hasPredicate)
+		  			currentStep.resetP(vn);
+		  		vn.pop2();
+		  	}else if ( state ==  BACKWARD){
+		  		if (currentStep.hasPredicate)
+			  		currentStep.resetP(vn);
+			  	vn.pop2();
 		  		currentStep = currentStep.prevS;				  		
 		  	}
 		  	break;
