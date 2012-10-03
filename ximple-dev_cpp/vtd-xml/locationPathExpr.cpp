@@ -1307,10 +1307,14 @@ int LocationPathExpr::process_following_sibling(VTDNav *vn){
 					  }
 				  }
 			  }
-			  if (currentStep->hasPredicate)
-				  currentStep->resetP_s(vn);
-			  vn->pop2();
-			  if ( state==  XPATH_EVAL_BACKWARD){
+			  if (state == XPATH_EVAL_END){
+				if (currentStep->hasPredicate)
+					currentStep->resetP_s(vn);
+				vn->pop2();
+			  }else if ( state==  XPATH_EVAL_BACKWARD){
+				if (currentStep->hasPredicate)
+					currentStep->resetP_s(vn);
+				vn->pop2();
 				  currentStep = currentStep->prevS;
 			  }
 			  break;
@@ -1513,10 +1517,14 @@ int LocationPathExpr::process_preceding_sibling(VTDNav *vn){
 					  }
 				  }
 			  }
-			  if (currentStep->hasPredicate)
-				  currentStep->resetP_s(vn);
-			  vn->pop2();
-			  if ( state==  XPATH_EVAL_BACKWARD){
+			  if (state == XPATH_EVAL_END){
+				if (currentStep->hasPredicate)
+					  currentStep->resetP_s(vn);
+				vn->pop2();
+			  }else if ( state==  XPATH_EVAL_BACKWARD){
+				  if (currentStep->hasPredicate)
+					  currentStep->resetP_s(vn);
+				  vn->pop2();
 				  currentStep = currentStep->prevS;
 			  }
 			  break;
@@ -1903,16 +1911,7 @@ void Predicate::setIndex_p(int i){
 	}
 	d = (double) i;
 }
-void Predicate::setContextSize_p(int size){
-	e->setContextSize(size);
-}
-bool Predicate::requireContextSize_p(){
-	return e->requireContextSize();
-}
-void Predicate::reset_p(VTDNav *vn){
-	count = 0;
-	e->reset(vn); // is this really needed?
-}
+
 void Predicate::toString_p( UCSChar *string){
 	//String s = "["+expr+"]";
 		if (nextP==NULL){
@@ -1929,7 +1928,18 @@ void Predicate::toString_p( UCSChar *string){
 
 void Predicate::adjust(int n){e->adjust(n);};
 
+void Predicate::setContextSize_p(int size){
+			e->setContextSize(size);
+		
+}
+bool Predicate::requireContextSize_p(){
+	return e->requireContextSize();
+}
 
+void Predicate::reset_p(VTDNav *vn){
+			count = 0;
+			e->reset(vn); // is this really needed?
+}
 
 
 
@@ -2589,7 +2599,7 @@ int LocationPathExpr::computeContextSize4Self(Predicate *p, VTDNav *vn){
 		if (currentStep->eval_s2(vn,p)){
 		   i++;
 		}
-		//}
+		//}			    
 		currentStep->resetP2_s(vn,p);
 		currentStep->out_of_range=false;
 		currentStep->o = ap;
@@ -2603,7 +2613,7 @@ int LocationPathExpr::computeContextSize4Self2(Predicate *p, VTDNav *vn){
 		if (currentStep->eval2_s2(vn,p)){
 		   i++;
 		}
-		//}
+		//}			    
 		currentStep->resetP2_s(vn,p);
 		currentStep->out_of_range=false;
 		currentStep->o = ap;
@@ -3451,10 +3461,15 @@ int LocationPathExpr::process_following_sibling2(VTDNav *vn){
 		  			}
 		  		}
 		  	}
-		  	if (currentStep->hasPredicate)
-		  		currentStep->resetP_s(vn);	
-		  	vn->pop2();
-		  	if ( state ==  XPATH_EVAL_BACKWARD){
+			if (state == XPATH_EVAL_END){
+		  		if (currentStep->hasPredicate)
+		  			currentStep->resetP_s(vn);	
+		  		vn->pop2();
+			}
+		  	else if ( state ==  XPATH_EVAL_BACKWARD){
+				if (currentStep->hasPredicate)
+		  			currentStep->resetP_s(vn);	
+		  		vn->pop2();
 		  		currentStep = currentStep->prevS;				  		
 		  	}
 		    break;
@@ -3660,10 +3675,14 @@ int LocationPathExpr::process_preceding_sibling2(VTDNav *vn){
 		  			}
 		  		}
 		  	}
-		  	if (currentStep->hasPredicate)
-		  		currentStep->resetP_s(vn);
-		  	vn->pop2();
-		  	if ( state ==   XPATH_EVAL_BACKWARD){	
+			if (state == XPATH_EVAL_END){
+		  		if (currentStep->hasPredicate)
+		  			currentStep->resetP_s(vn);
+		  		vn->pop2();
+			}else if ( state ==   XPATH_EVAL_BACKWARD){
+				if (currentStep->hasPredicate)
+		  			currentStep->resetP_s(vn);
+		  		vn->pop2();
 		  		currentStep = currentStep->prevS;				  		
 		  	}
 		  	break;
