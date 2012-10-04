@@ -3849,7 +3849,7 @@ int process_preceding_sibling2(locationPathExpr *lpe,VTDNav *vn){
 		  			}
 		  		}
 		  	}
-			if ( lpe->state ==   XPATH_EVAL_BACKWARD){	
+			if ( lpe->state ==   XPATH_EVAL_END){
 		  		if (lpe->currentStep->hasPredicate)
 		  			resetP_s(lpe->currentStep,vn);
 		  		pop2(vn);
