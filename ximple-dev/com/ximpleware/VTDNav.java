@@ -1975,7 +1975,7 @@ public class VTDNav {
 			return true;
 		if (context[0]==-1)
 			return false;
-		return matchRawTokenString(
+		return matchRawTokenString2(
 			(context[0] == 0) ? rootIndex : context[context[0]],
 			en);
 	}
@@ -2252,6 +2252,27 @@ public class VTDNav {
         // calling getChar() everytime
 		return compareRawTokenString(getTokenOffset(index), len, s)==0;
 	}
+	
+	final protected boolean matchRawTokenString2(int index, String s)
+	throws NavException {
+	int type = getTokenType(index);
+	int len =
+		(type == TOKEN_STARTING_TAG
+			|| type == TOKEN_ATTR_NAME
+			|| type == TOKEN_ATTR_NS)
+			? getTokenLength(index) & 0xffff
+			: getTokenLength(index);
+			
+	int len2= (int)((vtdBuffer.longAt(index)& MASK_TOKEN_FULL_LEN)>>43) ;
+	int os2 = (len2 == 0)?0:len2+1; 
+	// upper 16 bit is zero or for prefix
+
+	//currentOffset = getTokenOffset(index);
+	// point currentOffset to the beginning of the token
+	// for UTF 8 and ISO, the performance is a little better by avoid
+    // calling getChar() everytime
+	return compareRawTokenString(getTokenOffset(index)+os2, len-os2, s)==0;
+}
 	/**
      * Match a string with a token represented by a long (upper 32 len, lower 32
      * offset).
