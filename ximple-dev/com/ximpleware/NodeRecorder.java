@@ -44,7 +44,7 @@ public class NodeRecorder {
      */
     public NodeRecorder() {
         vn = null;
-        size = position = 0;
+        size = position = count=0;
         fib = new FastIntBuffer(BUF_SZ_EXPO);
     }
 
@@ -401,8 +401,8 @@ public class NodeRecorder {
 			default:
 				if (vn.shallowDepth) {
 					vn.context[0] = i;
-					for (j = 1; j < i; j++) {
-						vn.context[j] = fib.intAt(count + j);
+					for (j = 1; j <= i; j++) {
+						vn.context[j] = fib.intAt(count+1 + j);
 					}
 					vn.l1index = fib.intAt(count + i);
 					vn.l2lower = fib.intAt(count + i + 1);
@@ -484,7 +484,7 @@ public class NodeRecorder {
 					default:
 						vn.context[0] = i;
 						for (j = 1; j < i; j++) {
-							vn.context[j] = fib.intAt(count + j);
+							vn.context[j] = fib.intAt(count+1 + j);
 						}
 						vn.l1index = fib.intAt(count + i);
 						vn.l2lower = fib.intAt(count + i + 1);
