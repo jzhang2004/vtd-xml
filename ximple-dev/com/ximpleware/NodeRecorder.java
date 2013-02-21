@@ -400,9 +400,9 @@ public class NodeRecorder {
 
 			default:
 				if (vn.shallowDepth) {
-					vn.context[0] = i;
-					for (j = 1; j <= i; j++) {
-						vn.context[j] = fib.intAt(count+1 + j);
+					//vn.context[0] = i;
+					for (j = 0; j <= i; j++) {
+						vn.context[j] = fib.intAt(count + j);
 					}
 					vn.l1index = fib.intAt(count + i);
 					vn.l2lower = fib.intAt(count + i + 1);
@@ -414,10 +414,10 @@ public class NodeRecorder {
 					if (b == false) {
 						vn.atTerminal = true;
 						vn.LN = fib.intAt(count + 11);
-						count += i + 8;
+						count += i + 9;
 					} else {
 						vn.atTerminal = false;
-						count += i + 7;
+						count += i + 8;
 					}
 					break;
 				} else {
@@ -502,10 +502,10 @@ public class NodeRecorder {
 						if (b == false) {
 							vn.atTerminal = true;
 							vn.LN = fib.intAt(count + i + 13);
-							count += i + 14;
+							count += i + 15;
 						} else {
 							vn.atTerminal = false;
-							count += i + 13;
+							count += i + 14;
 						}
 						break;
 					}
