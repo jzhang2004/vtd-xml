@@ -2907,13 +2907,15 @@ public class VTDGen {
 	    HttpURLConnection urlConnection = null;
 	    try{
 	        url1 = new URL(url);
-            in = url1.openStream();
+            //in = url1.openStream();
             urlConnection = (HttpURLConnection)url1.openConnection();
             if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 int len = urlConnection.getContentLength();
+                in = urlConnection.getInputStream();
                 if (len > 0) {
                     //System.out.println("len  ===> " + len + "  "
                     //        + urlConnection.getContentType());
+                	
                     byte[] ba = new byte[len];
                     int k=len,offset=0;
                     while(offset<len & k>0){
