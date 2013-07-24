@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 package com.ximpleware.extended;
 /**
  * Abstract int buffer storage interface.
