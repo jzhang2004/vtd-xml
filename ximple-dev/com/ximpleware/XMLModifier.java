@@ -2066,49 +2066,49 @@ public class XMLModifier {
 				l = flb.longAt(i);
 				if (inc == 1) {
 					if ((l & (~0x1fffffffffffffffL)) == MASK_DELETE) {
-						os.write(ba, offset, (flb.lower32At(i) << 1) - offset);
-						offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff)) << 1;
+						os.write(ba, offset, (flb.lower32At(i)) - offset);
+						offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff));
 					} else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE) { // insert
-						os.write(ba, offset, (flb.lower32At(i) << 1) - offset);
+						os.write(ba, offset, (flb.lower32At(i)) - offset);
 						os.write((byte[]) fob.objectAt(i));
-						offset = flb.lower32At(i) << 1;
+						offset = flb.lower32At(i);
 					} else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE) {
 						// XML_INSERT_SEGMENT_BYTE
-						os.write(ba, offset, (flb.lower32At(i) << 1) - offset);
+						os.write(ba, offset, (flb.lower32At(i)) - offset);
 						ByteSegment bs = (ByteSegment) fob.objectAt(i);
 						os.write(bs.ba, bs.offset, bs.len);
-						offset = flb.lower32At(i) << 1;
+						offset = flb.lower32At(i);
 					} else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS) {
 						// ElementFragmentNs
-						os.write(ba, offset, (flb.lower32At(i) << 1) - offset);
+						os.write(ba, offset, (flb.lower32At(i)) - offset);
 						ElementFragmentNs ef = (ElementFragmentNs) fob
 								.objectAt(i);
 						ef.writeToOutputStream(os, md.encoding);
-						offset = flb.lower32At(i) << 1;
+						offset = flb.lower32At(i);
 					} else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED) { // insert
 						// XML_INSERT_SEGMENT_BYTE
-						os.write(ba, offset, (flb.lower32At(i) << 1) - offset);
+						os.write(ba, offset, (flb.lower32At(i)) - offset);
 						os.write(b1);
 						os.write((byte[]) fob.objectAt(i));
 						os.write(b2);
-						offset = flb.lower32At(i) << 1;
+						offset = flb.lower32At(i);
 					} else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED) {
 						// XML_INSERT_SEGMENT_BYTE
-						os.write(ba, offset, (flb.lower32At(i) << 1) - offset);
+						os.write(ba, offset, (flb.lower32At(i)) - offset);
 						ByteSegment bs = (ByteSegment) fob.objectAt(i);
 						os.write(b1);
 						os.write(bs.ba, bs.offset, bs.len);
 						os.write(b2);
-						offset = flb.lower32At(i) << 1;
+						offset = flb.lower32At(i);
 					} else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED) {
 						// ElementFragmentNs
-						os.write(ba, offset, (flb.lower32At(i) << 1) - offset);
+						os.write(ba, offset, (flb.lower32At(i)) - offset);
 						ElementFragmentNs ef = (ElementFragmentNs) fob
 								.objectAt(i);
 						os.write(b1);
 						ef.writeToOutputStream(os, md.encoding);
 						os.write(b2);
-						offset = flb.lower32At(i) << 1;
+						offset = flb.lower32At(i);
 					}
 				} else { // share the same offset value one insert, one delete
 					// to make sure that l's offset val is >= k's
@@ -2127,7 +2127,7 @@ public class XMLModifier {
 					// first is definitely delete
 					if ((l & (~0x1fffffffffffffffL)) == MASK_NULL) {
 					} else {
-						os.write(ba, offset, (flb.lower32At(i1) << 1) - offset);
+						os.write(ba, offset, (flb.lower32At(i1)) - offset);
 						// os.write((byte[])fob.objectAt(i2));
 						// offset = flb.lower32At(i1) + (flb.upper32At(i1) &
 						// 0x1fffffff);
@@ -2135,35 +2135,35 @@ public class XMLModifier {
 						if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE) { // insert
 							// os.write(ba,offset, flb.lower32At(i2)-offset);
 							os.write((byte[]) fob.objectAt(i2));
-							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
 						} else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE) {
 							// XML_INSERT_SEGMENT_BYTE
 							// os.write(ba,offset, flb.lower32At(i2)-offset);
 							ByteSegment bs = (ByteSegment) fob.objectAt(i2);
 
 							os.write(bs.ba, bs.offset, bs.len);
-							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
 						} else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS) {
 							// ElementFragmentNs
 							// os.write(ba,offset, flb.lower32At(i2)-offset);
 							ElementFragmentNs ef = (ElementFragmentNs) fob
 									.objectAt(i2);
 							ef.writeToOutputStream(os, md.encoding);
-							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
 						} else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED) { // insert
 							// XML_INSERT_SEGMENT_BYTE
 							// os.write(ba,offset, flb.lower32At(i2)-offset);
 							os.write(b1);
 							os.write((byte[]) fob.objectAt(i2));
 							os.write(b2);
-							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
 						} else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED) {
 							// XML_INSERT_SEGMENT_BYTE
 							ByteSegment bs = (ByteSegment) fob.objectAt(i2);
 							os.write(b1);
 							os.write(bs.ba, bs.offset, bs.len);
 							os.write(b2);
-							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
 						} else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED) {
 							// ElementFragmentNs
 							// os.write(ba,offset, flb.lower32At(i2)-offset);
@@ -2172,7 +2172,7 @@ public class XMLModifier {
 							os.write(b1);
 							ef.writeToOutputStream(os, md.encoding);
 							os.write(b2);
-							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+							offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
 						}
 					}
 				}
