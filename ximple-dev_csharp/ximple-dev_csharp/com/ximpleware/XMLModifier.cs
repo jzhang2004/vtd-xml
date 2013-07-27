@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 using System;
 using com.ximpleware.transcode;
 namespace com.ximpleware
@@ -1364,7 +1365,7 @@ namespace com.ximpleware
                         if ((l & (~0x1fffffffffffffffL)) == XML_DELETE)
                         {
                             os.Write(ba, offset, (flb.lower32At(i)) - offset);
-                            offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff)) << 1;
+                            offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff));
                         }
                         else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
                         {
