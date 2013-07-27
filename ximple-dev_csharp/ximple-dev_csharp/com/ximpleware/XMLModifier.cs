@@ -1271,58 +1271,65 @@ namespace com.ximpleware
                             i1 = i2;
                             i2 = temp2;
                         }
+                        Boolean b=false;
+                       
+                        if ((ulong)(l & (~0x1fffffffffffffffL))== MASK_NULL)
+                        {
+                        }
+                        else
+                        {
+                            os.Write(ba, offset, flb.lower32At(i) - offset);
 
-                        os.Write(ba, offset, flb.lower32At(i) - offset);
-
-                        if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
-                        {
-                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
-                            byte[] temp_byteArray3;
-                            temp_byteArray3 = (byte[])fob.objectAt(i2);
-                            os.Write(temp_byteArray3, 0, temp_byteArray3.Length);
-                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                        }
-                        else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
-                        {
-                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
-                            ByteSegment bs = (ByteSegment)fob.objectAt(i2);
-                            os.Write(bs.ba, bs.offset, bs.len);
-                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                        }
-                        else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
-                        {
-                            //ElementFragmentNs
-                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
-                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
-                            //ef.writeToOutputStream(os);
-                            ef.writeToOutputStream(os, md.encoding);
-                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                        }
-                        else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
-                        { // insert
-                            byte[] temp_byteArray3 = (byte[])fob.objectAt(i2);
-                            os.WriteByte(0x3e);
-                            os.Write(temp_byteArray3,0,temp_byteArray3.Length);
-                            os.WriteByte(0x3c);
-                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                        }
-                        else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
-                        {
-                            // XML_INSERT_SEGMENT_BYTE
-                            ByteSegment bs = (ByteSegment)fob.objectAt(i2);
-                            os.WriteByte(0x3e);
-                            os.Write(bs.ba, bs.offset, bs.len);
-                            os.WriteByte(0x3c);
-                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
-                        }
-                        else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)
-                        {
-                            //ElementFragmentNs
-                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
-                            os.WriteByte(0x3e);
-                            ef.writeToOutputStream(os, md.encoding);
-                            os.WriteByte(0x3c);
-                            offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                            if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
+                            {
+                                //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                                byte[] temp_byteArray3;
+                                temp_byteArray3 = (byte[])fob.objectAt(i2);
+                                os.Write(temp_byteArray3, 0, temp_byteArray3.Length);
+                                offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                            }
+                            else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
+                            {
+                                //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                                ByteSegment bs = (ByteSegment)fob.objectAt(i2);
+                                os.Write(bs.ba, bs.offset, bs.len);
+                                offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                            }
+                            else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
+                            {
+                                //ElementFragmentNs
+                                //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                                ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
+                                //ef.writeToOutputStream(os);
+                                ef.writeToOutputStream(os, md.encoding);
+                                offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                            }
+                            else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
+                            { // insert
+                                byte[] temp_byteArray3 = (byte[])fob.objectAt(i2);
+                                os.WriteByte(0x3e);
+                                os.Write(temp_byteArray3, 0, temp_byteArray3.Length);
+                                os.WriteByte(0x3c);
+                                offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                            }
+                            else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
+                            {
+                                // XML_INSERT_SEGMENT_BYTE
+                                ByteSegment bs = (ByteSegment)fob.objectAt(i2);
+                                os.WriteByte(0x3e);
+                                os.Write(bs.ba, bs.offset, bs.len);
+                                os.WriteByte(0x3c);
+                                offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                            }
+                            else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)
+                            {
+                                //ElementFragmentNs
+                                ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
+                                os.WriteByte(0x3e);
+                                ef.writeToOutputStream(os, md.encoding);
+                                os.WriteByte(0x3c);
+                                offset = flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff);
+                            }
                         }
                     }
                 }
@@ -1356,27 +1363,27 @@ namespace com.ximpleware
                     {
                         if ((l & (~0x1fffffffffffffffL)) == XML_DELETE)
                         {
-                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i)) - offset);
                             offset = (flb.lower32At(i) + (flb.upper32At(i) & 0x1fffffff)) << 1;
                         }
                         else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
                         {
                             // insert
-                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i)) - offset);
                             byte[] temp_byteArray = (byte[])fob.objectAt(i);
                             os.Write((byte[])fob.objectAt(i), 0, temp_byteArray.Length);
                             offset = flb.lower32At(i) << 1;
                         }
                         else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
                         {
-                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i)) - offset);
                             ByteSegment bs = (ByteSegment)fob.objectAt(i);
                             os.Write(bs.ba, bs.offset, bs.len);
                             offset = flb.lower32At(i) << 1;
                         }
                         else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
                         {
-                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i)) - offset);
                             ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
                             //ef.writeToOutputStream(os);
                             ef.writeToOutputStream(os, md.encoding);
@@ -1386,31 +1393,31 @@ namespace com.ximpleware
                         { // insert
                             // XML_INSERT_SEGMENT_BYTE
                             byte[] tempBA = (byte[])fob.objectAt(i);
-                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i)) - offset);
                             os.Write(b1,0,b1.Length);
                             os.Write(tempBA,0,tempBA.Length);
                             os.Write(b2,0,b1.Length);
-                            offset = flb.lower32At(i) << 1;
+                            offset = flb.lower32At(i) ;
                         }
                         else if ((l & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
                         {
                             // XML_INSERT_SEGMENT_BYTE
-                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i) ) - offset);
                             ByteSegment bs = (ByteSegment)fob.objectAt(i);
                             os.Write(b1,0,b1.Length);
                             os.Write(bs.ba, bs.offset, bs.len);
                             os.Write(b2,0,b2.Length);
-                            offset = flb.lower32At(i) << 1;
+                            offset = flb.lower32At(i);
                         }
                         else if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)
                         {
                             //ElementFragmentNs
-                            os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
+                            os.Write(ba, offset, (flb.lower32At(i)) - offset);
                             ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i);
                             os.Write(b1,0,b1.Length);
                             ef.writeToOutputStream(os, md.encoding);
                             os.Write(b2,0,b2.Length);
-                            offset = flb.lower32At(i) << 1;
+                            offset = flb.lower32At(i);
                         }
                     }
                     else
@@ -1427,61 +1434,66 @@ namespace com.ximpleware
                             i1 = i2;
                             i2 = temp2;
                         }
+                        if ((ulong)(l & (~0x1fffffffffffffffL)) == MASK_NULL)
+                        {
+                        }
+                        else
+                        {
+                            os.Write(ba, offset, (flb.lower32At(i)) - offset);
 
-                        os.Write(ba, offset, (flb.lower32At(i) << 1) - offset);
-
-                        if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
-                        {
-                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
-                            byte[] temp_byteArray3;
-                            temp_byteArray3 = (byte[])fob.objectAt(i2);
-                            os.Write(temp_byteArray3, 0, temp_byteArray3.Length);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
-                        }
-                        else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
-                        {
-                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
-                            ByteSegment bs = (ByteSegment)fob.objectAt(i2);
-                            os.Write(bs.ba, bs.offset, bs.len);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
-                        }
-                        else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
-                        {
-                            //ElementFragmentNs
-                            //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
-                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
-                            //ef.writeToOutputStream(os);
-                            ef.writeToOutputStream(os, md.encoding);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
-                        }
-                        else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
-                        { // insert
-                            // XML_INSERT_SEGMENT_BYTE
-                            //os.write(ba,offset, flb.lower32At(i2)-offset);
-                            byte[] tempBA = (byte[])fob.objectAt(i2);
-                            os.Write(b1,0,b1.Length);
-                            os.Write(tempBA,0,tempBA.Length);
-                            os.Write(b2,0,b2.Length);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
-                        }
-                        else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
-                        {
-                            // XML_INSERT_SEGMENT_BYTE
-                            ByteSegment bs = (ByteSegment)fob.objectAt(i2);
-                            os.Write(b1,0,b1.Length);
-                            os.Write(bs.ba, bs.offset, bs.len);
-                            os.Write(b2,0,b2.Length);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
-                        }
-                        else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)
-                        {
-                            //ElementFragmentNs
-                            //os.write(ba,offset, flb.lower32At(i2)-offset);
-                            ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
-                            os.Write(b1,0,b1.Length);
-                            ef.writeToOutputStream(os, md.encoding);
-                            os.Write(b2,0,b2.Length);
-                            offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) << 1;
+                            if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE)
+                            {
+                                //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                                byte[] temp_byteArray3;
+                                temp_byteArray3 = (byte[])fob.objectAt(i2);
+                                os.Write(temp_byteArray3, 0, temp_byteArray3.Length);
+                                offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) ;
+                            }
+                            else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE)
+                            {
+                                //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                                ByteSegment bs = (ByteSegment)fob.objectAt(i2);
+                                os.Write(bs.ba, bs.offset, bs.len);
+                                offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) ;
+                            }
+                            else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS)
+                            {
+                                //ElementFragmentNs
+                                //os.Write(ba, offset, flb.lower32At(i + 1) - offset);
+                                ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
+                                //ef.writeToOutputStream(os);
+                                ef.writeToOutputStream(os, md.encoding);
+                                offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff)) ;
+                            }
+                            else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_BYTE_ENCLOSED)
+                            { // insert
+                                // XML_INSERT_SEGMENT_BYTE
+                                //os.write(ba,offset, flb.lower32At(i2)-offset);
+                                byte[] tempBA = (byte[])fob.objectAt(i2);
+                                os.Write(b1, 0, b1.Length);
+                                os.Write(tempBA, 0, tempBA.Length);
+                                os.Write(b2, 0, b2.Length);
+                                offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
+                            }
+                            else if ((k & (~0x1fffffffffffffffL)) == MASK_INSERT_SEGMENT_BYTE_ENCLOSED)
+                            {
+                                // XML_INSERT_SEGMENT_BYTE
+                                ByteSegment bs = (ByteSegment)fob.objectAt(i2);
+                                os.Write(b1, 0, b1.Length);
+                                os.Write(bs.ba, bs.offset, bs.len);
+                                os.Write(b2, 0, b2.Length);
+                                offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
+                            }
+                            else if ((ulong)(k & (~0x1fffffffffffffffL)) == MASK_INSERT_FRAGMENT_NS_ENCLOSED)
+                            {
+                                //ElementFragmentNs
+                                //os.write(ba,offset, flb.lower32At(i2)-offset);
+                                ElementFragmentNs ef = (ElementFragmentNs)fob.objectAt(i2);
+                                os.Write(b1, 0, b1.Length);
+                                ef.writeToOutputStream(os, md.encoding);
+                                os.Write(b2, 0, b2.Length);
+                                offset = (flb.lower32At(i1) + (flb.upper32At(i1) & 0x1fffffff));
+                            }
                         }
                     }
                 }
