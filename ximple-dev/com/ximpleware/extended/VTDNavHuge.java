@@ -3785,7 +3785,11 @@ public class VTDNavHuge {
 
 			int temp = getCurrentIndex();
 			// rewind
-			while (getTokenDepth(temp) < depth) {
+			while (getTokenDepth(temp) == depth && 
+					(getTokenType(temp)==VTDNavHuge.TOKEN_COMMENT || 
+							getTokenType(temp)==VTDNavHuge.TOKEN_PI_VAL ||
+							getTokenType(temp)==VTDNavHuge.TOKEN_PI_NAME)) {
+				
 				temp--;
 			}
 			//temp++;
@@ -3959,7 +3963,11 @@ public class VTDNavHuge {
 
 			int temp = getCurrentIndex();
 			// rewind
-			while (getTokenDepth(temp) < depth) {
+			while (getTokenDepth(temp) == depth && 
+					(getTokenType(temp)==VTDNavHuge.TOKEN_COMMENT || 
+							getTokenType(temp)==VTDNavHuge.TOKEN_PI_VAL ||
+							getTokenType(temp)==VTDNavHuge.TOKEN_PI_NAME)) {
+				
 				temp--;
 			}
 			//temp++;
@@ -4297,5 +4305,5 @@ public class VTDNavHuge {
 		l[0] = so; l[1]=len;
 		return l;
 	}
-
+	
 }
