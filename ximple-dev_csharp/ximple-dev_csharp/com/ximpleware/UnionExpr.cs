@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 using System;
 //UPGRADE_TODO: The 'com.ximpleware.xpath' package was found, but not necessarily converted. References to it may cause compile errors. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1280'"
 using com.ximpleware.xpath;
