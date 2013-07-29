@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 using System;
 using com.ximpleware.parser;
 
@@ -279,7 +280,9 @@ namespace com.ximpleware
         private bool ws; // to prserve whitespace or not, default to false
         private int temp_offset;
         protected internal int depth;
-
+        protected internal bool helper = false;
+        protected internal bool default_ns = false; //true xmlns='abc'
+        protected internal bool isXML = false;  
 
         protected internal int prev_offset;
         protected internal int rootIndex;
@@ -2936,322 +2939,13 @@ namespace com.ximpleware
                             break;
                         case STATE_ATTR_NAME:
 
-                            if (ch == 'x')
-                            {
-                                if (r.skipChar('m') && r.skipChar('l') && r.skipChar('n') && r.skipChar('s'))
-                                {
-                                    ch = r.Char;
-                                    if (ch == '='
-                                    || XMLChar.isSpaceChar(ch))
-                                    {
-                                        is_ns = true;
-                                        default_ns = true;
-                                    }
-                                    else if (ch == ':')
-                                    {
-                                        is_ns = true; //break;
-                                        default_ns = false;
-                                    }
-                                }
-                            }
-
-                            do
-                            {
-                                if (XMLChar.isNameChar(ch))
-                                {
-                                    if (ch == ':')
-                                    {
-                                        length2 = offset - temp_offset - increment;
-                                    }
-                                    ch = r.Char;
-                                }
-                                else
-                                    break;
-                            } while (true);
-                            length1 = PrevOffset - temp_offset;
-                            if (is_ns && ns)
-                            {
-                                // make sure postfix isn't xmlns
-                                if (!default_ns)
-                                {
-                                    if (increment == 1 && (length1 - length2 - 1 == 5)
-                                            || (increment == 2 && (length1 - length2 - 2 == 10)))
-                                        disallow_xmlns(temp_offset + length2 + increment);
-
-                                    // if the post fix is xml, signal it
-                                    if (increment == 1 && (length1 - length2 - 1 == 3)
-                                            || (increment == 2 && (length1 - length2 - 2 == 6)))
-                                        isXML = matchXML(temp_offset + length2 + increment);
-                                }
-                            }
-                            // check for uniqueness here
-                            checkAttributeUniqueness();
-                            // check for uniqueness here
-                            //bool unique = true;
-                            //bool unequal;
-                            //for (int i = 0; i < attr_count; i++)
-                            //{
-                            //    unequal = false;
-                            //    int prevLen = (int)attr_name_array[i];
-                            //    if (length1 == prevLen)
-                            //    {
-                            //        int prevOffset = (int)(attr_name_array[i] >> 32);
-                            //        for (int j = 0; j < prevLen; j++)
-                            //        {
-                            //            if (XMLDoc[prevOffset + j] != XMLDoc[temp_offset + j])
-                            //            {
-                            //                unequal = true;
-                            //                break;
-                            //            }
-                            //        }
-                            //    }
-                            //    else
-                            //        unequal = true;
-                            //    unique = unique && unequal;
-                            //}
-                            //if (!unique && attr_count != 0)
-                            //    throw new ParseException("Error in attr: Attr name not unique" + formatLineNumber());
-                            //unique = true;
-                            //if (attr_count < attr_name_array.Length)
-                            //{
-                            //    attr_name_array[attr_count] = ((long)(temp_offset) << 32) + length1;
-                            //    attr_count++;
-                            //}
-                            //// grow the attr_name_array by 16
-                            //else
-                            //{
-                            //    long[] temp_array = attr_name_array;
-                            //    /*System.out.println(
-                            //    "size increase from "
-                            //    + temp_array.length
-                            //    + "  to "
-                            //    + (attr_count + 16));*/
-                            //    attr_name_array = new long[attr_count + ATTR_NAME_ARRAY_SIZE];
-                            //    for (int i = 0; i < attr_count; i++)
-                            //    {
-                            //        attr_name_array[i] = temp_array[i];
-                            //    }
-                            //    attr_name_array[attr_count] = ((long)(temp_offset) << 32) + length1;
-                            //    attr_count++;
-                            //}
-
-                            // after checking, write VTD
-                            if (is_ns)
-                            {
-                                if (singleByteEncoding)
-                                {
-                                    if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
-                                        throw new ParseException("Token length overflow error: Attr NS tag prefix or qname length too long" + formatLineNumber());
-                                    _writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NS, depth);
-                                }
-                                else
-                                {
-                                    if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
-                                        throw new ParseException("Token length overflow error: Attr NS prefix or qname length too long" + formatLineNumber());
-                                    _writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NS, depth);
-                                }
-                                // append to nsBuffer2
-                                if (ns)
-                                {
-                                    //unprefixed xmlns are not recorded
-                                    if (length2 != 0 && !isXML)
-                                    {
-                                        //nsBuffer2.append(VTDBuffer.size_Renamed_Field - 1);
-                                        long l = ((long)((length2 << 16) | length1)) << 32
-                                            | temp_offset;
-                                        nsBuffer3.append(l); // byte offset and byte
-                                        // length
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (singleByteEncoding)
-                                {
-                                    if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
-                                        throw new ParseException("Token Length Error: Attr name prefix or qname length too long" + formatLineNumber());
-                                    _writeVTD(temp_offset, (length2 << 11) | length1, TOKEN_ATTR_NAME, depth);
-                                }
-                                else
-                                {
-                                    if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
-                                        throw new ParseException("Token Length overflow error: Attr name prefix or qname length too long" + formatLineNumber());
-                                    _writeVTD(temp_offset >> 1, (length2 << 10) | (length1 >> 1), TOKEN_ATTR_NAME, depth);
-                                }
-                            }
-                            /*System.out.println(
-                            " " + temp_offset + " " + length2 + ":" + length1 + " attr name " + depth);*/
-                            length2 = 0;
-                            if (XMLChar.isSpaceChar(ch))
-                            {
-                                ch = CharAfterS;
-                            }
-                            if (ch != '=')
-                                throw new ParseException("Error in attr: invalid char" + formatLineNumber());
-                            ch_temp = CharAfterS;
-                            if (ch_temp != '"' && ch_temp != '\'')
-                                throw new ParseException("Error in attr: invalid char (should be ' or \" )" + formatLineNumber());
-                            temp_offset = offset;
+                            process_attr_name();
                             parser_state = STATE_ATTR_VAL;
                             break;
 
                         case STATE_ATTR_VAL:
-                            do
-                            {
-                                ch = r.Char;
-                                if (XMLChar.isValidChar(ch) && ch != '<')
-                                {
-                                    if (ch == ch_temp)
-                                        break;
-                                    if (ch == '&')
-                                    {
-                                        // as in vtd spec, we mark attr val with entities
-                                        if (!XMLChar.isValidChar(entityIdentifier()))
-                                        {
-                                            throw new ParseException("Error in attr: Invalid XML char" + formatLineNumber());
-                                        }
-                                    }
-                                }
-                                else
-                                    throw new ParseException("Error in attr: Invalid XML char" + formatLineNumber());
-                            } while (true);
-
-                            length1 = offset - temp_offset - increment;
-                            if (ns && is_ns)
-                            {
-                                if (!default_ns && length1 == 0)
-                                {
-                                    throw new ParseException(" non-default ns URL can't be empty"
-                                        + formatLineNumber());
-                                }
-                                //identify nsURL return 0,1,2
-                                int t = identifyNsURL(temp_offset, length1);
-                                if (isXML)
-                                {//xmlns:xml
-                                    if (t != 1)
-                                        //URL points to "http://www.w3.org/XML/1998/namespace"
-                                        throw new ParseException("xmlns:xml can only point to"
-                                                + "\"http://www.w3.org/XML/1998/namespace\""
-                                                + formatLineNumber());
-
-                                }
-                                else
-                                {
-                                    if (!default_ns)
-                                        nsBuffer2.append(((long)temp_offset << 32) | length1);
-                                    if (t != 0)
-                                    {
-                                        if (t == 1)
-                                            throw new ParseException("namespace declaration can't point to"
-                                                + " \"http://www.w3.org/XML/1998/namespace\""
-                                                + formatLineNumber());
-                                        throw new ParseException("namespace declaration can't point to"
-                                            + " \"http://www.w3.org/2000/xmlns/\""
-                                            + formatLineNumber());
-                                    }
-                                }
-                                // no ns URL points to 
-                                //"http://www.w3.org/2000/xmlns/"
-
-                                // no ns URL points to  
-                                //"http://www.w3.org/XML/1998/namespace"
-                            }
-                            if (singleByteEncoding)
-                            {
-                                if (length1 > MAX_TOKEN_LENGTH)
-                                    throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
-                                _writeVTD(temp_offset, length1, TOKEN_ATTR_VAL, depth);
-                            }
-                            else
-                            {
-                                if (length1 > (MAX_TOKEN_LENGTH << 1))
-                                    throw new ParseException("Token Length Error:" + " Attr val too long (>0xfffff)" + formatLineNumber());
-                                _writeVTD(temp_offset >> 1, length1 >> 1, TOKEN_ATTR_VAL, depth);
-                            }
-
-                            isXML = false;
-                            is_ns = false;
-
-                            ch = r.Char;
-                            if (XMLChar.isSpaceChar(ch))
-                            {
-                                ch = CharAfterS;
-                                if (XMLChar.isNameStartChar(ch))
-                                {
-                                    temp_offset = offset - increment;
-                                    parser_state = STATE_ATTR_NAME;
-                                    break;
-                                }
-                            }
-                            helper = true;
-                            if (ch == '/')
-                            {
-                                depth--;
-                                helper = false;
-                                ch = r.Char;
-                            }
-
-                            if (ch == '>')
-                            {
-                                if (ns)
-                                {
-                                    nsBuffer1.append(nsBuffer3.size_Renamed_Field - 1);
-                                    if (prefixed_attr_count > 0)
-                                        qualifyAttributes();
-                                    if (prefixed_attr_count > 1)
-                                    {
-                                        checkQualifiedAttributeUniqueness();
-                                        prefixed_attr_count = 0;
-                                    }
-                                    if (currentElementRecord != 0)
-                                        qualifyElement();
-
-                                }
-                                attr_count = 0;
-                                if (depth != -1)
-                                {
-                                    temp_offset = offset;
-                                    //ch = CharAfterSe;
-                                    ch = CharAfterS;
-                                    if (ch == '<')
-                                    {
-                                        if (ws)
-                                            addWhiteSpaceRecord();
-                                        parser_state = STATE_LT_SEEN;
-                                        if (r.skipChar('/'))
-                                        {
-                                            if (helper)
-                                            {
-                                                length1 = offset - temp_offset - (increment << 1);
-
-                                                if (encoding < FORMAT_UTF_16BE)
-                                                    writeVTDText((temp_offset), length1, TOKEN_CHARACTER_DATA, depth);
-                                                else
-                                                    writeVTDText((temp_offset) >> 1, (length1 >> 1), TOKEN_CHARACTER_DATA, depth);
-                                            }
-                                            parser_state = STATE_END_TAG;
-                                            break;
-                                        }
-                                    }
-                                    else if (XMLChar.isContentChar(ch))
-                                    {
-                                        //temp_offset = offset;
-                                        parser_state = STATE_TEXT;
-                                    }
-                                    else
-                                    {
-                                        handleOtherTextChar2(ch);
-                                        parser_state = STATE_TEXT;
-                                    }
-                                }
-                                else
-                                {
-                                    parser_state = STATE_DOC_END;
-                                }
-                                break;
-                            }
-
-                            throw new ParseException("Starting tag Error: Invalid char in starting tag" + formatLineNumber());
+                            parser_state = process_attr_val();
+                            break;
 
 
                         case STATE_TEXT:
@@ -3912,6 +3606,129 @@ namespace com.ximpleware
                 throw new ParseException("XML decl Error: Invalid termination sequence" + formatLineNumber());
             return parser_state;
         }
+
+        private int process_attr_val(){
+		//int parser_state;
+		 do{
+				ch = r.Char;
+				if (XMLChar.isValidChar(ch) && ch != '<') {
+					if (ch == ch_temp)
+						break;
+					if (ch == '&') {
+						// as in vtd spec, we mark attr val with entities
+						if (!XMLChar
+							.isValidChar(entityIdentifier())) {
+							throw new ParseException(
+								"Error in attr: Invalid XML char"
+									+ formatLineNumber());
+						}
+					}
+				} else
+					throw new ParseException(
+						"Error in attr: Invalid XML char"
+							+ formatLineNumber());
+			}while (true);
+
+			length1 = offset - temp_offset - increment;
+			if (ns && is_ns){
+				if (!default_ns && length1==0){
+					throw new ParseException(" non-default ns URL can't be empty"
+						+formatLineNumber());								
+				}
+				//identify nsURL return 0,1,2
+				int t= identifyNsURL(temp_offset, length1);
+				if (isXML){//xmlns:xml
+					if (t!=1)
+					//URL points to "http://www.w3.org/XML/1998/namespace"
+					throw new ParseException("xmlns:xml can only point to"
+							+"\"http://www.w3.org/XML/1998/namespace\"" 
+							+ formatLineNumber());
+					
+				} else {
+					if (!default_ns)
+						nsBuffer2.append(((long)temp_offset<<32) | length1);
+					if (t!=0){		
+						if (t==1)
+							throw new ParseException("namespace declaration can't point to"
+								+" \"http://www.w3.org/XML/1998/namespace\"" 
+								+ formatLineNumber());
+						throw new ParseException("namespace declaration can't point to"
+							+" \"http://www.w3.org/2000/xmlns/\"" 
+							+ formatLineNumber());	
+					}
+				}							
+				// no ns URL points to 
+				//"http://www.w3.org/2000/xmlns/"
+				
+				// no ns URL points to  
+				//"http://www.w3.org/XML/1998/namespace"
+			}
+			
+			if (singleByteEncoding){
+			//if (encoding < FORMAT_UTF_16BE){
+				if (length1 > MAX_TOKEN_LENGTH)
+					  throw new ParseException("Token Length Error:"
+								  +" Attr val too long (>0xfffff)"
+								  + formatLineNumber());
+				_writeVTD(
+					temp_offset,
+					length1,
+					TOKEN_ATTR_VAL,
+					depth);
+			}
+			else{
+				if (length1 > (MAX_TOKEN_LENGTH <<1))
+					  throw new ParseException("Token Length Error:"
+								  +" Attr val too long (>0xfffff)"
+								  + formatLineNumber());
+				_writeVTD(
+					temp_offset >> 1,
+					length1 >> 1,
+					TOKEN_ATTR_VAL,
+					depth);
+			}
+			
+			
+			isXML = false;
+			is_ns = false;
+			
+			ch = r.Char;
+			if (XMLChar.isSpaceChar(ch)) {
+				ch = CharAfterS;
+				if (XMLChar.isNameStartChar(ch)) {
+					temp_offset = offset - increment;
+					return STATE_ATTR_NAME;
+					//break;
+				}
+			}
+
+			helper = true;
+			if (ch == '/') {
+				depth--;
+				helper = false;
+				ch =r.Char;
+			}
+
+			if (ch == '>') {
+				if (ns){
+					nsBuffer1.append(nsBuffer3.size_Renamed_Field-1);
+					if (prefixed_attr_count>0)
+						qualifyAttributes();
+					if (prefixed_attr_count>1){
+						checkQualifiedAttributeUniqueness();
+					}
+					if (currentElementRecord !=0)
+						qualifyElement();
+					prefixed_attr_count=0;
+				}
+				attr_count = 0;
+				return processElementTail(helper);
+			}
+
+			throw new ParseException(
+				"Starting tag Error: Invalid char in starting tag"
+					+ formatLineNumber());
+	}
         /// <summary> This private method processes PI tag</summary>
         /// <returns> the parser state after which the parser loop jumps to
         /// </returns>
@@ -4341,6 +4158,141 @@ namespace com.ximpleware
             }
             return parser_state;
         }
+
+        private void process_attr_name (){
+		//parser_state = process_attr_name();
+		String s1=null,s2=null;
+		if (ch == 'x') {
+			if (r.skipChar('m')
+				&& r.skipChar('l')
+				&& r.skipChar('n')
+				&& r.skipChar('s')) {
+				ch = r.Char;								
+				if (ch == '='
+					|| XMLChar.isSpaceChar(ch)){
+					default_ns = true;
+					is_ns= true;
+				}else if( ch == ':') {
+					default_ns = false;
+					is_ns= true;
+				}
+			}
+		}
+		do {
+			if (XMLChar.isNameChar(ch)) {
+				if (ch == ':') {
+					length2 = offset - temp_offset - increment;
+				}				
+			} else
+				break;
+			ch = r.Char;
+		}while (true);
+		length1 = this.PrevOffset - temp_offset;
+		if (is_ns && ns){
+			// make sure postfix isn't xmlns
+			if (!default_ns){
+				if (increment==1 && (length1-length2 == 6)
+						|| (increment==2 && (length1-length2==12)))
+					disallow_xmlns(temp_offset+length2+increment);
+			    
+			// if the post fix is xml, signal it
+			    if (increment==1 && (length1-length2== 4)
+						|| (increment==2 && (length1-length2==8)))
+			    	isXML = matchXML(temp_offset+length2+increment);
+			}
+		}
+		// check for uniqueness here
+		checkAttributeUniqueness();
+
+
+		// after checking, write VTD
+		if (is_ns) { //if the prefix is xmlns: or xmlns
+			//if (encoding < FORMAT_UTF_16BE){
+			s1 = "Token length overflow error: Attr NS tag prefix or qname length too long";
+			s2 = "Token length overflow error: Attr NS prefix or qname length too long";
+			if (singleByteEncoding){
+				if (length2>MAX_PREFIX_LENGTH
+						|| length1 > MAX_QNAME_LENGTH)
+					throw new ParseException(
+							s1
+							+formatLineNumber());
+				_writeVTD(
+					temp_offset,
+					(length2 << 11) | length1,
+					TOKEN_ATTR_NS,
+					depth);
+			}
+			else{
+				if (length2>(MAX_PREFIX_LENGTH << 1)
+						|| length1 > (MAX_QNAME_LENGTH <<1))
+					throw new ParseException(
+							s2
+							+ formatLineNumber());
+				_writeVTD(
+					temp_offset >> 1,
+					(length2 << 10) | (length1 >> 1),
+					TOKEN_ATTR_NS,
+					depth);
+			}
+			// append to nsBuffer2
+			if (ns) {								
+				//unprefixed xmlns are not recorded
+				if (length2 != 0 && !isXML) {
+					//nsBuffer2.append(VTDBuffer.size() - 1);
+					long l = ((long) ((length2 << 16) | length1)) << 32
+						| temp_offset;
+					nsBuffer3.append(l); // byte offset and byte
+					// length
+				}
+			}
+			
+		} else {
+			//if (encoding < FORMAT_UTF_16BE){
+			s1="Token Length Error: Attr name prefix or qname length too long";
+			s2="Token Length overflow error: Attr name prefix or qname length too long" ;
+			if (singleByteEncoding) {
+				if (length2>MAX_PREFIX_LENGTH
+						|| length1 > MAX_QNAME_LENGTH)
+					throw new ParseException(
+							"Token Length Error: Attr name prefix or qname length too long"
+							+ formatLineNumber());
+				_writeVTD(
+					temp_offset,
+					(length2 << 11) | length1,
+					TOKEN_ATTR_NAME,
+					depth);
+			}
+			else{
+				if (length2>(MAX_PREFIX_LENGTH<<1)
+						|| length1 > (MAX_QNAME_LENGTH<<1))
+					throw new ParseException(
+							"Token Length overflow error: Attr name prefix or qname length too long" 
+							+ formatLineNumber());
+				_writeVTD(
+					temp_offset >> 1,
+					(length2 << 10) | (length1 >> 1),
+					TOKEN_ATTR_NAME,
+					depth);
+			}
+		}
+		
+		/*System.out.println(
+		    " " + temp_offset + " " + length2 + ":" + length1 + " attr name " + depth);*/
+		length2 = 0;
+		if (XMLChar.isSpaceChar(ch)) {
+			ch = this.CharAfterS;
+		}
+		if (ch != '=')
+			throw new ParseException(
+				"Error in attr: invalid char"
+					+ formatLineNumber());
+		ch_temp = this.CharAfterS;
+		if (ch_temp != '"' && ch_temp != '\'')
+			throw new ParseException(
+				"Error in attr: invalid char (should be ' or \" )"
+					+ formatLineNumber());
+		temp_offset = offset;
+	}
         /// <summary> This private method processes CDATA section</summary>
         /// <returns> the parser state after which the parser loop jumps to
         /// </returns>
@@ -6165,5 +6117,47 @@ namespace com.ximpleware
             if (i == 5)
                 shallowDepth = false;
         }
+
+        	private int processElementTail(bool helper) {
+		if (depth != -1) {
+			temp_offset = offset;
+			//ch = getCharAfterSe();
+			ch = CharAfterS;
+
+			if (ch == '<') {
+				if (ws) 
+			    	addWhiteSpaceRecord();
+				//parser_state = STATE_LT_SEEN;
+				if (r.skipChar('/')) {
+					if (helper) {
+						length1 = offset - temp_offset
+								- (increment << 1);
+						//if (length1 > 0) {
+						if (singleByteEncoding)//if (encoding < FORMAT_UTF_16BE)
+							writeVTDText((temp_offset),
+									length1,
+									TOKEN_CHARACTER_DATA,
+									depth);
+						else
+							writeVTDText((temp_offset) >> 1,
+									(length1 >> 1),
+									TOKEN_CHARACTER_DATA,
+									depth);
+						//}
+					}
+					return STATE_END_TAG;
+				}
+				return STATE_LT_SEEN;
+			} else if (XMLChar.isContentChar(ch)) {
+				//temp_offset = offset;
+				return STATE_TEXT;
+			} else {
+				handleOtherTextChar2(ch);
+				return STATE_TEXT;
+			}
+		} 
+		return STATE_DOC_END;
+		
+	}
     }
 }
