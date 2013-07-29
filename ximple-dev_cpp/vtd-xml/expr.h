@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 #pragma once
 #ifndef EXPR_H
 #define EXPR_H
@@ -137,20 +138,20 @@ namespace com_ximpleware{
 		bool eval2_p(VTDNav *vn);
 		void setIndex_p(int i);
 		void setContextSize_p(int size);/*{
-					e->setContextSize(size);
-				}*/
+			e->setContextSize(size);
+		}*/
 		bool requireContextSize_p();/*{
-					return e->requireContextSize();
-				}*/
+			return e->requireContextSize();
+		}*/
 		void reset_p(VTDNav *vn);/*{
-					count = 0;
-					e->reset(vn); // is this really needed?
-				}*/
+			count = 0;
+			e->reset(vn); // is this really needed?
+		}*/
 		void toString_p( UCSChar *string);
 		void adjust(int n);//{e->adjust(n);};
 	};
 
-
+	
 	struct Step{
 		axisType axis_type;
 		NodeTest *nt;  

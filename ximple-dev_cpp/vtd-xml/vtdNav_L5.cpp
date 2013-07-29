@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 #include "vtdNav_L5.h"
 //#include "decoder.h"
 #include "bookMark.h"
@@ -370,9 +371,11 @@ l5Buffer(l5)
 								   try{
 									   contextBuf = new ContextBuffer(10, nestingLevel+15);
 									   contextBuf2 = new ContextBuffer(10,nestingLevel+15);
+									   fib = new FastIntBuffer(5);
 								   }catch(std::bad_alloc&){
 									   delete contextBuf;
 									   delete contextBuf2;
+									   delete fib;
 									   //free(stackTemp);
 									   delete[] context;
 									   //free();

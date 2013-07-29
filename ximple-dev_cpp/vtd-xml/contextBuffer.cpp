@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 
 #include "contextBuffer.h"
 using namespace com_ximpleware;
@@ -56,6 +57,8 @@ ContextBuffer::~ContextBuffer(){
 bool ContextBuffer::load(int* output){
 	int startingOffset, len, first_index, last_index,i;
 	//exception e;
+
+	//printf("pop ===> size is ==> %d \n",size);
 	if (size < incSize) {
         return false;
     }
@@ -124,6 +127,7 @@ void ContextBuffer::store(int* input){
 		lastBufferIndex = 0;
         capacity = pageSize;
     } else {
+		//printf(" push size is==> %d \n",size);
 		lastBufferIndex = min(size>>n, al_size-1);
 		lastBuffer = (int *)al->get(lastBufferIndex);
     }

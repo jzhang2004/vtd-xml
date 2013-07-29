@@ -662,7 +662,7 @@ Predicate 	:    LB Expr RB {
 									$$ = new Predicate();
 									//addObj($$);
 									$$->e = $2;
-									if ($2->isFinal() && %2->isNumerical()){
+									if ($2->isFinal() && $2->isNumerical()){
 										if ($$->d<1){
 											throw new XPathParseExcpetion("Invalid index number <1");
 										}
