@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -595,7 +595,7 @@ Boolean isNumerical_lpe (locationPathExpr *e);
 Boolean isString_lpe (locationPathExpr *e);
 Boolean isNodeSet_lpe (locationPathExpr *e);
 Boolean requireContextSize_lpe(locationPathExpr *e);
-void	reset_lpe(locationPathExpr *e, VTDNav *vn);
+extern inline void	reset_lpe(locationPathExpr *e, VTDNav *vn);
 void	setContextSize_lpe(locationPathExpr *e,int s);
 void	setPosition_lpe(locationPathExpr *e,int pos);
 void    toString_lpe(locationPathExpr *e, UCSChar* string);
