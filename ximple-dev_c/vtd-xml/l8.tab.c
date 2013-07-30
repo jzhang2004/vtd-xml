@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 /* A Bison parser, made by GNU Bison 1.875.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
@@ -146,7 +147,7 @@
 #line 1 "l8.y"
 
 /* 
-* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1866,6 +1867,7 @@ yyreduce:
 #line 559 "l8.y"
     {
 					Try{
+
 						//printf("create step\n");
 						yyval.s = createStep();
 						addObj(yyval.s);
@@ -1953,6 +1955,7 @@ yyreduce:
 								Try {
 								    //addObj($2);
 								    ex = getExprFromList(xpathExprList,yyvsp[0].name.qname);
+
 									//printf("here !!!\n");
 								    if (ex==NULL) {
 										YYABORT;

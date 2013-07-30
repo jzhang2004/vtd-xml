@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 #include "vtdGen.h"
 #include "indexHandler.h"
 #include <sys/stat.h>
@@ -3774,7 +3775,7 @@ static void addWhiteSpaceRecord(VTDGen *vg){
 			vg->length1 = vg->offset - vg->increment - vg->temp_offset;
 			if (vg->length1 != 0)
 				if (vg->encoding < FORMAT_UTF_16BE)
-					writeVTDText(vg,vg->temp_offset, vg->length1,
+					writeVTDText(vg,vg->temp_offset, vg->length1, 
 							TOKEN_CHARACTER_DATA, vg->depth);
 				else
 					writeVTDText(vg, vg->temp_offset >> 1,vg->length1 >> 1,
