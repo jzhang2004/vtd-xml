@@ -55,6 +55,7 @@ public class LocationPathExpr extends Expr{
 		final public void optimize(){
 			// get to last step
 			Step ts = s;
+			int count=0;
 			if (ts==null)
 				return;
 			while(ts.nextS!=null){
@@ -105,6 +106,36 @@ public class LocationPathExpr extends Expr{
 				ts= ts.prevS;
 			}
 			// rewrite steps
+			// reset ts, then count the # of steps
+			ts = s;
+			if (ts==null)
+				return;
+			boolean b=false;
+			while(ts!=null){
+				if (ts.axis_type!=AxisType.SELF){
+					switch  (ts.axis_type){
+						case AxisType.CHILD0:
+						case AxisType.CHILD:
+						case AxisType.DESCENDANT_OR_SELF0:
+						case AxisType.DESCENDANT0:
+						case AxisType.FOLLOWING0:
+						case AxisType.DESCENDANT_OR_SELF:
+						case AxisType.DESCENDANT:
+						case AxisType.FOLLOWING:
+						case AxisType.FOLLOWING_SIBLING0:
+						case AxisType.ATTRIBUTE:
+							b = true;
+							break;
+						default: b =false;
+					}
+					count++;
+				}
+				ts = ts.nextS;
+			}
+			
+			if (count==1 && b)
+				needReordering = false;
+			
 		}
 		
 		final public void setStep(Step st){
@@ -166,11 +197,21 @@ public class LocationPathExpr extends Expr{
 
 		final public double evalNumber(VTDNav vn){
 			double d = Double.NaN;
-			int a = -1;
+			int a = 0x7fffffff,k=-1;
 	        vn.push2();
 	        int size = vn.contextStack2.size;
 	        try {
-	            a = evalNodeSet(vn);
+	        	if (needReordering){
+	        		while((k=evalNodeSet(vn))!=-1){
+	        			//a = evalNodeSet(vn);
+	        			if (k<a)
+	        				a = k;
+	        		}
+	        		if (k==-1)
+	        			a=-1;
+	        	}else{
+	        		a = evalNodeSet(vn);
+	        	}
 	            if (a != -1) {
 	            	int t = vn.getTokenType(a);
 	                if (t == VTDNav.TOKEN_ATTR_NAME) {
@@ -196,11 +237,23 @@ public class LocationPathExpr extends Expr{
 	
 		final public String evalString(VTDNav vn){ 	
 			String s="";
-			int a = -1;
+			int a = 0x7fffffff,k=-1;
 	        vn.push2();
 	        int size = vn.contextStack2.size;
-	        try {
-	            a = evalNodeSet(vn);
+		try {
+			if (needReordering) {
+				while ((k = evalNodeSet(vn)) != -1) {
+					if (k < a)
+						a = k; // a is always smaller
+				}
+				if (k == -1) {
+					a = -1;
+				}
+			}
+	        else{
+	        	a = evalNodeSet(vn);
+	        }
+	            
 	            if (a != -1) {
 	            	int t = vn.getTokenType(a);
 	            	switch(t){
