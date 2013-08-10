@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 package com.ximpleware;
 import com.ximpleware.xpath.*;
 
@@ -473,9 +474,18 @@ public class FuncExpr extends Expr{
 	private int evalFirstArgumentListNodeSet(VTDNav vn){
 		vn.push2();
         int size = vn.contextStack2.size;
-        int a = -1;
+        int a=0x7fffffff,k = -1;
         try {
-            a = argumentList.e.evalNodeSet(vn);
+        	if (argumentList.e.needReordering){
+        		while((k=argumentList.e.evalNodeSet(vn))!=-1){
+        			//a = evalNodeSet(vn);
+        			if (k<a)
+        				a = k;
+        		}
+        		if (a==0x7fffffff)
+        			a=-1;
+        	}else
+        		a = argumentList.e.evalNodeSet(vn);
             if (a != -1) {
             	int t = vn.getTokenType(a);
                 if (t == VTDNav.TOKEN_ATTR_NAME) {
@@ -503,9 +513,18 @@ public class FuncExpr extends Expr{
 	private int evalFirstArgumentListNodeSet2(VTDNav vn){
 		vn.push2();
         int size = vn.contextStack2.size;
-        int a = -1;
+        int a=0x7ffffff, k=-1;
         try {
-            a = argumentList.e.evalNodeSet(vn);	            
+        	if (argumentList.e.needReordering){
+        		while((k=argumentList.e.evalNodeSet(vn))!=-1){
+        			//a = evalNodeSet(vn);
+        			if (k<a)
+        				a = k;
+        		}
+        		if (k==0x7fffffff)
+        			a=-1;
+        	}else
+        		a = argumentList.e.evalNodeSet(vn);	            
         } catch (Exception e) {
         }
         vn.contextStack2.size = size;
@@ -1166,6 +1185,8 @@ public class FuncExpr extends Expr{
 			case FuncName.ENCODE_FOR_URI:	return "encode-for-uri";
 			case FuncName.MATCH_NAME:		return "match-name";
 			case FuncName.MATCH_LOCAL_NAME:	return "match-local-name";
+			case FuncName.NOT_MATCH_NAME:	return "not-match-name";
+			case FuncName.NOT_MATCH_LOCAL_NAME: return "not-match-local-name";
 			case FuncName.CURRENT:			return "current";
 			case FuncName.GENERATE_ID:		return "generate-id";
 			case FuncName.FORMAT_NUMBER:	return "format-number";
@@ -1371,7 +1392,7 @@ public class FuncExpr extends Expr{
 			throw new IllegalArgumentException
 			("lowerCase()'s argument count is invalid");
 	}
-	
+
 	private boolean matchName(VTDNav vn){	    
 		int a;
 		if (argCount == 1) {
@@ -1393,7 +1414,7 @@ public class FuncExpr extends Expr{
 			String s1 = argumentList.next.e.evalString(vn);
 			try {
 				if (a == -1 || vn.ns == false)
-					return false;
+					return s1.compareTo("")==0;
 				else {
 					int type = vn.getTokenType(a);
 					if (type == VTDNav.TOKEN_STARTING_TAG
@@ -1407,7 +1428,7 @@ public class FuncExpr extends Expr{
 			return false;
 		} else
 			throw new IllegalArgumentException(
-					"name()'s argument count is invalid");
+					"matchName()'s argument count is invalid");
 	}
 	private boolean matchLocalName(VTDNav vn){
 	    if (argCount== 1){
@@ -1474,7 +1495,7 @@ public class FuncExpr extends Expr{
 			 return "".equals(s1);
 	    } else 
 	        throw new IllegalArgumentException
-			("local-name()'s argument count is invalid");
+			("match-local-name()'s argument count is invalid");
 		return false;
 	}
 	
@@ -1492,7 +1513,6 @@ public class FuncExpr extends Expr{
 		} else 
 	        throw new IllegalArgumentException
 			("generate-id()'s argument count is invalid");
-		
 	}
 	
 	public boolean isFinal(){
@@ -1542,5 +1562,26 @@ public class FuncExpr extends Expr{
 			}
 			temp = temp.next; 
 		}
+	}
+	
+	public int getFuncOpCode(){
+		return opCode;
+	}
+	
+	public void addArg(Expr e){
+		Alist al = argumentList;
+		if (argumentList==null){
+			argumentList = new Alist();
+			argumentList.e = e;
+			argCount++;
+			return;
+		}
+		while(al.next!=null){
+			al = al.next;
+		}
+		al.next = new Alist();
+		//al = new Alist();
+		al.next.e = e;
+		argCount++;
 	}
 }
