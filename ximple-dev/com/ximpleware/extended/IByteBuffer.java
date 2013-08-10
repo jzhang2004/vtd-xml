@@ -17,6 +17,9 @@
  */
 /*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 package com.ximpleware.extended;
+
+import java.io.IOException;
+
 /**
  * Abstract XML document storage interface.
  */
@@ -41,6 +44,10 @@ public interface IByteBuffer {
 	long length();
 	// get the whole XML 
 	byte[] getBytes();
-	
+	/**
+	 * If teh underlying byte representation is IO related, close the IO stream
+	 * @throws IOException 
+	 */
+	void close();
 	void writeToFileOutputStream(java.io.FileOutputStream ost, long offset, long length) throws java.io.IOException;
 }

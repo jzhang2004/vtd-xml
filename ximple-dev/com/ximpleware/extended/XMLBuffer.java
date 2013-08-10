@@ -152,4 +152,5 @@ public class XMLBuffer implements IByteBuffer {
     	return;
 	}
 	
+	public void close(){};
 }
