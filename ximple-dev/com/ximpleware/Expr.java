@@ -51,7 +51,7 @@ abstract public class Expr {
 	
 	abstract public boolean isFinal();
 	
-	
+	public boolean needReordering=true;
 	public void markCacheable(){}
 	public void markCacheable2(){}
 	//public boolean isConstant(){return false;}
