@@ -66,11 +66,17 @@ public class PathExpr extends Expr {
 
 	final public double evalNumber(VTDNav vn) {
 		double d = Double.NaN;
-		int a = -1;
+		int a=0x7fffffff, k = -1;
         vn.push2();
         int size = vn.contextStack2.size;
         try {
-            a = evalNodeSet(vn);
+        	while((k=evalNodeSet(vn))!=-1){
+        		//a = evalNodeSet(vn);
+        		if (k<a)
+        			a = k;
+        	}
+        	if (k==-1)
+        		a=-1;
             if (a != -1) {
             	int t = vn.getTokenType(a);
                 if (t == VTDNav.TOKEN_ATTR_NAME) {
@@ -155,11 +161,17 @@ public class PathExpr extends Expr {
 
 	final public String evalString(VTDNav vn) {
 		String s = "";
-		int a = -1;
+		int a = 0x7fffffff,k = -1;
         vn.push2();
         int size = vn.contextStack2.size;
         try {
-            a = evalNodeSet(vn);
+        	while((k=evalNodeSet(vn))!=-1){
+        		//a = evalNodeSet(vn);
+        		if (k<a)
+        			a = k;
+        	}
+        	if (a==0x7fffffff)
+        		a=-1;
             if (a != -1) {
             	int t = vn.getTokenType(a);
             	switch(t){

@@ -88,11 +88,17 @@ public class UnionExpr extends Expr {
             return e.evalNumber(vn);   
         //double d;
         double d = Double.NaN;
-		int a = -1;
+		int a = 0x7fffffff,k = -1;
         vn.push2();
         int size = vn.contextStack2.size;
         try {
-            a = evalNodeSet(vn);
+        	while((k=evalNodeSet(vn))!=-1){
+        		//a = evalNodeSet(vn);
+        		if (k<a)
+        			a = k;
+        	}
+        	if (a==0x7fffffff)
+        		a=-1;
             if (a != -1) {
             	int t = vn.getTokenType(a);
                 if (t == VTDNav.TOKEN_ATTR_NAME) {
@@ -199,11 +205,17 @@ public class UnionExpr extends Expr {
 			return e.evalString(vn);
 		else {
 			String s = "";
-			int a = -1;
+			int a=0x7fffffff,k = -1;
 			vn.push2();
 			int size = vn.contextStack2.size;
 			try {
-				a = evalNodeSet(vn);
+				while((k=evalNodeSet(vn))!=-1){
+	        		//a = evalNodeSet(vn);
+	        		if (k<a)
+	        			a = k;
+	        	}
+	        	if (a==0x7fffffff)
+	        		a=-1;
 				if (a != -1) {
 					int t = vn.getTokenType(a);
 					switch(t){
