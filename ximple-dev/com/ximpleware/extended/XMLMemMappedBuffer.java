@@ -104,4 +104,11 @@ public class XMLMemMappedBuffer implements IByteBuffer {
     	fc.transferTo(os, len, ostChannel);
     	
 	}
+    public void close(){
+    	try{
+    		raf.close();
+    	}catch(IOException e){
+    		
+    	}
+    }
 }
