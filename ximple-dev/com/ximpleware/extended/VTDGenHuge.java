@@ -924,6 +924,7 @@ public class VTDGenHuge {
 	        l2Buffer = null;
 	        l3Buffer = null;
 	    }
+	    if(xb!=null)xb.close();
 		xb = null;
 		offset = temp_offset =0;
 		last_depth = last_l1_index = last_l2_index = 0;
@@ -933,6 +934,7 @@ public class VTDGenHuge {
 		BOM_detected = false;
 		must_utf_8 = false;
 		ch = ch_temp = 0;
+		
 
 	}
 	/**
