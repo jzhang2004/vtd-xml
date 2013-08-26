@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 /*
  *
  * This class is created to update VTDNav's implementation with 
@@ -23,6 +23,8 @@
  */
 package com.ximpleware;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -194,7 +196,7 @@ public class VTDNav {
 	
 	protected String localName;
 	protected int localNameIndex;
-	protected FastIntBuffer fib;//for store string value 
+	protected FastIntBuffer fib,fib2;//for store string value 
 	protected boolean shallowDepth;
 	protected BookMark currentNode;
 	protected String URIName;
@@ -307,6 +309,7 @@ public class VTDNav {
 		localName = null;
 		localNameIndex = -1;
 		fib = new FastIntBuffer(5); // page size is 32 ints
+		fib2 = new FastIntBuffer(5);
 		shallowDepth = true;
 	}
 	/**
@@ -363,7 +366,7 @@ public class VTDNav {
 			return -1;
 		if (ns == false) {
 			while ((type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS)) {
-				if (matchRawTokenString(index,
+				if (matchRawTokenString2(index,
 					an)) { // ns node visible only ns is disabled
 					return index + 1;
 				}
@@ -1073,7 +1076,6 @@ public class VTDNav {
 		if (toElement(NEXT_SIBLING)) {
 			
 			int temp = getCurrentIndex();
-			int temp2 = temp;
 			//boolean b = false;
 			// rewind
 			while (getTokenDepth(temp) == depth && 
@@ -5874,7 +5876,7 @@ public class VTDNav {
 		return sb.toString();
 	}
 	
-	final public boolean XPathStringVal_Contains(int j, String s) throws NavException{
+	final protected boolean XPathStringVal_Contains(int j, String s) throws NavException{
 		int tokenType;
 		int index = j + 1;
 		int depth, t=0, i=0,offset, endOffset,len,type,c;
@@ -5921,7 +5923,7 @@ public class VTDNav {
 				else
 					l = getChar(offset);
 				c = (int)l;
-				if (c==s.charAt(0)&& matchSubString(offset, endOffset, index, type,s)){
+				if (c==s.charAt(0)&& matchSubString(offset, index, s)){
 					result=true;
 					break loop;
 				}else
@@ -5935,8 +5937,69 @@ public class VTDNav {
 		return result;
 	}
 	
-	private boolean matchSubString(int os, int eos, int index, int t, String s) throws NavException{
-		int offset = os, endOffset=eos, type =t, c;long l;
+	final protected boolean XPathStringVal_Matches(int j, VTDNav vn2, int k /*k is a token index */) throws NavException{
+		return false;
+	}
+	
+	/**
+	 * 
+	 * @param j
+	 * @param s
+	 * @return
+	 * @throws NavException
+	 */
+	final public boolean XPathStringVal_Matches(int j, String s) throws NavException{
+		int tokenType;
+		int index = j + 1;
+		int depth, t=0, i=0,offset, endOffset,len,type,c;
+		long l;
+		boolean result=false;
+		int dp = getTokenDepth(j);
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    //t=t+getTokenLength2(index);
+		    if (depth<dp || 
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+		    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+		    	//length = getTokenLength2(index);
+		    	//t += length;
+		    	fib.append(index);
+		    	index++;
+		    	continue;
+		    	//
+		    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS
+			        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+			    index = index+2;
+			    continue;
+			}			
+			index++;
+		}
+		
+		index=0;
+		//type = getTokenType(fib.intAt(index));
+		offset = getTokenOffset(fib.intAt(0));
+		result = matchSubString2(offset, index, s);		
+		fib.clear();
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param offset
+	 * @param index
+	 * @param s
+	 * @return
+	 */
+	private boolean matchSubString2(int os, int index, String s) throws NavException {
+		int offset = os, endOffset= getTokenOffset(fib.intAt(index))+getTokenLength(fib.intAt(index)), type =getTokenType(fib.intAt(index)), c;long l;
 		int i=0;
 		boolean b=false;
 		while(offset<endOffset){
@@ -5945,10 +6008,65 @@ public class VTDNav {
 			else
 				l = getChar(offset);
 			c = (int)l;
-			if (i<s.length()-1 && c==s.charAt(i)){		
+			if (i<s.length() && c==s.charAt(i)){		
 				offset += (int)(l>>32);
 				i++;
-			}else if(i==s.length()-1)
+			}else if(i==s.length())
+				return true;
+			else
+				return false;				
+		}
+		index++;
+		loop:while(index<fib.size){		
+			offset = getTokenOffset(fib.intAt(index));
+			endOffset = offset + getTokenLength2(fib.intAt(index));
+			type = getTokenType(fib.intAt(index));
+			while(offset<endOffset){
+				if (type==VTDNav.TOKEN_CHARACTER_DATA)
+					l = getCharResolved(offset);
+				else
+					l = getChar(offset);
+				c = (int)l;//System.out.println("c-===>"+(char)c);
+				if (i<s.length() && c==s.charAt(i)){		
+					offset += (int)(l>>32);
+					i++;
+				}else if(i==s.length()){
+					break loop;
+				}
+				else
+					return false;				
+			}
+			index++;
+		}while(index<fib.size);
+		if ( s.length() ==i  &&index == fib.size && endOffset == offset)
+			return true;
+		return false;
+	}
+
+	/**
+	 * 
+	 * @param os
+	 * @param eos
+	 * @param index
+	 * @param t
+	 * @param s
+	 * @return
+	 * @throws NavException
+	 */
+	private boolean matchSubString(int os,/*, int eos,*/ int index,/*, int t,*/ String s) throws NavException{
+		int offset = os, endOffset= os+getTokenLength(fib.intAt(index)), type =getTokenType(fib.intAt(index)), c;long l;
+		int i=0;
+		boolean b=false;
+		while(offset<endOffset){
+			if (type==VTDNav.TOKEN_CHARACTER_DATA)
+				l = getCharResolved(offset);
+			else
+				l = getChar(offset);
+			c = (int)l;
+			if (i<s.length() && c==s.charAt(i)){		
+				offset += (int)(l>>32);
+				i++;
+			}else if(i==s.length())
 				return true;
 			else
 				return false;				
@@ -5979,7 +6097,7 @@ public class VTDNav {
 		return false;
 	}
 	
-	final public boolean XPathStringVal_StartsWith(int j, String s) throws NavException{
+	final protected boolean XPathStringVal_StartsWith(int j, String s) throws NavException{
 		int tokenType;
 		int index = j + 1;
 		int depth,length,i=0, offset, endOffset, len,c;
@@ -6047,8 +6165,15 @@ public class VTDNav {
 		}
 		return false;
 	}
-	
-	final public boolean XPathStringVal_EndsWith(int j,String s) throws NavException{
+	/**
+	 * This method is called by ends-with in FuncExpression, it is to perform ends-with on concatnation of
+	 * text value of an element or document without actually creating the string object.
+	 * @param j
+	 * @param s
+	 * @return
+	 * @throws NavException
+	 */
+	final protected boolean XPathStringVal_EndsWith(int j,String s) throws NavException{
 		int tokenType;
 		int index = j + 1;
 		int depth, t=0, length,i=0,d=0, offset,endOffset,type;
@@ -6084,7 +6209,7 @@ public class VTDNav {
 		}
 		//if (t<s.length())
 		//	return false;
-		for (i=fib.size-1;i!=0;i--){
+		for (i=fib.size-1;i>=0;i--){
 			t+=getStringLength(fib.intAt(i));
 			if (t>=s.length()){
 				d = t-s.length();//# of chars to be skipped
@@ -6103,7 +6228,7 @@ public class VTDNav {
 				l=getChar(offset);
 			offset += (int)(l>>32);
 		}
-		b =matchSubString(offset, endOffset,i,type,s);
+		b =matchSubString(offset, i,s);
 		fib.clear();
 		return b;
 	}
@@ -8156,5 +8281,315 @@ public class VTDNav {
 		//System.out.println();
 		return sb.toString();
 		
+	}
+	/**
+	 * New in v2.12
+	 * Dump an element fragment of xml into an XML file whose name is specified as fileName
+	 * @param fileName
+	 * @throws NavException
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	final public void dumpFragment(String fileName) throws NavException, FileNotFoundException,IOException{
+		long l = getElementFragment();
+		dumpFragment(l,fileName);
+	}
+	/**
+	 * New in v2.12
+	 * @param l upper 32 bits are length in byte, lower 32 bits are offset in byte
+	 * @param fileName
+	 * @throws NavException
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	final public void dumpFragment(long l,String fileName) throws NavException, FileNotFoundException,IOException{
+		//long l = getElementFragment();
+		int os = (int)l;
+		int len = (int)(l>>32);
+		File f = new File(fileName);
+		FileOutputStream fos = new FileOutputStream(f);
+		fos.write(this.getXML().getBytes(), os, len);
+		fos.close();
+	}
+	
+	/**
+	 * New in v2.12
+	 * Dump an element fragment of xml into an output stream
+	 * @param os
+	 * @throws NavException
+	 * @throws IOException
+	 */
+	
+	final public void dumpFragment(OutputStream os) throws NavException, IOException{
+		long l = getElementFragment();
+		dumpFragment(l,os);
+	}
+	
+	/**
+	 * New in v2.12
+	 * Dump a fragement as specified by a long into an output stream 
+	 * @param l upper 32 bit is length in byte, lower 32 bit is offset in byte
+	 * @param os
+	 * @throws NavException
+	 * @throws IOException
+	 */
+	final public void dumpFragment(long l, OutputStream os)throws NavException, IOException{
+		int os1 = (int)l;
+		int len = (int)(l>>32);
+		//File f = new File(fileName);
+		//FileOutputStream fos = new FileOutputStream(f);
+		os.write(this.getXML().getBytes(), os1, len);
+	}
+	
+	
+	/**
+	 * New in v2.12
+	 * Dump the ns compensated element fragment of xml into an XML file whose name is specified as fileName
+	 * @param fileName
+	 * @throws NavException
+	 * @throws IOException
+	 */
+	final public void dumpElementFragmentNs(String fileName) throws NavException, IOException {
+		ElementFragmentNs ef = getElementFragmentNs();
+		File f = new File(fileName);
+		FileOutputStream fos = new FileOutputStream(f);
+		ef.writeToOutputStream(fos);
+		fos.close();
+	}
+	
+	/**
+	 * New in v2.12
+	 * This method will take a segment descriptor and return a new descriptor that includes 
+	 * all the leading and trailing white spaces around the input segment
+	 * It has no effect on CDATA
+	 * A typical usage would be 'expandWhiteSpaces(getElementFragment())'
+	 * @param l  upper 32 bits length of the segment, lower 32 bits offset of the segment, unit is byte offset 
+	 * @return  a long 64 bit segment descriptor
+	 * @throws NavException
+	 */
+	final public long expandWhiteSpaces(long l){
+		// convert to char offset
+		int offset = (int)l, len=(int) (l>>32);
+		//long l=0;
+		if (encoding >= VTDNav.FORMAT_UTF_16BE) {
+			offset >>= 1;
+			len >>= 1;
+		}
+		// first expand the trailing white spaces
+		int endOffset = offset+len;
+		while(isWS(getCharUnit(endOffset))){
+			endOffset++;
+		}
+		
+		// then the leading whtie spaces
+		offset--;
+		while(isWS(getCharUnit(offset))){
+			offset--;
+		}
+		offset++;
+		len = endOffset - offset;
+
+		if (encoding >= VTDNav.FORMAT_UTF_16BE){
+			len <<=1;
+			offset <<= 1;
+		}
+		
+		return ((long)offset) | (((long)len)<<32);
+	}
+	
+	/**
+	 * New in v2.12
+	 * This method will take a segment descriptor and return a new descriptor that removes 
+	 * all the leading and trailing white spaces around the input segment
+	 * It has no effect on CDATA
+	 * @param l upper 32 bits length of the segment, lower 32 bits offset of the segment, unit in byte
+	 * @return  a long 64 bit segment descriptor
+	 * @throws NavException
+	 */
+	final public long trimWhiteSpaces(long l){
+		// convert to char offset
+		int offset = (int)l, len=(int) (l>>32);
+		//long l=0;
+		if (encoding >= VTDNav.FORMAT_UTF_16BE) {
+			offset >>= 1;
+			len >>= 1;
+		}
+		int endOffset= offset+len;
+		// first trim the leading white spaces
+		
+		while(isWS(getCharUnit(offset))){
+			offset++;
+		}
+		
+		// then trim the trailing white spaces
+		//int endOffset = offset+len-1;
+		endOffset--;
+		while(isWS(getCharUnit(endOffset))){
+			endOffset--;
+		}
+		
+		endOffset ++;
+		
+		len = endOffset - offset;
+
+		if (encoding >= VTDNav.FORMAT_UTF_16BE){
+			len <<=1;
+			offset <<= 1;
+		}
+		
+		return ((long)offset) | (((long)len)<<32);
+		//return -1;
+	}
+	
+	/**
+	 * Convert the string val of  an element of document node into a double without first creating teh string object
+	 * @return a double
+	 */
+	final protected double XPathStringVal2Double(int j) throws NavException{
+		int tokenType; double d= Double.NaN; boolean minus=false; boolean exponent_seen=false; boolean minusE=false;
+		int index = j + 1;
+		int depth,length,i=0, offset, endOffset, len,c;
+		long l;
+		int state =0;
+		double left=0,right=0;
+		long exp=0;
+		double scale=1;
+		
+		int dp = getTokenDepth(j);
+		boolean r = false;//default
+		
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    //t=t+getTokenLength2(index);
+		    if (depth<dp ||
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA || tokenType== VTDNav.TOKEN_CDATA_VAL ){
+		    	//if (!match)
+		    	offset = getTokenOffset(index);
+		    	len = getTokenLength2(index);
+		    	endOffset = offset + len;
+		    	while(offset<endOffset){
+		    		if (tokenType==VTDNav.TOKEN_CHARACTER_DATA )
+		    			l = getCharResolved(offset);
+		    		else
+		    			l = getChar(offset);
+		    		c = (int)l;
+		    		offset += (int)(l>>32);
+		    		switch (state){
+		    		// consume white spaces
+		    		case 0: 
+						if (isWS(c)) {
+							break;
+						} else if (c == '-' || c == '+') {
+							if (c == '-')
+								minus = true;
+							state = 1;
+						} else if (isDigit(c)) {
+							left = left * 10 + (c - '0');
+							state = 1;
+						} else
+							return Double.NaN;
+
+						break;
+		    				// test digits or .
+		    		case 1: 
+		    			if (isDigit(c)){
+		    				left = left*10+ (c-'0');
+		    				state =1;
+		    			} else if (c=='.'){
+		    				state = 2;
+		    			} else if (c=='e'|| c=='E'){
+		    				exponent_seen =  true;
+		    				state =4;
+		    			}else 
+		    				return Double.NaN;
+		    			break;
+		    			// test digits before .
+		    		case 2: 
+		    			if(isDigit(c)){
+		    				right = right*10+(c-'0');
+		    				scale = scale*10;
+		    				state =3;
+		    			}else
+		    				return Double.NaN;
+		    			break;
+		    			// test digits after .
+		    		case 3:
+		    			if(isDigit(c)){
+		    				right = right*10+(c-'0');
+		    				scale = scale*10;
+		    			}else if (c=='e' ||c== 'E'){
+		    				exponent_seen=true;
+		    				state=4;
+		    			}else if (isWS(c)){
+		    				state = 6;
+		    			}
+		    			else
+		    				return Double.NaN;
+		    			break;
+		    			
+		    			// test exponent digits
+		    			
+		    		case 4:
+		    			if (c=='-' || c=='+'){
+		    				if (c=='-'){
+		    					minusE= true;
+		    				}
+		    				state =5;
+		    			}else if (isDigit(c)){
+		    				exp = exp*10+(c-'0');
+		    				state = 5;
+		    			}else
+		    				return Double.NaN;
+		    			break;
+		    			// test -+ after exponen
+		    		case 5:
+		    			if (isDigit(c)){
+		    				exp = exp*10+(c-'0');
+		    			} else if (isWS(c)){
+		    				state =6;
+		    			}else 
+		    				return Double.NaN;
+		    		    break;
+		    		    // test digits after e
+		    		case 6:
+		    			if (!isWS(c))
+		    				return Double.NaN;
+		    			break;
+		    		}
+		    	}
+		    	//index++;
+		    	//continue;
+		    }else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+			        || tokenType == VTDNav.TOKEN_ATTR_NS
+			        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+			    
+		    	index = index+2;
+			    continue;
+			}		    
+			index++;
+		}
+		//return false;
+		double v = (double) left;
+		if (right != 0)
+			v += ((double) right) / (double) scale;
+
+		if (exp != 0)
+			v = (minusE)? v /(Math.pow(10,exp)): v*Math.pow(10,exp);
+
+		return ((minus) ? (-v) : v);
+	}
+	
+	private boolean isDigit(int c){
+		if (c>='0' && c<='9')
+			return true;
+		else 
+			return false;
 	}
 }
