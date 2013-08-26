@@ -900,6 +900,9 @@ final public String getExprString(){
 }
 /**
  * set state to false to disable caching, which by default is enabled
+ * This method will turn on the internal caching feature during xpath evaluation, which is to
+ * store the evaluation results of absolute expressions when they resides in a predicate
+ * examples: //a[//bb=//cc] //bb and //cc are cached internally to avoid repeitive computation..
  * @param state
  */
 final public void enableCaching(boolean state){
