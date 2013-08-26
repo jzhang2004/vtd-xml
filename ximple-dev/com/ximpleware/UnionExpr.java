@@ -104,8 +104,8 @@ public class UnionExpr extends Expr {
                 if (t == VTDNav.TOKEN_ATTR_NAME) {
                 	d = vn.parseDouble(a+1);
                 } else if (t == VTDNav.TOKEN_STARTING_TAG || t ==VTDNav.TOKEN_DOCUMENT) {
-                    String s = vn.getXPathStringVal();
-                    d  = Double.parseDouble(s);
+                    //String s = vn.getXPathStringVal();
+                    d  = vn.XPathStringVal2Double(a);//Double.parseDouble(s);
                 }else if (t == VTDNav.TOKEN_PI_NAME) {
                 	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
 	                	//s = vn.toString(a+1); 	
