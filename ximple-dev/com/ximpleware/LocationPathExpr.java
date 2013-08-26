@@ -207,7 +207,7 @@ public class LocationPathExpr extends Expr{
 	        			if (k<a)
 	        				a = k;
 	        		}
-	        		if (k==-1)
+	        		if (a==0x7ffffff)
 	        			a=-1;
 	        	}else{
 	        		a = evalNodeSet(vn);
@@ -217,8 +217,9 @@ public class LocationPathExpr extends Expr{
 	                if (t == VTDNav.TOKEN_ATTR_NAME) {
 	                	d = vn.parseDouble(a+1);
 	                } else if (t == VTDNav.TOKEN_STARTING_TAG || t ==VTDNav.TOKEN_DOCUMENT) {
-	                    String s = vn.getXPathStringVal();
-	                    d  = Double.parseDouble(s);
+	                    //String s = vn.getXPathStringVal();
+	                    //d  = Double.parseDouble(s);
+	                	d = vn.XPathStringVal2Double(a);
 	                }else if (t == VTDNav.TOKEN_PI_NAME) {
 	                	if (a+1 < vn.vtdSize || vn.getTokenType(a+1)==VTDNav.TOKEN_PI_VAL)
 	                		d = vn.parseDouble(a+1);               
@@ -246,7 +247,7 @@ public class LocationPathExpr extends Expr{
 					if (k < a)
 						a = k; // a is always smaller
 				}
-				if (k == -1) {
+				if (a == 0x7fffffff) {
 					a = -1;
 				}
 			}
