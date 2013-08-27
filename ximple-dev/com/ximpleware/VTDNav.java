@@ -5923,11 +5923,13 @@ public class VTDNav {
 				else
 					l = getChar(offset);
 				c = (int)l;
+				
+				//System.out.println("c---->"+(char)c);
 				if (c==s.charAt(0)&& matchSubString(offset, index, s)){
 					result=true;
 					break loop;
-				}else
-					offset += (int)(l>>32);
+				} 
+				offset +=(int)(l>>32);
 			}			
 			index++;
 		}
@@ -6054,7 +6056,7 @@ public class VTDNav {
 	 * @throws NavException
 	 */
 	private boolean matchSubString(int os,/*, int eos,*/ int index,/*, int t,*/ String s) throws NavException{
-		int offset = os, endOffset= os+getTokenLength(fib.intAt(index)), type =getTokenType(fib.intAt(index)), c;long l;
+		int offset = os, endOffset= getTokenOffset(fib.intAt(index))+getTokenLength(fib.intAt(index)), type =getTokenType(fib.intAt(index)), c;long l;
 		int i=0;
 		boolean b=false;
 		while(offset<endOffset){
@@ -6063,8 +6065,10 @@ public class VTDNav {
 			else
 				l = getChar(offset);
 			c = (int)l;
+			offset += (int)(l>>32);
+			//System.out.println("c--->"+(char)c);
 			if (i<s.length() && c==s.charAt(i)){		
-				offset += (int)(l>>32);
+				//offset += (int)(l>>32);
 				i++;
 			}else if(i==s.length())
 				return true;
@@ -6082,8 +6086,9 @@ public class VTDNav {
 				else
 					l = getChar(offset);
 				c = (int)l;
+				offset += (int)(l>>32);
 				if (i<s.length() && c==s.charAt(i)){		
-					offset += (int)(l>>32);
+					
 					i++;
 				}else if(i==s.length())
 					return true;
