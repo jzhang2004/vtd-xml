@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2012 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 package com.ximpleware;
 /**
  * The parser.java uses this class to contruct the corresponding
@@ -38,6 +39,23 @@ public class BinaryExpr extends Expr {
 	public final static int GT = 12;
 	//public final static int UNION = 13;
 
+	public final static byte NS_NS =0;
+	public final static byte NS_N = 1;
+	public final static byte NS_S = 2;
+	public final static byte NS_B = 3;
+	public final static byte N_NS =4;
+	public final static byte N_N = 5;
+	public final static byte N_S = 6;
+	public final static byte N_B = 7;
+	public final static byte S_NS =8;
+	public final static byte S_N = 9;
+	public final static byte S_S = 10;
+	public final static byte S_B = 11;
+	public final static byte B_NS =12;
+	public final static byte B_N = 13;
+	public final static byte B_S = 14;
+	public final static byte B_B = 15;
+	
 	public final static int BUF_SZ_EXP = 7; 
 	protected int op;
 	boolean isNumerical;
@@ -47,6 +65,7 @@ public class BinaryExpr extends Expr {
 	protected Expr right;
 	
 	protected FastIntBuffer fib1;
+	protected byte compType;
 	/**
 	 * constructor
 	 * @param l
@@ -59,6 +78,7 @@ public class BinaryExpr extends Expr {
 		right = r;
 		fib1 =  null;
 		//cacheable =false;
+		// precompute the comparison type
 		switch(op){
 		 	case ADD:
 			case SUB:
@@ -75,7 +95,46 @@ public class BinaryExpr extends Expr {
 			case GT: isNumerical = false; isBoolean = true;
 			default:
 		}
+		compType = computeCompType();
 	}
+	
+	final  public byte computeCompType(){
+		if (left.isNodeSet()){
+			if (right.isNodeSet())
+				return NS_NS;
+			if (right.isNumerical())
+				return NS_N;
+			if (right.isString())
+				return NS_S;
+			return NS_B;
+		}
+		if (left.isNumerical()){
+			if(right.isNodeSet())
+				return N_NS;
+			if (right.isNumerical())
+				return N_N;
+			if (right.isString())
+				return N_S;
+			return N_B;
+		}
+		if (left.isString()){
+			if(right.isNodeSet())
+				return S_NS;
+			if (right.isNumerical())
+				return S_N;
+			if (right.isString())
+				return S_S;
+			return S_B;
+		}
+		if(right.isNodeSet())
+			return B_NS;
+		if (right.isNumerical())
+			return B_N;
+		if (right.isString())
+			return B_S;
+		return B_B;
+	}
+	
 	final public String toString(){
 		String os;
 		switch(op){
@@ -224,7 +283,25 @@ public class BinaryExpr extends Expr {
 	final private boolean computeComp(int op, VTDNav vn){
 	  //int i, t, i1 = 0, stackSize, s1, s2;
         String st1, st2;
-        if (left.isNodeSet() && right.isNodeSet()) {
+        switch(compType){
+        case NS_NS:return compNodeSetNodeSet(left, right, vn, op);
+        case NS_N:return compNodeSetNumerical(left, right, vn, op);
+        case NS_S:return compNodeSetString(left, right, vn, op);
+        //case NS_B:
+        case N_NS:return compNumericalNodeSet(left, right, vn, op);
+        //case N_N:   break;
+        //case N_S:   break;
+        //case N_B:
+        case S_NS:return compStringNodeSet(left, right, vn, op);
+        //case S_N:
+        //case S_S:
+        //case S_B:
+        //case B_NS:
+        //case B_N:
+        //case B_S:
+        //default:break;
+        }
+        /*if (left.isNodeSet() && right.isNodeSet()) {
             return compNodeSetNodeSet(left, right, vn, op);
         } else {
             if (left.isNumerical() && right.isNodeSet()){
@@ -241,7 +318,7 @@ public class BinaryExpr extends Expr {
                 //return compStringNodeSet(right, left, vn, op);
                 return compNodeSetString(left, right, vn, op);
             }
-        }
+        }*/
         if (op==EQ || op==NE){
             if (left.isBoolean() || right.isBoolean()) {
                 if (op == EQ)
@@ -295,18 +372,30 @@ public class BinaryExpr extends Expr {
            vn.push2();
            stackSize = vn.contextStack2.size;
            while ((i = left.evalNodeSet(vn)) != -1) {
-               i1 = getStringVal(vn,i); 
-               // if (i1==-1 && s.length()==0)
-               //return true;
-               if (i1 != -1) {
-                   boolean b = compareVString1(i1,vn,s,op);
-                   if (b){
-                	   left.reset(vn);
-                	   vn.contextStack2.size = stackSize;
-                	   vn.pop2();
-                	   return b;
-                   }
-               }
+        	   int t=vn.getTokenType(i);
+        	   if (t!= VTDNav.TOKEN_STARTING_TAG
+        			   && t!=VTDNav.TOKEN_DOCUMENT){
+        		   i1 = getStringVal(vn,i); 
+        		   // if (i1==-1 && s.length()==0)
+        		   //return true;
+        		   if (i1 != -1) {
+        			   boolean b = compareVString1(i1,vn,s,op);
+        			   if (b){
+        				   left.reset(vn);
+        				   vn.contextStack2.size = stackSize;
+        				   vn.pop2();
+        				   return b;
+        			   }
+        		   }
+        	   }else{        		   
+        		   boolean b= vn.XPathStringVal_Matches(i, s);
+        		   if (b){
+        			   left.reset(vn);
+        			   vn.contextStack2.size = stackSize;
+        			   vn.pop2();
+        			   return b;
+        		   }
+        	   }
            }           
            vn.contextStack2.size = stackSize;
            vn.pop2();
@@ -338,16 +427,29 @@ public class BinaryExpr extends Expr {
             vn.push2();
             stackSize = vn.contextStack2.size;
             while ((i = right.evalNodeSet(vn)) != -1) {
-                i1 = getStringVal(vn,i); 
-                if (i1 != -1){
-                    boolean b = compareVString2(i1,vn,s,op);
-                    if (b){
-                    right.reset(vn);
-                    vn.contextStack2.size = stackSize;
-                    vn.pop2();
-                    return b;
-                    }
-                }
+            	int t = vn.getTokenType(i);
+				if (t!= VTDNav.TOKEN_STARTING_TAG 
+						&& t!= VTDNav.TOKEN_DOCUMENT) {
+					
+					i1 = getStringVal(vn, i);
+					if (i1 != -1) {
+						boolean b = compareVString2(i1, vn, s, op);
+						if (b) {
+							right.reset(vn);
+							vn.contextStack2.size = stackSize;
+							vn.pop2();
+							return b;
+						}
+					}
+				}else{
+					boolean b = vn.XPathStringVal_Matches(i, s);
+					if (b){
+						right.reset(vn);
+						vn.contextStack2.size = stackSize;
+						vn.pop2();
+						return b;
+					}
+				}
             }    
             vn.contextStack2.size = stackSize;
             vn.pop2();
@@ -381,8 +483,8 @@ public class BinaryExpr extends Expr {
             vn.push2();
             stackSize = vn.contextStack2.size;
             while ((i = right.evalNodeSet(vn)) != -1) {
-                i1 = getStringVal(vn,i); 
-                if (i1!=-1 && compareVNumber1(i1,vn,d,op)){
+                //i1 = getStringVal(vn,i); 
+                if (compareVNumber1(i,vn,d,op)){
                     right.reset(vn);
                     vn.contextStack2.size = stackSize;
                     vn.pop2();
@@ -405,8 +507,8 @@ public class BinaryExpr extends Expr {
            vn.push2();
            stackSize = vn.contextStack2.size;
            while ((i = left.evalNodeSet(vn)) != -1) {
-               i1 = getStringVal(vn,i); 
-               if (i1!=-1 && compareVNumber2(i1,vn,d,op)){
+                
+               if (compareVNumber2(i,vn,d,op)){
                    left.reset(vn);
                    vn.contextStack2.size = stackSize;
                    vn.pop2();
@@ -437,7 +539,14 @@ public class BinaryExpr extends Expr {
 	
 	final private boolean compareVNumber1(int k, VTDNav vn, double d, int op)
 	throws NavException {
-	    double d1 = vn.parseDouble(k);
+		double d1;
+		int t = vn.getTokenType(k);
+		if (t==VTDNav.TOKEN_STARTING_TAG || t==VTDNav.TOKEN_DOCUMENT){
+			d1 =vn.XPathStringVal2Double(k);
+		}else {
+			k = getStringVal(vn,k);
+			d1 = vn.parseDouble(k);
+		}
 	    switch (op){
 	    	case EQ:
 	    	    return d == d1;
@@ -499,7 +608,15 @@ public class BinaryExpr extends Expr {
 	
 	final private boolean compareVNumber2(int k, VTDNav vn, double d, int op)
 	throws NavException {
-	    double d1 = vn.parseDouble(k);
+		double d1;
+		int t = vn.getTokenType(k);
+		if (t==VTDNav.TOKEN_STARTING_TAG || t==VTDNav.TOKEN_DOCUMENT){
+			d1 =vn.XPathStringVal2Double(k);
+		}else {
+			k = getStringVal(vn,k);
+			d1 = vn.parseDouble(k);
+		}
+	    //double d1 = vn.parseDouble(k);
 	    switch (op){
 	    	case EQ:
 	    	    return d1 == d;
