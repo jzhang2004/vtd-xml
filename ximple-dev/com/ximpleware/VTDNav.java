@@ -148,7 +148,8 @@ public class VTDNav {
 	protected int[] context; // main navigation tracker aka context object
     protected boolean atTerminal; // this variable is to make vn compatible with
     								// xpath's data model
-	
+	public class helper{int index; int offset; int endOffset; int type;int depth;int tokenType;};
+	helper h1=null,h2=null;
 	
 	// location cache part
 	protected int l2upper;
@@ -5939,8 +5940,190 @@ public class VTDNav {
 		return result;
 	}
 	
-	final protected boolean XPathStringVal_Matches(int j, VTDNav vn2, int k /*k is a token index */) throws NavException{
-		return false;
+	final protected int XPathStringVal_Matches(int j, VTDNav vn2, int k /*k is a token index */) throws NavException{
+		if (h1==null){
+			h1 = new helper();
+		}
+		
+		if (h2==null){
+			h2 = new helper();
+		}
+		
+		int tokenType1 = getTokenType(j);
+		int tokenType2 = vn2.getTokenType(k);
+		
+		if (tokenType1 == VTDNav.TOKEN_STARTING_TAG || tokenType1 == VTDNav.TOKEN_DOCUMENT ){
+			h1.index = j + 1;
+			h1.type = 1;
+			h1.depth = getTokenDepth(j);
+			h1.offset  = -1;
+			loop1:while (h1.index < vtdSize) {
+			    int tokenType = getTokenType(h1.index);
+			    int depth = getTokenDepth(h1.index);
+			    //t=t+getTokenLength2(index);
+			    if (depth<h1.depth || 
+			    		(depth==h1.depth && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+			    	break;
+			    }
+			    
+			    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+			    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+			    	//length = getTokenLength2(index);
+			    	//t += length;
+			    	//fib.append(index);
+			    	h1.offset = getTokenOffset(h1.index);
+			    	h1.endOffset = getTokenOffset(h1.index)+getTokenLength2(h1.index);
+			    	//h1.index++;
+			    	h1.tokenType=tokenType;
+			    	break loop1;
+			    	//
+			    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+				        || tokenType == VTDNav.TOKEN_ATTR_NS
+				        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+				    h1.index = h1.index+2;
+				    continue;
+				}			
+				h1.index++;
+			}
+		}
+		else{ 
+			h1.index = -1;
+			h1.type = 0;
+			h1.offset = getTokenOffset(j);
+			h1.endOffset = getTokenOffset(j)+getTokenLength(j);
+			h1.tokenType = getTokenType(j);
+		}
+		
+		if (tokenType2 == VTDNav.TOKEN_STARTING_TAG || tokenType2 == VTDNav.TOKEN_DOCUMENT ){
+			h2.index = k + 1;
+			h2.type = 1;
+			h2.depth = vn2.getTokenDepth(k);
+			h2.offset = -1;
+			loop2:while (h2.index < vtdSize) {
+			    int tokenType = vn2.getTokenType(h2.index);
+			    int depth = vn2.getTokenDepth(h2.index);
+			    //t=t+getTokenLength2(index);
+			    if (depth<h2.depth || 
+			    		(depth==h2.depth && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+			    	break;
+			    }
+			    
+			    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+			    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+			    	//length = getTokenLength2(index);
+			    	//t += length;
+			    	//fib.append(index);
+			    	h2.offset = vn2.getTokenOffset(h2.index);
+			    	h2.endOffset = vn2.getTokenOffset(h2.index)+vn2.getTokenLength2(h2.index);
+			    	h2.tokenType = tokenType;
+			    	//h2.index++;
+			    	break loop2;
+			    	//
+			    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+				        || tokenType == VTDNav.TOKEN_ATTR_NS
+				        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+				    h2.index = h2.index+2;
+				    continue;
+				}			
+				h2.index++;
+			}
+		}
+		else{ 
+			h2.index = -1;
+			h2.type= 0;
+			h2.offset = vn2.getTokenOffset(k);
+			h2.endOffset= vn2.getTokenOffset(k)+vn2.getTokenLength(k);
+			h2.tokenType = vn2.getTokenType(k);
+		}
+		
+		// set the offset
+		int c1=-1, c2=-1;
+		do{
+			c1=getNextChar(this, h1); 
+			c2=getNextChar(vn2,h2);		
+			if (c1!=c2){
+				if (c1>c2)
+					return 1;
+				else 
+					return -1;
+				//return false;
+			}
+		} while(c1!=-1 && c2!=-1);
+		
+		if (c1==c2){
+			return 0;
+		}
+		else {
+			if (c1!=-1)
+				return 1;
+			else 
+				return -1;
+		}
+			//return false;
+	}
+	
+	final protected int getNextChar(VTDNav vn,helper h) throws NavException{
+		long l;
+		int result;		
+		if (h.type==0){// single token
+			if (h.offset == h.endOffset)
+				return -1;
+			if (h.tokenType == VTDNav.TOKEN_CHARACTER_DATA &&
+					h.tokenType !=VTDNav.TOKEN_ATTR_VAL){ 
+				l = vn.getCharResolved(h.offset);
+			}else {
+				l = vn.getChar(h.offset);
+			}
+			h.offset += (int)(l>>32);
+			result = (int)l;
+			return result;
+			
+		}else {// text value
+			if (h.offset < h.endOffset){
+				//return result;
+				if (h.tokenType != VTDNav.TOKEN_PI_VAL &&
+					h.tokenType !=VTDNav.TOKEN_CHARACTER_DATA){ 
+					l = vn.getChar(h.offset);
+				}else {
+					l = vn.getChar(h.offset);
+				}
+				h.offset += (int)(l>>32);
+				result = (int)l;	
+				return result;
+			}else{
+				h.index++;
+				while (h.index < vtdSize) {
+				    int tokenType = vn.getTokenType(h.index);
+				    int depth = vn.getTokenDepth(h.index);
+				    //t=t+getTokenLength2(index);
+				    if (depth<h.depth || 
+				    		(depth==h.depth && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+				    	break;
+				    }
+				    
+				    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA
+				    		|| tokenType==VTDNav.TOKEN_CDATA_VAL){
+				    	//length = getTokenLength2(index);
+				    	//t += length;
+				    	//fib.append(index);
+				    	h.offset = vn.getTokenOffset(h.index);
+				    	h.endOffset = vn.getTokenOffset(h.index)+vn.getTokenLength2(h.index);
+				    	h.tokenType = tokenType;
+				    	//h2.index++;
+				    	return getNextChar(vn,h);
+				    	//
+				    } else if (tokenType==VTDNav.TOKEN_ATTR_NAME
+					        || tokenType == VTDNav.TOKEN_ATTR_NS
+					        || tokenType == VTDNav.TOKEN_PI_NAME){			  
+					    h.index = h.index+2;
+					    continue;
+					}			
+					h.index++;
+				}
+				return -1;
+			}
+		}
+		//return -1;
 	}
 	
 	/**
@@ -5950,7 +6133,7 @@ public class VTDNav {
 	 * @return
 	 * @throws NavException
 	 */
-	final public boolean XPathStringVal_Matches(int j, String s) throws NavException{
+	final protected boolean XPathStringVal_Matches(int j, String s) throws NavException{
 		int tokenType;
 		int index = j + 1;
 		int depth, t=0, i=0,offset, endOffset,len,type,c;
