@@ -634,7 +634,7 @@ public class BinaryExpr extends Expr {
 	}
 	final private boolean compareVV(int k,  VTDNav vn, int j,int op) 
 	throws NavException {
-	    int i = vn.compareTokens(k, vn, j);
+	    int i = vn.XPathStringVal_Matches(k, vn, j);
         switch(i){        	    
         	case 1:
         	    if (op == NE || op==GE  || op == GT ){
@@ -676,7 +676,7 @@ public class BinaryExpr extends Expr {
 	              i1 = getStringVal(vn,i);
 	              if (i1 != -1){
 	                  s1 = fib1.size;
-	                  for (int k = 0; k < s1; k++) { 
+	                  for (int k = 0; k < s1; k++) {
 		                  boolean b = compareVV(fib1.intAt(k),vn,i1,op);
 		                  if (b){
 		                      fib1.clear();
