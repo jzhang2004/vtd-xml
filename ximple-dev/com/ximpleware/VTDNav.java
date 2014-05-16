@@ -310,7 +310,7 @@ public class VTDNav {
 		localName = null;
 		localNameIndex = -1;
 		fib = new FastIntBuffer(5); // page size is 32 ints
-		fib2 = new FastIntBuffer(5);
+		//fib2 = new FastIntBuffer(5);
 		shallowDepth = true;
 	}
 	/**
@@ -955,12 +955,14 @@ public class VTDNav {
 	             
 	             while(k<this.vtdSize){
 	                 int type = this.getTokenType(k);
-	                 if (type==VTDNav.TOKEN_ATTR_NAME || type==VTDNav.TOKEN_ATTR_NS)
+	                 if (type==VTDNav.TOKEN_ATTR_NAME || type==VTDNav.TOKEN_ATTR_NS){
 	                 if (type == VTDNav.TOKEN_ATTR_NS){    
 	                     fib.append(k);
 	                     //System.out.println(" ns name ==>" + toString(k));
 	                 }
-	                 k+=2;
+	                 k+=2;}
+	                 else 
+	                	 break;
 	                 //type = this.getTokenType(k);
 	             }
 	         }
@@ -3191,7 +3193,7 @@ public class VTDNav {
 	 */
 	protected void sync(int depth, int index){
 		// assumption is that this is always at terminal
-		int t=-1;
+		//int t=-1;
 		switch(depth){
 		case -1: return;
 		case 0: 
@@ -4610,7 +4612,7 @@ public class VTDNav {
 		return toRawString(offset, len);
 	}
 	
-	final protected void toRawString(StringBuilder sb, int index) 
+	/*final protected void toRawString(StringBuilder sb, int index) 
 		throws NavException {		
 		int type = getTokenType(index);
 		int len;
@@ -4622,7 +4624,7 @@ public class VTDNav {
 			len = getTokenLength2(index);
 		int offset = getTokenOffset(index);
 		toRawString(offset, len,sb);
-	}
+	}*/
 	/**
 	 * Convert a token at the given index to a String, upper case chars
 	 * get converted into lower case 
@@ -5698,7 +5700,6 @@ public class VTDNav {
 	public static final short XPATH_STRING_MODE_LOWERCASE = 2;
 	
 	final public void fillXPathString(FastIntBuffer indexBuffer, FastIntBuffer countBuffer) throws NavException{
-		int count = 0;
 		int index = getCurrentIndex() + 1;
 		int tokenType, depth, t=0, length,i=0;
 		int dp = context[0];
@@ -6136,8 +6137,8 @@ public class VTDNav {
 	final protected boolean XPathStringVal_Matches(int j, String s) throws NavException{
 		int tokenType;
 		int index = j + 1;
-		int depth, t=0, i=0,offset, endOffset,len,type,c;
-		long l;
+		int depth, t=0, i=0,offset;
+		//long l;
 		boolean result=false;
 		int dp = getTokenDepth(j);
 		//int size = vtdBuffer.size;
@@ -6239,7 +6240,8 @@ public class VTDNav {
 	 * @throws NavException
 	 */
 	private boolean matchSubString(int os,/*, int eos,*/ int index,/*, int t,*/ String s) throws NavException{
-		int offset = os, endOffset= getTokenOffset(fib.intAt(index))+getTokenLength(fib.intAt(index)), type =getTokenType(fib.intAt(index)), c;long l;
+		int offset = os, endOffset= getTokenOffset(fib.intAt(index))+getTokenLength(fib.intAt(index)), 
+		type =getTokenType(fib.intAt(index)), c;long l;
 		int i=0;
 		boolean b=false;
 		while(offset<endOffset){
@@ -8634,9 +8636,10 @@ public class VTDNav {
 	 * @return a double
 	 */
 	final protected double XPathStringVal2Double(int j) throws NavException{
-		int tokenType; double d= Double.NaN; boolean minus=false; boolean exponent_seen=false; boolean minusE=false;
+		int tokenType; double d= Double.NaN; boolean minus=false; 
+		boolean exponent_seen=false; boolean minusE=false;
 		int index = j + 1;
-		int depth,length,i=0, offset, endOffset, len,c;
+		int depth,i=0, offset, endOffset, len,c;
 		long l;
 		int state =0;
 		double left=0,right=0;
@@ -8644,7 +8647,7 @@ public class VTDNav {
 		double scale=1;
 		
 		int dp = getTokenDepth(j);
-		boolean r = false;//default
+		//boolean r = false;//default
 		
 		//int size = vtdBuffer.size;
 		// store all text tokens underneath the current element node
