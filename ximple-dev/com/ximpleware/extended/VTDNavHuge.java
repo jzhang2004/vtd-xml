@@ -4149,12 +4149,13 @@ public class VTDNavHuge {
 	             
 	             while(k<this.vtdSize){
 	                 int type = this.getTokenType(k);
-	                 if (type==VTDNavHuge.TOKEN_ATTR_NAME || type==VTDNavHuge.TOKEN_ATTR_NS)
+	                 if (type==VTDNavHuge.TOKEN_ATTR_NAME || type==VTDNavHuge.TOKEN_ATTR_NS){
 	                 if (type == VTDNavHuge.TOKEN_ATTR_NS){    
 	                     fib.append(k);
 	                     //System.out.println(" ns name ==>" + toString(k));
 	                 }
-	                 k+=2;
+	                 k+=2;}
+	                 else break;
 	                 //type = this.getTokenType(k);
 	             }
 	         }
