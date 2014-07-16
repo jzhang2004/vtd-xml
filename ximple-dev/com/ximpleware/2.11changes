@@ -1,0 +1,78 @@
+VTD-xml 2.11 vs 2.10 changes
+
+C# and Java 
+VTDGen
+
+VTDNav getOffsetAfterTail added 
+
+
+
+to do
+
+----> xmlModifier needs to work on the logic involving MASK_NULL
+
+need to add cachedExpr
+
+Sync AutoPilot  C# done
+Sync LocationPathExpr
+
+
+	
+FastObjBuffer   C# done 
+FastLongBuffer  C# done  C done C++ done
+
+UnionExpr		C# done  C++ done C done
+PathExpr		C# done  C++ done C done
+NodeTest        C# done  C++ done C done
+intHash			C# done
+LocationPathExprC# done	 C++ done 
+FuncExpr		C# done  C++ done c done
+FilterExpr		C# done  C++ done C done
+FastIntBuffer   C# done  C++ done C done
+Expr			C# done	 C++ done C done
+BinaryExpr		C# done  C++ done C done
+CachedExpr 		C# done	 C++ done C done
+AutoPilot   	C# done  C++ and  C done
+VTDNav    		C# done, C++ and  C done for XPath/node navigation first 
+VTDNav_l5 		C# done  C++ and  C done  
+XMLModifier 	C# done  C++ done C done 
+
+
+.xpath
+
+Alist   		C# done  C++ done   C done
+AxisType 		C# done  C++ done   C done
+FuncName  		C# done  C++ done   C done
+LiteralExpr 	C# done	 C++ done   C done
+NumExpr  		C# done	 C++ done	C done
+Predicate  		C# done  C++ done   C done
+Step     		C# done  C++ done   C done
+UnaryExpr  		C# done  C++ done   C done
+VariableExpr  	C# done  C++ done   C done
+parser.cup
+
+
+.parser 
+XMLChar   C# done 
+
+==============================
+extensive test xpath function 
+
+
+make certain functions protected, instead of public
+toNode()
+
+
+
+=================================
+test xpath more test cases
+
+
+toElement () to toNode() sibling navigation
+
+following-sibling::node() vs following-sibling::*
+preceding-sibling::node() vs preceding-sibling::*
+
+======================================================
+upper case, lower case contains, and normalize-string
+stars with ends with all need to be rewritten

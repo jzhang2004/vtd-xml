@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 /*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
+/*All licenses to any parties in litigation with XimpleWare have been expressly terminated. No new license, and no renewal of any revoked license, 
+ * is granted to those parties as a result of re-downloading software from this or any other website*/
 package com.ximpleware;
 import com.ximpleware.*;
 /**

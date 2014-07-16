@@ -21,6 +21,8 @@
  * This class is created to update VTDNav's implementation with 
  * a more thread safe version
  */
+/*All licenses to any parties in litigation with XimpleWare have been expressly terminated. No new license, and no renewal of any revoked license, 
+ * is granted to those parties as a result of re-downloading software from this or any other website*/
 package com.ximpleware;
 
 import java.io.File;
