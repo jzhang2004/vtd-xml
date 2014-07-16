@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2011 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,71 +116,9 @@ AndExpr 	::= EqualityExpr: ee
 EqualityExpr    ::= RelationalExpr:re  
 		{: RESULT = re; :}
 		|   EqualityExpr:ee EQ RelationalExpr:re  
-		{: 
-		  if (re.isFinal() && re.isString()) {
-				if (ee.getFuncOpCode() == FuncName.NAME) {
-					FuncExpr tmp=(FuncExpr)ee;
-					tmp.opCode = FuncName.MATCH_NAME;
-					tmp.addArg(re);
-					RESULT = tmp;
-				} else if (ee.getFuncOpCode() == FuncName.LOCAL_NAME) {
-					FuncExpr tmp=(FuncExpr)ee;
-					tmp.opCode = FuncName.MATCH_LOCAL_NAME;
-					tmp.addArg(re);
-					RESULT = tmp;
-				}else
-					RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
-			} else if (ee.isFinal() && ee.isString()) {
-				if (re.getFuncOpCode() == FuncName.NAME) {
-					FuncExpr tmp=(FuncExpr)re;
-					tmp.opCode = FuncName.MATCH_NAME;
-					tmp.addArg(ee);
-					RESULT=tmp;
-				} else if (re.getFuncOpCode() == FuncName.LOCAL_NAME) {
-					FuncExpr tmp=(FuncExpr)re;
-					tmp.opCode = FuncName.MATCH_LOCAL_NAME;
-					tmp.addArg(ee);
-					RESULT = tmp;
-				}else
-					RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
-			} else
-		   	 RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re); 
-		   //ee is a function expression such as name() or local-name()	
-		   // 
-		:}
+		{: RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re); :}
 		|   EqualityExpr:ee NE RelationalExpr:re 
-		{: 
-		if (re.isFinal() && re.isString()) {
-			if (ee.getFuncOpCode() == FuncName.NAME) {
-				FuncExpr tmp=(FuncExpr)ee;
-				tmp.opCode = FuncName.NOT_MATCH_NAME;
-				tmp.addArg(re);
-				RESULT = tmp;
-			} else if (ee.getFuncOpCode() == FuncName.LOCAL_NAME) {
-				FuncExpr tmp=(FuncExpr)ee;
-				tmp.opCode = FuncName.NOT_MATCH_LOCAL_NAME;
-				tmp.addArg(re);
-				RESULT = tmp;
-			}else
-				RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
-		} else if (ee.isFinal() && ee.isString()) {
-			if (re.getFuncOpCode() == FuncName.NAME) {
-				FuncExpr tmp=(FuncExpr)re;
-				tmp.opCode = FuncName.NOT_MATCH_NAME;
-				tmp.addArg(ee);
-				RESULT=tmp;
-			} else if (re.getFuncOpCode() == FuncName.LOCAL_NAME) {
-				FuncExpr tmp=(FuncExpr)re;
-				tmp.opCode = FuncName.NOT_MATCH_LOCAL_NAME;
-				tmp.addArg(ee);
-				RESULT = tmp;
-			}else
-				RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
-		} else
-		   RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); 
-		   //ee is a function expression such as name() or local-name()	
-		
-		:}
+		{: RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); :}
 		;
 
 RelationalExpr  ::= AdditiveExpr:ae  
@@ -214,11 +152,7 @@ MultiplicativeExpr    ::=  UnaryExpr:ue
 		;
 
 UnaryExpr    	::=    UnionExpr:ue  
-		{: if (ue.next==null) 
-		      RESULT = ue.e; 
-		   else
-		      RESULT = ue;
-		:}
+		{: RESULT = ue; :}
   		|    SUB UnaryExpr:ue   
 		{: RESULT = new UnaryExpr( BinaryExpr.SUB, ue); :}
 		 %prec UMINUS
@@ -291,11 +225,8 @@ PrimaryExpr     ::=  VariableReference:ve
 		;
 
 FunctionCall    ::=    FunctionName:fn LP ArgumentList:al RP
-		{: //RESULT = new FuncExpr(fn.i, al); 
-		   FuncExpr tfe = new FuncExpr(fn.i, al); 
-		   if (!tfe.checkArgumentCount())
-		    	throw new XPathParseException(" argument input for function "+tfe.fname()+" incorrect");
-		   RESULT = tfe;
+		{: RESULT = new FuncExpr(fn.i, al); 
+			// check argument count
 		:} 
 		;
 
@@ -318,15 +249,13 @@ Argument   	::=    Expr:e
 
 LocationPath    ::=    RelativeLocationPath:rlp	
 		{: RESULT = new LocationPathExpr();
-		   RESULT.setStep(rlp);
-		   RESULT.optimize();
+		   RESULT.setStep(rlp); 
 		:}
 		|    AbsoluteLocationPath:alp	
 		{: RESULT = new LocationPathExpr();
 		   RESULT.setPathType(LocationPathExpr.ABSOLUTE_PATH);
 		   //System.out.println(" absolute ");
 		   RESULT.setStep(alp);
-		   RESULT.optimize();
 		   //startStep = currentStep=null;
 		:}
 		;
@@ -343,8 +272,8 @@ RelativeLocationPath ::=  Step:s
 		{: RESULT = s; :}
 		|    Step:s SLASH RelativeLocationPath:rlp  	
 		{: //if (s == rlp) throw new XPathParseException("$1 = $3!!!!");
-		   s.setNextStep(rlp);						
-		   rlp.setPrevStep(s);							 
+		   s.nextS = rlp;						
+		   rlp.prevS = s;							 
 		   RESULT= s;
 		:}
 		|    AbbreviatedRelativeLocationPath:arlp 	
@@ -355,13 +284,19 @@ Step		::= AxisSpecifier:as nodetest:nt PredicateList:pl
 		{: RESULT = new Step();
       	   RESULT.setAxisType(as.i);
       	   if ( (as.i== AxisType.ATTRIBUTE
+	        	 || as.i == AxisType.DESCENDANT
+      	         || as.i == AxisType.PRECEDING
+      	         || as.i == AxisType.FOLLOWING
+      	         || as.i == AxisType.FOLLOWING_SIBLING
+      	         || as.i == AxisType.PRECEDING_SIBLING
       	         || as.i == AxisType.NAMESPACE) && 
       	        (nt.testType>1)){
       	          Yylex scanner = (Yylex)parser.getScanner();
       	          throw new XPathParseException(as.getAxisString()+" axis can't operate on"+
       	                 " comment(), pi(), or text()",
       	         	scanner.getOffset());
-      	         	}	   
+      	         	}
+      	   
       	   RESULT.setNodeTest(nt);
 		   RESULT.setPredicate(pl);
 		   	
@@ -470,18 +405,7 @@ AbbreviatedRelativeLocationPath ::=   Step:s DSLASH RelativeLocationPath:rlp
 
 Predicate 	::=    LB Expr:e RB 
 		{:	RESULT = new Predicate();
-   		        RESULT.expr= e;
-   		        if (e.isFinal() && e.isNumerical()){
-		        	RESULT.d = e.evalNumber((VTDNav)null);
-		        	Yylex scanner = (Yylex)parser.getScanner();
-		        	if(RESULT.d<1)
-		        		throw new XPathParseException("invalid index number for predicate",
-		        				scanner.getOffset());
-		        	RESULT.type = Predicate.simple;
-		        }
-   		        RESULT.requireContext = e.requireContext();
-   		        
-   		        //e.markCacheable();
+   		        RESULT.expr= e; 
 		:}   
 	   	;
 
