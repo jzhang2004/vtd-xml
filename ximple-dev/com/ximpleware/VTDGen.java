@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+cd  * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,6 +100,10 @@ public class VTDGen {
 			return (char) XMLDoc[offset];
 		}
 		
+		final public int getPrevOffset(){
+			return offset-1;
+		}
+		
 	}
 
 	
@@ -130,6 +134,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return ISO8859_10.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	class ISO8859_1Reader implements IReader {
@@ -162,6 +169,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return (char)(XMLDoc[offset] & 0xff);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	
 	class ISO8859_2Reader implements IReader {
@@ -193,6 +203,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return ISO8859_2.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	class ISO8859_3Reader implements IReader {
 		public ISO8859_3Reader() {
@@ -221,6 +234,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return ISO8859_3.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	
@@ -253,6 +269,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return ISO8859_4.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	
 	class ISO8859_5Reader implements IReader {
@@ -282,6 +301,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return ISO8859_5.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	
@@ -313,6 +335,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return ISO8859_6.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	class ISO8859_7Reader implements IReader {
 		public ISO8859_7Reader() {
@@ -343,6 +368,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return ISO8859_7.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	
 	class ISO8859_8Reader implements IReader {
@@ -372,6 +400,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return ISO8859_8.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 
@@ -404,6 +435,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return ISO8859_9.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	
 	class ISO8859_11Reader implements IReader {
@@ -434,6 +468,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return ISO8859_11.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	class ISO8859_13Reader implements IReader {
 		public ISO8859_13Reader() {
@@ -462,6 +499,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return ISO8859_13.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	class ISO8859_14Reader implements IReader {
@@ -492,6 +532,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return ISO8859_14.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	class ISO8859_15Reader implements IReader {
 		public ISO8859_15Reader() {
@@ -520,6 +563,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return ISO8859_15.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	class UTF16BEReader implements IReader {
@@ -610,6 +656,15 @@ public class VTDGen {
 				return val | (4L<<32);
 			}
 		}
+		final public int getPrevOffset(){
+			//int prevOffset = offset;
+			int temp;
+			    temp= (XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+				if (temp < 0xd800 || temp > 0xdfff) {
+					return offset - 2;
+				} else
+					return offset - 4;
+		}
 	}
 	class UTF16LEReader implements IReader {
 
@@ -695,6 +750,16 @@ public class VTDGen {
 				
 				return val | (4L<<32);
 			}
+		}
+		
+		final public int getPrevOffset(){
+			//int prevOffset = offset;
+			int temp;
+			 temp =(XMLDoc[offset]&0xff) << 8 | (XMLDoc[offset + 1]&0xff);
+				if (temp < 0xd800 || temp > 0xdfff) {
+					return offset - 2;
+				} else
+					return offset - 4;
 		}
 	}
 
@@ -893,6 +958,15 @@ public class VTDGen {
 		final public char decode(int offset){
 			return 0;
 		}
+		final public int getPrevOffset(){
+			int prevOffset = offset;
+			int temp;
+					do {
+						prevOffset--;
+					} while (XMLDoc[prevOffset] <0 && 
+					        ((XMLDoc[prevOffset] & (byte)0xc0) == (byte)0x80));
+					return prevOffset;
+		}
 	}
 	
 	class WIN1250Reader implements IReader {
@@ -924,6 +998,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return WIN1250.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	class WIN1251Reader implements IReader {
 		public WIN1251Reader() {
@@ -952,6 +1029,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return WIN1251.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	
@@ -986,6 +1066,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return WIN1252.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	
 	class WIN1253Reader implements IReader {
@@ -1015,6 +1098,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return WIN1253.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	
@@ -1046,6 +1132,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return WIN1254.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	
 	class WIN1255Reader implements IReader {
@@ -1075,6 +1164,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return WIN1255.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	
@@ -1106,6 +1198,9 @@ public class VTDGen {
 		final public char decode(int offset){
 			return WIN1256.decode(XMLDoc[offset]);
 		}
+		final public int getPrevOffset(){
+			return offset-1;
+		}
 	}
 	
 	class WIN1257Reader implements IReader {
@@ -1135,6 +1230,9 @@ public class VTDGen {
 		}
 		final public char decode(int offset){
 			return WIN1257.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 	
@@ -1166,6 +1264,9 @@ public class VTDGen {
 		
 		final public char decode(int offset){
 			return WIN1258.decode(XMLDoc[offset]);
+		}
+		final public int getPrevOffset(){
+			return offset-1;
 		}
 	}
 
@@ -1658,15 +1759,19 @@ public class VTDGen {
 			}
 			else
 				return n;
+			
+			//n = r.getChar();
+
 			/*if ((n == ' ' || n == '\n' || n =='\t'|| n == '\r'  ) ) {
 			//if (XMLChar.isSpaceChar(n) ) {
 			} else
-				return n;
-			n = r.getChar();
+				return n;*/
+			/*n = r.getChar();
 			if ((n == ' ' || n == '\n' || n =='\t'|| n == '\r'  ) ) {
 			} else
 				return n;
-			/*if (n == ' ' || n == '\n' || n =='\t'|| n == '\r'  ) {
+			n = r.getChar();
+			if (n == ' ' || n == '\n' || n =='\t'|| n == '\r'  ) {
 			} else
 				return n;*/
 		} while(true);
@@ -2326,6 +2431,17 @@ public class VTDGen {
 								}
 							} else
 								break;
+							ch = r.getChar();
+							if (XMLChar.isNameChar(ch)) {
+								if (ch == ':') {
+									length2 = offset - temp_offset - increment;
+									if (ns && checkPrefix2(temp_offset,length2))
+										throw new ParseException(
+												"xmlns can't be an element prefix "
+												+ formatLineNumber(offset));
+								}
+							} else
+								break;
 						}while (true);
 						length1 = offset - temp_offset - increment;
 						if (depth > MAX_DEPTH) {
@@ -2342,30 +2458,23 @@ public class VTDGen {
 						if (depth > VTDDepth)
 							VTDDepth = depth;
 						//if (encoding < FORMAT_UTF_16BE){
-						if (singleByteEncoding){
-							if (length2>MAX_PREFIX_LENGTH
-									|| length1 > MAX_QNAME_LENGTH)
-								throw new ParseException(
-										"Token Length Error: Starting tag prefix or qname length too long"					
-										+ formatLineNumber());
+					if (singleByteEncoding) {
+						if (length2 > MAX_PREFIX_LENGTH || length1 > MAX_QNAME_LENGTH)
+							throw new ParseException("Token Length Error: Starting tag prefix or qname length too long"
+									+ formatLineNumber());
 						if (this.shallowDepth)
-							writeVTD((temp_offset), (length2 << 11) | length1,
-									TOKEN_STARTING_TAG, depth);
+							writeVTD((temp_offset), (length2 << 11) | length1, TOKEN_STARTING_TAG, depth);
 						else
-							writeVTD_L5((temp_offset), (length2 << 11) | length1, 
-									TOKEN_STARTING_TAG, depth);
+							writeVTD_L5((temp_offset), (length2 << 11) | length1, TOKEN_STARTING_TAG, depth);
 					} else {
-						if (length2 > (MAX_PREFIX_LENGTH << 1)
-								|| length1 > (MAX_QNAME_LENGTH << 1))
-							throw new ParseException(
-									"Token Length Error: Starting tag prefix or qname length too long"
-											+ formatLineNumber());
+						if (length2 > (MAX_PREFIX_LENGTH << 1) || length1 > (MAX_QNAME_LENGTH << 1))
+							throw new ParseException("Token Length Error: Starting tag prefix or qname length too long"
+									+ formatLineNumber());
 						if (this.shallowDepth)
-							writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), 
-									TOKEN_STARTING_TAG, depth);
+							writeVTD((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG, depth);
 						else
-							writeVTD_L5((temp_offset) >> 1, (length2 << 10)	| (length1 >> 1), 
-									TOKEN_STARTING_TAG, depth);
+							writeVTD_L5((temp_offset) >> 1, (length2 << 10) | (length1 >> 1), TOKEN_STARTING_TAG,
+									depth);
 					}
 					if (ns) {
 						if (length2!=0){
@@ -2388,7 +2497,7 @@ public class VTDGen {
 						ch = getCharAfterS();
 						if (XMLChar.isNameStartChar(ch)) {
 							// seen an attribute here
-							temp_offset = getPrevOffset();
+							temp_offset = r.getPrevOffset();
 							parser_state = STATE_ATTR_NAME;
 							break;
 						}
@@ -3762,7 +3871,7 @@ public class VTDGen {
 				break;
 			ch = r.getChar();
 		}while (true);
-		length1 = getPrevOffset() - temp_offset;
+		length1 = r.getPrevOffset() - temp_offset;
 		if (is_ns && ns){
 			// make sure postfix isn't xmlns
 			if (!default_ns){
@@ -4198,7 +4307,7 @@ public class VTDGen {
 					throw new ParseException(
 						"Error in PI: [xX][mM][lL] not a valid PI targetname"
 							+ formatLineNumber());
-				offset = getPrevOffset();
+				offset = r.getPrevOffset();
 			}
 			return STATE_PI_TAG;
 		}
@@ -4865,7 +4974,32 @@ public class VTDGen {
 				&& XMLDoc[os+3]=='n' && XMLDoc[os+4]=='s'){
 				return true;
 			}
-		}else if (encoding == FORMAT_UTF_16BE){
+			return false;
+		}else 
+			return checkPrefix2Inner(os,len);
+		/*if (encoding == FORMAT_UTF_16BE){
+			if ( len==10 && XMLDoc[os]==0 && XMLDoc[os+1]=='x'
+				&& XMLDoc[os+2]==0 && XMLDoc[os+3]=='m' 
+				&& XMLDoc[os+4]==0 && XMLDoc[os+5]=='l'
+				&& XMLDoc[os+6]==0 && XMLDoc[os+7]=='n' 
+				&& XMLDoc[os+8]==0 && XMLDoc[os+9]=='s'		
+			){
+				return true;
+			}
+		}else {
+			if ( len==10 && XMLDoc[os]=='x' && XMLDoc[os+1]==0
+				&& XMLDoc[os+2]=='m' && XMLDoc[os+3]==0 
+				&& XMLDoc[os+4]=='l' && XMLDoc[os+5]==0
+				&& XMLDoc[os+6]=='n' && XMLDoc[os+3]==0 
+				&& XMLDoc[os+8]=='s' && XMLDoc[os+5]==0				
+			){
+				return true;
+			}
+		}*/
+		//return false;
+	}
+	private boolean checkPrefix2Inner(int os, int len){
+		if (encoding == FORMAT_UTF_16BE){
 			if ( len==10 && XMLDoc[os]==0 && XMLDoc[os+1]=='x'
 				&& XMLDoc[os+2]==0 && XMLDoc[os+3]=='m' 
 				&& XMLDoc[os+4]==0 && XMLDoc[os+5]=='l'
@@ -4887,151 +5021,151 @@ public class VTDGen {
 		return false;
 	}
 	
-	
-	private long _getCharResolved(int byte_offset){
+	private long _getCharResolvedInner(int byte_offset){
+		//currentOffset++;
+		int ch = 0;
+		int val = 0;
+		long inc = 2<<(increment-1);
 		
-			int ch = 0;
-			int val = 0;
-			long inc = 2<<(increment-1);
-			long l = r._getChar(byte_offset);
-			
-			ch = (int)l;
-			
-			if (ch != '&')
-				return l;
-			
-			// let us handle references here
-			//currentOffset++;
-			byte_offset+=increment;
-			ch = getCharUnit(byte_offset);
-			byte_offset+=increment;
-			switch (ch) {
-				case '#' :
-				    	
-					ch = getCharUnit(byte_offset);
+		byte_offset+=increment;
+		ch = getCharUnit(byte_offset);
+		byte_offset+=increment;
+		switch (ch) {
+			case '#' :
+			    	
+				ch = getCharUnit(byte_offset);
 
-					if (ch == 'x') {
-						while (true) {
-							byte_offset+=increment;
-							inc+=increment;
-							ch = getCharUnit(byte_offset);
+				if (ch == 'x') {
+					while (true) {
+						byte_offset+=increment;
+						inc+=increment;
+						ch = getCharUnit(byte_offset);
 
-							if (ch >= '0' && ch <= '9') {
-								val = (val << 4) + (ch - '0');
-							} else if (ch >= 'a' && ch <= 'f') {
-								val = (val << 4) + (ch - 'a' + 10);
-							} else if (ch >= 'A' && ch <= 'F') {
-								val = (val << 4) + (ch - 'A' + 10);
-							} else if (ch == ';') {
-								inc+=increment;
-								break;
-							} 
-						}
-					} else {
-						while (true) {
-							ch = getCharUnit(byte_offset);
-							byte_offset+=increment;
+						if (ch >= '0' && ch <= '9') {
+							val = (val << 4) + (ch - '0');
+						} else if (ch >= 'a' && ch <= 'f') {
+							val = (val << 4) + (ch - 'a' + 10);
+						} else if (ch >= 'A' && ch <= 'F') {
+							val = (val << 4) + (ch - 'A' + 10);
+						} else if (ch == ';') {
 							inc+=increment;
-							if (ch >= '0' && ch <= '9') {
-								val = val * 10 + (ch - '0');
-							} else if (ch == ';') {
-								break;
-							} 						
-						}
+							break;
+						} 
 					}
-					break;
+				} else {
+					while (true) {
+						ch = getCharUnit(byte_offset);
+						byte_offset+=increment;
+						inc+=increment;
+						if (ch >= '0' && ch <= '9') {
+							val = val * 10 + (ch - '0');
+						} else if (ch == ';') {
+							break;
+						} 						
+					}
+				}
+				break;
 
-				case 'a' :
-					ch = getCharUnit(byte_offset);
-					if (encoding<FORMAT_UTF_16BE){
+			case 'a' :
+				ch = getCharUnit(byte_offset);
+				if (encoding<FORMAT_UTF_16BE){
+				if (ch == 'm') {
+					if (getCharUnit(byte_offset + 1) == 'p'
+						&& getCharUnit(byte_offset + 2) == ';') {
+						inc = 5;
+						val = '&';
+					} 
+				} else if (ch == 'p') {
+					if (getCharUnit(byte_offset + 1) == 'o'
+						&& getCharUnit(byte_offset + 2) == 's'
+						&& getCharUnit(byte_offset + 3) == ';') {
+						inc = 6;
+						val = '\'';
+					} 
+				} 
+				}else{
 					if (ch == 'm') {
-						if (getCharUnit(byte_offset + 1) == 'p'
-							&& getCharUnit(byte_offset + 2) == ';') {
-							inc = 5;
+						if (getCharUnit(byte_offset + 2) == 'p'
+							&& getCharUnit(byte_offset + 4) == ';') {
+							inc = 10;
 							val = '&';
 						} 
 					} else if (ch == 'p') {
-						if (getCharUnit(byte_offset + 1) == 'o'
-							&& getCharUnit(byte_offset + 2) == 's'
-							&& getCharUnit(byte_offset + 3) == ';') {
-							inc = 6;
+						if (getCharUnit(byte_offset + 2) == 'o'
+							&& getCharUnit(byte_offset + 4) == 's'
+							&& getCharUnit(byte_offset + 6) == ';') {
+							inc = 12;
 							val = '\'';
 						} 
 					} 
-					}else{
-						if (ch == 'm') {
-							if (getCharUnit(byte_offset + 2) == 'p'
-								&& getCharUnit(byte_offset + 4) == ';') {
-								inc = 10;
-								val = '&';
-							} 
-						} else if (ch == 'p') {
-							if (getCharUnit(byte_offset + 2) == 'o'
-								&& getCharUnit(byte_offset + 4) == 's'
-								&& getCharUnit(byte_offset + 6) == ';') {
-								inc = 12;
-								val = '\'';
-							} 
-						} 
-					}
-					break;
+				}
+				break;
 
-				case 'q' :
+			case 'q' :
 
-					if (encoding<FORMAT_UTF_16BE){
+				if (encoding<FORMAT_UTF_16BE){
+				if (getCharUnit(byte_offset) == 'u'
+					&& getCharUnit(byte_offset + 1) == 'o'
+					&& getCharUnit(byte_offset + 2) == 't'
+					&& getCharUnit(byte_offset + 3) ==';') {
+					inc = 6;
+					val = '\"';
+				} }
+				else{
 					if (getCharUnit(byte_offset) == 'u'
-						&& getCharUnit(byte_offset + 1) == 'o'
-						&& getCharUnit(byte_offset + 2) == 't'
-						&& getCharUnit(byte_offset + 3) ==';') {
-						inc = 6;
+						&& getCharUnit(byte_offset + 2) == 'o'
+						&& getCharUnit(byte_offset + 4) == 't'
+						&& getCharUnit(byte_offset + 6) ==';') {
+						inc = 12;
 						val = '\"';
-					} }
-					else{
-						if (getCharUnit(byte_offset) == 'u'
-							&& getCharUnit(byte_offset + 2) == 'o'
-							&& getCharUnit(byte_offset + 4) == 't'
-							&& getCharUnit(byte_offset + 6) ==';') {
-							inc = 12;
-							val = '\"';
-						}
 					}
-					break;
-				case 'l' :
-					if (encoding<FORMAT_UTF_16BE){
+				}
+				break;
+			case 'l' :
+				if (encoding<FORMAT_UTF_16BE){
+				if (getCharUnit(byte_offset) == 't'
+					&& getCharUnit(byte_offset + 1) == ';') {
+					//offset += 2;
+					inc = 4;
+					val = '<';
+				} 
+				}else{
 					if (getCharUnit(byte_offset) == 't'
-						&& getCharUnit(byte_offset + 1) == ';') {
+						&& getCharUnit(byte_offset + 2) == ';') {
 						//offset += 2;
-						inc = 4;
+						inc = 8;
 						val = '<';
 					} 
-					}else{
-						if (getCharUnit(byte_offset) == 't'
-							&& getCharUnit(byte_offset + 2) == ';') {
-							//offset += 2;
-							inc = 8;
-							val = '<';
-						} 
-					}
-					break;
-				case 'g' :
-					if (encoding<FORMAT_UTF_16BE){
+				}
+				break;
+			case 'g' :
+				if (encoding<FORMAT_UTF_16BE){
+				if (getCharUnit(byte_offset) == 't'
+					&& getCharUnit(byte_offset + 1) == ';') {
+					inc = 4;
+					val = '>';
+				} 
+				}else {
 					if (getCharUnit(byte_offset) == 't'
-						&& getCharUnit(byte_offset + 1) == ';') {
-						inc = 4;
+						&& getCharUnit(byte_offset + 2) == ';') {
+						inc = 8;
 						val = '>';
 					} 
-					}else {
-						if (getCharUnit(byte_offset) == 't'
-							&& getCharUnit(byte_offset + 2) == ';') {
-							inc = 8;
-							val = '>';
-						} 
-					}
-					break;
-			}
+				}
+				break;
+		}
 
+		//currentOffset++;
+		return val | (inc << 32);
+	}
+	private long _getCharResolved(int byte_offset){
+			long l = r._getChar(byte_offset);
+			ch = (int)l;			
+			if (ch != '&')
+				return l;
+			return _getCharResolvedInner(byte_offset);
+			// let us handle references here
 			//currentOffset++;
-			return val | (inc << 32);
 	}
 		//return 0;	
 	
