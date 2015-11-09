@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,7 +99,9 @@ public class BinaryExpr extends Expr {
 		}
 		compType = computeCompType();
 	}
-	
+	/**
+	 * compute the right op code for binary expression evaluation
+	 */
 	final  public byte computeCompType(){
 		if (left.isNodeSet()){
 			if (right.isNodeSet())
