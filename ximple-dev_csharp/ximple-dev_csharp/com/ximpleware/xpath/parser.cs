@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -477,15 +477,15 @@ public class parser : TUVienna.CS_CUP.Runtime.lr_parser {
     }
   }*/
  
-  public void report_error(String message, Object info) {
+  public new void report_error(String message, Object info) {
 	//throw new XPathParseException("Syntax error during parsing");
   }
 
-  public void report_fatal_error(String message, Object info){
+  public new void report_fatal_error(String message, Object info){
 	throw new XPathParseException("Syntax error during parsing: "+ message);
   }
 
-  public void syntax_error(Symbol cur_token) {
+  public new void syntax_error(Symbol cur_token) {
 	
   }
   
@@ -1391,8 +1391,50 @@ public class CUP_parser_actions {
 		int releft = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).left;
 		int reright = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right;
 		Expr re = (Expr)((TUVienna.CS_CUP.Runtime.Symbol) CUP_parser_stack.elementAt(CUP_parser_top-0)).value;
-		 RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); 
-              CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(5/*EqualityExpr*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-2)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
+		 RESULT = new BinaryExpr(ee, BinaryExpr.NE, re);
+                        if (re.isFinal() && re.String)
+                        {
+                            if (ee.getFuncOpCode() == FuncName.NAME)
+                            {
+                                FuncExpr tmp = (FuncExpr)ee;
+                                tmp.opCode = FuncName.NOT_MATCH_NAME;
+                                tmp.addArg(re);
+                                RESULT = tmp;
+                            }
+                            else if (ee.getFuncOpCode() == FuncName.LOCAL_NAME)
+                            {
+                                FuncExpr tmp = (FuncExpr)ee;
+                                tmp.opCode = FuncName.NOT_MATCH_LOCAL_NAME;
+                                tmp.addArg(re);
+                                RESULT = tmp;
+                            }
+                            else
+                                RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+                        }
+                        else if (ee.isFinal() && ee.String)
+                        {
+                            if (re.getFuncOpCode() == FuncName.NAME)
+                            {
+                                FuncExpr tmp = (FuncExpr)re;
+                                tmp.opCode = FuncName.NOT_MATCH_NAME;
+                                tmp.addArg(ee);
+                                RESULT = tmp;
+                            }
+                            else if (re.getFuncOpCode() == FuncName.LOCAL_NAME)
+                            {
+                                FuncExpr tmp = (FuncExpr)re;
+                                tmp.opCode = FuncName.NOT_MATCH_LOCAL_NAME;
+                                tmp.addArg(ee);
+                                RESULT = tmp;
+                            }
+                            else
+                                RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+                        }
+                        else
+                            RESULT = new BinaryExpr(ee, BinaryExpr.NE, re);
+                        CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(5/*EqualityExpr*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top - 2)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top - 0)).right, RESULT);
+                    
+                    
             }
           return CUP_parser_result;
 
@@ -1406,8 +1448,47 @@ public class CUP_parser_actions {
 		int releft = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).left;
 		int reright = ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right;
 		Expr re = (Expr)((TUVienna.CS_CUP.Runtime.Symbol) CUP_parser_stack.elementAt(CUP_parser_top-0)).value;
-		 RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re); 
-              CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(5/*EqualityExpr*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-2)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
+                        if (re.isFinal() && re.String)
+                        {
+                            if (ee.getFuncOpCode() == FuncName.NAME)
+                            {
+                                FuncExpr tmp = (FuncExpr)ee;
+                                tmp.opCode = FuncName.MATCH_NAME;
+                                tmp.addArg(re);
+                                RESULT = tmp;
+                            }
+                            else if (ee.getFuncOpCode() == FuncName.LOCAL_NAME)
+                            {
+                                FuncExpr tmp = (FuncExpr)ee;
+                                tmp.opCode = FuncName.MATCH_LOCAL_NAME;
+                                tmp.addArg(re);
+                                RESULT = tmp;
+                            }
+                            else
+                                RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+                        }
+                        else if (ee.isFinal() && ee.String)
+                        {
+                            if (re.getFuncOpCode() == FuncName.NAME)
+                            {
+                                FuncExpr tmp = (FuncExpr)re;
+                                tmp.opCode = FuncName.MATCH_NAME;
+                                tmp.addArg(ee);
+                                RESULT = tmp;
+                            }
+                            else if (re.getFuncOpCode() == FuncName.LOCAL_NAME)
+                            {
+                                FuncExpr tmp = (FuncExpr)re;
+                                tmp.opCode = FuncName.MATCH_LOCAL_NAME;
+                                tmp.addArg(ee);
+                                RESULT = tmp;
+                            }
+                            else
+                                RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+                        }
+                        else
+                            RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+                        CUP_parser_result = new TUVienna.CS_CUP.Runtime.Symbol(5/*EqualityExpr*/, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-2)).left, ((TUVienna.CS_CUP.Runtime.Symbol)CUP_parser_stack.elementAt(CUP_parser_top-0)).right, RESULT);
             }
           return CUP_parser_result;
 

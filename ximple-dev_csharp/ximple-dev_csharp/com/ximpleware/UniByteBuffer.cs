@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ namespace com.ximpleware
 	{
 		private byte[] ba;
 		/// <summary> UniByteBuffer constructor comment.</summary>
-		/// <exception cref="IllegalArguement"> when b is a null pointer
+		/// <exception cref="ArgumentException"> when b is a null pointer
 		/// </exception>
 		public UniByteBuffer(byte[] b):base()
 		{

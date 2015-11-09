@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -118,9 +118,67 @@ AndExpr 	::= EqualityExpr: ee
 EqualityExpr    ::= RelationalExpr:re  
 		{: RESULT = re; :}
 		|   EqualityExpr:ee EQ RelationalExpr:re  
-		{: RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re); :}
+		{: if (re.isFinal() && re.isString()) {
+				if (ee.getFuncOpCode() == FuncName.NAME) {
+					FuncExpr tmp=(FuncExpr)ee;
+					tmp.opCode = FuncName.MATCH_NAME;
+					tmp.addArg(re);
+					RESULT = tmp;
+				} else if (ee.getFuncOpCode() == FuncName.LOCAL_NAME) {
+					FuncExpr tmp=(FuncExpr)ee;
+					tmp.opCode = FuncName.MATCH_LOCAL_NAME;
+					tmp.addArg(re);
+					RESULT = tmp;
+				}else
+					RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+			} else if (ee.isFinal() && ee.isString()) {
+				if (re.getFuncOpCode() == FuncName.NAME) {
+					FuncExpr tmp=(FuncExpr)re;
+					tmp.opCode = FuncName.MATCH_NAME;
+					tmp.addArg(ee);
+					RESULT=tmp;
+				} else if (re.getFuncOpCode() == FuncName.LOCAL_NAME) {
+					FuncExpr tmp=(FuncExpr)re;
+					tmp.opCode = FuncName.MATCH_LOCAL_NAME;
+					tmp.addArg(ee);
+					RESULT = tmp;
+				}else
+					RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+			} else
+		   	 RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re); 
+		   //ee is a function expression such as name() or local-name()	
+		   // 
+		    :}
 		|   EqualityExpr:ee NE RelationalExpr:re 
-		{: RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); :}
+		{: if (re.isFinal() && re.String) {
+			if (ee.getFuncOpCode() == FuncName.NAME) {
+				FuncExpr tmp=(FuncExpr)ee;
+				tmp.opCode = FuncName.NOT_MATCH_NAME;
+				tmp.addArg(re);
+				RESULT = tmp;
+			} else if (ee.getFuncOpCode() == FuncName.LOCAL_NAME) {
+				FuncExpr tmp=(FuncExpr)ee;
+				tmp.opCode = FuncName.NOT_MATCH_LOCAL_NAME;
+				tmp.addArg(re);
+				RESULT = tmp;
+			}else
+				RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+		} else if (ee.isFinal() && ee.String) {
+			if (re.getFuncOpCode() == FuncName.NAME) {
+				FuncExpr tmp=(FuncExpr)re;
+				tmp.opCode = FuncName.NOT_MATCH_NAME;
+				tmp.addArg(ee);
+				RESULT=tmp;
+			} else if (re.getFuncOpCode() == FuncName.LOCAL_NAME) {
+				FuncExpr tmp=(FuncExpr)re;
+				tmp.opCode = FuncName.NOT_MATCH_LOCAL_NAME;
+				tmp.addArg(ee);
+				RESULT = tmp;
+			}else
+				RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+		} else
+		   RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); 
+		   //ee is a function expression such as name() or local-name()	}
 		;
 
 RelationalExpr  ::= AdditiveExpr:ae  
