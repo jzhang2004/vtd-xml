@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ namespace com.ximpleware
 			bufferArrayList = new ArrayList();
 		}
 		/// <summary> Construct a FastLongBuffer instance with specified page size</summary>
-		/// <param name="e">int (so that pageSize = (1<<e)) 
+		/// <param name="e">int (so that pageSize = (1&lt;&lt;e)) 
 		/// </param>
         public FastLongBuffer(int e)
 		{
@@ -81,7 +81,7 @@ namespace com.ximpleware
 		}
 		
 		/// <summary> Construct a FastLongBuffer instance with specified page size</summary>
-		/// <param name="e">int (so that pageSize = (1<<e))
+		/// <param name="e">int (so that pageSize = (1&lt;&lt;e))
 		/// </param>
 		/// <param name="c">int (suggest initial capacity of  ArrayList
 		/// </param>

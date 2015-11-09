@@ -1,5 +1,5 @@
 ﻿/* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1078,7 +1078,7 @@ namespace com.ximpleware
          * A generic navigation method. Move the cursor to the element according to
          * the direction constants and the element name If no such element, no
          * position change and return false. "*" matches any element Creation date:
-         * (12/2/03 1:43:50 PM) Legal direction constants are <br>
+         * (12/2/03 1:43:50 PM) Legal direction constants are <br></br>
          * 
          * <pre>
          * 		ROOT            0  
@@ -1099,7 +1099,7 @@ namespace com.ximpleware
          * 		PREV_SIBLING    5  
          * </pre>
          * 
-         * <br>
+         * <br></br>
          * for ROOT and PARENT, element name will be ignored.
          * 
          * @return boolean
@@ -1733,7 +1733,7 @@ namespace com.ximpleware
          * matches any namespace, including undefined namespaces a null URL means
          * hte namespace prefix is undefined for the element ln * matches any
          * localname Creation date: (12/2/03 1:43:50 PM) Legal direction constants
-         * are <br>
+         * are <br></br>
          * 
          * <pre>
          * 		ROOT            0  
@@ -1754,7 +1754,7 @@ namespace com.ximpleware
          * 		PREV_SIBLING    5  
          * </pre>
          * 
-         * <br>
+         * <br></br>
          * for ROOT and PARENT, element name will be ignored. If not ns enabled,
          * return false immediately with no position change.
          * 

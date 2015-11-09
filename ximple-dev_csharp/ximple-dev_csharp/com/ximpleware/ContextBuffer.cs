@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ namespace com.ximpleware
 		/// incSize is the # of int to be pushed/pop to/from the underlying storage
 		/// Creation date: (11/16/03 8:02:21 PM)
 		/// </summary>
-		/// <param name="p">int (pageSize equals (1<<p)
+		/// <param name="p">int (pageSize equals (1&lt;&lt;p)
 		/// </param>
 		/// <param name="i">int
 		/// </param>

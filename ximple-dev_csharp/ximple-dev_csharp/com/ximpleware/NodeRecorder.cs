@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ namespace com.ximpleware
         public NodeRecorder()
         {
             vn = null;
-            size = position = 0;
+            size = position = count=0;
             fib = new FastIntBuffer(BUF_SZ_EXPO);
         }
 
@@ -570,7 +570,7 @@ namespace com.ximpleware
 
                                 default:
                                     vn.context[0] = i;
-                                    for (j = 1; j < i; j++)
+                                    for (j = 0; j < i; j++)
                                     {
                                         vn.context[j] = fib.intAt(count + j);
                                     }
