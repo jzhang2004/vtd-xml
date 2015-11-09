@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -114,12 +114,19 @@ namespace com.ximpleware
                 return e.evalNumber(vn);
             //double d;
             double d = Double.NaN;
-            int a = -1;
+            int a = 0x7fffffff, k = -1;
             vn.push2();
             int size = vn.contextStack2.size;
             try
             {
-                a = evalNodeSet(vn);
+                while ((k = evalNodeSet(vn)) != -1)
+                {
+                    //a = evalNodeSet(vn);
+                    if (k < a)
+                        a = k;
+                }
+                if (a == 0x7fffffff)
+                    a = -1;
                 if (a != -1)
                 {
                     int t = vn.getTokenType(a);
@@ -129,8 +136,7 @@ namespace com.ximpleware
                     }
                     else if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
                     {
-                        String s = vn.getXPathStringVal();
-                        d = Double.Parse(s);
+                        d = vn.XPathStringVal2Double(a);//Double.parseDouble(s);
                     }
                     else if (t == VTDNav.TOKEN_PI_NAME)
                     {
@@ -259,12 +265,19 @@ namespace com.ximpleware
             else
             {
                 String s = "";
-                int a = -1;
+                int a = 0x7fffffff, k = -1;
                 vn.push2();
                 int size = vn.contextStack2.size;
                 try
                 {
-                    a = evalNodeSet(vn);
+                    while ((k = evalNodeSet(vn)) != -1)
+                    {
+                        //a = evalNodeSet(vn);
+                        if (k < a)
+                            a = k;
+                    }
+                    if (a == 0x7fffffff)
+                        a = -1;
                     if (a != -1)
                     {
                         int t = vn.getTokenType(a);
