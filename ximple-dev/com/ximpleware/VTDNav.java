@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1290,7 +1290,7 @@ public class VTDNav {
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		int depth = getCurrentDepth();
 		int type; 
-		if (index<vtdSize || !atTerminal)
+		if (index<vtdSize && !atTerminal)
 			type = getTokenType(index);
 		else 
 			return -1;
@@ -8488,6 +8488,7 @@ public class VTDNav {
 	}
 	/**
 	 * New in v2.12
+	 * Dump an element fragment of xml into an XML file whose name is specified as fileName
 	 * @param l upper 32 bits are length in byte, lower 32 bits are offset in byte
 	 * @param fileName
 	 * @throws NavException
@@ -8521,7 +8522,7 @@ public class VTDNav {
 	 * New in v2.12
 	 * Dump a fragement as specified by a long into an output stream 
 	 * @param l upper 32 bit is length in byte, lower 32 bit is offset in byte
-	 * @param os
+	 * @param os output stream
 	 * @throws NavException
 	 * @throws IOException
 	 */
@@ -8596,7 +8597,6 @@ public class VTDNav {
 	 * It has no effect on CDATA
 	 * @param l upper 32 bits length of the segment, lower 32 bits offset of the segment, unit in byte
 	 * @return  a long 64 bit segment descriptor
-	 * @throws NavException
 	 */
 	final public long trimWhiteSpaces(long l){
 		// convert to char offset
