@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -38,8 +38,7 @@ namespace com.ximpleware
 		/// node() and *
 		/// node() corresponding to b= true;
 		/// </summary>
-		/// <param name="b">
-		/// </param>
+		
 		protected internal bool Special
 		{			
 			set
@@ -57,27 +56,73 @@ namespace com.ximpleware
 		{
 			return xpe.ToString();
 		}
+        /// <summary>
+        /// the depth of the element at the starting point will determine when to stop iteration
+        /// </summary>
 		protected int depth;
-		// the depth of the element at the starting point will determine when to stop iteration
-		protected int iter_type; // see selectElement
-		protected VTDNav vn; // the navigator object
+	    /// <summary>
+        /// see selectElement
+        /// </summary>
+		protected int iter_type;
+        /// <summary>
+        /// the navigator object
+        /// </summary>
+		protected VTDNav vn;
         //private int endIndex;
-		protected int index; // for iterAttr
-		protected bool ft; // a helper variable for 
-		protected bool special; // This helps distinguish between
+        /// <summary>
+        /// for iterAttr
+        /// </summary>
+		protected int index;
+        /// <summary>
+        /// a helper variable for 
+        /// </summary>
+		protected bool ft;
+        /// <summary>
+        /// This helps distinguish between
+        /// </summary>
+		protected bool special;
 		// the case of node() and * for preceding axis
 		// of xpath evaluation
-		protected System.String name; // Store element name after selectElement
-        protected System.String name2; //xmlns:+name
-        protected System.String localName; // Store local name after selectElemntNS
-		protected System.String URL; // Store URL name after selectElementNS
-		protected int size; // for iterateAttr
+        /// <summary>
+        /// Store element name after selectElement
+        /// </summary>
+		protected System.String name;
+        /// <summary>
+        /// xmlns:+name
+        /// </summary>
+        protected System.String name2;
+        /// <summary>
+        /// Store local name after selectElemntNS
+        /// </summary>
+        protected System.String localName;
+        /// <summary>
+        /// Store URL name after selectElementNS
+        /// </summary>
+		protected System.String URL;
+        /// <summary>
+        /// for iterateAttr
+        /// </summary>
+		protected int size; 
         private FastIntBuffer fib; 
-		protected Expr xpe; // for evalXPath
-		
-		protected int[] contextCopy; //for preceding axis
-		protected int stackSize; // the stack size for xpath evaluation
+        /// <summary>
+        /// for evalXPath
+        /// </summary>
+		protected Expr xpe;
+        /// <summary>
+        /// for preceding axis
+        /// </summary>
+		protected int[] contextCopy;
+        /// <summary>
+        /// the stack size for xpath evaluation
+        /// </summary>
+		protected int stackSize;
+        /// <summary>
+        /// hash table holding 
+        /// </summary>
 		static protected System.Collections.Hashtable nsHash;
+        /// <summary>
+        /// true if caching is enabled for xpath evaluation
+        /// </summary>
         protected bool cachingEnabled;
         static private System.Collections.Hashtable symbolHash;
 		//private parser p;
@@ -102,9 +147,12 @@ namespace com.ximpleware
         public const int PRECEDING_NODE = 15;
 
         //protected bool enableCaching;
+        /// <summary>
+        /// 
+        /// </summary>
         protected int endIndex;
 		/// <summary> AutoPilot constructor comment.</summary>
-		/// <exception cref="IllegalArgumentException">If the VTDNav object is null 
+		/// <exception cref="ArgumentException">If the VTDNav object is null 
 		/// </exception>
 		public AutoPilot(VTDNav v)
 		{
@@ -985,7 +1033,14 @@ namespace com.ximpleware
                     throw new PilotException(" iteration action type undefined");
             }
 }
-
+        /// <summary>
+        /// set state to false to disable caching, which by default is enabled
+        /// This method will turn on the internal caching feature during xpath evaluation, which is to
+        ///store the evaluation results of absolute expressions when they resides in a predicate
+        ///examples: //a[//bb=//cc] //bb and //cc are cached internally to avoid repeitive computation..
+        ///param state
+        /// </summary>
+        /// <param name="state"></param>
         public void enableCaching(bool state)
         {
             this.cachingEnabled = state;
@@ -1034,6 +1089,11 @@ namespace com.ximpleware
             ft = true;
             depth = vn.getCurrentDepth();
             iter_type = DESCENDANT_NODE;
+        }
+
+        public VTDNav getNav()
+        {
+            return vn;
         }
 	}
 }
