@@ -2,7 +2,7 @@
 
 #line 1 "scanner_cs.flex"
 /* 
- * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

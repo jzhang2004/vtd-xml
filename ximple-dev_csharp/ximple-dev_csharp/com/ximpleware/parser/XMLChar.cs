@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace com.ximpleware.parser
 		/// The various newline characters are considered special as well.
 		/// All other valid XML characters can be considered content.
 		/// <p>
-		/// This is an optimization for the inner loop of character scanning.
+		/// This is an optimization for the inner loop of character scanning.</p>
 		/// </summary>
 		public const int XML_CONTENT = 0x20;
 		
@@ -218,7 +218,7 @@ namespace com.ximpleware.parser
 		/// <p>
 		/// If the program chooses to apply the mask directly to the
 		/// <code>UNI_CHARS</code> array, then they are responsible for checking
-		/// the surrogate character range.
+		/// the surrogate character range.</p>
 		/// 
 		/// </summary>
 		/// <param name="c">The character to check.

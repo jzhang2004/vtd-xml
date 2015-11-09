@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,15 @@ namespace com.ximpleware.xpath
     /// </summary>
     public class UnaryExpr : Expr
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public override int adjust(int n) { return 0; }
+        /// <summary>
+        /// test whether expression returns a node set
+        /// </summary>
         override public bool NodeSet
         {
             get
@@ -34,6 +42,9 @@ namespace com.ximpleware.xpath
             }
 
         }
+        /// <summary>
+        /// test whether expression returns a Numerical (double)
+        /// </summary>
         override public bool Numerical
         {
             get
@@ -42,6 +53,9 @@ namespace com.ximpleware.xpath
             }
 
         }
+        /// <summary>
+        /// test whether the expressoin returns a string
+        /// </summary>
         override public bool String
         {
             get
@@ -50,6 +64,9 @@ namespace com.ximpleware.xpath
             }
 
         }
+        /// <summary>
+        /// test whether the expression evalutes to a boolean
+        /// </summary>
         override public bool Boolean
         {
             get
@@ -76,36 +93,64 @@ namespace com.ximpleware.xpath
         }
 
         public int op;
+        /// <summary>
+        /// 
+        /// </summary>
         public Expr operand;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="o"></param>
+        /// <param name="e"></param>
         public UnaryExpr(int o, Expr e)
         {
             op = o;
             operand = e;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public override System.String ToString()
         {
             return "-" + operand;
         }
 
-
+        /// <summary>
+        /// evaluate a union expression to a boolean
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <returns></returns>
         public override bool evalBoolean(VTDNav vn)
         {
 
             return operand.evalBoolean(vn);
         }
-
+        /// <summary>
+        /// evaluate a union expression to double
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <returns></returns>
         public override double evalNumber(VTDNav vn)
         {
             return (-1) * operand.evalNumber(vn);
         }
-
+        /// <summary>
+        /// evaluate a union expression to a node set
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <returns></returns>
         public override int evalNodeSet(VTDNav vn)
         {
 
             throw new XPathEvalException("UnaryExpr can't eval to a node set!");
         }
 
+        /// <summary>
+        /// evaluate a union expression to a string
+        /// </summary>
+        /// <param name="vn"></param>
+        /// <returns></returns>
         public override System.String evalString(VTDNav vn)
         {
             double dval = operand.evalNumber(vn);
@@ -117,34 +162,50 @@ namespace com.ximpleware.xpath
             }
             return "" + dval;
         }
-
+        /// <summary>
+        /// reset the expression
+        /// </summary>
+        /// <param name="vn"></param>
         public override void reset(VTDNav vn)
         {
             operand.reset(vn);
         }
         // to support computer context size 
         // needs to add 
+        /// <summary>
+        /// test whether the expression requires contextSize
+        /// </summary>
+        /// <returns></returns>
         public override bool requireContextSize()
         {
             return operand.requireContextSize();
         }
 
-
+        /// <summary>
+        /// clear internal cache
+        /// </summary>
         public override void clearCache()
         {
             operand.clearCache();
         }
-
+        /// <summary>
+        /// test whether the expression is a constant
+        /// </summary>
+        /// <returns></returns>
         public override bool isFinal()
         {
             return operand.isFinal();
         }
-
+        /// <summary>
+        /// mark teh expression as cacheable
+        /// </summary>
         public override void markCacheable()
         {
             operand.markCacheable();
         }
-
+        /// <summary>
+        /// mark the expression as cacheable second type
+        /// </summary>
         public override void markCacheable2()
         {
             operand.markCacheable2();
