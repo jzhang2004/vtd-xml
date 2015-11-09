@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -88,6 +88,7 @@ namespace com.ximpleware
             }
 
         }
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const int ADD = 0;
         public const int SUB = 1;
         public const int MULT = 2;
@@ -102,6 +103,23 @@ namespace com.ximpleware
         public const int LT = 11;
         public const int GT = 12;
         public const int UNION = 13;
+        public const byte NS_NS =0;
+	    public const byte NS_N = 1;
+	    public const byte NS_S = 2;
+	    public const byte NS_B = 3;
+	    public const byte N_NS =4;
+	    public const byte N_N = 5;
+	    public const byte N_S = 6;
+	    public const byte N_B = 7;
+	    public const byte S_NS =8;
+	    public const byte S_N = 9;
+	    public const byte S_S = 10;
+	    public const byte S_B = 11;
+	    public const byte B_NS =12;
+	    public const byte B_N = 13;
+	    public const byte B_S = 14;
+
+        public const byte B_B = 15;
 
         public const int BUF_SZ_EXP = 7;
         protected internal int op;
@@ -112,6 +130,8 @@ namespace com.ximpleware
         protected internal Expr right;
 
         protected internal FastIntBuffer fib1;
+        protected internal byte compType;
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         /// <summary> constructor</summary>
         /// <param name="l">
         /// </param>
@@ -148,6 +168,7 @@ namespace com.ximpleware
                     break;
 
             }
+            compType = computeCompType();
         }
         public override System.String ToString()
         {
@@ -288,28 +309,24 @@ namespace com.ximpleware
         {
             //int i, t, i1 = 0, stackSize, s1, s2;
             String st1, st2;
-            if (left.NodeSet && right.NodeSet)
+            switch (compType)
             {
-                return compNodeSetNodeSet(left, right, vn, op);
-            }
-            else
-            {
-                if (left.Numerical && right.NodeSet)
-                {
-                    return compNumericalNodeSet(left, right, vn, op);
-                }
-                if (left.NodeSet && right.Numerical)
-                {
-                    return compNodeSetNumerical(left, right, vn, op);
-                }
-                if (left.String && right.NodeSet)
-                {
-                    return compStringNodeSet(left, right, vn, op);
-                }
-                if (left.NodeSet && right.String)
-                {
-                    return compNodeSetString(left, right, vn, op);
-                }
+                case NS_NS: return compNodeSetNodeSet(left, right, vn, op);
+                case NS_N: return compNodeSetNumerical(left, right, vn, op);
+                case NS_S: return compNodeSetString(left, right, vn, op);
+                //case NS_B:
+                case N_NS: return compNumericalNodeSet(left, right, vn, op);
+                //case N_N:   break;
+                //case N_S:   break;
+                //case N_B:
+                case S_NS: return compStringNodeSet(left, right, vn, op);
+                    //case S_N:
+                    //case S_S:
+                    //case S_B:
+                    //case B_NS:
+                    //case B_N:
+                    //case B_S:
+                    //default:break;
             }
             if (op == EQ || op == NE)
             {
@@ -435,7 +452,17 @@ namespace com.ximpleware
         }
         private bool compareVNumber1(int k, VTDNav vn, double d, int op)
         {
-            double d1 = vn.parseDouble(k);
+            double d1;
+            int t = vn.getTokenType(k);
+            if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
+            {
+                d1 = vn.XPathStringVal2Double(k);
+            }
+            else
+            {
+                k = getStringVal(vn, k);
+                d1 = vn.parseDouble(k);
+            }
             switch (op)
             {
                 case EQ:
@@ -508,7 +535,17 @@ namespace com.ximpleware
 
         private bool compareVNumber2(int k, VTDNav vn, double d, int op)
         {
-            double d1 = vn.parseDouble(k);
+            double d1;
+            int t = vn.getTokenType(k);
+            if (t == VTDNav.TOKEN_STARTING_TAG || t == VTDNav.TOKEN_DOCUMENT)
+            {
+                d1 = vn.XPathStringVal2Double(k);
+            }
+            else
+            {
+                k = getStringVal(vn, k);
+                d1 = vn.parseDouble(k);
+            }
             switch (op)
             {
                 case EQ:
@@ -527,7 +564,7 @@ namespace com.ximpleware
         }
         private bool compareVV(int k, VTDNav vn, int j, int op)
         {
-            int i = vn.compareTokens(k, vn, j);
+            int i = vn.XPathStringVal_Matches(k, vn, j);
             switch (i)
             {
 
@@ -567,8 +604,8 @@ namespace com.ximpleware
                 stackSize = vn.contextStack2.size;
                 while ((i = right.evalNodeSet(vn)) != -1)
                 {
-                    i1 = getStringVal(vn, i);
-                    if (i1 != -1 && compareVNumber1(i1, vn, d, op))
+                    //i1 = getStringVal(vn, i);
+                    if (compareVNumber1(i1, vn, d, op))
                     {
                         right.reset(vn);
                         vn.contextStack2.size = stackSize;
@@ -594,8 +631,8 @@ namespace com.ximpleware
            vn.push2();
            stackSize = vn.contextStack2.size;
            while ((i = left.evalNodeSet(vn)) != -1) {
-               i1 = getStringVal(vn,i); 
-               if (i1!=-1 && compareVNumber2(i1,vn,d,op)){
+               //i1 = getStringVal(vn,i); 
+               if (compareVNumber2(i,vn,d,op)){
                    left.reset(vn);
                    vn.contextStack2.size = stackSize;
                    vn.pop2();
@@ -622,19 +659,37 @@ namespace com.ximpleware
             stackSize = vn.contextStack2.size;
             while ((i = left.evalNodeSet(vn)) != -1)
             {
-                i1 = getStringVal(vn, i);
-                if (i1 != -1 )
-                {
-                    bool b = compareVString1(i1, vn, s, op);
-                    if (b)
+                    int t = vn.getTokenType(i);
+                    if (t != VTDNav.TOKEN_STARTING_TAG
+                            && t != VTDNav.TOKEN_DOCUMENT)
                     {
-                        left.reset(vn);
-                        vn.contextStack2.size = stackSize;
-                        vn.pop2();
-                        return b;
+                        i1 = getStringVal(vn, i);
+                        // if (i1==-1 && s.length()==0)
+                        //return true;
+                        if (i1 != -1)
+                        {
+                            bool b = compareVString1(i1, vn, s, op);
+                            if (b)
+                            {
+                                left.reset(vn);
+                                vn.contextStack2.size = stackSize;
+                                vn.pop2();
+                                return b;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        bool b = vn.XPathStringVal_Matches(i, s);
+                        if (b)
+                        {
+                            left.reset(vn);
+                            vn.contextStack2.size = stackSize;
+                            vn.pop2();
+                            return b;
+                        }
                     }
                 }
-            }
             vn.contextStack2.size = stackSize;
             vn.pop2();
             left.reset(vn);
@@ -677,19 +732,36 @@ namespace com.ximpleware
             stackSize = vn.contextStack2.size;
             while ((i = right.evalNodeSet(vn)) != -1)
             {
-                i1 = getStringVal(vn, i);
-                if (i1 != -1)
-                {
-                    bool b = compareVString2(i1, vn, s, op);
-                    if (b)
+                    int t = vn.getTokenType(i);
+                    if (t != VTDNav.TOKEN_STARTING_TAG
+                            && t != VTDNav.TOKEN_DOCUMENT)
                     {
-                        right.reset(vn);
-                        vn.contextStack2.size = stackSize;
-                        vn.pop2();
-                        return b;
+
+                        i1 = getStringVal(vn, i);
+                        if (i1 != -1)
+                        {
+                            bool b = compareVString2(i1, vn, s, op);
+                            if (b)
+                            {
+                                right.reset(vn);
+                                vn.contextStack2.size = stackSize;
+                                vn.pop2();
+                                return b;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        bool b = vn.XPathStringVal_Matches(i, s);
+                        if (b)
+                        {
+                            right.reset(vn);
+                            vn.contextStack2.size = stackSize;
+                            vn.pop2();
+                            return b;
+                        }
                     }
                 }
-            }
             vn.contextStack2.size = stackSize;
             vn.pop2();
             right.reset(vn);
@@ -738,5 +810,44 @@ namespace com.ximpleware
 		left.clearCache();
 		right.clearCache();
 	}
+        /// <summary>
+        /// compute the right op code for binary expression evaluation
+        /// </summary>
+        /// <returns>opcode</returns>
+        public byte computeCompType(){
+		if (left.NodeSet){
+			if (right.NodeSet)
+				return NS_NS;
+			if (right.Numerical)
+				return NS_N;
+			if (right.String)
+				return NS_S;
+			return NS_B;
+		}
+		if (left.Numerical){
+			if(right.NodeSet)
+				return N_NS;
+			if (right.Numerical)
+				return N_N;
+			if (right.String)
+				return N_S;
+			return N_B;
+		}
+		if (left.String){
+			if(right.NodeSet)
+				return S_NS;
+			if (right.Numerical)
+				return S_N;
+			if (right.String)
+				return S_S;
+			return S_B;
+		}
+		if(right.NodeSet)
+			return B_NS;
+		if (right.Numerical)
+			return B_N;
+		if (right.String)
+			return B_S;
+		return B_B;}
 	}
 }
