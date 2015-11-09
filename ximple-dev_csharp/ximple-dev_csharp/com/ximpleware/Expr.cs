@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,13 @@ namespace com.ximpleware
         /// <summary>
         /// 
         /// </summary>
+        /// return -1 for all non-funcExpr
+        public virtual int getFuncOpCode()
+        {
+            return -1;
+
+        }
+        public bool needReordering=true;
         abstract public bool Numerical { get; }
         abstract public bool NodeSet { get; }
         abstract public bool String { get; }
