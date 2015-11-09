@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@ namespace com.ximpleware
     /// </summary>
     public class FuncExpr : Expr
     {
+
+      
         public override int adjust(int n)
         {
             int i = 0;
@@ -136,7 +138,7 @@ namespace com.ximpleware
         internal int a;
         internal int state;
         VTDGen vg;
-        String s;
+        //String s;
 
         public const int START = 0, // initial state
             END = 1, // return to begin
@@ -1083,6 +1085,8 @@ namespace com.ximpleware
                 case FuncName.ENCODE_FOR_URI: return "encode-for-uri";
                 case FuncName.MATCH_NAME: return "match-name";
                 case FuncName.MATCH_LOCAL_NAME: return "match-local-name";
+                case FuncName.NOT_MATCH_NAME: return "not-match-name";
+                case FuncName.NOT_MATCH_LOCAL_NAME: return "not-match-local-name";
                 case FuncName.CURRENT: return "current";
                 case FuncName.GENERATE_ID: return "generate-id";
                 case FuncName.FORMAT_NUMBER: return "format-number";
@@ -1456,10 +1460,22 @@ namespace com.ximpleware
         {
             vn.push2();
             int size = vn.contextStack2.size;
-            int a = -1;
+            int a = 0x7fffffff, k = -1;
             try
             {
-                a = argumentList.e.evalNodeSet(vn);
+                if (argumentList.e.needReordering)
+                {
+                    while ((k = argumentList.e.evalNodeSet(vn)) != -1)
+                    {
+                        //a = evalNodeSet(vn);
+                        if (k < a)
+                            a = k;
+                    }
+                    if (a == 0x7fffffff)
+                        a = -1;
+                }
+                else
+                    a = argumentList.e.evalNodeSet(vn);
                 if (a != -1)
                 {
                     int t = vn.getTokenType(a);
@@ -1493,10 +1509,22 @@ namespace com.ximpleware
         {
             vn.push2();
             int size = vn.contextStack2.size;
-            int a = -1;
+            int a = 0x7ffffff, k = -1;
             try
             {
-                a = argumentList.e.evalNodeSet(vn);
+                if (argumentList.e.needReordering)
+                {
+                    while ((k = argumentList.e.evalNodeSet(vn)) != -1)
+                    {
+                        //a = evalNodeSet(vn);
+                        if (k < a)
+                            a = k;
+                    }
+                    if (k == 0x7fffffff)
+                        a = -1;
+                }
+                else
+                    a = argumentList.e.evalNodeSet(vn);
             }
             catch (Exception e)
             {
@@ -1715,7 +1743,7 @@ namespace com.ximpleware
                 try
                 {
                     if (a == -1 || vn.ns == false)
-                        return false;
+                        return s1.CompareTo("")==0;
                     else
                     {
                         int type = vn.getTokenType(a);
@@ -1733,7 +1761,7 @@ namespace com.ximpleware
             }
             else
                 throw new System.ArgumentException(
-                        "name()'s argument count is invalid");
+                        "matchName()'s argument count is invalid");
         }
         private bool matchLocalName(VTDNav vn)
         {
@@ -1825,7 +1853,7 @@ namespace com.ximpleware
             }
             else
                 throw new ArgumentException
-                ("local-name()'s argument count is invalid");
+                ("match-local-name()'s argument count is invalid");
             return false;
         }
 
@@ -1851,7 +1879,14 @@ namespace com.ximpleware
 
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override int getFuncOpCode()
+        {
+            return opCode;
+        }
 
         private int getStringVal(VTDNav vn, int i)
         {
@@ -1974,7 +2009,7 @@ namespace com.ximpleware
             return result;
         }
 
-        public void clearCache()
+        public override void  clearCache()
         {
             Alist temp = argumentList;
             while (temp != null)
@@ -1985,6 +2020,26 @@ namespace com.ximpleware
                 }
                 temp = temp.next;
             }
+        }
+
+        public void addArg(Expr e)
+        {
+            Alist al = argumentList;
+            if (argumentList == null)
+            {
+                argumentList = new Alist();
+                argumentList.e = e;
+                argCount1++;
+                return;
+            }
+            while (al.next != null)
+            {
+                al = al.next;
+            }
+            al.next = new Alist();
+            //al = new Alist();
+            al.next.e = e;
+            argCount1++;
         }
     }
 }
