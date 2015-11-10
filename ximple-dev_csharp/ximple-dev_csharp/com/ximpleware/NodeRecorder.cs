@@ -490,12 +490,12 @@ namespace com.ximpleware
                             {
                                 vn.atTerminal = true;
                                 vn.LN = fib.intAt(count + 11);
-                                count += i + 8;
+                                count += i + 9;
                             }
                             else
                             {
                                 vn.atTerminal = false;
-                                count += i + 7;
+                                count += i + 8;
                             }
                             break;
                         }
@@ -591,12 +591,12 @@ namespace com.ximpleware
                                     {
                                         vn.atTerminal = true;
                                         vn.LN = fib.intAt(count + i + 13);
-                                        count += i + 14;
+                                        count += i + 15;
                                     }
                                     else
                                     {
                                         vn.atTerminal = false;
-                                        count += i + 13;
+                                        count += i + 14;
                                     }
                                     break;
                             }                            
