@@ -474,8 +474,8 @@ namespace com.ximpleware
                     default:
                         if (vn.shallowDepth)
                         {
-                            vn.context[0] = i;
-                            for (j = 1; j < i; j++)
+                           // vn.context[0] = i;
+                            for (j = 0; j < i; j++)
                             {
                                 vn.context[j] = fib.intAt(count + j);
                             }
@@ -490,12 +490,12 @@ namespace com.ximpleware
                             {
                                 vn.atTerminal = true;
                                 vn.LN = fib.intAt(count + 11);
-                                count += i + 8;
+                                count += i + 9;
                             }
                             else
                             {
                                 vn.atTerminal = false;
-                                count += i + 7;
+                                count += i + 8;
                             }
                             break;
                         }
@@ -570,7 +570,7 @@ namespace com.ximpleware
 
                                 default:
                                     vn.context[0] = i;
-                                    for (j = 0; j < i; j++)
+                                    for (j = 1; j < i; j++)
                                     {
                                         vn.context[j] = fib.intAt(count + j);
                                     }
@@ -591,12 +591,12 @@ namespace com.ximpleware
                                     {
                                         vn.atTerminal = true;
                                         vn.LN = fib.intAt(count + i + 13);
-                                        count += i + 14;
+                                        count += i + 15;
                                     }
                                     else
                                     {
                                         vn.atTerminal = false;
-                                        count += i + 13;
+                                        count += i + 14;
                                     }
                                     break;
                             }                            
