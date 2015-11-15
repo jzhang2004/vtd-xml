@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,8 @@ filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 	fe->reset = (reset_)&reset_fe;
 	fe->toString = (to_String)&toString_fe;
 	fe->adjust = (adjust_)&adjust_fe;
-
+	fe->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
+	fe->needReordering = TRUE;
 	fe->e = e1;
 	fe->p = pr;
 	fe->first_time = TRUE;
@@ -86,19 +87,29 @@ double	evalNumber_fe (filterExpr *fe,VTDNav *vn){
 	double d1 = 0.0;
 	exception ee;
 	double d=d1/d1;
-	int a = -1,size;
+	int a = 0x7fffffff,k=-1,size;
 	push2(vn);
 	size = vn->contextBuf2->size;
 	Try {
-		a = evalNodeSet_fe(fe,vn);
+		//a = evalNodeSet_fe(fe,vn);
+		if (fe->needReordering) {
+			while ((k = evalNodeSet_fe(fe,vn)) != -1) {
+				// a = evalNodeSet(vn);
+				if (k < a)
+					a = k;
+			}
+			if (a == 0x7fffffff)
+				a = -1;
+		}
+		else {
+			a = evalNodeSet_fe(fe,vn);
+		}
 		if (a != -1) {
 			int t = getTokenType(vn,a);
 			if (t == TOKEN_ATTR_NAME) {
 				d = parseDouble(vn,a+1);
 			} else if (t == TOKEN_STARTING_TAG || t ==TOKEN_DOCUMENT) {
-				UCSChar *s =getXPathStringVal( vn,0), *s1;
-				d  = wcstod(s,&s1);
-				free( s);
+				d = XPathStringVal2Double(vn,a);
 			}else if (t == TOKEN_PI_NAME) {
 				if (a+1 < vn->vtdSize || getTokenType(vn,a+1)==TOKEN_PI_VAL)
 					//s = vn.toString(a+1); 	
@@ -118,7 +129,7 @@ double	evalNumber_fe (filterExpr *fe,VTDNav *vn){
 
 UCSChar* evalString_fe  (filterExpr *fe,VTDNav *vn){
 	exception ee;
-	int a,size;
+	int a=0x7fffffff,k=-1,size;
 	UCSChar *s = NULL;	
 	
 	//int a = -1;
@@ -126,7 +137,19 @@ UCSChar* evalString_fe  (filterExpr *fe,VTDNav *vn){
     size = vn->contextBuf2->size;
      
 	Try {
-         a = evalNodeSet_fe(fe,vn);
+         //a = evalNodeSet_fe(fe,vn);
+		if (fe->needReordering) {
+			while ((k = evalNodeSet_fe(fe,vn)) != -1) {
+				// a = evalNodeSet(vn);
+				if (k < a)
+					a = k;
+			}
+			if (a == 0x7fffffff)
+				a = -1;
+		}
+		else {
+			a = evalNodeSet_fe(fe,vn);
+		}
          if (a != -1) {
             	int t = getTokenType(vn,a);
                 switch(t){

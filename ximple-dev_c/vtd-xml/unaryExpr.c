@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ unaryExpr *createUnaryExpr(opType op, expr *e1){
 	ue->markCacheable = (markCacheable_)&markCacheable_ue;
 	ue->markCacheable2 = (markCacheable2_)&markCacheable2_ue;
 	ue->isFinal = (isFinal_)&isFinal_ue;
-
+	ue->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
 	return ue;
 }
 void freeUnaryExpr(unaryExpr *ue){

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@ variableExpr *createVariableExpr(UCSChar* s, expr *e){
 	v->markCacheable = (markCacheable_)&markCacheable_ve;
 	v->markCacheable2 = (markCacheable_)&markCacheable2_ve;
 	v->clearCache=(clearCache_)&clearCache_ve;
+	v->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
 	v->exprName = s;
 	v->exprVal = e;
 	return v;

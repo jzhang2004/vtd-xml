@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ cachedExpr *createCachedExpr(expr *e1){
 	ce->markCacheable = (markCacheable_)&markCacheable_ce;
 	ce->markCacheable2 = (markCacheable_)&markCacheable2_ce;
 	ce->clearCache = (clearCache_)&clearCache_ce;
+	ce->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
 	ce->e = e1;
 	ce->ens =  NULL;
 	ce->cached = FALSE;

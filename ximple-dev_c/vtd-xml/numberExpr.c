@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ numberExpr *createNumberExpr (double d){
 	n->markCacheable = (markCacheable_)&markCacheable_ne;
 	n->markCacheable2 = (markCacheable2_)&markCacheable2_ne;
 	n->clearCache = (clearCache_)&clearCache_ne;
-
+	n->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
 	return n;
 }
 

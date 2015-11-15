@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ literalExpr *createLiteralExpr(UCSChar *st){
 	l->markCacheable = (markCacheable_)&markCacheable_le;
 	l->markCacheable2 = (markCacheable2_)&markCacheable2_le;
 	l->isFinal = (isFinal_) &isFinal_le;
+	l->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
 	return l;
 
 }
@@ -148,4 +149,9 @@ char* getAxisString(axisType at){
 		case AXIS_DESCENDANT_OR_SELF :	return "descendant-or-self::";
 		default :	return "ancestor-or-self::";
 	}
+}
+
+funcName getFuncOpCode(struct Expr *e) {
+
+	return -1;
 }

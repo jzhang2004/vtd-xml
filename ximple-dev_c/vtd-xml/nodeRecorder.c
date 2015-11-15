@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -433,8 +433,8 @@ int iterateNodeRecorder(NodeRecorder *nr){
 
 		default:
 			if (nr->vn->shallowDepth){
-			nr->vn->context[0] = i;
-			for (j = 1; j < i; j++)
+			//nr->vn->context[0] = i;
+			for (j = 0; j < i; j++)
 			{
 				nr->vn->context[j] = intAt(nr->fib,nr->count + j);
 			}
@@ -449,12 +449,12 @@ int iterateNodeRecorder(NodeRecorder *nr){
 			{
 				nr->vn->atTerminal = TRUE;
 				nr->vn->LN = intAt(nr->fib,nr->count + 11);
-				nr->count += i + 8;
+				nr->count += i + 9;
 			}
 			else
 			{
 				nr->vn->atTerminal = FALSE;
-				nr->count += i + 7;
+				nr->count += i + 8;
 			}
 			break;
 			}else{
@@ -540,10 +540,10 @@ int iterateNodeRecorder(NodeRecorder *nr){
 						if (b == FALSE) {
 							vnl->atTerminal = TRUE;
 							vnl->LN = intAt(nr->fib,nr->count + i + 13);
-							nr->count += i + 14;
+							nr->count += i + 15;
 						} else {
 							vnl->atTerminal = FALSE;
-							nr->count += i + 13;
+							nr->count += i + 14;
 						}
 						break;
 					}

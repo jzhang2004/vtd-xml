@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -57,6 +57,8 @@ pathExpr *createPathExpr(expr *f, locationPathExpr *l){
 	pe->markCacheable = (markCacheable_)&markCacheable_pe;
 	pe->markCacheable2 = (markCacheable2_)&markCacheable2_pe;
 	pe->clearCache=(clearCache_)&clearCache_pe;
+	pe->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
+	pe->needReordering = TRUE;
 	pe->fe = f;
 	pe->lpe= l;
 	pe->evalState = 0;
@@ -131,19 +133,27 @@ double	evalNumber_pe (pathExpr *pe,VTDNav *vn){
 	double d1 = 0.0;
 	exception ee;
 	double d=d1/d1;
-	int a = -1,size;
+	int a = 0x7fffffff, k=-1,size;
 	push2(vn);
 	size = vn->contextBuf2->size;
 	Try {
-		a = evalNodeSet_pe(pe,vn);
+		//a = evalNodeSet_pe(pe,vn);
+		while ((k = evalNodeSet_pe(pe,vn)) != -1) {
+			//a = evalNodeSet(vn);
+			if (k<a)
+				a = k;
+		}
+		if (a == 0x7fffffff)
+			a = -1;
 		if (a != -1) {
 			int t = getTokenType(vn,a);
 			if (t == TOKEN_ATTR_NAME) {
 				d = parseDouble(vn,a+1);
 			} else if (t == TOKEN_STARTING_TAG || t ==TOKEN_DOCUMENT) {
-				UCSChar *s =getXPathStringVal( vn,0), *s1;
+				/*UCSChar *s =getXPathStringVal( vn,0), *s1;
 				d  = wcstod(s,&s1);
-				free( s);
+				free( s);*/
+				d = XPathStringVal2Double(pe,a);
 			}else if (t == TOKEN_PI_NAME) {
 				if (a+1 < vn->vtdSize || getTokenType(vn,a+1)==TOKEN_PI_VAL)
 					//s = vn.toString(a+1); 	
@@ -163,7 +173,7 @@ double	evalNumber_pe (pathExpr *pe,VTDNav *vn){
 
 UCSChar* evalString_pe  (pathExpr *pe,VTDNav *vn){
 	exception ee;
-	int a,size;
+	int a=0x7fffffff,k=-1,size;
 	UCSChar *s = NULL;	
 	
 	//int a = -1;
@@ -171,7 +181,14 @@ UCSChar* evalString_pe  (pathExpr *pe,VTDNav *vn){
     size = vn->contextBuf2->size;
      
 	Try {
-         a = evalNodeSet_pe(pe,vn);
+         //a = evalNodeSet_pe(pe,vn);
+		 while ((k = evalNodeSet_pe(pe,vn)) != -1) {
+			//a = evalNodeSet(vn);
+			if (k<a)
+			a = k;
+		}
+		if (a == 0x7fffffff)
+			a = -1;
          if (a != -1) {
             	int t = getTokenType(vn,a);
                 switch(t){
