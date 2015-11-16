@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@
 #line 1 "l8.y"
 
 /* 
-* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1254,53 +1254,9 @@ yyreduce:
 #line 125 "l8.y"
     { 
 								Try {
-
-									if (yyvsp[0].expression->isFinal(yyvsp[0].expression) && yyvsp[0].expression->isString(yyvsp[0].expression)) {
-										if (yyvsp[-2].expression->getFuncOpCode(yyvsp[-2].expression) == FN_NAME) {
-											funcExpr *tmp = (funcExpr *)yyvsp[-2].expression;
-											tmp->opCode = FN_MATCH_NAME;
-											addArg_fne(tmp,yyvsp[0].expression);
-											yyval.expression = tmp;
-										}
-										else if (getFuncOpCode_fne(yyvsp[-2].expression) == FN_LOCAL_NAME) {
-											funcExpr *tmp = (funcExpr *)yyvsp[-2].expression;
-											tmp->opCode = FN_MATCH_LOCAL_NAME;
-											addArg_fne(tmp, yyvsp[0].expression);
-											yyval.expression = tmp;
-										}
-										else {
-											yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression, OP_EQ, yyvsp[0].expression);
-											
-										}
-										
-									}
-									else if (yyvsp[-2].expression->isFinal(yyvsp[-2].expression) && yyvsp[-2].expression->isString(yyvsp[-2].expression)) {
-										if (yyvsp[0].expression->getFuncOpCode(yyvsp[0].expression) == FN_NAME) {
-											funcExpr *tmp = (funcExpr *)yyvsp[0].expression;
-											tmp->opCode = FN_MATCH_NAME;
-											addArg_fne(tmp, yyvsp[-2].expression);
-											yyval.expression = tmp;
-										}
-										else if (yyvsp[0].expression->getFuncOpCode(yyvsp[0].expression) == FN_LOCAL_NAME) {
-											funcExpr *tmp = (funcExpr *)yyvsp[0].expression;
-											tmp->opCode = FN_MATCH_LOCAL_NAME;
-											addArg_fne(tmp, yyvsp[-2].expression);
-											yyval.expression = tmp;
-										}
-										else {
-											yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression, OP_EQ, yyvsp[0].expression);
-											//addObj(yyval.expression);
-										}
-									}
-									else {
-										yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_EQ,yyvsp[0].expression);
-										//addObj(yyval.expression);
-										}
-									
-									addObj(yyval.expression);
-	 								
-								}
-								
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_EQ,yyvsp[0].expression);
+	 									addObj(yyval.expression);
+	 								}
 	 							Catch(e){
 	 								//freeAllObj();
 									YYABORT;
@@ -1312,51 +1268,8 @@ yyreduce:
 #line 135 "l8.y"
     {
 			 					Try {
-									if (yyvsp[0].expression->isFinal(yyvsp[0].expression) && yyvsp[0].expression->isString(yyvsp[0].expression)) {
-										if (yyvsp[-2].expression->getFuncOpCode(yyvsp[-2].expression) == FN_NAME) {
-											funcExpr *tmp = (funcExpr *)yyvsp[-2].expression;
-											tmp->opCode = FN_NOT_MATCH_NAME;
-											addArg_fne(tmp,yyvsp[0].expression);
-											yyval.expression = tmp;
-										}
-										else if (getFuncOpCode_fne(yyvsp[-2].expression) == FN_LOCAL_NAME) {
-											funcExpr *tmp = (funcExpr *)yyvsp[-2].expression;
-											tmp->opCode = FN_NOT_MATCH_LOCAL_NAME;
-											addArg_fne(tmp, yyvsp[0].expression);
-											yyval.expression = tmp;
-										}
-										else {
-											yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression, OP_NE, yyvsp[0].expression);
-
-										}
-
-									}
-									else if (yyvsp[-2].expression->isFinal(yyvsp[-2].expression) && yyvsp[-2].expression->isString(yyvsp[-2].expression)) {
-										if (yyvsp[0].expression->getFuncOpCode(yyvsp[0].expression) == FN_NAME) {
-											funcExpr *tmp = (funcExpr *)yyvsp[0].expression;
-											tmp->opCode = FN_NOT_MATCH_NAME;
-											addArg_fne(tmp, yyvsp[-2].expression);
-											yyval.expression = tmp;
-										}
-										else if (yyvsp[0].expression->getFuncOpCode(yyvsp[0].expression) == FN_LOCAL_NAME) {
-											funcExpr *tmp = (funcExpr *)yyvsp[0].expression;
-											tmp->opCode = FN_NOT_MATCH_LOCAL_NAME;
-											addArg_fne(tmp, yyvsp[-2].expression);
-											yyval.expression = tmp;
-										}
-										else {
-											yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression, OP_NE, yyvsp[0].expression);
-											//addObj(yyval.expression);
-										}
-									}
-									else {
-										yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_NE,yyvsp[0].expression);
-										//addObj(yyval.expression);
-									}
-
-									addObj(yyval.expression);
-	 									//yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_NE,yyvsp[0].expression);
-	 									//addObj(yyval.expression);
+	 									yyval.expression = (expr *)createBinaryExpr(yyvsp[-2].expression,OP_NE,yyvsp[0].expression);
+	 									addObj(yyval.expression);
 	 								}
 	 							Catch(e){
 	 								//freeAllObj();
