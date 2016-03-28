@@ -223,7 +223,7 @@ public class UnionExpr extends Expr {
 					switch(t){
 					case VTDNav.TOKEN_STARTING_TAG:
 					case VTDNav.TOKEN_DOCUMENT:
-						s = vn.getXPathStringVal();
+						s = vn.getXPathStringVal2(a,(short)0);
 						break;
 					case VTDNav.TOKEN_ATTR_NAME:
 						s = vn.toString(a + 1);
