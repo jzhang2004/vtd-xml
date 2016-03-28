@@ -8612,13 +8612,16 @@ public class VTDNav {
 		while(isWS(getCharUnit(offset))){
 			offset++;
 		}
-		
+		if (offset == endOffset)
+			return (((long) 0)<<32) & l;
 		// then trim the trailing white spaces
 		//int endOffset = offset+len-1;
 		endOffset--;
 		while(isWS(getCharUnit(endOffset))){
 			endOffset--;
 		}
+		
+		
 		
 		endOffset ++;
 		
