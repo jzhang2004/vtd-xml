@@ -37,6 +37,9 @@ public class VTDNav_L5 extends VTDNav {
 	protected FastLongBuffer l4Buffer;
 	protected FastIntBuffer l5Buffer;
 	
+	//protected float _l3Buffer_size_r;
+	//protected float _l4Buffer_size_r;
+	//protected float _l5Buffer_size_r;
 	//protected static short maxLCDepth =5;
 	/**
      * Initialize the VTD navigation object.
@@ -100,6 +103,11 @@ public class VTDNav_L5 extends VTDNav {
 		l4Buffer = l4;
 		l5Buffer = l5;
 		vtdBuffer = vtd;
+		//VTDBuffer_size_r=1/vtdBuffer.size;
+		//l1Buffer_size_r=1/l1Buffer.size;
+		//l2Buffer_size_r=1/l2Buffer.size;
+		//_l3Buffer_size_r=1/l3Buffer.size;
+		//_l4Buffer_size_r = 1/l4Buffer.size;
 		XMLDoc = x;
 
 		encoding = enc;
@@ -1024,14 +1032,14 @@ public class VTDNav_L5 extends VTDNav {
 					return true;
 
 			case NEXT_SIBLING :
-				if (atTerminal){					
+				if (atTerminal){
 					if (nodeToElement(NEXT_SIBLING)){
 						b=true;
 						if (matchElement(en)){
 							return true;
 						}					
 					}else
-						return false;
+						b= false;
 				}
 				if (!b){
 				d = context[0];
@@ -1073,14 +1081,16 @@ public class VTDNav_L5 extends VTDNav {
 				}
 
 			case PREV_SIBLING :
-				if (atTerminal) {					
+				if (atTerminal) {
+					if (getTokenType(LC)==VTDNav.TOKEN_ATTR_NAME && getTokenType(LC)==VTDNav.TOKEN_ATTR_NS)
+						return false;
 					if (nodeToElement(PREV_SIBLING)){
 						b=true;
 						if (matchElement(en)){
 							return true;
 						}					
 					}else
-						return false;
+						b= false;
 				}				
 				if (!b){
 					d = context[0];
@@ -1366,7 +1376,9 @@ public class VTDNav_L5 extends VTDNav {
 
 			case NEXT_SIBLING :
 			case PREV_SIBLING :
-				if(atTerminal)return nodeToElement(direction);
+				if(atTerminal){
+					return nodeToElement(direction);
+				}
 				switch (context[0]) {
 					case -1:
 					case 0 :
@@ -1502,156 +1514,7 @@ public class VTDNav_L5 extends VTDNav {
 
 	}
 	
-	protected boolean nodeToElement(int direction){
-		switch(direction){
-		case NEXT_SIBLING:
-			switch (context[0]) {
-			case 0:
-				if (l1index!=-1){
-					context[0]=1;
-					context[1]=l1Buffer.upper32At(l1index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;
-			case 1:
-				if (l2index!=-1){
-					context[0]=2;
-					context[2]=l2Buffer.upper32At(l2index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;
-				
-			case 2:
-				if (l3index!=-1){
-					context[0]=3;
-					context[3]=l3Buffer.upper32At(l3index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;
-				
-			case 3:
-				if (l4index!=-1){
-					context[0]=4;
-					context[4]=l4Buffer.upper32At(l4index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;
-				
-			case 4:
-				if (l5index!=-1){
-					context[0]=5;
-					context[5]=l5Buffer.intAt(l5index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;	
-				
-			default:
-				int index = LN + 1;
-				int size = vtdBuffer.size;
-				while (index < size) {
-					long temp = vtdBuffer.longAt(index);
-					int token_type =
-						(int) ((MASK_TOKEN_TYPE & temp) >> 60)
-							& 0xf;
-
-					if (token_type == TOKEN_STARTING_TAG) {
-						int depth =
-							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						if (depth < context[0]) {
-							return false;
-						} else if (depth == (context[0])) {
-							context[context[0]] = index;
-							return true;
-						}
-					}
-					index++;
-				}
-				return false;
-					
-			}
-			
-		case PREV_SIBLING:
-			switch (context[0]) {
-			case 0:
-				if (l1index!=-1 && l1index>0){
-					l1index--;
-					context[0]=1;
-					context[1]=l1Buffer.upper32At(l1index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-			case 1:
-				if (l2index!=-1 && l2index>l2lower){
-					l2index--;
-					context[0]=2;
-					context[2]=l2Buffer.upper32At(l2index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-			case 2:
-				if (l3index!=-1 && l3index>l3lower){
-					l3index--;
-					context[0]=3;
-					context[3]=l3Buffer.upper32At(l3index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-			case 3:
-				if (l4index!=-1 && l4index>l4lower){
-					l4index--;
-					context[0]=4;
-					context[4]=l4Buffer.upper32At(l4index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-				
-			case 4:
-				if (l5index!=-1 && l5index>l5lower){
-					l5index--;
-					context[0]=5;
-					context[5]=l5Buffer.intAt(l5index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-				
-			default:
-				int index = LN- 1;
-				while (index > context[context[0] - 1]) {
-					// scan backforward
-					long temp = vtdBuffer.longAt(index);
-					int token_type =
-						(int) ((MASK_TOKEN_TYPE & temp) >> 60)
-							& 0xf;
-
-					if (token_type == TOKEN_STARTING_TAG) {
-						int depth =
-							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						/*
-                         * if (depth < context[0]) { return false; }
-                         * else
-                         */
-						if (depth == (context[0])) {
-							context[context[0]] = index;
-							return true;
-						}
-					}
-					index--;
-				} // what condition
-				return false;
-			}
-		}
-		return false;
-	}
+	
 	/**
      * A generic navigation method with namespace support. Move the cursor to
      * the element according to the direction constants and the prefix and local
@@ -1744,14 +1607,14 @@ public class VTDNav_L5 extends VTDNav {
 					return true;
 
 			case NEXT_SIBLING :
-				if (atTerminal){					
+				if (atTerminal){
 					if (nodeToElement(NEXT_SIBLING)){
 						b=true;
 						if (matchElementNS(URL,ln)){
 							return true;
 						}					
 					}else
-						return false;
+						b= false;
 				}
 				if (!b){
 				d = context[0];
@@ -1794,14 +1657,14 @@ public class VTDNav_L5 extends VTDNav {
 				}
 
 			case PREV_SIBLING :
-				if (atTerminal){					
+				if (atTerminal){		
 					if (nodeToElement(PREV_SIBLING)){
 						b=true;
 						if (matchElementNS(URL,ln)){
 							return true;
 						}					
 					}else
-						return false;
+						b= false;
 				}				
 				if (!b){
 					d = context[0];
