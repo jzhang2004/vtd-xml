@@ -1685,7 +1685,7 @@ namespace com.ximpleware
         /// <throws>  NavException </throws>
         protected internal virtual bool iterate_precedingNS(System.String URL, System.String ln, int[] a, int endIndex)
         {
-            int index = getCurrentIndex() - 1;
+            int index = getCurrentIndex() + 1;
             int tokenType;
             // int t, d;
             //int depth = getTokenDepth(index);
@@ -1707,7 +1707,7 @@ namespace com.ximpleware
                             context[0] = depth;
                             if (depth > 0)
                                 context[depth] = index;
-                            if (matchElementNS(ln, URL))
+                            if (matchElementNS(URL, ln))
                             {
                                 if (depth < maxLCDepthPlusOne)
                                     resolveLC();
@@ -3954,7 +3954,7 @@ namespace com.ximpleware
                             }
                         }
                         else
-                            return false;
+                            b= false;
                     }
 
                     if (!b)
@@ -4011,7 +4011,7 @@ namespace com.ximpleware
                             }
                         }
                         else
-                            return false;
+                            b= false;
                     }
                     if (!b)
                     {
@@ -8318,136 +8318,41 @@ namespace com.ximpleware
 
         protected internal bool nodeToElement(int direction)
         {
+            int ttype = getTokenType(LN);
+            if ((ttype == VTDNav.TOKEN_ATTR_NAME) || (ttype == VTDNav.TOKEN_ATTR_NS))
+                return false;
+            bool b = false;
             switch (direction)
             {
+
                 case NEXT_SIBLING:
-                    switch (context[0])
+                    do
                     {
-                        case 0:
-                            if (l1index != -1)
-                            {
-                                context[0] = 1;
-                                context[1] = l1Buffer.upper32At(l1index);
-                                atTerminal = false;
+                        b = toNode(VTDNav.NS);
+                        if (b)
+                        {
+                            if (getTokenType(getCurrentIndex()) == VTDNav.TOKEN_STARTING_TAG)
                                 return true;
-                            }
-                            else
-                                return false;
-                        case 1:
-                            if (l2index != -1)
-                            {
-                                context[0] = 2;
-                                context[2] = l2Buffer.upper32At(l2index);
-                                atTerminal = false;
-                                return true;
-                            }
-                            else
-                                return false;
-
-                        case 2:
-                            if (l3index != -1)
-                            {
-                                context[0] = 3;
-                                context[3] = l3Buffer.intAt(l3index);
-                                atTerminal = false;
-                                return true;
-                            }
-                            else
-                                return false;
-                        default:
-                            int index = LN + 1;
-                            int size = vtdBuffer.size_Renamed_Field;
-                            while (index < size)
-                            {
-                                long temp = vtdBuffer.longAt(index);
-                                int token_type =
-                                    (int)((MASK_TOKEN_TYPE & temp) >> 60)
-                                        & 0xf;
-
-                                if (token_type == TOKEN_STARTING_TAG)
-                                {
-                                    int depth =
-                                        (int)((MASK_TOKEN_DEPTH & temp) >> 52);
-                                    if (depth < context[0])
-                                    {
-                                        return false;
-                                    }
-                                    else if (depth == (context[0]))
-                                    {
-                                        context[context[0]] = index;
-                                        return true;
-                                    }
-                                }
-                                index++;
-                            }
+                        }
+                        else
                             return false;
-
                     }
+                    while (b);
+                    break;
                 case PREV_SIBLING:
-                    switch (context[0])
+                    do
                     {
-                        case 0:
-                            if (l1index != -1 && l1index > 0)
-                            {
-                                l1index--;
-                                context[0] = 1;
-                                context[1] = l1Buffer.upper32At(l1index);
-                                atTerminal = false;
+                        b = toNode(VTDNav.PS);
+                        if (b)
+                        {
+                            if (getTokenType(getCurrentIndex()) == VTDNav.TOKEN_STARTING_TAG)
                                 return true;
-                            }
-                            else
-                                return false;
-                        case 1:
-                            if (l2index != -1 && l2index > l2lower)
-                            {
-                                l2index--;
-                                context[0] = 2;
-                                context[2] = l2Buffer.upper32At(l2index);
-                                atTerminal = false;
-                                return true;
-                            }
-                            else
-                                return false;
-                        case 2:
-                            if (l2index != -1 && l3index > l3lower)
-                            {
-                                l3index--;
-                                context[0] = 3;
-                                context[3] = l3Buffer.intAt(l3index);
-                                atTerminal = false;
-                                return true;
-                            }
-                            else
-                                return false;
-
-                        default:
-                            int index = LN - 1;
-                            while (index > context[context[0] - 1])
-                            {
-                                // scan backforward
-                                long temp = vtdBuffer.longAt(index);
-                                int token_type =
-                                    (int)((MASK_TOKEN_TYPE & temp) >> 60)
-                                        & 0xf;
-
-                                if (token_type == TOKEN_STARTING_TAG)
-                                {
-                                    int depth =
-                                        (int)((MASK_TOKEN_DEPTH & temp) >> 52);
-                                    /*
-                                     * if (depth < context[0]) { return false; }
-                                     * else
-                                     */
-                                    if (depth == (context[0]))
-                                    {
-                                        context[context[0]] = index;
-                                        return true;
-                                    }
-                                }
-                                index--;
-                            } // what condition
+                        }
+                        else
                             return false;
                     }
+                    while (b);
+                    break;
             }
             return false;
         }
@@ -9290,10 +9195,12 @@ namespace com.ximpleware
 		while(isWS(getCharUnit(offset))){
 			offset++;
 		}
-		
-		// then trim the trailing white spaces
-		//int endOffset = offset+len-1;
-		endOffset--;
+            if (offset == endOffset)
+                return (((long)0) << 32) & l;
+
+            // then trim the trailing white spaces
+            //int endOffset = offset+len-1;
+            endOffset--;
 		while(isWS(getCharUnit(endOffset))){
 			endOffset--;
 		}
