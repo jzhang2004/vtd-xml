@@ -319,14 +319,16 @@ namespace com.ximpleware
 					return vn.iterateNS(depth, URL, localName);
 				
 				
-				case FOLLOWING: 
-					if (vn.atTerminal)
-						return false;
+				case FOLLOWING:
+                    
 					if (ft == false)
 						return vn.iterate_following(name, special);
 					else
 					{
-						ft = false;
+                        if (vn.atTerminal && ((vn.getTokenType(vn.LN) == VTDNav.TOKEN_ATTR_NAME)
+                        || vn.getTokenType(vn.LN) == VTDNav.TOKEN_ATTR_NS))
+                            return false;
+                        ft = false;
 						// find the first next sibling of 
 						while (true)
 						{
@@ -349,13 +351,14 @@ namespace com.ximpleware
 				
 				
 				case FOLLOWING_NS: 
-					if (vn.atTerminal)
-						return false;
 					if (ft == false)
 						return vn.iterate_followingNS(URL, localName);
 					else
 					{
-						ft = false;
+                        if (vn.atTerminal && ((vn.getTokenType(vn.LN) == VTDNav.TOKEN_ATTR_NAME)
+                        || vn.getTokenType(vn.LN) == VTDNav.TOKEN_ATTR_NS))
+                            return false;
+                        ft = false;
 						// find the first next sibling of 
 						while (true)
 						{
@@ -376,22 +379,24 @@ namespace com.ximpleware
 					//goto case PRECEDING;
 				
 				
-				case PRECEDING: 
-					if (vn.atTerminal)
-						return false;
+				case PRECEDING:
                     if (ft)
                     {
+                        if (vn.atTerminal && ((vn.getTokenType(vn.LN) == VTDNav.TOKEN_ATTR_NAME)
+                        || vn.getTokenType(vn.LN) == VTDNav.TOKEN_ATTR_NS))
+                            return false;
                         ft = false;
                         vn.toElement(VTDNav.ROOT);
                     }
 					return vn.iterate_preceding(name, contextCopy, endIndex);
 				
 				
-				case PRECEDING_NS: 
-					if (vn.atTerminal)
-						return false;
+				case PRECEDING_NS:
                     if (ft)
                     {
+                        if (vn.atTerminal && ((vn.getTokenType(vn.LN) == VTDNav.TOKEN_ATTR_NAME)
+                        || vn.getTokenType(vn.LN) == VTDNav.TOKEN_ATTR_NS))
+                            return false;
                         ft = false;
                         vn.toElement(VTDNav.ROOT);
                     }
@@ -793,18 +798,19 @@ namespace com.ximpleware
 		{
 			if (en == null)
 				throw new System.ArgumentException("element name can't be null");
-			depth = vn.getCurrentDepth();
+			//depth = vn.getCurrentDepth();
 			iter_type = PRECEDING;
 			ft = true;
 			name = en;
-			contextCopy = new int[vn.context.Length];
-			vn.context.CopyTo(contextCopy, 0);
-            endIndex = vn.getCurrentIndex2();
+			
+            endIndex = vn.getCurrentIndex();
 			for (int i = vn.context[0] + 1; i < vn.context.Length; i++)
 			{
 				contextCopy[i] = - 1;
 			}
-			contextCopy[0] = vn.rootIndex;
+            contextCopy = new int[vn.context.Length];
+            vn.context.CopyTo(contextCopy, 0);
+            contextCopy[0] = vn.rootIndex;
 		}
 		
 		/// <summary> Select all elements along the preceding axis as defined in XPath
@@ -818,19 +824,20 @@ namespace com.ximpleware
 		{
 			if (ln == null)
 				throw new System.ArgumentException("local name can't be null");
-			depth = vn.getCurrentDepth();
+			//depth = vn.getCurrentDepth();
 			iter_type = PRECEDING_NS;
 			ft = true;
 			localName = ln;
 			URL = ns_URL;
-			contextCopy = new int[vn.context.Length];
-			vn.context.CopyTo(contextCopy, 0);
-            endIndex = vn.getCurrentIndex2();
+			
+            endIndex = vn.getCurrentIndex();
 			for (int i = vn.context[0] + 1; i < vn.context.Length; i++)
 			{
 				vn.context[i] = - 1;
 			}
-			contextCopy[0] = vn.rootIndex;
+            contextCopy = new int[vn.context.Length];
+            vn.context.CopyTo(contextCopy, 0);
+            contextCopy[0] = vn.rootIndex;
 		}
 		
 		/// <summary> Select an attribute name for iteration, * choose all attributes of an element</summary>
