@@ -3960,28 +3960,35 @@ public class VTDNav {
 		int ttype = getTokenType(LN);
 		if ((ttype==VTDNav.TOKEN_ATTR_NAME)||(ttype==VTDNav.TOKEN_ATTR_NS))
 			return false;
-		boolean b=false;
+		boolean b=false; 
+		int temp = LN;
 		switch(direction){
 		
 		case NEXT_SIBLING:
+			
 			do {
 				b=toNode(VTDNav.NS);
 				if (b){
 					if (getTokenType(getCurrentIndex())== VTDNav.TOKEN_STARTING_TAG)
 						return true;
-				}else
+				}else{
+					LN = temp;
 					return false;
+				}
 			}
 			while(b);
 			break;
 		case PREV_SIBLING:
+			
 			do {
 				b=toNode(VTDNav.PS);
 				if (b){
 					if (getTokenType(getCurrentIndex())== VTDNav.TOKEN_STARTING_TAG)
 						return true;
-				}else
+				}else{
+					LN = temp;
 					return false;
+				}
 			}
 			while(b);
 			break;
@@ -4029,7 +4036,7 @@ public class VTDNav {
      *                if en is null
      */
 	public boolean toElement(int direction, String en) throws NavException {
-		int temp=-1;
+		int temp=-1,temp2=-1;
 		int d=-1;
 		int val=0;
 		boolean b=false;
@@ -4081,13 +4088,15 @@ public class VTDNav {
 				if (atTerminal){
 					//if (getTokenType(LC)==VTDNav.TOKEN_ATTR_NAME && getTokenType(LC)==VTDNav.TOKEN_ATTR_NS)
 					//	return false;
+					
 					if (nodeToElement(NEXT_SIBLING)){
+						temp2 = LN;
 						b=true;
 						if (matchElement(en)){
 							return true;
 						}					
 					}else{
-						b= false;
+						return false;
 					}
 				}
 				
@@ -4113,6 +4122,7 @@ public class VTDNav {
 				if (b){
 					context[0]--;//LN value should not change
 					atTerminal=true;
+					LN = temp2;
 					return false;
 				} else {
 					switch(d)
@@ -4131,12 +4141,13 @@ public class VTDNav {
 					//if (getTokenType(LC)==VTDNav.TOKEN_ATTR_NAME && getTokenType(LC)==VTDNav.TOKEN_ATTR_NS)
 						//return false;
 					if (nodeToElement(PREV_SIBLING)){
+						temp2 = LN;
 						b=true;
 						if (matchElement(en)){
 							return true;
 						}					
 					}else{
-						b=false;
+						return false;
 					}
 				}				
 				if (!b){
@@ -4159,6 +4170,7 @@ public class VTDNav {
 					}
 				}
 				if (b){
+					LN = temp2;
 					context[0]--;//LN value should not change
 					atTerminal=true;
 					return false;
@@ -4224,7 +4236,7 @@ public class VTDNav {
 	public boolean toElementNS(int direction, String URL, String ln)
 		throws NavException {
 		boolean b=false;
-		int temp=-1;
+		int temp=-1,temp2=-1;
 		int val=0;
 		int d=-1; // temp location
 		if (ns == false)
@@ -4274,12 +4286,13 @@ public class VTDNav {
 					//if (getTokenType(LC)==VTDNav.TOKEN_ATTR_NAME && getTokenType(LC)==VTDNav.TOKEN_ATTR_NS)
 					//	return false;
 					if (nodeToElement(NEXT_SIBLING)){
+						temp2=LN;
 						b=true;
 						if (matchElementNS(URL,ln)){
 							return true;
 						}					
 					}else
-						b= false;
+						return false;
 				}
 				if (!b){
 					d = context[0];
@@ -4304,6 +4317,7 @@ public class VTDNav {
 				if (b){					
 					context[0]--;//LN value should not change
 					atTerminal=true;
+					LN = temp2;
 					return false;
 				}
 				else{
@@ -4323,12 +4337,13 @@ public class VTDNav {
 					//if (getTokenType(LC)==VTDNav.TOKEN_ATTR_NAME && getTokenType(LC)==VTDNav.TOKEN_ATTR_NS)
 					//	return false;
 					if (nodeToElement(PREV_SIBLING)){
+						temp2=LN;
 						b=true;
 						if (matchElementNS(URL,ln)){
 							return true;
 						}					
 					}else
-						b= false;
+						return false;
 					}
 				if (!b){
 					d = context[0];
@@ -4353,6 +4368,7 @@ public class VTDNav {
 				if (b){
 					context[0]--;//LN value should not change
 					atTerminal=true;
+					LN = temp2;
 					return false;
 				}else {
 					switch(d)
