@@ -983,7 +983,7 @@ public class VTDNav_L5 extends VTDNav {
      *                if en is null
      */
 	public boolean toElement(int direction, String en) throws NavException {
-		int temp=-1;
+		int temp=-1,temp2=-1;
 		int d=-1;
 		int val=0;
 		boolean b=false;
@@ -1035,11 +1035,12 @@ public class VTDNav_L5 extends VTDNav {
 				if (atTerminal){
 					if (nodeToElement(NEXT_SIBLING)){
 						b=true;
+						temp2=LN;
 						if (matchElement(en)){
 							return true;
 						}					
 					}else
-						b= false;
+						return false;
 				}
 				if (!b){
 				d = context[0];
@@ -1065,6 +1066,7 @@ public class VTDNav_L5 extends VTDNav {
 				if (b){
 					context[0]--;//LN value should not change
 					atTerminal=true;
+					LN = temp2;
 					return false;
 				}else{
 				switch(d)
@@ -1082,15 +1084,14 @@ public class VTDNav_L5 extends VTDNav {
 
 			case PREV_SIBLING :
 				if (atTerminal) {
-					if (getTokenType(LC)==VTDNav.TOKEN_ATTR_NAME && getTokenType(LC)==VTDNav.TOKEN_ATTR_NS)
-						return false;
 					if (nodeToElement(PREV_SIBLING)){
 						b=true;
+						temp2=LN;
 						if (matchElement(en)){
 							return true;
 						}					
 					}else
-						b= false;
+					    return false;
 				}				
 				if (!b){
 					d = context[0];
@@ -1115,6 +1116,7 @@ public class VTDNav_L5 extends VTDNav {
 			if (b) {
 				context[0]--;// LN value should not change
 				atTerminal = true;
+				LN= temp2;
 				return false;
 			} else {
 				switch (d) {
@@ -1560,7 +1562,7 @@ public class VTDNav_L5 extends VTDNav {
      */
 	public boolean toElementNS(int direction, String URL, String ln)
 		throws NavException {
-		int temp=-1;
+		int temp=-1,temp2=-1;
 		int val=0;
 		int d=-1; // temp location
 		boolean b=false;
@@ -1610,11 +1612,12 @@ public class VTDNav_L5 extends VTDNav {
 				if (atTerminal){
 					if (nodeToElement(NEXT_SIBLING)){
 						b=true;
+						temp2=LN;
 						if (matchElementNS(URL,ln)){
 							return true;
 						}					
 					}else
-						b= false;
+						return false;
 				}
 				if (!b){
 				d = context[0];
@@ -1641,6 +1644,7 @@ public class VTDNav_L5 extends VTDNav {
 				if (b){
 					context[0]--;//LN value should not change
 					atTerminal=true;
+					LN = temp2;
 					return false;
 				}else{
 				switch(d)
@@ -1660,11 +1664,12 @@ public class VTDNav_L5 extends VTDNav {
 				if (atTerminal){		
 					if (nodeToElement(PREV_SIBLING)){
 						b=true;
+						temp2=LN;
 						if (matchElementNS(URL,ln)){
 							return true;
 						}					
 					}else
-						b= false;
+						return false;
 				}				
 				if (!b){
 					d = context[0];
@@ -1691,6 +1696,7 @@ public class VTDNav_L5 extends VTDNav {
 				if (b){
 					context[0]--;//LN value should not change
 					atTerminal=true;
+					LN = temp2;
 					return false;
 				} else {
 				switch(d)
