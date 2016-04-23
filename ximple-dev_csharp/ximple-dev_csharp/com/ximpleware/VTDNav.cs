@@ -17,7 +17,7 @@
 */
 /*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 // added set
-using System;
+using System;  
 using System.Text;
 using UTF8Char = com.ximpleware.parser.UTF8Char;
 using com.ximpleware.parser;
