@@ -1115,7 +1115,7 @@ namespace com.ximpleware
          */
         public override bool toElement(int direction, String en)
         {
-            int temp=-1;
+            int temp=-1,temp2=-1;
             int d=-1;
             int val = 0;
             bool b = false;
@@ -1174,11 +1174,12 @@ namespace com.ximpleware
                     if (atTerminal){					
 					if (nodeToElement(NEXT_SIBLING)){
 						b=true;
+                        temp2 = LN;
 						if (matchElement(en)){
 							return true;
 						}					
 					}else
-						b= false;
+						return false;
 				}
                     if (!b)
                     {
@@ -1208,6 +1209,7 @@ namespace com.ximpleware
                         {
                             context[0]--;//LN value should not change
                             atTerminal = true;
+                            LN = temp2;
                             return false;
                         }
                         else
@@ -1229,11 +1231,12 @@ namespace com.ximpleware
                     if (atTerminal) {					
 					if (nodeToElement(PREV_SIBLING)){
 						b=true;
+                        temp2 = LN;
 						if (matchElement(en)){
 							return true;
 						}					
 					}else
-						b= false;
+						return false;
 				}
                     if (!b)
                     {
@@ -1263,6 +1266,7 @@ namespace com.ximpleware
                     {
                         context[0]--;// LN value should not change
                         atTerminal = true;
+                        LN = temp2;
                         return false;
                     }
                     else
