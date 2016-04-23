@@ -3887,7 +3887,7 @@ namespace com.ximpleware
         /// </exception>
         public virtual bool toElement(int direction, System.String en)
         {
-            int temp = -1;
+            int temp = -1, temp2=-1;
             int d = -1;
             int val = 0;
             bool b = false;
@@ -3947,6 +3947,7 @@ namespace com.ximpleware
                     {
                         if (nodeToElement(NEXT_SIBLING))
                         {
+                            temp2 = LN;
                             b = true;
                             if (matchElement(en))
                             {
@@ -3954,7 +3955,7 @@ namespace com.ximpleware
                             }
                         }
                         else
-                            b= false;
+                            return false;
                     }
 
                     if (!b)
@@ -3983,6 +3984,7 @@ namespace com.ximpleware
                     {
                         context[0]--;//LN value should not change
                         atTerminal = true;
+                        LN = temp2;
                         return false;
                     }
                     else
@@ -4004,6 +4006,7 @@ namespace com.ximpleware
                     {
                         if (nodeToElement(PREV_SIBLING))
                         {
+                            temp2 = LN;
                             b = true;
                             if (matchElement(en))
                             {
@@ -4011,7 +4014,7 @@ namespace com.ximpleware
                             }
                         }
                         else
-                            b= false;
+                            return false;
                     }
                     if (!b)
                     {
@@ -4038,6 +4041,7 @@ namespace com.ximpleware
                     if (b)
                     {
                         context[0]--;//LN value should not change
+                        LN = temp2;
                         atTerminal = true;
                         return false;
                     }
@@ -4090,7 +4094,7 @@ namespace com.ximpleware
         public virtual bool toElementNS(int direction, System.String URL, System.String ln)
         {
             bool b = false;
-            int temp = -1;
+            int temp = -1, temp2=-1;
             int val = 0;
             int d = -1; // temp location
             if (ns == false)
@@ -4147,6 +4151,7 @@ namespace com.ximpleware
                     {
                         if (nodeToElement(NEXT_SIBLING))
                         {
+                            temp2 = LN;
                             b = true;
                             if (matchElementNS(URL, ln))
                             {
@@ -4183,6 +4188,7 @@ namespace com.ximpleware
                     {
                         context[0]--;//LN value should not change
                         atTerminal = true;
+                        LN = temp2;
                         return false;
                     }
                     else
@@ -4203,6 +4209,7 @@ namespace com.ximpleware
                     {
                         if (nodeToElement(PREV_SIBLING))
                         {
+                            temp2 = LN;
                             b = true;
                             if (matchElementNS(URL, ln))
                             {
@@ -4239,6 +4246,7 @@ namespace com.ximpleware
                     {
                         context[0]--;//LN value should not change
                         atTerminal = true;
+                        LN = temp2;
                         return false;
                     }
                     else
@@ -8322,6 +8330,7 @@ namespace com.ximpleware
             if ((ttype == VTDNav.TOKEN_ATTR_NAME) || (ttype == VTDNav.TOKEN_ATTR_NS))
                 return false;
             bool b = false;
+            int temp = LN;
             switch (direction)
             {
 
@@ -8335,7 +8344,10 @@ namespace com.ximpleware
                                 return true;
                         }
                         else
+                        {
+                            LN = temp;
                             return false;
+                        }
                     }
                     while (b);
                     break;
@@ -8349,7 +8361,10 @@ namespace com.ximpleware
                                 return true;
                         }
                         else
+                        {
+                            LN = temp;
                             return false;
+                        }
                     }
                     while (b);
                     break;
