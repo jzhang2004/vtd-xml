@@ -875,7 +875,7 @@ public class LocationPathExpr extends Expr{
 	    	    
 	    	case BACKWARD:
 				b = false;
-				vn.push2();
+				//vn.push2();
 
 				while (vn.toElement(VTDNavHuge.P)) {
 					if (currentStep.eval(vn)) {
@@ -1074,7 +1074,7 @@ public class LocationPathExpr extends Expr{
 			
 			case  BACKWARD:
 				b = false;
-				vn.push2();
+				//vn.push2();
 
 				while (vn.toElement(VTDNavHuge.P)) {
 					if (currentStep.eval(vn)) {
