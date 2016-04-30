@@ -84,11 +84,11 @@ public class FunctionalLocationPathExpr extends LocationPathExpr {
 			        return result;
 			    break;
 			case AxisType.ANCESTOR:
-			    if ((result = process_ancestor(vn))!= -2)
+			    if ((result = process_ancestor2(vn))!= -2)
 			        return result;
 			    break;
 			case AxisType.ANCESTOR_OR_SELF:
-			    if ((result = process_ancestor_or_self(vn))!= -2)
+			    if ((result = process_ancestor_or_self2(vn))!= -2)
 			        return result;
 			    break;
 			case AxisType.SELF:
