@@ -748,260 +748,7 @@ namespace com.ximpleware
         }
 
 
-        private int process_ancestor_or_self(VTDNav vn)
-        {
-            bool b = false, b1 = false;
-            Predicate t = null;
-            int result;
-            switch (state)
-            {
-                case START:
-                    t = currentStep.p;
-                    while (t != null)
-                    {
-                        if (t.requireContext)
-                        {
-                            int i = computeContextSize(t, vn);
-                            if (i == 0)
-                            {
-                                b1 = true;
-                                break;
-                            }
-                            else
-                                t.ContextSize=(i);
-                        }
-                        t = t.nextP;
-                    }
-                    if (b1)
-                    {
-                        state = END;
-                        break;
-                    }
-                    state = END;
-                    vn.push2();
-
-                    if (currentStep.ft)
-                    {
-                        currentStep.ft = false;
-                        if ((currentStep.nt_eval || currentStep.nt.eval(vn))
-                                && ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn)))
-                        {
-                            if (currentStep.nextS != null)
-                            {
-                                state = FORWARD;
-                                currentStep = currentStep.nextS;
-                                break;
-                            }
-                            else
-                            {
-                                //vn.pop();
-                                state = TERMINAL;
-                                if (vn.atTerminal)
-                                    result = vn.LN;
-                                else
-                                    result = vn.getCurrentIndex();
-                                if (isUnique(result))
-                                    return result;
-                            }
-                        }
-                    }
-
-                    while (vn.toElement(VTDNav.P))
-                    {
-                        if ((currentStep.nt_eval || currentStep.nt.eval(vn))
-                                && ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn)))
-                        {
-                            if (currentStep.nextS != null)
-                            {
-                                state = FORWARD;
-                                currentStep = currentStep.nextS;
-                                break;
-                            }
-                            else
-                            {
-                                //vn.pop();
-                                state = TERMINAL;
-                                result = vn.getCurrentIndex();
-                                if (isUnique(result))
-                                    return result;
-                            }
-                        }
-                    }
-
-                    if (state == END)
-                    {
-                        if (currentStep.hasPredicate)
-                            currentStep.resetP(vn);
-                        vn.pop2();
-                    }
-
-                    break;
-
-                case FORWARD:
-                    t = currentStep.p;
-                    while (t != null)
-                    {
-                        if (t.requireContext)
-                        {
-                            int i = computeContextSize(t, vn);
-                            if (i == 0)
-                            {
-                                b1 = true;
-                                break;
-                            }
-                            else
-                                t.ContextSize=(i);
-                        }
-                        t = t.nextP;
-                    }
-                    if (b1)
-                    {
-                        currentStep = currentStep.prevS;
-                        state = BACKWARD;
-                        break;
-                    }
-                    state = BACKWARD;
-                    vn.push2();
-                    if (currentStep.ft)
-                    {
-                        currentStep.ft = false;
-
-                        if ((currentStep.nt_eval || currentStep.nt.eval(vn))
-                                && ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn)))
-                        {
-                            if (currentStep.nextS != null)
-                            {
-                                state = FORWARD;
-                                currentStep = currentStep.nextS;
-                                break;
-                            }
-                            else
-                            {
-                                //vn.pop();
-                                state = TERMINAL;
-                                if (vn.atTerminal)
-                                    result = vn.LN;
-                                else
-                                    result = vn.getCurrentIndex();
-                                if (isUnique(result))
-                                    return result;
-                            }
-                        }
-                    }
-                    while (vn.toElement(VTDNav.P))
-                    {
-                        if ((currentStep.nt_eval || currentStep.nt.eval(vn))
-                                && ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn)))
-                        {
-                            if (currentStep.nextS != null)
-                            {
-                                state = FORWARD;
-                                currentStep = currentStep.nextS;
-                                break;
-                            }
-                            else
-                            {
-                                //vn.pop();
-                                state = TERMINAL;
-                                result = vn.getCurrentIndex();
-                                if (isUnique(result))
-                                    return result;
-                            }
-                        }
-                    }
-
-                    if (state == BACKWARD)
-                    {
-                        if (currentStep.hasPredicate)
-                            currentStep.resetP(vn);
-                        currentStep.ft = true;
-                        vn.pop2();
-                        currentStep = currentStep.prevS;
-                    }
-                    break;
-
-                case END:
-                    currentStep = null;
-                    // reset();
-                    return -1;
-
-
-                case BACKWARD:
-                    //b = false;
-                    vn.push2();
-
-                    while (vn.toElement(VTDNav.P))
-                    {
-                        if ((currentStep.nt_eval || currentStep.nt.eval(vn))
-                                && ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn)))
-                        {
-                            if (currentStep.nextS != null)
-                            {
-                                state = FORWARD;
-                                currentStep = currentStep.nextS;
-                                b = true;
-                                break;
-                            }
-                            else
-                            {
-                                //vn.pop();
-                                state = TERMINAL;
-                                result = vn.getCurrentIndex();
-                                if (isUnique(result))
-                                    return result;
-                            }
-                        }
-                    }
-                    if (b == false)
-                    {
-                        vn.pop2();
-                        if (currentStep.hasPredicate)
-                            currentStep.resetP(vn);
-                        if (currentStep.prevS != null)
-                        {
-                            currentStep.ft = true;
-                            state = BACKWARD;
-                            currentStep = currentStep.prevS;
-                        }
-                        else
-                        {
-                            state = END;
-                        }
-                    }
-                    break;
-
-                case TERMINAL:
-                    while (vn.toElement(VTDNav.P))
-                    {
-                        if ((currentStep.nt_eval || currentStep.nt.eval(vn))
-                                && ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn)))
-                        {
-                            result = vn.getCurrentIndex();
-                            if (isUnique(result))
-                                return result;
-                        }
-                    }
-                    vn.pop2();
-                    if (currentStep.hasPredicate)
-                        currentStep.resetP(vn);
-                    if (currentStep.prevS != null)
-                    {
-                        currentStep.ft = true;
-                        state = BACKWARD;
-                        currentStep = currentStep.prevS;
-                    }
-                    else
-                    {
-                        state = END;
-                    }
-                    break;
-
-
-                default:
-                    throw new XPathEvalException("unknown state");
-            }
-            return -2;
-        }
+       
         private int process_self(VTDNav vn)
         {
             bool b1 = false;
@@ -2616,10 +2363,17 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 				
 			
 			case  BACKWARD:
-				//b = false;
-				vn.push2();
+                    //b = false;
+                    b = false;
+                    //vn.push2();
+                    if (currentStep.out_of_range)
+                    {
+                        currentStep.out_of_range = false;
+                        transition_ancestor_or_self(vn);
+                        break;
+                    }
 
-				while (vn.toNode(VTDNav.P)) {
+                    while (vn.toNode(VTDNav.P)) {
 					if ((currentStep.nt_eval || currentStep.nt.eval2(vn)) 
 							&& ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn))) {
 						if (currentStep.nextS != null) {
@@ -2636,22 +2390,22 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 						}
 					}
 				}
-				if (b == false) {
-					vn.pop2();
-                    if (currentStep.hasPredicate)
-    					currentStep.resetP(vn);
-					if (currentStep.prevS != null) {
-						currentStep.ft = true;
-						 state =  BACKWARD;
-						currentStep = currentStep.prevS;
-					} else {
-						 state =  END;
-					}
-				}
-				break;
+				
+                    if (b == false)
+                    {
+                        currentStep.out_of_range = false;
+                        transition_ancestor_or_self(vn);
+                    }
+                    break;
 			
 			case  TERMINAL:
-				while (vn.toNode(VTDNav.P)) {
+                    if (currentStep.out_of_range)
+                    {
+                        currentStep.out_of_range = false;
+                        transition_ancestor_or_self(vn);
+                        break;
+                    }
+                    while (vn.toNode(VTDNav.P)) {
 					if ((currentStep.nt_eval || currentStep.nt.eval2(vn)) 
 							&& ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn))) {
 						result = vn.getCurrentIndex();
@@ -2659,18 +2413,9 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 							return result;
 					}
 				}
-				vn.pop2();
-                if (currentStep.hasPredicate)
-    				currentStep.resetP(vn);
-				if (currentStep.prevS!=null) {
-					currentStep.ft = true;
-					 state =  BACKWARD;
-					currentStep = currentStep.prevS;
-				}
-				else {
-					 state =  END;
-				}
-				break;
+                    currentStep.out_of_range = false;
+                    transition_ancestor_or_self(vn);
+                    break;
 				
 			
 			default:
@@ -2844,6 +2589,22 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 	    return -2;
 	}
 
+        private void transition_ancestor_or_self(VTDNav vn)
+        {
+            //currentStep.out_of_range = false;
+            vn.pop2();
+            if (currentStep.prevS != null)
+            {
+                if (currentStep.hasPredicate)
+                    currentStep.resetP(vn);
+                state = BACKWARD;
+                currentStep = currentStep.prevS;
+            }
+            else
+            {
+                state = END;
+            }
+        }
         private void transition_ancestor(VTDNav vn)
         {
             //currentStep.out_of_range = false;
