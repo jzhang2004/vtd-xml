@@ -124,7 +124,7 @@ namespace com_ximpleware {
 		//void resolveLC_l5();
 		void recoverNode_l3(int i);
 
-		bool nodeToElement(int direction);
+		//bool nodeToElement(int direction);
 		void sync(int depth, int index);
 		//virtual void sync(int depth, int index);
 		virtual bool toNode_LastChild();
@@ -205,6 +205,6 @@ namespace com_ximpleware {
 		bool toNode(int direction);
 		virtual bool verifyNodeCorrectness();
 	};
-}
+};
 
 #endif

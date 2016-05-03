@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -423,12 +423,12 @@ VTDNav_L5::~VTDNav_L5(){
 /*bool VTDNav_L5::iterate(int dp, UCSChar *en, bool special){
 // get the current depth
 		int index = getCurrentIndex() + 1;
-		int tokenType;
+		int tType;
 		//int size = vtdBuffer.size;
 		while (index < vtdSize) {
-		    tokenType = getTokenType(index);
-			if (tokenType==TOKEN_ATTR_NAME
-			        || tokenType == TOKEN_ATTR_NS){			  
+		    tType = getTokenType(index);
+			if (tType==TOKEN_ATTR_NAME
+			        || tType == TOKEN_ATTR_NS){			  
 			    index = index+2;
 			    continue;
 			}
@@ -460,12 +460,12 @@ VTDNav_L5::~VTDNav_L5(){
 /*bool VTDNav_L5::iterateNS(int dp, UCSChar *URL, UCSChar *ln){
 		if (ns == false)
 			return false;
-		int tokenType;
+		int tType;
 		int index = getCurrentIndex() + 1;
 		while (index < vtdSize) {
-		    tokenType = getTokenType(index);
-			if(tokenType==TOKEN_ATTR_NAME
-			        || tokenType == TOKEN_ATTR_NS){
+		    tType = getTokenType(index);
+			if(tType==TOKEN_ATTR_NAME
+			        || tType == TOKEN_ATTR_NS){
 			    index = index+2;
 			    continue;
 			}
@@ -1238,7 +1238,7 @@ bool VTDNav_L5::toElement( navDir direction){
 * for ROOT and PARENT, element name will be ignored.
 */
 bool VTDNav_L5::toElement( navDir direction, UCSChar *en){
-	int temp=-1;
+	int temp=-1,temp2=-1;
 	int d=-1;
 	int val=0;
 	bool b=false;
@@ -1290,6 +1290,7 @@ bool VTDNav_L5::toElement( navDir direction, UCSChar *en){
 		if (atTerminal){					
 			if (nodeToElement(NEXT_SIBLING)){
 				b=true;
+				temp2 = LN;
 				if (matchElement(en)){
 					return true;
 				}					
@@ -1320,6 +1321,7 @@ bool VTDNav_L5::toElement( navDir direction, UCSChar *en){
 		if (b){
 			context[0]--;//LN value should not change
 			atTerminal=true;
+			LN = temp2;
 			return false;
 		}else{
 			switch(d)
@@ -1339,6 +1341,7 @@ bool VTDNav_L5::toElement( navDir direction, UCSChar *en){
 		if (atTerminal) {					
 			if (nodeToElement(PREV_SIBLING)){
 				b=true;
+				temp2 = LN;
 				if (matchElement(en)){
 					return true;
 				}					
@@ -1368,6 +1371,7 @@ bool VTDNav_L5::toElement( navDir direction, UCSChar *en){
 		if (b) {
 			context[0]--;// LN value should not change
 			atTerminal = true;
+			LN = temp2;
 			return false;
 		} else {
 			switch(d)
@@ -1405,7 +1409,7 @@ bool VTDNav_L5::toElement( navDir direction, UCSChar *en){
 * If not ns enabled, return false immediately with no position change.
 */
 bool VTDNav_L5::toElementNS( navDir direction, UCSChar *URL, UCSChar *ln){
-	int temp=-1;
+	int temp=-1,temp2 = -1;
 	int val=0;
 	int d=-1; // temp location
 	bool b=false;
@@ -1455,6 +1459,7 @@ bool VTDNav_L5::toElementNS( navDir direction, UCSChar *URL, UCSChar *ln){
 		if (atTerminal){					
 			if (nodeToElement(NEXT_SIBLING)){
 				b=true;
+				temp2 = LN;
 				if (matchElementNS(URL,ln)){
 					return true;
 				}					
@@ -1486,6 +1491,7 @@ bool VTDNav_L5::toElementNS( navDir direction, UCSChar *URL, UCSChar *ln){
 		if (b){
 			context[0]--;//LN value should not change
 			atTerminal=true;
+			LN = temp2;
 			return false;
 		}else{
 			switch(d)
@@ -1505,6 +1511,7 @@ bool VTDNav_L5::toElementNS( navDir direction, UCSChar *URL, UCSChar *ln){
 		if (atTerminal){					
 			if (nodeToElement(PREV_SIBLING)){
 				b=true;
+				temp2 = LN;
 				if (matchElementNS(URL,ln)){
 					return true;
 				}					
@@ -1536,6 +1543,7 @@ bool VTDNav_L5::toElementNS( navDir direction, UCSChar *URL, UCSChar *ln){
 		if (b){
 			context[0]--;//LN value should not change
 			atTerminal=true;
+			LN = temp2;
 			return false;
 		} else {
 			switch(d)
@@ -1645,7 +1653,7 @@ void VTDNav_L5::dumpState(){
 
 bool VTDNav_L5::toNode(int dir){
 		
-		int index,tokenType,depth,lastEntry,tmp;
+		int index,tType,depth,lastEntry,tmp;
 		//count++;
 		//System.out.println("count ==>"+ count);
 		switch(dir){
@@ -1687,8 +1695,8 @@ bool VTDNav_L5::toNode(int dir){
 				index = rootIndex-1;
 				
 				while(index >0){
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_COMMENT: index--; break;
 					case TOKEN_PI_VAL:  index-=2;break;
 					default:
@@ -1709,8 +1717,8 @@ bool VTDNav_L5::toNode(int dir){
 					index = l1Buffer->upper32At(0)-1;
 					//rewind
 					while(index>rootIndex){
-						tokenType = getTokenType(index);
-						switch(tokenType){
+						tType = getTokenType(index);
+						switch(tType){
 						case TOKEN_CHARACTER_DATA:
 						case TOKEN_COMMENT:
 						case TOKEN_CDATA_VAL:
@@ -1740,8 +1748,8 @@ bool VTDNav_L5::toNode(int dir){
 					//get to the first non-attr node after the starting tag
 					index = rootIndex+1;
 					while(index<vtdSize){
-						tokenType = getTokenType(index);
-						switch(tokenType){
+						tType = getTokenType(index);
+						switch(tType){
 						case TOKEN_ATTR_NAME:
 						case TOKEN_ATTR_NS:
 							index+=2;
@@ -1777,8 +1785,8 @@ bool VTDNav_L5::toNode(int dir){
 					index = context[1]+1;
 					tmp = l2Buffer->upper32At(l2lower);
 					while(index<tmp){
-						tokenType = getTokenType(index);
-						switch(tokenType){
+						tType = getTokenType(index);
+						switch(tType){
 						case TOKEN_ATTR_NAME:
 						case TOKEN_ATTR_NS:
 							index+=2;
@@ -1797,8 +1805,8 @@ bool VTDNav_L5::toNode(int dir){
 				}else{
 					index = context[1]+1;
 					while(index<vtdSize){
-						tokenType = getTokenType(index);
-						switch(tokenType){
+						tType = getTokenType(index);
+						switch(tType){
 						case TOKEN_ATTR_NAME:
 						case TOKEN_ATTR_NS:
 							index+=2;
@@ -1834,8 +1842,8 @@ bool VTDNav_L5::toNode(int dir){
 					index = context[2]+1;
 					tmp = l3Buffer->upper32At(l3lower);
 					while(index<tmp){
-						tokenType = getTokenType(index);
-						switch(tokenType){
+						tType = getTokenType(index);
+						switch(tType){
 						case TOKEN_ATTR_NAME:
 						case TOKEN_ATTR_NS:
 							index+=2;
@@ -1854,8 +1862,8 @@ bool VTDNav_L5::toNode(int dir){
 				}else{
 					index = context[2]+1;
 					while(index<vtdSize){
-						tokenType = getTokenType(index);
-						switch(tokenType){
+						tType = getTokenType(index);
+						switch(tType){
 						case TOKEN_ATTR_NAME:
 						case TOKEN_ATTR_NS:
 							index+=2;
@@ -1890,8 +1898,8 @@ bool VTDNav_L5::toNode(int dir){
 				index = context[3]+1;
 				tmp = l4Buffer->upper32At(l4lower);
 				while(index<tmp){
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS:
 						index+=2;
@@ -1910,8 +1918,8 @@ bool VTDNav_L5::toNode(int dir){
 			}else{
 				index = context[3]+1;
 				while(index<vtdSize){
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS:
 						index+=2;
@@ -1946,8 +1954,8 @@ bool VTDNav_L5::toNode(int dir){
 				index = context[4]+1;
 				tmp = l5Buffer->intAt(l5lower);
 				while(index<tmp){
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS:
 						index+=2;
@@ -1966,8 +1974,8 @@ bool VTDNav_L5::toNode(int dir){
 			}else{
 				index = context[4]+1;
 				while(index<vtdSize){
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS:
 						index+=2;
@@ -1989,9 +1997,9 @@ bool VTDNav_L5::toNode(int dir){
 				index = context[context[0]] + 1;
 				while (index < vtdBuffer->size) {
 					Long temp = vtdBuffer->longAt(index);
-					tokenType =
+					tType =
 						(int) ((MASK_TOKEN_TYPE & temp) >>60)&0xf;
-					switch(tokenType){
+					switch(tType){
 					case TOKEN_STARTING_TAG:
 						depth =
 							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
@@ -2043,8 +2051,8 @@ bool VTDNav_L5::toNode(int dir){
 			case -1:
 				if(atTerminal){
 					index = LN;
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_PI_NAME: 
 						index+=2;
 						break;
@@ -2055,7 +2063,7 @@ bool VTDNav_L5::toNode(int dir){
 					}
 					
 					if (index <vtdSize){
-						tokenType = getTokenType(index);
+						tType = getTokenType(index);
 						depth = getTokenDepth(index);
 						if (depth == -1){
 							LN = index;
@@ -2076,14 +2084,14 @@ bool VTDNav_L5::toNode(int dir){
 			case 0:
 				if(atTerminal){
 					index = LN;
-					tokenType=getTokenType(LN);
-					if (tokenType==TOKEN_ATTR_NAME)
+					tType=getTokenType(LN);
+					if (tType==TOKEN_ATTR_NAME)
 						return false;
 					//index++;
 					if (l1Buffer->size!=0){
 						if (index < l1Buffer->upper32At(l1index)){
 							index++;
-							if (tokenType==TOKEN_PI_NAME)
+							if (tType==TOKEN_PI_NAME)
 								index++;
 							if (index <= l1Buffer->upper32At(l1index)){
 								if (index == l1Buffer->upper32At(l1index)){
@@ -2103,7 +2111,7 @@ bool VTDNav_L5::toNode(int dir){
 							}
 						}else if ( l1index < l1Buffer->size -1){ // whether lindex is the last entry is l1 buffer
 							l1index++;
-							if (tokenType==TOKEN_PI_NAME)
+							if (tType==TOKEN_PI_NAME)
 								index++;
 							if (index <= l1Buffer->upper32At(l1index)){
 								if (index == l1Buffer->upper32At(l1index)){
@@ -2123,7 +2131,7 @@ bool VTDNav_L5::toNode(int dir){
 							}
 						}else{
 							index++;
-							if (tokenType==TOKEN_PI_NAME)
+							if (tType==TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize){
 								depth = getTokenDepth(index);
@@ -2138,7 +2146,7 @@ bool VTDNav_L5::toNode(int dir){
 						}						
 					}else{
 						index++;
-						if (tokenType==TOKEN_PI_NAME)
+						if (tType==TOKEN_PI_NAME)
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
@@ -2176,14 +2184,14 @@ bool VTDNav_L5::toNode(int dir){
 				//break;
 			case 1:
 				if(atTerminal){
-					tokenType=getTokenType(LN);
-					if (tokenType==TOKEN_ATTR_NAME)
+					tType=getTokenType(LN);
+					if (tType==TOKEN_ATTR_NAME)
 						return false;
 					if (l1Buffer->lower32At(l1index) != -1) {
 						if (LN < l2Buffer->upper32At(l2upper)) {
 							tmp = l2Buffer->upper32At(l2index);
 							index = LN + 1;
-							if (tokenType == TOKEN_PI_NAME)
+							if (tType == TOKEN_PI_NAME)
 								index++;
 
 							if (index < tmp) {
@@ -2197,7 +2205,7 @@ bool VTDNav_L5::toNode(int dir){
 							}
 						} else {
 							index = LN + 1;
-							if (tokenType == TOKEN_PI_NAME)
+							if (tType == TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
@@ -2275,14 +2283,14 @@ bool VTDNav_L5::toNode(int dir){
 				
 			case 2:
 				if(atTerminal){
-					tokenType=getTokenType(LN);
-					if (tokenType==TOKEN_ATTR_NAME)
+					tType=getTokenType(LN);
+					if (tType==TOKEN_ATTR_NAME)
 						return false;
 					if (l2Buffer->lower32At(l2index) != -1) {
 						if (LN < l3Buffer->upper32At(l3upper)) {
 							tmp = l3Buffer->upper32At(l3index);
 							index = LN + 1;
-							if (tokenType== TOKEN_PI_NAME)
+							if (tType== TOKEN_PI_NAME)
 								index++;
 
 							if (index < tmp) {
@@ -2296,7 +2304,7 @@ bool VTDNav_L5::toNode(int dir){
 							}
 						} else {
 							index = LN + 1;
-							if (tokenType == TOKEN_PI_NAME)
+							if (tType == TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
@@ -2310,7 +2318,7 @@ bool VTDNav_L5::toNode(int dir){
 						}						
 					}else{
 						index= LN+1;
-						if (tokenType==TOKEN_PI_NAME)
+						if (tType==TOKEN_PI_NAME)
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
@@ -2333,8 +2341,8 @@ bool VTDNav_L5::toNode(int dir){
 						//rewind
 						while(index>tmp){
 							if (getTokenDepth(index)==1){
-								tokenType = getTokenType(index);
-								switch(tokenType){
+								tType = getTokenType(index);
+								switch(tType){
 								case TOKEN_CHARACTER_DATA:
 								case TOKEN_COMMENT:
 								case TOKEN_CDATA_VAL:
@@ -2393,14 +2401,14 @@ bool VTDNav_L5::toNode(int dir){
 				//break;
 			case 3:
 				if(atTerminal){
-					tokenType=getTokenType(LN);
-					if (tokenType==TOKEN_ATTR_NAME)
+					tType=getTokenType(LN);
+					if (tType==TOKEN_ATTR_NAME)
 						return false;
 					if (l3Buffer->lower32At(l3index) != -1) {
 						if (LN < l4Buffer->upper32At(l4upper)) {
 							tmp = l4Buffer->upper32At(l4index);
 							index = LN + 1;
-							if (tokenType == TOKEN_PI_NAME)
+							if (tType == TOKEN_PI_NAME)
 								index++;
 							if (index < tmp) {
 								LN = index;
@@ -2413,7 +2421,7 @@ bool VTDNav_L5::toNode(int dir){
 							}
 						} else {
 							index = LN + 1;
-							if (tokenType == TOKEN_PI_NAME)
+							if (tType == TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
@@ -2427,7 +2435,7 @@ bool VTDNav_L5::toNode(int dir){
 						}						
 					}else{
 						index= LN+1;
-						if (tokenType==TOKEN_PI_NAME)
+						if (tType==TOKEN_PI_NAME)
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
@@ -2450,8 +2458,8 @@ bool VTDNav_L5::toNode(int dir){
 						//rewind
 						while(index>tmp){
 							if (getTokenDepth(index)==2){
-								tokenType = getTokenType(index);
-								switch(tokenType){
+								tType = getTokenType(index);
+								switch(tType){
 								case TOKEN_CHARACTER_DATA:
 								case TOKEN_COMMENT:
 								case TOKEN_CDATA_VAL:
@@ -2514,14 +2522,14 @@ bool VTDNav_L5::toNode(int dir){
 				}
 			case 4:				
 				if(atTerminal){
-					tokenType=getTokenType(LN);
-					if (tokenType==TOKEN_ATTR_NAME)
+					tType=getTokenType(LN);
+					if (tType==TOKEN_ATTR_NAME)
 						return false;
 					if (l4Buffer->lower32At(l4index) != -1) {
 						if (LN < l5Buffer->intAt(l5upper)) {
 							tmp = l5Buffer->intAt(l5index);
 							index = LN + 1;
-							if (tokenType == TOKEN_PI_NAME)
+							if (tType == TOKEN_PI_NAME)
 								index++;
 							if (index < tmp) {
 								LN = index;
@@ -2534,7 +2542,7 @@ bool VTDNav_L5::toNode(int dir){
 							}
 						} else {
 							index = LN + 1;
-							if (tokenType == TOKEN_PI_NAME)
+							if (tType == TOKEN_PI_NAME)
 								index++;
 							if (index < vtdSize) {
 								depth = getTokenDepth(index);
@@ -2548,7 +2556,7 @@ bool VTDNav_L5::toNode(int dir){
 						}						
 					}else{
 						index= LN+1;
-						if (tokenType==TOKEN_PI_NAME)
+						if (tType==TOKEN_PI_NAME)
 							index++;
 						if (index < vtdSize){
 							depth = getTokenDepth(index);
@@ -2571,8 +2579,8 @@ bool VTDNav_L5::toNode(int dir){
 						//rewind
 						while(index>tmp){
 							if (getTokenDepth(index)==3){
-								tokenType = getTokenType(index);
-								switch(tokenType){
+								tType = getTokenType(index);
+								switch(tType){
 								case TOKEN_CHARACTER_DATA:
 								case TOKEN_COMMENT:
 								case TOKEN_CDATA_VAL:
@@ -2648,8 +2656,8 @@ bool VTDNav_L5::toNode(int dir){
 					//rewind
 					while(index>tmp){
 						if (getTokenDepth(index)==4){
-							tokenType = getTokenType(index);
-							switch(tokenType){
+							tType = getTokenType(index);
+							switch(tType){
 							case TOKEN_CHARACTER_DATA:
 							case TOKEN_COMMENT:
 							case TOKEN_CDATA_VAL:
@@ -2722,8 +2730,8 @@ bool VTDNav_L5::toNode(int dir){
 				//break;
 			default:
 				if (atTerminal){
-					tokenType=getTokenType(LN);
-					if (tokenType==TOKEN_ATTR_NAME)
+					tType=getTokenType(LN);
+					if (tType==TOKEN_ATTR_NAME)
 						return false;
 					index = LN+1;
 					tmp = context[0]+1;
@@ -2734,9 +2742,9 @@ bool VTDNav_L5::toNode(int dir){
 				}
 				while (index < vtdSize) {
 					Long temp = vtdBuffer->longAt(index);
-					tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
+					tType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
 					depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-					switch (tokenType) {
+					switch (tType) {
 					case TOKEN_STARTING_TAG:						
 						if (depth < tmp) {
 							return false;
@@ -3235,156 +3243,7 @@ bool VTDNav_L5::verifyNodeCorrectness(){
 		}
 }
 
-bool VTDNav_L5::nodeToElement(int direction){
-			switch(direction){
-		case NEXT_SIBLING:
-			switch (context[0]) {
-			case 0:
-				if (l1index!=-1){
-					context[0]=1;
-					context[1]=l1Buffer->upper32At(l1index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;
-			case 1:
-				if (l2index!=-1){
-					context[0]=2;
-					context[2]=l2Buffer->upper32At(l2index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;
-				
-			case 2:
-				if (l3index!=-1){
-					context[0]=3;
-					context[3]=l3Buffer->upper32At(l3index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;
-				
-			case 3:
-				if (l4index!=-1){
-					context[0]=4;
-					context[4]=l4Buffer->upper32At(l4index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;
-				
-			case 4:
-				if (l5index!=-1){
-					context[0]=5;
-					context[5]=l5Buffer->intAt(l5index);
-					atTerminal=false;
-					return true;
-				}else
-					return false;	
-				
-			default:
-				int index = LN + 1;
-				int size = vtdBuffer->size;
-				while (index < size) {
-					Long temp = vtdBuffer->longAt(index);
-					int token_type =
-						(int) ((MASK_TOKEN_TYPE & temp) >> 60)
-							& 0xf;
 
-					if (token_type == TOKEN_STARTING_TAG) {
-						int depth =
-							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						if (depth < context[0]) {
-							return false;
-						} else if (depth == (context[0])) {
-							context[context[0]] = index;
-							return true;
-						}
-					}
-					index++;
-				}
-				return false;
-					
-			}
-			
-		case PREV_SIBLING:
-			switch (context[0]) {
-			case 0:
-				if (l1index!=-1 && l1index>0){
-					l1index--;
-					context[0]=1;
-					context[1]=l1Buffer->upper32At(l1index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-			case 1:
-				if (l2index!=-1 && l2index>l2lower){
-					l2index--;
-					context[0]=2;
-					context[2]=l2Buffer->upper32At(l2index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-			case 2:
-				if (l3index!=-1 && l3index>l3lower){
-					l3index--;
-					context[0]=3;
-					context[3]=l3Buffer->upper32At(l3index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-			case 3:
-				if (l4index!=-1 && l4index>l4lower){
-					l4index--;
-					context[0]=4;
-					context[4]=l4Buffer->upper32At(l4index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-				
-			case 4:
-				if (l5index!=-1 && l5index>l5lower){
-					l5index--;
-					context[0]=5;
-					context[5]=l5Buffer->intAt(l5index);
-					atTerminal=false;
-					return true;					
-				}else
-					return false;
-				
-			default:
-				int index = LN- 1;
-				while (index > context[context[0] - 1]) {
-					// scan backforward
-					Long temp = vtdBuffer->longAt(index);
-					int token_type =
-						(int) ((MASK_TOKEN_TYPE & temp) >> 60)
-							& 0xf;
-
-					if (token_type == TOKEN_STARTING_TAG) {
-						int depth =
-							(int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-						/*
-                         * if (depth < context[0]) { return false; }
-                         * else
-                         */
-						if (depth == (context[0])) {
-							context[context[0]] = index;
-							return true;
-						}
-					}
-					index--;
-				} // what condition
-				return false;
-			}
-		}
-		return false;
-}
 void VTDNav_L5::sync(int depth, int index){
 			// assumption is that this is always at terminal
 		switch(depth){
@@ -3557,14 +3416,14 @@ void VTDNav_L5::sync(int depth, int index){
 }
 		//virtual void sync(int depth, int index);
 bool VTDNav_L5::toNode_LastChild(){
-	int depth,index,tokenType,lastEntry,tmp;
+	int depth,index,tType,lastEntry,tmp;
 		switch (context[0]) {
 		case -1:
 			index = vtdSize-1;
-			tokenType = getTokenType(index);
+			tType = getTokenType(index);
 			depth = getTokenDepth(index);
 			if (depth == -1) {
-				switch (tokenType) {
+				switch (tType) {
 					case TOKEN_COMMENT:
 						LN = index;
 						atTerminal = true;
@@ -3588,8 +3447,8 @@ bool VTDNav_L5::toNode_LastChild(){
 						index--;
 						continue;
 					} else if (depth ==0){
-						tokenType = getTokenType(index);
-						switch(tokenType){
+						tType = getTokenType(index);
+						switch(tType){
 						case TOKEN_CHARACTER_DATA:
 						case TOKEN_COMMENT:
 						case TOKEN_CDATA_VAL:
@@ -3624,8 +3483,8 @@ bool VTDNav_L5::toNode_LastChild(){
 						index--;
 						continue;
 					}
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_CHARACTER_DATA:
 					case TOKEN_COMMENT:
 					case TOKEN_CDATA_VAL:
@@ -3669,8 +3528,8 @@ bool VTDNav_L5::toNode_LastChild(){
 					if (depth <1)
 						index--;
 					else if (depth == 1){
-						tokenType = getTokenType(index);
-						if (tokenType == TOKEN_PI_VAL)
+						tType = getTokenType(index);
+						if (tType == TOKEN_PI_VAL)
 							LN = index-1;
 						else
 							LN = index;
@@ -3688,8 +3547,8 @@ bool VTDNav_L5::toNode_LastChild(){
 			}else{
 				index = context[1]+1;
 				 while(index<vtdSize){
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS:
 						index+=2;
@@ -3704,10 +3563,10 @@ bool VTDNav_L5::toNode_LastChild(){
 					index++;
 					//scan forward
 					while(index<vtdSize){
-						tokenType = getTokenType(index);
+						tType = getTokenType(index);
 						depth = getTokenDepth(index);
 						if (depth == 1){
-							switch(tokenType){
+							switch(tType){
 							case TOKEN_CHARACTER_DATA:
 							case TOKEN_COMMENT:
 							case TOKEN_CDATA_VAL:
@@ -3763,8 +3622,8 @@ bool VTDNav_L5::toNode_LastChild(){
 					if (depth <2)
 						index--;
 					else if (depth == 2){
-						tokenType = getTokenType(index);
-						if (tokenType == TOKEN_PI_VAL)
+						tType = getTokenType(index);
+						if (tType == TOKEN_PI_VAL)
 							LN = index-1;
 						else
 							LN = index;
@@ -3780,8 +3639,8 @@ bool VTDNav_L5::toNode_LastChild(){
 			}else{
 				index = context[2]+1;
 				while(index<vtdSize){
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS:
 						index+=2;
@@ -3795,10 +3654,10 @@ bool VTDNav_L5::toNode_LastChild(){
 					index++;
 					//scan forward
 					while(index<vtdSize){
-						tokenType = getTokenType(index);
+						tType = getTokenType(index);
 						depth = getTokenDepth(index);
 						if (depth == 2){
-							switch(tokenType){
+							switch(tType){
 							case TOKEN_CHARACTER_DATA:
 							case TOKEN_COMMENT:
 							case TOKEN_CDATA_VAL:
@@ -3859,8 +3718,8 @@ bool VTDNav_L5::toNode_LastChild(){
 					if (depth < 3)
 						index--;
 					else if (depth == 3) {
-						tokenType = getTokenType(index);
-						if (tokenType == TOKEN_PI_VAL)
+						tType = getTokenType(index);
+						if (tType == TOKEN_PI_VAL)
 							LN = index - 1;
 						else
 							LN = index;
@@ -3876,8 +3735,8 @@ bool VTDNav_L5::toNode_LastChild(){
 			} else {
 				index = context[3] + 1;
 				while (index < vtdSize) {
-					tokenType = getTokenType(index);
-					switch (tokenType) {
+					tType = getTokenType(index);
+					switch (tType) {
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS:
 						index += 2;
@@ -3893,10 +3752,10 @@ bool VTDNav_L5::toNode_LastChild(){
 					index++;
 					// scan forward
 					while (index < vtdSize) {
-						tokenType = getTokenType(index);
+						tType = getTokenType(index);
 						depth = getTokenDepth(index);
 						if (depth == 3) {
-							switch (tokenType) {
+							switch (tType) {
 							case TOKEN_CHARACTER_DATA:
 							case TOKEN_COMMENT:
 							case TOKEN_CDATA_VAL:
@@ -3960,8 +3819,8 @@ bool VTDNav_L5::toNode_LastChild(){
 					if (depth <4)
 						index--;
 					else if (depth == 4){
-						tokenType = getTokenType(index);
-						if (tokenType == TOKEN_PI_VAL)
+						tType = getTokenType(index);
+						if (tType == TOKEN_PI_VAL)
 							LN = index-1;
 						else
 							LN = index;
@@ -3977,8 +3836,8 @@ bool VTDNav_L5::toNode_LastChild(){
 			}else{
 				index = context[4]+1;
 				while(index<vtdSize){
-					tokenType = getTokenType(index);
-					switch(tokenType){
+					tType = getTokenType(index);
+					switch(tType){
 					case TOKEN_ATTR_NAME:
 					case TOKEN_ATTR_NS:
 						index+=2;
@@ -3992,10 +3851,10 @@ bool VTDNav_L5::toNode_LastChild(){
 					index++;
 					//scan forward
 					while(index<vtdSize){
-						tokenType = getTokenType(index);
+						tType = getTokenType(index);
 						depth = getTokenDepth(index);
 						if (depth == 4){
-							switch(tokenType){
+							switch(tType){
 							case TOKEN_CHARACTER_DATA:
 							case TOKEN_COMMENT:
 							case TOKEN_CDATA_VAL:
@@ -4025,10 +3884,10 @@ bool VTDNav_L5::toNode_LastChild(){
 			lastEntry  = -1; atTerminal = false;
 			while (index < vtdBuffer->size) {
 				Long temp = vtdBuffer->longAt(index);
-				tokenType =
+				tType =
 					(int) ((MASK_TOKEN_TYPE & temp) >> 60) & 0x0f;
 				depth =getTokenDepth(index);
-				switch(tokenType){
+				switch(tType){
 				case TOKEN_STARTING_TAG:
 					if (depth <= context[0]){
 						if (lastEntry !=-1){
@@ -4107,7 +3966,7 @@ bool VTDNav_L5::toNode_LastChild(){
 }
 		
 bool VTDNav_L5::toNode_PrevSibling(){
-		int index,tokenType,depth,tmp;
+		int index,tType,depth,tmp;
 		switch (context[0]) {
 		case -1:
 			if(atTerminal){
@@ -4115,8 +3974,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 				if (index>0){
 					depth = getTokenDepth(index);
 					if (depth==-1){
-						tokenType = getTokenType(index);
-						switch (tokenType) {
+						tType = getTokenType(index);
+						switch (tType) {
 						case TOKEN_PI_VAL:
 							index--;
 						case TOKEN_COMMENT:
@@ -4144,10 +4003,10 @@ bool VTDNav_L5::toNode_PrevSibling(){
 					if (LN < l1Buffer->upper32At(l1index)){
 						index = LN-1;
 						if (index>rootIndex){
-							tokenType = getTokenType(index);
+							tType = getTokenType(index);
 							depth = getTokenDepth(index);								
 							if (depth == 0){
-								switch(tokenType){									
+								switch(tType){									
 								case TOKEN_CHARACTER_DATA:
 								case TOKEN_COMMENT:
 								case TOKEN_CDATA_VAL:
@@ -4170,10 +4029,10 @@ bool VTDNav_L5::toNode_PrevSibling(){
 					} else {
 						index = LN -1;
 						if (index>l1Buffer->upper32At(l1index)){
-							tokenType = getTokenType(index);
+							tType = getTokenType(index);
 							depth = getTokenDepth(index);								
 							if (depth == 0){
-								switch(tokenType){									
+								switch(tType){									
 								case TOKEN_CHARACTER_DATA:
 								case TOKEN_COMMENT:
 								case TOKEN_CDATA_VAL:
@@ -4193,8 +4052,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 				}else{
 					index = LN-1;
 					if (index>rootIndex){
-						tokenType=getTokenType(index);
-						switch (tokenType) {
+						tType=getTokenType(index);
+						switch (tType) {
 						case TOKEN_PI_VAL:
 							index--;
 						case TOKEN_CHARACTER_DATA:
@@ -4215,8 +4074,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 			}else{
 				index = rootIndex-1;
 				if (index>0){
-					tokenType = getTokenType(index);
-					switch (tokenType) {
+					tType = getTokenType(index);
+					switch (tType) {
 					case TOKEN_PI_VAL:
 						index--;
 					case TOKEN_COMMENT:
@@ -4258,8 +4117,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 						return true;
 					} else {
 						index = LN-1;
-						tokenType = getTokenType(index);
-						switch (tokenType) {
+						tType = getTokenType(index);
+						switch (tType) {
 						case TOKEN_PI_VAL:
 							index--;
 						case TOKEN_CHARACTER_DATA:
@@ -4279,8 +4138,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 					if (getTokenType(index)==TOKEN_PI_VAL)
 						index--;
 					if (index > context[1]){
-						tokenType = getTokenType(index);
-						if (tokenType!= TOKEN_ATTR_VAL){
+						tType = getTokenType(index);
+						if (tType!= TOKEN_ATTR_VAL){
 							LN = index;
 							atTerminal = true;
 							return true;
@@ -4292,11 +4151,11 @@ bool VTDNav_L5::toNode_PrevSibling(){
 				}					
 			}else{
 				index = context[1]-1;	
-				tokenType = getTokenType(index);
+				tType = getTokenType(index);
 				if (getTokenDepth(index)==0
-						&& tokenType!= TOKEN_ATTR_VAL
-						&& tokenType!= TOKEN_STARTING_TAG){
-					if (tokenType==TOKEN_PI_VAL)
+						&& tType!= TOKEN_ATTR_VAL
+						&& tType!= TOKEN_STARTING_TAG){
+					if (tType==TOKEN_PI_VAL)
 						index--;
 					context[0]=0;
 					atTerminal = true;
@@ -4339,8 +4198,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 						return true;
 					} else {
 						index = LN-1;
-						tokenType = getTokenType(index);
-						switch (tokenType) {
+						tType = getTokenType(index);
+						switch (tType) {
 						case TOKEN_PI_VAL:
 							index--;
 						case TOKEN_CHARACTER_DATA:
@@ -4360,8 +4219,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 					if (getTokenType(index)==TOKEN_PI_VAL)
 						index--;
 					if (index > context[2]){
-						tokenType = getTokenType(index);
-						if (tokenType!= TOKEN_ATTR_VAL){
+						tType = getTokenType(index);
+						if (tType!= TOKEN_ATTR_VAL){
 							LN = index;
 							atTerminal = true;
 							return true;
@@ -4373,11 +4232,11 @@ bool VTDNav_L5::toNode_PrevSibling(){
 				}	
 			}else{
 				index = context[2]-1;	
-				tokenType = getTokenType(index);
+				tType = getTokenType(index);
 				if (getTokenDepth(index)==1
-						&& tokenType!= TOKEN_ATTR_VAL
-						&& tokenType!= TOKEN_STARTING_TAG){
-					if (tokenType==TOKEN_PI_VAL)
+						&& tType!= TOKEN_ATTR_VAL
+						&& tType!= TOKEN_STARTING_TAG){
+					if (tType==TOKEN_PI_VAL)
 						index--;
 					context[0]=1;
 					atTerminal = true;
@@ -4420,8 +4279,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 						return true;
 					} else {
 						index = LN-1;
-						tokenType = getTokenType(index);
-						switch (tokenType) {
+						tType = getTokenType(index);
+						switch (tType) {
 						case TOKEN_PI_VAL:
 							index--;
 						case TOKEN_CHARACTER_DATA:
@@ -4441,8 +4300,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 					if (getTokenType(index)==TOKEN_PI_VAL)
 						index--;
 					if (index > context[3]){
-						tokenType = getTokenType(index);
-						if (tokenType!= TOKEN_ATTR_VAL){
+						tType = getTokenType(index);
+						if (tType!= TOKEN_ATTR_VAL){
 							LN = index;
 							atTerminal = true;
 							return true;
@@ -4454,11 +4313,11 @@ bool VTDNav_L5::toNode_PrevSibling(){
 				}	
 			}else{
 				index = context[3]-1;	
-				tokenType = getTokenType(index);
+				tType = getTokenType(index);
 				if (getTokenDepth(index)==2
-						&& tokenType!= TOKEN_ATTR_VAL
-						&& tokenType!= TOKEN_STARTING_TAG){
-					if (tokenType==TOKEN_PI_VAL)
+						&& tType!= TOKEN_ATTR_VAL
+						&& tType!= TOKEN_STARTING_TAG){
+					if (tType==TOKEN_PI_VAL)
 						index--;
 					context[0]=2;
 					atTerminal = true;
@@ -4500,8 +4359,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 						return true;
 					} else {
 						index = LN-1;
-						tokenType = getTokenType(index);
-						switch (tokenType) {
+						tType = getTokenType(index);
+						switch (tType) {
 						case TOKEN_PI_VAL:
 							index--;
 						case TOKEN_CHARACTER_DATA:
@@ -4521,8 +4380,8 @@ bool VTDNav_L5::toNode_PrevSibling(){
 					if (getTokenType(index)==TOKEN_PI_VAL)
 						index--;
 					if (index > context[4]){
-						tokenType = getTokenType(index);
-						if (tokenType!= TOKEN_ATTR_VAL){
+						tType = getTokenType(index);
+						if (tType!= TOKEN_ATTR_VAL){
 							LN = index;
 							atTerminal = true;
 							return true;
@@ -4534,11 +4393,11 @@ bool VTDNav_L5::toNode_PrevSibling(){
 				}	
 			}else{
 				index = context[4]-1;	
-				tokenType = getTokenType(index);
+				tType = getTokenType(index);
 				if (getTokenDepth(index)==3
-						&& tokenType!= TOKEN_ATTR_VAL
-						&& tokenType!= TOKEN_STARTING_TAG){
-					if (tokenType==TOKEN_PI_VAL)
+						&& tType!= TOKEN_ATTR_VAL
+						&& tType!= TOKEN_STARTING_TAG){
+					if (tType==TOKEN_PI_VAL)
 						index--;
 					context[0]=3;
 					atTerminal = true;
@@ -4557,11 +4416,11 @@ bool VTDNav_L5::toNode_PrevSibling(){
 		case 5: 
 			if(!atTerminal){
 				index = context[5]-1;	
-				tokenType = getTokenType(index);
+				tType = getTokenType(index);
 				if (getTokenDepth(index)==4
-						&& tokenType!= TOKEN_ATTR_VAL
-						&& tokenType!= TOKEN_STARTING_TAG){
-					if (tokenType==TOKEN_PI_VAL)
+						&& tType!= TOKEN_ATTR_VAL
+						&& tType!= TOKEN_STARTING_TAG){
+					if (tType==TOKEN_PI_VAL)
 						index--;
 					context[0]=4;
 					atTerminal = true;
@@ -4588,9 +4447,9 @@ bool VTDNav_L5::toNode_PrevSibling(){
 			}
 			while (index > context[tmp-1]) {
 				Long temp = vtdBuffer->longAt(index);
-				tokenType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
+				tType = (int) ((MASK_TOKEN_TYPE & temp) >> 60) &0x0f;
 				depth = (int) ((MASK_TOKEN_DEPTH & temp) >> 52);
-				switch (tokenType) {
+				switch (tType) {
 				case TOKEN_STARTING_TAG:
 					if (depth == tmp) {
 						context[0] = tmp;
