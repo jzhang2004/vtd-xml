@@ -98,6 +98,10 @@ namespace com_ximpleware{
 		int process_self(VTDNav *vn);
 		int process_self2(VTDNav *vn);
 		int process_namespace(VTDNav *vn);
+		void transition_ancestor(VTDNav *vn);
+		void transition_ancestor_or_self(VTDNav *vn);
+		void transition_following_sibling(VTDNav *vn);
+		void transition_preceding_sibling(VTDNav *vn);
 		//int process_namespace2(VTDNav *vn);
 		void selectNodeType(TextIter *ti);
 		bool isUnique(int i){
