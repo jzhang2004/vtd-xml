@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -118,14 +118,14 @@ void AutoPilot::selectAttr(UCSChar *an){
 }
 
 /* Select an attribute name, both local part and namespace URL part*/
-void AutoPilot::selectAttrNS(UCSChar *URL, UCSChar *ln){
+void AutoPilot::selectAttrNS(UCSChar *URL1, UCSChar *ln){
 	if (ln == NULL){
 		 throw InvalidArgumentException(" invalid argument for selectElement, localName can't be NULL");
 	}
 	it = ATTR_NS;
     ft = true;
     localName = ln;
-    this->URL = URL;
+    URL = URL1;
 }
 
 
@@ -144,14 +144,14 @@ void AutoPilot::selectElement(UCSChar *en){
 // * URL, if set to *, matches every namespace
 // * URL, if set to null, indicates the namespace is undefined.
 // * localname, if set to *, matches any localname*/
-void AutoPilot::selectElementNS(UCSChar *URL, UCSChar *ln){
+void AutoPilot::selectElementNS(UCSChar *URL1, UCSChar *ln){
     if (ln == NULL){
 		 throw InvalidArgumentException(" invalid argument for selectElementNS, localName can't be NULL");
 	}
     it = SIMPLE_NS;
     depth = vn->getCurrentDepth();
     localName = ln;
-	URL = URL;
+	URL = URL1;
     ft = true;
 }
 
@@ -175,14 +175,14 @@ void AutoPilot::selectElement_D(UCSChar *en){
 * Select all descendent elements along the Descendent axis, with ns awareness
 * This function is not intended to be called directly
 */
-void AutoPilot::selectElementNS_D(UCSChar *URL, UCSChar *ln){
+void AutoPilot::selectElementNS_D(UCSChar *URL1, UCSChar *ln){
  if (ln == NULL){
 		 throw InvalidArgumentException(" invalid argument for selectElementNS_D, localName can't be NULL");
 	}
 	it = DESCENDANT_NS;
     depth = vn->getCurrentDepth();
     localName = ln;
-	URL = URL;
+	URL = URL1;
     ft = true;
 }
 /**
@@ -203,14 +203,14 @@ void AutoPilot::selectElement_F(UCSChar *en){
 * Select all descendent elements along the following axis, with ns awareness
 * This function is not intended to be called directly
 */
-void AutoPilot::selectElementNS_F(UCSChar *URL, UCSChar *ln){
+void AutoPilot::selectElementNS_F(UCSChar *URL1, UCSChar *ln){
 	if (ln == NULL){
 		 throw InvalidArgumentException(" invalid argument for selectElementNS_F, localName can't be NULL");
 	}
 	it = FOLLOWING_NS;
     ft= true;
     localName = ln;
-    URL = URL;
+    URL = URL1;
 }
 
 /**
@@ -224,16 +224,17 @@ void AutoPilot::selectElement_P(UCSChar *en){
     if (en == NULL){
 		 throw InvalidArgumentException(" invalid argument for selectElement_P, elementName can't be NULL");
 	 }
-	depth = vn->getCurrentDepth();
+	//depth = vn->getCurrentDepth();
 	it = PRECEDING;
     ft = true;	
 	elementName = en;
-    contextCopy = new int[vn->nestingLevel]; //(int[])vn.context.clone();
-	memcpy(contextCopy,vn->context,a);
-	endIndex = vn->getCurrentIndex2();
+   
+	endIndex = vn->getCurrentIndex();
 	for(i = vn->context[0]+1 ; i<vn->nestingLevel ; i++){
-        contextCopy[i]=-1;
-    }
+        vn->context[i]=-1;
+    } 
+	contextCopy = new int[vn->nestingLevel]; //(int[])vn.context.clone();
+	memcpy(contextCopy,vn->context,a);
     contextCopy[0]=vn->rootIndex;
 }
 
@@ -241,7 +242,7 @@ void AutoPilot::selectElement_P(UCSChar *en){
 * This function is not intended to be called directly
 * Select all descendent elements along the preceding axis, with ns awareness
 */
-void AutoPilot::selectElementNS_P(UCSChar *URL, UCSChar *ln){
+void AutoPilot::selectElementNS_P(UCSChar *URL1, UCSChar *ln){
 	int i;
 	int a = sizeof(int)* vn->nestingLevel;
     if (ln == NULL){
@@ -250,14 +251,15 @@ void AutoPilot::selectElementNS_P(UCSChar *URL, UCSChar *ln){
 	depth = vn->getCurrentDepth();
 	it = PRECEDING_NS;
     ft = true;	
-	URL = URL;
+	URL = URL1;
 	localName = ln;
-    contextCopy = new int[vn->nestingLevel]; //(int[])vn.context.clone();
-	memcpy(contextCopy,vn->context,a);
-	endIndex = vn->getCurrentIndex2();
+   
+	endIndex = vn->getCurrentIndex();
 	for(i = vn->context[0]+1 ; i<vn->nestingLevel ; i++){
-        contextCopy[i]=-1;
+        vn->context[i]=-1;
     }
+	contextCopy = new int[vn->nestingLevel]; //(int[])vn.context.clone();
+	memcpy(contextCopy,vn->context,a);
     contextCopy[0]=vn->rootIndex;
 }
 
@@ -301,11 +303,14 @@ bool AutoPilot::iterate(){
          	    return false;         	
          	return vn->iterateNS(depth, URL, localName);
 		case FOLLOWING:
-		   	if (vn->atTerminal)
-         	    return false;
+		   	/*if (vn->atTerminal)
+         	    return false;*/
             if (ft == false)
                 return vn->iterate_following( elementName, special);
             else {
+				if (vn->atTerminal && ((vn->getTokenType(vn->LN) == TOKEN_ATTR_NAME)
+					|| vn->getTokenType(vn->LN) == TOKEN_ATTR_NS))
+					return false;
             	ft = false;
             	while(true){
             		while (vn->toElement( NEXT_SIBLING)){
@@ -320,11 +325,14 @@ bool AutoPilot::iterate(){
             	}
             }
 		case FOLLOWING_NS:
-        	if (vn->atTerminal)
-         	    return false;
+        	/*if (vn->atTerminal)
+         	    return false;*/
          	if (ft == false)
                 return vn->iterate_followingNS(URL,localName);
             else {
+				if (vn->atTerminal && ((vn->getTokenType(vn->LN) == TOKEN_ATTR_NAME)
+					|| vn->getTokenType(vn->LN) == TOKEN_ATTR_NS))
+					return false;
             	ft = false;
             	while(true){
             		while (vn->toElement( NEXT_SIBLING)){
@@ -339,18 +347,24 @@ bool AutoPilot::iterate(){
             	}
             }
 		case PRECEDING:
-			if (vn->atTerminal)
-         	    return false;
+			/*if (vn->atTerminal)
+         	    return false;*/
 			if (ft){
+				if (vn->atTerminal && ((vn->getTokenType(vn->LN) == TOKEN_ATTR_NAME)
+					|| vn->getTokenType(vn->LN) == TOKEN_ATTR_NS))
+					return false;
 				ft = false;
 				vn->toElement(ROOT);
 			}
          	return vn->iterate_preceding( elementName, contextCopy, endIndex);
 
 		case PRECEDING_NS:
-			if (vn->atTerminal)
-         	    return false;
+			/*if (vn->atTerminal)
+         	    return false;*/
 			if (ft){
+				if (vn->atTerminal && ((vn->getTokenType(vn->LN) == TOKEN_ATTR_NAME)
+					|| vn->getTokenType(vn->LN) == TOKEN_ATTR_NS))
+					return false;
 				ft = false;
 				vn->toElement(ROOT);
 			}
