@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,15 @@ namespace com_ximpleware {
 	class FastLongBuffer;
 	class ElementFragmentNs;
 	class BookMark;
+	struct helper;
+	struct helper{
+		int index; 
+		int offset; 
+		int endOffset; 
+		int type;
+		int depth;
+		tokenType tType;
+	};
 	class VTDNav {
 		friend class ElementFragmentNs;
 		friend class FastIntBuffer;
@@ -74,6 +83,7 @@ namespace com_ximpleware {
 		bool isWS(int ch);
 		bool matchRawTokenString1( int offset, int len, const UCSChar *s);
 		bool matchRawTokenString2( Long l, const UCSChar *s);
+		bool matchRawTokenString2( int  index, const UCSChar *s);
 		bool matchTokenString1( int offset, int len, const UCSChar *s);
 		bool matchTokenString2( Long l, const UCSChar *s);
 		inline int NSval( int i);
@@ -96,9 +106,15 @@ namespace com_ximpleware {
 		
 		
 		int compareNormalizedTokenString2(int offset, int len, const UCSChar *s);
-		bool matchSubString(int os, int eos, int index, int t, UCSChar *s);
-
-
+		//bool matchSubString(int os, int eos, int index, int t, UCSChar *s);
+		bool matchSubString(int os, int index, UCSChar *s);
+		bool isDigit(int c){
+		if (c>='0' && c<='9')
+			return true;
+		else 
+			return false;
+		}
+		bool matchSubString2(int os, int index, UCSChar *s);
 	protected:
 		VTDNav(int r, 
 			encoding_t enc, 
@@ -137,6 +153,7 @@ namespace com_ximpleware {
 		void resolveLC_l2();
 		bool isElementOrDocument( int index);
 		bool isElement(int index);
+		int getNextChar(VTDNav *vn,helper *h); 
 		int rootIndex;
 		int nestingLevel;
 		Long offsetMask;
@@ -163,6 +180,7 @@ namespace com_ximpleware {
 		bool atTerminal; // Add this model to be compatible with XPath data model, 
 		// true if attribute axis or text()
 		// location cache part
+		helper *h1,*h2;
 		int l2upper;
 		int l2lower;
 		int l3upper;
@@ -178,7 +196,7 @@ namespace com_ximpleware {
 		UByte* XMLDoc;
 		short maxLCDepthPlusOne;
 		
-		FastIntBuffer *fib;
+		FastIntBuffer *fib,*fib2;
 		UCSChar *name;
 		int nameIndex;
 		UCSChar *localName;
@@ -205,6 +223,12 @@ namespace com_ximpleware {
 		int _toString(UCSChar *s, int index, int os);
 		int _toStringUpperCase(UCSChar *s, int index, int os);
 		int _toStringLowerCase(UCSChar *s, int index, int os);
+		double XPathStringVal2Double(int j);
+		bool XPathStringVal_Matches(int j, UCSChar *s);
+		int XPathStringVal_Matches2(int j, VTDNav *vn2, int k);
+		bool XPathStringVal_Contains(int j, UCSChar *s);
+		bool XPathStringVal_StartsWith(int j, UCSChar *s);
+		bool XPathStringVal_EndsWith(int j, UCSChar *s);
 		//bool nodeToElement(int direction);
 
 		/*{
@@ -234,6 +258,7 @@ namespace com_ximpleware {
 		const static navDir PS=PREV_SIBLING;
 
 		//
+		//struct helper {};
 		bool matchNormalizedTokenString2(int index, const UCSChar *s);
 		virtual ~VTDNav();
 		//Return the attribute count of the element at the cursor position.
@@ -606,9 +631,13 @@ namespace com_ximpleware {
 		virtual bool verifyNodeCorrectness();
 
 		UCSChar *toNormalizedXPathString(int j);
-		bool XPathStringVal_Contains(int j, UCSChar *s);
-		bool XPathStringVal_StartsWith(int j, UCSChar *s);
-		bool XPathStringVal_EndsWith(int j, UCSChar *s);
+		
+		Long trimWhiteSpaces(Long l);
+		Long expandWhiteSpaces(Long l);
+		void dumpFragment(Long l, char *fileName);
+		void dumpFragment(char *fileName);
+		void dumpElementFragmentNs(char *fileName);
+		
 	};
 
 	inline bool VTDNav::matchElement( const UCSChar *en){
@@ -622,7 +651,7 @@ namespace com_ximpleware {
 			return true;
 		if (context[0]==-1)
 			return false;
-		return matchRawTokenString(
+		return matchRawTokenString2(
 			(context[0] == 0) ? rootIndex : context[context[0]],
 			en);		
 	}
@@ -653,7 +682,7 @@ namespace com_ximpleware {
 			return i;
 		return -1;
 	}
-
+	
 	inline int VTDNav::getTokenCount(){
 		return vtdSize;
 	}
@@ -902,7 +931,8 @@ namespace com_ximpleware {
 	}
 	inline int VTDNav::getTokenLength2(int index){
 			return (int)((vtdBuffer->longAt(index) & MASK_TOKEN_FULL_LEN) >> 32);
-		}
+		} 
+
 };
 
 //Get the depth (>=0) of the current element.
