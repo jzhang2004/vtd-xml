@@ -980,7 +980,7 @@ public class VTDNavHuge {
 		int index = (context[0] != 0) ? context[context[0]] + 1 : rootIndex + 1;
 		int depth = getCurrentDepth();
 		int type; 
-		if (index<vtdSize)
+		if (index<vtdSize && !atTerminal)
 			type = getTokenType(index);
 		else 
 			return -1;
