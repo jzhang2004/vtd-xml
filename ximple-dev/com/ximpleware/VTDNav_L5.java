@@ -1652,8 +1652,8 @@ public class VTDNav_L5 extends VTDNav {
 				  case 1: l1index = val; break;
 				  case 2: l2index = val; break;
 				  case 3: l3index = val; break;
-				  case 4: val = l4index; break;
-				  case 5: val = l5index; break;
+				  case 4: l4index = val; break;
+				  case 5: l5index = val; break;
 				  	default:
 				}
 				context[d] = temp;
@@ -1704,8 +1704,8 @@ public class VTDNav_L5 extends VTDNav {
 				  case 1: l1index = val; break;
 				  case 2: l2index = val; break;
 				  case 3: l3index = val; break;
-				  case 4: val = l4index; break;
-				  case 5: val = l5index; break;
+				  case 4: l4index = val; break;
+				  case 5: l5index = val; break;
 				  	default:
 				}
 				context[d] = temp;
