@@ -38,9 +38,9 @@ static 	int computeContextSize4PrecedingSibling2(locationPathExpr *lpe,Predicate
 static 	int computeContextSize4Self(locationPathExpr *lpe,Predicate *p, VTDNav *vn);
 static 	int computeContextSize4Self2(locationPathExpr *lpe,Predicate *p, VTDNav *vn);
 static  int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn);
-static  int process_ancestor_or_self(locationPathExpr *lpe, VTDNav *vn);
+//static  int process_ancestor_or_self(locationPathExpr *lpe, VTDNav *vn);
 static	int process_ancestor_or_self2(locationPathExpr *lpe, VTDNav *vn);
-static  int process_ancestor(locationPathExpr *lpe, VTDNav *vn);
+//static  int process_ancestor(locationPathExpr *lpe, VTDNav *vn);
 static  int process_ancestor2(locationPathExpr *lpe, VTDNav *vn);
 static  int process_attribute(locationPathExpr *lpe, VTDNav *vn);
 static  int process_child(locationPathExpr *lpe, VTDNav *vn);
@@ -65,6 +65,11 @@ static  int process_namespace(locationPathExpr *lpe, VTDNav *vn);
 static  void selectNodeType(locationPathExpr *lpe, TextIter *ti);
 static  void transition_child(locationPathExpr *lpe, VTDNav *vn);
 static  void transition_DDFP(locationPathExpr *lpe, VTDNav *vn);
+static  void transition_ancestor_or_self(locationPathExpr *lpe, VTDNav *vn);
+static  void transition_ancestor(locationPathExpr *lpe, VTDNav *vn);
+static  void transition_following_sibling(locationPathExpr *lpe, VTDNav *vn);
+static  void transition_preceding_sibling(locationPathExpr *lpe, VTDNav *vn);
+
 
 static void selectNodeType(locationPathExpr *lpe, TextIter *ti){
 		if (lpe->currentStep->nt->testType == NT_TEXT )
@@ -203,384 +208,7 @@ int computeContextSize(locationPathExpr *lpe, Predicate *p, VTDNav *vn){
 	}
 }
 
-static int process_ancestor_or_self(locationPathExpr *lpe, VTDNav *vn){
-	Boolean b = FALSE, b1= FALSE;
-	int result;
-	//int contextSize;
-	Predicate *t= NULL;
 
-	switch ( lpe->state) {
-		case  XPATH_EVAL_START:
-			t = lpe->currentStep->p;
-			while (t != NULL) {
-				if (t->requireContext) {
-					int i = computeContextSize(lpe, t, vn);
-					if (i == 0) {
-						b1 = TRUE;
-						break;
-					} else
-						setContextSize_p(t,i);
-				}
-				t = t->nextP;
-			}
-			if (b1) {
-				lpe->state = XPATH_EVAL_END;
-				break;
-			}
-
-			lpe->state =  XPATH_EVAL_END;
-			push2(vn);
-
-			if (get_ft(lpe->currentStep)== TRUE){
-				set_ft(lpe->currentStep,FALSE);
-				if (eval_s(lpe->currentStep, vn)) {
-					if (getNextStep(lpe->currentStep) != NULL) {
-						lpe->state =  XPATH_EVAL_FORWARD;
-						lpe->currentStep = lpe->currentStep->nextS;
-						break;
-					} else {
-						//vn.pop();
-						lpe->state =  XPATH_EVAL_TERMINAL;
-						if (vn->atTerminal)
-							result = vn->LN;
-						else
-							result = getCurrentIndex(vn);
-						if ( isUnique_lpe(lpe,result))
-							return result;
-					}
-				}
-			}
-
-			while (toElement(vn,PARENT)) {
-				if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-					if (lpe->currentStep->nextS != NULL) {
-						lpe->state =  XPATH_EVAL_FORWARD;
-						lpe->currentStep = lpe->currentStep->nextS;
-						break;
-					} else {
-						//vn.pop();
-						lpe->state =  XPATH_EVAL_TERMINAL;
-						result = getCurrentIndex(vn);
-						if ( isUnique_lpe(lpe,result))
-							return result;
-					}
-				}
-			}
-
-			if ( lpe->state ==  XPATH_EVAL_END) {
-				if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep, vn);
-				pop2(vn);
-			}
-
-			break;
-
-		case  XPATH_EVAL_FORWARD:
-			t = lpe->currentStep->p;
-			while (t != NULL) {
-				if (t->requireContext) {
-					int i = computeContextSize(lpe, t, vn);
-					if (i == 0) {
-						b1 = TRUE;
-						break;
-					} else
-						setContextSize_p(t,i);
-				}
-				t = t->nextP;
-			}
-			if (b1) {
-				lpe->currentStep = lpe->currentStep->prevS;
-				lpe->state = XPATH_EVAL_BACKWARD;
-				break;
-			}
-
-			lpe->state =  XPATH_EVAL_BACKWARD;
-			push2(vn);
-			if (lpe->currentStep->ft) {
-				lpe->currentStep->ft= FALSE;
-				if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-					if (lpe->currentStep->nextS != NULL) {
-						lpe->state =  XPATH_EVAL_FORWARD;
-						lpe->currentStep = lpe->currentStep->nextS;
-						break;
-					} else {
-						//vn.pop();
-						lpe->state =  XPATH_EVAL_TERMINAL;
-						if (vn->atTerminal)
-							result = vn->LN;
-						else
-							result = getCurrentIndex(vn);
-						if ( isUnique_lpe(lpe,result))
-							return result;
-					}
-				}
-			}
-			while (toElement(vn,PARENT)) {
-				if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-					if (lpe->currentStep->nextS != NULL) {
-						lpe->state =  XPATH_EVAL_FORWARD;
-						lpe->currentStep = lpe->currentStep->nextS;
-						break;
-					} else {
-						//vn.pop();
-						lpe->state =  XPATH_EVAL_TERMINAL;
-						result = getCurrentIndex(vn);
-						if ( isUnique_lpe(lpe,result))
-							return result;
-					}
-				}
-			}
-
-			if ( lpe->state ==  XPATH_EVAL_BACKWARD) {
-				if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
-				lpe->currentStep->ft = TRUE;
-				pop2(vn);
-				lpe->currentStep = lpe->currentStep->prevS;
-			}
-			break;
-
-		case  XPATH_EVAL_END:
-			lpe->currentStep = NULL;
-			// reset();
-	    	return -1;
-
-
-		case  XPATH_EVAL_BACKWARD:
-			b = FALSE;
-			push2(vn);
-
-			while (toElement(vn, PARENT)) {
-				if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-					if (lpe->currentStep->nextS != NULL) {
-						lpe->state =  XPATH_EVAL_FORWARD;
-						lpe->currentStep = lpe->currentStep->nextS;
-						b = TRUE;
-						break;
-					} else {
-						//vn.pop();
-						lpe->state =  XPATH_EVAL_TERMINAL;
-						result = getCurrentIndex(vn);
-						if ( isUnique_lpe(lpe,result))
-							return result;
-					}
-				}
-			}
-			if (b == FALSE) {
-				pop2(vn);
-				if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
-				if (lpe->currentStep->prevS != NULL) {
-					lpe->currentStep->ft = TRUE;
-					lpe->state =  XPATH_EVAL_BACKWARD;
-					lpe->currentStep = lpe->currentStep->prevS;
-				} else {
-					lpe->state =  XPATH_EVAL_END;
-				}
-			}
-			break;
-
-		case  XPATH_EVAL_TERMINAL:
-			while (toElement(vn, PARENT)) {
-				if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-					result = getCurrentIndex(vn);
-					if ( isUnique_lpe(lpe, result))
-						return result;
-				}
-			}
-			pop2(vn);
-			if (lpe->currentStep->hasPredicate)
-				resetP_s(lpe->currentStep,vn);
-			if (lpe->currentStep->prevS != NULL) {
-				lpe->currentStep->ft = TRUE;
-				lpe->state =  XPATH_EVAL_BACKWARD;
-				lpe->currentStep = lpe->currentStep->prevS;
-			}
-			else {
-				 lpe->state =  XPATH_EVAL_END;
-			}
-			break;
-
-
-		default:
-			throwException2(xpath_eval_exception,
-					"unknown state");
-		}
-		return -2;
-}
-static int process_ancestor(locationPathExpr *lpe, VTDNav *vn){
-	int result;
-	Boolean b = FALSE, b1 = FALSE;
-	//int contextSize;
-	Predicate *t= NULL;
-
-	switch(lpe->state){
-			case XPATH_EVAL_START:
-				t = lpe->currentStep->p;
-				while (t != NULL) {
-					if (t->requireContext) {
-						int i = computeContextSize(lpe, t, vn);
-						if (i == 0) {
-							b1 = TRUE;
-							break;
-						} else
-							setContextSize_p(t,i);
-					}
-					t = t->nextP;
-				}
-				if (b1) {
-					lpe->state = XPATH_EVAL_END;
-					break;
-				}
-
-				lpe->state = XPATH_EVAL_END;
-				if (getCurrentDepth(vn) != -1) {
-					push2(vn);
-
-					while (toElement(vn,PARENT)) {
-						if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-							if (lpe->currentStep->nextS != NULL) {
-								lpe->state = XPATH_EVAL_FORWARD;
-								lpe->currentStep = lpe->currentStep->nextS;
-								break;
-							} else {
-								//vn.pop();
-								lpe->state = XPATH_EVAL_TERMINAL;
-								result = getCurrentIndex(vn);
-								if (isUnique_lpe(lpe,result))
-									return result;
-							}
-						}
-					}
-					if (lpe->state == XPATH_EVAL_END) {
-						if (lpe->currentStep->hasPredicate)
-							resetP_s(lpe->currentStep,vn);
-						pop2(vn);
-					}
-				}
-				break;
-
-			case XPATH_EVAL_END:
-				lpe->currentStep =NULL;
-				// reset();
-				return -1;
-
-			case XPATH_EVAL_FORWARD:
-				t = lpe->currentStep->p;
-				while(t!=NULL){
-					if (t->requireContext){
-						int i = computeContextSize(lpe,t,vn);
-						if (i==0){
-							b1 = TRUE;
-							break;
-						}else
-							setContextSize_p(t,i);
-					}
-					t = t->nextP;
-				}
-				if (b1){
-					lpe->currentStep = lpe->currentStep->prevS;
-					lpe->state = XPATH_EVAL_BACKWARD;
-					break;
-				}
-				lpe->state =  XPATH_EVAL_BACKWARD;
-				push2(vn);
-
-				while(toElement(vn,P)){
-					if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
-						if (lpe->currentStep->nextS != NULL){
-							lpe->state =  XPATH_EVAL_FORWARD;
-							lpe->currentStep = lpe->currentStep->nextS;
-							break;
-						}
-						else {
-							//vn.pop();
-							lpe->state =  XPATH_EVAL_TERMINAL;
-							result = getCurrentIndex(vn);
-							if ( isUnique_lpe(lpe,result))
-								return result;
-						}
-					}
-				}
-				if ( lpe->state== XPATH_EVAL_BACKWARD){
-					if (lpe->currentStep->hasPredicate)
-						resetP_s(lpe->currentStep,vn);
-					pop2(vn);
-					lpe->currentStep=lpe->currentStep->prevS;
-				}
-				break;
-
-			case XPATH_EVAL_BACKWARD:
-				b = FALSE;
-				push2(vn);
-
-				while (toElement(vn,PARENT)) {
-					if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-						if (lpe->currentStep->nextS!= NULL) {
-							lpe->state =  XPATH_EVAL_FORWARD;
-							lpe->currentStep = lpe->currentStep->nextS;
-							b = TRUE;
-							break;
-						} else {
-							//vn.pop();
-							lpe->state =  XPATH_EVAL_TERMINAL;
-							result = getCurrentIndex(vn);
-							if ( isUnique_lpe(lpe,result))
-								return result;
-						}
-					}
-				}
-				if (b==FALSE){
-					pop2(vn);
-					if (lpe->currentStep->prevS!=NULL) {
-						if (lpe->currentStep->hasPredicate)
-							resetP_s(lpe->currentStep,vn);
-						lpe->state =  XPATH_EVAL_BACKWARD;
-						lpe->currentStep = lpe->currentStep->prevS;
-					}
-					else {
-						lpe->state =  XPATH_EVAL_END;
-					}
-				}
-				break;
-
-			case XPATH_EVAL_TERMINAL:
-				while (toElement(vn,PARENT)) {
-					if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
-	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-						result = getCurrentIndex(vn);
-						if ( isUnique_lpe(lpe,result))
-							return result;
-					}
-				}
-				pop2(vn);
-
-				if (lpe->currentStep->prevS!=NULL) {
-					if (lpe->currentStep->hasPredicate)
-						resetP_s(lpe->currentStep,vn);
-					lpe->state =  XPATH_EVAL_BACKWARD;
-					lpe->currentStep = lpe->currentStep->prevS;
-				}
-				else {
-					lpe->state =  XPATH_EVAL_END;
-				}
-				break;
-
-			default:
-				throwException2(xpath_eval_exception,
-					"unknown state");
-	}
-	return -2;
-
-}
 static int process_attribute(locationPathExpr *lpe, VTDNav *vn){
 	AutoPilot *ap = NULL;
 	Boolean b1 = FALSE;
@@ -1033,8 +661,6 @@ forward:;
 					//if (lpe->currentStep->nt->testType < NT_TEXT) {
 						if(lpe->currentStep->out_of_range){
 							lpe->currentStep->out_of_range = FALSE;
-							if (lpe->currentStep->hasPredicate)
-								resetP_s(lpe->currentStep,vn);
 							transition_child(lpe,vn);
 							break;
 						}
@@ -1050,8 +676,7 @@ forward:;
 							lpe->state=  XPATH_EVAL_FORWARD;
 							lpe->currentStep = lpe->currentStep->nextS;
 						}else {
-							if (lpe->currentStep->hasPredicate)
-								resetP_s(lpe->currentStep,vn);
+							lpe->currentStep->out_of_range = FALSE;
 							transition_child(lpe,vn);
 						}
 					
@@ -1060,8 +685,6 @@ forward:;
 				case XPATH_EVAL_TERMINAL:
 					if(lpe->currentStep->out_of_range){
 							lpe->currentStep->out_of_range = FALSE;
-							if (lpe->currentStep->hasPredicate)
-								resetP_s(lpe->currentStep,vn);
 							transition_child(lpe,vn);
 							break;
 						}
@@ -1074,8 +697,7 @@ forward:;
 									return result;
 							}
 						}
-						if (lpe->currentStep->hasPredicate)
-						resetP_s(lpe->currentStep,vn);
+						lpe->currentStep->out_of_range = FALSE;
 						transition_child(lpe,vn);
 					
 					break;
@@ -1095,7 +717,7 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 	switch(lpe->state){
 			case XPATH_EVAL_START:
 			case XPATH_EVAL_FORWARD:
-				if (vn->atTerminal){
+				/*if (vn->atTerminal){
 					if (lpe->state == XPATH_EVAL_START)
 						lpe->state= XPATH_EVAL_END;
 					else {
@@ -1105,7 +727,7 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 						lpe->currentStep = lpe->currentStep->prevS;
 					}
 					break;
-				}
+				}*/
 
 				t = lpe->currentStep->p;
 				while(t!=NULL){
@@ -1233,6 +855,7 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 							return result;
 					}
 				} else {
+					lpe->currentStep->out_of_range = FALSE;
 					transition_DDFP(lpe,vn);
 				}
 				break;
@@ -1258,6 +881,7 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 						return result;
 					//}
 				} else {
+					lpe->currentStep->out_of_range = FALSE;
 					transition_DDFP(lpe,vn);
 				}
 				break;
@@ -1336,6 +960,11 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn){
 			  return -1;
 
 		  case  XPATH_EVAL_BACKWARD:
+			  if (lpe->currentStep->out_of_range) {
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe,vn);
+				  break;
+			  }
 			  while (toElement(vn,NEXT_SIBLING)){
 				  if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 									&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
@@ -1353,19 +982,17 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn){
 				  }
 			  }
 			  if (b==FALSE){
-				  pop2(vn);
-				  if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
-				  if (lpe->currentStep->prevS==NULL){
-					  lpe->state=  XPATH_EVAL_END;
-				  }else{
-					  lpe->state=  XPATH_EVAL_BACKWARD;
-					  lpe->currentStep = lpe->currentStep->prevS;
-				  }
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
 			  }
 			  break;
 
 		  case  XPATH_EVAL_TERMINAL:
+			  if (lpe->currentStep->out_of_range) {
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
+				  break;
+			  }
 			  while (toElement(vn,NEXT_SIBLING)){
 				  if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 									&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
@@ -1375,15 +1002,8 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn){
 						  return result;
 				  }
 			  }
-			  pop2(vn);
-			  if (lpe->currentStep->hasPredicate)
-				resetP_s(lpe->currentStep,vn);
-			  if(lpe->currentStep->prevS!=NULL){
-				  lpe->currentStep = lpe->currentStep->prevS;
-				  lpe->state=  XPATH_EVAL_BACKWARD;
-			  }else{
-				  lpe->state=  XPATH_EVAL_END;
-			  }
+			  lpe->currentStep->out_of_range = FALSE;
+			  transition_following_sibling(lpe, vn);
 			  break;
 
 		  default:
@@ -1551,6 +1171,11 @@ static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn){
 			  return -1;
 
 		  case  XPATH_EVAL_BACKWARD:
+			  if (lpe->currentStep->out_of_range) {
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
+				  break;
+			  }
 			  while (toElement(vn,PREV_SIBLING)){
 				  if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
 	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
@@ -1568,19 +1193,17 @@ static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn){
 				  }
 			  }
 			  if (b==FALSE){
-				  pop2(vn);
-				  if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
-				  if (lpe->currentStep->prevS==NULL){
-					  lpe->state=  XPATH_EVAL_END;
-				  }else{
-					  lpe->state=  XPATH_EVAL_BACKWARD;
-					  lpe->currentStep = lpe->currentStep->prevS;
-				  }
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
 			  }
 			  break;
 
 		  case  XPATH_EVAL_TERMINAL:
+			  if (lpe->currentStep->out_of_range) {
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
+				  break;
+			  }
 			  while (toElement(vn,PREV_SIBLING)){
 				  if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
 	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
@@ -1590,13 +1213,8 @@ static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn){
 						  return result;
 				  }
 			  }
-			  pop2(vn);
-			  if(lpe->currentStep->prevS!=NULL){
-				  lpe->currentStep = lpe->currentStep->prevS;
-				  lpe->state=  XPATH_EVAL_BACKWARD;
-			  }else{
-				  lpe->state=  XPATH_EVAL_END;
-			  }
+			  lpe->currentStep->out_of_range = FALSE;
+			  transition_following_sibling(lpe, vn);
 			  break;
 
 		  default:
@@ -2206,11 +1824,11 @@ int	evalNodeSet_lpe (locationPathExpr *lpe,VTDNav *vn){
 			        return result;
 			    break;
 			case AXIS_ANCESTOR_OR_SELF:
-			    if ((result = process_ancestor_or_self(lpe,vn))!= -2)
+			    if ((result = process_ancestor_or_self2(lpe,vn))!= -2)
 			        return result;
 			    break;
 			case AXIS_SELF:
-			    if ((result = process_self(lpe,vn))!= -2)
+			    if ((result = process_self2(lpe,vn))!= -2)
 			        return result;
 			    break;
 			case AXIS_FOLLOWING_SIBLING:
@@ -2295,7 +1913,7 @@ UCSChar* evalString_lpe  (locationPathExpr *lpe,VTDNav *vn){
                 switch(t){
 			 case TOKEN_STARTING_TAG:
 			 case TOKEN_DOCUMENT:
-				 s = getXPathStringVal(vn,0);
+				 s = getXPathStringVal2(vn,a,0);
 				 break;
 			 case TOKEN_ATTR_NAME:
 				 s = toString(vn,a + 1);
@@ -2938,7 +2556,11 @@ int process_ancestor2(locationPathExpr *lpe,VTDNav *vn){
 	    	    
 	    	case XPATH_EVAL_BACKWARD:
 				b = FALSE;
-				push2(vn);
+				if (lpe->currentStep->out_of_range) {
+					lpe->currentStep->out_of_range = FALSE;
+					transition_ancestor(lpe,vn);
+					break;
+				}
 
 				while (toNode(vn,PARENT)) {
 					if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
@@ -2958,20 +2580,17 @@ int process_ancestor2(locationPathExpr *lpe,VTDNav *vn){
 					}
 				}
 				if (b==FALSE){
-					pop2(vn);
-					if (lpe->currentStep->prevS!=NULL) {
-						if (lpe->currentStep->hasPredicate)
-							resetP_s(lpe->currentStep,vn);
-						lpe->state =  XPATH_EVAL_BACKWARD;
-						lpe->currentStep = lpe->currentStep->prevS;
-					}
-					else {
-						 lpe->state =  XPATH_EVAL_END;
-					}
+					lpe->currentStep->out_of_range = FALSE;
+					transition_ancestor(lpe, vn);
 				}
 				break;
 				
-	    	case XPATH_EVAL_TERMINAL:			
+	    	case XPATH_EVAL_TERMINAL:	
+				if (lpe->currentStep->out_of_range) {
+					lpe->currentStep->out_of_range = FALSE;
+					transition_ancestor(lpe, vn);
+					break;
+				}
 	    	    while (toNode(vn,PARENT)) {
 				if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 						&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
@@ -2980,17 +2599,8 @@ int process_ancestor2(locationPathExpr *lpe,VTDNav *vn){
 						return result;
 				}
 			}
-			pop2(vn);
-			
-			if (lpe->currentStep->prevS!=NULL) {
-				if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
-				lpe->state =  XPATH_EVAL_BACKWARD;
-				lpe->currentStep = lpe->currentStep->prevS;
-			}
-			else {
-				 lpe->state =  XPATH_EVAL_END;
-			}
+				lpe->currentStep->out_of_range = FALSE;
+				transition_ancestor(lpe, vn);
 			break;
 		
 		default:
@@ -3145,7 +2755,13 @@ int process_ancestor_or_self2(locationPathExpr *lpe,VTDNav *vn){
 			
 			case  XPATH_EVAL_BACKWARD:
 				//b = false;
-				push2(vn);
+				b = FALSE;
+				//vn.push2();
+				if (lpe->currentStep->out_of_range) {
+					lpe->currentStep->out_of_range = FALSE;
+					transition_ancestor_or_self(lpe,vn);
+					break;
+				}
 
 				while (toNode(vn,PARENT)) {
 					if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
@@ -3165,20 +2781,17 @@ int process_ancestor_or_self2(locationPathExpr *lpe,VTDNav *vn){
 					}
 				}
 				if (b == FALSE) {
-					pop2(vn);
-					if (lpe->currentStep->hasPredicate)
-						resetP_s(lpe->currentStep,vn);
-					if (lpe->currentStep->prevS != NULL) {
-						lpe->currentStep->ft = TRUE;
-						 lpe->state =  XPATH_EVAL_BACKWARD;
-						lpe->currentStep = lpe->currentStep->prevS;
-					} else {
-						 lpe->state =  XPATH_EVAL_END;
-					}
+					lpe->currentStep->out_of_range = FALSE;
+					transition_ancestor_or_self(lpe,vn);
 				}
 				break;
 			
 			case  XPATH_EVAL_TERMINAL:
+				if (lpe->currentStep->out_of_range) {
+					lpe->currentStep->out_of_range = FALSE;
+					transition_ancestor_or_self(lpe,vn);
+					break;
+				}
 				while (toNode(vn,PARENT)) {
 					if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 							&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
@@ -3187,17 +2800,8 @@ int process_ancestor_or_self2(locationPathExpr *lpe,VTDNav *vn){
 							return result;
 					}
 				}
-				pop2(vn);
-				if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
-				if (lpe->currentStep->prevS!=NULL) {
-					lpe->currentStep->ft = TRUE;
-					 lpe->state =  XPATH_EVAL_BACKWARD;
-					lpe->currentStep = lpe->currentStep->prevS;
-				}
-				else {
-					 lpe->state =  XPATH_EVAL_END;
-				}
+				lpe->currentStep->out_of_range = FALSE;
+				transition_ancestor_or_self(lpe, vn);
 				break;
 				
 			
@@ -3323,8 +2927,6 @@ forward:
 		case XPATH_EVAL_BACKWARD:
 			if (lpe->currentStep->out_of_range){
 				lpe->currentStep->out_of_range = FALSE;
-				if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
 				transition_child(lpe,vn);
 				break;
 			}
@@ -3342,8 +2944,7 @@ forward:
 				lpe->state = XPATH_EVAL_FORWARD;
 				lpe->currentStep = lpe->currentStep->nextS;
 			} else{
-				if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
+				lpe->currentStep->out_of_range = FALSE;
 				transition_child(lpe,vn);
 			}
 
@@ -3352,8 +2953,6 @@ forward:
 		case XPATH_EVAL_TERMINAL:
 			if (lpe->currentStep->out_of_range){
 				lpe->currentStep->out_of_range = FALSE;
-				if (lpe->currentStep->hasPredicate)
-					resetP_s(lpe->currentStep,vn);
 				transition_child(lpe,vn);
 				break;
 			}
@@ -3366,8 +2965,7 @@ forward:
 						return result;
 				}
 			}
-			if (lpe->currentStep->hasPredicate)
-				resetP_s(lpe->currentStep,vn);
+			lpe->currentStep->out_of_range = FALSE;
 			transition_child(lpe,vn);
 
 			break;
@@ -3567,6 +3165,8 @@ int process_DDFP2(locationPathExpr *lpe,VTDNav *vn){
 
 
 void transition_child(locationPathExpr *lpe,VTDNav *vn){
+	if (lpe->currentStep->hasPredicate)
+		resetP_s(lpe->currentStep, vn);
 	toElement(vn,PARENT);
 	if (lpe->currentStep->prevS != NULL){
 		lpe->currentStep = lpe->currentStep->prevS;
@@ -3656,6 +3256,11 @@ int process_following_sibling2(locationPathExpr *lpe,VTDNav *vn){
 		  	return -1;
 		  	
 		  case  XPATH_EVAL_BACKWARD:
+			  if (lpe->currentStep->out_of_range) {
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
+				  break;
+			  }
 		  	while (toNode(vn,NEXT_SIBLING)){
 		  		if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 		  				&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
@@ -3673,19 +3278,17 @@ int process_following_sibling2(locationPathExpr *lpe,VTDNav *vn){
 		  		}
 		  	}
 		    if (b==FALSE){
-		    	pop2(vn);
-				if (lpe->currentStep->hasPredicate)
-			    	resetP_s(lpe->currentStep,vn);
-		    	if (lpe->currentStep->prevS==NULL){
-		    		 lpe->state =  XPATH_EVAL_END;
-		    	}else{
-		    		 lpe->state =  XPATH_EVAL_BACKWARD;
-		    		lpe->currentStep = lpe->currentStep->prevS;
-		    	}
+				lpe->currentStep->out_of_range = FALSE;
+				transition_following_sibling(lpe, vn);
 		    }
 		  	break;
 		  
 		  case  XPATH_EVAL_TERMINAL:
+			  if (lpe->currentStep->out_of_range) {
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
+				  break;
+			  }
 		  	while (toNode(vn,NEXT_SIBLING)){
 		  		if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 		  				&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
@@ -3695,15 +3298,8 @@ int process_following_sibling2(locationPathExpr *lpe,VTDNav *vn){
 						return result;
 		  		}
 		  	}
-		  	pop2(vn);
-		  	if (lpe->currentStep->hasPredicate)
-		  		resetP_s(lpe->currentStep,vn);
-		  	if(lpe->currentStep->prevS!=NULL){
-		  		lpe->currentStep = lpe->currentStep->prevS;
-		  		lpe->state =  XPATH_EVAL_BACKWARD;
-		  	}else{
-		  		lpe->state =  XPATH_EVAL_END;
-		  	}
+			lpe->currentStep->out_of_range = FALSE;
+			transition_following_sibling(lpe, vn);
 		  	break;
 
 		  default:
@@ -3868,6 +3464,11 @@ int process_preceding_sibling2(locationPathExpr *lpe,VTDNav *vn){
 		  	return -1;
 		  
 		  case   XPATH_EVAL_BACKWARD:
+			  if (lpe->currentStep->out_of_range) {
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
+				  break;
+			  }
 		  	while (toNode(vn,PREV_SIBLING)){
 		  		if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 		  				&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
@@ -3885,19 +3486,17 @@ int process_preceding_sibling2(locationPathExpr *lpe,VTDNav *vn){
 		  		}
 		  	}
 		    if (b==FALSE){
-		    	pop2(vn);
-				if (lpe->currentStep->hasPredicate)
-			    	resetP_s(lpe->currentStep,vn);
-		    	if (lpe->currentStep->prevS==NULL){
-		    		 lpe->state =   XPATH_EVAL_END;
-		    	}else{
-		    		 lpe->state =   XPATH_EVAL_BACKWARD;
-		    		lpe->currentStep = lpe->currentStep->prevS;
-		    	}
+				lpe->currentStep->out_of_range = FALSE;
+				transition_following_sibling(lpe, vn);
 		    }
 		  	break;
 		  
 		  case   XPATH_EVAL_TERMINAL:
+			  if (lpe->currentStep->out_of_range) {
+				  lpe->currentStep->out_of_range = FALSE;
+				  transition_following_sibling(lpe, vn);
+				  break;
+			  }
 		  	while (toNode(vn,PREV_SIBLING)){
 		  		if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 		  				&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
@@ -3907,15 +3506,8 @@ int process_preceding_sibling2(locationPathExpr *lpe,VTDNav *vn){
 						return result;
 		  		}
 		  	}
-		  	pop2(vn);
-		  	if (lpe->currentStep->hasPredicate)
-		  		resetP_s(lpe->currentStep,vn);
-		  	if(lpe->currentStep->prevS!=NULL){
-		  		lpe->currentStep = lpe->currentStep->prevS;
-		  		 lpe->state =   XPATH_EVAL_BACKWARD;
-		  	}else{
-		  		 lpe->state =   XPATH_EVAL_END;
-		  	}
+			lpe->currentStep->out_of_range = FALSE;
+			transition_following_sibling(lpe, vn);
 		  	break;
 		  
 		  default:
@@ -3997,3 +3589,52 @@ int process_self2(locationPathExpr *lpe,VTDNav *vn){
 		return -2;
 }
 
+
+static  void transition_ancestor_or_self(locationPathExpr *lpe, VTDNav *vn) {
+	pop2(vn);
+	if (lpe->currentStep->prevS != NULL) {
+		if (lpe->currentStep->hasPredicate)
+			resetP_s(lpe->currentStep, vn);
+		lpe->state = XPATH_EVAL_BACKWARD;
+		lpe->currentStep = lpe->currentStep->prevS;
+	}
+	else {
+		lpe->state = XPATH_EVAL_END;
+	}
+}
+static  void transition_ancestor(locationPathExpr *lpe, VTDNav *vn) {
+	pop2(vn);
+	if (lpe->currentStep->prevS != NULL) {
+		if (lpe->currentStep->hasPredicate)
+			resetP_s(lpe->currentStep, vn);
+		lpe->state = XPATH_EVAL_BACKWARD;
+		lpe->currentStep = lpe->currentStep->prevS;
+	}
+	else {
+		lpe->state = XPATH_EVAL_END;
+	}
+}
+static  void transition_following_sibling(locationPathExpr *lpe, VTDNav *vn) {
+	pop2(vn);
+	if (lpe->currentStep->hasPredicate)
+			resetP_s(lpe->currentStep, vn);
+	if (lpe->currentStep->prevS != NULL) {
+		lpe->state = XPATH_EVAL_BACKWARD;
+		lpe->currentStep = lpe->currentStep->prevS;
+	}
+	else {
+		lpe->state = XPATH_EVAL_END;
+	}
+}
+static  void transition_preceding_sibling(locationPathExpr *lpe, VTDNav *vn) {
+	pop2(vn);
+	if (lpe->currentStep->hasPredicate)
+		resetP_s(lpe->currentStep, vn);
+	if (lpe->currentStep->prevS != NULL) {
+		lpe->state = XPATH_EVAL_BACKWARD;
+		lpe->currentStep = lpe->currentStep->prevS;
+	}
+	else {
+		lpe->state = XPATH_EVAL_END;
+	}
+}
