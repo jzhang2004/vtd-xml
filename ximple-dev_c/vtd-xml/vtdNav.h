@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,7 +89,14 @@ typedef void (*sync_)(struct vTDNav *vn,int depth, int index);
 typedef void (*dumpState_)(struct vTDNav *vn);
 typedef Boolean (*verifyNodeCorrectness_)(struct vTDNav *vn);
 
-
+typedef struct Vn_helper {
+	int index;
+	int offset;
+	int endOffset;
+	int type;
+	int depth;
+	int tokenType;
+} vn_helper;
 
 typedef struct vTDNav{
 	freeVTDNav_ __freeVTDNav;
@@ -140,6 +147,7 @@ typedef struct vTDNav{
 	FastIntBuffer *l3Buffer;
 	UByte* XMLDoc;
 	FastIntBuffer *fib;
+	FastIntBuffer *fib2;
 	UCSChar *name;
 	int nameIndex;
 	UCSChar *localName;
@@ -170,9 +178,12 @@ typedef struct vTDNav{
 	Boolean master; // true if vn is obtained by calling getNav(), otherwise false
 	                // useful for implementing dupliateNav() and cloneNav();
 	short maxLCDepthPlusOne;
-
+	vn_helper *h1;
+	vn_helper *h2;
 
 } VTDNav;
+
+
 
 
 
@@ -228,6 +239,7 @@ typedef struct vTDNav_L5{
 	FastIntBuffer *l3Buffer;
 	UByte* XMLDoc;
 		FastIntBuffer *fib;
+		FastIntBuffer *fib2;
 		UCSChar *name;
 		int nameIndex;
 		UCSChar *localName;
@@ -267,9 +279,14 @@ typedef struct vTDNav_L5{
 	FastLongBuffer *_l3Buffer;
 	FastLongBuffer *l4Buffer;
 	FastIntBuffer *l5Buffer;
-
+	vn_helper *h1;
+	vn_helper *h2;
 
 } VTDNav_L5;
+
+
+
+
 
 
 //functions
@@ -845,6 +862,16 @@ extern UCSChar *toNormalizedXPathString(VTDNav *vn,int j);
 extern Boolean XPathStringVal_Contains(VTDNav *vn,int j, UCSChar *s);
 extern Boolean XPathStringVal_StartsWith(VTDNav *vn,int j, UCSChar *s);
 extern Boolean XPathStringVal_EndsWith(VTDNav *vn,int j, UCSChar *s);
+extern void dumpFragment(VTDNav *vn,Long l, char *fileName);
+extern void dumpFragment2(VTDNav *vn,char *fileName);
+extern void dumpElementFragmentNs(VTDNav *vn,char *fileName);
+extern Long expandWhiteSpace(VTDNav *vn,Long l);
+extern Long trimWhiteSpace(VTDNav *vn,Long l);
+
+extern double XPathStringVal2Double(VTDNav *vn,int j);
+extern Boolean XPathStringVal_Matches(VTDNav *vn,int j, UCSChar *s);
+extern int XPathStringVal_Matches2(VTDNav *vn,int j, VTDNav *vn2, int k /*k is a token index */);
+//extern int 
 //extern Boolean iterateNode(VTDNav *vn, int dp);
 
 
