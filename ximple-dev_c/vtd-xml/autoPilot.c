@@ -357,16 +357,17 @@ void selectElement_P(AutoPilot *ap, UCSChar *en){
 		 throwException2( invalid_argument,
 			 " invalid argument for selectElement_P, elementName can't be NULL");
 	 }
-	ap->depth = getCurrentDepth(ap->vn);
+	//ap->depth = getCurrentDepth(ap->vn);
 	ap->it = PRECEDING;
     ap->ft = TRUE;	
 	ap->elementName = en;
-    ap->contextCopy = (int *)malloc(a); //(int[])vn.context.clone();
-	memcpy(ap->contextCopy,ap->vn->context,a);
-	ap->endIndex=getCurrentIndex2(ap->vn);
+   
+	ap->endIndex=getCurrentIndex(ap->vn);
 	for(i = ap->vn->context[0]+1 ; i<ap->vn->nestingLevel ; i++){
         ap->contextCopy[i]=-1;
     }
+	ap->contextCopy = (int *)malloc(a); //(int[])vn.context.clone();
+	memcpy(ap->contextCopy, ap->vn->context, a);
     ap->contextCopy[0]=ap->vn->rootIndex;
 }
 
@@ -381,17 +382,18 @@ void selectElementNS_P(AutoPilot *ap, UCSChar *URL, UCSChar *ln){
 		 throwException2( invalid_argument,
 			 " invalid argument for selectElementNS_P, localName can't be NULL");
 	}
-	ap->depth = getCurrentDepth(ap->vn);
+	//ap->depth = getCurrentDepth(ap->vn);
 	ap->it = PRECEDING_NS;
     ap->ft = TRUE;	
 	ap->URL = URL;
 	ap->localName = ln;
-    ap->contextCopy = (int *)malloc(a); //(int[])vn.context.clone();
-	memcpy(ap->contextCopy,ap->vn->context,a);
-	ap->endIndex=getCurrentIndex2(ap->vn);
+   
+	ap->endIndex=getCurrentIndex(ap->vn);
 	for(i = ap->vn->context[0]+1 ; i<ap->vn->nestingLevel ; i++){
         ap->contextCopy[i]=-1;
     }
+	ap->contextCopy = (int *)malloc(a); //(int[])vn.context.clone();
+	memcpy(ap->contextCopy, ap->vn->context, a);
     ap->contextCopy[0]=ap->vn->rootIndex;
 }
 
@@ -442,11 +444,13 @@ Boolean iterateAP(AutoPilot *ap){
          	    return FALSE;         	
          	return iterateNS(ap->vn, ap->depth, ap->URL, ap->localName);
 		case FOLLOWING:
-		   	if (ap->vn->atTerminal)
-         	    return FALSE;
+		   	
             if (ap->ft == FALSE)
                 return iterate_following(ap->vn, ap->elementName, ap->special);
             else {
+				if (ap->vn->atTerminal && ((getTokenType(ap->vn,ap->vn->LN)==TOKEN_ATTR_NAME) ||
+					getTokenType(ap->vn,ap->vn->LN)==TOKEN_ATTR_NS))
+					return FALSE;
             	ap->ft = FALSE;
             	while(TRUE){
             		while (toElement(ap->vn, NEXT_SIBLING)){
@@ -461,11 +465,12 @@ Boolean iterateAP(AutoPilot *ap){
             	}
             }
 		case FOLLOWING_NS:
-        	if (ap->vn->atTerminal)
-         	    return FALSE;
          	if (ap->ft == FALSE)
                 return iterate_followingNS(ap->vn,ap->URL,ap->localName);
             else {
+				if (ap->vn->atTerminal && ((getTokenType(ap->vn, ap->vn->LN) == TOKEN_ATTR_NAME) ||
+					getTokenType(ap->vn, ap->vn->LN) == TOKEN_ATTR_NS))
+					return FALSE;
             	ap->ft = FALSE;
             	while(TRUE){
             		while (toElement(ap->vn, NEXT_SIBLING)){
@@ -480,18 +485,22 @@ Boolean iterateAP(AutoPilot *ap){
             	}
             }
 		case PRECEDING:
-			if (ap->vn->atTerminal)
-         	    return FALSE;
+			
 			if (ap->ft){
+				if (ap->vn->atTerminal && ((getTokenType(ap->vn, ap->vn->LN) == TOKEN_ATTR_NAME) ||
+					getTokenType(ap->vn, ap->vn->LN) == TOKEN_ATTR_NS))
+					return FALSE;
 				ap->ft = FALSE;
 				toElement(ap->vn,ROOT);
 			}
          	return iterate_preceding(ap->vn, ap->elementName, ap->contextCopy, ap->endIndex);
 
 		case PRECEDING_NS:
-			if (ap->vn->atTerminal)
-         	    return FALSE;
+			
 			if (ap->ft){
+				if (ap->vn->atTerminal && ((getTokenType(ap->vn, ap->vn->LN) == TOKEN_ATTR_NAME) ||
+					getTokenType(ap->vn, ap->vn->LN) == TOKEN_ATTR_NS))
+					return FALSE;
 				ap->ft = FALSE;
 				toElement(ap->vn,ROOT);
 			}
