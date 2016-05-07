@@ -1065,7 +1065,7 @@ VTDNav::VTDNav(int r, encoding_t enc, bool ns1, int depth, UByte *x, int xLen,
 			br(br1), // buffer reuse flag
 			fib(NULL),fib2(NULL),
 			name(NULL), nameIndex(-1), localName(NULL), localNameIndex(-1),
-			count(0), currentNode(NULL), URIName(NULL) {
+			count(0), currentNode(NULL), URIName(NULL), h1(NULL), h2(NULL) {
 	//VTDNav* vn = NULL;
 	int i;
 	//exception e;
@@ -1169,7 +1169,7 @@ VTDNav::VTDNav(int r, encoding_t enc, bool ns1, int depth, UByte *x, int xLen,
 			br(br1), // buffer reuse flag
 			fib(NULL), fib2(NULL),
 			name(NULL), nameIndex(-1), localName(NULL), localNameIndex(-1),
-			count(0), currentNode(NULL), URIName(NULL) {
+			count(0), currentNode(NULL), URIName(NULL), h1(NULL), h2(NULL) {
 	//VTDNav* vn = NULL;
 	int i;
 	//exception e;
