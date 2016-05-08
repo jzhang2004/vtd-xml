@@ -595,7 +595,7 @@ namespace com.ximpleware
 
         private bool compNumericalNodeSet(Expr left, Expr right, VTDNav vn, int op)
         {
-            int i, i1 = 0, stackSize;
+            int i,  stackSize;
             double d;
             try
             {
@@ -605,7 +605,7 @@ namespace com.ximpleware
                 while ((i = right.evalNodeSet(vn)) != -1)
                 {
                     //i1 = getStringVal(vn, i);
-                    if (compareVNumber1(i1, vn, d, op))
+                    if (compareVNumber1(i, vn, d, op))
                     {
                         right.reset(vn);
                         vn.contextStack2.size = stackSize;
