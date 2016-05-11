@@ -6800,8 +6800,8 @@ Boolean nodeToElement(VTDNav *vn,int direction){
 			case TOKEN_STARTING_TAG:
 			//case TOKEN_DOCUMENT:
 				depth = getTokenDepth(vn,index);
+				vn->context[0] = depth;
 				if (depth>0 && (index!=a[depth])){
-					vn->context[0] = depth;
 					if (depth > 0)
 						vn->context[depth] = index;
 					if (depth < vn->maxLCDepthPlusOne)
@@ -11082,14 +11082,26 @@ loop33:
 			
 		}else {
 			switch(vn->context[0]){
-			case -1:
+			case -1: return TRUE;// document node
 			case 0:
+				return TRUE;
+
 			case 1:
+				if (upper32At(vn->l1Buffer,vn->l1index) == vn->context[1])
+					return TRUE;
+				else
+					return FALSE;
 			case 2:
-			case 3:
-			case 4:
-			case 5:
-				default:return TRUE;
+				if ((upper32At(vn->l1Buffer,vn->l1index) == vn->context[1]) && (upper32At(vn->l2Buffer,vn->l2index) == vn->context[2]))
+					return TRUE;
+				else
+					return FALSE;
+			default:
+				if ((upper32At(vn->l1Buffer, vn->l1index) == vn->context[1]) && (upper32At(vn->l2Buffer, vn->l2index) == vn->context[2])
+					&& (intAt(vn->l3Buffer, vn->l3index) == vn->context[3]))
+					return TRUE;
+				else
+					return FALSE;
 			}
 			
 		}
@@ -11526,15 +11538,47 @@ loop33:
 				return TRUE;
 			}
 		}else {
+
 			switch(vn->context[0]){
-			case -1:
+			case -1: return TRUE;// document node
 			case 0:
+				return TRUE;
+
 			case 1:
+				if (upper32At(vn->l1Buffer, vn->l1index) == vn->context[1])
+					return TRUE;
+				else
+					return FALSE;
 			case 2:
+				if ((upper32At(vn->l1Buffer, vn->l1index) == vn->context[1]) 
+					&& (upper32At(vn->l2Buffer, vn->l2index) == vn->context[2]))
+					return TRUE;
+				else
+					return FALSE;
 			case 3:
+				if ((upper32At(vn->l1Buffer, vn->l1index) == vn->context[1])
+					&& (upper32At(vn->l2Buffer, vn->l2index) == vn->context[2])
+					&& (upper32At(vn->_l3Buffer, vn->l3index) == vn->context[3]))
+					return TRUE;
+				else
+					return FALSE;
 			case 4:
-			case 5:
-				default:return TRUE;
+				if ((upper32At(vn->l1Buffer, vn->l1index) == vn->context[1])
+					&& (upper32At(vn->l2Buffer, vn->l2index) == vn->context[2])
+					&& (upper32At(vn->_l3Buffer, vn->l3index) == vn->context[3])
+					&& (upper32At(vn->l4Buffer, vn->l4index) == vn->context[4]))
+					return TRUE;
+				else
+					return FALSE;
+			default:
+				if ((upper32At(vn->l1Buffer, vn->l1index) == vn->context[1])
+					&& (upper32At(vn->l2Buffer, vn->l2index) == vn->context[2])
+					&& (upper32At(vn->_l3Buffer, vn->l3index) == vn->context[3])
+					&& (upper32At(vn->l4Buffer, vn->l4index) == vn->context[4])
+					&& (intAt(vn->l5Buffer, vn->l5index) == vn->context[5]))
+					return TRUE;
+				else
+					return FALSE;
 			}
 			
 		}
