@@ -16,12 +16,12 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 /*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
-using System; 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using com.ximpleware;
 
-namespace com.ximpleware
+namespace com.ximpleware  
 {
     public class VTDNav_L5 : com.ximpleware.VTDNav
     {
@@ -1880,8 +1880,8 @@ namespace com.ximpleware
                             case 1: l1index = val; break;
                             case 2: l2index = val; break;
                             case 3: l3index = val; break;
-                            case 4: val = l4index; break;
-                            case 5: val = l5index; break;
+                            case 4: l4index = val; break;
+                            case 5: l5index = val ; break;
                             default: break;
                         }
                         context[d] = temp;
@@ -1940,8 +1940,8 @@ namespace com.ximpleware
                             case 1: l1index = val; break;
                             case 2: l2index = val; break;
                             case 3: l3index = val; break;
-                            case 4: val = l4index; break;
-                            case 5: val = l5index; break;
+                            case 4: l4index = val; break;
+                            case 5: l5index = val; break;
                             default: break;
                         }
                         context[d] = temp;
@@ -5673,17 +5673,43 @@ namespace com.ximpleware
             }
             else
             {
-                switch (context[0])
-                {
-                    case -1:
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    default: return true;
-                }
+                switch(context[0]){
+			case -1: return true;// document node
+			case 0: 
+				return true;
+				
+		case 1:
+			if (l1Buffer.upper32At(l1index)==context[1])
+				return true;
+			else 
+				return false;
+		case 2:  
+			if ((l1Buffer.upper32At(l1index)==context[1])&& (l2Buffer.upper32At(l2index)==context[2]))
+				return true;
+			else 
+				return false;
+		case 3:
+			if ((l1Buffer.upper32At(l1index)==context[1])&& (l2Buffer.upper32At(l2index)==context[2])
+				&& (l3Buffer.upper32At(l3index)==context[3]))
+				return true;
+			else
+				return false;
+			
+		case 4:
+			if ((l1Buffer.upper32At(l1index)==context[1])&& (l2Buffer.upper32At(l2index)==context[2])
+					&& (l3Buffer.upper32At(l3index)==context[3])&& (l4Buffer.upper32At(l4index)==context[4]))
+				return true;
+			else 
+				return false;
+		default:
+			if ((l1Buffer.upper32At(l1index)==context[1])&& (l2Buffer.upper32At(l2index)==context[2])
+					&& (l3Buffer.upper32At(l3index)==context[3])&& (l4Buffer.upper32At(l4index)==context[4])
+					&& (l5Buffer.intAt(l5index)==context[5]))
+				return true;
+			else 
+				return false;
+				
+			}
             }
         }
         public override void dumpState()
