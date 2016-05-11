@@ -1065,7 +1065,7 @@ VTDNav::VTDNav(int r, encoding_t enc, bool ns1, int depth, UByte *x, int xLen,
 			br(br1), // buffer reuse flag
 			fib(NULL),fib2(NULL),
 			name(NULL), nameIndex(-1), localName(NULL), localNameIndex(-1),
-			count(0), currentNode(NULL), URIName(NULL), h1(NULL), h2(NULL) {
+			count(0), currentNode(NULL), URIName(NULL),h1(NULL),h2(NULL) {
 	//VTDNav* vn = NULL;
 	int i;
 	//exception e;
@@ -1169,7 +1169,7 @@ VTDNav::VTDNav(int r, encoding_t enc, bool ns1, int depth, UByte *x, int xLen,
 			br(br1), // buffer reuse flag
 			fib(NULL), fib2(NULL),
 			name(NULL), nameIndex(-1), localName(NULL), localNameIndex(-1),
-			count(0), currentNode(NULL), URIName(NULL), h1(NULL), h2(NULL) {
+			count(0), currentNode(NULL), URIName(NULL) ,h1(NULL), h2(NULL){
 	//VTDNav* vn = NULL;
 	int i;
 	//exception e;
@@ -6168,17 +6168,29 @@ bool VTDNav::verifyNodeCorrectness() {
 		return true;
 
 	} else {
-		switch (context[0]) {
-		case -1:
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		case 5:
-		default:
-			return true;
-		}
+		switch (context[0])
+		{
+		case -1: return true;// document node
+				case 0:
+					return true;
+
+				case 1:
+					if (l1Buffer->upper32At(l1index) == context[1])
+						return true;
+					else
+						return false;
+				case 2:
+					if ((l1Buffer->upper32At(l1index) == context[1]) && (l2Buffer->upper32At(l2index) == context[2]))
+						return true;
+					else
+						return false;
+				default:
+					if ((l1Buffer->upper32At(l1index) == context[1]) && (l2Buffer->upper32At(l2index) == context[2])
+						&& (l3Buffer->intAt(l3index) == context[3]))
+						return true;
+					else
+						return false;
+    }
 
 	}
 }
@@ -6357,8 +6369,8 @@ bool VTDNav::iterate_preceding_node(int a[], int endIndex) {
 		case TOKEN_STARTING_TAG:
 			//case TOKEN_DOCUMENT:
 			depth = getTokenDepth(index);
+			context[0] = depth;
 			if (depth > 0 && (index != a[depth])) {
-				context[0] = depth;
 				if (depth > 0)
 					context[depth] = index;
 				if (depth < maxLCDepthPlusOne)
