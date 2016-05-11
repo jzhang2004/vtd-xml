@@ -17,7 +17,7 @@
 */
 /*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 // added set
-using System;  
+using System;
 using System.Text;
 using UTF8Char = com.ximpleware.parser.UTF8Char;
 using com.ximpleware.parser;
@@ -5795,9 +5795,10 @@ namespace com.ximpleware
                     case TOKEN_STARTING_TAG:
                         //case TOKEN_DOCUMENT:
                         int depth = getTokenDepth(index);
+                        context[0] = depth;
                         if (depth > 0 && (index != a[depth]))
                         {
-                            context[0] = depth;
+                            
                             if (depth > 0)
                                 context[depth] = index;
                             if (depth < maxLCDepthPlusOne)
@@ -8756,17 +8757,28 @@ namespace com.ximpleware
             }
             else
             {
-                switch (context[0])
-                {
-                    case -1:
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    default: return true;
-                }
+                switch(context[0]){
+			case -1: return true;// document node
+			case 0: 
+				return true;
+				
+		case 1:
+			if (l1Buffer.upper32At(l1index)==context[1])
+				return true;
+			else 
+				return false;
+		case 2:  
+			if ((l1Buffer.upper32At(l1index)==context[1])&& (l2Buffer.upper32At(l2index)==context[2]))
+				return true;
+			else 
+				return false;
+		default:  
+			if ((l1Buffer.upper32At(l1index)==context[1])&& (l2Buffer.upper32At(l2index)==context[2])
+					&& (l3Buffer.intAt(l3index)==context[3]))
+				return true;
+			else 
+				return false;
+			}
 
             }
         }
