@@ -1379,6 +1379,7 @@ public class VTDGen {
 
 	protected FastLongBuffer VTDBuffer;
 	
+	
 	//protected int offset_adj; // determine the byte length for ':' for various encoding types
     
 	// again, in terms of byte, not char as encoded in VTD
@@ -1394,6 +1395,7 @@ public class VTDGen {
 	protected FastLongBuffer nsBuffer2;
 	protected FastLongBuffer nsBuffer3;
 	
+
 	
 	private int last_depth;
 	private int last_l1_index;
@@ -3084,10 +3086,10 @@ public class VTDGen {
 					while (r.skipChar(']'));
 					if (r.skipChar('>')) {
 						break;
-					} /*else
+					} else
 						throw new ParseException(
 							"Error in CDATA: Invalid termination sequence"
-								+ formatLineNumber());*/
+								+ formatLineNumber());
 				}
 			} else
 				throw new ParseException(
