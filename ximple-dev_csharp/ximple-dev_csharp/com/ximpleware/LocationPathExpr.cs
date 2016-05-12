@@ -305,7 +305,7 @@ namespace com.ximpleware
 								}
 								else {
 									state =  TERMINAL;
-									result = vn.getCurrentIndex();
+									result = vn.getCurrentIndex2();
 									if ( isUnique(result)){
 										return result;
 									}
@@ -353,7 +353,7 @@ namespace com.ximpleware
 										currentStep = currentStep.nextS;
 									} else {
 										 state =  TERMINAL;
-										result = vn.getCurrentIndex();
+										result = vn.getCurrentIndex2();
 										if ( isUnique(result))
 											return result;
 									}
@@ -410,7 +410,7 @@ namespace com.ximpleware
 							if ((currentStep.nt_eval || currentStep.nt.eval(vn)) 
 									&& ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn))) {
 								// state =  TERMINAL;
-								result = vn.getCurrentIndex();
+								result = vn.getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -541,7 +541,7 @@ namespace com.ximpleware
                         {
                             //vn.pop();
                             state = TERMINAL;
-                            result = vn.getCurrentIndex();
+                            result = vn.getCurrentIndex2();
                             if (isUnique(result))
                                 return result;
                         }
@@ -616,7 +616,7 @@ namespace com.ximpleware
                     if (b)
                     {
                         //if (currentStep.evalPredicates(vn)) {
-                        result = vn.getCurrentIndex();
+                        result = vn.getCurrentIndex2();
                         if (isUnique(result))
                             return result;
                         //}
@@ -697,7 +697,7 @@ namespace com.ximpleware
                             else
                             {
                                 state = TERMINAL;
-                                result = vn.getCurrentIndex();
+                                result = vn.getCurrentIndex2();
                                 if (isUnique(result))
                                     return result;
                             }
@@ -799,7 +799,7 @@ namespace com.ximpleware
                             if (vn.atTerminal)
                                 result = vn.LN;
                             else
-                                result = vn.getCurrentIndex();
+                                result = vn.getCurrentIndex2();
                             if (isUnique(result))
                                 return result;
                         }
@@ -895,7 +895,7 @@ namespace com.ximpleware
                             else
                             {
                                 state = TERMINAL;
-                                result = vn.getCurrentIndex();
+                                result = vn.getCurrentIndex2();
                                 if (isUnique(result))
                                     return result;
                             }
@@ -941,7 +941,7 @@ namespace com.ximpleware
                             else
                             {
                                 state = TERMINAL;
-                                result = vn.getCurrentIndex();
+                                result = vn.getCurrentIndex2();
                                 if (isUnique(result))
                                     return result;
                             }
@@ -967,7 +967,7 @@ namespace com.ximpleware
                                 && ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn)))
                         {
                             // state =  TERMINAL;
-                            result = vn.getCurrentIndex();
+                            result = vn.getCurrentIndex2();
                             if (isUnique(result))
                                 return result;
                         }
@@ -1049,7 +1049,7 @@ namespace com.ximpleware
                             else
                             {
                                 state = TERMINAL;
-                                result = vn.getCurrentIndex();
+                                result = vn.getCurrentIndex2();
                                 if (isUnique(result))
                                     return result;
                             }
@@ -1095,7 +1095,7 @@ namespace com.ximpleware
                             else
                             {
                                 state = TERMINAL;
-                                result = vn.getCurrentIndex();
+                                result = vn.getCurrentIndex2();
                                 if (isUnique(result))
                                     return result;
                             }
@@ -1121,7 +1121,7 @@ namespace com.ximpleware
                                 && ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn)))
                         {
                             // state =  TERMINAL;
-                            result = vn.getCurrentIndex();
+                            result = vn.getCurrentIndex2();
                             if (isUnique(result))
                                 return result;
                         }
@@ -1561,7 +1561,7 @@ namespace com.ximpleware
             int i;
             if (pathType == RELATIVE_PATH)
             {
-                i = Math.Min(intHash.determineHashWidth(n), 6); // hash width 64 
+                i = Math.Min(intHash.determineHashWidth(n), 11); // hash width 64 
             }
             else
             {
@@ -2274,7 +2274,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 							} else {
 								//vn.pop();
 								 state =  TERMINAL;
-								result = vn.getCurrentIndex();
+								result = vn.getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -2340,7 +2340,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 								} else {
 									//vn.pop();
 									 state =  TERMINAL;
-									result = vn.getCurrentIndex();
+									result = vn.getCurrentIndex2();
 									if ( isUnique(result))
 										return result;
 								}
@@ -2384,7 +2384,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 						} else {
 							//vn.pop();
 							 state =  TERMINAL;
-							result = vn.getCurrentIndex();
+							result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -2408,7 +2408,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
                     while (vn.toNode(VTDNav.P)) {
 					if ((currentStep.nt_eval || currentStep.nt.eval2(vn)) 
 							&& ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn))) {
-						result = vn.getCurrentIndex();
+						result = vn.getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 					}
@@ -2465,7 +2465,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 	    	                } else {
 	    	                    //vn.pop();
 	    	                    state = TERMINAL;
-	    	                    result = vn.getCurrentIndex();
+	    	                    result = vn.getCurrentIndex2();
 	    	                    if (isUnique(result))
 	    	                        return result;
 	    	                }
@@ -2516,7 +2516,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 			   			else {
 			   				//vn.pop();
 			   				 state =  TERMINAL;
-			   				result = vn.getCurrentIndex();
+			   				result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 			   			}
@@ -2550,7 +2550,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 						} else {
 							//vn.pop();
 							 state =  TERMINAL;
-							result = vn.getCurrentIndex();
+							result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -2573,7 +2573,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
                     while (vn.toNode(VTDNav.P)) {
 				if ((currentStep.nt_eval || currentStep.nt.eval2(vn)) 
 						&& ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn))) {
-					result = vn.getCurrentIndex();
+					result = vn.getCurrentIndex2();
 					if ( isUnique(result))
 						return result;
 				}
