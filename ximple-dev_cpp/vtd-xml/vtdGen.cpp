@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1582,7 +1582,10 @@ VTDGen::pState VTDGen::process_cdata(){
 				while (skipChar(']'));
 				if (skipChar('>')) {
 					break;
-				} 
+				} else
+					throw ParseException(
+					"Parse exception in parse() \n"\
+					"Error in CDATA: Invalid Termination Sequence");
 			}
 		} else{		
 			throw ParseException(	
@@ -3452,7 +3455,7 @@ void VTDGen::setDoc_BR(UByte *ba, int len){
 	setDoc(ba,len,0,len);
 }
 //done
-void VTDGen::setDoc_BR(UByte *ba, int len, int os, int docLen){
+void VTDGen::setDoc_BR(UByte *ba, int len, int os, int docLen1){
 	int a,i1=8,i2=9,i3=11;
 	br = true;
 	depth = -1;
@@ -3463,7 +3466,7 @@ void VTDGen::setDoc_BR(UByte *ba, int len, int os, int docLen){
 	temp_offset = 0;
 	XMLDoc = ba;
 	docOffset = offset = os;
-	docLen = docLen;
+	docLen = docLen1;
 	bufLen = len;
 	endOffset = os + docLen;
 	last_depth = last_l3_index = last_l2_index = last_l1_index;
