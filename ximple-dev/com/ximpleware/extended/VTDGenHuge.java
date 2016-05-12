@@ -3004,10 +3004,10 @@ public class VTDGenHuge {
 					while (r.skipChar(']'));
 					if (r.skipChar('>')) {
 						break;
-					} /*else
+					} else
 						throw new ParseExceptionHuge(
 							"Error in CDATA: Invalid termination sequence"
-								+ formatLineNumber());*/
+								+ formatLineNumber());
 				}
 			} else
 				throw new ParseExceptionHuge(
