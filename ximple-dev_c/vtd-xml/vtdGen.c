@@ -3065,7 +3065,9 @@ static int process_cdata(VTDGen *vg){
 				while (skipChar(vg,']'));
 				if (skipChar(vg,'>')) {
 					break;
-				} 
+				} else throwException(parse_exception,0,
+						"Parse exception in parse()",
+						"Error in CDATA: Invalid Termination Sequence");
 			}
 		} else{		
 			throwException(parse_exception,0,	
