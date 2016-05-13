@@ -590,7 +590,7 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 								 }
 								 else {
 									 lpe->state=  XPATH_EVAL_TERMINAL;
-									 result = getCurrentIndex(vn);
+									 result = getCurrentIndex2(vn);
 									 if ( isUnique_lpe(lpe,result)){
 										 return result;
 									 }
@@ -638,7 +638,7 @@ static int process_child(locationPathExpr *lpe, VTDNav *vn){
 										lpe->currentStep = lpe->currentStep->nextS;
 									} else {
 										lpe->state=  XPATH_EVAL_TERMINAL;
-										result = getCurrentIndex(vn);
+										result = getCurrentIndex2(vn);
 										if ( isUnique_lpe(lpe,result))
 											return result;
 									}
@@ -692,7 +692,7 @@ forward:;
 						while (toElement(vn,NEXT_SIBLING)) {
 							if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 									&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-								result = getCurrentIndex(vn);
+								result = getCurrentIndex2(vn);
 								if ( isUnique_lpe(lpe,result))
 									return result;
 							}
@@ -814,7 +814,7 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 					else {
 						//vn.pop();
 						lpe->state =  XPATH_EVAL_TERMINAL;
-						result = getCurrentIndex(vn);
+						result = getCurrentIndex2(vn);
 						if ( isUnique_lpe(lpe,result))
 							return result;
 					}
@@ -850,7 +850,7 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 						lpe->currentStep = lpe->currentStep->nextS;
 					} else {
 						lpe->state=  XPATH_EVAL_TERMINAL;
-						result = getCurrentIndex(vn);
+						result = getCurrentIndex2(vn);
 						if ( isUnique_lpe(lpe,result))
 							return result;
 					}
@@ -876,7 +876,7 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 				}
 				if (b ) {
 					//if (evalPredicates(lpe->currentStep,vn)) {
-					result = getCurrentIndex(vn);
+					result = getCurrentIndex2(vn);
 					if (isUnique_lpe(lpe,result))
 						return result;
 					//}
@@ -936,7 +936,7 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn){
 						  break;
 					  } else {
 						  lpe->state=  XPATH_EVAL_TERMINAL;
-						  result = getCurrentIndex(vn);
+						  result = getCurrentIndex2(vn);
 						  if ( isUnique_lpe(lpe,result))
 							  return result;
 					  }
@@ -975,7 +975,7 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn){
 						  break;
 					  } else {
 						  lpe->state=  XPATH_EVAL_TERMINAL;
-						  result = getCurrentIndex(vn);
+						  result = getCurrentIndex2(vn);
 						  if ( isUnique_lpe(lpe,result))
 							  return result;
 					  }
@@ -997,7 +997,7 @@ static int process_following_sibling(locationPathExpr *lpe, VTDNav *vn){
 				  if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 									&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
 					  // lpe->state=  XPATH_EVAL_TERMINAL;
-					  result = getCurrentIndex(vn);
+					  result = getCurrentIndex2(vn);
 					  if ( isUnique_lpe(lpe,result))
 						  return result;
 				  }
@@ -1059,7 +1059,7 @@ static int process_parent(locationPathExpr *lpe, VTDNav *vn){
 							lpe->currentStep = lpe->currentStep->nextS;
 						} else {
 							lpe->state=  XPATH_EVAL_TERMINAL;
-							result = getCurrentIndex(vn);
+							result = getCurrentIndex2(vn);
 							if ( isUnique_lpe(lpe,result))
 								return result;
 						}
@@ -1146,7 +1146,7 @@ static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn){
 						  break;
 					  } else {
 						  lpe->state=  XPATH_EVAL_TERMINAL;
-						  result = getCurrentIndex(vn);
+						  result = getCurrentIndex2(vn);
 						  if ( isUnique_lpe(lpe,result))
 							  return result;
 					  }
@@ -1186,7 +1186,7 @@ static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn){
 						  break;
 					  } else {
 						  lpe->state=  XPATH_EVAL_TERMINAL;
-						  result = getCurrentIndex(vn);
+						  result = getCurrentIndex2(vn);
 						  if ( isUnique_lpe(lpe,result))
 							  return result;
 					  }
@@ -1208,7 +1208,7 @@ static int process_preceding_sibling(locationPathExpr *lpe, VTDNav *vn){
 				  if ((lpe->currentStep->nt_eval || eval_nt(lpe->currentStep->nt,vn)) 
 	    	            		&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))){
 					  // state =  XPATH_EVAL_TERMINAL;
-					  result = getCurrentIndex(vn);
+					  result = getCurrentIndex2(vn);
 					  if ( isUnique_lpe(lpe,result))
 						  return result;
 				  }
@@ -1262,7 +1262,7 @@ static int process_self(locationPathExpr *lpe, VTDNav *vn){
 		  			 if (vn->atTerminal)
 		  			     result = vn->LN;
 		  			 else
-		  			     result = getCurrentIndex(vn);
+		  			     result = getCurrentIndex2(vn);
 					if ( isUnique_lpe(lpe,result))
 						return result;
 		  		}
@@ -2044,7 +2044,7 @@ int adjust_lpe(locationPathExpr *lpe, int n){
 	int i;
 	Step *temp;
 	if (lpe->pathType == RELATIVE_PATH){
-		i= min(6,determineHashWidth(n));//hashwidth 64
+		i= min(11,determineHashWidth(n));//hashwidth 64
 	} else {
 		i=determineHashWidth(n);
 	}
@@ -2197,22 +2197,7 @@ int computeContextSize4AncestorOrSelf2(locationPathExpr *lpe,Predicate *p, VTDNa
 		return i;
 }
 
-intcomputeContextSize4Child( locationPathExpr *lpe,Predicate *p, VTDNav *vn){
-		int i=0;
-    	Boolean b = toElement(vn,FIRST_CHILD);
-    	if (b) {
-    	    do {
-				if (eval_s2(lpe->currentStep,vn, p)) {
-                   	i++;
-    	        }
-    	    } while (toElement(vn,NEXT_SIBLING));	    		    
-    	    toElement(vn,PARENT);
-			resetP2_s(lpe->currentStep,vn,p);
-    	    lpe->currentStep->out_of_range=FALSE;
-    	    return i;
-    	} else
-    	    return 0;
-}
+
 int computeContextSize4Child(locationPathExpr *lpe,Predicate *p, VTDNav *vn){
 		int i=0;
     	Boolean b =toNode(vn, FIRST_CHILD);
@@ -2489,7 +2474,7 @@ int process_ancestor2(locationPathExpr *lpe,VTDNav *vn){
 	    	                } else {
 	    	                    //vn.pop();
 	    	                    lpe->state = XPATH_EVAL_TERMINAL;
-	    	                    result = getCurrentIndex(vn);
+	    	                    result = getCurrentIndex2(vn);
 	    	                    if (isUnique_lpe(lpe,result))
 	    	                        return result;
 	    	                }
@@ -2540,7 +2525,7 @@ int process_ancestor2(locationPathExpr *lpe,VTDNav *vn){
 			   			else {
 			   				//vn.pop();
 			   				lpe->state =  XPATH_EVAL_TERMINAL;
-			   				result =getCurrentIndex(vn);
+			   				result =getCurrentIndex2(vn);
 							if ( isUnique_lpe(lpe,result))
 								return result;
 			   			}
@@ -2573,7 +2558,7 @@ int process_ancestor2(locationPathExpr *lpe,VTDNav *vn){
 						} else {
 							//vn.pop();
 							lpe->state =  XPATH_EVAL_TERMINAL;
-							result = getCurrentIndex(vn);
+							result = getCurrentIndex2(vn);
 							if ( isUnique_lpe(lpe,result))
 								return result;
 						}
@@ -2594,7 +2579,7 @@ int process_ancestor2(locationPathExpr *lpe,VTDNav *vn){
 	    	    while (toNode(vn,PARENT)) {
 				if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 						&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-					result = getCurrentIndex(vn);
+					result = getCurrentIndex2(vn);
 					if ( isUnique_lpe(lpe,result))
 						return result;
 				}
@@ -2648,7 +2633,7 @@ int process_ancestor_or_self2(locationPathExpr *lpe,VTDNav *vn){
 							if (vn->atTerminal)
 							    result = vn->LN;
 							else 
-							    result = getCurrentIndex(vn);
+							    result = getCurrentIndex2(vn);
 							if ( isUnique_lpe(lpe,result))
 								return result;
 						}
@@ -2665,7 +2650,7 @@ int process_ancestor_or_self2(locationPathExpr *lpe,VTDNav *vn){
 							} else {
 								//vn.pop();
 								 lpe->state =  XPATH_EVAL_TERMINAL;
-								result = getCurrentIndex(vn);
+								result = getCurrentIndex2(vn);
 								if ( isUnique_lpe(lpe,result))
 									return result;
 							}
@@ -2731,7 +2716,7 @@ int process_ancestor_or_self2(locationPathExpr *lpe,VTDNav *vn){
 								} else {
 									//vn.pop();
 									 lpe->state =  XPATH_EVAL_TERMINAL;
-									result = getCurrentIndex(vn);
+									result = getCurrentIndex2(vn);
 									if ( isUnique_lpe(lpe,result))
 										return result;
 								}
@@ -2774,7 +2759,7 @@ int process_ancestor_or_self2(locationPathExpr *lpe,VTDNav *vn){
 						} else {
 							//vn.pop();
 							 lpe->state =  XPATH_EVAL_TERMINAL;
-							result = getCurrentIndex(vn);
+							result = getCurrentIndex2(vn);
 							if ( isUnique_lpe(lpe,result))
 								return result;
 						}
@@ -2795,7 +2780,7 @@ int process_ancestor_or_self2(locationPathExpr *lpe,VTDNav *vn){
 				while (toNode(vn,PARENT)) {
 					if ((lpe->currentStep->nt_eval || eval_nt2(lpe->currentStep->nt,vn)) 
 							&& ((!lpe->currentStep->hasPredicate) || evalPredicates(lpe->currentStep,vn))) {
-						result = getCurrentIndex(vn);
+						result = getCurrentIndex2(vn);
 						if ( isUnique_lpe(lpe,result))
 							return result;
 					}
@@ -3355,7 +3340,7 @@ int process_parent2(locationPathExpr *lpe,VTDNav *vn){
     					   lpe->currentStep = lpe->currentStep->nextS;
     				    } else {
     					    lpe->state =  XPATH_EVAL_TERMINAL;
-    					   result = getCurrentIndex(vn);
+    					   result = getCurrentIndex2(vn);
     						if ( isUnique_lpe(lpe,result))
     							return result;
     				    }
@@ -3554,7 +3539,7 @@ int process_self2(locationPathExpr *lpe,VTDNav *vn){
 					if (vn->atTerminal)
 						result = vn->LN;
 					else
-						result = getCurrentIndex(vn);
+						result = getCurrentIndex2(vn);
 					if (isUnique_lpe(lpe,result))
 						return result;
 				}
