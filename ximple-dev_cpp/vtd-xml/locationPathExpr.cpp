@@ -260,7 +260,7 @@ int LocationPathExpr::adjust(int n){
 	//printf("adjusting \n");
 	int i;
 	if (pathType == RELATIVE_PATH){
-		i= min(6,IntHash::determineHashWidth(n));//hashwidth 64
+		i= min(11,IntHash::determineHashWidth(n));//hashwidth 64
 	} else {
 		i=IntHash::determineHashWidth(n);
 	}
@@ -955,7 +955,7 @@ int LocationPathExpr::process_child(VTDNav *vn){
 								 }
 								 else {
 									 state=  XPATH_EVAL_TERMINAL;
-									 result = vn->getCurrentIndex();
+									 result = vn->getCurrentIndex2();
 									 if ( isUnique(result)){
 										 return result;
 									 }
@@ -1002,7 +1002,7 @@ int LocationPathExpr::process_child(VTDNav *vn){
 										currentStep = currentStep->nextS;
 									} else {
 										state=  XPATH_EVAL_TERMINAL;
-										result = vn->getCurrentIndex();
+										result = vn->getCurrentIndex2();
 										if ( isUnique(result))
 											return result;
 									}
@@ -1054,7 +1054,7 @@ int LocationPathExpr::process_child(VTDNav *vn){
 						while (vn->toElement(NEXT_SIBLING)) {
 							if ((currentStep->nt_eval || currentStep->nt->eval_nt(vn)) 
 									&& ((!currentStep->hasPredicate) || currentStep->evalPredicates(vn))) {
-								result = vn->getCurrentIndex();
+								result = vn->getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -1176,7 +1176,7 @@ int LocationPathExpr::process_DDFP(VTDNav *vn){
 					else {
 						//vn.pop();
 						state =  XPATH_EVAL_TERMINAL;
-						result = vn->getCurrentIndex();
+						result = vn->getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 					}
@@ -1212,7 +1212,7 @@ int LocationPathExpr::process_DDFP(VTDNav *vn){
 						currentStep = currentStep->nextS;
 					} else {
 						 state =  XPATH_EVAL_TERMINAL;
-						result = vn->getCurrentIndex();
+						result = vn->getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 					}									
@@ -1238,7 +1238,7 @@ int LocationPathExpr::process_DDFP(VTDNav *vn){
 				}
 				 if (b ) {
 			        //if (currentStep.evalPredicates(vn)) {
-			        result = vn->getCurrentIndex();
+			        result = vn->getCurrentIndex2();
 			        if (isUnique(result))
 			            return result;
 			        //}
@@ -1298,7 +1298,7 @@ int LocationPathExpr::process_following_sibling(VTDNav *vn){
 						  break;
 					  } else {
 						  state=  XPATH_EVAL_TERMINAL;
-						  result = vn->getCurrentIndex();
+						  result = vn->getCurrentIndex2();
 						  if ( isUnique(result))
 							  return result;
 					  }
@@ -1337,7 +1337,7 @@ int LocationPathExpr::process_following_sibling(VTDNav *vn){
 						  break;
 					  } else {
 						  state=  XPATH_EVAL_TERMINAL;
-						  result = vn->getCurrentIndex();
+						  result = vn->getCurrentIndex2();
 						  if ( isUnique(result))
 							  return result;
 					  }
@@ -1359,7 +1359,7 @@ int LocationPathExpr::process_following_sibling(VTDNav *vn){
 				  if ((currentStep->nt_eval || currentStep->nt->eval_nt(vn)) 
 		  				&& ((!currentStep->hasPredicate) || currentStep->evalPredicates(vn))){
 					  // state=  XPATH_EVAL_TERMINAL;
-					  result = vn->getCurrentIndex();
+					  result = vn->getCurrentIndex2();
 					  if ( isUnique(result))
 						  return result;
 				  }
@@ -1419,7 +1419,7 @@ int LocationPathExpr::process_parent(VTDNav *vn){
 							currentStep = currentStep->nextS;
 						} else {
 							state=  XPATH_EVAL_TERMINAL;
-							result = vn->getCurrentIndex();
+							result = vn->getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -1504,7 +1504,7 @@ int LocationPathExpr::process_preceding_sibling(VTDNav *vn){
 						  break;
 					  } else {
 						  state=  XPATH_EVAL_TERMINAL;
-						  result = vn->getCurrentIndex();
+						  result = vn->getCurrentIndex2();
 						  if ( isUnique(result))
 							  return result;
 					  }
@@ -1543,7 +1543,7 @@ int LocationPathExpr::process_preceding_sibling(VTDNav *vn){
 						  break;
 					  } else {
 						  state=  XPATH_EVAL_TERMINAL;
-						  result = vn->getCurrentIndex();
+						  result = vn->getCurrentIndex2();
 						  if ( isUnique(result))
 							  return result;
 					  }
@@ -1565,7 +1565,7 @@ int LocationPathExpr::process_preceding_sibling(VTDNav *vn){
 				  if ((currentStep->nt_eval || currentStep->nt->eval_nt(vn)) 
 		  				&& ((!currentStep->hasPredicate) || currentStep->evalPredicates(vn))){
 					  // state =  XPATH_EVAL_TERMINAL;
-					  result = vn->getCurrentIndex();
+					  result = vn->getCurrentIndex2();
 					  if ( isUnique(result))
 						  return result;
 				  }
@@ -1619,7 +1619,7 @@ int LocationPathExpr::process_self(VTDNav *vn){
 		  			 if (vn->atTerminal)
 		  			     result = vn->LN;
 		  			 else
-		  			     result = vn->getCurrentIndex();
+		  			     result = vn->getCurrentIndex2();
 					if ( isUnique(result))
 						return result;
 		  		}
@@ -2703,7 +2703,7 @@ int LocationPathExpr::process_ancestor_or_self2(VTDNav *vn){
 							if (vn->atTerminal)
 							    result = vn->LN;
 							else 
-							    result = vn->getCurrentIndex();
+							    result = vn->getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -2720,7 +2720,7 @@ int LocationPathExpr::process_ancestor_or_self2(VTDNav *vn){
 							} else {
 								//vn.pop();
 								 state =  XPATH_EVAL_TERMINAL;
-								result = vn->getCurrentIndex();
+								result = vn->getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -2770,7 +2770,7 @@ int LocationPathExpr::process_ancestor_or_self2(VTDNav *vn){
 								 if (vn->atTerminal)
 								     result = vn->LN;
 								 else 
-								     result = vn->getCurrentIndex();
+								     result = vn->getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -2786,7 +2786,7 @@ int LocationPathExpr::process_ancestor_or_self2(VTDNav *vn){
 								} else {
 									//vn.pop();
 									 state =  XPATH_EVAL_TERMINAL;
-									result = vn->getCurrentIndex();
+									result = vn->getCurrentIndex2();
 									if ( isUnique(result))
 										return result;
 								}
@@ -2829,7 +2829,7 @@ int LocationPathExpr::process_ancestor_or_self2(VTDNav *vn){
 						} else {
 							//vn.pop();
 							 state =  XPATH_EVAL_TERMINAL;
-							result = vn->getCurrentIndex();
+							result = vn->getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -2850,7 +2850,7 @@ int LocationPathExpr::process_ancestor_or_self2(VTDNav *vn){
 				while (vn->toNode(PARENT)) {
 					if ((currentStep->nt_eval || currentStep->nt->eval_nt2(vn)) 
 							&& ((!currentStep->hasPredicate) || currentStep->evalPredicates(vn))) {
-						result = vn->getCurrentIndex();
+						result = vn->getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 					}
@@ -2908,7 +2908,7 @@ int LocationPathExpr::process_ancestor2(VTDNav *vn){
 	    	                } else {
 	    	                    //vn.pop();
 	    	                    state = XPATH_EVAL_TERMINAL;
-	    	                    result = vn->getCurrentIndex();
+	    	                    result = vn->getCurrentIndex2();
 	    	                    if (isUnique(result))
 	    	                        return result;
 	    	                }
@@ -2959,7 +2959,7 @@ int LocationPathExpr::process_ancestor2(VTDNav *vn){
 			   			else {
 			   				//vn.pop();
 			   				 state =  XPATH_EVAL_TERMINAL;
-			   				result = vn->getCurrentIndex();
+			   				result = vn->getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 			   			}
@@ -2993,7 +2993,7 @@ int LocationPathExpr::process_ancestor2(VTDNav *vn){
 						} else {
 							//vn.pop();
 							 state =  XPATH_EVAL_TERMINAL;
-							result = vn->getCurrentIndex();
+							result = vn->getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -3014,7 +3014,7 @@ int LocationPathExpr::process_ancestor2(VTDNav *vn){
 	    	    while (vn->toNode(PARENT)) {
 				if ((currentStep->nt_eval || currentStep->nt->eval_nt2(vn)) 
 						&& ((!currentStep->hasPredicate) || currentStep->evalPredicates(vn))) {
-					result = vn->getCurrentIndex();
+					result = vn->getCurrentIndex2();
 					if ( isUnique(result))
 						return result;
 				}
@@ -3549,7 +3549,7 @@ int LocationPathExpr::process_parent2(VTDNav *vn){
     					   currentStep = currentStep->nextS;
     				    } else {
     					    state =  XPATH_EVAL_TERMINAL;
-    					   result = vn->getCurrentIndex();
+    					   result = vn->getCurrentIndex2();
     						if ( isUnique(result))
     							return result;
     				    }
@@ -3749,7 +3749,7 @@ int LocationPathExpr::process_self2(VTDNav *vn){
 					if (vn->atTerminal)
 						result = vn->LN;
 					else
-						result = vn->getCurrentIndex();
+						result = vn->getCurrentIndex2();
 					if (isUnique(result))
 						return result;
 				}
