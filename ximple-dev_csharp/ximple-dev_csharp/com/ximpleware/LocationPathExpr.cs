@@ -2257,7 +2257,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 							if (vn.atTerminal)
 							    result = vn.LN;
 							else 
-							    result = vn.getCurrentIndex();
+							    result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -2324,7 +2324,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 								 if (vn.atTerminal)
 								     result = vn.LN;
 								 else 
-								     result = vn.getCurrentIndex();
+								     result = vn.getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -3160,7 +3160,7 @@ protected internal  int process_parent2(VTDNav vn)
     					   currentStep = currentStep.nextS;
     				    } else {
     					    state =  TERMINAL;
-    					   result = vn.getCurrentIndex();
+    					   result = vn.getCurrentIndex2();
     						if ( isUnique(result))
     							return result;
     				    }
@@ -3363,7 +3363,7 @@ protected internal  int process_parent2(VTDNav vn)
 					if (vn.atTerminal)
 						result = vn.LN;
 					else
-						result = vn.getCurrentIndex();
+						result = vn.getCurrentIndex2();
 					if (isUnique(result))
 						return result;
 				}
