@@ -213,7 +213,7 @@ public class LocationPathExpr extends Expr{
 								}
 								else {
 									 state =  TERMINAL;
-									result = vn.getCurrentIndex();
+									result = vn.getCurrentIndex2();
 									if ( isUnique(result)){
 										return result;
 									}
@@ -324,7 +324,7 @@ public class LocationPathExpr extends Expr{
 										currentStep = currentStep.getNextStep();
 									} else {
 										 state =  TERMINAL;
-										result = vn.getCurrentIndex();
+										result = vn.getCurrentIndex2();
 										if ( isUnique(result))
 											return result;
 									}
@@ -450,7 +450,7 @@ public class LocationPathExpr extends Expr{
 						while (vn.toElement(VTDNavHuge.NS)) {
 							if (currentStep.eval(vn)) {
 								// state =  TERMINAL;
-								result = vn.getCurrentIndex();
+								result = vn.getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -598,7 +598,7 @@ public class LocationPathExpr extends Expr{
     				else {
     					//vn.pop();
     					state =  TERMINAL;
-    					result = vn.getCurrentIndex();
+    					result = vn.getCurrentIndex2();
     					if ( isUnique(result))
     						return result;
     				}
@@ -632,17 +632,17 @@ public class LocationPathExpr extends Expr{
 					} else
 						 state =  END;
 				} else {
-					if (currentStep.getNextStep() != null) {
+					//if (currentStep.getNextStep() != null) {
 						//vn.push();
 						//System.out.println("  --++ push in //");
 						 state =  FORWARD;
 						currentStep = currentStep.getNextStep();
-					} else {
+					/*} else {
 						 state =  TERMINAL;
-						result = vn.getCurrentIndex();
+						result = vn.getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
-					}
+					}*/
 				}
 				break;
 			    
@@ -657,7 +657,7 @@ public class LocationPathExpr extends Expr{
 			    }
 			    if (b == true) {
 			        if (currentStep.evalPredicates(vn)) {
-			            result = vn.getCurrentIndex();
+			            result = vn.getCurrentIndex2();
 			            if (isUnique(result))
 			                return result;
 			        }
@@ -729,7 +729,7 @@ public class LocationPathExpr extends Expr{
     					   currentStep = currentStep.getNextStep();
     				    } else {
     					    state =  TERMINAL;
-    					   result = vn.getCurrentIndex();
+    					   result = vn.getCurrentIndex2();
     						if ( isUnique(result))
     							return result;
     				    }
@@ -811,7 +811,7 @@ public class LocationPathExpr extends Expr{
 	    	                } else {
 	    	                    //vn.pop();
 	    	                    state = TERMINAL;
-	    	                    result = vn.getCurrentIndex();
+	    	                    result = vn.getCurrentIndex2();
 	    	                    if (isUnique(result))
 	    	                        return result;
 	    	                }
@@ -860,7 +860,7 @@ public class LocationPathExpr extends Expr{
 			   			else {
 			   				//vn.pop();
 			   				 state =  TERMINAL;
-			   				result = vn.getCurrentIndex();
+			   				result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 			   			}
@@ -887,7 +887,7 @@ public class LocationPathExpr extends Expr{
 						} else {
 							//vn.pop();
 							 state =  TERMINAL;
-							result = vn.getCurrentIndex();
+							result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -909,7 +909,7 @@ public class LocationPathExpr extends Expr{
 	    	case TERMINAL:			
 	    	    while (vn.toElement(VTDNavHuge.P)) {
 				if (currentStep.eval(vn)) {
-					result = vn.getCurrentIndex();
+					result = vn.getCurrentIndex2();
 					if ( isUnique(result))
 						return result;
 				}
@@ -972,7 +972,7 @@ public class LocationPathExpr extends Expr{
 							if (vn.atTerminal)
 							    result = vn.LN;
 							else 
-							    result = vn.getCurrentIndex();
+							    result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -988,7 +988,7 @@ public class LocationPathExpr extends Expr{
 							} else {
 								//vn.pop();
 								 state =  TERMINAL;
-								result = vn.getCurrentIndex();
+								result = vn.getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -1036,7 +1036,7 @@ public class LocationPathExpr extends Expr{
 								 if (vn.atTerminal)
 								     result = vn.LN;
 								 else 
-								     result = vn.getCurrentIndex();
+								     result = vn.getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -1051,7 +1051,7 @@ public class LocationPathExpr extends Expr{
 								} else {
 									//vn.pop();
 									 state =  TERMINAL;
-									result = vn.getCurrentIndex();
+									result = vn.getCurrentIndex2();
 									if ( isUnique(result))
 										return result;
 								}
@@ -1086,7 +1086,7 @@ public class LocationPathExpr extends Expr{
 						} else {
 							//vn.pop();
 							 state =  TERMINAL;
-							result = vn.getCurrentIndex();
+							result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -1108,7 +1108,7 @@ public class LocationPathExpr extends Expr{
 			case  TERMINAL:
 				while (vn.toElement(VTDNavHuge.P)) {
 					if (currentStep.eval(vn)) {
-						result = vn.getCurrentIndex();
+						result = vn.getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 					}
@@ -1170,7 +1170,7 @@ public class LocationPathExpr extends Expr{
 		  			 if (vn.atTerminal == true)
 		  			     result = vn.LN;
 		  			 else 
-		  			     result = vn.getCurrentIndex();
+		  			     result = vn.getCurrentIndex2();
 					if ( isUnique(result))
 						return result;
 		  		}
@@ -1247,7 +1247,7 @@ public class LocationPathExpr extends Expr{
 		  				break;
 		  			} else {
 		  				 state =  TERMINAL;
-		  				result = vn.getCurrentIndex();
+		  				result = vn.getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 		  			}
@@ -1279,7 +1279,7 @@ public class LocationPathExpr extends Expr{
 		  				break;
 		  			} else {
 		  				 state =  TERMINAL;
-		  				result = vn.getCurrentIndex();
+		  				result = vn.getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 		  			}
@@ -1301,7 +1301,7 @@ public class LocationPathExpr extends Expr{
 		  	while (vn.toElement(VTDNavHuge.NS)){
 		  		if (currentStep.eval(vn)){
 		  			// state =  TERMINAL;
-		  			result = vn.getCurrentIndex();
+		  			result = vn.getCurrentIndex2();
 					if ( isUnique(result))
 						return result;
 		  		}
@@ -1364,7 +1364,7 @@ public class LocationPathExpr extends Expr{
 		  				break;
 		  			} else {
 		  				 state =  TERMINAL;
-		  				result = vn.getCurrentIndex();
+		  				result = vn.getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 		  			}
@@ -1396,7 +1396,7 @@ public class LocationPathExpr extends Expr{
 		  				break;
 		  			} else {
 		  				 state =  TERMINAL;
-		  				result = vn.getCurrentIndex();
+		  				result = vn.getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 		  			}
@@ -1418,7 +1418,7 @@ public class LocationPathExpr extends Expr{
 		  	while (vn.toElement(VTDNavHuge.PS)){
 		  		if (currentStep.eval(vn)){
 		  			// state =  TERMINAL;
-		  			result = vn.getCurrentIndex();
+		  			result = vn.getCurrentIndex2();
 					if ( isUnique(result))
 						return result;
 		  		}
