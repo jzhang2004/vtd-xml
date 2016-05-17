@@ -769,7 +769,7 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 				if (lpe->currentStep->ft == TRUE) {
 
 					if (lpe->currentStep->axis_type == AXIS_DESCENDANT_OR_SELF0 )
-						if (lpe->currentStep->nt->testType == NT_NODE)
+						if (lpe->currentStep->nt->testType == NT_NODE || wcscmp(helper,L"*"))
 							setSpecial(ap,TRUE);
 						else
 							setSpecial(ap,FALSE);
@@ -843,17 +843,17 @@ static int process_DDFP(locationPathExpr *lpe, VTDNav *vn){
 					}
 				}
 				if (b ) {
-					if (lpe->currentStep->nextS != NULL) {
+					/*if (lpe->currentStep->nextS != NULL) {*/
 						//vn.push();
 						//System.out.println("  --++ push in //");
 						lpe->state=  XPATH_EVAL_FORWARD;
 						lpe->currentStep = lpe->currentStep->nextS;
-					} else {
+					/*} else {
 						lpe->state=  XPATH_EVAL_TERMINAL;
 						result = getCurrentIndex2(vn);
 						if ( isUnique_lpe(lpe,result))
 							return result;
-					}
+					}*/
 				} else {
 					lpe->currentStep->out_of_range = FALSE;
 					transition_DDFP(lpe,vn);
@@ -2097,28 +2097,36 @@ void optimize(locationPathExpr *lpe){
 						 }
 						 break;
 					 case AXIS_DESCENDANT: 
-						 ts->prevS->axis_type = AXIS_DESCENDANT0;
+						 if (ts->prevS->nt->testType == NT_NODE)
+							 ts->prevS->axis_type = AXIS_DESCENDANT0;
 						 break;
-					 case AXIS_DESCENDANT_OR_SELF:						 
-						 ts->prevS->axis_type = AXIS_DESCENDANT_OR_SELF0;
+					 case AXIS_DESCENDANT_OR_SELF:
+						 if (ts->prevS->nt->testType == NT_NODE)
+							ts->prevS->axis_type = AXIS_DESCENDANT_OR_SELF0;
 						 break;
 					 case AXIS_PRECEDING:						 
-						 ts->prevS->axis_type = AXIS_PRECEDING0;
+						 if (ts->prevS->nt->testType == NT_NODE)
+							 ts->prevS->axis_type = AXIS_PRECEDING0;
 						 break;
 					 case AXIS_FOLLOWING:
-						 ts->prevS->axis_type = AXIS_FOLLOWING0;
+						 if (ts->prevS->nt->testType == NT_NODE)
+							ts->prevS->axis_type = AXIS_FOLLOWING0;
 						 break;
 					 case AXIS_FOLLOWING_SIBLING:
-						 ts->prevS->axis_type = AXIS_FOLLOWING_SIBLING0;
-						 ts->prevS->nt->testType = NT_NAMETEST;
-						 ts->prevS->nt->type= 0;
-						 ts->prevS->nt->nodeName = L"*";
+						 if (ts->prevS->nt->testType == NT_NODE) {
+							 ts->prevS->axis_type = AXIS_FOLLOWING_SIBLING0;
+							 ts->prevS->nt->testType = NT_NAMETEST;
+							 ts->prevS->nt->type = 0;
+							 ts->prevS->nt->nodeName = L"*";
+						 }
 						 break;
 					 case AXIS_PRECEDING_SIBLING:
-						 ts->prevS->axis_type = AXIS_PRECEDING_SIBLING0;
-						 ts->prevS->nt->testType = NT_NAMETEST;
-						 ts->prevS->nt->type= 0;
-						 ts->prevS->nt->nodeName = L"*";
+						 if (ts->prevS->nt->testType == NT_NODE) {
+							 ts->prevS->axis_type = AXIS_PRECEDING_SIBLING0;
+							 ts->prevS->nt->testType = NT_NAMETEST;
+							 ts->prevS->nt->type = 0;
+							 ts->prevS->nt->nodeName = L"*";
+						 }
 						 break;
 				}
 		}
@@ -2248,7 +2256,7 @@ int computeContextSize4DDFP(locationPathExpr *lpe,Predicate *p, VTDNav *vn){
 		else
 			bind(ap,vn);
 		if (lpe->currentStep->axis_type == AXIS_DESCENDANT_OR_SELF0 )
-			if (lpe->currentStep->nt->testType == NT_NODE)
+			if (lpe->currentStep->nt->testType == NT_NODE || wcscmp(helper,L"*"))
 				setSpecial(ap,TRUE);
 			else
 				setSpecial(ap,FALSE);
@@ -3100,17 +3108,17 @@ int process_DDFP2(locationPathExpr *lpe,VTDNav *vn){
 				}
 			}
 			if (b ) {
-				if (lpe->currentStep->nextS != NULL) {
+				//if (lpe->currentStep->nextS != NULL) {
 					// vn.push();
 					// System.out.println("  --++ push in //");
 					lpe->state = XPATH_EVAL_FORWARD;
 					lpe->currentStep = lpe->currentStep->nextS;
-				} else {
+				/*} else {
 					lpe->state = XPATH_EVAL_TERMINAL;
 					result = getCurrentIndex(vn);
 					if (isUnique_lpe(lpe,result))
 						return result;
-				}
+				}*/
 			} else 
 				transition_DDFP(lpe,vn);
 			break;
