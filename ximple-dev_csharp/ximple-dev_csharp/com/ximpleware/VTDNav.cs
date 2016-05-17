@@ -1637,6 +1637,10 @@ namespace com.ximpleware
                     case TOKEN_STARTING_TAG:
                         //case TOKEN_DOCUMENT:
                         int depth = getTokenDepth(index);
+
+                        context[0] = depth;                                                                           if (depth > 0)
+                        if (depth > 0)
+                                context[depth] = index;
                         if (index != a[depth])
                         {
                             if (en.Equals("*") || matchRawTokenString(index, en))
@@ -1651,14 +1655,16 @@ namespace com.ximpleware
                             }
                             else
                             {
-                                context[depth] = index;
+                                if (depth < maxLCDepthPlusOne)
+                                    resolveLC();
                                 index++;
                                 continue;
                             }
                         }
                         else
                         {
-                            context[depth] = index;
+                            if (depth < maxLCDepthPlusOne)
+                                resolveLC();
                             index++;
                             continue;
                         }
@@ -1702,11 +1708,11 @@ namespace com.ximpleware
                     case TOKEN_STARTING_TAG:
                         //case TOKEN_DOCUMENT:
                         int depth = getTokenDepth(index);
+                        context[0] = depth;
+                        if (depth > 0)
+                            context[depth] = index;
                         if (index != a[depth])
                         {
-                            context[0] = depth;
-                            if (depth > 0)
-                                context[depth] = index;
                             if (matchElementNS(URL, ln))
                             {
                                 if (depth < maxLCDepthPlusOne)
@@ -1716,14 +1722,16 @@ namespace com.ximpleware
                             }
                             else
                             {
-                                context[depth] = index;
+                                if (depth < maxLCDepthPlusOne)
+                                    resolveLC();
                                 index++;
                                 continue;
                             }
                         }
                         else
                         {
-                            context[depth] = index;
+                            if (depth < maxLCDepthPlusOne)
+                                resolveLC();
                             index++;
                             continue;
                         }
@@ -5798,7 +5806,6 @@ namespace com.ximpleware
                         context[0] = depth;
                         if (depth > 0 && (index != a[depth]))
                         {
-                            
                             if (depth > 0)
                                 context[depth] = index;
                             if (depth < maxLCDepthPlusOne)
@@ -8316,6 +8323,13 @@ namespace com.ximpleware
 
         public virtual void dumpState()
         {
+            Console.WriteLine("  context[0]" + context[0]);
+            Console.WriteLine("  context[1]" + context[1]);
+            Console.WriteLine("  context[2]" + context[2]);
+            Console.WriteLine("  context[3]" + context[3]);
+            Console.WriteLine("  context[4]" + context[4]);
+            Console.WriteLine("  context[5]" + context[5]);
+            Console.WriteLine("  context[6]" + context[6]);
             Console.WriteLine("l1 index ==>" + l1index);
             Console.WriteLine("l2 index ==>" + l2index);
             Console.WriteLine("l2 lower ==>" + l2lower);
@@ -8757,28 +8771,30 @@ namespace com.ximpleware
             }
             else
             {
-                switch(context[0]){
-			case -1: return true;// document node
-			case 0: 
-				return true;
-				
-		case 1:
-			if (l1Buffer.upper32At(l1index)==context[1])
-				return true;
-			else 
-				return false;
-		case 2:  
-			if ((l1Buffer.upper32At(l1index)==context[1])&& (l2Buffer.upper32At(l2index)==context[2]))
-				return true;
-			else 
-				return false;
-		default:  
-			if ((l1Buffer.upper32At(l1index)==context[1])&& (l2Buffer.upper32At(l2index)==context[2])
-					&& (l3Buffer.intAt(l3index)==context[3]))
-				return true;
-			else 
-				return false;
-			}
+                switch (context[0])
+                {
+                    case -1: return true;// document node
+                    case 0:
+                        return true;
+
+                    case 1:
+                        if (l1Buffer.upper32At(l1index) == context[1])
+                            return true;
+                        else
+                            return false;
+                    case 2:
+                        if ((l1Buffer.upper32At(l1index) == context[1]) && (l2Buffer.upper32At(l2index) == context[2]))
+                            return true;
+                        else
+                            return false;
+                    default:
+                        if ((l1Buffer.upper32At(l1index) == context[1]) && (l2Buffer.upper32At(l2index) == context[2])
+                                && (l3Buffer.intAt(l3index) == context[3]))
+                            return true;
+                        else
+                            return false;
+                }
+
 
             }
         }
