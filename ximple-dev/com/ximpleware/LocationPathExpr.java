@@ -77,29 +77,37 @@ public class LocationPathExpr extends Expr{
 							 ts.prevS.nt.nodeName = "*";
 						 }
 						 break;
-					 case AxisType.DESCENDANT: 
-						 ts.prevS.axis_type = AxisType.DESCENDANT0;
+					 case AxisType.DESCENDANT:
+						 if (ts.prevS.nt.testType==NodeTest.NODE)
+							 ts.prevS.axis_type = AxisType.DESCENDANT0;
 						 break;
-					 case AxisType.DESCENDANT_OR_SELF:						 
-						 ts.prevS.axis_type = AxisType.DESCENDANT_OR_SELF0;
+					 case AxisType.DESCENDANT_OR_SELF:	
+						 if (ts.prevS.nt.testType==NodeTest.NODE)
+							 ts.prevS.axis_type = AxisType.DESCENDANT_OR_SELF0;
 						 break;
-					 case AxisType.PRECEDING:						 
-						 ts.prevS.axis_type = AxisType.PRECEDING0;
+					 case AxisType.PRECEDING:	
+						 if (ts.prevS.nt.testType==NodeTest.NODE)
+							 ts.prevS.axis_type = AxisType.PRECEDING0;
 						 break;
 					 case AxisType.FOLLOWING:
-						 ts.prevS.axis_type = AxisType.FOLLOWING0;
+						 if (ts.prevS.nt.testType==NodeTest.NODE)
+							 ts.prevS.axis_type = AxisType.FOLLOWING0;
 						 break;
 					 case AxisType.FOLLOWING_SIBLING:
-						 ts.prevS.axis_type = AxisType.FOLLOWING_SIBLING0;
-						 ts.prevS.nt.testType = NodeTest.NAMETEST;
-						 ts.prevS.nt.type= 0;
-						 ts.prevS.nt.nodeName = "*";
+						 if (ts.prevS.nt.testType==NodeTest.NODE){
+							 ts.prevS.axis_type = AxisType.FOLLOWING_SIBLING0;
+							 ts.prevS.nt.testType = NodeTest.NAMETEST;
+							 ts.prevS.nt.type= 0;
+							 ts.prevS.nt.nodeName = "*";
+						 }
 						 break;
 					 case AxisType.PRECEDING_SIBLING:
-					 	 ts.prevS.axis_type = AxisType.PRECEDING_SIBLING0;
-					 	 ts.prevS.nt.testType = NodeTest.NAMETEST;
-						 ts.prevS.nt.type= 0;
-						 ts.prevS.nt.nodeName = "*";
+						 if (ts.prevS.nt.testType==NodeTest.NODE){
+							 ts.prevS.axis_type = AxisType.PRECEDING_SIBLING0;
+							 ts.prevS.nt.testType = NodeTest.NAMETEST;
+							 ts.prevS.nt.type= 0;
+							 ts.prevS.nt.nodeName = "*";
+						 }
 						 break;
 					}
 				}
@@ -582,8 +590,8 @@ public class LocationPathExpr extends Expr{
     	            break;
     	        }
     	        
-    		    String helper = null;
-    			if (currentStep.nt.testType == NodeTest.NAMETEST){
+    		    String helper =null;
+    		    if (currentStep.nt.testType == NodeTest.NAMETEST){
     				helper = currentStep.nt.nodeName;
     			} else if (currentStep.nt.testType == NodeTest.NODE){
     				helper = "*";
@@ -598,7 +606,7 @@ public class LocationPathExpr extends Expr{
     			}
     			if (currentStep.ft ) {
     				if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF0 )
-    					if (currentStep.nt.testType == NodeTest.NODE)
+    					if (currentStep.nt.testType == NodeTest.NODE || helper.equals("*"))
     						ap.setSpecial(true);
     					else
     						ap.setSpecial(false);
@@ -672,17 +680,17 @@ public class LocationPathExpr extends Expr{
 					}
 				}
 				if (b ) {
-					if (currentStep.nextS != null) {
+					//if (currentStep.nextS != null) {
 						//vn.push();
 						//System.out.println("  --++ push in //");
 						 state =  FORWARD;
 						currentStep = currentStep.nextS;
-					} else {
-						 state =  TERMINAL;
+					///} else {
+					/*	 state =  TERMINAL;
 						result = vn.getCurrentIndex2();
 						if ( isUnique(result))
-							return result;
-					}									
+							return result;*/
+					//}							
 				} else {
 					currentStep.out_of_range = false;
 					transition_DDFP(vn);
@@ -858,17 +866,17 @@ public class LocationPathExpr extends Expr{
 				}
 			}
 			if (b ) {
-				if (currentStep.nextS != null) {
+				//if (currentStep.nextS != null) {
 					// vn.push();
 					// System.out.println("  --++ push in //");
-					state = FORWARD;
-					currentStep = currentStep.nextS;
-				} else {
+				state = FORWARD;
+				currentStep = currentStep.nextS;
+				/*} else {
 					state = TERMINAL;
 					result = vn.getCurrentIndex();
 					if (isUnique(result))
 						return result;
-				}
+				}*/
 			} else 
 				transition_DDFP(vn);
 			break;
@@ -1291,7 +1299,7 @@ public class LocationPathExpr extends Expr{
 							if (vn.atTerminal)
 							    result = vn.LN;
 							else 
-							    result = vn.getCurrentIndex();
+							    result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -1308,7 +1316,7 @@ public class LocationPathExpr extends Expr{
 							} else {
 								//vn.pop();
 								 state =  TERMINAL;
-								result = vn.getCurrentIndex();
+								result = vn.getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -1358,7 +1366,7 @@ public class LocationPathExpr extends Expr{
 								 if (vn.atTerminal)
 								     result = vn.LN;
 								 else 
-								     result = vn.getCurrentIndex();
+								     result = vn.getCurrentIndex2();
 								if ( isUnique(result))
 									return result;
 							}
@@ -1374,7 +1382,7 @@ public class LocationPathExpr extends Expr{
 								} else {
 									//vn.pop();
 									 state =  TERMINAL;
-									result = vn.getCurrentIndex();
+									result = vn.getCurrentIndex2();
 									if ( isUnique(result))
 										return result;
 								}
@@ -1418,7 +1426,7 @@ public class LocationPathExpr extends Expr{
 						} else {
 							//vn.pop();
 							 state =  TERMINAL;
-							result = vn.getCurrentIndex();
+							result = vn.getCurrentIndex2();
 							if ( isUnique(result))
 								return result;
 						}
@@ -1439,7 +1447,7 @@ public class LocationPathExpr extends Expr{
 				while (vn.toNode(VTDNav.P)) {
 					if ((currentStep.nt_eval || currentStep.nt.eval2(vn)) 
 							&& ((!currentStep.hasPredicate) || currentStep.evalPredicates(vn))) {
-						result = vn.getCurrentIndex();
+						result = vn.getCurrentIndex2();
 						if ( isUnique(result))
 							return result;
 					}
@@ -1494,7 +1502,7 @@ public class LocationPathExpr extends Expr{
 		  			 if (vn.atTerminal )
 		  			     result = vn.LN;
 		  			 else 
-		  			     result = vn.getCurrentIndex();
+		  			     result = vn.getCurrentIndex2();
 					if ( isUnique(result))
 						return result;
 		  		}
@@ -2752,11 +2760,11 @@ public class LocationPathExpr extends Expr{
 	    String helper = null;
 	    int i=0;
 	    AutoPilot ap = (AutoPilot)currentStep.o;
-		if (currentStep.nt.testType == NodeTest.NODE){
+	    if (currentStep.nt.testType == NodeTest.NODE){
 		    helper = "*";
 		}else if (currentStep.nt.testType == NodeTest.NAMETEST){
 			helper = currentStep.nt.nodeName;
-		}else
+		}else 
 			throw new XPathEvalException("can't run descendant "
 					+ "following, or following-sibling axis over comment(), pi(), and text()");
 		if (ap==null)
@@ -2764,7 +2772,7 @@ public class LocationPathExpr extends Expr{
 		else
 			ap.bind(vn);
 		if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF0 )
-			if (currentStep.nt.testType == NodeTest.NODE)
+			if (currentStep.nt.testType == NodeTest.NODE || helper.equals("*"))
 				ap.setSpecial(true);
 			else
 				ap.setSpecial(false);
