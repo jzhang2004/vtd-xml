@@ -1344,22 +1344,24 @@ Boolean iterate_preceding(VTDNav *vn,UCSChar *en, int* a, int endIndex){
 			case TOKEN_STARTING_TAG:
 			//case TOKEN_DOCUMENT:
 				depth = getTokenDepth(vn,index);
+				vn->context[0] = depth;
+				if (depth > 0)
+					vn->context[depth] = index;
 				if (index!=a[depth]){
 					if (wcscmp(en,L"*")==0||matchRawTokenString(vn,index,en)){
-						vn->context[0] = depth;
-						if (depth > 0)
-							vn->context[depth] = index;
 						if (depth < vn->maxLCDepthPlusOne)
 							resolveLC(vn);
 						vn->atTerminal = FALSE;
 						return TRUE;
 					}else{
-						vn->context[depth] = index;
+						if (depth < vn->maxLCDepthPlusOne)
+							resolveLC(vn);
 						index++;
 						continue;
 					}
 				}else{
-					vn->context[depth] = index;
+					if (depth < vn->maxLCDepthPlusOne)
+						resolveLC(vn);
 					index++;
 					continue;
 				}
@@ -1394,22 +1396,24 @@ Boolean iterate_precedingNS(VTDNav *vn,UCSChar *URL, UCSChar *ln, int* a,int end
 			case TOKEN_STARTING_TAG:
 			//case TOKEN_DOCUMENT:
 				depth = getTokenDepth(vn,index);
+				vn->context[0] = depth;
+				if (depth > 0)
+					vn->context[depth] = index;
 				if (index!=a[depth]){
-					vn->context[0] = depth;
-					if (depth > 0)
-						vn->context[depth] = index;
 					if (matchElementNS(vn,URL,ln)){						
 						if (depth < vn->maxLCDepthPlusOne)
 							resolveLC(vn);
 						vn->atTerminal = FALSE;
 						return TRUE;
 					}else{
-						vn->context[depth] = index;
+						if (depth < vn->maxLCDepthPlusOne)
+							resolveLC(vn);
 						index++;
 						continue;
 					}
 				}else{
-					vn->context[depth] = index;
+					if (depth < vn->maxLCDepthPlusOne)
+						resolveLC(vn);
 					index++;
 					continue;
 				}
