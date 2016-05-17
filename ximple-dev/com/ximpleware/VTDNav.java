@@ -1547,23 +1547,31 @@ public class VTDNav {
 			case TOKEN_STARTING_TAG:
 			//case TOKEN_DOCUMENT:
 				int depth = getTokenDepth(index);
+				context[0] = depth;
+				if (depth > 0)
+					context[depth] = index;
 				if (index!=a[depth]){
 					if (en.equals("*")||matchRawTokenString(index,en)){
-						context[0] = depth;
-						if (depth > 0)
-							context[depth] = index;
+						//context[0] = depth;
+						//if (depth > 0)
+						//	context[depth] = index;
 						if (depth < maxLCDepthPlusOne)
 							resolveLC();
 						atTerminal = false;
 						return true;
 					}else{
-						context[depth] = index;
+						if (depth < maxLCDepthPlusOne)
+							resolveLC();
+						//context[depth] = index;
 						index++;
 						continue;
 					}
 				}else{
-					context[depth] = index;
+					//context[0]=depth;
+					//context[depth] = index;
 					index++;
+					if (depth < maxLCDepthPlusOne)
+						resolveLC();
 					continue;
 				}
 			case TOKEN_CHARACTER_DATA:
@@ -1604,22 +1612,24 @@ public class VTDNav {
 			case TOKEN_STARTING_TAG:
 			//case TOKEN_DOCUMENT:
 				int depth = getTokenDepth(index);
+				context[0] = depth;
+				if (depth > 0)
+					context[depth] = index;
 				if (index!=a[depth]){
-					context[0] = depth;
-					if (depth > 0)
-						context[depth] = index;
 					if (matchElementNS(URL,ln)){						
 						if (depth < maxLCDepthPlusOne)
 							resolveLC();
 						atTerminal = false;
 						return true;
 					}else{
-						context[depth] = index;
+						if (depth < maxLCDepthPlusOne)
+							resolveLC();
 						index++;
 						continue;
 					}
 				}else{
-					context[depth] = index;
+					if (depth < maxLCDepthPlusOne)
+						resolveLC();
 					index++;
 					continue;
 				}
@@ -5478,6 +5488,13 @@ public class VTDNav {
 	}
 	
 	public void dumpState(){
+		System.out.println("  context[0]"+context[0]);
+		System.out.println("  context[1]"+context[1]);
+		System.out.println("  context[2]"+context[2]);
+		System.out.println("  context[3]"+context[3]);
+		System.out.println("  context[4]"+context[4]);
+		System.out.println("  context[5]"+context[5]);
+		System.out.println("  context[6]"+context[6]);
 		System.out.println("l1 index ==>"+l1index);
 		System.out.println("l2 index ==>"+l2index);
 		System.out.println("l2 lower ==>"+l2lower);
