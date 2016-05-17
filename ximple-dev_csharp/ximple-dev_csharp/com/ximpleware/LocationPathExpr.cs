@@ -488,7 +488,7 @@ namespace com.ximpleware
                     if (currentStep.ft)
                     {
                         if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF0)
-                            if (currentStep.nt.testType == NodeTest.NODE)
+                            if (currentStep.nt.testType == NodeTest.NODE || helper.Equals("*"))
                                 ap.Special=(true);
                             else
                                 ap.Special=(false);
@@ -574,20 +574,20 @@ namespace com.ximpleware
                     }
                     if (b)
                     {
-                        if (currentStep.nextS != null)
-                        {
+                        //if (currentStep.nextS != null)
+                        //{
                             //vn.push();
                             //System.out.println("  --++ push in //");
                             state = FORWARD;
                             currentStep = currentStep.nextS;
-                        }
-                        else
-                        {
-                            state = TERMINAL;
-                            result = vn.getCurrentIndex();
-                            if (isUnique(result))
-                                return result;
-                        }
+                        //}
+                        //else
+                        //{
+                        //    state = TERMINAL;
+                        //    result = vn.getCurrentIndex();
+                        //    if (isUnique(result))
+                        //        return result;
+                        //}
                     }
                     else
                     {
@@ -1944,7 +1944,7 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 		else
 			ap.bind(vn);
 		if (currentStep.axis_type == AxisType.DESCENDANT_OR_SELF0 )
-			if (currentStep.nt.testType == NodeTest.NODE)
+			if (currentStep.nt.testType == NodeTest.NODE || helper.Equals("*"))
 				ap.Special=true;
 			else
 				ap.Special=true;
@@ -2185,29 +2185,39 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 							 ts.prevS.nt.nodeName = "*";
 						 }
 						 break;
-					 case AxisType.DESCENDANT: 
-						 ts.prevS.axis_type = AxisType.DESCENDANT0;
+					 case AxisType.DESCENDANT:
+                            if (ts.prevS.nt.testType == NodeTest.NODE)
+                                ts.prevS.axis_type = AxisType.DESCENDANT0;
 						 break;
-					 case AxisType.DESCENDANT_OR_SELF:						 
-						 ts.prevS.axis_type = AxisType.DESCENDANT_OR_SELF0;
+					 case AxisType.DESCENDANT_OR_SELF:
+                            if (ts.prevS.nt.testType == NodeTest.NODE)
+                                ts.prevS.axis_type = AxisType.DESCENDANT_OR_SELF0;
 						 break;
-					 case AxisType.PRECEDING:						 
-						 ts.prevS.axis_type = AxisType.PRECEDING0;
+					 case AxisType.PRECEDING:
+                            if (ts.prevS.nt.testType == NodeTest.NODE)
+                                ts.prevS.axis_type = AxisType.PRECEDING0;
 						 break;
 					 case AxisType.FOLLOWING:
-						 ts.prevS.axis_type = AxisType.FOLLOWING0;
+                            if (ts.prevS.nt.testType == NodeTest.NODE)
+                                ts.prevS.axis_type = AxisType.FOLLOWING0;
 						 break;
 					 case AxisType.FOLLOWING_SIBLING:
-						 ts.prevS.axis_type = AxisType.FOLLOWING_SIBLING0;
-						 ts.prevS.nt.testType = NodeTest.NAMETEST;
-						 ts.prevS.nt.type= 0;
-						 ts.prevS.nt.nodeName = "*";
+                            if (ts.prevS.nt.testType == NodeTest.NODE)
+                            {
+                                ts.prevS.axis_type = AxisType.FOLLOWING_SIBLING0;
+                                ts.prevS.nt.testType = NodeTest.NAMETEST;
+                                ts.prevS.nt.type = 0;
+                                ts.prevS.nt.nodeName = "*";
+                            }
 						 break;
 					 case AxisType.PRECEDING_SIBLING:
-					 	 ts.prevS.axis_type = AxisType.PRECEDING_SIBLING0;
-					 	 ts.prevS.nt.testType = NodeTest.NAMETEST;
-						 ts.prevS.nt.type= 0;
-						 ts.prevS.nt.nodeName = "*";
+                            if (ts.prevS.nt.testType == NodeTest.NODE)
+                            {
+                                ts.prevS.axis_type = AxisType.PRECEDING_SIBLING0;
+                                ts.prevS.nt.testType = NodeTest.NAMETEST;
+                                ts.prevS.nt.type = 0;
+                                ts.prevS.nt.nodeName = "*";
+                            }
 						 break;
 					}
 				}
@@ -2919,17 +2929,17 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 				}
 			}
 			if (b ) {
-				if (currentStep.nextS != null) {
+				//if (currentStep.nextS != null) {
 					// vn.push();
 					// System.out.println("  --++ push in //");
 					state = FORWARD;
 					currentStep = currentStep.nextS;
-				} else {
-					state = TERMINAL;
-					result = vn.getCurrentIndex();
-					if (isUnique(result))
-						return result;
-				}
+				//} else {
+				//	state = TERMINAL;
+				//	result = vn.getCurrentIndex();
+				//	if (isUnique(result))
+				//		return result;
+				//}
 			} else 
 				transition_DDFP(vn);
 			break;
