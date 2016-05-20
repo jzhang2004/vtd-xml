@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ static Boolean compareVString2(binaryExpr *be,int k, VTDNav *vn, UCSChar *s, opT
 
 }
 static Boolean compareVV(binaryExpr *be,int k,  VTDNav *vn, int j,opType op){
-	int i = compareTokens(vn,k, vn, j);
+	int i = XPathStringVal_Matches2(vn,k, vn, j);
 	switch(i){
 
 			case 1:
@@ -97,7 +97,15 @@ static Boolean compareVV(binaryExpr *be,int k,  VTDNav *vn, int j,opType op){
 }
 
 static Boolean compareVNumber1(binaryExpr *be, int i, VTDNav *vn, double d , opType op){
-		double d1 = parseDouble(vn,i);
+		double d1 /*= parseDouble(vn,i)*/;
+		tokenType t = getTokenType(vn,i);
+		if (t == TOKEN_STARTING_TAG || t == TOKEN_DOCUMENT) {
+			d1 = XPathStringVal2Double(vn,i);
+		}
+		else {
+			int k= getStringVal(vn, i);
+			d1 = parseDouble(vn,k);
+		}
 	    switch (op){
 	    	case OP_EQ:
 	    	    return d == d1;
@@ -116,6 +124,14 @@ static Boolean compareVNumber1(binaryExpr *be, int i, VTDNav *vn, double d , opT
 
 static Boolean compareVNumber2(binaryExpr *be, int i, VTDNav *vn, double d, opType op){
 	    double d1 = parseDouble(vn,i);
+		tokenType t = getTokenType(vn, i);
+		if (t == TOKEN_STARTING_TAG || t == TOKEN_DOCUMENT) {
+			d1 = XPathStringVal2Double(vn, i);
+		}
+		else {
+			int k = getStringVal(vn, i);
+			d1 = parseDouble(vn, k);
+		}
 	    switch (op){
 	    	case OP_EQ:
 	    	    return d1 == d;
@@ -160,15 +176,15 @@ static int getStringVal(VTDNav *vn, int i){
 
 static Boolean compNodeSetNumerical(binaryExpr *be, expr* left, expr* right, VTDNav *vn, opType op){
 	exception e;
-	int i,i1,stackSize;
+	int i,stackSize;
 	double d;
 	Try {
 		   d = be->right->evalNumber(be->right,vn);
             push2(vn);
 			stackSize = vn->contextBuf2->size;
             while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
-                i1 = getStringVal(vn,i);
-                if (i1!=-1 && compareVNumber2(be,i1,vn,d,op)){
+                //i1 = getStringVal(vn,i);
+                if (compareVNumber2(be,i,vn,d,op)){
                     be->left->reset(be->left,vn);
                     vn->contextBuf2->size = stackSize;
                     pop2(vn);
@@ -192,15 +208,15 @@ static Boolean compNodeSetNumerical(binaryExpr *be, expr* left, expr* right, VTD
 
 static Boolean compNumericalNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav *vn, opType op){
 	exception e;
-	int i,i1,stackSize;
+	int i,stackSize;
 	double d;
 	Try {
 		   d = be->left->evalNumber(be->left,vn);
             push2(vn);
 			stackSize = vn->contextBuf2->size;
             while ((i = be->right->evalNodeSet(be->right,vn)) != -1) {
-                i1 = getStringVal(vn,i);
-                if (i1!=-1 && compareVNumber1(be,i1,vn,d,op)){
+                //i1 = getStringVal(vn,i);
+                if (/*i1!=-1 &&*/ compareVNumber1(be,i,vn,d,op)){
                     be->right->reset(be->right,vn);
                     vn->contextBuf2->size = stackSize;
                     pop2(vn);
@@ -244,17 +260,31 @@ static Boolean compStringNodeSet(binaryExpr *be, expr* left, expr* right, VTDNav
             push2(vn);
             stackSize = vn->contextBuf2->size;
             while ((i = be->right->evalNodeSet(be->right,vn)) != -1) {
-                i1 = getStringVal(vn,i);
-                if (i1 != -1){
-					b = compareVString2(be,i1,vn,s,op);
-					if (b){
-						be->right->reset(be->right,vn);
+				tokenType t = getTokenType(vn,i);
+				if (t != TOKEN_STARTING_TAG
+					&& t != TOKEN_DOCUMENT) {
+					i1 = getStringVal(vn, i);
+					if (i1 != -1) {
+						b = compareVString2(be, i1, vn, s, op);
+						if (b) {
+							be->right->reset(be->right, vn);
+							vn->contextBuf2->size = stackSize;
+							pop2(vn);
+							free(s);
+							return b;
+						}
+					}
+				}
+				else {
+					Boolean b = XPathStringVal_Matches(vn,i, s);
+					if (b) {
+						be->right->reset(be->right, vn);
 						vn->contextBuf2->size = stackSize;
 						pop2(vn);
 						free(s);
 						return b;
 					}
-                }
+				}
             }
             vn->contextBuf2->size = stackSize;
             pop2(vn);
@@ -278,19 +308,35 @@ static Boolean compNodeSetString(binaryExpr *be, expr* left, expr* right, VTDNav
 		    s = be->right->evalString(be->right,vn);
             push2(vn);
             stackSize = vn->contextBuf2->size;
-			while ((i = be->left->evalNodeSet(be->left,vn)) != -1) {
-				i1 = getStringVal(vn,i);
-				if (i1 != -1){
-					b = compareVString2(be,i1,vn,s,op);
-					if (b){
-						be->left->reset(be->left,vn);
+			while ((i = be->left->evalNodeSet(be->left, vn)) != -1) {
+				tokenType t = getTokenType(vn, i);
+				if (t != TOKEN_STARTING_TAG
+					&& t != TOKEN_DOCUMENT) {
+
+					i1 = getStringVal(vn, i);
+					if (i1 != -1) {
+						b = compareVString2(be, i1, vn, s, op);
+						if (b) {
+							be->left->reset(be->left, vn);
+							vn->contextBuf2->size = stackSize;
+							pop2(vn);
+							free(s);
+							return b;
+						}
+					}
+				}
+				else {
+					Boolean b = XPathStringVal_Matches(vn,i, s);
+					if (b) {
+						be->left->reset(be->left, vn);
 						vn->contextBuf2->size = stackSize;
 						pop2(vn);
 						free(s);
 						return b;
 					}
-                }
-            }
+				}
+			}
+				
             vn->contextBuf2->size = stackSize;
             pop2(vn);
             be->left->reset(be->left,vn);
@@ -364,26 +410,43 @@ Boolean computeComp(binaryExpr *be, opType op,VTDNav *vn){
 
 	Boolean btemp = FALSE;
 	UCSChar *st1=NULL, *st2=NULL;
-
-	if (be->left->isNodeSet(be->left) && be->right->isNodeSet(be->right)) {
-		return compNodeSetNodeSet(be, be->left, be->right, vn, be->op);
-	} else {
-		// first argument is always numerical, second a node set
-		if (be->left->isNumerical(be->left) && be->right->isNodeSet(be->right)){
-			return compNumericalNodeSet(be, be->left, be->right, vn,be->op);
-		}
-	    if (be->left->isNodeSet(be->left) && be->right->isNumerical(be->right)){
-			return compNodeSetNumerical(be, be->left, be->right, vn,be->op);
-		}
-		// first argument is always String, second a node set
-		if (be->left->isString(be->left) && be->right->isNodeSet(be->right)){
-			return compStringNodeSet(be, be->left, be->right,vn,be->op);
-		}
-		if (be->left->isNodeSet(be->left) && be->right->isString(be->right)){
-			return compNodeSetString(be, be->left, be->right,vn,be->op);
-		}
-
+	switch (be->ct) {
+	case NS_NS:return compNodeSetNodeSet(be,be->left, be->right, vn, op);
+	case NS_N:return compNodeSetNumerical(be,be->left, be->right, vn, op);
+	case NS_S:return compNodeSetString(be,be->left, be->right, vn, op);
+		//case NS_B:
+	case N_NS:return compNumericalNodeSet(be,be->left, be->right, vn, op);
+		//case N_N:   break;
+		//case N_S:   break;
+		//case N_B:
+	case S_NS:return compStringNodeSet(be,be->left, be->right, vn, op);
+		//case S_N:
+		//case S_S:
+		//case S_B:
+		//case B_NS:
+		//case B_N:
+		//case B_S:
+		//default:break;
 	}
+	//if (be->left->isNodeSet(be->left) && be->right->isNodeSet(be->right)) {
+	//	return compNodeSetNodeSet(be, be->left, be->right, vn, be->op);
+	//} else {
+	//	// first argument is always numerical, second a node set
+	//	if (be->left->isNumerical(be->left) && be->right->isNodeSet(be->right)){
+	//		return compNumericalNodeSet(be, be->left, be->right, vn,be->op);
+	//	}
+	//    if (be->left->isNodeSet(be->left) && be->right->isNumerical(be->right)){
+	//		return compNodeSetNumerical(be, be->left, be->right, vn,be->op);
+	//	}
+	//	// first argument is always String, second a node set
+	//	if (be->left->isString(be->left) && be->right->isNodeSet(be->right)){
+	//		return compStringNodeSet(be, be->left, be->right,vn,be->op);
+	//	}
+	//	if (be->left->isNodeSet(be->left) && be->right->isString(be->right)){
+	//		return compNodeSetString(be, be->left, be->right,vn,be->op);
+	//	}
+
+	//}
 	if (op == OP_EQ || op == OP_NE){
 	if (be->left->isBoolean(be->left) || be->right->isBoolean(be->right)){
 		if (op == OP_EQ)
@@ -443,6 +506,7 @@ binaryExpr *createBinaryExpr(expr *e1, opType op, expr *e2){
 	be->markCacheable = (markCacheable_)&markCacheable_be;
 	be->markCacheable2 = (markCacheable2_)&markCacheable2_be;
 	be->clearCache = (clearCache_)&clearCache_be;
+	be->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
 	be->left = e1;
 	be->op = op;
 	be->right = e2;
@@ -703,4 +767,41 @@ void markCacheable2_be(binaryExpr *e){
 void clearCache_be(binaryExpr *e){
 	e->left->clearCache(e->left);
 	e->right->clearCache(e->right);
+}
+
+compType computeCompType(binaryExpr *be) {
+	if (be->left->isNodeSet(be->left)) {
+		if (be->right->isNodeSet(be->right))
+			return NS_NS;
+		if (be->right->isNumerical(be->right))
+			return NS_N;
+		if (be->right->isString(be->right))
+			return NS_S;
+		return NS_B;
+	}
+	if (be->left->isNumerical(be->left)) {
+		if (be->right->isNodeSet(be->right))
+			return N_NS;
+		if (be->right->isNumerical(be->right))
+			return N_N;
+		if (be->right->isString(be->right))
+			return N_S;
+		return N_B;
+	}
+	if (be->left->isString(be->left)) {
+		if (be->right->isNodeSet(be->right))
+			return S_NS;
+		if (be->right->isNumerical(be->right))
+			return S_N;
+		if (be->right->isString(be->right))
+			return S_S;
+		return S_B;
+	}
+	if (be->right->isNodeSet(be->right))
+		return B_NS;
+	if (be->right->isNumerical(be->right))
+		return B_N;
+	if (be->right->isString(be->right))
+		return B_S;
+	return B_B;
 }
