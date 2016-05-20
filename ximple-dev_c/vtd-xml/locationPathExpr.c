@@ -2076,8 +2076,11 @@ int adjust_s(Step *s,int n){
 
 void optimize(locationPathExpr *lpe){
 	Step *ts = lpe->s;
-	if (ts==NULL)
+	Boolean b = FALSE;
+	int count = 0;
+	if (ts == NULL) {
 		return;
+	}
 	while(ts->nextS!=NULL){
 		ts = ts->nextS;
 	}
@@ -2132,6 +2135,49 @@ void optimize(locationPathExpr *lpe){
 		}
 		ts= ts->prevS;
 	}
+
+	while (ts != NULL) {
+		if (ts->axis_type != AXIS_SELF) {
+			switch (ts->axis_type) {
+			case AXIS_CHILD0:
+			case AXIS_CHILD:
+			case AXIS_DESCENDANT_OR_SELF0:
+			case AXIS_DESCENDANT0:
+			case AXIS_FOLLOWING0:
+			case AXIS_DESCENDANT_OR_SELF:
+			case AXIS_DESCENDANT:
+			case AXIS_FOLLOWING:
+			case AXIS_FOLLOWING_SIBLING0:
+			case AXIS_ATTRIBUTE:
+				b = TRUE;
+				break;
+			default: b = FALSE;
+			}
+			count++;
+		}
+		ts = ts->nextS;
+	}
+
+	if (count == 1 && b) {
+		lpe->needReordering = FALSE;
+		return;
+	}
+	//b = false;
+	ts = lpe->s;
+	while (ts != NULL) {
+		switch (ts->axis_type) {
+		case AXIS_CHILD0:
+		case AXIS_CHILD:
+		case AXIS_ATTRIBUTE:
+		case AXIS_SELF:
+			break;
+		default:
+			lpe->needReordering = TRUE;
+			return;
+		}
+		ts = ts->nextS;
+	}
+	lpe->needReordering = FALSE;
 }
 
 int computeContextSize4Ancestor(locationPathExpr *lpe,Predicate *p, VTDNav *vn){
