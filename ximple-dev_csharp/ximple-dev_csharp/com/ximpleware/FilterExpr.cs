@@ -112,7 +112,7 @@ namespace com.ximpleware
             first_time = true;
             out_of_range = false;
             pr.fe = this;
-            //needReordering = false;
+            needReordering = l.needReordering;
         }
         /*public int getPositon(){
         return fib.size_Renamed_Field;
@@ -267,7 +267,7 @@ namespace com.ximpleware
                     {
                         case VTDNav.TOKEN_STARTING_TAG:
                         case VTDNav.TOKEN_DOCUMENT:
-                            s = vn.getXPathStringVal();
+                            s = vn.getXPathStringVal2(a,(short)0);
                             break;
                         case VTDNav.TOKEN_ATTR_NAME:
                             s = vn.toString(a + 1);
