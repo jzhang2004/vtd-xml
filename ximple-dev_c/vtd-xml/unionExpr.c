@@ -212,7 +212,7 @@ UCSChar* evalString_une  (unionExpr *une,VTDNav *vn){
                 switch(t){
 			 case TOKEN_STARTING_TAG:
 			 case TOKEN_DOCUMENT:
-				 s = getXPathStringVal(vn,0);
+				 s = getXPathStringVal2(vn,a,0);
 				 break;
 			 case TOKEN_ATTR_NAME:
 				 s = toString(vn,a + 1);
