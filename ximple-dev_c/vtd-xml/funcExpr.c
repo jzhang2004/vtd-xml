@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2002-2013 XimpleWare, info@ximpleware.com
+* Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 */
 /*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 #include "xpath.h"
-#include "xmlModifier.h"
+#include "XMLModifier.h"
 
 static double sum(funcExpr *fne, VTDNav *vn);
 static int argCount(funcExpr *fne);
@@ -58,6 +58,7 @@ static inline UCSChar *getSystemProperty(funcExpr *fne,VTDNav *vn){return create
 static inline Boolean isElementAvailable(funcExpr *fne,VTDNav *vn){return FALSE;}
 static inline Boolean isFunctionAvailable(funcExpr *fne,VTDNav *vn){return FALSE;}
 static UByte* doubleCapacity(UByte *b, size_t cap);
+static int getStringLen(funcExpr *fne,VTDNav *vn);
 //static Long getBytes_UTF8(UCSChar *s);
 
 static double myround(double v)
@@ -545,6 +546,8 @@ UCSChar *fname(funcExpr *fne, funcName i){
 			case FN_ENCODE_FOR_URI:	return L"encode-for-uri";
 			case FN_MATCH_NAME:		return L"match-name";
 			case FN_MATCH_LOCAL_NAME:	return L"match-local-name";
+			case FN_NOT_MATCH_NAME:	return L"not-match-name";
+			case FN_NOT_MATCH_LOCAL_NAME: return L"not-match-local-name";
 			case FN_CURRENT:			return L"current";
 			case FN_GENERATE_ID:		return L"generate-id";
 			case FN_FORMAT_NUMBER:	return L"format-number";
@@ -581,6 +584,7 @@ funcExpr *createFuncExpr(funcName oc, aList *a){
 	fne->markCacheable=(markCacheable_)&markCacheable_fne;
 	fne->markCacheable2=(markCacheable2_)&markCacheable2_fne;
 	fne->clearCache = (clearCache_)&clearCache_fne;
+	fne->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode_fne;
 	fne->a = 0;
 	fne->opCode = oc;
 	fne->al = a;
@@ -746,9 +750,11 @@ int	evalNodeSet_fne (funcExpr *fne,VTDNav *vn){
 		throwException2( xpath_eval_exception, " Function Expr can't eval to node set ");
 	return -1;
 }
+
+
 double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
-	int ac;
-	size_t len;
+	//int ac;
+	//size_t len;
 	UCSChar *tmpString = NULL;
 	switch(fne->opCode){
 			case FN_LAST:  /*if (argCount(fne)!=0 ){
@@ -785,43 +791,7 @@ double	evalNumber_fne (funcExpr *fne,VTDNav *vn){
 								return ceil(fne->al->e->evalNumber(fne->al->e,vn));
 
 			case FN_STRING_LENGTH:
-								ac = fne->argCount1;
-			    				if (ac == 0){
-									exception e;
-			    				    Try{
-			    				        if (vn->atTerminal == TRUE){
-			    				            tokenType type = getTokenType(vn,vn->LN);
-
-											if (type == TOKEN_ATTR_NAME
-			    				                || type == TOKEN_ATTR_NS){
-													len = getStringLength(vn,vn->LN+1);
-			    				                //return vn.toString(vn.LN+1).length();
-			    				            } else {
-												    len = getStringLength(vn,vn->LN);
-			    				                //return vn.toString(vn.LN).length();
-			    				            }
-											return len;
-
-			    				        }else {
-			    				            int i = getText(vn);
-			    				            if (i==-1)
-			    				                return 0;
-											else {
-												return getStringLength(vn,i);
-											}
-			    				        }
-			    				    }Catch ( e){
-			    				        return 0;
-			    				    }
-			    				} else if (ac == 1){
-									tmpString = fne->al->e->evalString(fne->al->e,vn);
-									len = wcslen(tmpString);
-									free(tmpString);
-			    				    return len;
-			    				} else {
-									throwException2(invalid_argument,
-										"string-length()'s  <funcExpr> argument count is invalid");
-			    				}
+				return getStringLen(fne,vn);
 
 			case FN_ROUND: 	//if (argCount(fne)==1 )
 								return myround(fne->al->e->evalNumber(fne->al->e,vn));
@@ -1188,7 +1158,7 @@ static Boolean startsWith_fe(funcExpr *fne, VTDNav *vn){
 	Boolean b = FALSE;
 	exception ee;
 	UCSChar* s1,*s2 = fne->al->next->e->evalString(fne->al->next->e,vn);
-	if (fne->al->e->isNodeSet(fne->al)){
+	if (fne->al->e->isNodeSet(fne->al->e)){
 			//boolean b = false;
 			int a = evalFirstArgumentListNodeSet(fne,vn);
 			
@@ -1610,7 +1580,7 @@ Boolean lang(funcExpr *fne, VTDNav *vn, UCSChar* s){
 //    return a;
 //}
 
-static double roundHalfToEvenPositive(double value, long precision){
+static double roundHalfToEvenPositive(double value, Long precision){
 		int i;
 		double result = 0;
 		const double ROUNDING_EPSILON  = 0.00000001;
@@ -1618,7 +1588,7 @@ static double roundHalfToEvenPositive(double value, long precision){
 		Long intPart = (Long)value;
 	    
 	    //shif the decimal point by precision
-	    Long absPre = abs(precision);
+	    Long absPre = abs((int)precision);
 	    
 	    for(i = 0; i < absPre; i++){
 	    	dec *= 10;
@@ -1802,12 +1772,22 @@ UCSChar *generateID(funcExpr *e, VTDNav *vn){
 
 
 int evalFirstArgumentListNodeSet(funcExpr *e, VTDNav *vn){
-	int size, a;
+	int size, a,k;
 	exception ee;
 	push2(vn);
     size = vn->contextBuf2->size;
-    a = -1;
+    a = 0x7fffffff,k=-1;
     Try {
+		if (e->al->e->needReordering) {
+			while ((k = e->al->e->evalNodeSet(e->al->e,vn)) != -1) {
+				//a = evalNodeSet(vn);
+				if (k<a)
+					a = k;
+			}
+			if (a == 0x7fffffff)
+				a = -1;
+		}
+		else
             a = e->al->e->evalNodeSet(e->al->e,vn);
             if (a != -1) {
             	int t = getTokenType(vn,a);
@@ -1832,12 +1812,22 @@ int evalFirstArgumentListNodeSet(funcExpr *e, VTDNav *vn){
 }
 
 int evalFirstArgumentListNodeSet2(funcExpr *e, VTDNav *vn){
-	int size, a;
+	int size, a,k;
 	exception ee;
 	push2(vn);
     size = vn->contextBuf2->size;
-    a = -1;
+    a = 0x7ffffff,k= -1;
     Try {
+		if (e->al->e->needReordering) {
+			while ((k = e->al->e->evalNodeSet(e->al->e,vn)) != -1) {
+				//a = evalNodeSet(vn);
+				if (k<a)
+					a = k;
+			}
+			if (k == 0x7fffffff)
+				a = -1;
+		}
+		else
            a = e->al->e->evalNodeSet(e->al->e,vn);	            
     } Catch (ee) {
     }
@@ -1869,8 +1859,9 @@ Boolean matchName(funcExpr *e, VTDNav *vn){
 	} else if (e->argCount1 == 2) {
 		a = evalFirstArgumentListNodeSet2(e,vn);
 		s1 = e->al->next->e->evalString(e->al->next->e,vn);
-		Try {
-			if (a == -1 || vn->ns == FALSE){}
+		Try{
+			if (a == -1 || vn->ns == FALSE)
+				b = (wcscmp(L"",s1) == 0);
 			//return false;
 			else {
 				type = getTokenType(vn,a);
@@ -1887,7 +1878,7 @@ Boolean matchName(funcExpr *e, VTDNav *vn){
 		return FALSE;
 	} else
 		throwException2(invalid_argument,
-		"name()'s argument count is invalid");
+		"matchName()'s argument count is invalid");
 	return FALSE;
 }
 
@@ -1965,7 +1956,7 @@ Boolean matchLocalName(funcExpr *e,VTDNav *vn){
 			 return b;
 	    } else 
 	        throwException2
-			(invalid_argument,"local-name()'s argument count is invalid");
+			(invalid_argument,"match-local-name()'s argument count is invalid");
 		return FALSE;
 }
 
@@ -1989,4 +1980,114 @@ int getStringVal(funcExpr *fne,VTDNav *vn,int i){
 		return i+1;
 	else
 		 return i;
+}
+
+funcName getFuncOpCode_fne(funcExpr *e) {
+	return e->opCode;
+}
+
+void addArg_fne(funcExpr *fne, expr *e) {
+	aList *al = fne->al; 
+	if (fne->al == NULL) {
+		fne->al = malloc(sizeof(aList));
+		fne->al->e = e;
+		fne->argCount1++;
+		return;
+	}
+	while (al->next != NULL) {
+		al = al->next;
+	}
+	fne->al->next = malloc(sizeof(aList));
+	//al = new Alist();
+	fne->al->next->e = e;
+	fne->argCount1++;
+}
+
+
+int getStringLen(funcExpr *fne,VTDNav *vn) {
+	UCSChar* tmpString = NULL; exception ee;
+	int len,ac = fne->argCount1;
+	if (ac == 0) {
+		exception e;
+		Try{
+			if (vn->atTerminal == TRUE) {
+				tokenType type = getTokenType(vn,vn->LN);
+
+				if (type == TOKEN_ATTR_NAME
+					|| type == TOKEN_ATTR_NS
+					|| type == TOKEN_PI_NAME) {
+					len = getStringLength(vn,vn->LN + 1);
+					//return vn.toString(vn.LN+1).length();
+				}
+				else {
+					len = getStringLength(vn,vn->LN);
+					//return vn.toString(vn.LN).length();
+				}
+				return len;
+
+			}
+			else {
+				int i = getCurrentIndex2(vn);	
+				return XPathStringLength(vn,i);
+			}
+		}Catch(e) {
+			return 0;
+		}
+	}
+	else if (ac == 1) {
+		if (fne->al->e->isNodeSet(fne->al->e)) {
+			int result = 0;
+			int a = 0x7fffffff, k = -1;
+			push2(vn);
+			int size = vn->contextBuf2->size;
+			Try{
+				if (fne->al->e->needReordering) {
+					fne->al->e->adjust(fne->al->e,getTokenCount(vn));
+					while ((k = fne->al->e->evalNodeSet(fne->al->e,vn)) != -1) {
+						if (k < a)
+							a = k; // a is always smaller
+					}
+					if (a == 0x7fffffff) {
+						a = -1;
+					}
+				}
+				else {
+					a = fne->al->e->evalNodeSet(fne->al->e, vn);
+				}
+				if (a == -1)
+					result = 0;
+				else {
+
+					int type = getTokenType(vn,a);
+					if (type == TOKEN_ATTR_NAME || type == TOKEN_ATTR_NS || type == TOKEN_PI_NAME) {
+						result = getStringLength(vn, a + 1);
+					}
+					else if (type == TOKEN_STARTING_TAG || type == TOKEN_DOCUMENT) {
+						result = XPathStringLength(vn,a);
+					}
+					else {
+						result = getStringLength(vn,a);
+					}
+				}
+			}
+				Catch(ee) {
+
+			}
+			fne->al->e->reset(fne->al->e,vn);
+			vn->contextBuf2->size = size;
+			pop2(vn);
+			return result;
+		}
+		else {
+			tmpString = fne->al->e->evalString(fne->al->e, vn);
+			len = wcslen(tmpString);
+			free(tmpString);
+			return len;
+		}
+	}
+	else {
+		throwException2(invalid_argument,
+			"string-length()'s  <funcExpr> argument count is invalid");
+	}
+	return 0;
 }
