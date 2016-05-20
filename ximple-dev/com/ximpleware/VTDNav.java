@@ -8629,6 +8629,62 @@ public class VTDNav {
 		//return -1;
 	}
 	
+	final protected int XPathStringLength(int j) throws NavException{
+		int tokenType;
+		int index = j + 1;
+		int depth,i=0, offset, endOffset, len,c;
+		long l;
+		int len1=0,length=0;
+		
+		int dp = getTokenDepth(j);
+		//boolean r = false;//default
+		
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vtdSize) {
+		    tokenType = getTokenType(index);
+		    depth = getTokenDepth(index);
+		    //t=t+getTokenLength2(index);
+		    if (depth<dp ||
+		    		(depth==dp && tokenType==VTDNav.TOKEN_STARTING_TAG)){
+		    	break;
+		    }
+		    
+		    if (tokenType==VTDNav.TOKEN_CHARACTER_DATA){
+		    	//if (!match)
+		    	offset = getTokenOffset(index);
+		    	len = getTokenLength2(index);
+		    	//offset = getTokenOffset(index);
+		        endOffset = offset + len;
+		        len1=0;
+		        while (offset < endOffset) {
+		            l = getCharResolved(offset);
+		            offset += (int) (l >> 32);
+		            len1++;
+		        }
+		        length +=len1;
+		    }else if ( tokenType== VTDNav.TOKEN_CDATA_VAL ){
+		    	offset = getTokenOffset(index);
+		    	len = getTokenLength2(index);
+		    	endOffset = offset + len;
+		    	len1=0;
+		    	if (encoding!=VTDGen.FORMAT_UTF8 &&
+		    			encoding!=VTDGen.FORMAT_UTF_16BE&&
+		    			encoding!=VTDGen.FORMAT_UTF_16LE){
+		    		len1 = len;
+		    	}else
+		    	while (offset < endOffset) {
+		            l = getChar(offset);
+		            offset += (int) (l >> 32);
+		            len1++;
+		        }
+		    	length +=len1;
+		    }
+		    index++;
+		}
+		return length;
+	}
+	
 	/**
 	 * Convert the string val of  an element of document node into a double without first creating teh string object
 	 * @return a double
