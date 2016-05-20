@@ -775,6 +775,71 @@ public class FuncExpr extends Expr{
 		//("concat()'s argument count is invalid");
 	}
 	
+	private int getStringLen(VTDNav vn){	
+		if (argCount == 0) {
+			try {
+				if (vn.atTerminal == true) {
+					int type = vn.getTokenType(vn.LN);
+					if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS || type==VTDNav.TOKEN_PI_NAME) {
+						return vn.getStringLength(vn.LN + 1);
+					} else {
+						return vn.getStringLength(vn.LN);
+					}
+				} else {
+					int k = vn.getCurrentIndex2();
+					// int type = vn.getTokenType(k);
+					return vn.XPathStringLength(k);
+				}
+			} catch (NavException e) {
+				return 0;
+			}
+		} else if (argCount == 1) {
+			if (argumentList.e.isNodeSet()) {
+				int result = 0;
+				int a = 0x7fffffff, k = -1;
+				vn.push2();
+				int size = vn.contextStack2.size;
+				try {
+					if (argumentList.e.needReordering) {
+						argumentList.e.adjust(vn.getTokenCount());
+						while ((k = argumentList.e.evalNodeSet(vn)) != -1) {
+							if (k < a)
+								a = k; // a is always smaller
+						}
+						if (a == 0x7fffffff) {
+							a = -1;
+						}
+					} else {
+						a = argumentList.e.evalNodeSet(vn);
+					}
+					if (a==-1)
+						result = 0;
+					else {
+						
+							int type = vn.getTokenType(a);
+							if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS || type==VTDNav.TOKEN_PI_NAME) {
+								result = vn.getStringLength(a + 1);
+							} else if (type==VTDNav.TOKEN_STARTING_TAG || type==VTDNav.TOKEN_DOCUMENT){
+								result = vn.XPathStringLength(a);}
+							else{
+								result = vn.getStringLength(a);
+							}
+					}
+				} catch (VTDException e) {
+
+				}
+				argumentList.e.reset(vn);
+				vn.contextStack2.size = size;
+				vn.pop2();
+				return result;
+			} else
+				return argumentList.e.evalString(vn).length();
+		} else {
+			throw new IllegalArgumentException("string-length()'s argument count is invalid");
+		}
+
+	}
+	
 	private String getString(VTDNav vn){
 	    if (argCount== 0)
 	        try{
@@ -877,32 +942,7 @@ public class FuncExpr extends Expr{
 			    					return Math.ceil(argumentList.e.evalNumber(vn));
 			    					
 			case FuncName.STRING_LENGTH:
-			    					ac = argCount;
-			    					if (ac == 0){
-			    					    try{
-			    					        if (vn.atTerminal == true){
-			    					            int type = vn.getTokenType(vn.LN);
-			    					            if (type == VTDNav.TOKEN_ATTR_NAME 
-			    					                || type == VTDNav.TOKEN_ATTR_NS){
-			    					                return vn.getStringLength(vn.LN+1);
-			    					            } else {
-			    					                return vn.getStringLength(vn.LN);
-			    					            }
-			    					        }else {
-			    					            int i = vn.getText();
-			    					            if (i==-1)
-			    					                return 0;
-			    					            else 
-			    					                return vn.getStringLength(i);
-			    					        }
-			    					    }catch (NavException e){
-			    					        return 0;
-			    					    }
-			    					} else if (ac == 1){
-			    					    return argumentList.e.evalString(vn).length();
-			    					} else {
-			    					    throw new IllegalArgumentException("string-length()'s argument count is invalid");
-			    					}
+			    					return getStringLen(vn);
 			    
 			case FuncName.ROUND: 	/*if (argCount!=1 )
 			    						throw new IllegalArgumentException("round()'s argument count is invalid");*/
@@ -1225,7 +1265,6 @@ public class FuncExpr extends Expr{
 			a = 0;
 			argumentList.e.adjust(vn.getTokenCount());
 			while(argumentList.e.evalNodeSet(vn)!=-1){
-				//System.out.println(" ===>"+vn.getCurrentIndex());
 				a ++;
 			}
 		}catch(Exception e){
