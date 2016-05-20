@@ -592,6 +592,102 @@ namespace com.ximpleware
 
         }
 
+
+        private int getStringLen(VTDNav vn)
+        {
+            if (argCount1 == 0)
+            {
+                try
+                {
+                    if (vn.atTerminal == true)
+                    {
+                        int type = vn.getTokenType(vn.LN);
+                        if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
+                        {
+                            return vn.getStringLength(vn.LN + 1);
+                        }
+                        else
+                        {
+                            return vn.getStringLength(vn.LN);
+                        }
+                    }
+                    else
+                    {
+                        int k = vn.getCurrentIndex2();
+                        // int type = vn.getTokenType(k);
+                        return vn.XPathStringLength(k);
+                    }
+                }
+                catch (NavException e)
+                {
+                    return 0;
+                }
+            }
+            else if (argCount1 == 1)
+            {
+                int result = 0;
+                if (argumentList.e.NodeSet)
+                {
+                    int a = 0x7fffffff, k = -1;
+                    vn.push2();
+                    int size = vn.contextStack2.size;
+                    try
+                    {
+                        if (argumentList.e.needReordering)
+                        {
+                            argumentList.e.adjust(vn.getTokenCount());
+                            while ((k = argumentList.e.evalNodeSet(vn)) != -1)
+                            {
+                                if (k < a)
+                                    a = k; // a is always smaller
+                            }
+                            if (a == 0x7fffffff)
+                            {
+                                a = -1;
+                            }
+                        }
+                        else
+                        {
+                            a = argumentList.e.evalNodeSet(vn);
+                        }
+                        if (a == -1)
+                            result = 0;
+                        else
+                        {
+
+                            int type = vn.getTokenType(a);
+                            if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS || type == VTDNav.TOKEN_PI_NAME)
+                            {
+                                result = vn.getStringLength(a + 1);
+                            }
+                            else if (type == VTDNav.TOKEN_STARTING_TAG || type == VTDNav.TOKEN_DOCUMENT)
+                            {
+                                result = vn.XPathStringLength(a);
+                            }
+                            else
+                            {
+                                result = vn.getStringLength(a);
+                            }
+                        }
+                    }
+                    catch (VTDException e)
+                    {
+
+                    }
+                    argumentList.e.reset(vn);
+                    vn.contextStack2.size = size;
+                    vn.pop2();
+                    return result;
+                }
+                else
+                    return argumentList.e.evalString(vn).Length;
+            }
+            else
+            {
+                throw new System.ArgumentException("string-length()'s argument count is invalid");
+            }
+
+        }
         public override System.String evalString(VTDNav vn)
         {
             //int d = 0;
@@ -726,46 +822,7 @@ namespace com.ximpleware
 
 
                 case FuncName.STRING_LENGTH:
-                    //return stringLen
-                    ac = argCount();
-                    if (ac == 0)
-                    {
-                        try
-                        {
-                            if (vn.atTerminal == true)
-                            {
-                                int type = vn.getTokenType(vn.LN);
-                                if (type == VTDNav.TOKEN_ATTR_NAME || type == VTDNav.TOKEN_ATTR_NS)
-                                {
-                                    return vn.getStringLength(vn.LN + 1);
-                                }
-                                else
-                                {
-                                    return vn.getStringLength(vn.LN);
-                                }
-                            }
-                            else
-                            {
-                                int i = vn.getText();
-                                if (i == -1)
-                                    return 0;
-                                else
-                                    return vn.getStringLength(i);
-                            }
-                        }
-                        catch (NavException e)
-                        {
-                            return 0;
-                        }
-                    }
-                    else if (ac == 1)
-                    {
-                        return argumentList.e.evalString(vn).Length;
-                    }
-                    else
-                    {
-                        throw new System.ArgumentException("string-length()'s argument count is invalid");
-                    }
+                    return getStringLen(vn);
                 //goto case FuncName.ROUND;
 
 
