@@ -12474,6 +12474,63 @@ loop33:
 	}
 
 
+	int XPathStringLength(VTDNav *vn, int j) {
+		tokenType tokenType;
+		int index = j + 1;
+		int depth, i = 0, offset, endOffset, len;
+		Long l;
+		int len1 = 0, length = 0;
+
+		int dp = getTokenDepth(vn,j);
+		//boolean r = false;//default
+
+		//int size = vtdBuffer.size;
+		// store all text tokens underneath the current element node
+		while (index < vn->vtdSize) {
+			tokenType = getTokenType(vn,index);
+			depth = getTokenDepth(vn,index);
+			//t=t+getTokenLength2(index);
+			if (depth<dp ||
+				(depth == dp && tokenType == TOKEN_STARTING_TAG)) {
+				break;
+			}
+
+			if (tokenType == TOKEN_CHARACTER_DATA) {
+				//if (!match)
+				offset = getTokenOffset(vn,index);
+				len = getTokenLength2(vn,index);
+				//offset = getTokenOffset(index);
+				endOffset = offset + len;
+				len1 = 0;
+				while (offset < endOffset) {
+					l = getCharResolved(vn,offset);
+					offset += (int)(l >> 32);
+					len1++;
+				}
+				length += len1;
+			}
+			else if (tokenType == TOKEN_CDATA_VAL) {
+				offset = getTokenOffset(vn,index);
+				len = getTokenLength2(vn,index);
+				endOffset = offset + len;
+				len1 = 0;
+				if (vn->encoding != FORMAT_UTF8 &&
+					vn->encoding != FORMAT_UTF_16BE&&
+					vn->encoding != FORMAT_UTF_16LE) {
+					len1 = len;
+				}
+				else
+					while (offset < endOffset) {
+						l = getChar(vn,offset);
+						offset += (int)(l >> 32);
+						len1++;
+					}
+				length += len1;
+			}
+			index++;
+		}
+		return length;
+	}
 	Boolean isDigit(int c){
 		if (c>='0' && c<='9')
 			return TRUE;
