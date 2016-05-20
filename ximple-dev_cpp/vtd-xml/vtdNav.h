@@ -229,6 +229,7 @@ namespace com_ximpleware {
 		bool XPathStringVal_Contains(int j, UCSChar *s);
 		bool XPathStringVal_StartsWith(int j, UCSChar *s);
 		bool XPathStringVal_EndsWith(int j, UCSChar *s);
+		int XPathStringLength(int j);
 		//bool nodeToElement(int direction);
 
 		/*{
@@ -347,7 +348,7 @@ namespace com_ximpleware {
 
 		//Get the token type of the token at the given index value.
 		tokenType getTokenType(int index);/*{
-			return (tokenType) (((vtdBuffer->longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
+			return (tType) (((vtdBuffer->longAt(index) & MASK_TOKEN_TYPE) >> 60) & 0xf);
 		}*/
 
 		//Test whether current element has an attribute with the matching name.
