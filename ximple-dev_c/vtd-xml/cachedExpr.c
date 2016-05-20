@@ -47,6 +47,7 @@ cachedExpr *createCachedExpr(expr *e1){
 	ce->markCacheable2 = (markCacheable_)&markCacheable2_ce;
 	ce->clearCache = (clearCache_)&clearCache_ce;
 	ce->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
+	ce->needReordering = ce->e->needReordering;
 	ce->e = e1;
 	ce->ens =  NULL;
 	ce->cached = FALSE;
