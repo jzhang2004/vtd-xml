@@ -2165,12 +2165,16 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 	public void optimize(){
 			// get to last step
 			Step ts = s;
-			if (ts==null)
-				return;
+            int count = 0;
+            if (ts == null)
+            {
+                needReordering = false;
+                return;
+            }
 			while(ts.nextS!=null){
 				ts = ts.nextS;
 			}
-			
+            
 			while(ts.prevS !=null){
 				// logic of optmize here
 				if (ts.axis_type == AxisType.CHILD0
@@ -2224,8 +2228,64 @@ protected internal int computeContextSize4DDFP(Predicate p, VTDNav vn)
 				
 				ts= ts.prevS;
 			}
-			// rewrite steps
-		}
+            // rewrite steps
+
+            ts = s;
+            if (ts == null)
+            {
+                needReordering = false; // "/"
+                return;
+            }
+            Boolean b = false;
+            while (ts != null)
+            {
+                if (ts.axis_type != AxisType.SELF)
+                {
+                    switch (ts.axis_type)
+                    {
+                        case AxisType.CHILD0:
+                        case AxisType.CHILD:
+                        case AxisType.DESCENDANT_OR_SELF0:
+                        case AxisType.DESCENDANT0:
+                        case AxisType.FOLLOWING0:
+                        case AxisType.DESCENDANT_OR_SELF:
+                        case AxisType.DESCENDANT:
+                        case AxisType.FOLLOWING:
+                        case AxisType.FOLLOWING_SIBLING0:
+                        case AxisType.ATTRIBUTE:
+                            b = true;
+                            break;
+                        default: b = false;
+                            break;
+                    }
+                    count++;
+                }
+                ts = ts.nextS;
+            }
+            if (count == 1 && b)
+            {
+                needReordering = false;
+                return;
+            }
+            //b = false;
+            ts = s;
+            while (ts != null)
+            {
+                switch (ts.axis_type)
+                {
+                    case AxisType.CHILD0:
+                    case AxisType.CHILD:
+                    case AxisType.ATTRIBUTE:
+                    case AxisType.SELF:
+                        break;
+                    default:
+                        needReordering = true;
+                        return;
+                }
+                ts = ts.nextS;
+            }
+            needReordering = false;
+        }
         
     protected internal int process_ancestor_or_self2(VTDNav vn)
 	{
