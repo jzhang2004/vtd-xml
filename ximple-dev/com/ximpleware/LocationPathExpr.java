@@ -57,8 +57,10 @@ public class LocationPathExpr extends Expr{
 			// get to last step
 			Step ts = s;
 			int count=0;
-			if (ts==null)
+			if (ts==null){
+				needReordering = false;
 				return;
+			}
 			while(ts.nextS!=null){
 				ts = ts.nextS;
 			}
@@ -116,9 +118,7 @@ public class LocationPathExpr extends Expr{
 			}
 			// rewrite steps
 			// reset ts, then count the # of steps
-			ts = s;
-			if (ts==null)
-				return;
+			
 			boolean b=false;
 			while(ts!=null){
 				if (ts.axis_type!=AxisType.SELF){
@@ -142,8 +142,26 @@ public class LocationPathExpr extends Expr{
 				ts = ts.nextS;
 			}
 			
-			if (count==1 && b)
+			if (count==1 && b){
 				needReordering = false;
+				return;
+			}
+			//b = false;
+			ts = s;
+			while(ts!=null){
+				switch (ts.axis_type) {
+					case AxisType.CHILD0:
+					case AxisType.CHILD:
+					case AxisType.ATTRIBUTE:
+					case AxisType.SELF:
+						break;
+					default:
+						needReordering = true;
+						return;
+				}
+				ts = ts.nextS;
+			}
+			needReordering = false;
 			
 		}
 		
