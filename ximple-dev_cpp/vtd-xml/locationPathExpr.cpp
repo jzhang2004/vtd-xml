@@ -2612,8 +2612,11 @@ int LocationPathExpr::computeContextSize4Self2(Predicate *p, VTDNav *vn){
 void LocationPathExpr::optimize(){
 				// get to last step
 			Step *ts = s;
-			if (ts==NULL)
+			int count = 0;
+			if (ts == NULL) {
+				needReordering = false;
 				return;
+			}
 			while(ts->nextS!=NULL){
 				ts = ts->nextS;
 			}
@@ -2670,6 +2673,49 @@ void LocationPathExpr::optimize(){
 				ts= ts->prevS;
 			}
 			// rewrite steps
+			bool b = false;
+			while (ts != NULL) {
+				if (ts->axis_type != AXIS_SELF) {
+					switch (ts->axis_type) {
+					case AXIS_CHILD0:
+					case AXIS_CHILD:
+					case AXIS_DESCENDANT_OR_SELF0:
+					case AXIS_DESCENDANT0:
+					case AXIS_FOLLOWING0:
+					case AXIS_DESCENDANT_OR_SELF:
+					case AXIS_DESCENDANT:
+					case AXIS_FOLLOWING:
+					case AXIS_FOLLOWING_SIBLING0:
+					case AXIS_ATTRIBUTE:
+						b = true;
+						break;
+					default: b = false;
+					}
+					count++;
+				}
+				ts = ts->nextS;
+			}
+
+			if (count == 1 && b) {
+				needReordering = false;
+				return;
+			}
+			//b = false;
+			ts = s;
+			while (ts != NULL) {
+				switch (ts->axis_type) {
+				case AXIS_CHILD0:
+				case AXIS_CHILD:
+				case AXIS_ATTRIBUTE:
+				case AXIS_SELF:
+					break;
+				default:
+					needReordering = true;
+					return;
+				}
+				ts = ts->nextS;
+			}
+			needReordering = false;
 }
 
 int LocationPathExpr::process_ancestor_or_self2(VTDNav *vn){
