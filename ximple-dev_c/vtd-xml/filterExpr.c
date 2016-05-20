@@ -41,13 +41,13 @@ filterExpr *createFilterExpr(expr *e1, Predicate *pr){
 	fe->toString = (to_String)&toString_fe;
 	fe->adjust = (adjust_)&adjust_fe;
 	fe->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
-	fe->needReordering = TRUE;
+	//fe->needReordering = f;
 	fe->e = e1;
 	fe->p = pr;
+	fe->needReordering = fe->e->needReordering;
 	fe->first_time = TRUE;
 	fe->out_of_range=FALSE;
 	pr->e=(expr *)fe;
-
 	return fe;
 
 }
@@ -155,7 +155,7 @@ UCSChar* evalString_fe  (filterExpr *fe,VTDNav *vn){
                 switch(t){
 			 case TOKEN_STARTING_TAG:
 			 case TOKEN_DOCUMENT:
-				 s = getXPathStringVal(vn,0);
+				 s = getXPathStringVal2(vn,a,0);
 				 break;
 			 case TOKEN_ATTR_NAME:
 				 s = toString(vn,a + 1);
