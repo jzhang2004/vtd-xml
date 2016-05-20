@@ -270,6 +270,8 @@ typedef struct vTDNav_L5{
 	Boolean master; // true if vn is obtained by calling getNav(), otherwise false
 	                // useful for implementing dupliateNav() and cloneNav();
 	short maxLCDepthPlusOne;
+	vn_helper *h1;
+	vn_helper *h2;
 	int l4index;
 	int l5index;
 	int l4upper;
@@ -279,8 +281,7 @@ typedef struct vTDNav_L5{
 	FastLongBuffer *_l3Buffer;
 	FastLongBuffer *l4Buffer;
 	FastIntBuffer *l5Buffer;
-	vn_helper *h1;
-	vn_helper *h2;
+	
 
 } VTDNav_L5;
 
@@ -871,6 +872,7 @@ extern Long trimWhiteSpace(VTDNav *vn,Long l);
 extern double XPathStringVal2Double(VTDNav *vn,int j);
 extern Boolean XPathStringVal_Matches(VTDNav *vn,int j, UCSChar *s);
 extern int XPathStringVal_Matches2(VTDNav *vn,int j, VTDNav *vn2, int k /*k is a token index */);
+extern int XPathStringLength(VTDNav *vn, int j);
 //extern int 
 //extern Boolean iterateNode(VTDNav *vn, int dp);
 
