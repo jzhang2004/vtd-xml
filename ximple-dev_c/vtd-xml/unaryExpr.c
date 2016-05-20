@@ -48,6 +48,7 @@ unaryExpr *createUnaryExpr(opType op, expr *e1){
 	ue->markCacheable2 = (markCacheable2_)&markCacheable2_ue;
 	ue->isFinal = (isFinal_)&isFinal_ue;
 	ue->getFuncOpCode = (getFuncOpCode_)&getFuncOpCode;
+	ue->needReordering = FALSE;
 	return ue;
 }
 void freeUnaryExpr(unaryExpr *ue){
