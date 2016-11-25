@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2016 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -290,13 +290,21 @@ public class BinaryExpr extends Expr {
         switch(compType){
         case NS_NS:return compNodeSetNodeSet(left, right, vn, op);
         case NS_N:return compNodeSetNumerical(left, right, vn, op);
-        case NS_S:return compNodeSetString(left, right, vn, op);
+        case NS_S:
+        	if (op==BinaryExpr.EQ || op==BinaryExpr.NE)
+        		return compNodeSetString(left, right, vn, op);
+        	else
+        		return compNodeSetNumerical(left, right, vn,op);
         //case NS_B:
         case N_NS:return compNumericalNodeSet(left, right, vn, op);
         //case N_N:   break;
         //case N_S:   break;
         //case N_B:
-        case S_NS:return compStringNodeSet(left, right, vn, op);
+        case S_NS:
+        	if (op == BinaryExpr.EQ || op==BinaryExpr.NE)
+        		return compStringNodeSet(left, right, vn, op);
+        	else
+        		return compNumericalNodeSet(left, right, vn, op);
         //case S_N:
         //case S_S:
         //case S_B:
@@ -391,14 +399,16 @@ public class BinaryExpr extends Expr {
         				   return b;
         			   }
         		   }
-        	   }else{        		   
+        	   }else{
         		   boolean b= vn.XPathStringVal_Matches(i, s);
+        		   if (op == BinaryExpr.NE)
+        			   b = !b;
         		   if (b){
         			   left.reset(vn);
         			   vn.contextStack2.size = stackSize;
         			   vn.pop2();
         			   return b;
-        		   }
+        		   }   
         	   }
            }           
            vn.contextStack2.size = stackSize;
@@ -447,6 +457,8 @@ public class BinaryExpr extends Expr {
 					}
 				}else{
 					boolean b = vn.XPathStringVal_Matches(i, s);
+					if (op==BinaryExpr.NE) 
+						b= !b;
 					if (b){
 						right.reset(vn);
 						vn.contextStack2.size = stackSize;
@@ -480,7 +492,7 @@ public class BinaryExpr extends Expr {
 	// this function computes the boolean when one expression is node set
 	// the other is numerical
 	final private boolean compNumericalNodeSet(Expr left, Expr right, VTDNav vn, int op ){
-	     int i, i1 = 0, stackSize;
+	     int i, stackSize;
 	     double d;
         try {
             d = left.evalNumber(vn);
@@ -504,7 +516,7 @@ public class BinaryExpr extends Expr {
         }
 	}
 	final private boolean compNodeSetNumerical(Expr left, Expr right, VTDNav vn, int op ){
-	     int i,i1 = 0, stackSize;
+	     int i, stackSize;
 	     double d;
        try {
            d = right.evalNumber(vn);
