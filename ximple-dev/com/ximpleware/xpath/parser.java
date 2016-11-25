@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2016 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1407,7 +1407,7 @@ class CUP$parser$actions {
 				tmp.addArg(re);
 				RESULT = tmp;
 			}else
-				RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+				RESULT = new BinaryExpr(ee, BinaryExpr.NE, re);
 		} else if (ee.isFinal() && ee.isString()) {
 			if (re.getFuncOpCode() == FuncName.NAME) {
 				FuncExpr tmp=(FuncExpr)re;
@@ -1420,7 +1420,7 @@ class CUP$parser$actions {
 				tmp.addArg(ee);
 				RESULT = tmp;
 			}else
-				RESULT = new BinaryExpr(ee, BinaryExpr.EQ, re);
+				RESULT = new BinaryExpr(ee, BinaryExpr.NE, re);
 		} else
 			RESULT = new BinaryExpr(ee, BinaryExpr.NE, re); 
               CUP$parser$result = new java_cup.runtime.Symbol(5/*EqualityExpr*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
