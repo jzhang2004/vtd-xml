@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2017 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1429,7 +1429,7 @@ public class VTDGen {
 		tag_stack = new long[TAG_STACK_SIZE];
 		//scratch_buffer = new int[10];
 		VTDDepth = 0;
-		LcDepth = 3;
+		LcDepth = 5;
 		
 		br = false;
 		e =  new EOFException("permature EOF reached, XML document incomplete");
@@ -1439,7 +1439,7 @@ public class VTDGen {
 		nsBuffer3 = new FastLongBuffer(4);
 		currentElementRecord = 0;
 		singleByteEncoding = true;
-		shallowDepth =true;
+		shallowDepth =false;
 		helper=false;
 		default_ns = false; //true xmlns='abc'
 		isXML = false;  
@@ -1483,7 +1483,7 @@ public class VTDGen {
 	}
 
 	/**
-	 * Enable VTDGen to generate Location Cache of either depth 3 or 5
+	 * Configure VTDGen to generate Location Cache of either depth 3 or 5
 	 * This method is meant to called before setDoc() or parseFile()
 	 * @param i
 	 */
@@ -2917,7 +2917,7 @@ public class VTDGen {
 	 * This method inflates then parses GZIP'ed XML file and returns a boolean indicating 
 	 * if it is successful or not.When set to true,
 	 * VTDGen conforms to XML namespace 1.0 spec
-	 * @param fileName
+	 * @param GZIPfileName
 	 * @param ns
 	 * @return
 	 */
