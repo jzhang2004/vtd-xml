@@ -43,7 +43,7 @@ class intHash {
         hashWidth = 1<<0;
         mask1 = (hashWidth) -1;
         mask2 = (~mask1) & 0xffffffff;    
-        storage = new FastIntBuffer[hashWidth];
+        storage = new Object[hashWidth];
         e=0;
     }
 	 public intHash(int hashWidthExpo){
