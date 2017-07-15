@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2016 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2017 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2069,18 +2069,32 @@ public class VTDNav {
 			//       System.out.print("currentOffset :" + currentOffset);
 	        l = s.length();
 	        //System.out.println(s);
-	        for (i = 0; i < l && offset < endOffset; i++) {
+	        for (i = 0; i < l && offset < endOffset; ) {
 	            l1 = getChar(offset);
 	            int i1 = s.charAt(i); 
-	            if (i1>64 && i1<91)
-	            	i1 = i1+32;
-	            int i2 = (int)l1;
-	            if (i2>64 && i2<91)
-	            	i2 = i2+32;
-	            if (i1 < i2)                 
-	                return 1;
-	            if (i1 > i2)
-	                return -1;
+	            if ((i1 < 0xd800 || i1>0xdfff)){
+	            	 if (i1>64 && i1<91)
+	 	            	i1 = i1+32;
+	 	            int i2 = (int)l1;
+	 	            if (i2>64 && i2<91)
+	 	            	i2 = i2+32;
+	 	            if (i1 < i2)                 
+	 	                return 1;
+	 	            if (i1 > i2)
+	 	                return -1;
+	 	            i++;			
+				}else  if (i1<0xdc00){ 
+					if((i+1)==s.length() || (s.charAt(i+1) < (0xdc00)  || s.charAt(i+1)> 0xdfff))
+						throw new NavException(" invalid unicode in string");
+					int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+					if (c< (int)l1)
+						return 1;
+					if (c > (int)l1)
+						return -1;
+					i+=2;
+				}else 
+					throw new NavException(" invalid unicode in string");
+	           
 	            offset += (int) (l1 >> 32);
 	        }
 			
@@ -2202,14 +2216,28 @@ public class VTDNav {
         //       System.out.print("currentOffset :" + currentOffset);
         l = s.length();
         //System.out.println(s);
-        for (i = 0; i < l && offset < endOffset; i++) {
-            l1 = getCharResolved(offset);
-            int i1 = s.charAt(i);
-            if (i1 < (int) l1)
-                return 1;
-            if (i1 > (int) l1)
-                return -1;
+        for (i = 0; i < l && offset < endOffset; ) {
+            l1 = getCharResolved(offset);       
+            int i1 = s.charAt(i); 
+            if (i1 < 0xd800 || i1>0xdfff){
+            	if (i1 < (int) l1)
+            		return 1;
+            	if (i1 > (int) l1)
+            		return -1;
+            	i++;
+            }else if (i1<0xdc00){
+            	if((i1+1)==s.length()|| (s.charAt(i+1) < (0xdc00)  && s.charAt(i+1)> 0xdfff))
+					throw new NavException(" invalid unicode in string");
+				int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+				if (c< (int)l1)
+					return 1;
+				if (c > (int)l1)
+					return -1;
+				i+=2;
+            }else 
+				throw new NavException(" invalid unicode in string");
             offset += (int) (l1 >> 32);
+            
         }
 
         if (i == l && offset < endOffset)
@@ -2230,18 +2258,31 @@ public class VTDNav {
         //       System.out.print("currentOffset :" + currentOffset);
         l = s.length();
         //System.out.println(s);
-        for (i = 0; i < l && offset < endOffset; i++) {
+        for (i = 0; i < l && offset < endOffset; ) {
             l1 = getCharResolved(offset);
             int i1 = s.charAt(i);
-            if (i1>64 && i1<91)
-            	i1 = i1+32;
-            int i2 = (int)l1;
-            if (i2>64 && i2<91)
-            	i2 = i2+32;
-            if (i1 < i2)
-                return 1;
-            if (i1 > i2)
-                return -1;
+            if (i1 < 0xd800 || i1>0xdfff){
+            	if (i1>64 && i1<91)
+            		i1 = i1+32;
+            	int i2 = (int)l1;
+            	if (i2>64 && i2<91)
+            		i2 = i2+32;
+            	if (i1 < i2)
+            		return 1;
+            	if (i1 > i2)
+            		return -1;
+            	i++;
+            } else if (i1<0xdc00){ 
+            	if((i+1)==s.length() || (s.charAt(i+1) >= (0xdbff)  && s.charAt(i+1)> 0xdfff))
+					throw new NavException(" invalid unicode in string");
+				int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+				if (c< (int)l1)
+					return 1;
+				if (c > (int)l1)
+					return -1;
+				i+=2;
+            }else 
+				throw new NavException(" invalid unicode in string");
             offset += (int) (l1 >> 32);
         }
 
@@ -2450,14 +2491,33 @@ public class VTDNav {
 		//       System.out.print("currentOffset :" + currentOffset);
         l = s.length();
         //System.out.println(s);
-        for (i = 0; i < l && offset < endOffset; i++) {
+        for (i = 0; i < l && offset < endOffset;) {
             l1 = getChar(offset);
             int i1 = s.charAt(i); 
-            if (i1 < (int) l1)                 
+            if (i1 < 0xd800 || i1>0xdfff)  {
+				if (i1 < (int)l1)
+					return 1;
+				if (i1 > (int)l1)
+					return -1;
+				i++;			
+			}else if (i1<0xdc00){ 
+				if((i+1)==s.length()|| (s.charAt(i+1) < (0xdc00)  || s.charAt(i+1)> 0xdfff))
+					throw new NavException(" invalid unicode in string");
+				int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+				if (c< (int)l1)
+					return 1;
+				if (c > (int)l1)
+					return -1;
+				i+=2;
+			}else 
+				throw new NavException(" invalid unicode in string");
+            offset += (int) (l1 >> 32);
+            /*if (i1 < (int) l1)                 
                 return 1;
             if (i1 > (int) l1)
                 return -1;
             offset += (int) (l1 >> 32);
+            i++;*/
         }
 		
 		if (i == l && offset < endOffset)
@@ -2772,11 +2832,26 @@ public class VTDNav {
 			if (l2<=2 && isWS(temp))
 				temp = ' ';
 			int i1 = s.charAt(i);
-			if (i1 < temp)
-				return 1;
-			if (i1 > temp)
-				return -1;
-			i++;			
+			
+			//high/low surrogate checking here
+			// 
+			if (i1 < 0xd800 || i1>0xdfff){
+				if (i1 < temp)
+					return 1;
+				if (i1 > temp)
+					return -1;
+				i++;			
+			}else if (i1<0xdc00){ 
+				if((i+1)==s.length() || (s.charAt(i+1) < (0xdc00)  || s.charAt(i+1)> 0xdfff))
+					throw new NavException(" invalid unicode in string");
+				int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+				if (c< temp)
+					return 1;
+				if (c > temp)
+					return -1;
+				i+=2;
+			}else 
+				throw new NavException(" invalid unicode in string");
 			offset += (int) (l1 >> 32);
 		}
 
@@ -4746,8 +4821,16 @@ public class VTDNav {
 			if (isWS(ch) && (l>>32)<=2) {
 				//d = true;
 				sb.append(' ');
-			} else
-				sb.append((char) ch);
+			} else{
+				if (((int) l) <= 0xffff)
+					sb.append((char) l);
+				else {
+					int c = (int) l - 0x10000;
+					sb.append((char) (((c & 0xffc00) >> 10) + 0xD800));
+					sb.append((char) ((c & 0x3ff) + 0xDC00));
+				}
+				//sb.append((char) ch);
+			}
 		}
 		return sb.toString();
 	}
@@ -4804,8 +4887,16 @@ public class VTDNav {
 			if (isWS(ch) && getCharUnit(offset - 1) != ';') {
 				d = true;
 			} else {
-				if (d == false)
-					sb.append((char) ch); // java only supports 16 bit unicode
+				if (d == false){
+					if (((int)l)<=0xffff)
+				          sb.append((char)l);
+				        else{
+				        	int c= (int)l-0x10000;
+				        	sb.append((char)(((c&0xffc00)>>10)+0xD800));
+				        	sb.append((char)((c&0x3ff)+0xDC00));
+				        }
+					//sb.append((char) ch); // java only supports 16 bit unicode
+				}
 				else {
 					sb.append(' ');
 					sb.append((char) ch);
@@ -4971,7 +5062,14 @@ public class VTDNav {
 	    while (offset < endOffset) {
 	        l = getChar(offset);
 	        offset += (int)(l>>32);
-	        sb.append((char)l);	                
+	        if (((int)l)<=0xffff)
+	        	sb.append((char)l);    
+	        else{
+	        	int c= (int)l-0x10000;
+		        sb.append((char)(((c&0xffc00)>>10)+0xD800));
+		        sb.append((char)((c&0x3ff)+0xDC00));
+		    }
+	        //sb.append((char)l);	                
 	    }
 	    return sb.toString();
 	}
@@ -4983,7 +5081,14 @@ public class VTDNav {
 	    while (offset < endOffset) {
 	        l = getChar(offset);
 	        offset += (int)(l>>32);
-	        sb.append((char)l);	                
+	        //sb.append((char)l);	   
+	        if (((int)l)<=0xffff)
+		       sb.append((char)l);
+		    else{
+		       int c= (int)l-0x10000;
+		       sb.append((char)(((c&0xffc00)>>10)+0xD800));
+		       sb.append((char)((c&0x3ff)+0xDC00));
+		    }
 	    }
 	}
 	
@@ -4994,7 +5099,14 @@ public class VTDNav {
 	    while (offset < endOffset) {
 	        l = getChar(offset);
 	        offset += (int)(l>>32);
-	        sb.append((char)l);	                
+	        //sb.append((char)l);	 
+	        if (((int)l)<=0xffff)
+	        	sb.append((char)l);
+			else{
+			    int c= (int)l-0x10000;
+			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+			    sb.append((char)((c&0x3ff)+0xDC00));
+			}
 	    }
 	}
 	
@@ -5005,7 +5117,14 @@ public class VTDNav {
 	    while (offset < endOffset) {
 	        l = getCharResolved(offset);
 	        offset += (int)(l>>32);
-	        sb.append((char)l);	                
+	        //sb.append((char)l);	  
+	        if (((int)l)<=0xffff)
+	        	sb.append((char)l);
+			else{
+			    int c= (int)l-0x10000;
+			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+			    sb.append((char)((c&0x3ff)+0xDC00));
+			}
 	    }
 	}
 	
@@ -5019,8 +5138,16 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>96 && (int)l<123)
 	        	sb.append((char)(l-32));
-	        else
-	        	sb.append((char)l);	                
+	        else{
+	        	//sb.append((char)l);
+	        	if (((int)l)<=0xffff)
+	 	        	sb.append((char)l);
+	 			else{
+	 			    int c= (int)l-0x10000;
+	 			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+	 			    sb.append((char)((c&0x3ff)+0xDC00));
+	 			}
+	        }
 	    }
 	    //return sb.toString();
 	}
@@ -5035,8 +5162,16 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>64 && (int)l<91)
 	        	sb.append((char)(l+32));
-	        else
-	        	sb.append((char)l);	                
+	        else{
+	        	//sb.append((char)l);
+	        	if (((int)l)<=0xffff)
+	 	        	sb.append((char)l);
+	 			else{
+	 			    int c= (int)l-0x10000;
+	 			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+	 			    sb.append((char)((c&0x3ff)+0xDC00));
+	 			}
+	        }
 	    }
 	    //return sb.toString();
 	}
@@ -5063,7 +5198,11 @@ public class VTDNav {
         while (offset < endOffset) {
             l = getCharResolved(offset);
             offset += (int) (l >> 32);
-            len1++;
+            if ((int)l < 0x10000) {
+            	len1++;
+            }else{
+            	len1+=2;
+            }
         }
         return len1;
     }
@@ -5095,7 +5234,10 @@ public class VTDNav {
         while (offset < endOffset) {
             l = getChar(offset);
             offset += (int) (l >> 32);
-            len1++;
+            if ((int)l <0x10000)
+            	len1++;
+            else
+            	len+=2;
         }
         return len1;
     }
@@ -5175,6 +5317,10 @@ public class VTDNav {
      *  
      */
 	final public String toString(int os, int len) throws NavException{
+		if (encoding>=FORMAT_UTF_16LE){
+			os=os>>1;
+			len=len>>1;
+		}
 	    StringBuffer sb = new StringBuffer(len);	    
 	    int offset = os;
 	    int endOffset = os + len;
@@ -5184,10 +5330,18 @@ public class VTDNav {
 	    //}
 	    	
 	    long l;
+	   // System.out.println(Long.toHexString(l));
 	    while (offset < endOffset) {
 	        l = getCharResolved(offset);
+	       // System.out.println(Long.toHexString(l));
 	        offset += (int)(l>>32);
-	        sb.append((char)l);	                
+	        if (((int)l)<=0xffff)
+	          sb.append((char)l);
+	        else{
+	        	int c= (int)l-0x10000;
+	        	sb.append((char)(((c&0xffc00)>>10)+0xD800));
+	        	sb.append((char)((c&0x3ff)+0xDC00));
+	        }
 	    }
 	    return sb.toString();
 	}
@@ -5267,8 +5421,16 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>96 && (int)l<123)
 	        	sb.append((char)(l-32));
-	        else
-	        	sb.append((char)l);	                
+	        else{
+	        	//sb.append((char)l);	   
+	        	if (((int)l)<=0xffff)
+	 	        	sb.append((char)l);
+	 			else{
+	 			    int c= (int)l-0x10000;
+	 			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+	 			    sb.append((char)((c&0x3ff)+0xDC00));
+	 			}
+	        }
 	    }
 	    return sb.toString();
 	}
@@ -5294,8 +5456,16 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>64 && (int)l<91)
 	        	sb.append((char)(l+32));
-	        else
-	        	sb.append((char)l);	                
+	        else{
+	        	//sb.append((char)l);
+	        	 if (((int)l)<=0xffff)
+	 	        	sb.append((char)l);
+	 			else{
+	 			    int c= (int)l-0x10000;
+	 			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+	 			    sb.append((char)((c&0x3ff)+0xDC00));
+	 			}
+	        }
 	    }
 	    return sb.toString();
 	}
@@ -5311,8 +5481,16 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>64 && (int)l<91)
 	        	sb.append((char)(l+32));
-	        else
-	        	sb.append((char)l);	                
+	        else{
+	        	 if (((int)l)<=0xffff)
+	 	        	sb.append((char)l);
+	 			else{
+	 			    int c= (int)l-0x10000;
+	 			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+	 			    sb.append((char)((c&0x3ff)+0xDC00));
+	 			}
+	        	//sb.append((char)l);	
+	        }
 	    }
 	    return sb.toString();
 	}
@@ -5327,8 +5505,16 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>64 && (int)l<91)
 	        	sb.append((char)(l+32));
-	        else
-	        	sb.append((char)l);	                
+	        else{
+	        	//sb.append((char)l);
+	        	 if (((int)l)<=0xffff)
+	 	        	sb.append((char)l);
+	 			else{
+	 			    int c= (int)l-0x10000;
+	 			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+	 			    sb.append((char)((c&0x3ff)+0xDC00));
+	 			}
+	        }
 	    }
 	    //return sb.toString();
 	}
@@ -5345,8 +5531,13 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>96 && (int)l<123)
 	        	sb.append((char)(l-32));
-	        else
-	        	sb.append((char)l);	                
+	        else if ((int)l< 0xffff)
+	        	sb.append((char)l);	 
+	        else{
+ 			    int c= (int)l-0x10000;
+ 			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+ 			    sb.append((char)((c&0x3ff)+0xDC00));
+ 			}
 	    }
 	    return sb.toString();
 	}
@@ -5361,8 +5552,16 @@ public class VTDNav {
 	        offset += (int)(l>>32);
 	        if ((int)l>96 && (int)l<123)
 	        	sb.append((char)(l-32));
-	        else
-	        	sb.append((char)l);	                
+	        else{
+	        	//sb.append((char)l);	  
+	        	if (((int)l)<=0xffff)
+	 	        	sb.append((char)l);
+	 			else{
+	 			    int c= (int)l-0x10000;
+	 			    sb.append((char)(((c&0xffc00)>>10)+0xD800));
+	 			    sb.append((char)((c&0x3ff)+0xDC00));
+	 			}
+	        }
 	    }
 	    //return sb.toString();
 	}
@@ -5433,14 +5632,26 @@ public class VTDNav {
         if (l> len)
         	return false;
         //System.out.println(s);
-        for (i = 0; i < l && offset < endOffset; i++) {
+        for (i = 0; i < l && offset < endOffset; ) {
         	if (b)
         		l1 = getCharResolved(offset);
         	else
         		l1 = getChar(offset);
             int i1 = s.charAt(i);
-            if (i1 != (int) l1)
-                return false;
+            //System.out.println(" ---> "+(char)l1);
+            if (i1 < 0xd800 || i1>0xdfff){
+            	if (i1 != (int) l1)
+            		return false;
+            	i++;
+            }else if (i1<0xdc00){
+            	if((i+1)==s.length()|| (s.charAt(i+1) < (0xdc00) || s.charAt(i+1)> 0xdfff))
+					throw new NavException(" invalid unicode in string");
+				int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+				if (c != (int) l1)
+					return false;	
+				i+=2;
+            }else 
+				throw new NavException(" invalid unicode in string");
             offset += (int) (l1 >> 32);
         }	    
 		return true;
@@ -5489,14 +5700,25 @@ public class VTDNav {
             offset += (int) (l1 >> 32);
         }
         //System.out.println(s);
-        for (i = 0; i < l; i++) {
+        for (i = 0; i < l; ) {
         	if (b==true)
         		l1 = getCharResolved(offset);
         	else
         		l1 = getChar(offset);
             int i1 = s.charAt(i);
-            if (i1 != (int) l1)
-                return false;
+            if (i1 < 0xd800 || i1>0xdfff){
+            	if (i1 != (int) l1)
+            		return false;
+            	i++;
+            }else if (i1<0xdc00){
+            	if((i+1)==s.length()|| (s.charAt(i+1) < (0xdc00) || s.charAt(i+1)> 0xdfff))
+					throw new NavException(" invalid unicode in string");
+				int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+				if (c != (int) l1)
+					return false;	
+				i+=2;
+            }else 
+				throw new NavException(" invalid unicode in string");
             offset += (int) (l1 >> 32);
         }	    
 		return true;
@@ -5534,17 +5756,30 @@ public class VTDNav {
         	gOffset = offset;
         	if (endOffset-gOffset< l)
         		return false;
-			for (i = 0; i < l && gOffset < endOffset; i++) {
+			for (i = 0; i < l && gOffset < endOffset; ) {
 				if (b==true)
 					l1 = getCharResolved(gOffset);
 				else
 					l1 = getChar(gOffset);
 				int i1 = s.charAt(i);
+				//System.out.println("c--->"+(char)i1);
 				gOffset += (int) (l1 >> 32);
 				if (i ==0)
 					offset = gOffset;
-				if (i1 != (int) l1)
-					break;				
+				if (i1 < 0xd800 || i1>0xdfff){
+					if (i1 != (int) l1)
+						break;	
+					i++;
+				}else if (i1<0xdc00){
+					if((i+1)==s.length()|| (s.charAt(i+1) < (0xdc00) || s.charAt(i+1)> 0xdfff))
+						throw new NavException(" invalid unicode in string");
+					int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+					if (c != (int) l1)
+						break;	
+					i+=2;
+				}else 
+					throw new NavException(" invalid unicode in string");
+						
 			}
 			if (i==l)
 				return true;
@@ -5585,7 +5820,7 @@ public class VTDNav {
         	gOffset = offset;
         	if (endOffset-gOffset< l)
         		return false;
-			for (i = 0; i < l && gOffset < endOffset; i++) {
+			for (i = 0; i < l && gOffset < endOffset; ) {
 				if (b==true)
 					l1 = getCharResolved(gOffset);
 				else
@@ -5597,10 +5832,21 @@ public class VTDNav {
 	            if (i2>64 && i2<91)
 	            	i2 = i2+32;
 				gOffset += (int) (l1 >> 32);
-				if (i ==0)
-					offset = gOffset;
-				if (i1 != i2)
-					break;				
+				if (i1 < 0xd800 || i1>0xdfff){
+					if (i ==0)
+						offset = gOffset;
+					if (i1 != i2)
+						break;	
+					i++;	
+				}else if (i1<0xdc00){
+					if((i+1)==s.length()|| (s.charAt(i+1) < (0xdc00)  || s.charAt(i+1)> 0xdfff))
+						throw new NavException(" invalid unicode in string");
+					int c= 0x10000+ ((i1-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+					if (c != (int) l1)
+						break;	
+					i+=2;
+				}else 
+					throw new NavException(" invalid unicode in string");
 			}
 			if (i==l)
 				return true;
@@ -6287,7 +6533,12 @@ public class VTDNav {
 			index++;
 		}
 		
+		//for (int t1=0;t1<fib.size;t1++){
+		//	System.out.println("===>"+ toRawString(fib.intAt(t1)));
+		//}
+		
 		index=0;
+		if (fib.size==0) return false;
 		loop:while(index<fib.size){
 			type = getTokenType(fib.intAt(index));
 			offset = getTokenOffset(fib.intAt(index));
@@ -6309,8 +6560,6 @@ public class VTDNav {
 			}			
 			index++;
 		}
-		
-		
 		fib.clear();
 		return result;
 	}
@@ -6545,6 +6794,7 @@ public class VTDNav {
 		
 		index=0;
 		//type = getTokenType(fib.intAt(index));
+		if (fib.size==0) return false;
 		offset = getTokenOffset(fib.intAt(0));
 		result = matchSubString2(offset, index, s);		
 		fib.clear();
@@ -6568,9 +6818,31 @@ public class VTDNav {
 			else
 				l = getChar(offset);
 			c = (int)l;
-			if (i<s.length() && c==s.charAt(i)){		
-				offset += (int)(l>>32);
-				i++;
+			offset += (int)(l>>32);
+			//System.out.println(" ====> "+(char)c);
+			if (i<s.length()){ 
+				if (c<0x10000){
+					char c1= s.charAt(i);
+					if (c!=c1)		//ignore supplementary char correctness checking
+						return false;
+					i++;
+				}else {
+					if (i+1<s.length()){
+						char c1=s.charAt(i);
+						char c2=s.charAt(i+1);
+						if ( (c1>=0xd800 ||c1<=0xdfff)&&(c2 >=(0xdc00) || c2<= 0xdfff)){
+							int sc = 0x10000+ ((c1-0xd800)<<10)+((c2-0xdc00));
+							if (sc!=c)	
+								return false;
+							i+=2;
+						}else
+							return false;
+								
+					}else 
+						return false;
+				}
+				//offset += (int)(l>>32);
+				
 			}else if(i==l)
 				return true;
 			else
@@ -6586,10 +6858,32 @@ public class VTDNav {
 					l = getCharResolved(offset);
 				else
 					l = getChar(offset);
-				c = (int)l;//System.out.println("c-===>"+(char)c);
-				if (i<s.length() && c==s.charAt(i)){		
-					offset += (int)(l>>32);
-					i++;
+				c = (int)l;
+				offset += (int)(l>>32);
+				//System.out.println("c-===>"+(char)c);
+				if (i<s.length()){ 
+					if (c<0x10000){
+						char c1= s.charAt(i);
+						if (c!=c1)		//ignore supplementary char correctness checking
+							return false;
+						i++;
+					}else {
+						if (i+1<s.length()){
+							char c1=s.charAt(i);
+							char c2=s.charAt(i+1);
+							if ( (c1>=0xd800 ||c1<=0xdfff)&&(c2 >=(0xdc00) || c2<= 0xdfff)){
+								int sc = 0x10000+ ((c1-0xd800)<<10)+((c2-0xdc00));
+								if (sc!=c)	
+									return false;
+								i+=2;
+							}else
+								return false;
+									
+						}else 
+							return false;
+					}
+					//offset += (int)(l>>32);
+					
 				}else if(i==l){
 					break loop;
 				}
@@ -6624,9 +6918,29 @@ public class VTDNav {
 			c = (int)l;
 			offset += (int)(l>>32);
 			//System.out.println("c--->"+(char)c);
-			if (i<s.length() && c==s.charAt(i)){		
+			if (i<s.length()){ 
+				if (c<0x10000){
+					char c1= s.charAt(i);
+					if (c!=c1)		//ignore supplementary char correctness checking
+						return false;
+					i++;
+				}else {
+					if (i+1<s.length()){
+						char c1=s.charAt(i);
+						char c2=s.charAt(i+1);
+						if ( (c1>=0xd800 ||c1<=0xdfff)&&(c2 >=(0xdc00) || c2<= 0xdfff)){
+							int sc = 0x10000+ ((c1-0xd800)<<10)+((c2-0xdc00));
+							if (sc!=c)	
+								return false;
+							i+=2;
+						}else
+							return false;
+								
+					}else 
+						return false;
+				}
 				//offset += (int)(l>>32);
-				i++;
+				
 			}else if(i==s.length())
 				return true;
 			else
@@ -6644,9 +6958,29 @@ public class VTDNav {
 					l = getChar(offset);
 				c = (int)l;
 				offset += (int)(l>>32);
-				if (i<s.length() && c==s.charAt(i)){		
+				if (i<s.length()){ 
+					if (c<0x10000){
+						char c1= s.charAt(i);
+						if (c!=c1)		//ignore supplementary char correctness checking
+							return false;
+						i++;
+					}else {
+						if (i+1<s.length()){
+							char c1=s.charAt(i);
+							char c2=s.charAt(i+1);
+							if ( (c1>=0xd800 ||c1<=0xdfff)&&(c2 >=(0xdc00) || c2<= 0xdfff)){
+								int sc = 0x10000+ ((c1-0xd800)<<10)+((c2-0xdc00));
+								if (sc!=c)	
+									return false;
+								i+=2;
+							}else
+								return false;
+									
+						}else 
+							return false;
+					}
+					//offset += (int)(l>>32);
 					
-					i++;
 				}else if(i==s.length())
 					return true;
 				else
@@ -6662,7 +6996,7 @@ public class VTDNav {
 	final protected boolean XPathStringVal_StartsWith(int j, String s) throws NavException{
 		int tokenType;
 		int index = j + 1;
-		int depth,length,i=0, offset, endOffset, len,c;
+		int depth,i=0, offset, endOffset, len,c;
 		long l;
 		int dp = getTokenDepth(j);
 		boolean r = false;//default
@@ -6685,11 +7019,32 @@ public class VTDNav {
 		    	while(offset<endOffset){
 		    		l = getCharResolved(offset);
 		    		c = (int)l;
-		    		
-		    		if (i< s.length()&& c == s.charAt(i)){
-		    			offset += (int)(l>>32);
-		    			i++;
-		    		}else if (i==s.length())
+		    		offset += (int)(l>>32);
+		    		//System.out.println("-====>"+(char)c);
+		    		if (i< s.length()){
+		    			if (c<0x10000){
+							char c1= s.charAt(i);
+							if (c!=c1)		//ignore supplementary char correctness checking
+								return false;
+							i++;
+						}else {
+							if (i+1<s.length()){
+								char c1=s.charAt(i);
+								char c2=s.charAt(i+1);
+								if ( (c1>=0xd800 ||c1<=0xdfff)&&(c2 >=(0xdc00) || c2<= 0xdfff)){
+									int sc = 0x10000+ ((c1-0xd800)<<10)+((c2-0xdc00));
+									if (sc!=c)	
+										return false;
+									i+=2;
+								}else
+									return false;
+										
+							}else 
+								return false;
+		    			}
+		    			 if (i==s.length())
+			    			return true;
+		    		}else if (i>=s.length())
 		    			return true;
 		    		else
 		    			return false;
@@ -6705,9 +7060,24 @@ public class VTDNav {
 		    		l = getChar(offset);
 		    		c = (int)l;
 		    		
-		    		if (i< s.length()&& c == s.charAt(i)){
-		    			offset += (int)(l>>32);
-		    			i++;
+		    		if (i< s.length()){
+		    			if ((s.charAt(i) &0xfb00)!= 0xd800) { 
+		    				if (c == s.charAt(i)){
+		    					offset += (int)(l>>32);
+		    					i++;
+		    				}else 
+		    					return false;
+		    			}else{
+		    				if((i+1)==s.length()|| (s.charAt(i+1) < (0xdc00) || s.charAt(i+1)> 0xdfff))
+		    					throw new NavException(" invalid unicode in string");
+		    				int c1= 0x10000+ ((s.charAt(i)-0xd800)<<10)+((s.charAt(i+1)-0xdc00));
+		    				if (c1 != c)
+		    					return false;	
+		    				i+=2;
+		    				offset += (int)(l>>32);
+		    			}
+		    			 if (i==s.length())
+			    			return true;
 		    		}else if (i==s.length())
 		    			return true;
 		    		else
@@ -6771,6 +7141,7 @@ public class VTDNav {
 		}
 		//if (t<s.length())
 		//	return false;
+		if (fib.size==0)return false;
 		for (i=fib.size-1;i>=0;i--){
 			t+=getStringLength(fib.intAt(i));
 			if (t>=s.length()){
@@ -8773,7 +9144,14 @@ public class VTDNav {
 						if(isWS(c)){
 							
 						}else{
-							sb.append((char)c);
+							//sb.append((char)c);
+							if (c<=0xffff)
+								sb.append((char)c);
+						    else{
+						        int c1= c-0x10000;
+						        sb.append((char)(((c1&0xffc00)>>10)+0xD800));
+						        sb.append((char)((c1&0x3ff)+0xDC00));
+						    }
 							state =1;
 						}
 						break;
@@ -8783,7 +9161,14 @@ public class VTDNav {
 							sb.append((char)' ');
 							state =2;
 						}else{
-							sb.append((char)c);
+							//sb.append((char)c);
+							if (c<=0xffff)
+								sb.append((char)c);
+						    else{
+						        int c1= c-0x10000;
+						        sb.append((char)(((c1&0xffc00)>>10)+0xD800));
+						        sb.append((char)((c1&0x3ff)+0xDC00));
+						    }
 						}
 						break;
 						
@@ -8791,7 +9176,14 @@ public class VTDNav {
 						if (isWS(c)){
 							
 						}else{
-							sb.append((char)c);
+							//sb.append((char)c);
+							if (c<=0xffff)
+								sb.append((char)c);
+						    else{
+						        int c1= c-0x10000;
+						        sb.append((char)(((c1&0xffc00)>>10)+0xD800));
+						        sb.append((char)((c1&0x3ff)+0xDC00));
+						    }
 							state = 1;
 						}
 						break;
@@ -8809,7 +9201,14 @@ public class VTDNav {
 						if(isWS(c)){
 							
 						}else{
-							sb.append((char)c);
+							//sb.append((char)c);
+							if (c<=0xffff)
+								sb.append((char)c);
+						    else{
+						        int c1= c-0x10000;
+						        sb.append((char)(((c1&0xffc00)>>10)+0xD800));
+						        sb.append((char)((c1&0x3ff)+0xDC00));
+						    }
 							state =1;
 						}
 						break;
@@ -8818,7 +9217,14 @@ public class VTDNav {
 							sb.append((char)' ');
 							state =2;
 						}else{
-							sb.append((char)c);
+							//sb.append((char)c);
+							if (c<=0xffff)
+								sb.append((char)c);
+						    else{
+						        int c1= c-0x10000;
+						        sb.append((char)(((c1&0xffc00)>>10)+0xD800));
+						        sb.append((char)((c1&0x3ff)+0xDC00));
+						    }
 						}
 						break;
 					
@@ -8826,7 +9232,14 @@ public class VTDNav {
 						if (isWS(c)){
 							
 						}else{
-							sb.append((char)c);
+							//sb.append((char)c);
+							if (c<=0xffff)
+								sb.append((char)c);
+						    else{
+						        int c1= c-0x10000;
+						        sb.append((char)(((c1&0xffc00)>>10)+0xD800));
+						        sb.append((char)((c1&0x3ff)+0xDC00));
+						    }
 							state = 1;
 						}
 						break;
@@ -9136,7 +9549,10 @@ public class VTDNav {
 		        while (offset < endOffset) {
 		            l = getCharResolved(offset);
 		            offset += (int) (l >> 32);
-		            len1++;
+		            if ((int)l <0x10000)
+		            	len1++;
+		            else 
+		            	len1+=2;
 		        }
 		        length +=len1;
 		    }else if ( tokenType== VTDNav.TOKEN_CDATA_VAL ){
@@ -9152,7 +9568,10 @@ public class VTDNav {
 		    	while (offset < endOffset) {
 		            l = getChar(offset);
 		            offset += (int) (l >> 32);
-		            len1++;
+		            if ((int)l <0x10000)
+		            	len1++;
+		            else 
+		            	len1+=2;
 		        }
 		    	length +=len1;
 		    }
@@ -9311,6 +9730,9 @@ public class VTDNav {
 		return ((minus) ? (-v) : v);
 	}
 	
+	private boolean isDigit2(int c){
+		return (c-'0'<10);
+	}
 	private boolean isDigit(int c){
 		if (c>='0' && c<='9')
 			return true;
