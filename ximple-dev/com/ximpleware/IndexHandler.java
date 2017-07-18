@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2017 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -806,7 +806,8 @@ class IndexHandler {
            size = (int)reverseLong(dis.readLong());
         // read XML bytes
         byte[] XMLDoc = new byte[size];
-        dis.read(XMLDoc);
+       
+        dis.readFully(XMLDoc);
         if ((size & 0x7)!= 0){
             int t = (((size>>3)+1)<<3) - size;
             while(t>0){
@@ -815,70 +816,82 @@ class IndexHandler {
             }
         }
         
-        vg.setDoc(XMLDoc);
-        
+        vg.setDoc_loadIndex(XMLDoc);
+       
         if (endian ==1){
             // read vtd records
             int vtdSize = (int)dis.readLong();
+            FixedLongBuffer fib = new FixedLongBuffer(vtdSize);
             while(vtdSize>0){
-                vg.VTDBuffer.append(dis.readLong());
+                fib.append(dis.readLong());
                 vtdSize--;
             }
+            vg.VTDBuffer = fib;
             // read L1 LC records
             int l1Size = (int)dis.readLong();
-                     
+            FixedLongBuffer fib2 = new FixedLongBuffer(l1Size); 
             while(l1Size > 0){
                 long l = dis.readLong();
                // System.out.println(" l-==> "+Long.toHexString(l));
-                vg.l1Buffer.append(l);
+                fib2.append(l);
                 l1Size--;
             }
+            vg.l1Buffer = fib2;
             //System.out.println("++++++++++ ");
             // read L2 LC records
             int l2Size = (int)dis.readLong();
+            FixedLongBuffer fib3 = new FixedLongBuffer(l2Size); 
             while(l2Size > 0){
-                vg.l2Buffer.append(dis.readLong());
+                fib3.append(dis.readLong());
                 l2Size--;
             }
+            vg.l2Buffer = fib3;
             //System.out.println("++++++++++ ");   
             // read L3 LC records
             int l3Size = (int) dis.readLong();
-			if (vg.shallowDepth) {				
+			if (vg.shallowDepth) {	
+				FixedIntBuffer fib4 = new FixedIntBuffer(l3Size);
 				if (intLongSwitch == 1) { // l3 uses ints
 					while (l3Size > 0) {
-						vg.l3Buffer.append(dis.readInt());
+						fib4.append(dis.readInt());
 						l3Size--;
 					}
 				} else {
 					while (l3Size > 0) {
-						vg.l3Buffer.append((int) (dis.readLong() >> 32));
+						fib4.append((int) (dis.readLong() >> 32));
 						l3Size--;
 					}
 				}
+				vg.l3Buffer = fib4;
 			} else {
+				FixedLongBuffer fib4 = new FixedLongBuffer(l3Size); 
 				while (l3Size > 0) {
-					vg._l3Buffer.append(dis.readLong());
+					fib4.append(dis.readLong());
 					l3Size--;
 				}
-				
+				vg._l3Buffer = fib4;
 				int l4Size = (int)dis.readLong();
+				FixedLongBuffer fib5 = new FixedLongBuffer(l4Size);
 	            while(l4Size > 0){
-	                vg._l4Buffer.append(dis.readLong());
+	                fib5.append(dis.readLong());
 	                l4Size--;
 	            }
-	            
+	            vg._l4Buffer = fib5;
 	            int l5Size = (int)dis.readLong();
+	            FixedIntBuffer fib6 = new FixedIntBuffer(l5Size);
 	            if (intLongSwitch == 1) { // l5 uses ints
+	            	
 	            	while(l5Size > 0){
-	            		vg._l5Buffer.append(dis.readInt());
+	            		fib6.append(dis.readInt());
 	            		l5Size--;
 	            	}
 	            }else {
 	            	while (l5Size > 0) {
-						vg._l5Buffer.append((int) (dis.readLong() >> 32));
+						fib6.append((int) (dis.readLong() >> 32));
 						l5Size--;
 					}
 	            }
+	            vg._l5Buffer = fib6;
 			}
         } else {
             // read vtd records
@@ -1157,7 +1170,8 @@ class IndexHandler {
      *
      */
     private static long reverseLong(long l){
-        long t = ((l & 0xff00000000000000L)>>>56)
+    	return Long.reverseBytes(l);
+        /*long t = ((l & 0xff00000000000000L)>>>56)
         | ((l & 0xff000000000000L)>>40)
         | ((l & 0xff0000000000L)>>24)
         | ((l & 0xff00000000L)>>8)
@@ -1166,7 +1180,7 @@ class IndexHandler {
         | ((l & 0xff00L)<<40)
         | ((l & 0xffL)<<56);
         //System.out.println(" t ==> "+Long.toHexString(l));
-        return t;
+        return t;*/
     }
     
     /**
@@ -1176,11 +1190,12 @@ class IndexHandler {
      *
      */
     private static int reverseInt(int i){
-        int t = ((i & 0xff000000) >>> 24)
+    	return Integer.reverseBytes(i);
+        /*int t = ((i & 0xff000000) >>> 24)
         | ((i & 0xff0000) >> 8)
         | ((i & 0xff00) << 8)
         | ((i & 0xff) << 24);
-        return t;
+        return t;*/
     }
     
     private static long adjust(long l, int i){
