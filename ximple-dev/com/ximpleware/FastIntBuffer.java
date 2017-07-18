@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2017 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class FastIntBuffer implements IIntBuffer {
     }
     /**
      * Constructor with adjustable buffer page size of the value bfz
-     * The actually page size is 1<<e
+     * The actually page size is 1&lt;&lt;e
      * @param e int  is the size of the internal buffer
      */
     public FastIntBuffer(int e) {
@@ -83,7 +83,7 @@ public class FastIntBuffer implements IIntBuffer {
  * Append an int array to the end of this buffer instance
  * @param int_array int[]
  */
-public final void append(int[] int_array) {
+public void append(int[] int_array) {
     /*if (int_array == null) {
         throw new NullPointerException();
     }*/
@@ -181,7 +181,7 @@ public final void append(int[] int_array) {
  * Append a single int to the end of this buffer Instance
  * @param i int
  */
-public final void append(int i) {
+public void append(int i) {
 
     //int[] lastBuffer;
     //int lastBufferIndex;
@@ -217,7 +217,7 @@ public final void append(int i) {
  * Returns the total allocated capacity of this buffer instance.
  * @return int
  */
-public final int getCapacity() {
+public int getCapacity() {
     return capacity;
 }
 /**
@@ -302,7 +302,7 @@ public final int getPageSize() {
  * @return int
  * @param index int
  */
-public final int intAt(int index) {
+public int intAt(int index) {
     /*if (index > size-1) {
         throw new IndexOutOfBoundsException();
     }*/
@@ -318,7 +318,7 @@ public final int intAt(int index) {
  * @param index int
  * @param newValue int
  */
-public final void modifyEntry(int index, int newValue) {
+public void modifyEntry(int index, int newValue) {
 	
         /*if (index > size - 1) {
             throw new IndexOutOfBoundsException(" index out of range");

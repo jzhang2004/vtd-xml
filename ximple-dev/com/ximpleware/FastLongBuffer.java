@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002-2015 XimpleWare, info@ximpleware.com
+ * Copyright (C) 2002-2017 XimpleWare, info@ximpleware.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,9 +61,17 @@ public class FastLongBuffer implements ILongBuffer {
         r = 1023;
         bufferArrayList = new arrayList();
     }
+    
+    public FastLongBuffer(int bufSize, double d ){
+    	size=0;
+    	capacity = bufSize;
+    	pageSize = bufSize;
+    	r = 0xffffffff;
+    	exp = 32;
+    }
 /**
  * Construct a FastLongBuffer instance with specified page size
- * @param e int (so that pageSize = (1<<e)) 
+ * @param e int (so that pageSize = (1&lt;&lt;e)) 
  */
 public FastLongBuffer(int e) {
     if (e <= 0) {
@@ -78,7 +86,7 @@ public FastLongBuffer(int e) {
 
 /**
  * Construct a FastLongBuffer instance with specified page size
- * @param e int (so that pageSize = (1<<e))
+ * @param e int (so that pageSize = (1&lt;&lt;e))
  * @param c int (suggest initial capacity of  ArrayList
  */
 public FastLongBuffer(int e,int c) {
@@ -186,7 +194,7 @@ public void append(long[] long_array) {
  * Append an integer to the end of this array buffer
  * @param i long
  */
-public final void append(long i) {
+public void append(long i) {
    //long[] lastBuffer;
    //int lastBufferIndex;
     /*if (bufferArrayList.size == 0) {
@@ -221,7 +229,7 @@ public final void append(long i) {
  * Get the capacity of the buffer.
  * @return int
  */
-public final int getCapacity() {
+public int getCapacity() {
 	return capacity;
 }
 /**
@@ -302,7 +310,7 @@ public final int getPageSize() {
  * @return long
  * @param index int
  */
-public final long longAt(int index) {
+public long longAt(int index) {
     /*if (index >= size) {
         throw new IndexOutOfBoundsException();
     }*/
@@ -316,7 +324,7 @@ public final long longAt(int index) {
  * @return int
  * @param index int
  */
- public final int lower32At(int index) {
+ public int lower32At(int index) {
     /*if ( index > size) {
         throw new IndexOutOfBoundsException();
     }*/
@@ -330,7 +338,7 @@ public final long longAt(int index) {
  * @param index int
  * @param newValue long
  */
-public final void modifyEntry(int index, long newValue) {
+public void modifyEntry(int index, long newValue) {
 
     /*if ( index > size + 1) {
         throw new IndexOutOfBoundsException();
@@ -377,7 +385,7 @@ public long[] toLongArray() {
  * @return int
  * @param index int
  */
-public final int upper32At(int index) {
+public int upper32At(int index) {
     /*if ( index >= size) {
         throw new IndexOutOfBoundsException();
     }*/
