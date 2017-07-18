@@ -1493,6 +1493,8 @@ public class VTDGen {
 		//new ParseException("LcDepth can only take the value of 3 or 5");
 		if (i==5)
 			shallowDepth = false;
+		else 
+			shallowDepth = true;
 	}
 	/**
 	 * Write white space records that are ignored by default 
@@ -4157,7 +4159,7 @@ public class VTDGen {
 		}*/
 		//ch = r.getChar();
 		if (ch == '?') {
-			// insert zero length pi name tag
+			// insert zero length pi value tag
 			if (singleByteEncoding){
 				_writeVTD(
 					(temp_offset),
@@ -4356,6 +4358,33 @@ public class VTDGen {
 	 */
 	public void setDoc(byte[] ba) {
 	    setDoc(ba,0,ba.length);
+	}
+	
+	protected void setDoc_loadIndex(byte[] ba){
+		int os = 0;
+		int len=ba.length;
+		if (ba == null || os < 0 || len == 0 || ba.length < os + len) {
+			throw new IllegalArgumentException("Illegal argument for setDoc");
+		}
+		int a;
+		br = false;
+		depth = -1;
+		increment = 1;
+		BOM_detected = false;
+		must_utf_8 = false;
+		ch = ch_temp = 0;
+		temp_offset = 0;
+		XMLDoc = ba;
+		docOffset = offset = os;
+		docLen = len;
+		endOffset = os + len;
+		last_l1_index = last_l2_index = last_l3_index = last_l4_index = last_depth = 0;
+
+		currentElementRecord = 0;
+		nsBuffer1.size = 0;
+		nsBuffer2.size = 0;
+		nsBuffer3.size = 0;
+		r = new UTF8Reader();
 	}
 	/**
 	 * Set the XMLDoc container. Also set the offset and len of the document 
