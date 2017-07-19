@@ -18,8 +18,6 @@
 /*VTD-XML is protected by US patent 7133857, 7260652, an 7761459*/
 package com.ximpleware.extended;
 
-import com.ximpleware.FastIntBuffer;
-
 /**
  *
  * This is the implementation of a hash table for integers
